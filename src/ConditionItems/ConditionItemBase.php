@@ -298,13 +298,13 @@ abstract class ConditionItemBase implements ConditionItemInterface
                     case FilterOption::NOT_NULL:
                         return !is_nullorempty($v);
                     case FilterOption::EQ:
-                        return $v == $condition_value;
+                        return isMatchString($v, $condition_value);
                     case FilterOption::NE:
-                        return $v != $condition_value;
+                        return !isMatchString($v, $condition_value);
                     case FilterOption::LIKE:
-                        return (strpos($v, $condition_value) !== false);
+                        return !is_null($v) && !is_null($condition_value) && (strpos(strval($v), strval($condition_value)) !== false);
                     case FilterOption::NOT_LIKE:
-                        return (strpos($v, $condition_value) === false);
+                        return is_null($v) || is_null($condition_value) || (strpos(strval($v), strval($condition_value)) === false);
                     case FilterOption::NUMBER_GT:
                         return $v > $condition_value;
                     case FilterOption::NUMBER_GTE:

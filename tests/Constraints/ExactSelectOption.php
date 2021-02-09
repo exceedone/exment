@@ -31,6 +31,17 @@ class ExactSelectOption extends PageConstraint
     protected $realOptions;
 
     /**
+     * Error type
+     * 
+     * 1: object not found.
+     * 2: Not contains "select".
+     * 3: Not match options.
+     * 
+     * @var int|null
+     */
+    protected $errorType;
+
+    /**
      * Create a new constraint instance.
      *
      * @param  string  $element
@@ -53,18 +64,21 @@ class ExactSelectOption extends PageConstraint
     {
         $elements = $this->crawler($crawler)->filter($this->element);
         if($elements->count() == 0){
+            $this->errorType = 1;
             return false;
         }
 
         foreach ($elements as $element) {
             $element = new Crawler($element);
             if($element->nodeName() != 'select'){
+                $this->errorType = 2;
                 return false;
             }
 
             $this->realOptions = $this->getOptionsItemFromSelect($element);
 
             if(!$this->test2Array()){
+                $this->errorType = 3;
                 return false;
             }
         }
@@ -131,6 +145,12 @@ class ExactSelectOption extends PageConstraint
      */
     protected function getFailureDescription()
     {
+        if($this->errorType == 1){
+            return sprintf('[%s] not found', $this->element);
+        }
+        if($this->errorType == 2){
+            return sprintf('[%s] is not select', $this->element);
+        }
         return sprintf('[%s] exacts options %s, real option is %s', $this->element, json_encode($this->options), json_encode($this->realOptions));
     }
 
@@ -141,6 +161,6 @@ class ExactSelectOption extends PageConstraint
      */
     protected function getReverseFailureDescription()
     {
-        return sprintf('[%s] does not exact options %s, real option is %s', $this->element, json_encode($this->options), json_encode($this->realOptions));
+        return $this->getReverseFailureDescription();
     }
 }
