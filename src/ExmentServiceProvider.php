@@ -309,7 +309,7 @@ class ExmentServiceProvider extends ServiceProvider
             return Plugin::getPluginPageModel();
         });
         $this->app->bind(PublicForm::class, function ($app) {
-            return PublicForm::getPublicFormByRequest(request()->get('key'));
+            return PublicForm::getPublicFormByRequest(request()->get('formkey'));
         });
         $this->app->bind(CustomTable::class, function ($app) {
             return CustomTable::findByEndpoint();

@@ -6,7 +6,7 @@ var Exment;
             this.prefix = 'publicformapi';
         }
         getData() {
-            return { key: $('input.key').val() };
+            return { formkey: $('input.formkey').val() };
         }
         ;
     }

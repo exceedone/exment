@@ -324,6 +324,26 @@ if (!function_exists('admin_urls_query')) {
         return $url . '?' . http_build_query($query);
     }
 }
+if (!function_exists('assets_query')) {
+    /**
+     * Join url paths and query. Please set last arg
+     */
+    function assets_query(...$pass_array)
+    {
+        // get last arg
+        $args = func_get_args();
+        $count = count($args);
+        if (count($args) <= 1) {
+            return asset(url_join($args));
+        }
+
+        $args = collect($args);
+        $query = $args->last();
+
+        $url = asset(url_join(...$args->slice(0, $count - 1)->toArray()));
+        return $url . '?' . http_build_query($query);
+    }
+}
 if (!function_exists('namespace_join')) {
     /**
      * Join NameSpace.

@@ -42,7 +42,7 @@ class PublicForm extends ModelBase
      */
     public function getUrl() : string
     {
-        return asset(config('exment.publicform_route_prefix', 'publicform') . '?key=' . $this->uuid);
+        return asset(config('exment.publicform_route_prefix', 'publicform') . '?formkey=' . $this->uuid);
     }
 
 
@@ -99,9 +99,9 @@ class PublicForm extends ModelBase
             ->setView('exment::public-form.form')
             ->setAction(asset(config('exment.publicform_route_prefix', 'publicform')));
 
-        $form->hidden('key')
+        $form->hidden('formkey')
             ->default($this->uuid);
-        $form->ignore('key');
+        $form->ignore('formkey');
 
         return $form;
     }

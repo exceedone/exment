@@ -138,7 +138,7 @@ class Initialize
         Config::set('auth.guards.publicform', [
             'driver' => 'token',
             'provider' => 'publicform-provider',
-            'input_key' => 'key',
+            'input_key' => 'formkey',
             'storage_key' => 'uuid',
         ]);
         Config::set('auth.providers.publicform-provider', [

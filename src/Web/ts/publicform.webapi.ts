@@ -3,7 +3,7 @@ namespace Exment {
         protected prefix = 'publicformapi';  
 
         protected getData() : {}{
-            return {key: $('input.key').val()};
+            return {formkey: $('input.formkey').val()};
         };
     }
 }
