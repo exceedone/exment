@@ -110,4 +110,38 @@ class Text extends CustomItem
             'help' => count($help_regexes) ? sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes)) : null,
         ];
     }
+
+    
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // text
+        // string length
+        $form->number('string_length', exmtrans("custom_column.options.string_length"))
+            ->default(256);
+
+        $form->checkbox('available_characters', exmtrans("custom_column.options.available_characters"))
+            ->options(CustomColumn::getAvailableCharacters()->pluck('label', 'key'))
+            ->help(exmtrans("custom_column.help.available_characters"))
+            ;
+
+        $form->switchbool('suggest_input', exmtrans("custom_column.options.suggest_input"))
+            ->help(exmtrans("custom_column.help.suggest_input"));
+
+        if (boolval(config('exment.expart_mode', false))) {
+            $manual_url = getManualUrl('column#'.exmtrans('custom_column.options.regex_validate'));
+            $form->text('regex_validate', exmtrans("custom_column.options.regex_validate"))
+                ->rules('regularExpression')
+                ->help(sprintf(exmtrans("custom_column.help.regex_validate"), $manual_url));
+        }
+
+    }
+
 }

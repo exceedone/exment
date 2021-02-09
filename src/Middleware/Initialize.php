@@ -464,6 +464,7 @@ class Initialize
             //'relationTable'          => Field\RelationTable::class,
             'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,
+            'numberRange'           => Field\NumberRange::class,
             'valueModal'          => Field\ValueModal::class,
             'changeField'          => Field\ChangeField::class,
             'progressTracker'          => Field\ProgressTracker::class,

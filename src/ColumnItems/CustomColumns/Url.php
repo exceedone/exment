@@ -26,4 +26,17 @@ class Url extends CustomItem
     {
         return Field\Url::class;
     }
+
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form)
+    {
+        $form->url('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"));
+    }
 }

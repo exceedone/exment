@@ -150,4 +150,26 @@ class Decimal extends CustomItem
         }
         return floatval($value);
     }
+
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $this->setCustomColumnOptionFormNumber($form);
+        
+        $form->switchbool('percent_format', exmtrans("custom_column.options.percent_format"))
+            ->help(exmtrans("custom_column.help.percent_format"));
+
+        $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
+            ->default(2)
+            ->min(0)
+            ->max(8);
+    }
+
 }

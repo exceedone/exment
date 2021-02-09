@@ -24,7 +24,11 @@ trait ImportValueTrait
         // replace value
         $list = [];
         foreach ($value as $v) {
-            $k = $this->matchValue($v, $options);
+            if (method_exists($this, 'isFreeInput') && $this->isFreeInput()) {
+                $k = $v;
+            } else {
+                $k = $this->matchValue($v, $options);
+            }
             if ($k === null) {
                 break;
             }

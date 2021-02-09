@@ -227,6 +227,23 @@ abstract class CustomItem implements ItemInterface
 
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
+
+
+    /**
+     * Get default value.
+     *
+     * @return mixed
+     */
+    public function getDefaultValue()
+    {
+        $options = $this->custom_column->options;
+        // default
+        if (array_key_value_exists('default', $options)) {
+            return array_get($options, 'default');
+        }
+        return null;
+    }
+
     
     public function getFilterField($value_type = null)
     {
@@ -297,7 +314,7 @@ abstract class CustomItem implements ItemInterface
                 $field->displayText($this->html())->escape(false)->default($this->value)->prepareDefault();
             } elseif ($this->viewonly($form_column_options) && !isset($this->value)) {
                 // if view only and create, set default value
-                $this->value = array_get($options, 'default');
+                $this->value = $this->getDefaultValue();
                 $field->displayText($this->html())->escape(false)->prepareDefault();
                 $this->value = null;
             } elseif ($this->viewonly($form_column_options)) {
@@ -311,15 +328,8 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default
-        if (array_key_value_exists('default', $options)) {
-            $field->default(array_get($options, 'default'));
-        }
-
-        // default (login user)
-        if ($classname != ExmentField\InitOnly::class) {
-            if (boolval(array_get($options, 'login_user_default'))) {
-                $field->default(\Exment::getUserId());
-            }
+        if (is_null($this->id) && !is_null($default = $this->getDefaultValue())) {
+            $field->default($default);
         }
 
         // readonly
@@ -667,6 +677,7 @@ abstract class CustomItem implements ItemInterface
         return true;
     }
 
+    
     protected function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
@@ -708,5 +719,30 @@ abstract class CustomItem implements ItemInterface
         }
 
         return true;
+    }
+
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+    }
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form)
+    {
+        $form->text('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"));
     }
 }

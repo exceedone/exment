@@ -191,6 +191,8 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post("column/{tableKey}/calcModal", 'CustomColumnController@calcModal');
             $router->post("column/{tableKey}/{id}/calcModal", 'CustomColumnController@calcModal');
+            $router->get("column/{tableKey}/columnTypeHtml", 'CustomColumnController@columnTypeHtml');
+            $router->get("column/{tableKey}/{id}/columnTypeHtml", 'CustomColumnController@columnTypeHtml');
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
