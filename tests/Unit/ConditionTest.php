@@ -343,7 +343,6 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnDate(Carbon::today()->format('Y-m-d'), [null], FilterOption::DAY_TODAY_OR_BEFORE, true);
         $this->_testColumnDate(Carbon::today()->subDays(1)->format('Y-m-d'), [null], FilterOption::DAY_TODAY_OR_BEFORE, true);
         $this->_testColumnDate(Carbon::today()->subMonths(1)->format('Ymd'), [null], FilterOption::DAY_TODAY_OR_BEFORE, true);
-        // TODO 井坂 要修正
         $this->_testColumnDate(Carbon::now()->format('Y-m-d H:i:s.u'), [null], FilterOption::DAY_TODAY_OR_BEFORE, true);
     }
     public function testColumnDateDayTodayOrBeforeFalse()

@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Validator\ChangeFieldRule;
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Carbon\Carbon;
 
 /**
@@ -272,121 +273,10 @@ abstract class ConditionItemBase implements ConditionItemInterface
      */
     protected function compareValue($condition, $value)
     {
-        if (!is_array($value)) {
-            $value = [$value];
-        }
-
-        $condition_value = $condition->condition_value;
-        if (!is_array($condition_value)) {
-            $condition_value = [$condition_value];
-        }
-
+        $conditionValue = $condition->condition_value;
         $compareOption = FilterOption::getCompareOptions($condition->condition_key);
-        return collect($value)->filter(function ($v) use ($compareOption) {
-            switch ($compareOption) {
-                case FilterOption::NULL:
-                case FilterOption::NOT_NULL:
-                    return true;
-                default:
-                    return isset($v);
-            }
-        })->contains(function ($v) use ($condition_value, $compareOption) {
-            return collect($condition_value)->contains(function ($condition_value) use ($v, $compareOption) {
-                switch ($compareOption) {
-                    case FilterOption::NULL:
-                        return is_nullorempty($v);
-                    case FilterOption::NOT_NULL:
-                        return !is_nullorempty($v);
-                    case FilterOption::EQ:
-                        return isMatchString($v, $condition_value);
-                    case FilterOption::NE:
-                        return !isMatchString($v, $condition_value);
-                    case FilterOption::LIKE:
-                        return !is_null($v) && !is_null($condition_value) && (strpos(strval($v), strval($condition_value)) !== false);
-                    case FilterOption::NOT_LIKE:
-                        return is_null($v) || is_null($condition_value) || (strpos(strval($v), strval($condition_value)) === false);
-                    case FilterOption::NUMBER_GT:
-                        return $v > $condition_value;
-                    case FilterOption::NUMBER_GTE:
-                        return $v >= $condition_value;
-                    case FilterOption::NUMBER_LT:
-                        return $v < $condition_value;
-                    case FilterOption::NUMBER_LTE:
-                        return $v <= $condition_value;
-                    case FilterOption::USER_EQ_USER:
-                        return $v == \Exment::user()->base_user->id;
-                    case FilterOption::USER_NE_USER:
-                        return $v != \Exment::user()->base_user->id;
-                    case FilterOption::DAY_ON:
-                        $condition_dt = Carbon::parse($condition_value);
-                        return Carbon::parse($v)->isSameDay($condition_dt);
-                    case FilterOption::DAY_ON_OR_AFTER:
-                        $condition_dt = Carbon::parse($condition_value);
-                        return Carbon::parse($v)->gte($condition_dt);
-                    case FilterOption::DAY_ON_OR_BEFORE:
-                        $condition_dt = Carbon::parse($condition_value)->addDays(1);
-                        return Carbon::parse($v)->lt($condition_dt);
-                    case FilterOption::DAY_TODAY_OR_AFTER:
-                    case FilterOption::DAY_TODAY_OR_BEFORE:
-                        $today = Carbon::today();
-                        switch ($compareOption) {
-                            case FilterOption::DAY_TODAY_OR_AFTER:
-                                return Carbon::parse($v)->gte($today);
-                            case FilterOption::DAY_TODAY_OR_BEFORE:
-                                return Carbon::parse($v)->lte($today);
-                        }
-                        // no break
-                    case FilterOption::DAY_TODAY:
-                        return Carbon::parse($v)->isToday();
-                    case FilterOption::DAY_YESTERDAY:
-                        return Carbon::parse($v)->isYesterday();
-                    case FilterOption::DAY_TOMORROW:
-                        return Carbon::parse($v)->isTomorrow();
-                    case FilterOption::DAY_THIS_MONTH:
-                        $target_day = Carbon::parse($v);
-                        return $target_day->isCurrentYear() && $target_day->isCurrentMonth();
-                    case FilterOption::DAY_NEXT_MONTH:
-                        $target_day = Carbon::parse($v);
-                        return $target_day->isCurrentYear() && $target_day->isNextMonth();
-                    case FilterOption::DAY_LAST_MONTH:
-                        $target_day = Carbon::parse($v);
-                        return $target_day->isCurrentYear() && $target_day->isLastMonth();
-                    case FilterOption::DAY_THIS_YEAR:
-                        return Carbon::parse($v)->isCurrentYear();
-                    case FilterOption::DAY_NEXT_YEAR:
-                        return Carbon::parse($v)->isNextYear();
-                    case FilterOption::DAY_LAST_YEAR:
-                        return Carbon::parse($v)->isLastYear();
-                    case FilterOption::DAY_TODAY_OR_AFTER:
-                    case FilterOption::DAY_TODAY_OR_BEFORE:
-                    case FilterOption::DAY_LAST_X_DAY_OR_AFTER:
-                    case FilterOption::DAY_NEXT_X_DAY_OR_AFTER:
-                    case FilterOption::DAY_LAST_X_DAY_OR_BEFORE:
-                    case FilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
-                        $today = Carbon::today();
-                        // compare target day and calculated day
-                        switch ($compareOption) {
-                            case FilterOption::DAY_TODAY_OR_AFTER:
-                                return Carbon::parse($v)->gte($today);
-                            case FilterOption::DAY_TODAY_OR_BEFORE:
-                                return Carbon::parse($v)->lte($today);
-                            case FilterOption::DAY_LAST_X_DAY_OR_AFTER:
-                                $target_day = $today->addDay(-1 * intval($condition_value));
-                                return Carbon::parse($v)->gte($target_day);
-                            case FilterOption::DAY_NEXT_X_DAY_OR_AFTER:
-                                $target_day = $today->addDay(intval($condition_value));
-                                return Carbon::parse($v)->gte($target_day);
-                            case FilterOption::DAY_LAST_X_DAY_OR_BEFORE:
-                                $target_day = $today->addDay(-1 * intval($condition_value));
-                                return Carbon::parse($v)->lte($target_day);
-                            case FilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
-                                $target_day = $today->addDay(intval($condition_value));
-                                return Carbon::parse($v)->lte($target_day);
-                        }
-                    }
-                return false;
-            });
-        });
+        $viewFilterItem = ViewFilterBase::make($compareOption, null);
+        return $viewFilterItem->compareValue($value, $conditionValue);
     }
     
     /**

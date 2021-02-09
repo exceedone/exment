@@ -55,6 +55,20 @@ abstract class ViewFilterBase
 
 
     protected $column_item;
+    
+    /**
+     * For condition value, if value is null or empty array, whether ignore the value.
+     *
+     * @var boolean
+     */
+    protected static $isConditionNullIgnore = true;
+
+    /**
+     * If true, function "_compareValue" pass as array
+     *
+     * @var boolean
+     */
+    protected static $isConditionPassAsArray = false;
 
     /**
      * Whether this query sets as or
@@ -118,5 +132,61 @@ abstract class ViewFilterBase
         return null;
     }
 
+    
+    /**
+     * compare 2 value
+     *
+     * @param mixed $value
+     * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
+     * @return boolean is match, return true
+     */
+    public function compareValue($value, $conditionValue) : bool
+    {
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+        if (!is_array($conditionValue)) {
+            $conditionValue = [$conditionValue];
+        }
+
+        $value = collect($value)->filter(function($value){
+            if(static::$isConditionNullIgnore && is_nullorempty($value)){
+                return false;
+            }
+            return true;
+        })->toArray();
+
+        return collect($conditionValue)->contains(function ($conditionValue) use ($value) {
+            if(static::$isConditionPassAsArray){
+                return $this->_compareValue($value, $conditionValue);
+            }
+    
+            return collect($value)->contains(function($value) use($conditionValue){
+                return $this->_compareValue($value, $conditionValue);
+            });
+        });
+    }
+
+
+    /**
+     * Set filter to query
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param string $method_name 'where' or 'orWhere'
+     * @param string $query_column query target name
+     * @param mixed $query_value
+     * @return void
+     */
     abstract protected function _setFilter($query, $method_name, $query_column, $query_value);
+
+
+    
+    /**
+     * compare 2 value
+     *
+     * @param mixed $value
+     * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
+     * @return boolean is match, return true
+     */
+    abstract protected function _compareValue($value, $conditionValue) : bool;
 }

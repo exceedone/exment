@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 use Encore\Admin\Admin;
+use Carbon\Carbon;
 
 /**
  * Class Admin.
@@ -684,6 +685,21 @@ class Exment
             'timezone_type' => 3,  // Directly set timezone type, because cannot get.
             'timezone' => $carbon->getTimezone()->getName(),
         ];
+    }
+
+    /**
+     * Convert to only day
+     *
+     * @param Carbon|string|null $value
+     * @return Carbon|null
+     */
+    public function getCarbonOnlyDay($value) : ?Carbon
+    {
+        if(is_nullorempty($value)){
+            return null;
+        }
+        $carbon = Carbon::parse($value);
+        return Carbon::create($carbon->year, $carbon->month, $carbon->day);
     }
 
     /**

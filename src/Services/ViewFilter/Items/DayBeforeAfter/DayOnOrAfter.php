@@ -20,4 +20,17 @@ class DayOnOrAfter extends DayBeforeAfterBase
     {
         return ">=";
     }
+
+
+    /**
+     * compare 2 value
+     *
+     * @param mixed $value
+     * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
+     * @return boolean is match, return true
+     */
+    protected function _compareValue($value, $conditionValue) : bool{
+        $condition_dt = \Carbon\Carbon::parse($conditionValue);
+        return \Exment::getCarbonOnlyDay($value)->gte($condition_dt);
+    }
 }

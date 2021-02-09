@@ -19,5 +19,27 @@ abstract class ExistsBase extends ViewFilterBase
         }
     }
 
+    
+    /**
+     * compare 2 value
+     *
+     * @param mixed $value. *When this class, $value is array*
+     * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
+     * @return boolean is match, return true
+     */
+    protected function _compareValue($value, $conditionValue) : bool{
+        // if empty array, When isExists is true, return false. not isExists, return true.
+        if(is_nullorempty($value)){
+            return !$this->isExists();
+        }
+
+        foreach($value as $v){
+            if(isMatchString($v, $conditionValue)){
+                return $this->isExists();
+            }
+        }
+        return !$this->isExists();
+    }
+
     abstract protected function isExists() : bool;
 }
