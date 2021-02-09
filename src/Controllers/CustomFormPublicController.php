@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Form\PublicContent;
 use Illuminate\Http\Request;
 
 /**
@@ -48,10 +49,17 @@ class CustomFormPublicController extends AdminControllerTableBase
             if(isset($public_form)){
                 $form->url('share_url', exmtrans('custom_form_public.share_url'))
                     ->setElementClass(['copyScript'])
+                    ->help(exmtrans('custom_form_public.help.share_url'))
                     ->default($public_form->getUrl())
                     ->readonly();
                 $form->ignore('share_url');
+
+                $form->display('proxy_user_id', exmtrans('common.executed_user'))->displayText(function ($user_id) {
+                    return getUserName($user_id, true);
+                })->help(exmtrans('custom_form_public.help.proxy_user_id'))->escape(false);
             }
+
+            
             
             $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
                 ->tabRequired()
@@ -62,11 +70,17 @@ class CustomFormPublicController extends AdminControllerTableBase
                     });
                 });
                 
-            $form->embeds("basic_setting", exmtrans("common.basic_setting"), function($form) use ($custom_table){
-                $form->switchbool('active_flg', exmtrans("plugin.active_flg"))
+            $form->text('public_form_view_name', exmtrans("custom_form_public.public_form_view_name"))
+                ->required()
+                ->rules("max:40")
+                ->help(exmtrans('common.help.view_name'));
+            
+            $form->switchbool('active_flg', exmtrans("plugin.active_flg"))
                     ->help(exmtrans("custom_form_public.help.active_flg"))
                     ->default(true);
     
+            $form->embeds("basic_setting", exmtrans("common.basic_setting"), function($form) use ($custom_table){
+                
                 $form->dateTimeRange('validity_period_start', 'validity_period_end', exmtrans("custom_form_public.validity_period"))
                     ->help(exmtrans("custom_form_public.help.validity_period"))
                     ->default(true);
@@ -200,10 +214,10 @@ class CustomFormPublicController extends AdminControllerTableBase
                 'href' => 'javascript:void(0);',
                 'label' => exmtrans('common.preview'),
                 'icon' => 'fa-eye',
-                'btn_class' => 'preview-custom_form btn-warning',
+                'btn_class' => 'btn-warning',
                 'attributes' => [
                     'data-preview' => true,
-                    'data-preview-url' => '',
+                    'data-preview-url' => admin_urls('formpublic', $custom_table->table_name, 'preview'),
                     'data-preview-error-title' => '',
                     'data-preview-error-text' => '',
                 ],
@@ -234,18 +248,18 @@ class CustomFormPublicController extends AdminControllerTableBase
      */
     public function preview(Request $request)
     {
+        // get this form's info
         $form = $this->form();
-
         $model = $form->getModelByInputs();
 
-        $content = new \Exceedone\Exment\Form\PublicContent;
-        $content->row($form);
-        return $content;
-        
-        $content = new Content;
-        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
-        $this->AdminContent($content);
-        $content->row($form);
+        // get public form
+        $preview_form = $model->getForm($request);
+        $preview_form->disableSubmit();
+
+        // set content
+        $content = new PublicContent;
+        $model->setContentOption($content);
+        $content->row($preview_form);
         
         admin_info(exmtrans('common.preview'), exmtrans('common.message.preview'));
 

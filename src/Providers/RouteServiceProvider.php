@@ -198,6 +198,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('form/{tableKey}/settingModal', 'CustomFormController@settingModal');
             $router->post('form/{tableKey}/preview', 'CustomFormController@preview');
             $router->put('form/{tableKey}/preview', 'CustomFormController@preview');
+            $router->post('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
+            $router->put('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
 
             $router->get('files/{uuid}', 'FileController@download');
             $router->get('files/{tableKey}/{uuid}', 'FileController@downloadTable');

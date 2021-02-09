@@ -5,7 +5,6 @@ namespace Exment {
      */
     export class Preview {
         public static AddEvent() {
-            Preview.appendPreviewEvent();
         }
 
         public static AddEventOnce() {
@@ -65,7 +64,7 @@ namespace Exment {
 
 
         public static appendPreviewEvent = (ev:any) => {
-            const $target = $(ev.target).closest('data-preview');
+            const $target = $(ev.target).closest('[data-preview]');
             const preview = new Preview(
                 $target.data('preview-url'),
                 $('section.content').find('form').eq(0),

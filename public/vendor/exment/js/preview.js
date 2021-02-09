@@ -12,7 +12,6 @@ var Exment;
             this.validateSubmitEvent = options['validateSubmitEvent'];
         }
         static AddEvent() {
-            Preview.appendPreviewEvent();
         }
         static AddEventOnce() {
             $(document).on('click.exment_preview', '[data-preview]', {}, Preview.appendPreviewEvent);
@@ -48,7 +47,7 @@ var Exment;
         }
     }
     Preview.appendPreviewEvent = (ev) => {
-        const $target = $(ev.target).closest('data-preview');
+        const $target = $(ev.target).closest('[data-preview]');
         const preview = new Preview($target.data('preview-url'), $('section.content').find('form').eq(0), {
             validateErrorTitle: $target.data('preview-error-title'),
             validateErrorText: $target.data('preview-error-text'),

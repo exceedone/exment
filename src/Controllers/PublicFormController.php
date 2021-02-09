@@ -10,6 +10,7 @@ use Encore\Admin\Grid\Linker;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Layout\Content;
+use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomFormColumn;
@@ -74,7 +75,7 @@ class PublicFormController extends Controller
         $form = $this->getForm($request)
             ->setAction(asset(url_join(config('exment.publicform_route_prefix', 'publicform'), 'create')));
 
-        $content = new \Exceedone\Exment\Form\PublicContent;
+        $content = new PublicContent;
         $this->public_form->setContentOption($content);
 
         $content->row($form);

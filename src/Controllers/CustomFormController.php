@@ -116,7 +116,24 @@ class CustomFormController extends AdminControllerTableBase
         $grid->setName('public_forms');
         $grid->setTitle(exmtrans("custom_form.public_form.title"));
         $grid->setResource(admin_urls('formpublic', $this->custom_table->table_name));
-        $grid->column('form_view_name', exmtrans("custom_form.public_form.form_view_name"));
+        
+        $grid->column('form_view_name', exmtrans("custom_form_public.custom_form_id"));
+        $grid->column('public_form_view_name', exmtrans("custom_form_public.public_form_view_name"));
+        $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($val) {
+            return \Exment::getTrueMark($val);
+        });
+        $grid->column('validity_period', exmtrans("custom_form_public.validity_period"))
+            ->displayEscape(function($value, $column, $model){
+                if(!$model){
+                    return null;
+                }
+                $start = $model->getOption('validity_period_start');
+                $end = $model->getOption('validity_period_end');
+                if(!$start && !$end){
+                    return null;
+                }
+                return sprintf("%s ～ %s", $start, $end);
+            });
 
         if (isset($this->custom_table)) {
             $grid->model()
