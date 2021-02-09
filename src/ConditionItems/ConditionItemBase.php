@@ -274,8 +274,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     protected function compareValue($condition, $value)
     {
         $conditionValue = $condition->condition_value;
-        $compareOption = FilterOption::getCompareOptions($condition->condition_key);
-        $viewFilterItem = ViewFilterBase::make($compareOption, null);
+        $viewFilterItem = ViewFilterBase::make($condition->condition_key, null);
         return $viewFilterItem->compareValue($value, $conditionValue);
     }
     

@@ -5,6 +5,13 @@ use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 abstract class ExistsBase extends ViewFilterBase
 {
+    /**
+     * If true, function "_compareValue" pass as array
+     *
+     * @var boolean
+     */
+    protected static $isConditionPassAsArray = true;
+
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
         $isMultiple = $this->column_item->isMultipleEnabled();

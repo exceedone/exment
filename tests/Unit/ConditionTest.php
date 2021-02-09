@@ -1188,7 +1188,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnOrgMultiNotExistsFalse()
     {
-        // todo 井坂 要検討
         $this->_testColumnOrgMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
     public function testColumnOrgMultiNotNullTrue()
