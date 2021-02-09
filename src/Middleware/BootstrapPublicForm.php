@@ -73,15 +73,13 @@ class BootstrapPublicForm
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
-            'vendor/exment/js/search.js',
             'vendor/exment/js/calc.js',
-            'vendor/exment/js/notify_navbar.js',
             'vendor/exment/js/modal.js',
             'vendor/exment/js/changefield.js',
-            'vendor/exment/js/customformitem.js',
-            'vendor/exment/js/customform.js',
             'vendor/exment/js/webapi.js',
-            'vendor/exment/js/webapi_admin.js',
+            'vendor/exment/js/publicform.webapi.js',
+            'vendor/exment/js/getbox.js',
+            'vendor/exment/js/publicform.getbox.js',
         ], false);
     }
 }

@@ -435,13 +435,13 @@ var Exment;
                             yield CommonEvent.setModelItem(null, $parent, $target, target_table_data);
                             continue;
                         }
-                        const webapi = Exment.WebApiBase.make();
+                        const webapi = Exment.WebApi.make();
                         webapi.findValue(table_name, value, {
                             data: target_table_data,
                         })
-                            .done(function (modeldata) {
+                            .done(function (modeldata, context) {
                             return __awaiter(this, void 0, void 0, function* () {
-                                yield CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
+                                yield CommonEvent.setModelItem(modeldata, $parent, $target, context.data);
                                 $d.resolve();
                             });
                         })
@@ -572,7 +572,7 @@ var Exment;
                 // set relatedLinkageList array. key is getClassKey. data is data
                 CommonEvent.relatedLinkageList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
                 // set linkage event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
+                Exment.GetBox.make().getBox().on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
             }
         }
         static linkage($target, url, val, expand, linkage_text) {
@@ -629,8 +629,7 @@ var Exment;
          * @deprecated Please use webapi model
          */
         static findModel(table_name, value, context = null) {
-            const webapi = Exment.WebApiBase.make();
-            return webapi.findValue(table_name, value, context);
+            return Exment.WebApi.make().findValue(table_name, value, context);
         }
         /**
          * set value. check number format, column type, etc...
@@ -747,17 +746,18 @@ var Exment;
          * @param block_name block name
          */
         static getBlockElement(block_name) {
+            const box = Exment.GetBox.make();
             if (!hasValue(block_name) || block_name == 'default') {
                 return CommonEvent.getDefaultBox();
             }
             if (block_name == 'parent_id') {
-                return $('.box-body .parent_id').closest('.form-group');
+                return box.getBox().find('.parent_id').closest('.form-group');
             }
             // if 1:n, return children.
-            return $('.box-body .hasmanyblock-' + block_name);
+            return box.getBox().find('.hasmanyblock-' + block_name);
         }
         static getDefaultBox() {
-            return $('.box-body >.fields-group > .embed-value');
+            return Exment.GetBox.make().getBox().children('.fields-group').children('.embed-value');
         }
         /**
          * add field event (datepicker, icheck)

@@ -479,12 +479,12 @@ namespace Exment {
                         continue;
                     }
 
-                    const webapi = WebApiBase.make();
+                    const webapi = WebApi.make();
                     webapi.findValue(table_name, value, {
                         data: target_table_data,
                     })
-                    .done(async function (modeldata) {
-                        await CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
+                    .done(async function (modeldata, context) {
+                        await CommonEvent.setModelItem(modeldata, $parent, $target, context.data);
                         $d.resolve();
                     })
                     .fail(function (errordata) {
@@ -622,7 +622,7 @@ namespace Exment {
                 CommonEvent.relatedLinkageList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
 
                 // set linkage event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
+                GetBox.make().getBox().on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
             }
         }
 
@@ -906,8 +906,7 @@ namespace Exment {
          * @deprecated Please use webapi model
          */
         public static findModel(table_name, value, context = null) {
-            const webapi = WebApiBase.make();
-            return webapi.findValue(table_name, value, context);
+            return WebApi.make().findValue(table_name, value, context);
         }
         
         /**
@@ -1033,20 +1032,21 @@ namespace Exment {
          * @param block_name block name
          */
         public static getBlockElement(block_name) : JQuery<HTMLElement>{
+            const box = GetBox.make();
             if(!hasValue(block_name) || block_name == 'default'){
                 return CommonEvent.getDefaultBox();
             }
             if(block_name == 'parent_id'){
-                return $('.box-body .parent_id').closest('.form-group');
+                return box.getBox().find('.parent_id').closest('.form-group');
             }
 
             // if 1:n, return children.
-            return $('.box-body .hasmanyblock-' + block_name);
+            return box.getBox().find('.hasmanyblock-' + block_name);
         }
 
 
         public static getDefaultBox() : JQuery<HTMLElement>{
-            return $('.box-body >.fields-group > .embed-value');
+            return GetBox.make().getBox().children('.fields-group').children('.embed-value');
         }
 
         

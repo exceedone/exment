@@ -1,15 +1,15 @@
 var Exment;
 (function (Exment) {
-    class WebApiBase {
+    class WebApi {
         /**
          * Get object model
          */
         static make() {
-            if (Exment.WebApi === undefined) {
-                return new Exment.WebApi;
+            if (Exment.WebApiAdmin !== undefined) {
+                return new Exment.WebApiAdmin();
             }
-            if (Exment.WebApiPublicForm === undefined) {
-                return new Exment.WebApiPublicForm;
+            if (Exment.WebApiPublicForm !== undefined) {
+                return new Exment.WebApiPublicForm();
             }
             return null;
         }
@@ -28,18 +28,18 @@ var Exment;
                 $.ajax({
                     url: admin_url(URLJoin(this.prefix, 'data', table_name, value)),
                     type: 'GET',
-                    context: context
+                    context: context,
+                    data: this.getData(),
                 })
                     .done(function (modeldata) {
-                    $d.resolve(modeldata);
+                    $d.resolve(modeldata, this);
                 })
                     .fail(function (errordata) {
-                    console.log(errordata);
                     $d.reject();
                 });
             }
             return $d.promise();
         }
     }
-    Exment.WebApiBase = WebApiBase;
+    Exment.WebApi = WebApi;
 })(Exment || (Exment = {}));

@@ -58,7 +58,7 @@ class PublicForm extends ModelBase
         }
 
         $model = PublicForm::where('uuid', $uuid)
-            ->whereIn('options->active_flg', ["1", 1])->first();
+            ->where('active_flg', 1)->first();
         if(!$model){
             return null;
         }

@@ -112,6 +112,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.login'  => \Exceedone\Exment\Middleware\Login::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
+        'adminwebapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateWebApi::class,
         'admin.browser'  => \Exceedone\Exment\Middleware\Browser::class,
         'admin.web-ipfilter'  => \Exceedone\Exment\Middleware\WebIPFilter::class,
         'admin.api-ipfilter'  => \Exceedone\Exment\Middleware\ApiIPFilter::class,
@@ -498,14 +499,28 @@ class ExmentServiceProvider extends ServiceProvider
         }
         $middlewareGroups['adminapioauth'] = $middleware;
 
-        // append adminwebapi
+        // append adminwebapi and publicformapi
         $middleware = $middlewareGroups['adminapi'];
         foreach ($middleware as &$m) {
             if ($m == 'admin.api-ipfilter') {
                 $m = 'admin.web-ipfilter';
             }
+            if ($m == 'adminapi.auth') {
+                $m = 'adminwebapi.auth';
+            }
         }
         $middlewareGroups['adminwebapi'] = $middleware;
+
+        $middleware = $middlewareGroups['adminapi'];
+        foreach ($middleware as &$m) {
+            if ($m == 'admin.api-ipfilter') {
+                $m = 'admin.web-ipfilter';
+            }
+            if ($m == 'adminapi.auth') {
+                $m = 'publicform.auth';
+            }
+        }
+        $middlewareGroups['publicformapi'] = $middleware;
 
         return $middlewareGroups;
     }

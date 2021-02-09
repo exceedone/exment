@@ -1,16 +1,16 @@
 namespace Exment {
-    export abstract class WebApiBase {
+    export abstract class WebApi {
         protected abstract prefix;
 
         /**
          * Get object model
          */
-        public static make() : WebApiBase{
-            if(Exment.WebApi === undefined){
-                return new WebApi;
+        public static make() : WebApi{
+            if(Exment.WebApiAdmin !== undefined){
+                return new WebApiAdmin();
             }
-            if(Exment.WebApiPublicForm === undefined){
-                return new WebApiPublicForm;
+            if(Exment.WebApiPublicForm !== undefined){
+                return new WebApiPublicForm();
             }
             return null;
         }
@@ -29,19 +29,23 @@ namespace Exment {
                 $.ajax({
                     url: admin_url(URLJoin(this.prefix, 'data', table_name, value)),
                     type: 'GET',
-                    context: context
+                    context: context,
+                    data: this.getData(),
                 })
                 .done(function (modeldata) {
-                    $d.resolve(modeldata);
+                    $d.resolve(modeldata, this);
                 })
                 .fail(function (errordata) {
-                    console.log(errordata);
-
                     $d.reject();
                 });
             }
 
             return $d.promise();
         }
+
+        /**
+         * Get web api appends data
+         */
+        protected abstract getData() : {};
     }
 }
