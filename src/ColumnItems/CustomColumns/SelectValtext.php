@@ -64,4 +64,33 @@ class SelectValtext extends Select
 
         return null;
     }
+    
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // define select-item
+        $form->textarea('select_item_valtext', exmtrans("custom_column.options.select_item"))
+            ->required()
+            ->help(exmtrans("custom_column.help.select_item_valtext"));
+
+        // enable multiple
+        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
+            ->attribute(['data-filtertrigger' =>true])
+            ->help(exmtrans("custom_column.help.multiple_enabled"));
+
+            $form->switchbool('radiobutton_enabled', exmtrans("custom_column.options.radiobutton_enabled"))
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '0'])])
+            ->help(exmtrans("custom_column.help.radiobutton_enabled"));
+
+        $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '1'])])
+            ->help(exmtrans("custom_column.help.checkbox_enabled"));
+    }
 }

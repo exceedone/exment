@@ -6,6 +6,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Enums\ColumnDefaultType;
 
 class Time extends Date
 {
@@ -49,5 +50,42 @@ class Time extends Date
     public function isDate()
     {
         return false;
+    }
+
+
+    /**
+     * Get default value.
+     *
+     * @return mixed
+     */
+    public function getDefaultValue()
+    {
+        $options = $this->custom_column->options;
+        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_TIME)) {
+            return \Carbon\Carbon::now()->format($this->format);
+        }
+
+        return parent::getDefaultValue();
+    }
+
+    
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form)
+    {
+        $form->select('default_type', exmtrans("custom_column.options.default_type"))
+            ->help(exmtrans("custom_column.help.default_type"))
+            ->attribute(['data-filtertrigger' =>true])
+            ->options(getTransArray(ColumnDefaultType::COLUMN_DEFAULT_TYPE_TIME(), 'custom_column.column_default_type_options'));
+
+        $form->time('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_default_type', 'value' => ColumnDefaultType::SELECT_TIME])])
+            ;
     }
 }

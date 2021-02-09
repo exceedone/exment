@@ -107,4 +107,34 @@ class Boolean extends CustomItem
         }
         return null;
     }
+
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // yes/no ----------------------------
+        $form->text('true_value', exmtrans("custom_column.options.true_value"))
+            ->help(exmtrans("custom_column.help.true_value"))
+            ->required();
+
+        $form->text('true_label', exmtrans("custom_column.options.true_label"))
+            ->help(exmtrans("custom_column.help.true_label"))
+            ->required()
+            ->default(exmtrans("custom_column.options.true_label_default"));
+            
+        $form->text('false_value', exmtrans("custom_column.options.false_value"))
+            ->help(exmtrans("custom_column.help.false_value"))
+            ->required();
+
+        $form->text('false_label', exmtrans("custom_column.options.false_label"))
+            ->help(exmtrans("custom_column.help.false_label"))
+            ->required()
+            ->default(exmtrans("custom_column.options.false_label_default"));
+    }
 }
