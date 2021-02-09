@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\FormDataType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -628,6 +629,7 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnSelectMultiNotExistsFalse()
     {
+        // todo 井坂 要修正
         $this->_testColumnSelectMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_NOT_EXISTS, false);
         $this->_testColumnSelectMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
@@ -720,6 +722,64 @@ class ConditionTest extends UnitTestBase
         $this->__testColumnNullCheck(ColumnType::SELECT_VALTEXT, $target_value, $filterOption, $result);
     }
 
+    // Custom column Select value text multiple ----------------------------------------------------
+    public function testColumnSelectValMultiExistsTrue()
+    {
+        $this->_testColumnSelectValMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_EXISTS, true);
+        $this->_testColumnSelectValMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_EXISTS, true);
+    }
+    public function testColumnSelectValMultiExistsFalse()
+    {
+        $this->_testColumnSelectValMulti(['foo', 'bar'], ['baz', null, 0], FilterOption::SELECT_EXISTS, false);
+        $this->_testColumnSelectValMulti([123, 456, 789], [234, '567', [777]], FilterOption::SELECT_EXISTS, false);
+    }
+    public function testColumnSelectValMultiNotExistsTrue()
+    {
+        $this->_testColumnSelectValMulti(['foo', 'bar'], ['baz', null, 0], FilterOption::SELECT_NOT_EXISTS, true);
+        $this->_testColumnSelectValMulti([123, 456, 789], [234, '567', [777]], FilterOption::SELECT_NOT_EXISTS, true);
+    }
+    public function testColumnSelectValMultiNotExistsFalse()
+    {
+        // todo 井坂 要修正
+        $this->_testColumnSelectValMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_NOT_EXISTS, false);
+        $this->_testColumnSelectValMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
+    }
+    public function testColumnSelectValMultiNotNullTrue()
+    {
+        $this->_testColumnSelectValMultiNullCheck(['bar'], FilterOption::NOT_NULL, true);
+        $this->_testColumnSelectValMultiNullCheck(['bar', 'foo'], FilterOption::NOT_NULL, true);
+        $this->_testColumnSelectValMultiNullCheck(['2'], FilterOption::NOT_NULL, true);
+        $this->_testColumnSelectValMultiNullCheck(['0'], FilterOption::NOT_NULL, true);
+        $this->_testColumnSelectValMultiNullCheck([0], FilterOption::NOT_NULL, true);
+    }
+    public function testColumnSelectValMultiNotNullFalse()
+    {
+        $this->_testColumnSelectValMultiNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnSelectValMultiNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnSelectValMultiNullTrue()
+    {
+        $this->_testColumnSelectValMultiNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnSelectValMultiNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnSelectValMultiNullFalse()
+    {
+        $this->_testColumnSelectValMultiNullCheck(['baz'], FilterOption::NULL, false);
+        $this->_testColumnSelectValMultiNullCheck([1, 2], FilterOption::NULL, false);
+        $this->_testColumnSelectValMultiNullCheck(['2'], FilterOption::NULL, false);
+        $this->_testColumnSelectValMultiNullCheck(['0'], FilterOption::NULL, false);
+        $this->_testColumnSelectValMultiNullCheck([0], FilterOption::NULL, false);
+    }
+    protected function _testColumnSelectValMulti($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn('select_valtext_multiple', $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnSelectValMultiNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck('select_valtext_multiple', $target_value, $filterOption, $result);
+    }
+
+
 
     // Custom column Select Table ----------------------------------------------------
     public function testColumnSelectTableExistsTrue()
@@ -738,7 +798,6 @@ class ConditionTest extends UnitTestBase
     {
         $this->_testColumnSelectTable('7', [7, '7'], FilterOption::SELECT_NOT_EXISTS, false);
     }
-
     public function testColumnSelectTableNotNullTrue()
     {
         $this->_testColumnSelectTableNullCheck(10, FilterOption::NOT_NULL, true);
@@ -772,6 +831,505 @@ class ConditionTest extends UnitTestBase
         $this->__testColumnNullCheck(ColumnType::SELECT_TABLE, $target_value, $filterOption, $result);
     }
 
+    // Custom column Select table multiple ----------------------------------------------------
+    public function testColumnSelectTableMultiExistsTrue()
+    {
+        $this->_testColumnSelectTableMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_EXISTS, true);
+    }
+    public function testColumnSelectTableMultiExistsFalse()
+    {
+        $this->_testColumnSelectTableMulti([123, 456, 789], [234, '567', [777]], FilterOption::SELECT_EXISTS, false);
+    }
+    public function testColumnSelectTableMultiNotExistsTrue()
+    {
+        $this->_testColumnSelectTableMulti([123, 456, 789], [234, '567', null, 0, [777]], FilterOption::SELECT_NOT_EXISTS, true);
+    }
+    public function testColumnSelectTableMultiNotExistsFalse()
+    {
+        // todo 井坂 要修正
+        $this->_testColumnSelectTableMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
+    }
+    public function testColumnSelectTableMultiNotNullTrue()
+    {
+        $this->_testColumnSelectTableMultiNullCheck(['2'], FilterOption::NOT_NULL, true);
+        $this->_testColumnSelectTableMultiNullCheck(['0'], FilterOption::NOT_NULL, true);
+        $this->_testColumnSelectTableMultiNullCheck([0], FilterOption::NOT_NULL, true);
+    }
+    public function testColumnSelectTableMultiNotNullFalse()
+    {
+        $this->_testColumnSelectTableMultiNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnSelectTableMultiNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnSelectTableMultiNullTrue()
+    {
+        $this->_testColumnSelectTableMultiNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnSelectTableMultiNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnSelectTableMultiNullFalse()
+    {
+        $this->_testColumnSelectTableMultiNullCheck([1, 2], FilterOption::NULL, false);
+        $this->_testColumnSelectTableMultiNullCheck(['2'], FilterOption::NULL, false);
+        $this->_testColumnSelectTableMultiNullCheck(['0'], FilterOption::NULL, false);
+        $this->_testColumnSelectTableMultiNullCheck([0], FilterOption::NULL, false);
+    }
+    protected function _testColumnSelectTableMulti($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn('select_table_multiple', $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnSelectTableMultiNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck('select_table_multiple', $target_value, $filterOption, $result);
+    }
+
+
+    // Custom column yes/no ----------------------------------------------------
+    public function testColumnYesNoExistsTrue()
+    {
+        $this->_testColumnYesNo(1, [1, '1'], FilterOption::SELECT_EXISTS, true);
+        $this->_testColumnYesNo(0, [0, '0'], FilterOption::SELECT_EXISTS, true);
+    }
+    public function testColumnYesNoExistsFalse()
+    {
+        $this->_testColumnYesNo('1', ["0", null, '', 0], FilterOption::SELECT_EXISTS, false);
+    }
+    public function testColumnYesNoNotExistsTrue()
+    {
+        $this->_testColumnYesNo(1, ["0", null, '', 0], FilterOption::SELECT_NOT_EXISTS, true);
+    }
+    public function testColumnYesNoNotExistsFalse()
+    {
+        $this->_testColumnYesNo('1', [1, '1'], FilterOption::SELECT_NOT_EXISTS, false);
+    }
+
+    public function testColumnYesNoNotNullTrue()
+    {
+        $this->_testColumnYesNoNullCheck(1, FilterOption::NOT_NULL, true);
+        $this->_testColumnYesNoNullCheck('1', FilterOption::NOT_NULL, true);
+        $this->_testColumnYesNoNullCheck('0', FilterOption::NOT_NULL, true);
+        $this->_testColumnYesNoNullCheck(0, FilterOption::NOT_NULL, true);
+    }
+    public function testColumnYesNoNotNullFalse()
+    {
+        $this->_testColumnYesNoNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnYesNoNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnYesNoNullTrue()
+    {
+        $this->_testColumnYesNoNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnYesNoNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnYesNoNullFalse()
+    {
+        $this->_testColumnYesNoNullCheck(1, FilterOption::NULL, false);
+        $this->_testColumnYesNoNullCheck('1', FilterOption::NULL, false);
+        $this->_testColumnYesNoNullCheck('0', FilterOption::NULL, false);
+        $this->_testColumnYesNoNullCheck(0, FilterOption::NULL, false);
+    }
+    protected function _testColumnYesNo($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn(ColumnType::YESNO, $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnYesNoNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck(ColumnType::YESNO, $target_value, $filterOption, $result);
+    }
+
+
+    // Custom column boolean ----------------------------------------------------
+    public function testColumnBooleanExistsTrue()
+    {
+        $this->_testColumnBoolean('ok', ['ok'], FilterOption::SELECT_EXISTS, true);
+        $this->_testColumnBoolean('ng', ['ng'], FilterOption::SELECT_EXISTS, true);
+        $this->_testColumnBoolean(1, ['1', 1], FilterOption::SELECT_EXISTS, true);
+    }
+    public function testColumnBooleanExistsFalse()
+    {
+        $this->_testColumnBoolean('ok', ["ng", null, '', 0], FilterOption::SELECT_EXISTS, false);
+        $this->_testColumnBoolean(0, ['1', 1], FilterOption::SELECT_EXISTS, false);
+    }
+    public function testColumnBooleanNotExistsTrue()
+    {
+        $this->_testColumnBoolean('ng', ["ok", null, '', 0], FilterOption::SELECT_NOT_EXISTS, true);
+    }
+    public function testColumnBooleanNotExistsFalse()
+    {
+        $this->_testColumnBoolean('ok', ['ok'], FilterOption::SELECT_NOT_EXISTS, false);
+    }
+
+    public function testColumnBooleanNotNullTrue()
+    {
+        $this->_testColumnBooleanNullCheck('ok', FilterOption::NOT_NULL, true);
+        $this->_testColumnBooleanNullCheck('ng', FilterOption::NOT_NULL, true);
+    }
+    public function testColumnBooleanNotNullFalse()
+    {
+        $this->_testColumnBooleanNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnBooleanNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnBooleanNullTrue()
+    {
+        $this->_testColumnBooleanNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnBooleanNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnBooleanNullFalse()
+    {
+        $this->_testColumnBooleanNullCheck('ok', FilterOption::NULL, false);
+        $this->_testColumnBooleanNullCheck('ng', FilterOption::NULL, false);
+        $this->_testColumnBooleanNullCheck(1, FilterOption::NULL, false);
+        $this->_testColumnBooleanNullCheck(0, FilterOption::NULL, false);
+    }
+    protected function _testColumnBoolean($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn(ColumnType::BOOLEAN, $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnBooleanNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck(ColumnType::BOOLEAN, $target_value, $filterOption, $result);
+    }
+
+
+    // Custom column user ----------------------------------------------------
+    public function testColumnUserEqUserTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->_testColumnUser(TestDefine::TESTDATA_USER_LOGINID_USER2, [null], FilterOption::USER_EQ_USER, true);
+    }
+    public function testColumnUserEqUserFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->_testColumnUser(TestDefine::TESTDATA_USER_LOGINID_USER1, [null], FilterOption::USER_EQ_USER, false);
+    }
+    public function testColumnUserEqTrue()
+    {
+        $this->_testColumnUser(5, [5, '5'], FilterOption::USER_EQ, true);
+    }
+    public function testColumnUserEqFalse()
+    {
+        $this->_testColumnUser('3', ["4", null, '', 0, 5], FilterOption::USER_EQ, false);
+    }
+    public function testColumnUserNeTrue()
+    {
+        $this->_testColumnUser(3, ["4", null, '', 0, 5], FilterOption::USER_NE, true);
+    }
+    public function testColumnUserNeFalse()
+    {
+        $this->_testColumnUser('7', [7, '7'], FilterOption::USER_NE, false);
+    }
+    public function testColumnUserNotNullTrue()
+    {
+        $this->_testColumnUserNullCheck(10, FilterOption::NOT_NULL, true);
+        $this->_testColumnUserNullCheck('2', FilterOption::NOT_NULL, true);
+        $this->_testColumnUserNullCheck('0', FilterOption::NOT_NULL, true);
+        $this->_testColumnUserNullCheck(0, FilterOption::NOT_NULL, true);
+    }
+    public function testColumnUserNotNullFalse()
+    {
+        $this->_testColumnUserNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnUserNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnUserNullTrue()
+    {
+        $this->_testColumnUserNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnUserNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnUserNullFalse()
+    {
+        $this->_testColumnUserNullCheck(9, FilterOption::NULL, false);
+        $this->_testColumnUserNullCheck('2', FilterOption::NULL, false);
+        $this->_testColumnUserNullCheck('0', FilterOption::NULL, false);
+        $this->_testColumnUserNullCheck(0, FilterOption::NULL, false);
+    }
+    protected function _testColumnUser($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn(ColumnType::USER, $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnUserNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck(ColumnType::USER, $target_value, $filterOption, $result);
+    }
+
+    // Custom column user multiple ----------------------------------------------------
+    public function testColumnUserMultiEqUserTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2], 
+            [null], FilterOption::USER_EQ_USER, true);
+    }
+    public function testColumnUserMultiEqUserFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2], 
+            [null], FilterOption::USER_EQ_USER, false);
+    }
+    public function testColumnUserMultiNeUserTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN], 
+            [null], FilterOption::USER_NE_USER, true);
+    }
+    public function testColumnUserMultiNeUserFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        // todo 井坂 ビューフィルタも含めて要見直し
+        $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN], 
+            [null], FilterOption::USER_NE_USER, false);
+    }
+    public function testColumnUserMultiEqTrue()
+    {
+        $this->_testColumnUserMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::USER_EQ, true);
+    }
+    public function testColumnUserMultiEqFalse()
+    {
+        $this->_testColumnUserMulti([123, 456, 789], [234, '567', [777]], FilterOption::USER_EQ, false);
+    }
+    public function testColumnUserMultiNeTrue()
+    {
+        $this->_testColumnUserMulti([123, 456, 789], [234, '567', null, 0, [777]], FilterOption::USER_NE, true);
+    }
+    public function testColumnUserMultiNeFalse()
+    {
+        // todo 井坂 要検討
+        $this->_testColumnUserMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::USER_NE, false);
+    }
+    public function testColumnUserMultiNotNullTrue()
+    {
+        $this->_testColumnUserMultiNullCheck(['2'], FilterOption::NOT_NULL, true);
+        $this->_testColumnUserMultiNullCheck(['0'], FilterOption::NOT_NULL, true);
+        $this->_testColumnUserMultiNullCheck([0], FilterOption::NOT_NULL, true);
+    }
+    public function testColumnUserMultiNotNullFalse()
+    {
+        $this->_testColumnUserMultiNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnUserMultiNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnUserMultiNullTrue()
+    {
+        $this->_testColumnUserMultiNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnUserMultiNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnUserMultiNullFalse()
+    {
+        $this->_testColumnUserMultiNullCheck([1, 2], FilterOption::NULL, false);
+        $this->_testColumnUserMultiNullCheck(['2'], FilterOption::NULL, false);
+        $this->_testColumnUserMultiNullCheck(['0'], FilterOption::NULL, false);
+        $this->_testColumnUserMultiNullCheck([0], FilterOption::NULL, false);
+    }
+    protected function _testColumnUserMulti($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn('user_multiple', $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnUserMultiNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck('user_multiple', $target_value, $filterOption, $result);
+    }
+
+
+    // Custom column organization ----------------------------------------------------
+    public function testColumnOrganizationExistsTrue()
+    {
+        $this->_testColumnOrganization(5, [5, '5'], FilterOption::SELECT_EXISTS, true);
+    }
+    public function testColumnOrganizationExistsFalse()
+    {
+        $this->_testColumnOrganization('3', ["4", null, '', 0, 5], FilterOption::SELECT_EXISTS, false);
+    }
+    public function testColumnOrganizationNotExistsTrue()
+    {
+        $this->_testColumnOrganization(3, ["4", null, '', 0, 5], FilterOption::SELECT_NOT_EXISTS, true);
+    }
+    public function testColumnOrganizationNotExistsFalse()
+    {
+        $this->_testColumnOrganization('7', [7, '7'], FilterOption::SELECT_NOT_EXISTS, false);
+    }
+    public function testColumnOrganizationNotNullTrue()
+    {
+        $this->_testColumnOrganizationNullCheck(10, FilterOption::NOT_NULL, true);
+        $this->_testColumnOrganizationNullCheck('2', FilterOption::NOT_NULL, true);
+        $this->_testColumnOrganizationNullCheck('0', FilterOption::NOT_NULL, true);
+        $this->_testColumnOrganizationNullCheck(0, FilterOption::NOT_NULL, true);
+    }
+    public function testColumnOrganizationNotNullFalse()
+    {
+        $this->_testColumnOrganizationNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnOrganizationNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnOrganizationNullTrue()
+    {
+        $this->_testColumnOrganizationNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnOrganizationNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnOrganizationNullFalse()
+    {
+        $this->_testColumnOrganizationNullCheck(9, FilterOption::NULL, false);
+        $this->_testColumnOrganizationNullCheck('2', FilterOption::NULL, false);
+        $this->_testColumnOrganizationNullCheck('0', FilterOption::NULL, false);
+        $this->_testColumnOrganizationNullCheck(0, FilterOption::NULL, false);
+    }
+    protected function _testColumnOrganization($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn(ColumnType::ORGANIZATION, $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnOrganizationNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck(ColumnType::ORGANIZATION, $target_value, $filterOption, $result);
+    }
+
+    // Custom column organization multiple ----------------------------------------------------
+    public function testColumnOrgMultiExistsTrue()
+    {
+        $this->_testColumnOrgMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_EXISTS, true);
+    }
+    public function testColumnOrgMultiExistsFalse()
+    {
+        $this->_testColumnOrgMulti([123, 456, 789], [234, '567', [777]], FilterOption::SELECT_EXISTS, false);
+    }
+    public function testColumnOrgMultiNotExistsTrue()
+    {
+        $this->_testColumnOrgMulti([123, 456, 789], [234, '567', null, 0, [777]], FilterOption::SELECT_NOT_EXISTS, true);
+    }
+    public function testColumnOrgMultiNotExistsFalse()
+    {
+        // todo 井坂 要検討
+        $this->_testColumnOrgMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
+    }
+    public function testColumnOrgMultiNotNullTrue()
+    {
+        $this->_testColumnOrgMultiNullCheck(['2'], FilterOption::NOT_NULL, true);
+        $this->_testColumnOrgMultiNullCheck(['0'], FilterOption::NOT_NULL, true);
+        $this->_testColumnOrgMultiNullCheck([0], FilterOption::NOT_NULL, true);
+    }
+    public function testColumnOrgMultiNotNullFalse()
+    {
+        $this->_testColumnOrgMultiNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnOrgMultiNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnOrgMultiNullTrue()
+    {
+        $this->_testColumnOrgMultiNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnOrgMultiNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnOrgMultiNullFalse()
+    {
+        $this->_testColumnOrgMultiNullCheck([1, 2], FilterOption::NULL, false);
+        $this->_testColumnOrgMultiNullCheck(['2'], FilterOption::NULL, false);
+        $this->_testColumnOrgMultiNullCheck(['0'], FilterOption::NULL, false);
+        $this->_testColumnOrgMultiNullCheck([0], FilterOption::NULL, false);
+    }
+    protected function _testColumnOrgMulti($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn('organization_multiple', $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnOrgMultiNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck('organization_multiple', $target_value, $filterOption, $result);
+    }
+
+
+    // Login user ----------------------------------------------------
+    public function testLoginUserEqTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $this->__testConditionColumn(ConditionTypeDetail::USER, null, [TestDefine::TESTDATA_USER_LOGINID_USER1], FilterOption::EQ, true);
+    }
+    public function testLoginUserEqFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $this->__testConditionColumn(ConditionTypeDetail::USER, null, [TestDefine::TESTDATA_USER_LOGINID_USER2], FilterOption::EQ, false);
+    }
+    public function testLoginUserNeTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $this->__testConditionColumn(ConditionTypeDetail::USER, null, [TestDefine::TESTDATA_USER_LOGINID_USER2], FilterOption::NE, true);
+    }
+    public function testLoginUserNeFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $this->__testConditionColumn(ConditionTypeDetail::USER, null, [TestDefine::TESTDATA_USER_LOGINID_USER1], FilterOption::NE, false);
+    }
+
+
+
+    // Login user organization ----------------------------------------------------
+    public function testLoginUserOrganizationEqTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
+        $this->__testConditionColumn(ConditionTypeDetail::ORGANIZATION, null, [TestDefine::TESTDATA_ORGANIZATION_DEV], FilterOption::EQ, true);
+    }
+    public function testLoginUserOrganizationEqFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
+        $this->__testConditionColumn(ConditionTypeDetail::ORGANIZATION, null, [TestDefine::TESTDATA_ORGANIZATION_COMPANY1], FilterOption::EQ, false);
+    }
+    public function testLoginUserOrganizationNeTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
+        $this->__testConditionColumn(ConditionTypeDetail::ORGANIZATION, null, [TestDefine::TESTDATA_ORGANIZATION_COMPANY1], FilterOption::NE, true);
+    }
+    public function testLoginUserOrganizationNeFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
+        $this->__testConditionColumn(ConditionTypeDetail::ORGANIZATION, null, [TestDefine::TESTDATA_ORGANIZATION_DEV], FilterOption::NE, false);
+    }
+
+
+
+    // Login user role group ----------------------------------------------------
+    public function testLoginUserRoleEqTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::EQ, true);
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::EQ, true);
+    }
+    public function testLoginUserRoleEqFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::EQ, false);
+    }
+    public function testLoginUserRoleNeTrue()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::NE, true);
+        // todo 井坂 役割グループが存在しない場合、いつもfalse
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::NE, true);
+    }
+    public function testLoginUserRoleNeFalse()
+    {
+        $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB));
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::NE, false);
+    }
+
+
+
+    // form type ----------------------------------------------------
+    public function testFormTypeEqTrue()
+    {
+        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::SHOW], FilterOption::EQ, true, function() {
+            Model\System::setRequestSession(Model\Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, FormDataType::SHOW);
+        });
+    }
+    public function testFormTypeEqFalse()
+    {
+        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::SHOW], FilterOption::EQ, false, function() {
+            Model\System::setRequestSession(Model\Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, FormDataType::CREATE);
+        });
+    }
+    public function testFormTypeNeTrue()
+    {
+        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::EDIT], FilterOption::NE, true, function() {
+            Model\System::setRequestSession(Model\Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, FormDataType::CREATE);
+        });
+    }
+    public function testFormTypeNeFalse()
+    {
+        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::CREATE], FilterOption::NE, false, function() {
+            Model\System::setRequestSession(Model\Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, FormDataType::CREATE);
+        });
+    }
+
+
+
 
     /**
      * Execute test for custom column
@@ -785,7 +1343,9 @@ class ConditionTest extends UnitTestBase
      */
     protected function __testColumn(string $column_name, $target_value, array $values, string $filterOption, bool $result)
     {
-        $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        $this->initAllTest();
+
+        $table_name = $tableName ?? TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
         $custom_table = CustomTable::getEloquent($table_name);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 
@@ -798,6 +1358,42 @@ class ConditionTest extends UnitTestBase
                 'condition_type' => Enums\ConditionType::COLUMN,
                 'condition_key' => $filterOption,
                 'target_column_id' => $custom_column->id,
+                'condition_value' => $value,
+            ]);
+
+            $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+        }
+    }
+
+    /**
+     * Execute test for system column
+     *
+     * @param string $condition_type_detail
+     * @param mixed $target_value
+     * @param array $values
+     * @param string $filterOption
+     * @param boolean $result
+     * @return void
+     */
+    protected function __testConditionColumn(string $condition_type_detail, $target_value, array $values, string $filterOption, bool $result, $prevTest = null)
+    {
+        $this->initAllTest();
+
+        if ($prevTest instanceof \Closure) {
+            call_user_func($prevTest);
+        }
+
+        $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        foreach($values as $value)
+        {
+            $custom_value = $custom_table->getValueModel();
+
+            $condition = new Model\Condition([
+                'condition_type' => Enums\ConditionType::CONDITION,
+                'condition_key' => $filterOption,
+                'target_column_id' => $condition_type_detail,
                 'condition_value' => $value,
             ]);
 
@@ -818,6 +1414,8 @@ class ConditionTest extends UnitTestBase
      */
     protected function __testColumnNullCheck(string $column_name, $target_value, string $filterOption, bool $result)
     {
+        $this->initAllTest();
+
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
         $custom_table = CustomTable::getEloquent($table_name);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
