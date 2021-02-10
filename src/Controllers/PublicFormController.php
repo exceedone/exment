@@ -91,7 +91,20 @@ class PublicFormController extends Controller
     public function create(Request $request)
     {
         $form = $this->getForm($request);
+        $public_form = $this->public_form;
+        $form->saved(function($form) use($request, $public_form){
+            $content = new PublicContent;
+            $public_form->setContentOption($content);
+
+            $content->row($public_form->getCompleteView($request, $form->model()));
+
+            return response($content);
+        });
+
         $response = $form->store();
+
+        // Disable reload
+        $request->session()->regenerateToken();
 
         return $response;
     }

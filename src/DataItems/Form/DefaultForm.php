@@ -399,20 +399,22 @@ EOT;
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
         });
         
-        $form->saved(function ($form) use ($select_parent) {
-            // if $one_record_flg, redirect
-            $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
-            if ($one_record_flg) {
-                admin_toastr(trans('admin.save_succeeded'));
-                return redirect(admin_urls('data', $this->custom_table->table_name));
-            } elseif (!empty($select_parent)) {
-                admin_toastr(trans('admin.save_succeeded'));
-                return redirect(admin_url('data/'.$form->model()->parent_type.'/'. $form->model()->parent_id));
-            } elseif (empty(request('after-save'))) {
-                admin_toastr(trans('admin.save_succeeded'));
-                return redirect($this->custom_table->getGridUrl(true));
-            }
-        });
+        if(!$this->disableDefaultSavedRedirect){
+            $form->saved(function ($form) use ($select_parent) {
+                // if $one_record_flg, redirect
+                $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
+                if ($one_record_flg) {
+                    admin_toastr(trans('admin.save_succeeded'));
+                    return redirect(admin_urls('data', $this->custom_table->table_name));
+                } elseif (!empty($select_parent)) {
+                    admin_toastr(trans('admin.save_succeeded'));
+                    return redirect(admin_url('data/'.$form->model()->parent_type.'/'. $form->model()->parent_id));
+                } elseif (empty(request('after-save'))) {
+                    admin_toastr(trans('admin.save_succeeded'));
+                    return redirect($this->custom_table->getGridUrl(true));
+                }
+            });
+        }
     }
 
     /**

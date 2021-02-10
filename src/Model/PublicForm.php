@@ -87,7 +87,10 @@ class PublicForm extends ModelBase
      * @return Form
      */
     public function getForm(Request $request)
-    { 
+    {
+        // set footer as PublicFormFooter
+        \Encore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
+
         $custom_form = $this->custom_form;
         if(!$custom_form){
             return null;
@@ -95,15 +98,52 @@ class PublicForm extends ModelBase
         $form = $custom_form->form_item
             ->disableToolsButton()
             ->disableSavedRedirectCheck()
+            ->disableDefaultSavedRedirect()
             ->form()
+            ->disablePjax()
             ->setView('exment::public-form.form')
-            ->setAction(asset(config('exment.publicform_route_prefix', 'publicform')));
+            ->setAction(asset(config('exment.publicform_route_prefix', 'publicform')))
+            ;
+
+        // get footer
+        $footer = $form->builder()->getFooter();
+        // Google recaptcha
+        if(static::isEnableRecaptcha() && boolval($this->getOption('use_recaptcha', false))){
+            $footer->useRecaptcha();
+        }
+
+        $form->submitLabel(boolval($this->getOption('use_confirm')) ? exmtrans('custom_form_public.confirm_label') : trans('admin.submit'));
 
         $form->hidden('formkey')
             ->default($this->uuid);
         $form->ignore('formkey');
 
         return $form;
+    }
+
+    
+    /**
+     * getCompleteView
+     *
+     * @param Request $request
+     * @return Form
+     */
+    public function getCompleteView(Request $request, CustomValue $custom_value)
+    {
+        // create link
+        if(($url = $this->getOption('complete_link_url')) && ($text = $this->getOption('complete_link_text'))){
+            $link = view('exment::tools.a', [
+                'href' => $url,
+                'label' => $text,
+            ]);
+        }
+
+        return view('exment::public-form.complete', [
+            'model' => $custom_value,
+            'complete_title' => $this->getOption('complete_title'),
+            'complete_text' => $this->getOption('complete_text'),
+            'link' => $link ?? null,
+        ]);
     }
 
 
@@ -129,6 +169,56 @@ class PublicForm extends ModelBase
         return $this;
     }
 
+
+    /**
+     * Get site key for Google reCaptcha
+     *
+     * @return string|null
+     */
+    public static function recaptchaSiteKey() : ?string
+    {
+        return config('captcha.sitekey') ?? System::recaptcha_site_key();
+    }
+
+    /**
+     * Get secret key for Google reCaptcha
+     *
+     * @return string|null
+     */
+    public static function recaptchaSecretKey() : ?string
+    {
+        return config('captcha.secret') ?? System::recaptcha_secret_key();
+    }
+
+    /**
+     * Whether enable use reCAPTCHA
+     *
+     * @return true|string If true, enable reCaptcha. If string, showing message.
+     */
+    public static function isEnableRecaptcha()
+    {
+        $message = null;
+        // checking NoCaptcha
+        if(!\Exment::isAvailableGoogleRecaptcha()){
+            $message = exmtrans('login.message.not_install_library', [
+                'name' => 'Google reCaptcha',
+                'url' => getManualUrl('public_form#recaptcha'),
+            ]);
+        }
+        // check system setting
+        else{
+            $site_key = static::recaptchaSiteKey();
+            $secret = static::recaptchaSecretKey();
+            if(is_nullorempty($site_key) || is_nullorempty($secret)){
+                $message = exmtrans('custom_form_public.message.recaptcha_not_setting');
+            }
+        }
+
+        if($message){
+            return '<span class="red">' . $message . '</span>';
+        }
+        return true;
+    }
 
     // For tab ----------------------------------------------------
     public function getBasicSettingAttribute()

@@ -84,6 +84,19 @@ class CustomFormPublicController extends AdminControllerTableBase
                 $form->dateTimeRange('validity_period_start', 'validity_period_end', exmtrans("custom_form_public.validity_period"))
                     ->help(exmtrans("custom_form_public.help.validity_period"))
                     ->default(true);
+
+                
+                if(($message = PublicForm::isEnableRecaptcha()) === true){
+                    $form->switchbool('use_recaptcha', exmtrans("custom_form_public.use_recaptcha"))
+                        ->help(exmtrans("custom_form_public.help.use_recaptcha"))
+                        ->default(false);
+                    ;
+                }
+                else{
+                    $form->display('use_recaptcha_display', exmtrans("custom_form_public.use_recaptcha"))
+                        ->displayText($message)
+                        ->escape(false);
+                }
             })->disableHeader();
         })->tab(exmtrans("custom_form_public.design_setting"), function ($form) {
             $form->embeds("design_setting", exmtrans("common.design_setting"), function($form){
@@ -91,40 +104,47 @@ class CustomFormPublicController extends AdminControllerTableBase
                 
                 $form->switchbool('use_header', exmtrans("custom_form_public.use_header"))
                     ->help(exmtrans("custom_form_public.help.use_header"))
-                    ->default(true);
+                    ->default(true)
+                    ->attribute(['data-filtertrigger' => true])
                     ;
                 
                 $form->color('header_background_color', exmtrans("custom_form_public.header_background_color"))
                     ->help(exmtrans("custom_form_public.help.header_background_color"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
                     ->default('#3c8dbc')
                 ;
 
                 $form->image('header_logo', exmtrans("custom_form_public.header_logo"))
                     ->help(exmtrans("custom_form_public.help.header_logo"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
                 ;
 
                 $form->text('header_label', exmtrans("custom_form_public.header_label"))
                     ->help(exmtrans("custom_form_public.help.header_label"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
                 ;
 
                 $form->color('header_text_color', exmtrans("custom_form_public.header_text_color"))
                     ->help(exmtrans("custom_form_public.help.header_text_color"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
                     ->default('#FFFFFF')
                     ;
 
 
                 $form->exmheader(exmtrans("custom_form_public.body_setting"))->hr();
-                $form->select('body_content_type', exmtrans("custom_form_public.body_content_type"))
+                $form->radio('body_content_type', exmtrans("custom_form_public.body_content_type"))
                     ->help(exmtrans("custom_form_public.help.body_content_type"))
                     ->options([
                         'width100' => exmtrans("custom_form_public.body_content_type_options.width100"), 
                         'centering' => exmtrans("custom_form_public.body_content_type_options.centering"), 
                     ])
+                    ->attribute(['data-filtertrigger' => true])
                     ->default('width100');
                     ;
                 
                 $form->color('background_color_outer', exmtrans("custom_form_public.background_color_outer"))
                     ->help(exmtrans("custom_form_public.help.background_color_outer"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'design_setting_body_content_type', 'value' => 'centering'])])
                     ->default('#FFFFFF')
                     ;
                 $form->color('background_color', exmtrans("custom_form_public.background_color"))
@@ -135,33 +155,47 @@ class CustomFormPublicController extends AdminControllerTableBase
                 $form->exmheader(exmtrans("custom_form_public.footer_setting"))->hr();
                 $form->switchbool('use_footer', exmtrans("custom_form_public.use_footer"))
                     ->help(exmtrans("custom_form_public.help.use_footer"))
+                    ->attribute(['data-filtertrigger' => true])
                     ->default(true);
                 ;
                 
                 $form->color('footer_background_color', exmtrans("custom_form_public.footer_background_color"))
                     ->help(exmtrans("custom_form_public.help.footer_background_color"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_footer', 'value' => '1'])])
                     ->default('#000000')
                 ;
                 $form->color('footer_text_color', exmtrans("custom_form_public.footer_text_color"))
                     ->help(exmtrans("custom_form_public.help.footer_text_color"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_footer', 'value' => '1'])])
                     ->default('#FFFFFF')
                     ;
             })->disableHeader();
         })->tab(exmtrans("custom_form_public.confirm_complete_setting"), function ($form) {
             $form->embeds("confirm_complete_setting", exmtrans("common.confirm_complete_setting"), function($form){
-                $form->exmheader(exmtrans("custom_form_public.confirm_complete_setting"))->hr();
+                $form->exmheader(exmtrans("custom_form_public.confirm_setting"))->hr();
 
                 $form->switchbool('use_confirm', exmtrans("custom_form_public.use_confirm"))
                     ->help(exmtrans("custom_form_public.help.use_confirm"))
+                    ->attribute(['data-filtertrigger' => true])
                     ->default(true);
                 ;
-                
+                $form->text('confirm_title', exmtrans("custom_form_public.confirm_title"))
+                    ->help(exmtrans("custom_form_public.help.confirm_title"))
+                    ->default(exmtrans("custom_form_public.message.confirm_title"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'confirm_complete_setting_use_confirm', 'value' => '1'])]);
+                ;
                 $form->textarea('confirm_text', exmtrans("custom_form_public.confirm_text"))
                     ->help((exmtrans("custom_form_public.help.confirm_text", ['url' => \Exment::getManualUrl('params')])))
                     ->default(exmtrans("custom_form_public.message.confirm_text"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'confirm_complete_setting_use_confirm', 'value' => '1'])])
                     ->rows(3);
                 ;
                 
+                $form->exmheader(exmtrans("custom_form_public.complate_setting"))->hr();
+                $form->text('complete_title', exmtrans("custom_form_public.complete_title"))
+                    ->help(exmtrans("custom_form_public.help.complete_title"))
+                    ->default(exmtrans("custom_form_public.message.complete_title"));
+                ;   
                 $form->textarea('complete_text', exmtrans("custom_form_public.complete_text"))
                     ->help((exmtrans("custom_form_public.help.complete_text", ['url' => \Exment::getManualUrl('params')])))
                     ->default(exmtrans("custom_form_public.message.complete_text"))
@@ -190,14 +224,13 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->help(exmtrans("custom_form_public.help.error_link_text"));
                 ;
 
-
                 $form->switchbool('use_error_notify', exmtrans("custom_form_public.use_error_notify"))
                     ->help(exmtrans("custom_form_public.help.use_error_notify"))
                     ->default(false);
                 ;
             })->disableHeader();
         });
-        
+
 
         $form->editing(function($form, $arr){
             $form->model()->append(['basic_setting', 'design_setting', 'confirm_complete_setting', 'error_setting']);
@@ -265,5 +298,6 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         return $content;
     }
+
 
 }

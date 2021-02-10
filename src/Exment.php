@@ -735,4 +735,14 @@ class Exment
             return true;
         }
     }
+
+
+    /**
+     * Whether Available Google recaptcha (whether has class)
+     *
+     * @return boolean
+     */
+    public function isAvailableGoogleRecaptcha(){
+        return class_exists(\Arcanedev\NoCaptcha\NoCaptchaManager::class);
+    }
 }

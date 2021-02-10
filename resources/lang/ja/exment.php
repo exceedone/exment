@@ -158,6 +158,7 @@ return [
         'support_browser' => '対応ブラウザ',
         'ip_address_filtered' => '許可されていないIPアドレスです。',
         'not_contains_column' => 'カスタム列に設定されていない項目が含まれています。',
+        'public_form_not_found' => 'フォームがありませんでした。URLが誤っているか、有効期限でない場合があります。',
     ],
 
     'install' => [
@@ -290,6 +291,10 @@ return [
         'ip_filter' => 'IPフィルタ設定',
         'web_ip_filters' => 'Webページ',
         'api_ip_filters' => 'API',
+        'publicform' => '公開フォーム設定',
+        'publicform_available' => '公開フォームを使用する',
+        'recaptcha_site_key' => 'Google reCAPTCHA サイトキー',
+        'recaptcha_secret_key' => 'Google reCAPTCHA シークレットキー',
         
         'release_note' => 'リリースノート',
         'call_update_header' => 'アップデート実施（β）',
@@ -424,6 +429,9 @@ return [
             'filter_multi_orguser' => 'ログインユーザーが、他のユーザー・組織を表示できる範囲を設定します。※複数の会社をまたいで利用するポータルサイトなど、他のユーザー情報を表示させたくない場合に設定してください。',
             'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
             'ip_filter' => '通信を許可するIPアドレスを設定します。固定IP（例：12.3.5.6）、および範囲指定形式（例：123.4.5.0/24）が使用できます。未設定の場合は、すべてのIPアドレスを許可します。<br />複数設定する場合は改行で区切ってください。',
+            'publicform_available' => 'YESにすることで、ログインしなくても一般ユーザーがデータを入力できる、公開フォームを利用できるようになります。',
+            'recaptcha_site_key' => '公開フォームでGoogle reCAPTCHAを使用する場合、サイトキーを入力してください。※設定後、各公開フォームで、Google reCAPTCHAを使用するかどうかを選択します。',
+            'recaptcha_secret_key' => '公開フォームでGoogle reCAPTCHAを使用する場合、シークレットキーを入力してください。※設定後、各公開フォームで、Google reCAPTCHAを使用するかどうかを選択します。',
         ],
     ],
 
@@ -1469,6 +1477,7 @@ return [
         'custom_form_id' => '対象フォーム',
         'public_form_view_name' => '公開フォーム表示名',
         'validity_period' => '公開有効期限',
+        'use_recaptcha' => 'Google reCAPTCHAを使用する',
         'design_setting' => 'デザイン設定',
         'header_setting' => 'ヘッダー設定',
         'body_setting' => 'フォーム設定',
@@ -1484,8 +1493,12 @@ return [
         'footer_background_color' => 'フッター-背景色',
         'footer_text_color' => 'フッター文字色',
         'confirm_complete_setting' => '回答確認・完了設定',
+        'confirm_setting' => '回答確認設定',
+        'complate_setting' => '完了設定',
         'use_confirm' => '回答確認を使用する',
+        'confirm_title' => '確認タイトル',
         'confirm_text' => '確認テキスト',
+        'complete_title' => '完了タイトル',
         'complete_text' => '完了テキスト',
         'complete_link_text' => '完了リンク先テキスト',
         'complete_link_url' => '完了リンク先URL',
@@ -1496,14 +1509,16 @@ return [
         'use_error_notify' => 'エラー通知を行う',
         'body_content_type' => 'フォーム表示レイアウト',
         'share_url' => '公開フォームURL',
+        'confirm_label' => '入力内容確認',
 
         'help'=> [
             'custom_form_id' => '公開フォームを設定する、フォームを選択してください。',
             'active_flg' => '公開フォームを有効にする場合、YESに設定してください。',
             'validity_period' => 'フォームを公開する期限を設定する場合は、開始日時と終了日時を入力してください。※どちらかのみ入力することもできます。未入力の場合、常に有効になります。',
+            'use_recaptcha' => 'Google reCAPTCHAを使用する場合は、YESに設定してください。※サイトキーとシークレットキーは、システム設定画面で設定してください。',
             'use_header' => 'ヘッダーを使用する場合は、YESに設定してください。',
             'header_background_color' => 'ヘッダーの背景色を指定してください。',
-            'header_logo' => 'ヘッダーのロゴを指定してください。推奨サイズ：XXXXpx*XXXXpx',
+            'header_logo' => 'ヘッダーのロゴを指定してください。推奨サイズ：200px * 40px',
             'header_label' => 'ヘッダーのテキストを設定してください。※ヘッダーロゴを指定していない場合のみ表示されます。',
             'header_text_color' => 'ヘッダーの文字色を指定してください。',
             'body_content_type' => 'フォームをどのように表示するかを選択します。「真ん中寄せ」の場合、フォームの外枠に背景色を設定できます。',
@@ -1513,7 +1528,9 @@ return [
             'footer_background_color' => 'フッターの背景色を設定してください。',
             'footer_text_color' => 'フッターのCopyRight文の文字色を設定してください。',
             'use_confirm' => 'YESにすることで、ユーザーがデータを送信する前に、入力内容を一覧表示する回答確認画面を表示します。',
+            'confirm_title' => '確認画面のタイトルを入力してください。',
             'confirm_text' => '確認画面のページ上部に表示するテキスト・HTMLを入力してください。※<a href=":url" target="_blank" rel="noopener noreferrer">パラメータ</a>を入力できます。また、スクリプトは実行できません。',
+            'complete_title' => '入力完了画面のタイトルを入力してください。',
             'complete_text' => '入力完了画面のページ上部に表示するテキスト・HTMLを入力してください。※<a href=":url" target="_blank" rel="noopener noreferrer">パラメータ</a>を入力できます。また、スクリプトは実行できません。',
             'complete_link_text' => '完了画面でリンクを表示する場合、リンク先テキストを入力してください。',
             'complete_link_url' => '完了画面でリンクを表示する場合、リンク先のURLを入力してください。',
@@ -1526,9 +1543,12 @@ return [
         ],
 
         'message' => [
+            'confirm_title' => '入力内容確認',
             'confirm_text' => '入力内容をご確認の上、よろしければ「送信」ボタンを押してください。入力をやり直す場合は、「修正」ボタンを押して入力画面に戻り、再度入力してください。',
+            'complete_title' => '入力完了',
             'complete_text' => '入力が完了しました。',
             'error_text' => 'エラーが発生しました。お手数ですが、再度入力を行ってください。',
+            'recaptcha_not_setting' => 'Google reCaptchaの設定値が入力されていません。利用する場合、システム設定画面で設定を行ってください。',
         ],
 
         'body_content_type_options' => [

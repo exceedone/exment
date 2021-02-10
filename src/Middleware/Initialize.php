@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -376,6 +377,15 @@ class Initialize
                         }
                     }
                 }
+            }
+            
+            // Google reCAPTCHA ----------------------------------------------------
+            if(!is_null($val = Model\PublicForm::recaptchaSiteKey())){
+                Config::set('captcha.sitekey', $val);
+                Config::set('captcha.timeout', 3600);
+            }
+            if(!is_null($val = Model\PublicForm::recaptchaSecretKey())){
+                Config::set('captcha.secret', $val);
             }
         }
     }

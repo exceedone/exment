@@ -72,6 +72,11 @@ class Define
         'userview_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
         'userdashboard_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
 
+        // public form ----------------------------------------------------
+        'publicform_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
+        'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
+        'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],
+
         'complex_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
         'first_change_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],

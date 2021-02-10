@@ -36,7 +36,7 @@
     </header>
     @endif
 
-    <div id="pjax-container">
+    <div id="">
         {!! Admin::style() !!}
         <div id="app">
             <div id="container-inner" class="{{$container_fluid ? 'container-fluid' : 'container'}}">

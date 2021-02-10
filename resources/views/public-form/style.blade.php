@@ -12,7 +12,9 @@
         margin-left: 0;
     }
 
-    
+    .main-header{
+        border-bottom:1px solid #d2d6de;
+    }
     .main-header .navbar, .main-header .logo{
         color: {{$header_text_color}};
         background-color: {{$header_background_color}};
@@ -34,6 +36,10 @@
         min-height: calc(100vh - {{$container_height}}px);
     }
 
+
+    .g-recaptcha > div{
+        margin: 10px auto;
+    }
     
 @media (max-width: 767px)
 {
