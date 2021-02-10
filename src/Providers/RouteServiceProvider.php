@@ -285,6 +285,9 @@ class RouteServiceProvider extends ServiceProvider
     
     protected function mapExmentPublicFormWebRotes()
     {
+        if(!System::publicform_available()){
+            return;
+        }
         Route::group([
             'prefix'        => config('exment.publicform_route_prefix', 'publicform'),
             'namespace'     => $this->namespace,
@@ -319,7 +322,7 @@ class RouteServiceProvider extends ServiceProvider
             $routes[] = ['type' => 'api', 'prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true, 'private' => true];
         }
 
-        if (true) {
+        if (System::publicform_available()) {
             $routes[] = ['type' => 'publicformapi', 'prefix' => 'publicformapi', 'middleware' => ['api', 'publicformapi'], 'addScope' => false, 'private' => false];
         }
 

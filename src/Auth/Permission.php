@@ -292,6 +292,19 @@ class Permission
                 }
                 return array_key_exists('custom_table', $this->permission_details);
             case "form":
+            case "formpriority":
+                if ($this->role_type == RoleType::SYSTEM) {
+                    return array_key_exists('custom_form', $this->permission_details);
+                }
+                // check endpoint name and checking table_name.
+                if (!$this->matchEndPointTable($endpoint)) {
+                    return false;
+                }
+                return array_key_exists('custom_table', $this->permission_details) || array_key_exists('custom_form', $this->permission_details);
+            case "formpublic":
+                if(!System::publicform_available()){
+                    return false;
+                }
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_form', $this->permission_details);
                 }

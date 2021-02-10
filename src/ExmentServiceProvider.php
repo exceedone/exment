@@ -127,6 +127,7 @@ class ExmentServiceProvider extends ServiceProvider
         
         'publicform.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicForm::class,
         'publicform.bootstrap'       => \Exceedone\Exment\Middleware\BootstrapPublicForm::class,
+        'publicformapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicFormApi::class,
         
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
@@ -513,11 +514,8 @@ class ExmentServiceProvider extends ServiceProvider
 
         $middleware = $middlewareGroups['adminapi'];
         foreach ($middleware as &$m) {
-            if ($m == 'admin.api-ipfilter') {
-                $m = 'admin.web-ipfilter';
-            }
             if ($m == 'adminapi.auth') {
-                $m = 'publicform.auth';
+                $m = 'publicformapi.auth';
             }
         }
         $middlewareGroups['publicformapi'] = $middleware;

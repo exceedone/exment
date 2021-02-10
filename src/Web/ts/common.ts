@@ -32,6 +32,10 @@ namespace Exment {
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
+                        
+            $(document).on('pjax:error', function(xhr, textStatus, error, options) {
+                CommonEvent.pjaxError(xhr, textStatus, error, options);
+            });
         }
         public static AddEvent() {
             CommonEvent.ToggleHelp();
@@ -1057,6 +1061,12 @@ namespace Exment {
                 }
             }
             return false;
+        }
+
+        private static pjaxError(xhr, textStatus, error, options){
+            if(textStatus.status == 419){
+                toastr.error($('#exment_expired_error').val(), null, {timeOut:10000});
+            }
         }
     }
 }

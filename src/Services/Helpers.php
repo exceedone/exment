@@ -324,6 +324,16 @@ if (!function_exists('admin_urls_query')) {
         return $url . '?' . http_build_query($query);
     }
 }
+if (!function_exists('asset_urls')) {
+    /**
+     * Join admin url paths.
+     */
+    function asset_urls(...$pass_array)
+    {
+        return asset(url_join(...$pass_array));
+    }
+}
+
 if (!function_exists('assets_query')) {
     /**
      * Join url paths and query. Please set last arg

@@ -381,11 +381,13 @@ class Initialize
             
             // Google reCAPTCHA ----------------------------------------------------
             if(!is_null($val = Model\PublicForm::recaptchaSiteKey())){
-                Config::set('captcha.sitekey', $val);
-                Config::set('captcha.timeout', 3600);
+                Config::set('no-captcha.sitekey', $val);
             }
             if(!is_null($val = Model\PublicForm::recaptchaSecretKey())){
-                Config::set('captcha.secret', $val);
+                Config::set('no-captcha.secret', $val);
+            }
+            if(!is_null($val = Model\PublicForm::recaptchaVersion())){
+                Config::set('no-captcha.version', $val);
             }
         }
     }

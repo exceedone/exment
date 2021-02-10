@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Form\PublicContent;
+use Exceedone\Exment\Form\Field\ReCaptcha;
 
 class PublicForm extends ModelBase
 {
@@ -109,7 +110,15 @@ class PublicForm extends ModelBase
         $footer = $form->builder()->getFooter();
         // Google recaptcha
         if(static::isEnableRecaptcha() && boolval($this->getOption('use_recaptcha', false))){
-            $footer->useRecaptcha();
+            $version = static::recaptchaVersion();
+            if($version == 'v2'){
+                $footer->useRecaptchaV2();
+                $form->pushField(new ReCaptcha);
+            }
+            elseif($version == 'v3'){
+                $footer->useRecaptchaV3();
+                $form->pushField(new ReCaptcha);
+            }
         }
 
         $form->submitLabel(boolval($this->getOption('use_confirm')) ? exmtrans('custom_form_public.confirm_label') : trans('admin.submit'));
@@ -171,13 +180,23 @@ class PublicForm extends ModelBase
 
 
     /**
+     * Get secret key for Google reCaptcha
+     *
+     * @return string|null
+     */
+    public static function recaptchaVersion() : ?string
+    {
+        return System::recaptcha_type() ?? config('no-captcha.version');
+    }
+
+    /**
      * Get site key for Google reCaptcha
      *
      * @return string|null
      */
     public static function recaptchaSiteKey() : ?string
     {
-        return config('captcha.sitekey') ?? System::recaptcha_site_key();
+        return config('no-captcha.sitekey') ?? System::recaptcha_site_key();
     }
 
     /**
@@ -187,7 +206,7 @@ class PublicForm extends ModelBase
      */
     public static function recaptchaSecretKey() : ?string
     {
-        return config('captcha.secret') ?? System::recaptcha_secret_key();
+        return config('no-captcha.secret') ?? System::recaptcha_secret_key();
     }
 
     /**
@@ -207,9 +226,10 @@ class PublicForm extends ModelBase
         }
         // check system setting
         else{
+            $type = System::recaptcha_type();
             $site_key = static::recaptchaSiteKey();
             $secret = static::recaptchaSecretKey();
-            if(is_nullorempty($site_key) || is_nullorempty($secret)){
+            if(is_nullorempty($type) || is_nullorempty($site_key) || is_nullorempty($secret)){
                 $message = exmtrans('custom_form_public.message.recaptcha_not_setting');
             }
         }

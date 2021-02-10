@@ -74,6 +74,7 @@ class Define
 
         // public form ----------------------------------------------------
         'publicform_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
+        'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
         'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
         'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],
 

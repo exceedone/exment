@@ -80,6 +80,7 @@ return [
         'second' => '秒',
         'preview' => 'プレビュー',
         'no_selected' => '未選択',
+        'no_use' => '使用しない',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -159,6 +160,8 @@ return [
         'ip_address_filtered' => '許可されていないIPアドレスです。',
         'not_contains_column' => 'カスタム列に設定されていない項目が含まれています。',
         'public_form_not_found' => 'フォームがありませんでした。URLが誤っているか、有効期限でない場合があります。',
+        'captcha' => 'Google reCAPTCHA実施に失敗しました。再読み込みし、再度入力を行ってください。',
+        'expired_error' => 'ページの有効期限が切れました。画面の更新を実施してください。',
     ],
 
     'install' => [
@@ -293,6 +296,7 @@ return [
         'api_ip_filters' => 'API',
         'publicform' => '公開フォーム設定',
         'publicform_available' => '公開フォームを使用する',
+        'recaptcha_type' => 'Google reCAPTCHA',
         'recaptcha_site_key' => 'Google reCAPTCHA サイトキー',
         'recaptcha_secret_key' => 'Google reCAPTCHA シークレットキー',
         
@@ -430,6 +434,7 @@ return [
             'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
             'ip_filter' => '通信を許可するIPアドレスを設定します。固定IP（例：12.3.5.6）、および範囲指定形式（例：123.4.5.0/24）が使用できます。未設定の場合は、すべてのIPアドレスを許可します。<br />複数設定する場合は改行で区切ってください。',
             'publicform_available' => 'YESにすることで、ログインしなくても一般ユーザーがデータを入力できる、公開フォームを利用できるようになります。',
+            'recaptcha_type' => 'Google reCAPTCHAを使用する場合、使用するGoogle reCAPTCHAのバージョンを選択してください。',
             'recaptcha_site_key' => '公開フォームでGoogle reCAPTCHAを使用する場合、サイトキーを入力してください。※設定後、各公開フォームで、Google reCAPTCHAを使用するかどうかを選択します。',
             'recaptcha_secret_key' => '公開フォームでGoogle reCAPTCHAを使用する場合、シークレットキーを入力してください。※設定後、各公開フォームで、Google reCAPTCHAを使用するかどうかを選択します。',
         ],

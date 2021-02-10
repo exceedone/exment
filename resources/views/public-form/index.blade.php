@@ -21,7 +21,7 @@
 
 </head>
 
-<body class="hold-transition {{$container_fluid ? 'body-container-fluid' : 'body-container'}}">
+<body id="body-publicform" class="hold-transition {{$container_fluid ? 'body-container-fluid' : 'body-container'}}">
 <div class="wrapper">
     <!-- Main Header -->
     @if($use_header)

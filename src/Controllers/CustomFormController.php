@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
@@ -60,7 +61,10 @@ class CustomFormController extends AdminControllerTableBase
 
         $content->row($this->setFormPriorities());
         
-        $content->row($this->setFormPublics());
+        if(System::publicform_available()){
+            $content->row($this->setFormPublics());
+        }
+
         return $content;
     }
 

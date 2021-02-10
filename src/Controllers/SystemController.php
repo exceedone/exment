@@ -192,12 +192,31 @@ class SystemController extends AdminControllerBase
             ->attribute(['data-filtertrigger' => true])
             ->help(exmtrans("system.help.publicform_available"));
 
-        $form->password('recaptcha_site_key', exmtrans('system.recaptcha_site_key'))
+        $form->radio('recaptcha_type', exmtrans('system.recaptcha_type'))
             ->attribute(['data-filter' => json_encode(['key' => 'publicform_available', 'value' => '1'])])
+            ->help(exmtrans("system.help.recaptcha_type"))
+            ->options([
+                '' => exmtrans('common.no_use'),
+                'v2' => 'V2',
+                'v3' => 'V3',
+            ]);
+
+        $form->password('recaptcha_site_key', exmtrans('system.recaptcha_site_key'))
+            ->attribute([
+                'data-filter' => json_encode([
+                    ['key' => 'publicform_available', 'value' => "1"],
+                    ['key' => 'recaptcha_type', 'hasValue' => "1"],
+                ]),
+            ])
             ->help(exmtrans("system.help.recaptcha_site_key"));
 
         $form->password('recaptcha_secret_key', exmtrans('system.recaptcha_secret_key'))
-            ->attribute(['data-filter' => json_encode(['key' => 'publicform_available', 'value' => '1'])])
+        ->attribute([
+            'data-filter' => json_encode([
+                ['key' => 'publicform_available', 'value' => "1"],
+                ['key' => 'recaptcha_type', 'hasValue' => "1"],
+            ]),
+        ])
             ->help(exmtrans("system.help.recaptcha_secret_key"));
 
 

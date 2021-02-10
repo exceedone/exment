@@ -31,6 +31,9 @@ var Exment;
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
+            $(document).on('pjax:error', function (xhr, textStatus, error, options) {
+                CommonEvent.pjaxError(xhr, textStatus, error, options);
+            });
         }
         static AddEvent() {
             CommonEvent.ToggleHelp();
@@ -761,6 +764,11 @@ var Exment;
                 }
             }
             return false;
+        }
+        static pjaxError(xhr, textStatus, error, options) {
+            if (textStatus.status == 419) {
+                toastr.error($('#exment_expired_error').val(), null, { timeOut: 10000 });
+            }
         }
     }
     CommonEvent.relatedLinkageList = [];
