@@ -74,17 +74,13 @@ class Exment
      */
     public function user($guards = null)
     {
-        if (is_null($guards)) {
-            $guards = ['adminapi', 'admin'];
-        }
-
-        foreach (stringToArray($guards) as $guard) {
-            # code...
-            $user = Auth::guard($guard)->user();
-            if (isset($user)) {
-                return $user;
+        $guards = [Define::AUTHENTICATE_KEY_WEB, Define::AUTHENTICATE_KEY_API];
+        foreach($guards as $guard){
+            if(\Auth::guard($guard)->check()) {
+                return \Auth::guard($guard)->user();
             }
         }
+
         return null;
     }
 
