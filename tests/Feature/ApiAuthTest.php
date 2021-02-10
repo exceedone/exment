@@ -55,10 +55,10 @@ class ApiAuthTest extends ApiTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         $this->get(admin_urls('api', 'data', 'custom_value_edit'))
-            ->assertStatus(403);
+            ->assertStatus(401);
 
         $this->get(admin_urls('api', 'data', 'custom_value_edit', 5))
-            ->assertStatus(403);
+            ->assertStatus(401);
     }
 
     public function testApiAuthWriteFalse(){
@@ -71,7 +71,7 @@ class ApiAuthTest extends ApiTestBase
                 'user' => 3
             ]
         ])
-        ->assertStatus(403);
+        ->assertStatus(401);
     }    
 
     public function testWebApiAuthTrue(){
@@ -112,12 +112,12 @@ class ApiAuthTest extends ApiTestBase
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit'))
-            ->assertStatus(403);
+            ->assertStatus(401);
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit', 5))
-            ->assertStatus(403);
+            ->assertStatus(401);
     }
 
     public function testWebApiAuthWriteFalse(){
@@ -127,11 +127,11 @@ class ApiAuthTest extends ApiTestBase
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->post(admin_urls('api', 'data', 'custom_value_edit'), [
+        ])->post(admin_urls('webapi', 'data', 'custom_value_edit'), [
             'value' => [
                 'text' => $text,
                 'user' => 3
             ]
-        ])->assertStatus(403);
+        ])->assertStatus(401);
     }
 }
