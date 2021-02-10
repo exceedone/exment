@@ -30,9 +30,7 @@ class FormDataItem extends ConditionItemBase implements ConditionItemInterface
             return false;
         }
 
-        return collect(toArray($condition->condition_value))->contains(function ($value) use ($form_data_type) {
-            return isMatchString($form_data_type, $value);
-        });
+        return $this->compareValue($condition, $form_data_type);
     }
     
     /**
