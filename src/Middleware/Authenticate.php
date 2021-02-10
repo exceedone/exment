@@ -38,6 +38,7 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
         else{
             return redirect()->guest(admin_base_path('auth/login'));
         }
+        \Auth::shouldUse(Define::AUTHENTICATE_KEY_WEB);
 
         return $next($request);
     }
