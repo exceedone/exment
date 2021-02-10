@@ -26,6 +26,9 @@ class Ne extends ViewFilter\ViewFilterBase
      * @return boolean is match, return true
      */
     protected function _compareValue($value, $conditionValue) : bool{
-        return !isMatchString($value, $conditionValue);
+        if(!$this->isNumeric()){
+            return !isMatchString($value, $conditionValue);
+        }
+        return (float)$value != (float)$conditionValue;
     }
 }

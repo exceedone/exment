@@ -24,6 +24,9 @@ class NumberGte extends NumberCompareBase
      * @return boolean is match, return true
      */
     protected function _compareValue($value, $conditionValue) : bool{
-        return $value >= $conditionValue;
+        if(is_null($value) || is_null($conditionValue)){
+            return false;
+        }
+        return (float)$value >= (float)$conditionValue;
     }
 }

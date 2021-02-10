@@ -152,6 +152,122 @@ class ConditionTest extends UnitTestBase
         $this->__testColumnNullCheck(ColumnType::INTEGER, $target_value, $filterOption, $result);
     }
 
+    // Custom column decimal ----------------------------------------------------
+    public function testColumnDecimalEqTrue()
+    {
+        $this->_testColumnDecimal(3.56, ['3.56', 3.56], FilterOption::EQ, true);
+        $this->_testColumnDecimal('0.91', ['0.91', 0.91], FilterOption::EQ, true);
+        // TODO:井坂　要修正
+        $this->_testColumnDecimal(2, ['2', 2, 2.0, '2.0'], FilterOption::EQ, true);
+        $this->_testColumnDecimal(-4.2, ['-4.2', -4.2], FilterOption::EQ, true);
+    }
+    public function testColumnDecimalEqFalse()
+    {
+        $this->_testColumnDecimal('5.81', ['5.811', null, 5.8, 'text_1'], FilterOption::EQ, false);
+        $this->_testColumnDecimal(3.3, ['33', null, 3.33, 'text_33'], FilterOption::EQ, false);
+        $this->_testColumnDecimal(-4.2, ['4.2', 4.2, -4, '-4', null], FilterOption::EQ, false);
+    }
+    public function testColumnDecimalNeTrue()
+    {
+        $this->_testColumnDecimal('5.81', ['5.811', null, 5.8, 'text_1'], FilterOption::NE, true);
+        $this->_testColumnDecimal(3.3, ['33', null, 3.33, 'text_33'], FilterOption::NE, true);
+        $this->_testColumnDecimal(-4.2, ['4.2', 4.2, -4, '-4'], FilterOption::NE, true);
+    }
+    public function testColumnDecimalNeFalse()
+    {
+        $this->_testColumnDecimal(3.56, ['3.56', 3.56], FilterOption::NE, false);
+        $this->_testColumnDecimal('0.91', ['0.91', 0.91], FilterOption::NE, false);
+        // TODO:井坂　要修正
+        $this->_testColumnDecimal(2, ['2', 2, 2.0, '2.0'], FilterOption::NE, false);
+        $this->_testColumnDecimal(-4.2, ['-4.2', -4.2], FilterOption::NE, false);
+    }
+    public function testColumnDecimalGtTrue()
+    {
+        $this->_testColumnDecimal(3.35, ['3.34', 3.3], FilterOption::NUMBER_GT, true);
+        $this->_testColumnDecimal('0.91', ['0.9', 0.909], FilterOption::NUMBER_GT, true);
+        $this->_testColumnDecimal(2, ['1.99', 1, 1.9], FilterOption::NUMBER_GT, true);
+        $this->_testColumnDecimal(-3.02, ['-3.03', -3.021], FilterOption::NUMBER_GT, true);
+    }
+    public function testColumnDecimalGtFalse()
+    {
+        // TODO:井坂　要修正
+        $this->_testColumnDecimal('5.81', ['5.81', 5.9, null], FilterOption::NUMBER_GT, false);
+        $this->_testColumnDecimal(3.3, ['3.3', 3.31, '4', null], FilterOption::NUMBER_GT, false);
+        $this->_testColumnDecimal(-3.02, ['-3.01', -3.02, -3, null], FilterOption::NUMBER_GT, false);
+    }
+    public function testColumnDecimalLtTrue()
+    {
+        $this->_testColumnDecimal(3.35, ['3.36', 3.4], FilterOption::NUMBER_LT, true);
+        $this->_testColumnDecimal('0.91', ['0.911', 0.92], FilterOption::NUMBER_LT, true);
+        $this->_testColumnDecimal(2, ['2.01', 3, 2.1], FilterOption::NUMBER_LT, true);
+        $this->_testColumnDecimal(-3.02, ['-3', 3.02, -3.01, 0], FilterOption::NUMBER_LT, true);
+    }
+    public function testColumnDecimalLtFalse()
+    {
+        $this->_testColumnDecimal('5.81', ['5.80', 5.8, '-5.81', null], FilterOption::NUMBER_LT, false);
+        $this->_testColumnDecimal(3.3, ['3.3', 3.29, '3', null], FilterOption::NUMBER_LT, false);
+        $this->_testColumnDecimal(-3.02, ['-3.1', -3.02, -4, null], FilterOption::NUMBER_LT, false);
+    }
+    public function testColumnDecimalGteTrue()
+    {
+        $this->_testColumnDecimal(3.35, ['3.350', 3.3], FilterOption::NUMBER_GTE, true);
+        $this->_testColumnDecimal('0.91', ['0.9', 0.91], FilterOption::NUMBER_GTE, true);
+        $this->_testColumnDecimal(2, ['2.0', 1, 1.99], FilterOption::NUMBER_GTE, true);
+        $this->_testColumnDecimal(-3.02, ['-3.03', -3.021], FilterOption::NUMBER_GTE, true);
+    }
+    public function testColumnDecimalGteFalse()
+    {
+        // TODO:井坂　要修正
+        $this->_testColumnDecimal('5.81', ['5.811', 5.9, null], FilterOption::NUMBER_GTE, false);
+        $this->_testColumnDecimal(3.3, ['3.4', 3.31, '4', null], FilterOption::NUMBER_GTE, false);
+        $this->_testColumnDecimal(-3.02, ['-3.01', -3.019, -3, null], FilterOption::NUMBER_GTE, false);
+    }
+    public function testColumnDecimalLteTrue()
+    {
+        $this->_testColumnDecimal(3.35, ['3.36', 3.35], FilterOption::NUMBER_LTE, true);
+        $this->_testColumnDecimal('0.91', ['0.910', 0.911], FilterOption::NUMBER_LTE, true);
+        $this->_testColumnDecimal(2, ['2.01', 2.0, 2], FilterOption::NUMBER_LTE, true);
+        $this->_testColumnDecimal(-3.02, ['-3', 3.02, -3.02, 0], FilterOption::NUMBER_LTE, true);
+    }
+    public function testColumnDecimalLteFalse()
+    {
+        $this->_testColumnDecimal('5.81', ['5.80', 5.8, '-5.81', null], FilterOption::NUMBER_LTE, false);
+        $this->_testColumnDecimal(3.3, ['3.29', 3.2, '3', null], FilterOption::NUMBER_LTE, false);
+        $this->_testColumnDecimal(-3.02, ['-3.1', -3.03, -4, null], FilterOption::NUMBER_LTE, false);
+    }
+    public function testColumnDecimalNotNullTrue()
+    {
+        $this->_testColumnDecimalNullCheck(2.01, FilterOption::NOT_NULL, true);
+        $this->_testColumnDecimalNullCheck('2.0', FilterOption::NOT_NULL, true);
+        $this->_testColumnDecimalNullCheck('0.0', FilterOption::NOT_NULL, true);
+        $this->_testColumnDecimalNullCheck(0, FilterOption::NOT_NULL, true);
+    }
+    public function testColumnDecimalNotNullFalse()
+    {
+        $this->_testColumnDecimalNullCheck(null, FilterOption::NOT_NULL, false);
+        $this->_testColumnDecimalNullCheck('', FilterOption::NOT_NULL, false);
+    }
+    public function testColumnDecimalNullTrue()
+    {
+        $this->_testColumnDecimalNullCheck(null, FilterOption::NULL, true);
+        $this->_testColumnDecimalNullCheck('', FilterOption::NULL, true);
+    }
+    public function testColumnDecimalNullFalse()
+    {
+        $this->_testColumnDecimalNullCheck(2.01, FilterOption::NULL, false);
+        $this->_testColumnDecimalNullCheck('2.0', FilterOption::NULL, false);
+        $this->_testColumnDecimalNullCheck('0.0', FilterOption::NULL, false);
+        $this->_testColumnDecimalNullCheck(0, FilterOption::NULL, false);
+    }
+    protected function _testColumnDecimal($target_value, array $values, string $filterOption, bool $result)
+    {
+        $this->__testColumn(ColumnType::DECIMAL, $target_value, $values, $filterOption, $result);
+    }
+    protected function _testColumnDecimalNullCheck($target_value, string $filterOption, bool $result)
+    {
+        $this->__testColumnNullCheck(ColumnType::DECIMAL, $target_value, $filterOption, $result);
+    }
+
 
     // Custom column decimal ----------------------------------------------------
     public function testColumnDecimalEqTrue()
@@ -628,7 +744,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnSelectMultiNotExistsFalse()
     {
-        // todo 井坂 要修正
         $this->_testColumnSelectMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_NOT_EXISTS, false);
         $this->_testColumnSelectMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
@@ -739,7 +854,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnSelectValMultiNotExistsFalse()
     {
-        // todo 井坂 要修正
         $this->_testColumnSelectValMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_NOT_EXISTS, false);
         $this->_testColumnSelectValMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
@@ -845,7 +959,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnSelectTableMultiNotExistsFalse()
     {
-        // todo 井坂 要修正
         $this->_testColumnSelectTableMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
     public function testColumnSelectTableMultiNotNullTrue()
@@ -1359,7 +1472,16 @@ class ConditionTest extends UnitTestBase
                 'condition_value' => $value,
             ]);
 
-            $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+            
+            
+            $messageValue = is_array($value) ? json_encode($value) : ($value ?? 'null');
+            $messageTargetValue = is_array($target_value) ? json_encode($target_value) : ($target_value ?? 'null');
+            
+            $isMatchCondition = $condition->isMatchCondition($custom_value);
+            $messageIsMatchCondition = $isMatchCondition ? 'true' : 'false';
+            $messageResult = $result ? 'true' : 'false';
+
+            $this->assertTrue($isMatchCondition == $result, "value condition {$messageValue} and {$messageTargetValue}, expect result is {$messageResult}, real result is {$messageIsMatchCondition}.");
         }
     }
 

@@ -26,7 +26,11 @@ class Eq extends ViewFilter\ViewFilterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool{
-        return isMatchString($value, $conditionValue);
+    protected function _compareValue($value, $conditionValue) : bool
+    {
+        if(!$this->isNumeric()){
+            return isMatchString($value, $conditionValue);
+        }
+        return (float)$value == (float)$conditionValue;
     }
 }

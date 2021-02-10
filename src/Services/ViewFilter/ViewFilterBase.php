@@ -1,6 +1,12 @@
 <?php
 namespace Exceedone\Exment\Services\ViewFilter;
 
+use Exceedone\Exment\ColumnItems\ItemInterface;
+use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ColumnType;
+
 abstract class ViewFilterBase
 {
     const classNames = [
@@ -54,7 +60,19 @@ abstract class ViewFilterBase
     ];
 
 
+    /**
+     * column item. 
+     *
+     * @var ItemInterface
+     */
     protected $column_item;
+    
+    /**
+     * Condition, for form priority, workflow, etc's match. 
+     *
+     * @var Condition
+     */
+    protected $condition;
     
     /**
      * For condition value, if value is null or empty array, whether ignore the value.
@@ -86,6 +104,12 @@ abstract class ViewFilterBase
     }
 
 
+    public function setCondition(Condition $condition){
+        $this->condition = $condition;
+        return $this;
+    }
+
+
     /**
      * Set filter
      *
@@ -114,7 +138,7 @@ abstract class ViewFilterBase
 
 
     /**
-     * Create instance
+     * Create instance, for view filter
      *
      * @param string $view_filter_condition
      * @return ViewFilterBase|null
@@ -126,6 +150,27 @@ abstract class ViewFilterBase
         foreach ($classNames as $className) {
             if (isMatchString($view_filter_condition, $className::getFilterOption())) {
                 return new $className($column_item, $options);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Create instance, for condition
+     *
+     * @param Condition $condition
+     * @return ViewFilterBase|null
+     */
+    public static function makeForCondition(Condition $condition, array $options = []) : ?ViewFilterBase
+    {
+        $classNames = static::classNames;
+
+        foreach ($classNames as $className) {
+            if (isMatchString($condition->condition_key, $className::getFilterOption())) {
+                $instance = new $className(null, $options);
+                $instance->setCondition($condition);
+                return $instance;
             }
         }
 
@@ -165,6 +210,31 @@ abstract class ViewFilterBase
                 return $this->_compareValue($value, $conditionValue);
             });
         });
+    }
+
+
+    /**
+     * Whether this conditon is number.
+     * If number, compare "eq" and "ne" is as number.
+     *
+     * @return boolean
+     */
+    public function isNumeric() : bool
+    {
+        if(!$this->condition){
+            return false;
+        }
+
+        if(!isMatchString($this->condition->condition_type, ConditionType::COLUMN)){
+            return false;
+        }
+
+        $custom_column = CustomColumn::getEloquent($this->condition->target_column_id);
+        if(!$custom_column){
+            return false;
+        }
+
+        return ColumnType::isCalc($custom_column->column_type);
     }
 
 

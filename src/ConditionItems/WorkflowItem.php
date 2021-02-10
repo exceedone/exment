@@ -30,8 +30,9 @@ class WorkflowItem extends SystemItem implements ConditionItemInterface
         switch($enum){
             case SystemColumn::WORKFLOW_STATUS:
                 $status = $this->getWorkflowStatus($condition);
-                return isMatchString($custom_value->workflow_status, $status);
+                return $this->compareValues($condition, $status, $custom_value->workflow_status);
             case SystemColumn::WORKFLOW_WORK_USERS:
+                // Now only match type is login user. So especially logic.
                 return $custom_value->getWorkflowActions(true)->count() > 0;
         }
 
