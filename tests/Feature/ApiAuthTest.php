@@ -108,7 +108,6 @@ class ApiAuthTest extends ApiTestBase
     public function testWebApiAuthReadFalse(){
         $token = $this->getUser1AccessToken([ApiScope::VALUE_READ]);
 
-        // todo 井坂
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit'))
@@ -123,7 +122,6 @@ class ApiAuthTest extends ApiTestBase
     public function testWebApiAuthWriteFalse(){
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
 
-        // todo 井坂
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
