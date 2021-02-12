@@ -32,18 +32,15 @@ class Currency extends Decimal
             return [null, null];
         }
 
+        // get digit
+        $digit = array_has($this->custom_column, 'options.decimal_digit') ? intval(array_get($this->custom_column, 'options.decimal_digit')) : 0;
+
         if (boolval(array_get($this->custom_column, 'options.number_format'))
         && is_numeric($v)
         && !boolval(array_get($this->options, 'disable_number_format'))) {
-            if (array_has($this->custom_column, 'options.decimal_digit')) {
-                $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-                $value = number_format($v, $digit);
-            //$value = preg_replace("/\.?0+$/",'', $value);
-            } else {
-                $value = number_format($v);
-            }
+            $value = number_format($v, $digit);
         } else {
-            $value = $v;
+            $value = sprintf('%.' . $digit . 'f', $v);
         }
 
         if (boolval(array_get($this->options, 'disable_currency_symbol'))) {
