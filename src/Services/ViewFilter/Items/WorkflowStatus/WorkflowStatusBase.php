@@ -38,6 +38,8 @@ abstract class WorkflowStatusBase extends ViewFilterBase
         // if $conditionValue is WorkflowStatus, convert id
         if($conditionValue instanceof WorkflowStatus){
             $conditionValue = $conditionValue->id;
+        }elseif(isMatchString($conditionValue, Define::WORKFLOW_START_KEYNAME)){
+            $conditionValue = null;
         }
 
         return isMatchString($workflow_status, $conditionValue) === $this->isExists();

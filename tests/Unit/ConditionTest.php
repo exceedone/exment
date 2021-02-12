@@ -1062,7 +1062,6 @@ class ConditionTest extends UnitTestBase
     public function testColumnUserMultiNeUserFalse()
     {
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        // todo 井坂 ビューフィルタも含めて要見直し
         $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN], 
             [null], FilterOption::USER_NE_USER, false);
     }
@@ -1320,6 +1319,47 @@ class ConditionTest extends UnitTestBase
 
 
 
+    // workflow ----------------------------------------------------
+    public function testWorkflowStatusEqTrue()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, null, FilterOption::WORKFLOW_EQ_STATUS, true);
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_EQ_STATUS, true);
+
+        $this->__testWorkflowStatus('waiting', 'waiting', FilterOption::WORKFLOW_EQ_STATUS, true);
+    }
+
+    public function testWorkflowStatusEqFalse()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, 'waiting', FilterOption::WORKFLOW_EQ_STATUS, false);
+        $this->__testWorkflowStatus('waiting', Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_EQ_STATUS, false);
+
+        $this->__testWorkflowStatus('waiting', null, FilterOption::WORKFLOW_EQ_STATUS, false);
+    }
+
+    public function testWorkflowStatusNeTrue()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, 'waiting', FilterOption::WORKFLOW_NE_STATUS, true);
+        $this->__testWorkflowStatus('waiting', Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_NE_STATUS, true);
+
+        $this->__testWorkflowStatus('waiting', null, FilterOption::WORKFLOW_NE_STATUS, true);
+    }
+
+    public function testWorkflowStatusNeFalse()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, null, FilterOption::WORKFLOW_NE_STATUS, false);
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_NE_STATUS, false);
+
+        $this->__testWorkflowStatus('waiting', 'waiting', FilterOption::WORKFLOW_NE_STATUS, false);
+    }
+
+    public function testWorkflowWorkUser()
+    {
+        $this->__testWorkflowWorkUser(true, FilterOption::WORKFLOW_EQ_WORK_USER, true);
+        $this->__testWorkflowWorkUser(false, FilterOption::WORKFLOW_EQ_WORK_USER, false);
+    }
+
+
+
     /**
      * Execute test for custom column
      *
@@ -1427,5 +1467,85 @@ class ConditionTest extends UnitTestBase
         ]);
 
         $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+    }
+    
+
+    /**
+     * Execute test for workflow status
+     *
+     * @param string $column_name
+     * @param mixed $target_value
+     * @param array $values
+     * @param string $filterOption
+     * @param boolean $result
+     * @return void
+     */
+    protected function __testWorkflowStatus(string $status_name, $value, string $filterOption, bool $result)
+    {
+        $this->initAllTest();
+
+        $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // get value all
+        $custom_values = $custom_table->getValueModel()->get();
+        foreach($custom_values as $custom_value){
+            $workflow_status_name = $custom_value->workflow_status_name;
+            if($workflow_status_name != $status_name){
+                continue;
+            }
+
+            // get workflow status
+            $workflow_status = Model\WorkflowStatus::where('status_name', $value)->first();
+            $condition = new Model\Condition([
+                'condition_type' => Enums\ConditionType::WORKFLOW,
+                'condition_key' => $filterOption,
+                'target_column_id' => 201, //WORKFLOW_STATUS
+                'condition_value' =>  $workflow_status ? $workflow_status->id : Model\Define::WORKFLOW_START_KEYNAME,
+            ]);
+    
+            $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+            break;
+        }
+    }
+    
+
+    /**
+     * Execute test for workflow work user
+     *
+     * @param string $column_name
+     * @param mixed $target_value
+     * @param array $values
+     * @param string $filterOption
+     * @param boolean $result
+     * @return void
+     */
+    protected function __testWorkflowWorkUser(bool $hasAuth, string $filterOption, bool $result)
+    {
+        $this->initAllTest();
+        $this->be(Model\LoginUser::find(1));
+
+        $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // get value all
+        $custom_values = $custom_table->getValueModel()->get();
+        foreach($custom_values as $custom_value){
+            $actions = $custom_value->getWorkflowActions(true, true);
+            $hasAction = $actions->count() > 0;
+            if($hasAction !== $hasAuth){
+                continue;
+            }
+
+            // get workflow status
+            $condition = new Model\Condition([
+                'condition_type' => Enums\ConditionType::WORKFLOW,
+                'condition_key' => $filterOption,
+                'target_column_id' => 202, //WORKFLOW_WORK_USER
+            ]);
+    
+            $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+            break;
+        }
     }
 }

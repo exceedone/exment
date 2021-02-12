@@ -26,17 +26,7 @@ class WorkflowItem extends SystemItem implements ConditionItemInterface
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $enum = SystemColumn::getEnum($condition->target_column_id);
-        switch($enum){
-            case SystemColumn::WORKFLOW_STATUS:
-                //$status = $this->getWorkflowStatus($condition);
-                return $this->compareValue($condition, $condition);
-            case SystemColumn::WORKFLOW_WORK_USERS:
-                // Now only match type is login user. So especially logic.
-                return $this->compareValue($condition, $custom_value);
-        }
-
-        return false;
+        return $this->compareValue($condition, $custom_value);
     }
     
 

@@ -1363,7 +1363,7 @@ class CustomViewFilterTest extends UnitTestBase
         $filter_settings = [[
             'column_name' => 'workflow_status',
             'condition_type' => ConditionType::WORKFLOW,
-            'filter_condition' => FilterOption::NE,
+            'filter_condition' => FilterOption::WORKFLOW_NE_STATUS,
             'filter_value_text' => 'start'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
