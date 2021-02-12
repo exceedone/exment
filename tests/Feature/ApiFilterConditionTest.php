@@ -11,7 +11,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-
+use Exceedone\Exment\Tests\Browser\ExmentKitTestCase;
 
 /**
  * Filter condition test. For use custom view filter, form priority, workflow, etc.

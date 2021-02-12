@@ -158,7 +158,6 @@ class ConditionTest extends UnitTestBase
     {
         $this->_testColumnDecimal(3.56, ['3.56', 3.56], FilterOption::EQ, true);
         $this->_testColumnDecimal('0.91', ['0.91', 0.91], FilterOption::EQ, true);
-        // TODO:井坂　要修正
         $this->_testColumnDecimal(2, ['2', 2, 2.0, '2.0'], FilterOption::EQ, true);
         $this->_testColumnDecimal(-4.2, ['-4.2', -4.2], FilterOption::EQ, true);
     }
@@ -178,7 +177,6 @@ class ConditionTest extends UnitTestBase
     {
         $this->_testColumnDecimal(3.56, ['3.56', 3.56], FilterOption::NE, false);
         $this->_testColumnDecimal('0.91', ['0.91', 0.91], FilterOption::NE, false);
-        // TODO:井坂　要修正
         $this->_testColumnDecimal(2, ['2', 2, 2.0, '2.0'], FilterOption::NE, false);
         $this->_testColumnDecimal(-4.2, ['-4.2', -4.2], FilterOption::NE, false);
     }
@@ -191,7 +189,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnDecimalGtFalse()
     {
-        // TODO:井坂　要修正
         $this->_testColumnDecimal('5.81', ['5.81', 5.9, null], FilterOption::NUMBER_GT, false);
         $this->_testColumnDecimal(3.3, ['3.3', 3.31, '4', null], FilterOption::NUMBER_GT, false);
         $this->_testColumnDecimal(-3.02, ['-3.01', -3.02, -3, null], FilterOption::NUMBER_GT, false);
@@ -218,7 +215,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnDecimalGteFalse()
     {
-        // TODO:井坂　要修正
         $this->_testColumnDecimal('5.81', ['5.811', 5.9, null], FilterOption::NUMBER_GTE, false);
         $this->_testColumnDecimal(3.3, ['3.4', 3.31, '4', null], FilterOption::NUMBER_GTE, false);
         $this->_testColumnDecimal(-3.02, ['-3.01', -3.019, -3, null], FilterOption::NUMBER_GTE, false);
@@ -1084,7 +1080,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnUserMultiNeFalse()
     {
-        // todo 井坂 要検討
         $this->_testColumnUserMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::USER_NE, false);
     }
     public function testColumnUserMultiNotNullTrue()
@@ -1284,10 +1279,9 @@ class ConditionTest extends UnitTestBase
     public function testLoginUserRoleNeTrue()
     {
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
-        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::NE, true);
-        // todo 井坂 役割グループが存在しない場合、いつもfalse
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::SELECT_NOT_EXISTS, true);
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::NE, true);
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::SELECT_NOT_EXISTS, true);
     }
     public function testLoginUserRoleNeFalse()
     {
