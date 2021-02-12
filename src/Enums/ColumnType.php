@@ -98,6 +98,14 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_2VALUE_SELECT()
+    {
+        return [
+            ColumnType::YESNO,
+            ColumnType::BOOLEAN,
+        ];
+    }
+
     public static function COLUMN_TYPE_MULTIPLE_ENABLED()
     {
         return [
@@ -173,6 +181,10 @@ class ColumnType extends EnumBase
     public static function isSelectTable($column_type)
     {
         return in_array($column_type, static::COLUMN_TYPE_SELECT_TABLE());
+    }
+    public static function is2ValueSelect($column_type)
+    {
+        return in_array($column_type, static::COLUMN_TYPE_2VALUE_SELECT());
     }
     public static function isMultipleEnabled($column_type)
     {

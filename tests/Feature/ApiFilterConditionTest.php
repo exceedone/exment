@@ -100,12 +100,12 @@ class ApiFilterConditionTest extends ExmentKitTestCase
 
     public function testConditionApiColumnYesNo()
     {
-        $this->__testConditionApiColumn(ColumnType::YESNO, FilterType::DEFAULT);
+        $this->__testConditionApiColumn(ColumnType::YESNO, FilterType::YESNO);
     }
 
     public function testConditionApiColumnBoolean()
     {
-        $this->__testConditionApiColumn(ColumnType::BOOLEAN, FilterType::DEFAULT);
+        $this->__testConditionApiColumn(ColumnType::BOOLEAN, FilterType::YESNO);
     }
 
     public function testConditionApiColumnAutoNumber()

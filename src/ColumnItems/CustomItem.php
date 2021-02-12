@@ -400,6 +400,9 @@ abstract class CustomItem implements ItemInterface
             case ColumnType::SELECT_TABLE:
             case SystemTableName::ORGANIZATION:
                 return FilterType::SELECT;
+            case ColumnType::YESNO:
+            case ColumnType::BOOLEAN:
+                return FilterType::YESNO;
             case ColumnType::DATE:
             case ColumnType::DATETIME:
                 return FilterType::DAY;

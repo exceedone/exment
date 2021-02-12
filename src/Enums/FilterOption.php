@@ -122,6 +122,9 @@ class FilterOption extends EnumBase
                 static::NOT_NULL,
                 static::NULL,
             ],
+            FilterType::YESNO => [
+                static::EQ,
+            ],
             FilterType::DAY => [
                 static::DAY_ON,
                 static::DAY_ON_OR_AFTER,
@@ -163,8 +166,11 @@ class FilterOption extends EnumBase
                 static::USER_EQ_USER,
             ],
             FilterType::CONDITION => [
-                static::EQ,
-                static::NE,
+                // Modify to select exists
+                // static::EQ,
+                // static::NE,
+                static::SELECT_EXISTS,
+                static::SELECT_NOT_EXISTS,
             ],
             FilterType::COMPARE => [
                 static::EQ,

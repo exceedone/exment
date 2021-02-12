@@ -18,9 +18,9 @@ class Boolean extends CustomItem
     
     protected function _text($v)
     {
-        if (array_get($this->custom_column, 'options.true_value') == $v) {
+        if ($this->getTrueValue() == $v) {
             return array_get($this->custom_column, 'options.true_label');
-        } elseif (array_get($this->custom_column, 'options.false_value') == $v) {
+        } elseif ($this->getFalseValue() == $v) {
             return array_get($this->custom_column, 'options.false_label');
         }
         return null;
@@ -55,8 +55,8 @@ class Boolean extends CustomItem
         
         // set options
         $states = [
-            'on'  => ['value' => array_get($options, 'true_value'), 'text' => array_get($options, 'true_label')],
-            'off' => ['value' => array_get($options, 'false_value'), 'text' => array_get($options, 'false_label')],
+            'on'  => ['value' => $this->getTrueValue(), 'text' => array_get($options, 'true_label')],
+            'off' => ['value' => $this->getFalseValue(), 'text' => array_get($options, 'false_label')],
         ];
         $field->states($states);
     }
@@ -66,8 +66,8 @@ class Boolean extends CustomItem
         $column = $this->custom_column;
         $filter->radio([
             ''   => 'All',
-            array_get($column, 'options.false_value')    => array_get($column, 'options.false_label'),
-            array_get($column, 'options.true_value')    => array_get($column, 'options.true_label'),
+            $this->getFalseValue()    => array_get($column, 'options.false_label'),
+            $this->getTrueValue()    => array_get($column, 'options.true_label'),
         ]);
     }
     
@@ -85,8 +85,8 @@ class Boolean extends CustomItem
     {
         $column = $this->custom_column;
         return [
-            array_get($column, 'options.false_value')    => array_get($column, 'options.false_label'),
-            array_get($column, 'options.true_value')    => array_get($column, 'options.true_label')
+            $this->getFalseValue()    => array_get($column, 'options.false_label'),
+            $this->getTrueValue()    => array_get($column, 'options.true_label')
         ];
     }
 
@@ -106,5 +106,14 @@ class Boolean extends CustomItem
             }
         }
         return null;
+    }
+
+
+    public function getFalseValue(){
+        return array_get($this->custom_column, 'options.false_value');
+    }
+    public function getTrueValue()
+    {
+        return array_get($this->custom_column, 'options.true_value');
     }
 }
