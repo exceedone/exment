@@ -1420,10 +1420,10 @@ class PatchDataCommand extends Command
 
         // group by group
         $columnGroups = $columns->groupBy('custom_form_block_id');
-        $columnGroups->each(function($columnGroup){
+        $columnGroups->each(function ($columnGroup) {
             $columnGroupInners = $columnGroup->groupBy('column_no');
-            $columnGroupInners->each(function($columns) use($columnGroupInners){
-                $columns->sortBy('order')->each(function($column, $index) use($columnGroupInners){
+            $columnGroupInners->each(function ($columns) use ($columnGroupInners) {
+                $columns->sortBy('order')->each(function ($column, $index) use ($columnGroupInners) {
                     $column->row_no = 1;
                     $column->width = 1;
                     $column->order = $index + 1;
