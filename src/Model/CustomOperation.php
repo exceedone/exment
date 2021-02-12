@@ -31,6 +31,11 @@ class CustomOperation extends ModelBase
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
     }
 
+    public function getCustomTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->custom_table_id);
+    }
+
     /**
      * get eloquent using request settion.
      * now only support only id.

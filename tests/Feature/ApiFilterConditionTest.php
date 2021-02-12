@@ -1,8 +1,7 @@
 <?php
 
-namespace Exceedone\Exment\Tests\Browser;
+namespace Exceedone\Exment\Tests\Feature;
 
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Tests\TestDefine;
@@ -11,12 +10,12 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-
+use Exceedone\Exment\Tests\Browser\ExmentKitTestCase;
 
 /**
  * Filter condition test. For use custom view filter, form priority, workflow, etc.
  */
-class JFilterConditionTest extends ExmentKitTestCase
+class ApiFilterConditionTest extends ExmentKitTestCase
 {
     /**
      * pre-excecute process before test.
@@ -100,12 +99,12 @@ class JFilterConditionTest extends ExmentKitTestCase
 
     public function testConditionApiColumnYesNo()
     {
-        $this->__testConditionApiColumn(ColumnType::YESNO, FilterType::DEFAULT);
+        $this->__testConditionApiColumn(ColumnType::YESNO, FilterType::YESNO);
     }
 
     public function testConditionApiColumnBoolean()
     {
-        $this->__testConditionApiColumn(ColumnType::BOOLEAN, FilterType::DEFAULT);
+        $this->__testConditionApiColumn(ColumnType::BOOLEAN, FilterType::YESNO);
     }
 
     public function testConditionApiColumnAutoNumber()

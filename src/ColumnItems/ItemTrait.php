@@ -15,6 +15,14 @@ use Exceedone\Exment\Model\CustomForm;
 trait ItemTrait
 {
     /**
+     * This custom table.
+     * *If view_pivot_column, custom_table is pivot target table
+     *
+     * @var CustomTable
+     */
+    protected $custom_table;
+    
+    /**
      * this column's target custom_table
      */
     protected $value;
@@ -26,6 +34,18 @@ trait ItemTrait
     protected $options;
 
     protected $uniqueName;
+
+    public function getCustomTable()
+    {
+        return $this->custom_table;
+    }
+
+    public function setCustomTable(CustomTable $custom_table)
+    {
+        $this->custom_table = $custom_table;
+
+        return $this;
+    }
 
     /**
      * CustomForm

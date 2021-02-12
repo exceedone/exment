@@ -117,4 +117,13 @@ class Yesno extends CustomItem
         $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
             ->help(exmtrans("custom_column.help.checkbox_enabled"));
     }
+    
+    public function getFalseValue()
+    {
+        return 0;
+    }
+    public function getTrueValue()
+    {
+        return 1;
+    }
 }

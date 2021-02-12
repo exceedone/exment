@@ -42,8 +42,7 @@ abstract class PluginDocumentBase
         $service = new DocumentExcelService(
             $this->custom_value,
             $template_path,
-            $output_filename,
-            $this->plugin->getDocumentType()
+            $output_filename
         );
         $service->makeExcel();
 

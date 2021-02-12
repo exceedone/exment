@@ -778,7 +778,7 @@ class TestDataSeeder extends Seeder
         $custom_form_conditions = [
             [
                 'condition_type' => ConditionType::CONDITION,
-                'condition_key' => 1,
+                'condition_key' => FilterOption::SELECT_EXISTS,
                 'target_column_id' => ConditionTypeDetail::ORGANIZATION,
                 'condition_value' => ["2"], // dev
             ],

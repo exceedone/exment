@@ -35,17 +35,18 @@ class BackupTarget extends EnumBase
         // target is array,
         // [0] is disk or path. if path, diectory to project path
         // [1] is backup from path and to
+        // [2] is key name
         switch ($target) {
             case static::PLUGIN:
-                return [\Storage::disk(Define::DISKNAME_PLUGIN_SYNC), path_join("storage", "app", "plugins")];
+                return [\Storage::disk(Define::DISKNAME_PLUGIN_SYNC), path_join("storage", "app", "plugins"), static::PLUGIN];
             case static::LOG:
             case 'logs':
-                return [base_path(path_join("storage", "logs")), "logs"];
+                return [base_path(path_join("storage", "logs")), "logs", static::LOG];
             case static::ATTACHMENT:
             case 'storage':
-                return [\Storage::disk(Define::DISKNAME_ADMIN), path_join("storage", "app", "admin")];
+                return [\Storage::disk(Define::DISKNAME_ADMIN), path_join("storage", "app", "admin"), static::ATTACHMENT];
             case static::CONFIG:
-                return [base_path('config'), "config"];
+                return [base_path('config'), "config", static::CONFIG];
         }
         return null;
     }

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Constraints;
 
 use Symfony\Component\DomCrawler\Crawler;
 use Laravel\BrowserKitTesting\Constraints\PageConstraint;
+use Illuminate\Support\Collection;
 
 class ExactSelectOption extends PageConstraint
 {

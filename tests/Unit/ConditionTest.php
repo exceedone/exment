@@ -10,12 +10,7 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FormDataType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Laravel\BrowserKitTesting\Constraints\HasElement;
-use Laravel\BrowserKitTesting\Constraints\ReversePageConstraint;
-use Laravel\BrowserKitTesting\Constraints\PageConstraint;
-use Exceedone\Exment\Tests\Constraints\ExactSelectOption;
 use Carbon\Carbon;
 
 /**
@@ -158,7 +153,6 @@ class ConditionTest extends UnitTestBase
     {
         $this->_testColumnDecimal(3.56, ['3.56', 3.56], FilterOption::EQ, true);
         $this->_testColumnDecimal('0.91', ['0.91', 0.91], FilterOption::EQ, true);
-        // TODO:井坂　要修正
         $this->_testColumnDecimal(2, ['2', 2, 2.0, '2.0'], FilterOption::EQ, true);
         $this->_testColumnDecimal(-4.2, ['-4.2', -4.2], FilterOption::EQ, true);
     }
@@ -178,7 +172,6 @@ class ConditionTest extends UnitTestBase
     {
         $this->_testColumnDecimal(3.56, ['3.56', 3.56], FilterOption::NE, false);
         $this->_testColumnDecimal('0.91', ['0.91', 0.91], FilterOption::NE, false);
-        // TODO:井坂　要修正
         $this->_testColumnDecimal(2, ['2', 2, 2.0, '2.0'], FilterOption::NE, false);
         $this->_testColumnDecimal(-4.2, ['-4.2', -4.2], FilterOption::NE, false);
     }
@@ -191,7 +184,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnDecimalGtFalse()
     {
-        // TODO:井坂　要修正
         $this->_testColumnDecimal('5.81', ['5.81', 5.9, null], FilterOption::NUMBER_GT, false);
         $this->_testColumnDecimal(3.3, ['3.3', 3.31, '4', null], FilterOption::NUMBER_GT, false);
         $this->_testColumnDecimal(-3.02, ['-3.01', -3.02, -3, null], FilterOption::NUMBER_GT, false);
@@ -218,7 +210,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnDecimalGteFalse()
     {
-        // TODO:井坂　要修正
         $this->_testColumnDecimal('5.81', ['5.811', 5.9, null], FilterOption::NUMBER_GTE, false);
         $this->_testColumnDecimal(3.3, ['3.4', 3.31, '4', null], FilterOption::NUMBER_GTE, false);
         $this->_testColumnDecimal(-3.02, ['-3.01', -3.019, -3, null], FilterOption::NUMBER_GTE, false);
@@ -343,7 +334,6 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnDate(Carbon::today()->format('Y-m-d'), [null], FilterOption::DAY_TODAY_OR_BEFORE, true);
         $this->_testColumnDate(Carbon::today()->subDays(1)->format('Y-m-d'), [null], FilterOption::DAY_TODAY_OR_BEFORE, true);
         $this->_testColumnDate(Carbon::today()->subMonths(1)->format('Ymd'), [null], FilterOption::DAY_TODAY_OR_BEFORE, true);
-        // TODO 井坂 要修正
         $this->_testColumnDate(Carbon::now()->format('Y-m-d H:i:s.u'), [null], FilterOption::DAY_TODAY_OR_BEFORE, true);
     }
     public function testColumnDateDayTodayOrBeforeFalse()
@@ -629,7 +619,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnSelectMultiNotExistsFalse()
     {
-        // todo 井坂 要修正
         $this->_testColumnSelectMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_NOT_EXISTS, false);
         $this->_testColumnSelectMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
@@ -740,7 +729,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnSelectValMultiNotExistsFalse()
     {
-        // todo 井坂 要修正
         $this->_testColumnSelectValMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_NOT_EXISTS, false);
         $this->_testColumnSelectValMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
@@ -846,7 +834,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnSelectTableMultiNotExistsFalse()
     {
-        // todo 井坂 要修正
         $this->_testColumnSelectTableMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
     public function testColumnSelectTableMultiNotNullTrue()
@@ -1070,7 +1057,6 @@ class ConditionTest extends UnitTestBase
     public function testColumnUserMultiNeUserFalse()
     {
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        // todo 井坂 ビューフィルタも含めて要見直し
         $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN], 
             [null], FilterOption::USER_NE_USER, false);
     }
@@ -1088,7 +1074,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnUserMultiNeFalse()
     {
-        // todo 井坂 要検討
         $this->_testColumnUserMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::USER_NE, false);
     }
     public function testColumnUserMultiNotNullTrue()
@@ -1189,7 +1174,6 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnOrgMultiNotExistsFalse()
     {
-        // todo 井坂 要検討
         $this->_testColumnOrgMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
     public function testColumnOrgMultiNotNullTrue()
@@ -1289,10 +1273,9 @@ class ConditionTest extends UnitTestBase
     public function testLoginUserRoleNeTrue()
     {
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
-        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::NE, true);
-        // todo 井坂 役割グループが存在しない場合、いつもfalse
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::SELECT_NOT_EXISTS, true);
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::NE, true);
+        $this->__testConditionColumn(ConditionTypeDetail::ROLE, null, [TestDefine::TESTDATA_ROLEGROUP_GENERAL], FilterOption::SELECT_NOT_EXISTS, true);
     }
     public function testLoginUserRoleNeFalse()
     {
@@ -1331,12 +1314,53 @@ class ConditionTest extends UnitTestBase
 
 
 
+    // workflow ----------------------------------------------------
+    public function testWorkflowStatusEqTrue()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, null, FilterOption::WORKFLOW_EQ_STATUS, true);
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_EQ_STATUS, true);
+
+        $this->__testWorkflowStatus('waiting', 'waiting', FilterOption::WORKFLOW_EQ_STATUS, true);
+    }
+
+    public function testWorkflowStatusEqFalse()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, 'waiting', FilterOption::WORKFLOW_EQ_STATUS, false);
+        $this->__testWorkflowStatus('waiting', Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_EQ_STATUS, false);
+
+        $this->__testWorkflowStatus('waiting', null, FilterOption::WORKFLOW_EQ_STATUS, false);
+    }
+
+    public function testWorkflowStatusNeTrue()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, 'waiting', FilterOption::WORKFLOW_NE_STATUS, true);
+        $this->__testWorkflowStatus('waiting', Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_NE_STATUS, true);
+
+        $this->__testWorkflowStatus('waiting', null, FilterOption::WORKFLOW_NE_STATUS, true);
+    }
+
+    public function testWorkflowStatusNeFalse()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, null, FilterOption::WORKFLOW_NE_STATUS, false);
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_NE_STATUS, false);
+
+        $this->__testWorkflowStatus('waiting', 'waiting', FilterOption::WORKFLOW_NE_STATUS, false);
+    }
+
+    public function testWorkflowWorkUser()
+    {
+        $this->__testWorkflowWorkUser(true, FilterOption::WORKFLOW_EQ_WORK_USER, true);
+        $this->__testWorkflowWorkUser(false, FilterOption::WORKFLOW_EQ_WORK_USER, false);
+    }
+
+
+
     /**
      * Execute test for custom column
      *
      * @param string $column_name
-     * @param mixed $target_value
-     * @param array $values
+     * @param mixed $target_value dummy set to value
+     * @param array $values dummy set to condition for loop item
      * @param string $filterOption
      * @param boolean $result
      * @return void
@@ -1360,8 +1384,16 @@ class ConditionTest extends UnitTestBase
                 'target_column_id' => $custom_column->id,
                 'condition_value' => $value,
             ]);
+            
+            
+            $messageValue = is_array($value) ? json_encode($value) : ($value ?? 'null');
+            $messageTargetValue = is_array($target_value) ? json_encode($target_value) : ($target_value ?? 'null');
+            
+            $isMatchCondition = $condition->isMatchCondition($custom_value);
+            $messageIsMatchCondition = $isMatchCondition ? 'true' : 'false';
+            $messageResult = $result ? 'true' : 'false';
 
-            $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+            $this->assertTrue($isMatchCondition == $result, "value condition {$messageValue} and {$messageTargetValue}, expect result is {$messageResult}, real result is {$messageIsMatchCondition}.");
         }
     }
 
@@ -1430,5 +1462,85 @@ class ConditionTest extends UnitTestBase
         ]);
 
         $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+    }
+    
+
+    /**
+     * Execute test for workflow status
+     *
+     * @param string $column_name
+     * @param mixed $target_value
+     * @param array $values
+     * @param string $filterOption
+     * @param boolean $result
+     * @return void
+     */
+    protected function __testWorkflowStatus(string $status_name, $value, string $filterOption, bool $result)
+    {
+        $this->initAllTest();
+
+        $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // get value all
+        $custom_values = $custom_table->getValueModel()->get();
+        foreach($custom_values as $custom_value){
+            $workflow_status_name = $custom_value->workflow_status_name;
+            if($workflow_status_name != $status_name){
+                continue;
+            }
+
+            // get workflow status
+            $workflow_status = Model\WorkflowStatus::where('status_name', $value)->first();
+            $condition = new Model\Condition([
+                'condition_type' => Enums\ConditionType::WORKFLOW,
+                'condition_key' => $filterOption,
+                'target_column_id' => 201, //WORKFLOW_STATUS
+                'condition_value' =>  $workflow_status ? $workflow_status->id : Model\Define::WORKFLOW_START_KEYNAME,
+            ]);
+    
+            $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+            break;
+        }
+    }
+    
+
+    /**
+     * Execute test for workflow work user
+     *
+     * @param string $column_name
+     * @param mixed $target_value
+     * @param array $values
+     * @param string $filterOption
+     * @param boolean $result
+     * @return void
+     */
+    protected function __testWorkflowWorkUser(bool $hasAuth, string $filterOption, bool $result)
+    {
+        $this->initAllTest();
+        $this->be(Model\LoginUser::find(1));
+
+        $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // get value all
+        $custom_values = $custom_table->getValueModel()->get();
+        foreach($custom_values as $custom_value){
+            $actions = $custom_value->getWorkflowActions(true, true);
+            $hasAction = $actions->count() > 0;
+            if($hasAction !== $hasAuth){
+                continue;
+            }
+
+            // get workflow status
+            $condition = new Model\Condition([
+                'condition_type' => Enums\ConditionType::WORKFLOW,
+                'condition_key' => $filterOption,
+                'target_column_id' => 202, //WORKFLOW_WORK_USER
+            ]);
+    
+            $this->assertMatch($condition->isMatchCondition($custom_value), $result);
+            break;
+        }
     }
 }

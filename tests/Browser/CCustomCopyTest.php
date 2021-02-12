@@ -18,7 +18,7 @@ class CCustomCopyTest extends ExmentKitTestCase
     /**
      * pre-excecute process before test.
      */
-    protected function setUp(): void
+    protected function setUp() : void
     {
         parent::setUp();
         $this->login();
