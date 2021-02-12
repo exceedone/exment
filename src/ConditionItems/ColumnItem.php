@@ -313,7 +313,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function getColumnAndTableId($column_name, $custom_table) : array
     {
-         $target_column = CustomColumn::getEloquent($column_name, $custom_table);
+        $target_column = CustomColumn::getEloquent($column_name, $custom_table);
         // get table and column id
         if (isset($target_column)) {
             return [

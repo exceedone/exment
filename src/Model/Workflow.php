@@ -157,7 +157,7 @@ class Workflow extends ModelBase
         }
 
         $custom_table = CustomTable::getEloquent($custom_table);
-        if(!$custom_table){
+        if (!$custom_table) {
             return null;
         }
         

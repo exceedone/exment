@@ -188,7 +188,7 @@ trait ColumnOptionQueryTrait
 
         $custom_table = CustomTable::getEloquent($table_name);
         // create from custom column
-        $array = $custom_table->custom_columns->filter(function($custom_column) use($is_index, $options){
+        $array = $custom_table->custom_columns->filter(function ($custom_column) use ($is_index, $options) {
             if (boolval($is_index)) {
                 return $custom_column->index_enabled;
             }
@@ -198,7 +198,7 @@ trait ColumnOptionQueryTrait
             }
 
             return true;
-        })->mapWithKeys(function($custom_column) use($table_name, $options){
+        })->mapWithKeys(function ($custom_column) use ($table_name, $options) {
             $key = "{$custom_column->id}" . (boolval($options['append_tableid']) ? "?table_id={$custom_column->custom_table_id}" : '');
             return [strval($key) => $custom_column->column_view_name];
         })->toArray();

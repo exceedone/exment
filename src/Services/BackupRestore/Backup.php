@@ -134,8 +134,8 @@ class Backup
         }
             
         // if contains 'config' in $settings, copy env file
-        if (collect($settings)->contains(function($setting){
-            if(is_array($setting)){
+        if (collect($settings)->contains(function ($setting) {
+            if (is_array($setting)) {
                 return count($setting) >= 3 && $setting[2] == BackupTarget::CONFIG;
             }
             return $setting == BackupTarget::CONFIG;

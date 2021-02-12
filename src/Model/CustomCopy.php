@@ -4,8 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\CopyColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ConditionType;
 
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
 {

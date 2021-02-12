@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ConditionType;
-use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SummaryCondition;
@@ -695,7 +693,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
             $condition_item = $custom_view_sort->condition_item;
-            if($condition_item){
+            if ($condition_item) {
                 $condition_item->setQuerySort($model, $custom_view_sort);
             }
         }

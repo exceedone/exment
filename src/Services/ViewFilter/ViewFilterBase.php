@@ -65,14 +65,14 @@ abstract class ViewFilterBase
 
 
     /**
-     * column item. 
+     * column item.
      *
      * @var ItemInterface
      */
     protected $column_item;
     
     /**
-     * Condition, for form priority, workflow, etc's match. 
+     * Condition, for form priority, workflow, etc's match.
      *
      * @var Condition
      */
@@ -108,7 +108,8 @@ abstract class ViewFilterBase
     }
 
 
-    public function setCondition(Condition $condition){
+    public function setCondition(Condition $condition)
+    {
         $this->condition = $condition;
         return $this;
     }
@@ -198,19 +199,19 @@ abstract class ViewFilterBase
             $conditionValue = [$conditionValue];
         }
 
-        $value = collect($value)->filter(function($value){
-            if(static::$isConditionNullIgnore && is_nullorempty($value)){
+        $value = collect($value)->filter(function ($value) {
+            if (static::$isConditionNullIgnore && is_nullorempty($value)) {
                 return false;
             }
             return true;
         });
 
         return collect($conditionValue)->contains(function ($conditionValue) use ($value) {
-            if(static::$isConditionPassAsArray){
+            if (static::$isConditionPassAsArray) {
                 return $this->_compareValue($value, $conditionValue);
             }
     
-            return collect($value)->contains(function($value) use($conditionValue){
+            return collect($value)->contains(function ($value) use ($conditionValue) {
                 return $this->_compareValue($value, $conditionValue);
             });
         });
@@ -225,16 +226,16 @@ abstract class ViewFilterBase
      */
     public function isNumeric() : bool
     {
-        if(!$this->condition){
+        if (!$this->condition) {
             return false;
         }
 
-        if(!isMatchString($this->condition->condition_type, ConditionType::COLUMN)){
+        if (!isMatchString($this->condition->condition_type, ConditionType::COLUMN)) {
             return false;
         }
 
         $custom_column = CustomColumn::getEloquent($this->condition->target_column_id);
-        if(!$custom_column){
+        if (!$custom_column) {
             return false;
         }
 

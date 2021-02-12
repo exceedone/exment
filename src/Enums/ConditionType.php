@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Enums;
 
-use Exceedone\Exment\ConditionItems;
-
 /**
  * Condition type. This enum is parent, child enum is CONDITION->detail.
  * CONDITION
@@ -38,16 +36,16 @@ class ConditionType extends EnumBase
     public static function getEnumByTargetKey($target) : ?string
     {
         $systemEnum = SystemColumn::getEnum($target);
-        if($systemEnum){
-            if(in_array($systemEnum, [SystemColumn::WORKFLOW_STATUS, SystemColumn::WORKFLOW_WORK_USERS])){
+        if ($systemEnum) {
+            if (in_array($systemEnum, [SystemColumn::WORKFLOW_STATUS, SystemColumn::WORKFLOW_WORK_USERS])) {
                 return static::WORKFLOW;
             }
-            if(in_array($systemEnum, [SystemColumn::PARENT_ID])){
+            if (in_array($systemEnum, [SystemColumn::PARENT_ID])) {
                 return static::PARENT_ID;
             }
             return static::SYSTEM;
         }
-        if(is_numeric($target)){
+        if (is_numeric($target)) {
             return static::COLUMN;
         }
         

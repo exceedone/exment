@@ -246,7 +246,7 @@ class WorkflowItem extends SystemItem
         } else {
             if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
                 $func = $or_option ? 'orWhere': 'where';
-                $query->{$func}(function($query) use($status){
+                $query->{$func}(function ($query) use ($status) {
                     $query->where('workflow_status_to_id', '<>', $status)
                         ->orWhereNull('workflow_status_to_id');
                 });

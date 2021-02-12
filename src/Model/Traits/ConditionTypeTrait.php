@@ -32,20 +32,18 @@ trait ConditionTypeTrait
      */
     public function getConditionItemAttribute()
     {
-        if(!is_null($this->_condition_item)){
+        if (!is_null($this->_condition_item)) {
             return $this->_condition_item;
         }
 
-        if(!property_exists($this, 'condition_type_key')){
+        if (!property_exists($this, 'condition_type_key')) {
             $condition_type_key = "view_column_type";
-        }
-        else{
+        } else {
             $condition_type_key = $this->condition_type_key;
         }
-        if(!property_exists($this, 'condition_column_key')){
+        if (!property_exists($this, 'condition_column_key')) {
             $condition_column_key = "view_column_target_id";
-        }
-        else{
+        } else {
             $condition_column_key = $this->condition_column_key;
         }
 

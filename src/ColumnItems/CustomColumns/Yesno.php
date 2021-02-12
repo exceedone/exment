@@ -92,7 +92,8 @@ class Yesno extends CustomItem
         return null;
     }
 
-    public function getFalseValue(){
+    public function getFalseValue()
+    {
         return 0;
     }
     public function getTrueValue()

@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\CustomColumn;
 
 class WorkflowItem extends SystemItem implements ConditionItemInterface
 {
@@ -51,7 +50,7 @@ class WorkflowItem extends SystemItem implements ConditionItemInterface
     public function getConditionText(Condition $condition)
     {
         $enum = SystemColumn::getEnum($condition->target_column_id);
-        switch($enum){
+        switch ($enum) {
             case SystemColumn::WORKFLOW_STATUS:
                 return $this->getWorkflowStatus($condition) ?? $condition->condition_value;
             case SystemColumn::WORKFLOW_WORK_USERS:

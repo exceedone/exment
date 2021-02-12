@@ -23,7 +23,8 @@ class DayNextMonth extends DayMonthBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool{
+    protected function _compareValue($value, $conditionValue) : bool
+    {
         $target_day = \Carbon\Carbon::parse($value);
         return $target_day->isCurrentYear() && $target_day->isNextMonth();
     }

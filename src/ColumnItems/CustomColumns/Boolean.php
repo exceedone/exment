@@ -109,7 +109,8 @@ class Boolean extends CustomItem
     }
 
 
-    public function getFalseValue(){
+    public function getFalseValue()
+    {
         return array_get($this->custom_column, 'options.false_value');
     }
     public function getTrueValue()

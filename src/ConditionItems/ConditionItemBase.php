@@ -16,7 +16,6 @@ use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Validator\ChangeFieldRule;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
-use Carbon\Carbon;
 
 /**
  *
@@ -107,7 +106,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         // separate ? for removing table id
         $target = explode('?', $target_query)[0];
 
-        if(!$custom_table){
+        if (!$custom_table) {
             // get model by key
             $column_item = CustomViewFilter::getColumnItem($target_query);
             $custom_table = $column_item->getCustomTable();
@@ -127,7 +126,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      * @return \Exceedone\Exment\ConditionItems\ConditionItemBase
      */
     public static function getDetailItemByAuthority(?CustomTable $custom_table, $authority)
-    {   
+    {
         return static::getConditionDetailItem($custom_table, $authority->related_type);
     }
 
@@ -358,5 +357,4 @@ abstract class ConditionItemBase implements ConditionItemInterface
     {
         return [null, null];
     }
-
 }

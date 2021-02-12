@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Encore\Admin\Form;
 

@@ -21,5 +21,4 @@ abstract class ConditionDetailBase extends ConditionItemBase
 
         return $condition_type->getKey();
     }
-
 }

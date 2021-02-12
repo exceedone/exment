@@ -12,7 +12,8 @@ class WorkflowStatusEq extends WorkflowStatusBase
 
 
 
-    protected function isExists() : bool{
+    protected function isExists() : bool
+    {
         return true;
     }
 }

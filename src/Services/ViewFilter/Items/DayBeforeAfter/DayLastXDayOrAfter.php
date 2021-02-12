@@ -30,7 +30,8 @@ class DayLastXDayOrAfter extends DayBeforeAfterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool{
+    protected function _compareValue($value, $conditionValue) : bool
+    {
         $today = \Carbon\Carbon::today();
         $target_day = $today->addDay(-1 * intval($conditionValue));
         return \Exment::getCarbonOnlyDay($value)->gte($target_day);

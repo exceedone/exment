@@ -28,7 +28,7 @@ class Eq extends ViewFilter\ViewFilterBase
      */
     protected function _compareValue($value, $conditionValue) : bool
     {
-        if(!$this->isNumeric()){
+        if (!$this->isNumeric()) {
             return isMatchString($value, $conditionValue);
         }
         return (float)$value == (float)$conditionValue;

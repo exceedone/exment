@@ -144,7 +144,8 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
      *
      * @return void
      */
-    public function getFromConditionItemAttribute(){
+    public function getFromConditionItemAttribute()
+    {
         return ConditionItemBase::getItem($this->from_custom_table_cache, $this->from_column_type, $this->from_column_target_id);
     }
 
@@ -153,7 +154,8 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
      *
      * @return void
      */
-    public function getToConditionItemAttribute(){
+    public function getToConditionItemAttribute()
+    {
         return ConditionItemBase::getItem($this->to_custom_table_cache, $this->to_column_type, $this->to_column_target_id);
     }
 

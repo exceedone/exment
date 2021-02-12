@@ -3,13 +3,12 @@
 namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\Model\RoleGroup;
-use Exceedone\Exment\ConditionItems;
 
 /**
  * Conditiion Difinition.
- * 
+ *
  * If ConditionType is COLUMN:
- *     target_column_id is custom column's id, not use ConditionTypeDetail. 
+ *     target_column_id is custom column's id, not use ConditionTypeDetail.
  * If ConditionType is CONDITION:
  *     target_column_id is USER, ORGANIZATION, ROLE, FORM
  *

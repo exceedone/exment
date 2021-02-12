@@ -695,7 +695,7 @@ class Exment
      */
     public function getCarbonOnlyDay($value) : ?Carbon
     {
-        if(is_nullorempty($value)){
+        if (is_nullorempty($value)) {
             return null;
         }
         $carbon = Carbon::parse($value);

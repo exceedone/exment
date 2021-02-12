@@ -148,7 +148,7 @@ trait CustomViewColumnTrait
 
         $column_item = $model->column_item;
         // set custom table(if workflow item is not set custom table)
-        if(!$column_item->getCustomTable() && isset($custom_table)){
+        if (!$column_item->getCustomTable() && isset($custom_table)) {
             $column_item->setCustomTable($custom_table);
         }
         return $column_item;

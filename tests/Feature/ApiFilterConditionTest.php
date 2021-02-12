@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Tests\TestDefine;
