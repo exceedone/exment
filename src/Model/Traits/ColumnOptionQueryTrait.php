@@ -198,7 +198,7 @@ trait ColumnOptionQueryTrait
             }
 
             return true;
-        })->mapWithKeys(function ($custom_column) use ($table_name, $options) {
+        })->mapWithKeys(function ($custom_column) use ($options) {
             $key = "{$custom_column->id}" . (boolval($options['append_tableid']) ? "?table_id={$custom_column->custom_table_id}" : '');
             return [strval($key) => $custom_column->column_view_name];
         })->toArray();

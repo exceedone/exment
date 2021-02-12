@@ -153,7 +153,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     {
         // check user or org table.
         $select_target_table = CustomTable::getEloquent($custom_table_id);
-        if($select_target_table && in_array($select_target_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
+        if ($select_target_table && in_array($select_target_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
             // if target is user or org, set filter as column_type.
             return $query->where('column_type', $select_target_table->table_name);
         }

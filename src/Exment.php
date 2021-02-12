@@ -15,7 +15,6 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 use Encore\Admin\Admin;
@@ -76,8 +75,8 @@ class Exment
     public function user($guards = null)
     {
         $guards = [Define::AUTHENTICATE_KEY_WEB, Define::AUTHENTICATE_KEY_API];
-        foreach($guards as $guard){
-            if(\Auth::guard($guard)->check()) {
+        foreach ($guards as $guard) {
+            if (\Auth::guard($guard)->check()) {
                 return \Auth::guard($guard)->user();
             }
         }
