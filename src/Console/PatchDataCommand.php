@@ -1498,6 +1498,26 @@ class PatchDataCommand extends Command
                         }
                     }
                 }
+                
+                // for workflow ----------------------------------------------------
+                elseif(isMatchString($condition_type_value, Enums\ConditionType::WORKFLOW)){
+                    // $target_column_id_value is not check.
+                    // convert FilterOption::EQ to FilterOption::WORKFLOW_EQ_STATUS
+                    // convert FilterOption::NQ to FilterOption::WORKFLOW_NE_STATUS 
+                    // convert FilterOption::USER_EQ_USER to FilterOption::WORKFLOW_EQ_WORK_USER 
+                    if(isMatchString($condition_key_value, Enums\FilterOption::EQ)){
+                        $model->{$condition_key} = Enums\FilterOption::WORKFLOW_EQ_STATUS;
+                        $isUpdate = true;
+                    }
+                    elseif(isMatchString($condition_key_value, Enums\FilterOption::NE)){
+                        $model->{$condition_key} = Enums\FilterOption::WORKFLOW_NE_STATUS;
+                        $isUpdate = true;
+                    }
+                    elseif(isMatchString($condition_key_value, Enums\FilterOption::USER_EQ_USER)){
+                        $model->{$condition_key} = Enums\FilterOption::WORKFLOW_EQ_WORK_USER;
+                        $isUpdate = true;
+                    }
+                }
 
                 if(!$isUpdate){
                     return true;

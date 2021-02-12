@@ -57,6 +57,10 @@ abstract class ViewFilterBase
         
         Items\UserEqUser\UserEqUser::class,
         Items\UserEqUser\UserNeUser::class,
+        
+        Items\WorkflowStatus\WorkflowStatusEq::class,
+        Items\WorkflowStatus\WorkflowStatusNe::class,
+        Items\WorkflowWorkUser::class,
     ];
 
 
@@ -187,10 +191,10 @@ abstract class ViewFilterBase
      */
     public function compareValue($value, $conditionValue) : bool
     {
-        if (!is_array($value)) {
+        if (!is_list($value)) {
             $value = [$value];
         }
-        if (!is_array($conditionValue)) {
+        if (!is_list($conditionValue)) {
             $conditionValue = [$conditionValue];
         }
 
@@ -199,7 +203,7 @@ abstract class ViewFilterBase
                 return false;
             }
             return true;
-        })->toArray();
+        });
 
         return collect($conditionValue)->contains(function ($conditionValue) use ($value) {
             if(static::$isConditionPassAsArray){

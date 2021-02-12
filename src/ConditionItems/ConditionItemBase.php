@@ -273,24 +273,11 @@ abstract class ConditionItemBase implements ConditionItemInterface
      */
     protected function compareValue(Condition $condition, $value)
     {
-        return $this->compareValues($condition, $value, $condition->condition_value);
-    }
-    
-    /**
-     * compare condition value and saved value, using key and value
-     *
-     * @param Condition|mixed $condition
-     * @param mixed $value
-     * @param mixed $conditionValue compare value. Almost $condition->condition_value, but maybe difference value (Ex. workflow.)
-     * @return bool
-     */
-    protected function compareValues(Condition $condition, $value, $conditionValue)
-    {
         $viewFilterItem = ViewFilterBase::makeForCondition($condition);
-        return $viewFilterItem->compareValue($value, $conditionValue);
+        return $viewFilterItem->compareValue($value, $condition->condition_value);
     }
 
-
+    
     /**
      * get condition value text.
      *

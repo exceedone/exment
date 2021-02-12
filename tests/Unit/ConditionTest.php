@@ -1324,8 +1324,8 @@ class ConditionTest extends UnitTestBase
      * Execute test for custom column
      *
      * @param string $column_name
-     * @param mixed $target_value
-     * @param array $values
+     * @param mixed $target_value dummy set to value
+     * @param array $values dummy set to condition for loop item
      * @param string $filterOption
      * @param boolean $result
      * @return void
@@ -1349,7 +1349,6 @@ class ConditionTest extends UnitTestBase
                 'target_column_id' => $custom_column->id,
                 'condition_value' => $value,
             ]);
-
             
             
             $messageValue = is_array($value) ? json_encode($value) : ($value ?? 'null');
