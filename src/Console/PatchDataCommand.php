@@ -180,6 +180,9 @@ class PatchDataCommand extends Command
             case 'patch_view_only':
                 $this->patchViewOnly();
                 return;
+            case 'patch_condition':
+                $this->updateCondition();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1407,5 +1410,115 @@ class PatchDataCommand extends Command
             $custom_column->setOption('calc_formula', $calcString);
             $custom_column->save();
         });
+    }
+
+
+    /**
+     * Update Condition
+     *
+     * @return void
+     */
+    protected function updateCondition()
+    {
+        $items = [
+            [
+                'classname' => Model\Condition::class,
+                'condition_type' => 'condition_type',
+                'condition_key' => 'condition_key',
+                'target_column_id' => 'target_column_id',
+                'condition_value' => 'condition_value',
+            ],
+            [
+                'classname' => Model\CustomViewFilter::class,
+                'condition_type' => 'view_column_type',
+                'condition_key' => 'view_filter_condition',
+                'target_column_id' => 'view_column_target_id',
+                'condition_value' => 'view_filter_condition_value_text',
+            ],
+        ];
+        foreach ($items as $item) {
+            $item['classname']::get()
+            ->each(function ($model) use ($item) {
+                $isUpdate = false;
+                // get type, key, target value
+                $condition_type = $item['condition_type'];
+                $condition_key = $item['condition_key'];
+                $target_column_id = $item['target_column_id'];
+                $condition_value = $item['condition_value'];
+
+                $condition_type_value = $model->{$condition_type};
+                $condition_key_value = $model->{$condition_key};
+                $target_column_id_value = $model->{$target_column_id};
+                $condition_value_value = $model->{$condition_value};
+
+                // for condition ----------------------------------------------------
+                if (isMatchString($condition_type_value, Enums\ConditionType::CONDITION)) {
+                    // $target_column_id_value is not check.
+                    // convert FilterOption::EQ to FilterOption::SELECT_EXISTS
+                    // convert FilterOption::NQ to FilterOption::SELECT_NOT_EXISTS
+                    if (isMatchString($condition_key_value, Enums\FilterOption::EQ)) {
+                        $model->{$condition_key} = Enums\FilterOption::SELECT_EXISTS;
+                        $isUpdate = true;
+                    } elseif (isMatchString($condition_key_value, Enums\FilterOption::NE)) {
+                        $model->{$condition_key} = Enums\FilterOption::SELECT_NOT_EXISTS;
+                        $isUpdate = true;
+                    }
+                }
+
+                // for column ----------------------------------------------------
+                elseif (isMatchString($condition_type_value, Enums\ConditionType::COLUMN)) {
+                    // get custom column.
+                    $custom_column = CustomColumn::getEloquent($target_column_id_value);
+                    if ($custom_column) {
+                        if (Enums\ColumnType::is2ValueSelect($custom_column->column_type)) {
+                            // convert FilterOption::LIKE to FilterOption::EQ
+                            // convert FilterOption::NOT_LIKE or FilterOption::NE to FilterOption::EQ and toggle value
+                            // convert FilterOption::NOT_NULL to FilterOption::EQ and set true value
+                            // convert FilterOption::NULL to FilterOption::EQ and set false value
+                            if (isMatchString($condition_key_value, Enums\FilterOption::LIKE)) {
+                                $model->{$condition_key} = Enums\FilterOption::EQ;
+                                $isUpdate = true;
+                            } elseif (isMatchString($condition_key_value, Enums\FilterOption::NOT_NULL)) {
+                                $model->{$condition_key} = Enums\FilterOption::EQ;
+                                $model->{$condition_value} = $custom_column->column_item->getTrueValue();
+                                $isUpdate = true;
+                            } elseif (isMatchString($condition_key_value, Enums\FilterOption::NULL)) {
+                                $model->{$condition_key} = Enums\FilterOption::EQ;
+                                $model->{$condition_value} = $custom_column->column_item->getFalseValue();
+                                $isUpdate = true;
+                            } elseif (isMatchString($condition_key_value, Enums\FilterOption::NE) || isMatchString($condition_key_value, Enums\FilterOption::NOT_LIKE)) {
+                                $model->{$condition_key} = Enums\FilterOption::EQ;
+                                $model->{$condition_value} = isMatchString($condition_value_value, $custom_column->column_item->getTrueValue()) ? $custom_column->column_item->getFalseValue() : $custom_column->column_item->getTrueValue();
+                                $isUpdate = true;
+                            }
+                        }
+                    }
+                }
+                
+                // for workflow ----------------------------------------------------
+                elseif (isMatchString($condition_type_value, Enums\ConditionType::WORKFLOW)) {
+                    // $target_column_id_value is not check.
+                    // convert FilterOption::EQ to FilterOption::WORKFLOW_EQ_STATUS
+                    // convert FilterOption::NQ to FilterOption::WORKFLOW_NE_STATUS
+                    // convert FilterOption::USER_EQ_USER to FilterOption::WORKFLOW_EQ_WORK_USER
+                    if (isMatchString($condition_key_value, Enums\FilterOption::EQ)) {
+                        $model->{$condition_key} = Enums\FilterOption::WORKFLOW_EQ_STATUS;
+                        $isUpdate = true;
+                    } elseif (isMatchString($condition_key_value, Enums\FilterOption::NE)) {
+                        $model->{$condition_key} = Enums\FilterOption::WORKFLOW_NE_STATUS;
+                        $isUpdate = true;
+                    } elseif (isMatchString($condition_key_value, Enums\FilterOption::USER_EQ_USER)) {
+                        $model->{$condition_key} = Enums\FilterOption::WORKFLOW_EQ_WORK_USER;
+                        $isUpdate = true;
+                    }
+                }
+
+                if (!$isUpdate) {
+                    return true;
+                }
+
+                $model->save();
+            });
+        }
     }
 }

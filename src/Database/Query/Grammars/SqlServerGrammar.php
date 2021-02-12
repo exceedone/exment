@@ -10,7 +10,8 @@ use Exceedone\Exment\Enums\GroupCondition;
 class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 {
     use GrammarTrait;
-    
+
+
     /**
      * Whether support wherein multiple column.
      *

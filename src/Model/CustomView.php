@@ -6,11 +6,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ConditionType;
-use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SummaryCondition;
@@ -694,38 +692,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             return $model;
         }
         foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
-            switch ($custom_view_sort->view_column_type) {
-            case ConditionType::COLUMN:
-                $custom_column = $custom_view_sort->custom_column;
-                if (!isset($custom_column)) {
-                    break;
-                }
-                $column_item = $custom_column->column_item;
-                if (!isset($column_item)) {
-                    break;
-                }
-                // if cannot sort column, break
-                if (!$column_item->sortable()) {
-                    break;
-                }
-
-                // $view_column_target is wraped
-                $view_column_target = $column_item->getSortColumn();
-                $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';
-                //set order
-                $model->orderByRaw("$view_column_target $sort_order");
-                break;
-            case ConditionType::SYSTEM:
-                $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
-                $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
-                //set order
-                $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
-                break;
-            case ConditionType::PARENT_ID:
-                $view_column_target = 'parent_id';
-                //set order
-                $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
-                break;
+            $condition_item = $custom_view_sort->condition_item;
+            if ($condition_item) {
+                $condition_item->setQuerySort($model, $custom_view_sort);
             }
         }
 
@@ -808,41 +777,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     protected function getSelectColumn($column_type, $custom_view_column)
     {
-        $view_column_type = array_get($custom_view_column, 'view_column_type');
+        $condition_item = $custom_view_column->condition_item;
         $view_column_id = $column_type . '_' . array_get($custom_view_column, 'id');
-
-        $custom_table_id = $this->custom_table_id;
-        $column_view_name = array_get($custom_view_column, 'view_column_name');
-        $is_number = false;
-
-        switch ($view_column_type) {
-            case ConditionType::COLUMN:
-                $column = $custom_view_column->custom_column;
-                $is_number = ColumnType::isCalc(array_get($column, 'column_type'));
-
-                if (is_nullorempty($column_view_name)) {
-                    $column_view_name = array_get($column, 'column_view_name');
-                    // if table is not equal target table, add table name to column name.
-                    if ($custom_table_id != array_get($column, 'custom_table_id')) {
-                        $column_view_name = array_get($column->custom_table, 'table_view_name') . '::' . $column_view_name;
-                    }
-                }
-                break;
-            case ConditionType::SYSTEM:
-            case ConditionType::WORKFLOW:
-                $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
-                if (is_nullorempty($column_view_name)) {
-                    $column_view_name = exmtrans('common.'.$system_info['name']);
-                }
-                break;
-            case ConditionType::PARENT_ID:
-                $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table_id)->first();
-                ///// if this table is child relation(1:n), add parent table
-                if (isset($relation)) {
-                    $column_view_name = array_get($relation, 'parent_custom_table.table_view_name');
-                }
-                break;
-        }
+        
+        $column_view_name = $condition_item ? $condition_item->getSelectColumnText($custom_view_column, $this->custom_table) : null;
+        $is_number = $condition_item ? $condition_item->isSelectColumnNumber($custom_view_column) : false;
 
         if (array_get($custom_view_column, 'view_summary_condition') == SummaryCondition::COUNT) {
             $is_number = true;

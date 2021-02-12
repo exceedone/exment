@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
-class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
+class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterface
 {
     public function getFilterOption()
     {
@@ -25,7 +25,7 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $role_groups = \Exment::user()->base_user->belong_role_groups()->map(function ($role_group) {
+        $role_groups = \Exment::user()->base_user->belong_role_groups_all()->map(function ($role_group) {
             return $role_group->id;
         })->toArray();
 

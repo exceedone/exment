@@ -1,6 +1,12 @@
 <?php
 namespace Exceedone\Exment\Services\ViewFilter;
 
+use Exceedone\Exment\ColumnItems\ItemInterface;
+use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ColumnType;
+
 abstract class ViewFilterBase
 {
     const classNames = [
@@ -51,10 +57,40 @@ abstract class ViewFilterBase
         
         Items\UserEqUser\UserEqUser::class,
         Items\UserEqUser\UserNeUser::class,
+        
+        Items\WorkflowStatus\WorkflowStatusEq::class,
+        Items\WorkflowStatus\WorkflowStatusNe::class,
+        Items\WorkflowWorkUser::class,
     ];
 
 
+    /**
+     * column item.
+     *
+     * @var ItemInterface
+     */
     protected $column_item;
+    
+    /**
+     * Condition, for form priority, workflow, etc's match.
+     *
+     * @var Condition
+     */
+    protected $condition;
+    
+    /**
+     * For condition value, if value is null or empty array, whether ignore the value.
+     *
+     * @var boolean
+     */
+    protected static $isConditionNullIgnore = true;
+
+    /**
+     * If true, function "_compareValue" pass as array
+     *
+     * @var boolean
+     */
+    protected static $isConditionPassAsArray = false;
 
     /**
      * Whether this query sets as or
@@ -69,6 +105,13 @@ abstract class ViewFilterBase
 
         $options = array_merge(['or_option' => false], $options);
         $this->or_option = boolval($options['or_option']);
+    }
+
+
+    public function setCondition(Condition $condition)
+    {
+        $this->condition = $condition;
+        return $this;
     }
 
 
@@ -100,7 +143,7 @@ abstract class ViewFilterBase
 
 
     /**
-     * Create instance
+     * Create instance, for view filter
      *
      * @param string $view_filter_condition
      * @return ViewFilterBase|null
@@ -118,5 +161,107 @@ abstract class ViewFilterBase
         return null;
     }
 
+    /**
+     * Create instance, for condition
+     *
+     * @param Condition $condition
+     * @return ViewFilterBase|null
+     */
+    public static function makeForCondition(Condition $condition, array $options = []) : ?ViewFilterBase
+    {
+        $classNames = static::classNames;
+
+        foreach ($classNames as $className) {
+            if (isMatchString($condition->condition_key, $className::getFilterOption())) {
+                $instance = new $className(null, $options);
+                $instance->setCondition($condition);
+                return $instance;
+            }
+        }
+
+        return null;
+    }
+
+    
+    /**
+     * compare 2 value
+     *
+     * @param mixed $value
+     * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
+     * @return boolean is match, return true
+     */
+    public function compareValue($value, $conditionValue) : bool
+    {
+        if (!is_list($value)) {
+            $value = [$value];
+        }
+        if (!is_list($conditionValue)) {
+            $conditionValue = [$conditionValue];
+        }
+
+        $value = collect($value)->filter(function ($value) {
+            if (static::$isConditionNullIgnore && is_nullorempty($value)) {
+                return false;
+            }
+            return true;
+        });
+
+        return collect($conditionValue)->contains(function ($conditionValue) use ($value) {
+            if (static::$isConditionPassAsArray) {
+                return $this->_compareValue($value, $conditionValue);
+            }
+    
+            return collect($value)->contains(function ($value) use ($conditionValue) {
+                return $this->_compareValue($value, $conditionValue);
+            });
+        });
+    }
+
+
+    /**
+     * Whether this conditon is number.
+     * If number, compare "eq" and "ne" is as number.
+     *
+     * @return boolean
+     */
+    public function isNumeric() : bool
+    {
+        if (!$this->condition) {
+            return false;
+        }
+
+        if (!isMatchString($this->condition->condition_type, ConditionType::COLUMN)) {
+            return false;
+        }
+
+        $custom_column = CustomColumn::getEloquent($this->condition->target_column_id);
+        if (!$custom_column) {
+            return false;
+        }
+
+        return ColumnType::isCalc($custom_column->column_type);
+    }
+
+
+    /**
+     * Set filter to query
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param string $method_name 'where' or 'orWhere'
+     * @param string $query_column query target name
+     * @param mixed $query_value
+     * @return void
+     */
     abstract protected function _setFilter($query, $method_name, $query_column, $query_value);
+
+
+    
+    /**
+     * compare 2 value
+     *
+     * @param mixed $value
+     * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
+     * @return boolean is match, return true
+     */
+    abstract protected function _compareValue($value, $conditionValue) : bool;
 }

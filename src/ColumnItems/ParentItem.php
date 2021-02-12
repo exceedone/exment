@@ -11,11 +11,6 @@ class ParentItem implements ItemInterface
     use ItemTrait;
     
     /**
-     * this column's target custom_table. THIS IS CHILD TABLE.
-     */
-    protected $custom_table;
-
-    /**
      * this column's parent table
      */
     protected $parent_table;

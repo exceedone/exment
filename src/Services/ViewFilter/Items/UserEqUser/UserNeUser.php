@@ -14,4 +14,10 @@ class UserNeUser extends UserEqUserBase
     {
         return '<>';
     }
+
+
+    protected function isExists() : bool
+    {
+        return false;
+    }
 }

@@ -189,6 +189,7 @@ class NotifyTest extends TestCase
 
         $data = NotifyNavbar::withoutGlobalScopes()
             ->where('target_user_id', $model->created_user_id)
+            ->where('parent_type', $custom_table->table_name)
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc')
             ->first();

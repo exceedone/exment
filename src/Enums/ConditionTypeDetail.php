@@ -3,10 +3,14 @@
 namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\Model\RoleGroup;
-use Exceedone\Exment\ConditionItems;
 
 /**
  * Conditiion Difinition.
+ *
+ * If ConditionType is COLUMN:
+ *     target_column_id is custom column's id, not use ConditionTypeDetail.
+ * If ConditionType is CONDITION:
+ *     target_column_id is USER, ORGANIZATION, ROLE, FORM
  *
  * @method static ConditionTypeDetail USER()
  * @method static ConditionTypeDetail ORGANIZATION()
@@ -60,23 +64,5 @@ class ConditionTypeDetail extends EnumBase
                 return null;
         }
         return $result;
-    }
-    
-    public function getConditionItem($custom_table, $target)
-    {
-        switch ($this) {
-            case ConditionTypeDetail::USER:
-                return new ConditionItems\UserItem($custom_table, $target);
-            case ConditionTypeDetail::ORGANIZATION:
-                return new ConditionItems\OrganizationItem($custom_table, $target);
-            case ConditionTypeDetail::ROLE:
-                return new ConditionItems\RoleGroupItem($custom_table, $target);
-            case ConditionTypeDetail::SYSTEM:
-                return new ConditionItems\SystemItem($custom_table, $target);
-            case ConditionTypeDetail::COLUMN:
-                return new ConditionItems\ColumnItem($custom_table, $target);
-            case ConditionTypeDetail::FORM:
-                return new ConditionItems\FormDataItem($custom_table, $target);
-        }
     }
 }

@@ -12,6 +12,7 @@ class CustomViewColumn extends ModelBase
     use Traits\AutoSUuidTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\CustomViewColumnOptionTrait;
+    use Traits\ConditionTypeTrait;
     use Traits\TemplateTrait;
     use Traits\DatabaseJsonOptionTrait;
 

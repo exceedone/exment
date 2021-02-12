@@ -20,8 +20,6 @@ class SystemItem implements ItemInterface
     
     protected $column_name;
     
-    protected $custom_table;
-    
     protected $custom_value;
     
     public function __construct($custom_table, $column_name, $custom_value)

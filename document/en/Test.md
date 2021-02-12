@@ -8,8 +8,24 @@ How to test.
 
 ```
 composer require symfony/css-selector=~4.2
-composer require laravel/browser-kit-testing=~4.2
+composer require laravel/browser-kit-testing=~5.2
+composer require dms/phpunit-arraysubset-asserts=~0.1
 ```
+
+### Change PHPUnit version (Only first)
+- Exment uses version 8.X for PHPUnit.  
+If there is a description about "phpunit / phpunit" in require-dev of composer.json in the root folder, please modify it as follows.
+
+```
+"phpunit/phpunit": "~8.5",
+```
+
+And execute this command.
+
+```
+composer update
+```
+
 
 ## Create test data
 
