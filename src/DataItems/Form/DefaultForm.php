@@ -665,8 +665,13 @@ EOT;
         // get parentId, parentValue
         if ($request->has('parent_id')) {
             $parent_id = $request->get('parent_id');
-        } else {
-            $parent_id = isset($select_parent) ? $select_parent : getModelName($this->custom_table)::find($this->id)->parent_id;
+        } elseif(isset($select_parent)) {
+            $parent_id = $select_parent;
+            getModelName($this->custom_table)::find($this->id)->parent_id;
+        }
+        else{
+            $custom_value = getModelName($this->custom_table)::find($this->id);
+            $parent_id = $custom_value ? $custom_value->parent_id : null; 
         }
         $parent_value = $parent_custom_table->getValueModel($parent_id);
 
