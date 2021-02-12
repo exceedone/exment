@@ -204,9 +204,7 @@ class CustomOperationController extends AdminControllerTableBase
                 $form->select('operation_update_type', exmtrans('custom_operation.operation_update_type'))->required()
                     ->options(function ($val, $select, $model) use ($custom_table) {
                         $data = $select->data();
-                        $condition_target = array_get($data, 'view_column_target');
-
-                        $item = ConditionItemBase::getItem($custom_table, $condition_target);
+                        $item = ConditionItemBase::getItemByRequest($custom_table, array_get($data, 'view_column_target'));
                         if (is_null($item)) {
                             return null;
                         }
@@ -218,9 +216,7 @@ class CustomOperationController extends AdminControllerTableBase
                     ->removeRules(\Encore\Admin\Validator\HasOptionRule::class);
             },
             'valueCallback' => function ($data, $field) use ($custom_table) {
-                $condition_target = array_get($data, 'view_column_target');
-
-                $item = ConditionItemBase::getItem($custom_table, $condition_target);
+                $item = ConditionItemBase::getItemByRequest($custom_table, array_get($data, 'view_column_target'));
                 if (is_null($item)) {
                     return null;
                 }

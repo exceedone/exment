@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services\Plugin;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Exceedone\Exment\Validator\PluginTypeRule;
@@ -175,7 +174,6 @@ class PluginInstaller
     {
         $rules = [
             'plugin_name' => 'required',
-            'document_type' => 'in:'.DocumentType::getSelectableString(),
             'plugin_type' => new PluginTypeRule(),
             'plugin_view_name' => 'required',
             'uuid' => 'required'

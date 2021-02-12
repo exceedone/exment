@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
@@ -179,14 +178,6 @@ class Plugin extends ModelBase
         return static::getByPluginTypes(PluginType::BATCH)->filter(function ($plugin) {
             return !is_null(array_get($plugin, 'options.batch_cron'));
         });
-    }
-
-    /**
-     * Get document type
-     */
-    public function getDocumentType()
-    {
-        return array_get($this->options, 'document_type', DocumentType::EXCEL);
     }
 
     /**

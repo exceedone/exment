@@ -403,6 +403,7 @@ class Initialize
         WidgetForm::$defaultSubmitLabel = trans('admin.save');
 
         Grid\Tools::$defaultPosition = 'right';
+        Grid\Tools\BatchActions::$deleteBatchClassName = \Exceedone\Exment\Grid\Tools\BatchDelete::class;
         Grid\Concerns\HasQuickSearch::$searchKey = 'query';
         Grid::$searchKey = 'query';
 

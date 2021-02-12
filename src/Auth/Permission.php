@@ -226,6 +226,7 @@ class Permission
             case "oauth":
             case "files":
             case "notify_navbar":
+            case "tmpfiles":
                 return true;
             ///// only system permission
             case "system":

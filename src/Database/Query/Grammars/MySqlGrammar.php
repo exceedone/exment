@@ -10,6 +10,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
 {
     use GrammarTrait;
     
+
     public function compileUpdateRemovingJsonKey($query, string $key) : string
     {
         $table = $this->wrapTable($query->from);
