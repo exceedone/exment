@@ -29,6 +29,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('th', '列表示名')
                 ->seeInElement('th', '列種類')
                 ->visit(admin_url('column/test/create'))
+                ->matchStatusCode(200)
                 ->seeInElement('h3[class=box-title]', '作成')
                 ->seeInElement('label', '列名(英数字)')
                 ->seeInElement('label', '列表示名')
@@ -58,6 +59,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('256', 'options[string_length]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url('column/test'))
+                ->matchStatusCode(200)
                 ->seeInElement('td', 'onelinetext')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -90,6 +92,7 @@ class CCustomColumnTest extends ExmentKitTestCase
 
         // Check custom column --one line--
         $this->visit(admin_url('column/test/'. $id . '/edit'))
+            ->matchStatusCode(200)
             ->see('onelinetext')
             ->seeInField('column_view_name', 'One Line Text Update')
             ->seeInField('options[required]', 1)

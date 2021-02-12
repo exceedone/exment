@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
@@ -105,6 +106,8 @@ trait TestTrait
         System::clearCache();
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
         \Exceedone\Exment\Middleware\ExmentDebug::handleLog();
+        getModelName(SystemTableName::USER);
+        getModelName(SystemTableName::ORGANIZATION);        
     }
 
     

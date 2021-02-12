@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -76,6 +77,16 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         return $this->belongsTo(CustomTable::class, 'to_column_table_id');
     }
     
+    public function getFromCustomTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->from_column_table_id);
+    }
+
+    public function getToCustomTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->to_column_table_id);
+    }
+
     /**
      * get CopyColumnTarget.
      * * we have to convert string if view_column_type is system for custom view form-display*
@@ -127,6 +138,27 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         return $this->getCopyColumnUniqueKeyValues('to_custom_table', 'to_custom_column', 'to_column_type', 'to_column_target_id');
     }
+    
+    /**
+     * getConditionTypeFromItemAttribute
+     *
+     * @return void
+     */
+    public function getFromConditionItemAttribute()
+    {
+        return ConditionItemBase::getItem($this->from_custom_table_cache, $this->from_column_type, $this->from_column_target_id);
+    }
+
+    /**
+     * getConditionTypeFromItemAttribute
+     *
+     * @return void
+     */
+    public function getToConditionItemAttribute()
+    {
+        return ConditionItemBase::getItem($this->to_custom_table_cache, $this->to_column_type, $this->to_column_target_id);
+    }
+
 
     /**
      * get Table And Column Name for custom copy column

@@ -287,7 +287,13 @@ class CustomOperationTest extends UnitTestBase
             ], 
             $settings
         );
-        extract($settings);
+        $login_user_id = $settings['login_user_id'];
+        $custom_table_name = $settings['custom_table_name'];
+        $operation_type = $settings['operation_type'];
+        $operation_name = $settings['operation_name'];
+        $options = $settings['options'];
+        $update_columns = $settings['update_columns'];
+        $conditions = $settings['conditions'];
 
         // Login user.
         $this->be(LoginUser::find($login_user_id));

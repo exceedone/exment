@@ -1280,7 +1280,9 @@ abstract class CustomValue extends ModelBase
                 }
             } else {
                 $query = static::query();
-                $query->whereOrIn($searchColumn, $options['mark'], $options['value'])->select('id');
+                if (isset($searchColumn)) {
+                    $query->whereOrIn($searchColumn, $options['mark'], $options['value'])->select('id');
+                }
                 $query->take($takeCount);
     
                 $queries[] = $query;

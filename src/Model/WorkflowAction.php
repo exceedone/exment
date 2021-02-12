@@ -382,7 +382,7 @@ class WorkflowAction extends ModelBase
             $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
             $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
             foreach ($workflow_value_authorities as $workflow_value_authority) {
-                $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_value_authority);
+                $item = ConditionItemBase::getDetailItemByAuthority($custom_value->custom_table, $workflow_value_authority);
                 if (!is_nullorempty($item) && $item->hasAuthority($workflow_value_authority, $custom_value, $targetUser)) {
                     return true;
                 }
@@ -392,7 +392,7 @@ class WorkflowAction extends ModelBase
         // check as workflow_authorities
         $workflow_authorities = $this->workflow_authorities_cache;
         foreach ($workflow_authorities as $workflow_authority) {
-            $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_authority);
+            $item = ConditionItemBase::getDetailItemByAuthority($custom_value->custom_table, $workflow_authority);
             if (!is_nullorempty($item) && $item->hasAuthority($workflow_authority, $custom_value, $targetUser)) {
                 return true;
             }

@@ -134,7 +134,12 @@ class Backup
         }
             
         // if contains 'config' in $settings, copy env file
-        if (in_array('config', $settings)) {
+        if (collect($settings)->contains(function ($setting) {
+            if (is_array($setting)) {
+                return count($setting) >= 3 && $setting[2] == BackupTarget::CONFIG;
+            }
+            return $setting == BackupTarget::CONFIG;
+        })) {
             $envLines = $this->getMatchedEnv();
             $to_env = $this->tmpDisk()->path(path_join($this->diskService->tmpDiskItem()->dirName(), '.env'));
 
