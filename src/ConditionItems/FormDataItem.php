@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
-class FormDataItem extends ConditionItemBase implements ConditionItemInterface
+class FormDataItem extends ConditionDetailBase implements ConditionItemInterface
 {
     public function getFilterOption()
     {
@@ -30,9 +30,7 @@ class FormDataItem extends ConditionItemBase implements ConditionItemInterface
             return false;
         }
 
-        return collect(toArray($condition->condition_value))->contains(function ($value) use ($form_data_type) {
-            return isMatchString($form_data_type, $value);
-        });
+        return $this->compareValue($condition, $form_data_type);
     }
     
     /**

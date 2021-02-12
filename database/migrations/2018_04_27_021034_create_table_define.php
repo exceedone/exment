@@ -266,6 +266,7 @@ class CreateTableDefine extends Migration
             $table->integer('view_column_target_id')->nullable();
             $table->integer('view_filter_condition');
             $table->string('view_filter_condition_value_text', 1024)->nullable();
+            // what's????
             $table->integer('view_filter_condition_value_table_id')->unsigned()->nullable();
             $table->integer('view_filter_condition_value_id')->unsigned()->nullable();
             $table->timestamps();

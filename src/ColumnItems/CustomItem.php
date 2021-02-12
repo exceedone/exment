@@ -27,14 +27,6 @@ abstract class CustomItem implements ItemInterface
     
     protected $custom_column;
     
-    /**
-     * This custom table.
-     * *If view_pivot_column, custom_table is pivot target table
-     *
-     * @var CustomTable
-     */
-    protected $custom_table;
-    
     protected $custom_value;
 
     /**
@@ -187,11 +179,6 @@ abstract class CustomItem implements ItemInterface
         return $this;
     }
 
-    public function getCustomTable()
-    {
-        return $this->custom_table;
-    }
-
     public function getCustomColumn()
     {
         return $this->custom_column;
@@ -286,7 +273,7 @@ abstract class CustomItem implements ItemInterface
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
         } elseif ($this->initonly()) {
-            $classname = ExmentField\ViewOnly::class;
+            $classname = ExmentField\InitOnly::class;
         } elseif ($this->viewonly($form_column_options)) {
             $classname = ExmentField\ViewOnly::class;
         } else {
@@ -423,6 +410,9 @@ abstract class CustomItem implements ItemInterface
             case ColumnType::SELECT_TABLE:
             case SystemTableName::ORGANIZATION:
                 return FilterType::SELECT;
+            case ColumnType::YESNO:
+            case ColumnType::BOOLEAN:
+                return FilterType::YESNO;
             case ColumnType::DATE:
             case ColumnType::DATETIME:
                 return FilterType::DAY;

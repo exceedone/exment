@@ -8,8 +8,25 @@
 
 ```
 composer require symfony/css-selector=~4.2
-composer require laravel/browser-kit-testing=~4.2
+composer require laravel/browser-kit-testing=~5.2
+composer require dms/phpunit-arraysubset-asserts=~0.1
 ```
+
+### PHPUnitバージョン変更(初回のみ)
+- Exmentでは、PHPUnitにバージョン8.Xを採用しています。  
+ルートフォルダのcomposer.jsonの、require-devに、"phpunit/phpunit"に関する記述があれば、以下のように修正してください。
+
+```
+"phpunit/phpunit": "~8.5",
+```
+
+その後、以下のコマンドを実行してください。
+
+```
+composer update
+```
+
+
 
 ## テストデータ作成
 

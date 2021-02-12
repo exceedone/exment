@@ -135,6 +135,8 @@ class ChartItem implements ItemInterface
         // create model for getting data --------------------------------------------------
         $model = $this->custom_table->getValueModel()->query();
 
+        $this->custom_view->filterModel($model);
+
         // get data
         $items = $model->get();
 

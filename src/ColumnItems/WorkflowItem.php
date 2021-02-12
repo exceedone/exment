@@ -237,16 +237,23 @@ class WorkflowItem extends SystemItem
 
         // if $status is start
         if ($status == Define::WORKFLOW_START_KEYNAME) {
-            if ($condition == FilterOption::NE) {
+            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
                 $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
             } else {
                 $func = $or_option ? 'orWhereNull': 'whereNull';
             }
             $query->{$func}('workflow_status_to_id');
         } else {
-            $mark = ($condition == FilterOption::NE) ? '<>' : '=';
-            $func = $or_option ? 'orWhere': 'where';
-            $query->{$func}('workflow_status_to_id', $mark, $status);
+            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
+                $func = $or_option ? 'orWhere': 'where';
+                $query->{$func}(function ($query) use ($status) {
+                    $query->where('workflow_status_to_id', '<>', $status)
+                        ->orWhereNull('workflow_status_to_id');
+                });
+            } else {
+                $func = $or_option ? 'orWhere': 'where';
+                $query->{$func}('workflow_status_to_id', $status);
+            }
         }
 
         return $query;

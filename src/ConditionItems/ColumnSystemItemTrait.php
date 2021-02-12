@@ -58,9 +58,9 @@ trait ColumnSystemItemTrait
 
     protected function getFormColumnItem()
     {
-        return CustomViewFilter::getColumnItem($this->target)
-        ->options([
-            'filterKind' => $this->filterKind,
-        ]);
+        return CustomViewFilter::getColumnItem($this->target, $this->custom_table)
+            ->options([
+                'filterKind' => $this->filterKind,
+            ]);
     }
 }
