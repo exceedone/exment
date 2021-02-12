@@ -25,7 +25,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     /**
      * pre-excecute process before test.
      */
-    protected function setUp(): void
+    protected function setUp() : void
     {
         parent::setUp();
         $this->login();
@@ -112,7 +112,9 @@ class CCustomOperationTest extends ExmentKitTestCase
             $this->exactSelectOptions("select[name='custom_operation_columns[$row_id][operation_update_type]']", OperationUpdateType::transKeyArray('custom_operation.operation_update_type_options'));
         }
 
-        $this->exactSelectOptions('select.view_column_target', $this->getColumnSelectOptions($target_table_name));
+        $this->exactSelectOptions('select.view_column_target', $this->getColumnSelectOptions($target_table_name, [
+            'ignore_attachment' => true,
+        ]));
 
         $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exment::user()->base_user->id)->first();
         $target_id = $custom_value->id;
@@ -155,7 +157,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             ]],
             'custom_operation_conditions' => [[
                 'condition_target' => 'USER',
-                'condition_key' => FilterOption::EQ,
+                'condition_key' => FilterOption::SELECT_EXISTS,
                 'condition_value' => [TestDefine::TESTDATA_USER_LOGINID_DEV_USERB],
                 '_remove_' => 0,
             ], [
@@ -190,13 +192,13 @@ class CCustomOperationTest extends ExmentKitTestCase
                 $this->seeIsSelected("custom_operation_conditions[$row_id][condition_value][]", 
                     TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
                 $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::CONDITION));
-                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value]']", 
+                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value][]']", 
                     $this->getUserSelectOptions());
             } else {
                 $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", 
                     $custom_operation_condition->target_column_id);
                 $this->seeOuterElement("input.condition_value.rowno-$row_id", 30000);
-                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::COMPARE));
+                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::NUMBER));
             }
         }
 
@@ -208,8 +210,10 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         $this->exactSelectOptions('select.condition_target', 
             $this->getColumnSelectOptions($target_table_name, [
-                'is_index' => true,
-                'add_options' => $add_options
+                'is_index' => false,
+                'append_tableid' => false,
+                'add_options' => $add_options,
+                'ignore_attachment' => true,
             ]));
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
@@ -282,7 +286,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             ]],
             'custom_operation_conditions' => [[
                 'condition_target' => 'ROLE',
-                'condition_key' => FilterOption::EQ,
+                'condition_key' => FilterOption::SELECT_EXISTS,
                 'condition_value' => [TestDefine::TESTDATA_ROLEGROUP_GENERAL],
                 '_remove_' => 0,
             ]]
@@ -304,7 +308,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             $this->seeIsSelected("custom_operation_conditions[$row_id][condition_value][]", 
                 TestDefine::TESTDATA_ROLEGROUP_GENERAL);
             $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::CONDITION));
-            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value]']", 
+            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value][]']", 
                 $this->getRoleSelectOptions());
         }
 
@@ -379,8 +383,8 @@ class CCustomOperationTest extends ExmentKitTestCase
             ]],
             'custom_operation_conditions' => [[
                 'condition_target' => $filter_1->id,
-                'condition_key' => FilterOption::NE,
-                'condition_value' => 1,
+                'condition_key' => FilterOption::EQ,
+                'condition_value' => 0,
                 '_remove_' => 0,
             ]]
         ]);
@@ -405,7 +409,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 $custom_operation_condition->condition_key);
             $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", $filter_1->id);
             $this->seeOuterElement("input.condition_value.rowno-$row_id", $custom_operation_condition->condition_value);
-            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::DEFAULT));
+            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::YESNO));
         }
 
         $this->visit(admin_url("data/$target_table_name/create"))
@@ -427,7 +431,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get updated data row
-        $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
+        $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation update test update');
         $this->assertNull($custom_value->getValue('date'));
         $this->assertNull($custom_value->getValue('email'));
@@ -598,11 +602,10 @@ class CCustomOperationTest extends ExmentKitTestCase
      */
     protected function getUserSelectOptions() : array
     {
-        return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->all()
-            ->mapWithKeys(function($value) {
-                return [$value->id => $value->getValue('user_name')];
-            })->toArray();
-
+        $custom_table = CustomTable::getEloquent(SystemTableName::USER);
+        return $custom_table->getSelectOptions([
+            'display_table' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
+        ])->toArray();
     }
 
     /**

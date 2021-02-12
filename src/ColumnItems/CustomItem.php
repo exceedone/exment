@@ -27,14 +27,6 @@ abstract class CustomItem implements ItemInterface
     
     protected $custom_column;
     
-    /**
-     * This custom table.
-     * *If view_pivot_column, custom_table is pivot target table
-     *
-     * @var CustomTable
-     */
-    protected $custom_table;
-    
     protected $custom_value;
 
     /**
@@ -185,11 +177,6 @@ abstract class CustomItem implements ItemInterface
         $this->prepare();
         
         return $this;
-    }
-
-    public function getCustomTable()
-    {
-        return $this->custom_table;
     }
 
     public function getCustomColumn()
@@ -423,6 +410,9 @@ abstract class CustomItem implements ItemInterface
             case ColumnType::SELECT_TABLE:
             case SystemTableName::ORGANIZATION:
                 return FilterType::SELECT;
+            case ColumnType::YESNO:
+            case ColumnType::BOOLEAN:
+                return FilterType::YESNO;
             case ColumnType::DATE:
             case ColumnType::DATETIME:
                 return FilterType::DAY;

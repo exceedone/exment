@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
 {
@@ -11,16 +12,15 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
 
     public function getAuthorityTextAttribute()
     {
+        $item = ConditionItemBase::getDetailItemByAuthority(null, $this);
+        if (is_nullorempty($item)) {
+            return null;
+        }
+
         $condition_type = ConditionTypeDetail::getEnum($this->related_type);
         if (!isset($condition_type)) {
             return null;
         }
-
-        $item = $condition_type->getConditionItem(null, null);
-        if (!isset($item)) {
-            return null;
-        }
-
         $condition_type_label = $condition_type->transKey('condition.condition_type_options');
         
         return $item->getText($this->related_type, $this->related_id, false);

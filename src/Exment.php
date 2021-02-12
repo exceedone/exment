@@ -15,10 +15,10 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 use Encore\Admin\Admin;
+use Carbon\Carbon;
 
 /**
  * Class Admin.
@@ -74,17 +74,13 @@ class Exment
      */
     public function user($guards = null)
     {
-        if (is_null($guards)) {
-            $guards = ['adminapi', 'admin'];
-        }
-
-        foreach (stringToArray($guards) as $guard) {
-            # code...
-            $user = Auth::guard($guard)->user();
-            if (isset($user)) {
-                return $user;
+        $guards = [Define::AUTHENTICATE_KEY_WEB, Define::AUTHENTICATE_KEY_API];
+        foreach ($guards as $guard) {
+            if (\Auth::guard($guard)->check()) {
+                return \Auth::guard($guard)->user();
             }
         }
+
         return null;
     }
 
@@ -687,6 +683,21 @@ class Exment
     }
 
     /**
+     * Convert to only day
+     *
+     * @param Carbon|string|null $value
+     * @return Carbon|null
+     */
+    public function getCarbonOnlyDay($value) : ?Carbon
+    {
+        if (is_nullorempty($value)) {
+            return null;
+        }
+        $carbon = Carbon::parse($value);
+        return Carbon::create($carbon->year, $carbon->month, $carbon->day);
+    }
+
+    /**
      * Contains 2 array.
      * *This function only check testArr item contains targetArr. Whether targetArr's item not contains testArr, maybe return true.*
      *
@@ -702,7 +713,7 @@ class Exment
             })) {
                 return false;
             };
-            return true;
         }
+        return true;
     }
 }

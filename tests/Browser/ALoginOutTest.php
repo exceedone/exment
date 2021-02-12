@@ -9,6 +9,34 @@ class ALoginOutTest extends ExmentKitTestCase
      *
      * @return void
      */
+    public function testNotAuthLoginPage()
+    {
+        $this->visit(admin_url('auth/logout'))
+            ->visit(admin_url(''))
+            ->seePageIs(admin_url('auth/login'))
+            ->seeOuterElement('p[class="login-box-msg"]', 'ログイン');
+
+        $this->visit(admin_url('auth/logout'))
+            ->visit(admin_url('data/information'))
+            ->seePageIs(admin_url('auth/login'))
+            ->seeOuterElement('p[class="login-box-msg"]', 'ログイン');
+
+        $this->visit(admin_url('auth/logout'))
+            ->visit(admin_url('system'))
+            ->seePageIs(admin_url('auth/login'))
+            ->seeOuterElement('p[class="login-box-msg"]', 'ログイン');
+
+        $this->visit(admin_url('auth/logout'))
+            ->visit(admin_url('data/information/1'))
+            ->seePageIs(admin_url('auth/login'))
+            ->seeOuterElement('p[class="login-box-msg"]', 'ログイン');
+     }
+
+    
+    /**
+     *
+     * @return void
+     */
     public function testLoginFailWithWrongUsernameAndPass()
     {
         $this->visit(admin_url('auth/logout'))

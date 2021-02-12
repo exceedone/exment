@@ -170,7 +170,11 @@ class CustomCopyTest extends UnitTestBase
             ], 
             $options
         );
-        extract($options);
+        $login_user_id = $options['login_user_id'];
+        $from_table_name = $options['from_table_name'];
+        $to_table_name = $options['to_table_name'];
+        $copy_columns = $options['copy_columns'];
+        $input_columns = $options['input_columns'];
 
         // Login user.
         $this->be(LoginUser::find($login_user_id));

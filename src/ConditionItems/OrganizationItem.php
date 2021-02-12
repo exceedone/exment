@@ -11,7 +11,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
-class OrganizationItem extends ConditionItemBase implements ConditionItemInterface
+class OrganizationItem extends ConditionDetailBase implements ConditionItemInterface
 {
     use UserOrganizationItemTrait;
     
