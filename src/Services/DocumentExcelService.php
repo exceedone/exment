@@ -4,7 +4,6 @@
 
 namespace Exceedone\Exment\Services;
 
-use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomValue;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -15,10 +14,9 @@ class DocumentExcelService
      *
      */
     protected $baseInfo;
-    protected $tempfilename;
+    protected $templateFileFullPath;
     protected $outputfilename;
     protected $filename;
-    protected $document_type;
     protected $uniqueFileName;
 
     /**
@@ -31,17 +29,15 @@ class DocumentExcelService
     /**
      * construct
      *
-     * @param CustomValue $model
-     * @param string $tempfilename
-     * @param string $outputfilename
-     * @param string $document_type
+     * @param CustomValue $model output's model
+     * @param string $templateFileFullPath template's file full path
+     * @param string $outputfilename Output's file name. *Not contains extension. If want to output 'test.xlsx', set 'test'.*
      */
-    public function __construct($model, $tempfilename, $outputfilename, $document_type)
+    public function __construct($model, $templateFileFullPath, $outputfilename)
     {
         $this->model = $model;
-        $this->tempfilename = $tempfilename;
+        $this->templateFileFullPath = $templateFileFullPath;
         $this->outputfilename = $outputfilename;
-        $this->document_type = $document_type;
     }
 
     /**
@@ -52,7 +48,7 @@ class DocumentExcelService
     {
         //Excel::selectSheetsByIndex(0)->load($this->filename, function($reader) {
         $reader = IOFactory::createReader('Xlsx');
-        $spreadsheet = $reader->load($this->tempfilename);
+        $spreadsheet = $reader->load($this->templateFileFullPath);
 
         // output all sheets
         $showGridlines = [];
@@ -87,7 +83,7 @@ class DocumentExcelService
         $this->saveFile($writer);
 
         // remove tmpfile
-        \File::delete($this->getFullPath());
+        \File::delete($this->getAdminTmpFullPath());
         \File::delete($this->getFullPathTmp());
 
         return true;
@@ -258,14 +254,13 @@ class DocumentExcelService
      * get file name
      * @return string File name
      */
-    public function getFileName($document_type = null)
+    public function getFileName()
     {
         if (!isset($this->filename)) {
             // get template file name
             $this->filename = $this->getText($this->outputfilename) ?? make_uuid();
         }
-        $ext = DocumentType::getExtension($document_type?? $this->document_type);
-        return $this->filename.$ext;
+        return $this->filename.'.xlsx';
     }
 
     /**
@@ -275,7 +270,7 @@ class DocumentExcelService
     public function getUniqueFileName()
     {
         if (!isset($this->uniqueFileName)) {
-            $ext = DocumentType::getExtension($this->document_type);
+            $ext = '.xlsx';
             $this->uniqueFileName = make_uuid().$ext;
         }
         return $this->uniqueFileName;
@@ -306,22 +301,32 @@ class DocumentExcelService
     }
 
     /**
-     * get Directory full path from root
+     * get full path from root, for downloading
      * @return string File path
      */
-    protected function getFullPath()
+    public function getFullPath()
+    {
+        $filepath = path_join($this->getDirPath(), $this->getUniqueFileName());
+        return getFullpath($filepath, Define::DISKNAME_ADMIN, true);
+    }
+    
+    /**
+     * get admin tmp Directory full path from root
+     * @return string File path
+     */
+    protected function getAdminTmpFullPath()
     {
         $filepath = path_join($this->getDirPath(), $this->getUniqueFileName());
         return getFullpath($filepath, Define::DISKNAME_ADMIN_TMP, true);
     }
     
     /**
-     * get Directory full path from root
+     * get (tmp saving) Directory full path from root
      * @return string File path
      */
     protected function getFullPathTmp()
     {
-        $filepath = path_join($this->getDirPath(), $this->getFileName(DocumentType::EXCEL).'tmp');
+        $filepath = path_join($this->getDirPath(), $this->getFileName().'tmp');
         return getFullpath($filepath, Define::DISKNAME_ADMIN_TMP, true);
     }
 
@@ -333,7 +338,7 @@ class DocumentExcelService
     protected function saveFile($writer)
     {
         // save file to local
-        $tmpFullPath = $this->getFullPath();
+        $tmpFullPath = $this->getAdminTmpFullPath();
         $writer->save($tmpFullPath);
 
         $file = path_join($this->getDirPath(), $this->getUniqueFileName());

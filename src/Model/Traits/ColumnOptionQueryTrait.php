@@ -183,7 +183,8 @@ trait ColumnOptionQueryTrait
             'add_options' => [],
             'ignore_attachment' => false,
         ], $options);
-        extract($options);
+        $is_index = $options['is_index'];
+        $add_options = $options['add_options'];
 
         $custom_table = CustomTable::getEloquent($table_name);
         // create from custom column
