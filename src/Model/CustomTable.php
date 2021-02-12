@@ -1394,7 +1394,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             case SearchType::SELECT_TABLE:
                 // get columns for relation child to parent
                 if (!isset($searchColumns)) {
-                    $searchColumns = $child_table->getSelectTableColumns($this->id, true);
+                    $searchColumns = $child_table->getSelectTableColumns($this->id);
                 }
 
                 // set query info

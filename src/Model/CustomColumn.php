@@ -6,6 +6,7 @@ use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\DB;
 
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -148,9 +149,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $query->whereIn('options->required', [1, "1", true]);
     }
 
-    public function scopeSelectTargetTable($query, $id)
+    public function scopeSelectTargetTable($query, $custom_table_id)
     {
-        return $query->whereIn('options->select_target_table', [$id, strval($id)]);
+        // check user or org table.
+        $select_target_table = CustomTable::getEloquent($custom_table_id);
+        if($select_target_table && in_array($select_target_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
+            // if target is user or org, set filter as column_type.
+            return $query->where('column_type', $select_target_table->table_name);
+        }
+
+        return $query->whereIn('options->select_target_table', [$custom_table_id, strval($custom_table_id)]);
     }
 
     public function getCustomTableCacheAttribute()
