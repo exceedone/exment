@@ -14,4 +14,9 @@ class UserEqUser extends UserEqUserBase
     {
         return '=';
     }
+    
+    protected function isExists() : bool
+    {
+        return true;
+    }
 }

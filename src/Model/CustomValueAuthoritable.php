@@ -56,6 +56,7 @@ class CustomValueAuthoritable extends ModelBase
         }
         
         // get organizations. OK only_join users
+        getModelName(SystemTableName::ORGANIZATION);
         $belong_organizations = $user->base_user->belong_organizations;
 
         foreach ($belong_organizations as $belong_organization) {

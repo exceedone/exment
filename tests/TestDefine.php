@@ -10,7 +10,10 @@ class TestDefine
     public const TESTDATA_USER_LOGINID_DEV_USERB = '6';  //dev-userB
     public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
 
+    public const TESTDATA_ORGANIZATION_COMPANY1 = '1'; // company1
     public const TESTDATA_ORGANIZATION_DEV = '2'; // dev
+
+    public const TESTDATA_ROLEGROUP_GENERAL = '4'; // 一般グループ
 
     public const TESTDATA_TABLE_NAME_VIEW_ALL = 'custom_value_view_all';
     public const TESTDATA_TABLE_NAME_EDIT_ALL = 'custom_value_edit_all';

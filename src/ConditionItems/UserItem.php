@@ -11,7 +11,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 
-class UserItem extends ConditionItemBase implements ConditionItemInterface
+class UserItem extends ConditionDetailBase implements ConditionItemInterface
 {
     use UserOrganizationItemTrait;
 
