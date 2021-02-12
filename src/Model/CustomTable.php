@@ -96,6 +96,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->hasMany(CustomCopy::class, 'from_custom_table_id');
     }
     
+    public function to_custom_copies()
+    {
+        return $this->hasMany(CustomCopy::class, 'to_custom_table_id');
+    }
+    
     public function notifies()
     {
         return $this->hasMany(Notify::class, 'custom_table_id')
@@ -472,7 +477,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($this->from_custom_copies as $item) {
             $item->deletingChildren();
         }
+        foreach ($this->to_custom_copies as $item) {
+            $item->deletingChildren();
+        }
         foreach ($this->custom_form_block_target_tables as $item) {
+            $item->deletingChildren();
+        }
+        foreach ($this->operations as $item) {
             $item->deletingChildren();
         }
 
@@ -505,6 +516,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->custom_forms()->delete();
             $model->custom_columns()->delete();
             $model->custom_relations()->delete();
+            $model->from_custom_copies()->delete();
+            $model->to_custom_copies()->delete();
+            $model->operations()->delete();
 
             // delete items
             Notify::where('custom_table_id', $model->id)->delete();
@@ -1404,7 +1418,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             case SearchType::SELECT_TABLE:
                 // get columns for relation child to parent
                 if (!isset($searchColumns)) {
-                    $searchColumns = $child_table->getSelectTableColumns($this->id, true);
+                    $searchColumns = $child_table->getSelectTableColumns($this->id);
                 }
 
                 // set query info
@@ -2410,15 +2424,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         if ($include_system) {
             $setSystemColumn(['footer' => true]);
+        }
 
-            if ($include_workflow && !is_null(Workflow::getWorkflowByTable($this))) {
-                // check contains workflow in table
-                $setSystemColumn(['name' => 'workflow_status']);
-            }
-            if ($include_workflow_work_users && !is_null(Workflow::getWorkflowByTable($this))) {
-                // check contains workflow in table
-                $setSystemColumn(['name' => 'workflow_work_users']);
-            }
+        if ($include_workflow && !is_null(Workflow::getWorkflowByTable($this))) {
+            // check contains workflow in table
+            $setSystemColumn(['name' => 'workflow_status']);
+        }
+        if ($include_workflow_work_users && !is_null(Workflow::getWorkflowByTable($this))) {
+            // check contains workflow in table
+            $setSystemColumn(['name' => 'workflow_work_users']);
         }
     }
 

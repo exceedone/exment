@@ -164,15 +164,13 @@ class ConditionHasManyTable
                 ->required()
                 // ignore HasOptionRule.
                 ->removeRules(\Encore\Admin\Validator\HasOptionRule::class)
-                ->options(function ($val, $select) use ($condition_target_name, $filterKind) {
+                ->options(function ($val, $select, $model) use ($condition_target_name, $filterKind) {
                     if (!isset($val)) {
                         return [];
                     }
 
                     $data = $select->data();
-                    $condition_target = array_get($data, $condition_target_name);
-
-                    $item = ConditionItemBase::getItem($this->custom_table, $condition_target);
+                    $item = ConditionItemBase::getItemByRequest($this->custom_table, array_get($data, $condition_target_name));
                     if (is_null($item)) {
                         return null;
                     }
@@ -208,7 +206,7 @@ class ConditionHasManyTable
                         if (is_null($data)) {
                             return null;
                         }
-                        $item = ConditionItemBase::getItem($this->custom_table, array_get($data, $condition_target_name));
+                        $item = ConditionItemBase::getItemByRequest($this->custom_table, array_get($data, $condition_target_name));
                         if (is_null($item)) {
                             return null;
                         }

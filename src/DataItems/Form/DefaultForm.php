@@ -662,8 +662,21 @@ EOT;
         $form->hidden('select_parent')->default($select_parent);
         $form->hidden('parent_type')->default($parent_custom_table->table_name);
 
+        // get parentId, parentValue
+        if ($request->has('parent_id')) {
+            $parent_id = $request->get('parent_id');
+        } elseif (isset($select_parent)) {
+            $parent_id = $select_parent;
+            getModelName($this->custom_table)::find($this->id)->parent_id;
+        } else {
+            $custom_value = getModelName($this->custom_table)::find($this->id);
+            $parent_id = $custom_value ? $custom_value->parent_id : null;
+        }
+        $parent_value = $parent_custom_table->getValueModel($parent_id);
+
         // if create data and not has $select_parent, select item
-        if (!isset($this->id) && !isset($select_parent)) {
+        // or if edit data and not have parent record
+        if ((!isset($this->id) && !isset($select_parent)) || (isset($this->id) && !isset($parent_id))) {
             $select = $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
                     return $parent_custom_table->getSelectOptions([
@@ -691,13 +704,6 @@ EOT;
         }
         // if edit data or has $select_parent, only display
         else {
-            if ($request->has('parent_id')) {
-                $parent_id = $request->get('parent_id');
-            } else {
-                $parent_id = isset($select_parent) ? $select_parent : getModelName($this->custom_table)::find($this->id)->parent_id;
-            }
-            $parent_value = $parent_custom_table->getValueModel($parent_id);
-
             if (isset($parent_id) && isset($parent_value) && isset($parent_custom_table)) {
                 $form->hidden('parent_id')->default($parent_id)->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name'), 'data-parent_id' => true]);
                 $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);

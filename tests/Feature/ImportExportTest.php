@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use Tests\TestCase;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
@@ -18,7 +18,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportExportTest extends TestCase
 {
-    use TestTrait;
+    use TestTrait, DatabaseTransactions;
 
     /**
      * full path stored export files.
@@ -441,17 +441,12 @@ class ImportExportTest extends TestCase
     {
         $this->init(false, $target_name);
 
-        DB::beginTransaction();
-        try {
-            //$maxid = CustomTable::getEloquent($target_name)->getValueModel()->max('id');
+        //$maxid = CustomTable::getEloquent($target_name)->getValueModel()->max('id');
 
-            $result = \Artisan::call('exment:import', [
-                'dir' => $this->dirpath
-            ]);
+        $result = \Artisan::call('exment:import', [
+            'dir' => $this->dirpath
+        ]);
 
-            $this->assertEquals($result, $isSuccess ? 0 : -1);
-        } finally {
-            DB::rollback();
-        }
+        $this->assertEquals($result, $isSuccess ? 0 : -1);
     }
 }

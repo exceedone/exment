@@ -413,7 +413,7 @@ class CustomViewController extends AdminControllerTableBase
     
     protected function getConditionItem(Request $request, $target)
     {
-        $item = ConditionItemBase::getItem($this->custom_table, $target);
+        $item = ConditionItemBase::getItemByRequest($this->custom_table, $target);
         if (is_null($item)) {
             return null;
         }
