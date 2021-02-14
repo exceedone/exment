@@ -85,18 +85,6 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->help(exmtrans("custom_form_public.help.validity_period"))
                     ->default(true);
 
-                
-                if(($message = PublicForm::isEnableRecaptcha()) === true){
-                    $form->switchbool('use_recaptcha', exmtrans("custom_form_public.use_recaptcha"))
-                        ->help(exmtrans("custom_form_public.help.use_recaptcha"))
-                        ->default(false);
-                    ;
-                }
-                else{
-                    $form->display('use_recaptcha_display', exmtrans("custom_form_public.use_recaptcha"))
-                        ->displayText($message)
-                        ->escape(false);
-                }
             })->disableHeader();
         })->tab(exmtrans("custom_form_public.design_setting"), function ($form) {
             $form->embeds("design_setting", exmtrans("common.design_setting"), function($form){
@@ -229,11 +217,35 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->default(false);
                 ;
             })->disableHeader();
-        });
+        })
+        ->tab(exmtrans("custom_form_public.option_setting"), function ($form) use ($public_form, $id, $custom_table) {
+            $form->exmheader(exmtrans("custom_form_public.option_setting"))->hr();
+             
+            $form->embeds("option_setting", exmtrans("common.option_setting"), function($form) use ($custom_table){
+                $form->text('analytics_tag', exmtrans("custom_form_public.analytics_tag"))
+                    ->rules(['regex:/^(UA-|G-)/u'])
+                    ->help(exmtrans("custom_form_public.help.analytics_tag"));
+                ;
+                
+                if(($message = PublicForm::isEnableRecaptcha()) === true){
+                    $form->switchbool('use_recaptcha', exmtrans("custom_form_public.use_recaptcha"))
+                        ->help(exmtrans("custom_form_public.help.use_recaptcha"))
+                        ->default(false);
+                    ;
+                }
+                else{
+                    $form->display('use_recaptcha_display', exmtrans("custom_form_public.use_recaptcha"))
+                        ->displayText($message)
+                        ->escape(false);
+                }
+                
+            })->disableHeader();
+        })
+        ;
 
 
         $form->editing(function($form, $arr){
-            $form->model()->append(['basic_setting', 'design_setting', 'confirm_complete_setting', 'error_setting']);
+            $form->model()->append(['basic_setting', 'design_setting', 'confirm_complete_setting', 'error_setting', 'option_setting']);
         });
         $form->saving(function($form){
             if(!isset($form->model()->proxy_user_id)){

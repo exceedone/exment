@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="{{ config('app.locale') }}">
 <head>
+    @if(isset($analytics))
+    @include('exment::public-form.analytics')
+    @endif
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -18,7 +21,6 @@
 
     <script src="{{ Admin::jQuery() }}"></script>
     {!! Admin::headerJs() !!}
-
 </head>
 
 <body id="body-publicform" class="hold-transition {{$container_fluid ? 'body-container-fluid' : 'body-container'}}">

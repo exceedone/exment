@@ -73,10 +73,13 @@ class PublicFormController extends Controller
     public function index(Request $request)
     {
         $form = $this->getForm($request)
-            ->setAction(asset(url_join(config('exment.publicform_route_prefix', 'publicform'), 'create')));
+            ->setAction(url_join($this->public_form->getUrl(),  'create'));
 
         $content = new PublicContent;
         $this->public_form->setContentOption($content);
+
+        // set analytics
+        $content->setAnalytics($this->public_form->getOption('analytics_tag'));
 
         $content->row($form);
         return $content;

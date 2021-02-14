@@ -28,6 +28,7 @@ class PublicContent implements Renderable
     protected $header_text_color = '#FFFFFF';
     protected $footer_text_color = '#000000';
     protected $container_fluid = true;
+    protected $analytics;
 
     /**
      * Content constructor.
@@ -88,6 +89,80 @@ class PublicContent implements Renderable
 
         return $this;
     }
+
+    /**
+     * Set the value of use_header
+     *
+     * @return  self
+     */ 
+    public function setUseHeader($use_header)
+    {
+        $this->use_header = $use_header;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of use_footer
+     *
+     * @return  self
+     */ 
+    public function setUseFooter($use_footer)
+    {
+        $this->use_footer = $use_footer;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of footer_text_color
+     *
+     * @return  self
+     */ 
+    public function setFooterTextColor($footer_text_color)
+    {
+        $this->footer_text_color = $footer_text_color;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of container_fluid
+     *
+     * @return  self
+     */ 
+    public function setIsContainerFluid(bool $container_fluid)
+    {
+        $this->container_fluid = $container_fluid;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of header_label
+     *
+     * @return  self
+     */ 
+    public function setHeaderLabel($header_label)
+    {
+        $this->header_label = $header_label;
+
+        return $this;
+    }
+
+    /**
+     * Set analytics
+     *
+     * @return  self
+     */ 
+    public function setAnalytics($analytics)
+    {
+        $this->analytics = $analytics;
+
+        return $this;
+    }
+
+
 
     /**
      * Alias of method row.
@@ -190,6 +265,7 @@ class PublicContent implements Renderable
             'header_label' => $this->header_label,
             'use_header' => $this->use_header,
             'use_footer' => $this->use_footer,
+            'analytics' => $this->analytics,
 
             'container_height' => 40 + ($this->use_header ? 50 : 0) + ($this->use_footer ? 51 : 0),
         ];
@@ -197,64 +273,4 @@ class PublicContent implements Renderable
         return view('exment::public-form.content', $items)->render();
     }
 
-
-    /**
-     * Set the value of use_header
-     *
-     * @return  self
-     */ 
-    public function setUseHeader($use_header)
-    {
-        $this->use_header = $use_header;
-
-        return $this;
-    }
-
-    /**
-     * Set the value of use_footer
-     *
-     * @return  self
-     */ 
-    public function setUseFooter($use_footer)
-    {
-        $this->use_footer = $use_footer;
-
-        return $this;
-    }
-
-    /**
-     * Set the value of footer_text_color
-     *
-     * @return  self
-     */ 
-    public function setFooterTextColor($footer_text_color)
-    {
-        $this->footer_text_color = $footer_text_color;
-
-        return $this;
-    }
-
-    /**
-     * Set the value of container_fluid
-     *
-     * @return  self
-     */ 
-    public function setIsContainerFluid(bool $container_fluid)
-    {
-        $this->container_fluid = $container_fluid;
-
-        return $this;
-    }
-
-    /**
-     * Set the value of header_label
-     *
-     * @return  self
-     */ 
-    public function setHeaderLabel($header_label)
-    {
-        $this->header_label = $header_label;
-
-        return $this;
-    }
 }

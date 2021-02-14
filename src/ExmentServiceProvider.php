@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Auth\RequestGuard;
 use Illuminate\Contracts\Http\Kernel;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
@@ -310,12 +312,19 @@ class ExmentServiceProvider extends ServiceProvider
             return Plugin::getPluginPageModel();
         });
         $this->app->bind(PublicForm::class, function ($app) {
-            return PublicForm::getPublicFormByRequest(request()->get('formkey'));
+            return PublicForm::getPublicFormByRequest(PublicForm::getUuidByRequest());
         });
         $this->app->bind(CustomTable::class, function ($app) {
             return CustomTable::findByEndpoint();
         });
         
+        // guard provider
+        Auth::extend('publicformtoken', function ($app, $name, array $config) {
+            return tap($this->makeGuard($config), function ($guard) {
+                $this->app->refresh('request', $guard, 'setRequest');
+            });
+        });
+
         Passport::ignoreMigrations();
     }
 
@@ -413,7 +422,7 @@ class ExmentServiceProvider extends ServiceProvider
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
             return new Providers\LoginUserProvider($app['hash'], LoginUser::class);
         });
-        \Auth::provider('publicform-provider-driver', function ($app, array $config) {
+        Auth::provider('publicform-provider-driver', function ($app, array $config) {
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
             return new Providers\PublicFormUserProvider($app['hash'], LoginUser::class);
         });
@@ -521,5 +530,22 @@ class ExmentServiceProvider extends ServiceProvider
         $middlewareGroups['publicformapi'] = $middleware;
 
         return $middlewareGroups;
+    }
+
+    
+    /**
+     * Make an instance of the token guard.
+     *
+     * @param  array  $config
+     * @return \Illuminate\Auth\RequestGuard
+     */
+    protected function makeGuard(array $config)
+    {
+        return new RequestGuard(function ($request) use ($config) {
+            return (new PublicFormGuard(
+                Auth::createUserProvider($config['provider']),
+                $this->app['request'],
+            ))->user($request);
+        }, $this->app['request']);
     }
 }

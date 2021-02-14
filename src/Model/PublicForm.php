@@ -43,9 +43,28 @@ class PublicForm extends ModelBase
      */
     public function getUrl() : string
     {
-        return asset(config('exment.publicform_route_prefix', 'publicform') . '?formkey=' . $this->uuid);
+        return asset_urls(config('exment.publicform_route_prefix', 'publicform'), $this->uuid);
     }
 
+
+    /**
+     * Get key's uuid by request
+     *
+     * @return string|null
+     */
+    public static function getUuidByRequest() : ?string
+    {
+        $segments = request()->segments();
+        if(count($segments) < 2){
+            return null;
+        }
+
+        if($segments[0] !== config('exment.publicform_route_prefix', 'publicform')){
+            return null;
+        }
+
+        return $segments[1];
+    }
 
     /**
      * Get from by request
@@ -103,7 +122,7 @@ class PublicForm extends ModelBase
             ->form()
             ->disablePjax()
             ->setView('exment::public-form.form')
-            ->setAction(asset(config('exment.publicform_route_prefix', 'publicform')))
+            ->setAction($this->getUrl())
             ;
 
         // get footer
@@ -122,10 +141,6 @@ class PublicForm extends ModelBase
         }
 
         $form->submitLabel(boolval($this->getOption('use_confirm')) ? exmtrans('custom_form_public.confirm_label') : trans('admin.submit'));
-
-        $form->hidden('formkey')
-            ->default($this->uuid);
-        $form->ignore('formkey');
 
         return $form;
     }
@@ -280,6 +295,16 @@ class PublicForm extends ModelBase
     }
 
     public function setErrorSettingAttribute(?array $options)
+    {
+        $this->setOption($options);
+        return $this;
+    }
+    public function getOptionSettingAttribute()
+    {
+        return $this->options;
+    }
+
+    public function setOptionSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;

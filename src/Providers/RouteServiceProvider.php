@@ -293,8 +293,8 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'     => $this->namespace,
             'middleware'    => ['adminweb', 'publicform'],
         ], function (Router $router) {
-            $router->get('/', 'PublicFormController@index');
-            $router->post('/create', 'PublicFormController@create');
+            $router->get('/{form_key}', 'PublicFormController@index');
+            $router->post('/{form_key}/create', 'PublicFormController@create');
         });
     }
     

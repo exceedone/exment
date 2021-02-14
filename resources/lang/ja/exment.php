@@ -1480,9 +1480,8 @@ return [
         'header' => '公開フォーム設定',
         'description' => 'ログインしなくても一般ユーザーがデータを入力できる、公開フォームを設定します。',
         'custom_form_id' => '対象フォーム',
-        'public_form_view_name' => '公開フォーム表示名',
         'validity_period' => '公開有効期限',
-        'use_recaptcha' => 'Google reCAPTCHAを使用する',
+        'analytics_tag' => 'Googleアナリティクス',
         'design_setting' => 'デザイン設定',
         'header_setting' => 'ヘッダー設定',
         'body_setting' => 'フォーム設定',
@@ -1515,6 +1514,9 @@ return [
         'body_content_type' => 'フォーム表示レイアウト',
         'share_url' => '公開フォームURL',
         'confirm_label' => '入力内容確認',
+        'option_setting' => 'オプション設定',
+        'public_form_view_name' => '公開フォーム表示名',
+        'use_recaptcha' => 'Google reCAPTCHAを使用する',
 
         'help'=> [
             'custom_form_id' => '公開フォームを設定する、フォームを選択してください。',
@@ -1545,6 +1547,7 @@ return [
             'use_error_notify' => 'エラーが発生した場合、管理者に通知を行うことができます。',
             'share_url' => '一般ユーザーがこのフォームにアクセスするためのURLです。クリックすることで、URLをコピーします。',
             'proxy_user_id' => 'この公開フォームは、表示されているユーザーとして実行、データ登録を行います。',
+            'analytics_tag' => 'Googleアナリティクスを使用する場合、「UA-」もしくは「G-」から始まる、Google Analyticsのタグを入力してください。',
         ],
 
         'message' => [
