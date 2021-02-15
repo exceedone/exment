@@ -285,7 +285,7 @@ class RouteServiceProvider extends ServiceProvider
     
     protected function mapExmentPublicFormWebRotes()
     {
-        if(!canConnection() || !System::publicform_available()){
+        if(!canConnection() || !hasTable(SystemTableName::SYSTEM) || !System::publicform_available()){
             return;
         }
         Route::group([
