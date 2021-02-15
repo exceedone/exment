@@ -324,7 +324,7 @@ class RouteServiceProvider extends ServiceProvider
             $routes[] = ['type' => 'api', 'prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true, 'private' => true];
         }
 
-        if (System::publicform_available()) {
+        if (canConnection() && System::publicform_available()) {
             $routes[] = ['type' => 'publicformapi', 'prefix' => 'publicformapi', 'middleware' => ['api', 'publicformapi'], 'addScope' => false, 'private' => false];
         }
 
