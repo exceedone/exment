@@ -59,9 +59,13 @@ class CustomFormController extends AdminControllerTableBase
         $this->AdminContent($content);
         $content->body($this->grid());
 
-        $content->row($this->setFormPriorities());
+        // form priorities
+        if($this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)){
+            $content->row($this->setFormPriorities());
+        }
         
-        if(System::publicform_available()){
+        // public form
+        if(System::publicform_available() && $this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)){
             $content->row($this->setFormPublics());
         }
 
@@ -201,7 +205,7 @@ class CustomFormController extends AdminControllerTableBase
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_CUSTOM_FORM)) {
+        if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM)) {
             return;
         }
         if (!$this->validateTableAndId(CustomForm::class, $id, 'form')) {
@@ -238,6 +242,25 @@ class CustomFormController extends AdminControllerTableBase
             $custom_form->custom_form_blocks->add($custom_form_block);
         }
 
+        return $this->getPreviewContent($request, $custom_form);
+    }
+    
+    /**
+     * Showing preview by id
+     *
+     * @param Request $request
+     * @param string $suuid
+     * @return void
+     */
+    public function previewBySuuid(Request $request, string $tableKey, string $suuid)
+    {
+        $custom_form = CustomForm::findBySuuid($suuid);
+        return $this->getPreviewContent($request, $custom_form);
+    }
+
+
+    protected function getPreviewContent(Request $request, CustomForm $custom_form)
+    {
         $form_item = $custom_form->form_item;
         $form = $form_item->disableToolsButton()->disableSavingButton()->form();
         
@@ -261,7 +284,7 @@ class CustomFormController extends AdminControllerTableBase
     public function create(Request $request, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_CUSTOM_FORM)) {
+        if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM)) {
             return;
         }
 
@@ -342,27 +365,46 @@ class CustomFormController extends AdminControllerTableBase
             $grid->model()->where('custom_table_id', $this->custom_table->id);
         }
         
-        $grid->tools(function (Grid\Tools $tools) {
+        $custom_table = $this->custom_table;
+        $grid->tools(function (Grid\Tools $tools) use ($custom_table) {
             $tools->append(new Tools\CustomTableMenuButton('form', $this->custom_table));
-            
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
             });
         });
-        
+
         $grid->disableExport();
         $grid->disableRowSelector();
-        // $grid->disableCreateButton();
-        $table_name = $this->custom_table->table_name;
+        
+        if ($custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
+        }
+        else{
+            $grid->disableCreateButton();
+        }
 
-        $grid->actions(function ($actions) use ($table_name) {
+        $grid->actions(function ($actions) use ($custom_table) {
             $actions->disableView();
-            // $actions->disableDelete();
+
+            // append preview
             $linker = (new Linker)
-                ->url(admin_urls('form', $table_name, "create?copy_id={$actions->row->id}"))
-                ->icon('fa-copy')
-                ->tooltip(exmtrans('common.copy_item', exmtrans('custom_form.default_form_name')));
-            $actions->prepend($linker);
+                    ->url(admin_urls('form', $custom_table->table_name, "preview", $actions->row->suuid))
+                    ->icon('fa-check-circle')
+                    ->linkattributes(['target' => '_blank'])
+                    ->tooltip(exmtrans('common.preview'));
+                $actions->prepend($linker);
+
+            // checking edit permission
+            if($custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)){
+                $linker = (new Linker)
+                    ->url(admin_urls('form', $custom_table->table_name, "create?copy_id={$actions->row->id}"))
+                    ->icon('fa-copy')
+                    ->tooltip(exmtrans('common.copy_item', exmtrans('custom_form.default_form_name')));
+                $actions->prepend($linker);
+            }
+            else{
+                $actions->disableDelete();
+                $actions->disableEdit();
+            }
         });
         
         // filter

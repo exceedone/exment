@@ -198,6 +198,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
             $router->get('form/{tableKey}/relationFilterModal', 'CustomFormController@relationFilterModal');
             $router->post('form/{tableKey}/settingModal', 'CustomFormController@settingModal');
+            $router->get('form/{tableKey}/preview/{suuid}', 'CustomFormController@previewBySuuid');
             $router->post('form/{tableKey}/preview', 'CustomFormController@preview');
             $router->put('form/{tableKey}/preview', 'CustomFormController@preview');
             $router->post('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
@@ -289,14 +290,14 @@ class RouteServiceProvider extends ServiceProvider
             return;
         }
         Route::group([
-            'prefix'        => config('exment.publicform_route_prefix', 'publicform'),
+            'prefix'        => url_join(config('exment.publicform_route_prefix', 'publicform'), '{form_key}'),
             'namespace'     => $this->namespace,
             'middleware'    => ['adminweb', 'publicform'],
         ], function (Router $router) {
-            $router->get('/{form_key}', 'PublicFormController@index');
-            $router->post('/{form_key}', 'PublicFormController@backed');
-            $router->post('/{form_key}/confirm', 'PublicFormController@confirm');
-            $router->post('/{form_key}/create', 'PublicFormController@create');
+            $router->get('/', 'PublicFormController@index');
+            $router->post('/', 'PublicFormController@backed');
+            $router->post('/confirm', 'PublicFormController@confirm');
+            $router->post('/create', 'PublicFormController@create');
         });
     }
     
@@ -325,7 +326,7 @@ class RouteServiceProvider extends ServiceProvider
                 $routes[] = ['type' => 'api', 'prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true, 'private' => true];
             }
             if (System::publicform_available()) {
-                $routes[] = ['type' => 'publicformapi', 'prefix' => 'publicformapi', 'middleware' => ['api', 'publicformapi'], 'addScope' => false, 'private' => false];
+                $routes[] = ['type' => 'publicformapi', 'prefix' => 'publicformapi/{form_key}', 'middleware' => ['api', 'publicformapi'], 'addScope' => false, 'private' => false];
             }
         }
 

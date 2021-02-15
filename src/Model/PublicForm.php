@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Form;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
 use Exceedone\Exment\Form\Field\ReCaptcha;
@@ -34,6 +35,18 @@ class PublicForm extends ModelBase
         static::deleting(function ($model) {
             $model->deletingChildren();
         });
+        
+        static::addGlobalScope('only_self', function ($builder) {
+            $user = \Exment::user();
+            if (!isset($user)) {
+                return;
+            }
+            if ($user->hasPermission(Permission::CUSTOM_FORM_PUBLIC_ALL)) {
+                return;
+            }
+
+            $builder->where('proxy_user_id', $user->getUserId());
+        });
     }
 
 
@@ -60,7 +73,8 @@ class PublicForm extends ModelBase
             return null;
         }
 
-        if($segments[0] !== config('exment.publicform_route_prefix', 'publicform')){
+        if($segments[0] !== config('exment.publicform_route_prefix', 'publicform')
+            && $segments[0] !== 'publicformapi'){
             return null;
         }
 
@@ -70,16 +84,18 @@ class PublicForm extends ModelBase
     /**
      * Get from by request
      *
-     * @return ?PublicForm
+     * @return PublicForm|null
      */
-    public static function getPublicFormByRequest($uuid)
+    public static function getPublicFormByRequest($uuid) : ?PublicForm
     {
         if(!$uuid){
             return null;
         }
 
         $model = PublicForm::where('uuid', $uuid)
-            ->where('active_flg', 1)->first();
+            ->where('active_flg', 1)
+            ->withoutGlobalScopes()
+            ->first();
         if(!$model){
             return null;
         }
@@ -303,6 +319,8 @@ class PublicForm extends ModelBase
         }
         return true;
     }
+
+    
 
     // For tab ----------------------------------------------------
     public function getBasicSettingAttribute()

@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\PublicContent;
 use Illuminate\Http\Request;
 
@@ -38,12 +39,17 @@ class CustomFormPublicController extends AdminControllerTableBase
      */
     protected function form($id = null)
     {
+        if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
+            return;
+        }
+
         $form = new Form(new PublicForm);
         $public_form = PublicForm::find($id);
         $custom_table = $this->custom_table;
 
         // Basic setting ----------------------------------------------------
         $form->tab(exmtrans("common.basic_setting"), function ($form) use ($public_form, $id, $custom_table) {
+            $form->descriptionHtml(exmtrans('common.help.more_help'));
             $form->exmheader(exmtrans("common.basic_setting"))->hr();
                 
             if(isset($public_form)){
@@ -223,7 +229,7 @@ class CustomFormPublicController extends AdminControllerTableBase
              
             $form->embeds("option_setting", exmtrans("common.option_setting"), function($form) use ($custom_table){
                 $form->text('analytics_tag', exmtrans("custom_form_public.analytics_tag"))
-                    ->rules(['regex:/^(UA-|G-)/u'])
+                    ->rules(['nullable', 'regex:/^(UA-|G-)/u'])
                     ->help(exmtrans("custom_form_public.help.analytics_tag"));
                 ;
                 
@@ -258,7 +264,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             $tools->prepend(view('exment::tools.button', [
                 'href' => 'javascript:void(0);',
                 'label' => exmtrans('common.preview'),
-                'icon' => 'fa-eye',
+                'icon' => 'fa-check-circle',
                 'btn_class' => 'btn-warning',
                 'attributes' => [
                     'data-preview' => true,

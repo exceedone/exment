@@ -47,7 +47,13 @@ class RoleGroupType extends EnumBase
                 }
                 return $permissions;
             case self::TABLE()->lowerKey():
-                return Permission::TABLE_ROLE_PERMISSION;
+                $permissions = Permission::TABLE_ROLE_PERMISSION;
+                if (!boolval(System::publicform_available())) {
+                    $permissions = collect($permissions)->filter(function($permission){
+                        return !in_array($permission, [Permission::CUSTOM_FORM_PUBLIC_ALL, Permission::CUSTOM_FORM_PUBLIC]);
+                    })->toArray();
+                }
+                return $permissions;
             case self::MASTER()->lowerKey():
                 return Permission::MASTER_ROLE_PERMISSION;
             case self::ROLE_GROUP()->lowerKey():
