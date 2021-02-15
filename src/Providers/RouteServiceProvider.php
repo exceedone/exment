@@ -320,12 +320,13 @@ class RouteServiceProvider extends ServiceProvider
             ['type' => 'webapi', 'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['adminweb', 'adminwebapi'], 'addScope' => false, 'private' => true],
         ];
         
-        if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
-            $routes[] = ['type' => 'api', 'prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true, 'private' => true];
-        }
-
-        if (canConnection() && System::publicform_available()) {
-            $routes[] = ['type' => 'publicformapi', 'prefix' => 'publicformapi', 'middleware' => ['api', 'publicformapi'], 'addScope' => false, 'private' => false];
+        if (canConnection() && hasTable(SystemTableName::SYSTEM)) {
+            if(System::api_available()){
+                $routes[] = ['type' => 'api', 'prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true, 'private' => true];
+            }
+            if (System::publicform_available()) {
+                $routes[] = ['type' => 'publicformapi', 'prefix' => 'publicformapi', 'middleware' => ['api', 'publicformapi'], 'addScope' => false, 'private' => false];
+            }
         }
 
         foreach ($routes as $route) {
