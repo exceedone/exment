@@ -47,7 +47,8 @@ class BootstrapPublicForm
             'vendor/exment/fullcalendar/list/main.min.css',
             'vendor/exment/fullcalendar/timegrid/main.min.css',
             'vendor/exment/css/common.css',
-            'vendor/exment/css/publicform.css',
+            // move to publicform
+            //'vendor/exment/css/publicform.css',
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);

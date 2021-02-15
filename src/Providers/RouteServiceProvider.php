@@ -285,7 +285,7 @@ class RouteServiceProvider extends ServiceProvider
     
     protected function mapExmentPublicFormWebRotes()
     {
-        if(!System::publicform_available()){
+        if(!canConnection() || !System::publicform_available()){
             return;
         }
         Route::group([
@@ -294,6 +294,8 @@ class RouteServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'publicform'],
         ], function (Router $router) {
             $router->get('/{form_key}', 'PublicFormController@index');
+            $router->post('/{form_key}', 'PublicFormController@backed');
+            $router->post('/{form_key}/confirm', 'PublicFormController@confirm');
             $router->post('/{form_key}/create', 'PublicFormController@create');
         });
     }

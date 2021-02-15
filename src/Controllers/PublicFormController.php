@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
@@ -61,7 +62,8 @@ class PublicFormController extends Controller
         }
         if(isset($this->custom_form)){
             $this->form_item = $this->custom_form->form_item;
-            $this->custom_table = $public_form->custom_table;
+            $this->custom_table = $this->custom_form->custom_table;
+            getModelName($this->custom_table);
         }
     }
 
@@ -72,18 +74,67 @@ class PublicFormController extends Controller
      */
     public function index(Request $request)
     {
-        $form = $this->getForm($request)
-            ->setAction(url_join($this->public_form->getUrl(),  'create'));
+        return $this->getInputContent($request);
+    }
+
+
+    /**
+     * Backed interface.
+     *
+     * @return Content
+     */
+    public function backed(Request $request)
+    {
+        $custom_value = $request->session()->pull('aaa');
+        return $this->getInputContent($request, $custom_value);
+    }
+
+
+    /**
+     * Get input content (Contains form)
+     *
+     * @param Request $request
+     * @param CustomValue|null $custom_value
+     * @return void
+     */
+    protected function getInputContent(Request $request, ?CustomValue $custom_value = null)
+    {
+        $uri = boolval($this->public_form->getOption('use_confirm')) ? 'confirm' : 'create';
+
+        $form = $this->getForm($request, $custom_value)
+            ->setAction(url_join($this->public_form->getUrl(),  $uri));
 
         $content = new PublicContent;
         $this->public_form->setContentOption($content);
 
-        // set analytics
-        $content->setAnalytics($this->public_form->getOption('analytics_tag'));
-
         $content->row($form);
         return $content;
     }
+
+
+    /**
+     * confirm interface.
+     *
+     * @return Content
+     */
+    public function confirm(Request $request)
+    {
+        $form = $this->getForm($request);
+        $custom_value = $form->getModelByInputs();
+
+        //TODO: validate
+
+        $request->session()->put('aaa', $custom_value);
+
+        $show = $this->public_form->getShow($request, $custom_value);
+
+        $content = new PublicContent;
+        $this->public_form->setContentOption($content);
+
+        $content->row($show);
+        return $content;
+    }
+
 
 
     /**
@@ -95,6 +146,9 @@ class PublicFormController extends Controller
     {
         $form = $this->getForm($request);
         $public_form = $this->public_form;
+        
+        //TODO: validate
+
         $form->saved(function($form) use($request, $public_form){
             $content = new PublicContent;
             $public_form->setContentOption($content);
@@ -114,8 +168,8 @@ class PublicFormController extends Controller
 
 
 
-    protected function getForm(Request $request)
+    protected function getForm(Request $request, ?CustomValue $custom_value = null)
     { 
-        return $this->public_form->getForm($request);
+        return $this->public_form->getForm($request, $custom_value);
     }
 }

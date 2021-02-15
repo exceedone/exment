@@ -7,7 +7,6 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Row;
-use Exceedone\Exment\Form\Show;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Form\Field;
@@ -35,6 +34,8 @@ use Exceedone\Exment\Services\PartialCrudService;
 
 class DefaultShow extends ShowBase
 {
+    protected static $showClassName = \Exceedone\Exment\Form\Show::class;
+
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -61,7 +62,7 @@ class DefaultShow extends ShowBase
      */
     public function createShowForm()
     {
-        return new Show($this->custom_value, function (Show $show) {
+        return new static::$showClassName($this->custom_value, function ($show) {
             if (!$this->modal) {
                 $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
                 $field->border = false;

@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Form\PublicContent;
+use Exceedone\Exment\DataItems\Show\PublicFormShow;
 use Exceedone\Exment\Form\Field\ReCaptcha;
 
 class PublicForm extends ModelBase
@@ -106,8 +107,9 @@ class PublicForm extends ModelBase
      * @param Request $request
      * @return Form
      */
-    public function getForm(Request $request)
+    public function getForm(Request $request, ?CustomValue $custom_value = null)
     {
+        \Admin::css(asset('vendor/exment/css/publicform.css'));
         // set footer as PublicFormFooter
         \Encore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
 
@@ -124,6 +126,10 @@ class PublicForm extends ModelBase
             ->setView('exment::public-form.form')
             ->setAction($this->getUrl())
             ;
+
+        if($custom_value){
+            $form->replicate($custom_value);
+        }
 
         // get footer
         $footer = $form->builder()->getFooter();
@@ -143,6 +149,39 @@ class PublicForm extends ModelBase
         $form->submitLabel(boolval($this->getOption('use_confirm')) ? exmtrans('custom_form_public.confirm_label') : trans('admin.submit'));
 
         return $form;
+    }
+
+    
+    /**
+     * Get show
+     *
+     * @param Request $request
+     * @return Form
+     */
+    public function getShow(Request $request, CustomValue $custom_value)
+    {
+        $custom_form = $this->custom_form;
+        if(!$custom_form){
+            return null;
+        }
+        $show = PublicFormShow::getItem($custom_value->custom_table, $custom_form)
+            ->custom_value($custom_value)
+            ->createShowForm()
+            ->setAction(url_join($this->getUrl(),  'create'))
+            ->setBackAction($this->getUrl());
+
+        // Google recaptcha
+        if(static::isEnableRecaptcha() && boolval($this->getOption('use_recaptcha', false))){
+            $version = static::recaptchaVersion();
+            if($version == 'v2'){
+                $show->useRecaptchaV2();
+            }
+            elseif($version == 'v3'){
+                $show->useRecaptchaV3();
+            }
+        }
+
+        return $show;
     }
 
     
@@ -177,8 +216,13 @@ class PublicForm extends ModelBase
      * @param PublicContent $content
      * @return $this
      */
-    public function setContentOption(PublicContent $content)
+    public function setContentOption(PublicContent $content, array $options = [])
     {
+        $options = array_merge([
+                'add_analytics' => true,
+            ],
+            $options
+        );
         $content->setBackgroundColor($this->getOption('background_color') ?? '#FFFFFF')
             ->setBackgroundColorOuter($this->getOption('background_color_outer') ?? '#FFFFFF')
             ->setHeaderBackgroundColor($this->getOption('header_background_color'))
@@ -189,6 +233,11 @@ class PublicForm extends ModelBase
             ->setIsContainerFluid(($this->getOption('body_content_type') ?? 'width100') == 'width100')
             ->setHeaderLabel($this->getOption('header_label'))
             ;
+
+        // set analytics
+        if($options['add_analytics']){
+            $content->setAnalytics($this->getOption('analytics_tag'));
+        }
 
         return $this;
     }
