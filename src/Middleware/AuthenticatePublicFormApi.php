@@ -19,7 +19,7 @@ class AuthenticatePublicFormApi extends \Encore\Admin\Middleware\Authenticate
     public function handle($request, Closure $next)
     {
         if (\Auth::guard(Define::AUTHENTICATE_KEY_PUBLIC_FORM)->check()) {
-            \Auth::shouldUse(Define::AUTHENTICATE_KEY_PUBLIC_FORM);
+            \Exment::setGuard(Define::AUTHENTICATE_KEY_PUBLIC_FORM);
         }else{
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }

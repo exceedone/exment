@@ -33,12 +33,11 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
         }
 
         if (\Auth::guard(Define::AUTHENTICATE_KEY_WEB)->check()) {
-            \Auth::shouldUse(Define::AUTHENTICATE_KEY_WEB);
+            \Exment::setGuard(Define::AUTHENTICATE_KEY_WEB);
         }
         else{
             return redirect()->guest(admin_base_path('auth/login'));
         }
-        \Auth::shouldUse(Define::AUTHENTICATE_KEY_WEB);
 
         return $next($request);
     }

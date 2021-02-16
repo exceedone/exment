@@ -318,15 +318,36 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['type' => 'webapi', 'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['adminweb', 'adminwebapi'], 'addScope' => false, 'private' => true],
+            [
+                'type' => 'webapi', 
+                'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 
+                'middleware' => ['adminweb', 'adminwebapi'], 
+                'addScope' => false, 
+                'private' => true,
+                'className' => 'ApiDataController',
+            ],
         ];
         
         if (canConnection() && hasTable(SystemTableName::SYSTEM)) {
             if(System::api_available()){
-                $routes[] = ['type' => 'api', 'prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true, 'private' => true];
+                $routes[] = [
+                    'type' => 'api', 
+                    'prefix' => url_join(config('admin.route.prefix'), 'api'), 
+                    'middleware' => ['api', 'adminapi'], 
+                    'addScope' => true, 
+                    'private' => true,
+                    'className' => 'ApiDataController',
+                ];
             }
             if (System::publicform_available()) {
-                $routes[] = ['type' => 'publicformapi', 'prefix' => 'publicformapi/{form_key}', 'middleware' => ['api', 'publicformapi'], 'addScope' => false, 'private' => false];
+                $routes[] = [
+                    'type' => 'publicformapi', 
+                    'prefix' => 'publicformapi/{form_key}', 
+                    'middleware' => ['api', 'publicformapi'], 
+                    'addScope' => false, 
+                    'private' => false,
+                    'className' => 'ApiDataController',
+                ];
             }
         }
 
@@ -336,15 +357,16 @@ class RouteServiceProvider extends ServiceProvider
                 'namespace'     => $this->namespace,
                 'middleware'    => array_get($route, 'middleware'),
             ], function (Router $router) use ($route) {
+                $className = $route['className'];
                 // value --------------------------------------------------
-                $router->get("data/{tableKey}", 'ApiDataController@dataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/query-column", 'ApiDataController@dataQueryColumn')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/query", 'ApiDataController@dataQuery')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/select", 'ApiDataController@dataSelect')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/relatedLinkage", 'ApiDataController@relatedLinkage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/calendar", 'ApiDataController@calendarList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/{id}", 'ApiDataController@dataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/column/{column_name}", 'ApiDataController@columnData')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}", "$className@dataList")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/query-column", "$className@dataQueryColumn")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/query", "$className@dataQuery")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/select", "$className@dataSelect")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/relatedLinkage", "$className@relatedLinkage")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/calendar", "$className@calendarList")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/{id}", "$className@dataFind")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/column/{column_name}", "$className@columnData")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 
                 // only private
                 if($route['private']){

@@ -65,10 +65,10 @@ class ApiAuthTest extends ApiTestBase
             ->assertStatus(401);
             
         $this->get(asset_urls('publicformapi', 'data', 'custom_value_edit'))
-        ->assertStatus(401);
+            ->assertStatus(404);
 
         $this->get(asset_urls('publicformapi', 'data', 'custom_value_edit', 5))
-            ->assertStatus(401);
+            ->assertStatus(404);
     }
 
     public function testApiAuthWriteFalse(){
@@ -90,7 +90,7 @@ class ApiAuthTest extends ApiTestBase
                 'user' => 3
             ]
         ])
-        ->assertStatus(401);
+        ->assertStatus(404);
     }    
 
     public function testWebApiAuthTrue(){
@@ -140,12 +140,12 @@ class ApiAuthTest extends ApiTestBase
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(asset_urls('publicformapi', 'data', 'custom_value_edit'))
-            ->assertStatus(401);
+            ->assertStatus(404);
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(asset_urls('publicformapi', 'data', 'custom_value_edit', 5))
-            ->assertStatus(401);
+            ->assertStatus(404);
     }
 
     public function testWebApiAuthWriteFalse(){
@@ -169,19 +169,19 @@ class ApiAuthTest extends ApiTestBase
                 'text' => $text,
                 'user' => 3
             ]
-        ])->assertStatus(405);
+        ])->assertStatus(404);
     }
 
 
     // public form api ----------------------------------------------------
     public function testPublicFormApiAuthTrue(){
-        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $uri = $this->getPublicFormApiUri(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
-        $this->get(admin_urls('webapi', 'data', 'custom_value_edit'))
+        $this->get(url_join($uri, 'data', 'custom_value_edit'))
             ->assertStatus(200)
             ->assertJsonCount(20, 'data');
 
-        $this->get(admin_urls('webapi', 'data', 'custom_value_edit', 5))
+        $this->get(url_join($uri, 'data', 'custom_value_edit', 5))
             ->assertStatus(200)
             ->assertJsonFragment([
                 'id' => 5
@@ -206,36 +206,37 @@ class ApiAuthTest extends ApiTestBase
     }
 
     public function testPublicFormApiAuthReadFalse(){
-        $token = $this->getUser1AccessToken([ApiScope::VALUE_READ]);
+        // dummy uri
+        $uri = asset_urls('publicformapi', 'naofenofwnefielk');
 
         $this->withHeaders([
-            'Authorization' => "Bearer $token",
+        ])->get(url_join($uri, 'data', 'custom_value_edit', 5))
+            ->assertStatus(401);
+
+        $this->withHeaders([
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit'))
             ->assertStatus(401);
 
         $this->withHeaders([
-            'Authorization' => "Bearer $token",
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit', 5))
             ->assertStatus(401);
             
         $this->withHeaders([
-            'Authorization' => "Bearer $token",
         ])->get(asset_urls('publicformapi', 'data', 'custom_value_edit'))
             ->assertStatus(401);
 
         $this->withHeaders([
-            'Authorization' => "Bearer $token",
         ])->get(asset_urls('publicformapi', 'data', 'custom_value_edit', 5))
             ->assertStatus(401);
     }
 
     public function testPublicFormApiAuthWriteFalse(){
-        $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+        // dummy uri
+        $uri = asset_urls('publicformapi', 'naofenofwnefielk');
 
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
-            'Authorization' => "Bearer $token",
-        ])->post(admin_urls('webapi', 'data', 'custom_value_edit'), [
+        ])->post(url_join($uri, 'data', 'custom_value_edit'), [
             'value' => [
                 'text' => $text,
                 'user' => 3
@@ -244,12 +245,23 @@ class ApiAuthTest extends ApiTestBase
         
         // not allowed
         $response = $this->withHeaders([
-            'Authorization' => "Bearer $token",
         ])->post(asset_urls('publicformapi', 'data', 'custom_value_edit'), [
             'value' => [
                 'text' => $text,
                 'user' => 3
             ]
         ])->assertStatus(405);
+
+
+        ///// Cannot post
+        $uri = $this->getPublicFormApiUri(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $text = 'test' . date('YmdHis');
+        $response = $this->post(url_join($uri, 'data', 'custom_value_edit'), [
+            'value' => [
+                'text' => $text,
+                'user' => 3
+            ]
+        ])
+        ->assertStatus(404);
     }
 }

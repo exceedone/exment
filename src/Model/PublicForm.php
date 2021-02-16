@@ -62,6 +62,17 @@ class PublicForm extends ModelBase
 
 
     /**
+     * Get form api url
+     *
+     * @return string
+     */
+    public function getApiUrl() : string
+    {
+        return asset_urls('publicformapi', $this->uuid);
+    }
+
+
+    /**
      * Get key's uuid by request
      *
      * @return string|null

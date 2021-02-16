@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Closure;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\Permission;
 
@@ -25,8 +26,9 @@ class AuthenticatePluginApi extends \Encore\Admin\Middleware\Authenticate
             return abortJson(500, ErrorCode::PLUGIN_NOT_FOUND());
         }
 
-        $user = \Exment::user();
-        if (is_null($user) || is_null($user->base_user)) {
+        if (\Auth::guard(Define::AUTHENTICATE_KEY_API)->check()) {
+            \Exment::setGuard(Define::AUTHENTICATE_KEY_API);
+        } else {
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }
 

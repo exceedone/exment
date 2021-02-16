@@ -26,6 +26,13 @@ use Carbon\Carbon;
 class Exment
 {
     /**
+     * guard name.
+     *
+     * @var string
+     */
+    protected $guard;
+
+    /**
      * Left sider-bar menu.
      *
      * @return array
@@ -74,14 +81,17 @@ class Exment
      */
     public function user($guards = null)
     {
-        $guards = [Define::AUTHENTICATE_KEY_WEB, Define::AUTHENTICATE_KEY_API, Define::AUTHENTICATE_KEY_PUBLIC_FORM];
-        foreach($guards as $guard){
-            if(\Auth::guard($guard)->check()) {
-                return \Auth::guard($guard)->user();
-            }
-        }
+        return \Auth::guard($this->guard)->user();
+    }
 
-        return null;
+
+    /**
+     * set gurad info.
+     */
+    public function setGuard(string $guard)
+    {
+        $this->guard = $guard;
+        \Auth::shouldUse($guard);
     }
 
 
