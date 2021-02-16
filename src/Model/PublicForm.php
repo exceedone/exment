@@ -186,17 +186,6 @@ class PublicForm extends ModelBase
             ->setAction(url_join($this->getUrl(),  'create'))
             ->setBackAction($this->getUrl());
 
-        // Google recaptcha
-        if(static::isEnableRecaptcha() && boolval($this->getOption('use_recaptcha', false))){
-            $version = static::recaptchaVersion();
-            if($version == 'v2'){
-                $show->useRecaptchaV2();
-            }
-            elseif($version == 'v3'){
-                $show->useRecaptchaV3();
-            }
-        }
-
         return $show;
     }
 
