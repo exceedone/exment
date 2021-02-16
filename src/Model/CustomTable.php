@@ -763,12 +763,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $options = array_merge([
             'column_name_prefix' => null,  // appending error key's prefix, and value prefix
             'asApi' => false, // calling as api
+            'addValue' => true, // add value. to column name 
             'appendErrorAllColumn' => false, // if error, append error message for all column
             'uniqueCheckSiblings' => [], // unique validation Siblings. Please mremove myself values.
             'uniqueCheckIgnoreIds' => [], // ignore ids.
         ], $options);
 
         $errors = [];
+        $prefix = $options['addValue']? 'value.': '';
 
         // getting custom_table's unique columns(contains simgle, multiple)
         $unique_columns = $this->getUniqueColumns();
@@ -792,8 +794,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                             continue;
                         }
                         // get input value
-                        $value = array_get($input, 'value.' . $column->column_name);
-                        $other = array_get($row, 'value.' . $column->column_name);
+                        $value = array_get($input, $prefix . $column->column_name);
+                        $other = array_get($row, $prefix . $column->column_name);
                         if (is_null($value) && is_null($other)) {
                             continue;
                         }
@@ -819,7 +821,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     }
     
                     // get value
-                    $value = array_get($input, 'value.' . $column->column_name);
+                    $value = array_get($input, $prefix . $column->column_name);
                     if (is_array($value)) {
                         $value = json_encode(array_filter($value));
                     }
@@ -834,8 +836,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 }
     
                 // if all column's value is empty, continue.
-                if (collect($column_keys)->filter(function ($column) use ($input) {
-                    return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
+                if (collect($column_keys)->filter(function ($column) use ($input, $prefix) {
+                    return !is_nullorempty(array_get($input, $prefix . $column->column_name));
                 })->count() == 0) {
                     continue;
                 }

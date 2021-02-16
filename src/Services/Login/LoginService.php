@@ -152,6 +152,37 @@ class LoginService
     }
 
     /**
+     * Validate user unique columns.
+     *
+     * @param CustomLoginUserBase $custom_login_user
+     * @return array
+     */
+    public static function validateUniques(CustomLoginUserBase $custom_login_user)
+    {
+        // get target user
+        $exment_user = static::getExmentUser($custom_login_user, false);
+        if ($exment_user === false) {
+            $exment_user = null;
+        }
+
+        if (!static::needCheck($custom_login_user, $exment_user)) {
+            return [];
+        }
+
+        $data = $custom_login_user->mapping_values;
+        $errors = CustomTable::getEloquent(SystemTableName::USER)->validatorUniques($data, $exment_user, [
+            'addValue' => false
+        ]);
+
+        $res=[];
+        array_walk($errors,function($x) use (&$res){
+            $res=array_merge($res,$x);
+        });
+        
+        return $res;
+    }
+
+    /**
      * Remove "unique" and "init_flg" rule
      *
      * @param CustomLoginUserBase $custom_login_user
@@ -161,15 +192,7 @@ class LoginService
      */
     protected static function removeInitRule(CustomLoginUserBase $custom_login_user, ?CustomValue $exment_user, array $rules)
     {
-        // remove unique, if not update and create. Because only use key for login
-        $login_setting = $custom_login_user->login_setting;
-
-        // If has exment user and update user info, return rules(all validate)
-        if (isset($exment_user) && boolval($login_setting->getOption('update_user_info'))) {
-            return $rules;
-        }
-        // If not has exment user and sso_jit, return rules(all validate)
-        elseif (!isset($exment_user) && boolval($login_setting->getOption('sso_jit'))) {
+        if (static::needCheck($custom_login_user, $exment_user)) {
             return $rules;
         }
 
@@ -177,6 +200,28 @@ class LoginService
         return [];
     }
     
+    /**
+     * check if need validate user data.
+     *
+     * @param CustomLoginUserBase $custom_login_user
+     * @param CustomValue|null $exment_user
+     * @return boolean true:need validate
+     */
+    protected static function needCheck(CustomLoginUserBase $custom_login_user, ?CustomValue $exment_user)
+    {
+        // remove unique, if not update and create. Because only use key for login
+        $login_setting = $custom_login_user->login_setting;
+
+        // If has exment user and update user info, return rules(all validate)
+        if (isset($exment_user) && boolval($login_setting->getOption('update_user_info'))) {
+            return true;
+        }
+        // If not has exment user and sso_jit, return rules(all validate)
+        elseif (!isset($exment_user) && boolval($login_setting->getOption('sso_jit'))) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Get login test result.
