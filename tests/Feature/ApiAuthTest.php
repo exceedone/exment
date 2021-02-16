@@ -186,23 +186,6 @@ class ApiAuthTest extends ApiTestBase
             ->assertJsonFragment([
                 'id' => 5
             ]);
-
-        $text = 'test' . date('YmdHis');
-        $response = $this->post(admin_urls('webapi', 'data', 'custom_value_edit'), [
-            'value' => [
-                'text' => $text,
-                'user' => 3
-            ]
-        ])
-        ->assertStatus(201);
-
-        $this->assertJsonTrue($response, [
-            'value' => [
-                'text' => $text,
-                'user' => 3
-            ],
-            'created_user_id' => "2" //user1
-        ]);
     }
 
     public function testPublicFormApiAuthReadFalse(){
@@ -223,17 +206,18 @@ class ApiAuthTest extends ApiTestBase
             
         $this->withHeaders([
         ])->get(asset_urls('publicformapi', 'data', 'custom_value_edit'))
-            ->assertStatus(401);
+            ->assertStatus(404);
 
         $this->withHeaders([
         ])->get(asset_urls('publicformapi', 'data', 'custom_value_edit', 5))
-            ->assertStatus(401);
+            ->assertStatus(404);
     }
 
     public function testPublicFormApiAuthWriteFalse(){
         // dummy uri
         $uri = asset_urls('publicformapi', 'naofenofwnefielk');
 
+        // not allowed
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
         ])->post(url_join($uri, 'data', 'custom_value_edit'), [
@@ -241,7 +225,7 @@ class ApiAuthTest extends ApiTestBase
                 'text' => $text,
                 'user' => 3
             ]
-        ])->assertStatus(401);
+        ])->assertStatus(405);
         
         // not allowed
         $response = $this->withHeaders([
@@ -250,7 +234,7 @@ class ApiAuthTest extends ApiTestBase
                 'text' => $text,
                 'user' => 3
             ]
-        ])->assertStatus(405);
+        ])->assertStatus(404);
 
 
         ///// Cannot post
@@ -262,6 +246,6 @@ class ApiAuthTest extends ApiTestBase
                 'user' => 3
             ]
         ])
-        ->assertStatus(404);
+        ->assertStatus(405);
     }
 }

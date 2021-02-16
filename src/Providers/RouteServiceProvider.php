@@ -346,7 +346,7 @@ class RouteServiceProvider extends ServiceProvider
                     'middleware' => ['api', 'publicformapi'], 
                     'addScope' => false, 
                     'private' => false,
-                    'className' => 'ApiDataController',
+                    'className' => 'PublicFormApiDataController',
                 ];
             }
         }
@@ -359,12 +359,14 @@ class RouteServiceProvider extends ServiceProvider
             ], function (Router $router) use ($route) {
                 $className = $route['className'];
                 // value --------------------------------------------------
-                $router->get("data/{tableKey}", "$className@dataList")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/query-column", "$className@dataQueryColumn")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/query", "$className@dataQuery")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/select", "$className@dataSelect")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/relatedLinkage", "$className@relatedLinkage")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/calendar", "$className@calendarList")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}", "ApiDataController@dataList")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/query-column", "ApiDataController@dataQueryColumn")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/query", "ApiDataController@dataQuery")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/select", "ApiDataController@dataSelect")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/relatedLinkage", "ApiDataController@relatedLinkage")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/calendar", "ApiDataController@calendarList")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                
+                // Change class name if public form api for segment
                 $router->get("data/{tableKey}/{id}", "$className@dataFind")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/column/{column_name}", "$className@columnData")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 
