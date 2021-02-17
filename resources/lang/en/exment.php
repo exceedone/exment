@@ -2104,6 +2104,7 @@ return [
             'workflow_read' => 'Get Workflow',
             'workflow_execute' => 'Execute Workflow',
             'plugin' => 'Plugin',
+            'log' => 'Operation Log',
         ],
 
         'errors' => [

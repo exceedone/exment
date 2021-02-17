@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\WorkflowValueAuthority;
+use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Tests\TestDefine;
 
 class ApiTest extends ApiTestBase
@@ -2572,6 +2573,202 @@ class ApiTest extends ApiTestBase
             ]);
     }
     
+
+    // Log ----------------------------------------------------
+    public function testGetLogs(){
+        $token = $this->getAdminAccessToken([ApiScope::LOG]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'log'))
+            ->assertStatus(200)
+            ->assertJsonCount(20, 'data')
+            ->assertJsonStructure([
+                'current_page',
+                'data',
+                'first_page_url',
+                'from',
+                'last_page',
+                'last_page_url',
+                'next_page_url',
+                'path',
+                'per_page',
+                'prev_page_url',
+                'to',
+                'total',
+            ])
+        ;
+    }
+
+    public function testGetLogsWithCount(){
+        $token = $this->getAdminAccessToken([ApiScope::LOG]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'log').'?count=3')
+            ->assertStatus(200)
+            ->assertJsonCount(3, 'data');
+    }
+
+    public function testGetLogsById(){
+        $token = $this->getAdminAccessToken([ApiScope::LOG]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'log', 7))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'id' => 7,
+            ]);
+    }
+
+    public function testGetLogsFilterLoginUserId(){
+        $filters = ['login_user_id' => 0, 'count' => 1000000];
+        
+        $this->assertLogsFilterResult($filters, function($result, $filterValue){
+            return array_get($result, 'user_id') == $filterValue;
+        });
+    }
+
+    public function testGetLogsFilterBaseUserId(){
+        $filters = ['base_user_id' => 1, 'count' => 1000000];
+        $base_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(1);
+        $login_user_ids = $base_user->login_users->pluck('id')->toArray();
+        $this->assertLogsFilterResult($filters, function($result, $filterValue) use($login_user_ids){
+            return in_array(array_get($result, 'user_id'), $login_user_ids);
+        });
+    }
+
+    public function testGetLogsFilterPath(){
+        $filters = ['path' => admin_base_path('auth/login'), 'count' => 1000000];
+        
+        $this->assertLogsFilterResult($filters);
+    }
+
+    public function testGetLogsFilterMethod(){
+        $filters = ['method' => 'POST', 'count' => 1000000];
+        
+        $this->assertLogsFilterResult($filters);
+    }
+
+    public function testGetLogsFilterIp(){
+        $filters = ['ip' => '127.0.0.1', 'count' => 1000000];
+        
+        $this->assertLogsFilterResult($filters);
+    }
+
+    public function testGetLogsFilterDatetimeStart()
+    {
+        $count = intval(OperationLog::count() / 2);
+        foreach(range(0, 1000) as $i){
+            $operation_log = OperationLog::find($count + $i);
+            if($operation_log){
+                $target_created_at = $operation_log->created_at;
+                break;
+            }
+        }
+        $filters = ['target_datetime_start' => $target_created_at, 'count' => 1000000];
+        
+        $this->assertLogsFilterResult($filters, function($result, $filterValue){
+            return array_get($result, 'created_at') >= $filterValue;
+        });
+    }
+
+    public function testGetLogsFilterDatetimeEnd()
+    {
+        $count = intval(OperationLog::count() / 2);
+        foreach(range(0, 1000) as $i){
+            $operation_log = OperationLog::find($count + $i);
+            if($operation_log){
+                $target_created_at = $operation_log->created_at;
+                break;
+            }
+        }
+
+        $filters = ['target_datetime_end' => $target_created_at, 'count' => 1000000];
+        
+        $this->assertLogsFilterResult($filters, function($result, $filterValue){
+            return array_get($result, 'created_at') <= $filterValue;
+        });
+    }
+
+    public function testWrongScopeGetLogs(){
+        $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'log'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    public function testDenyGetLogs(){
+        $token = $this->getUser1AccessToken([ApiScope::LOG]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'log'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::PERMISSION_DENY
+            ]);
+    }
+
+    /**
+     * Test assert logs, filtering value
+     *
+     * @param array $filters
+     * @return void
+     */
+    protected function assertLogsFilterResult(array $filters, ?\Closure $ckeckCallback = null)
+    {
+        \Config::set('exment.api_max_data_count', 1000000);
+        $token = $this->getAdminAccessToken([ApiScope::LOG]);
+        
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls_query('api', 'log', $filters))
+            ->assertStatus(200);
+
+        $results = json_decode($response->baseResponse->getContent(), true)['data'];
+        foreach($results as $result){
+            foreach($filters as $key => $value){
+                if($key == 'count'){
+                    continue;
+                }
+                if($ckeckCallback){
+                    $this->assertTrue($ckeckCallback($result, $value));
+                }
+                else{
+                    $this->assertMatch(array_get($result, $key), $value);
+                }
+            }
+        }
+
+        // Check not contains
+        $query = OperationLog::query();
+        $notResults = $query->whereNotIn('id', collect($results)->pluck('id')->toArray())->get();
+        foreach($notResults as $result){
+            foreach($filters as $key => $value){
+                if($key == 'count'){
+                    continue;
+                }
+                
+                if($ckeckCallback){
+                    $this->assertFalse($ckeckCallback($result, $value));
+                }
+                else{
+                    $this->assertNotMatch(array_get($result, $key), $value);
+                }
+            }
+        }
+    }
+
+
+
+
     protected function assertFileUrl($token, $response){
         $json = json_decode($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
