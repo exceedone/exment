@@ -2661,6 +2661,7 @@ class ApiTest extends ApiTestBase
     public function testGetLogsFilterDatetimeStart()
     {
         $count = intval(OperationLog::count() / 2);
+        $target_created_at = null;
         foreach(range(0, 1000) as $i){
             $operation_log = OperationLog::find($count + $i);
             if($operation_log){
@@ -2678,6 +2679,7 @@ class ApiTest extends ApiTestBase
     public function testGetLogsFilterDatetimeEnd()
     {
         $count = intval(OperationLog::count() / 2);
+        $target_created_at = null;
         foreach(range(0, 1000) as $i){
             $operation_log = OperationLog::find($count + $i);
             if($operation_log){
