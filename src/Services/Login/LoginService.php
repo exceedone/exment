@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * LoginService
@@ -144,7 +145,20 @@ class LoginService
         }
 
         $data = $custom_login_user->mapping_values;
-        $rules = CustomTable::getEloquent(SystemTableName::USER)->getValidateRules($data, $exment_user);
+        $custom_table = CustomTable::getEloquent(SystemTableName::USER);
+        $dbTableName = getDBTableName($custom_table);
+        $rules = $custom_table->getValidateRules($data, $exment_user);
+        // add unique rules
+        foreach ($custom_table->custom_columns as $custom_column) {
+            if (boolval($custom_column->unique)) {
+                $column_name = $custom_column->column_name;
+                $unique_rule = Rule::unique($dbTableName, "value->$column_name");
+                if ($exment_user) {
+                    $unique_rule = $unique_rule->ignore($exment_user->id);
+                }
+                $rules = array_merge_recursive($rules, [$column_name => [$unique_rule]]);
+            }
+        }
 
         $rules = static::removeInitRule($custom_login_user, $exment_user, $rules);
 
