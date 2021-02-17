@@ -9,12 +9,14 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Validator;
+use Carbon\Carbon;
 
 /**
  * Api about target table
@@ -243,6 +245,96 @@ class ApiController extends AdminControllerBase
         }
         return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
     }
+
+
+
+    /**
+     * get auth logs
+     */
+    public function authLogs(Request $request)
+    {
+        $login_user = \Exment::user();
+        if (!$login_user->hasPermission(Permission::SYSTEM)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        // get and check query parameter
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        // get query
+        $query = OperationLog::query()
+            ->with('user');
+
+        // filterd by items
+        if ($request->has('login_user_id')) {
+            $query->where('user_id', $request->get('login_user_id'));
+        }
+        if ($request->has('base_user_id')) {
+            $base_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($request->get('base_user_id'));
+            if ($base_user) {
+                $query->whereIn('user_id', $base_user->login_users->pluck('id')->toArray());
+            } else {
+                $query->whereRaw("1 = 0");
+            }
+        }
+        if ($request->has('path')) {
+            $query->where('path', $request->get('path'));
+        }
+        if ($request->has('method')) {
+            $query->where('method', strtoupper($request->get('method')));
+        }
+        if ($request->has('ip')) {
+            $query->where('ip', $request->get('ip'));
+        }
+        if ($request->has('target_datetime_start')) {
+            $query->where('created_at', '>=', $request->get('target_datetime_start'));
+        }
+        if ($request->has('target_datetime_end')) {
+            // Append 1 second for sql server
+            $target_datetime_end = Carbon::parse($request->get('target_datetime_end'));
+            $target_datetime_end = $target_datetime_end->addSeconds(1);
+            $query->where('created_at', '<', $target_datetime_end->format('Y-m-d H:i:s'));
+        }
+
+        $query->orderBy('created_at', 'desc');
+        $paginator = $query->paginate($count);
+
+        $paginator->appends($request->all([
+            'login_user_id',
+            'base_user_id',
+            'path',
+            'method',
+            'ip',
+            'target_datetime_start',
+            'target_datetime_end',
+        ]))->makeHidden('user');
+
+        return $paginator;
+    }
+
+
+    /**
+     * get auth log
+     */
+    public function authLog(Request $request, $id)
+    {
+        $login_user = \Exment::user();
+        if (!$login_user->hasPermission(Permission::SYSTEM)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        // get and check query parameter
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        $result = OperationLog::find($id);
+        return $result ? $result->makeHidden('user') : [];
+    }
+
+
 
     /**
      * create notify
