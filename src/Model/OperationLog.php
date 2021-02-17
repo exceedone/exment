@@ -2,16 +2,13 @@
 
 namespace Exceedone\Exment\Model;
 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Exceedone\Exment\Enums\SystemTableName;
-
 class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
 {
     protected $appends = ['base_user_id'];
 
     public function getBaseUserIdAttribute()
     {
-        if(isMatchString($this->user_id, 0)){
+        if (isMatchString($this->user_id, 0)) {
             return "0";
         }
 

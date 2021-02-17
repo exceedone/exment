@@ -272,10 +272,9 @@ class ApiController extends AdminControllerBase
         }
         if ($request->has('base_user_id')) {
             $base_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($request->get('base_user_id'));
-            if($base_user){
+            if ($base_user) {
                 $query->whereIn('user_id', $base_user->login_users->pluck('id')->toArray());
-            }
-            else{
+            } else {
                 $query->whereRaw("1 = 0");
             }
         }

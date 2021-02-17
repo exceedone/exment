@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\NotifyNavbar;
