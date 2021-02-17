@@ -50,7 +50,7 @@ class CustomColumnUsingIndexRule implements Rule
             ->whereHas('custom_view_columns', function ($query) {
                 $query->withoutGlobalScopes()->where('view_column_type', 0)
                     ->where("view_column_target_id", $this->custom_column_id);
-            })->exists();
+            })->count();
 
         if ($count > 0) {
             return false;
