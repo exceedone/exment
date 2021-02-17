@@ -6,7 +6,11 @@ var Exment;
         }
         ;
         getFullUrl(...args) {
-            return admin_url(URLJoin(this.getPrefix(), args));
+            if (!args) {
+                args = [];
+            }
+            args.unshift(this.getPrefix());
+            return admin_url(URLJoin(...args));
         }
     }
     Exment.WebApiAdmin = WebApiAdmin;

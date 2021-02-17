@@ -7,7 +7,13 @@ namespace Exment {
         };
 
         protected getFullUrl(...args) : string{
-            return URLJoin($('input.rooturi').val(), 'publicformapi', $('input.formkey').val(), args); 
+            if(!args){
+                args = [];
+            }
+            args.unshift(this.getPrefix());
+            args.unshift($('input.rooturi').val());
+
+            return URLJoin(...args); 
         }
     }
 }

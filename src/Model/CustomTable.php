@@ -1877,7 +1877,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $thisObj->getSelectOptions($selectOption);
         });
 
-        $ajax = $this->getOptionAjaxUrl($selectOption);
+        $ajax = $this->getOptionAjaxPath($selectOption);
         if (isset($ajax)) {
             // set select2_expand data
             $select2_expand = [];
@@ -1950,12 +1950,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * get ajax url for options for select, multipleselect.
+     * get ajax uri for options for select, multipleselect.
      *
      * @param array $options
      * @return string|null url
      */
-    public function getOptionAjaxUrl($options = [])
+    public function getOptionAjaxPath($options = [])
     {
         // if use options, return null
         if ($this->isGetOptions($options)) {
@@ -1965,6 +1965,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $display_table = array_get($options, 'display_table');
         $custom_column = array_get($options, 'custom_column');
         return url_join('data', array_get($this, 'table_name'), "select") . '?' . http_build_query(['column_id' => $custom_column ? $custom_column->id : null, 'display_table_id' => $display_table ? $display_table->id : null]);
+    }
+
+    /**
+     * get ajax url for options for select, multipleselect.
+     *
+     * @param array $options
+     * @return string|null url
+     */
+    public function getOptionAjaxUrl($options = [])
+    {
+        $path = $this->getOptionAjaxPath($options);
+        if(!$path){
+            return null;
+        }
+        return admin_urls('webapi', $path);
     }
 
     /**
