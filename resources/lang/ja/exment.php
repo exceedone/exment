@@ -2101,6 +2101,7 @@ return [
             'workflow_read' => 'ワークフローの情報の取得',
             'workflow_execute' => 'ワークフローの実行',
             'plugin' => 'プラグイン',
+            'log' => '操作ログ',
         ],
 
         'errors' => [
