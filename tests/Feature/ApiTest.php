@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Tests\TestDefine;
+use Carbon\Carbon;
 
 class ApiTest extends ApiTestBase
 {
@@ -2665,14 +2666,14 @@ class ApiTest extends ApiTestBase
         foreach(range(0, 1000) as $i){
             $operation_log = OperationLog::find($count + $i);
             if($operation_log){
-                $target_created_at = $operation_log->created_at;
+                $target_created_at = $operation_log->created_at->format('Y-m-d H:i:s') ?? null;
                 break;
             }
         }
         $filters = ['target_datetime_start' => $target_created_at, 'count' => 1000000];
         
         $this->assertLogsFilterResult($filters, function($result, $filterValue){
-            return array_get($result, 'created_at') >= $filterValue;
+            return Carbon::parse(array_get($result, 'created_at'))->format('Y-m-d H:i:s') >= $filterValue;
         });
     }
 
@@ -2683,7 +2684,7 @@ class ApiTest extends ApiTestBase
         foreach(range(0, 1000) as $i){
             $operation_log = OperationLog::find($count + $i);
             if($operation_log){
-                $target_created_at = $operation_log->created_at;
+                $target_created_at = $operation_log->created_at->format('Y-m-d H:i:s') ?? null;
                 break;
             }
         }
@@ -2691,7 +2692,7 @@ class ApiTest extends ApiTestBase
         $filters = ['target_datetime_end' => $target_created_at, 'count' => 1000000];
         
         $this->assertLogsFilterResult($filters, function($result, $filterValue){
-            return array_get($result, 'created_at') <= $filterValue;
+            return Carbon::parse(array_get($result, 'created_at'))->format('Y-m-d H:i:s') <= $filterValue;
         });
     }
 

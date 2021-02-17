@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Validator;
+use Carbon\Carbon;
 
 /**
  * Api about target table
@@ -291,17 +292,23 @@ class ApiController extends AdminControllerBase
             $query->where('created_at', '>=', $request->get('target_datetime_start'));
         }
         if ($request->has('target_datetime_end')) {
-            $query->where('created_at', '<=', $request->get('target_datetime_end'));
+            // Append 1 second for sql server
+            $target_datetime_end = Carbon::parse($request->get('target_datetime_end'));
+            $target_datetime_end = $target_datetime_end->addSeconds(1);
+            $query->where('created_at', '<', $target_datetime_end->format('Y-m-d H:i:s'));
         }
 
         $query->orderBy('created_at', 'desc');
         $paginator = $query->paginate($count);
 
         $paginator->appends($request->all([
-            'user_id',
+            'login_user_id',
+            'base_user_id',
             'path',
             'method',
             'ip',
+            'target_datetime_start',
+            'target_datetime_end',
         ]))->makeHidden('user');
 
         return $paginator;
