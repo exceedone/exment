@@ -569,40 +569,6 @@ class Exment
         return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
     }
 
-
-    /**
-     * Get web api url paths.
-     */
-    public function getWebApiUrls(...$pass_array)
-    {
-        // if public form api, set url as public form
-        if(\Auth::guard(Define::AUTHENTICATE_KEY_PUBLIC_FORM)->check()){
-            array_unshift($pass_array, 'publicformapi');
-            return asset(url_join(...$pass_array));
-        }
-        else{
-            array_unshift($pass_array, 'webapi');
-            return admin_urls(...$pass_array);
-        }
-    }
-
-
-    /**
-     * Get web api url paths and query.
-     */
-    public function getWebApiUrlsQuery(...$pass_array)
-    {
-        // if public form api, set url as public form
-        if(\Auth::guard(Define::AUTHENTICATE_KEY_PUBLIC_FORM)->check()){
-            array_unshift($pass_array, 'publicformapi');
-            return assets_query(...$pass_array);
-        }
-        else{
-            array_unshift($pass_array, 'webapi');
-            return admin_urls_query(...$pass_array);
-        }
-    }
-
     
     /**
      * get tmp folder path. Uses for

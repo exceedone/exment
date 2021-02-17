@@ -650,17 +650,8 @@ var Exment;
             }
             // if select2 and has 'data-add-select2-ajax-webapi', call api, and select2 options
             if ($target.filter('[data-add-select2-ajax-webapi]').length > 0) {
-                let api = URLJoin($target.data('add-select2-ajax-webapi'), value);
-                $.ajax({
-                    type: 'GET',
-                    url: api,
-                    data: { 'label': 1 },
-                    async: false,
-                    success: function (repsonse) {
-                        let newOption = new Option(repsonse.label, repsonse.id, true, true);
-                        $target.append(newOption);
-                    }
-                });
+                let uri = URLJoin($target.data('add-select2-ajax-webapi'), value);
+                Exment.WebApi.make().select2Option(uri, $target);
             }
             // set value and trigger next
             let isChange = !isMatchString(value, $target.val());
@@ -789,7 +780,7 @@ var Exment;
         for (var key in linkages) {
             // set param from PHP
             var link = linkages[key];
-            var url = link.url;
+            var uri = link.uri;
             var expand = link.expand;
             var $target = $parent.find(CommonEvent.getClassKey(link.to));
             // if has 'widgetmodal_expand' on button, append linkage_value_id
@@ -804,7 +795,7 @@ var Exment;
                 $target.data('add-select2-expand', select2_expand).val(null).trigger("change");
                 continue;
             }
-            Exment.WebApi.make().linkage($target, url, $base.val(), expand);
+            Exment.WebApi.make().linkage($target, uri, $base.val(), expand);
         }
     };
     /**

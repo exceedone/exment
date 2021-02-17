@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
@@ -29,10 +30,18 @@ use Validator;
  */
 class PublicFormApiDataController extends AdminControllerTableBase
 {
-    use ApiTrait, ApiDataTrait;
+    use ApiDataTrait;
 
-    protected $custom_table;
+    protected $public_form;
 
+    public function __construct(?CustomTable $custom_table, ?PublicForm $public_form, Request $request)
+    {
+        $this->public_form = $public_form;
+        if($public_form){
+            $this->custom_form = $public_form->custom_form;
+        }
+        parent::__construct($custom_table, $request);
+    }
     /**
      * Execute an action on the controller.
      *
@@ -42,7 +51,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      */
     public function callAction($method, $parameters)
     {
-        if (!$this->custom_table) {
+        if (!$this->custom_table || !$this->public_form) {
             return abortJson(404);
         }
         
@@ -57,7 +66,23 @@ class PublicFormApiDataController extends AdminControllerTableBase
      */
     public function dataFind(Request $request, $uuid, $tableKey, $id)
     {
+        if(($response = $this->checkContainsCustomTableInForm($request)) !== true){
+            return $response;
+        }
         return $this->_dataFind($request, $id);
+    }
+
+    /**
+     * find match data for select ajax
+     * @param Request $request
+     * @return mixed
+     */
+    public function dataSelect(Request $request)
+    {
+        if(($response = $this->checkContainsCustomTableInForm($request)) !== true){
+            return $response;
+        }
+        return $this->_dataSelect($request);
     }
 
     /**
@@ -70,6 +95,59 @@ class PublicFormApiDataController extends AdminControllerTableBase
      */
     public function columnData(Request $request, $uuid, $tableKey, $column_name)
     {
+        if(($response = $this->checkContainsCustomTableInForm($request)) !== true){
+            return $response;
+        }
         return $this->_columnData($request, $column_name);
+    }
+    
+    /**
+     * get selected id's children values
+     * *parent_select_table_id(required) : The select_table of the parent column(Changed by user) that executed Linkage. .
+     * *child_select_table_id(required) : The select_table of the child column(Linkage target column) that executed Linkage.
+     * *child_column_id(required) : Called Linkage target column.
+     * *search_type(required) : 1:n, n:n or select_table.
+     * *q(required) : id that user selected.
+     */
+    public function relatedLinkage(Request $request)
+    {
+        if(($response = $this->checkContainsCustomTableInForm($request)) !== true){
+            return $response;
+        }
+        return $this->_relatedLinkage($request);
+    }
+
+    
+    /**
+     * Check custom form columns in custom table
+     *
+     * @param Request $request
+     * @return void
+     */
+    protected function checkContainsCustomTableInForm(Request $request)
+    {
+        foreach($this->custom_form->custom_form_blocks as $custom_form_block){
+            if(!$custom_form_block->available){
+                continue;
+            }
+
+            foreach($custom_form_block->custom_form_columns as $custom_form_column){
+                $custom_column = $custom_form_column->custom_column_cache;
+                if(!$custom_column){
+                    continue;
+                }
+
+                $select_target_table = $custom_column->select_target_table;   
+                if(!$select_target_table){
+                    continue;
+                }
+                if($this->custom_table->id == $select_target_table->id){
+                    return true;
+                }
+            }
+        }
+
+        // if not contains custom form column in this table, return 403 error
+        return abortJson(403, ErrorCode::NOT_CONTAINS_CUSTOM_FORM());
     }
 }

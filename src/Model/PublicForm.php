@@ -174,6 +174,8 @@ class PublicForm extends ModelBase
         }
 
         $form->submitLabel(boolval($this->getOption('use_confirm')) ? exmtrans('custom_form_public.confirm_label') : trans('admin.submit'));
+        $form->hidden('formkey')->default($this->uuid);
+        $form->hidden('rooturi')->default(asset(''));
 
         return $form;
     }

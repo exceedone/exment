@@ -30,6 +30,8 @@ use Validator;
  */
 trait ApiDataTrait
 {
+    use ApiTrait;
+    
     /**
      * find data by id
      * use select Changedata
@@ -91,6 +93,83 @@ trait ApiDataTrait
     }
 
     
+    /**
+     * find match data for select ajax
+     * @param Request $request
+     * @return mixed
+     */
+    protected function _dataSelect(Request $request)
+    {
+        $paginator = $this->executeQuery($request, 10);
+        if (!isset($paginator)) {
+            return [];
+        }
+        
+        if (!($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator)) {
+            return $paginator;
+        }
+        // if call as select ajax, return id and text array
+        $paginator->getCollection()->transform(function ($value) {
+            return [
+                'id' => $value->id,
+                'text' => $value->label,
+            ];
+        });
+
+        return $paginator;
+    }
+    
+    
+    /**
+     * get selected id's children values
+     * *parent_select_table_id(required) : The select_table of the parent column(Changed by user) that executed Linkage. .
+     * *child_select_table_id(required) : The select_table of the child column(Linkage target column) that executed Linkage.
+     * *child_column_id(required) : Called Linkage target column.
+     * *search_type(required) : 1:n, n:n or select_table.
+     * *q(required) : id that user selected.
+     */
+    protected function _relatedLinkage(Request $request)
+    {
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
+        }
+
+        // get parent and child table, column
+        $parent_select_table_id = $request->get('parent_select_table_id');
+        $child_select_table_id = $request->get('child_select_table_id');
+        $child_column_id = $request->get('child_column_id');
+
+        $child_column = CustomColumn::getEloquent($child_column_id);
+        $child_select_table = CustomTable::getEloquent($child_select_table_id);
+        if (!isset($child_column) || !isset($child_select_table) || !isset($parent_select_table_id)) {
+            return [];
+        }
+
+        // get search target column
+        $searchType = $request->get('search_type');
+        if ($searchType == SearchType::SELECT_TABLE) {
+            $searchColumns = $child_select_table->getSelectTableColumns($parent_select_table_id);
+        }
+
+        // get selected custom_value id(q)
+        $q = $request->get('q');
+
+        // get children items
+        $options = [
+            'paginate' => false,
+            'maxCount' => null,
+            'getLabel' => true,
+            'searchColumns' => $searchColumns ?? null,
+            'target_view' => CustomView::getEloquent($child_column->getOption('select_target_view')),
+            'display_table' => $request->get('display_table_id'),
+            'all' => $child_column->isGetAllUserOrganization(),
+        ];
+        $datalist = $this->custom_table->searchRelationValue($searchType, $q, $child_select_table, $options);
+        return collect($datalist)->map(function ($data) {
+            return ['id' => $data->id, 'text' => $data->label];
+        });
+    }
+
 
     /**
      * Modify logic for getting value
@@ -200,4 +279,75 @@ trait ApiDataTrait
 
         return false;
     }
+    
+
+    protected function executeQuery(Request $request, $count = null)
+    {
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'q' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        // filtered query
+        $q = $request->get('q');
+        
+        if (!isset($count)) {
+            if (($count = $this->getCount($request)) instanceof Response) {
+                return $count;
+            }
+        }
+
+        // get expand value
+        $expand = $request->get('expand');
+        // get custom_view
+        $custom_view = CustomView::getEloquent(array_get($expand, 'target_view_id'));
+
+        // get target column if exists
+        $column_id = array_get($expand, 'column_id') ?? $request->get('column_id');
+        $column = CustomColumn::getEloquent($column_id);
+
+        ///// If set linkage, filter relation.
+        // get children table id
+        $relationColumn = null;
+        if (array_key_value_exists('linkage_column_id', $expand)) {
+            $linkage_column_id = array_get($expand, 'linkage_column_id');
+            $linkage_column = CustomColumn::getEloquent($linkage_column_id);
+
+            // get linkage (parent) selected custom_value id
+            $linkage_value_id = array_get($expand, 'linkage_value_id');
+
+            if (isset($linkage_value_id)) {
+                $relationColumn = Linkage::getLinkage($linkage_column, $column);
+            }
+        }
+
+        $getLabel = $this->isAppendLabel($request);
+        $paginator = $this->custom_table->searchValue($q, [
+            'paginate' => true,
+            'makeHidden' => true,
+            'target_view' => $custom_view,
+            'maxCount' => $count,
+            'getLabel' => $getLabel,
+            'relationColumn' => $relationColumn,
+            'relationColumnValue' => $linkage_value_id ?? null,
+            'display_table' => $request->get('display_table_id'),
+            'all' => $column ? $column->isGetAllUserOrganization() : false,
+        ]);
+        
+        return $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'q' => $q,
+                'count' => $count,
+            ]
+        ]);
+    }
+    
 }

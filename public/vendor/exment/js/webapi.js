@@ -26,10 +26,9 @@ var Exment;
             }
             else {
                 $.ajax({
-                    url: admin_url(URLJoin(this.prefix, 'data', table_name, value)),
+                    url: this.getFullUrl('data', table_name, value),
                     type: 'GET',
                     context: context,
-                    data: this.getData(),
                 })
                     .done(function (modeldata) {
                     $d.resolve(modeldata, this);
@@ -40,6 +39,20 @@ var Exment;
             }
             return $d.promise();
         }
+        select2Option(uri, $target) {
+            // get url, join prefix
+            let url = this.getFullUrl(uri);
+            $.ajax({
+                type: 'GET',
+                url: url,
+                data: { 'label': 1 },
+                async: false,
+                success: function (repsonse) {
+                    let newOption = new Option(repsonse.label, repsonse.id, true, true);
+                    $target.append(newOption);
+                }
+            });
+        }
         /**
          * Execute linkage.
          * @param $target
@@ -48,7 +61,7 @@ var Exment;
          * @param expand
          * @param linkage_text
          */
-        linkage($target, url, val, expand, linkage_text) {
+        linkage($target, uri, val, expand, linkage_text) {
             var $d = $.Deferred();
             // create querystring
             if (!hasValue(expand)) {
@@ -58,8 +71,9 @@ var Exment;
                 linkage_text = 'text';
             }
             expand['q'] = val;
-            expand = Object.assign(expand, this.getData());
             let query = $.param(expand);
+            // get url, join prefix
+            let url = this.getFullUrl(uri);
             $.get(url + '?' + query, function (json) {
                 $target.find("option").remove();
                 var options = [];
@@ -77,18 +91,13 @@ var Exment;
             return $d.promise();
         }
         /**
-         * Execute linkage.
-         * @param $target
-         * @param url
-         * @param val
-         * @param expand
-         * @param linkage_text
+         * get select2 ajax option. if input, call ajax.
+         * @param $elem
          */
         getSelect2AjaxOption($elem) {
-            let url = $elem.data('add-select2-ajax');
-            let params = this.getUrlParameter(url);
-            params = Object.assign(params, this.getData());
-            url = this.getPureUrl(url) + '?' + $.param(params);
+            let uri = $elem.data('add-select2-ajax');
+            // get url, join prefix
+            let url = this.getFullUrl(uri);
             return {
                 url: url,
                 dataType: 'json',
@@ -118,31 +127,6 @@ var Exment;
                 },
                 cache: true
             };
-        }
-        /**
-         * get url without parameters
-         * @param fullUrl
-         */
-        getPureUrl(fullUrl) {
-            if (!fullUrl) {
-                return null;
-            }
-            return fullUrl.split('?')[0];
-        }
-        /**
-         * get parameters
-         * @param fullUrl
-         */
-        getUrlParameter(fullUrl) {
-            if (!fullUrl) {
-                return {};
-            }
-            let url = new URL(fullUrl);
-            let result = {};
-            for (let pair of url.searchParams.entries()) {
-                result[pair[0]] = pair[1];
-            }
-            return result;
         }
     }
     Exment.WebApi = WebApi;

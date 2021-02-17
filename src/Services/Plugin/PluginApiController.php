@@ -8,7 +8,7 @@ class PluginApiController extends Controller
 {
     protected $pluginApi;
     
-    public function __construct(PluginApiBase $pluginApi)
+    public function __construct(?PluginApiBase $pluginApi)
     {
         $this->pluginApi = $pluginApi;
     }

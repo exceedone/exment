@@ -652,7 +652,7 @@ EOT;
 
             // add array. key is column name.
             $relatedlinkage_array[$parent_column_name][] = [
-                'url' => \Exment::getWebApiUrls('data', $parent_select_table->table_name ?? null, 'relatedLinkage'),
+                'uri' => url_join('data', $parent_select_table->table_name ?? null, 'relatedLinkage'),
                 'expand' => [
                     'child_column_id' => $child_column->id ?? null,
                     'parent_select_table_id' => $parent_select_table->id ?? null,

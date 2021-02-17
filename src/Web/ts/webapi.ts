@@ -1,6 +1,5 @@
 namespace Exment {
     export abstract class WebApi {
-        protected abstract prefix;
 
         /**
          * Get object model
@@ -27,10 +26,9 @@ namespace Exment {
                 $d.resolve(null);
             } else {
                 $.ajax({
-                    url: admin_url(URLJoin(this.prefix, 'data', table_name, value)),
+                    url: this.getFullUrl('data', table_name, value),
                     type: 'GET',
                     context: context,
-                    data: this.getData(),
                 })
                 .done(function (modeldata) {
                     $d.resolve(modeldata, this);
@@ -43,6 +41,23 @@ namespace Exment {
             return $d.promise();
         }
 
+
+        public select2Option(uri: string, $target:JQuery<HTMLElement>){
+            // get url, join prefix
+            let url = this.getFullUrl(uri);
+
+            $.ajax({
+                type: 'GET',
+                url: url,
+                data: {'label': 1},
+                async: false,
+                success: function (repsonse) {
+                    let newOption = new Option(repsonse.label, repsonse.id, true, true);
+                    $target.append(newOption);
+                }
+            });
+        }
+
         
         /**
          * Execute linkage.
@@ -52,7 +67,7 @@ namespace Exment {
          * @param expand 
          * @param linkage_text 
          */
-        public linkage($target: JQuery<Element>, url: string, val: any, expand?: any, linkage_text?: string) {
+        public linkage($target: JQuery<Element>, uri: string, val: any, expand?: any, linkage_text?: string) {
             var $d = $.Deferred();
 
             // create querystring
@@ -60,8 +75,10 @@ namespace Exment {
             if (!hasValue(linkage_text)) { linkage_text = 'text'; }
 
             expand['q'] = val;
-            expand = Object.assign(expand, this.getData());
             let query = $.param(expand);
+
+            // get url, join prefix
+            let url = this.getFullUrl(uri);
 
             $.get(url + '?' + query, function (json) {
                 $target.find("option").remove();
@@ -85,19 +102,14 @@ namespace Exment {
 
         
         /**
-         * Execute linkage.
-         * @param $target 
-         * @param url 
-         * @param val 
-         * @param expand 
-         * @param linkage_text 
+         * get select2 ajax option. if input, call ajax.
+         * @param $elem 
          */
         public getSelect2AjaxOption($elem : JQuery<Element>) : {} {
-            let url = $elem.data('add-select2-ajax');
-            let params = this.getUrlParameter(url);
-            params = Object.assign(params, this.getData());
-
-            url = this.getPureUrl(url) + '?' + $.param(params);
+            let uri = $elem.data('add-select2-ajax');
+            
+            // get url, join prefix
+            let url = this.getFullUrl(uri);
             return {
                 url: url,
                 dataType: 'json',
@@ -128,39 +140,12 @@ namespace Exment {
             };
         }
 
-
+        
         /**
-         * get url without parameters
-         * @param fullUrl 
+         * Get url's prefix
          */
-        protected getPureUrl(fullUrl:string){
-            if(!fullUrl){
-                return null;
-            }
-            return fullUrl.split('?')[0];
-        }
-
-        /**
-         * get parameters
-         * @param fullUrl 
-         */
-        protected getUrlParameter(fullUrl:string) : {}{
-            if(!fullUrl){
-                return {};
-            }
-            let url = new URL(fullUrl);
-
-            let result = {};
-            for(let pair of url.searchParams.entries()){
-                result[pair[0]] = pair[1];
-            }
-            return result;
-        }
-
-
-        /**
-         * Get web api appends data
-         */
-        protected abstract getData() : {};
+        protected abstract getPrefix() : string;
+        
+        protected abstract getFullUrl(...args) : string;
     }
 }

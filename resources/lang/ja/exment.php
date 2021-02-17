@@ -2283,6 +2283,7 @@ return [
             'plugin_not_found' => 'プラグインが見つかりませんでした。',
             'wrong_view_and_table' => '対象のテーブルとビューが異なっています。',
             'unsupported_view_kind_type' => '指定したビューの種類は、APIでサポートされていません。',
+            'not_contains_custom_form' => 'このフォームでは、指定のAPIは実行できません。',
         ],
         
         'help' =>[

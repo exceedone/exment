@@ -1,14 +1,13 @@
 var Exment;
 (function (Exment) {
     class WebApiAdmin extends Exment.WebApi {
-        constructor() {
-            super(...arguments);
-            this.prefix = 'webapi';
-        }
-        getData() {
-            return {};
+        getPrefix() {
+            return 'webapi';
         }
         ;
+        getFullUrl(...args) {
+            return admin_url(URLJoin(this.getPrefix(), args));
+        }
     }
     Exment.WebApiAdmin = WebApiAdmin;
 })(Exment || (Exment = {}));
