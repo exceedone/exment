@@ -23,6 +23,10 @@ class User extends SelectTable
      */
     public function getDefaultValue()
     {
+        if (boolval(array_get($this->options, 'changefield', false))) {
+            return null;
+        }
+
         $options = $this->custom_column->options;
 
         // default (login user)

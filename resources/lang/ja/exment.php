@@ -1242,6 +1242,7 @@ return [
             'calc_formula' => '計算式',
             'currency_symbol' => '通貨の表示形式',
             'check_radio_enabled' => 'ラジオボタン・チェックボックス形式で表示',
+            'checkbox_enabled' => 'ラジオボタン・チェックボックス形式で表示',
             'free_input' => '自由に入力可能にする',
         ],
         'column_type_options' => [
@@ -1311,6 +1312,7 @@ return [
             'login_user_default' => 'YESにすることで、項目の初期値がログインユーザーになります。',
             'multiple_enabled' => 'YESにすることで、この列に複数の値を登録することができます。※一部の機能に制限がかかります。',
             'check_radio_enabled' => 'YESにすることで、ラジオボタン形式またはチェックボックス形式で表示されます。',
+            'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
             'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
         ],
         'available_characters' => [

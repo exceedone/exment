@@ -222,6 +222,9 @@ abstract class CustomItem implements ItemInterface
      */
     public function getDefaultValue()
     {
+        if (boolval(array_get($this->options, 'changefield', false))) {
+            return null;
+        }
         $options = $this->custom_column->options;
         // default
         if (array_key_value_exists('default', $options)) {

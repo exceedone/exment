@@ -63,6 +63,9 @@ class Datetime extends Date
      */
     public function getDefaultValue()
     {
+        if (boolval(array_get($this->options, 'changefield', false))) {
+            return null;
+        }
         $options = $this->custom_column->options;
         if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_DATETIME)) {
             return \Carbon\Carbon::now()->format($this->format);
