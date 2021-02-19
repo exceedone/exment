@@ -168,6 +168,7 @@ class Backup
                 }
                 $filePath = $file->getRealPath();
                 $relativePath = substr($filePath, strlen($this->diskService->tmpDiskItem()->dirFullPath()) + 1);
+                $relativePath = \Exment::replaceBackToSlash($relativePath);
                 $zip->addFile($filePath, $relativePath);
             }
             $zip->close();

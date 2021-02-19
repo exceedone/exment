@@ -254,7 +254,7 @@ class PluginInstaller
         $filelist = collect($files)->mapWithKeys(function ($file) use ($pluginFolderPath, $pluginFileBasepath) {
             // get moved file name
             $movedFileName = str_replace($pluginFileBasepath, '', $file);
-            $movedFileName = str_replace(str_replace('\\', '/', $pluginFileBasepath), '', $movedFileName);
+            $movedFileName = str_replace(\Exment::replaceBackToSlash($pluginFileBasepath), '', $movedFileName);
             $movedFileName = trim($movedFileName, '/');
             $movedFileName = trim($movedFileName, '\\');
 
