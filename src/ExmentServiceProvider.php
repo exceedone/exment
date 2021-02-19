@@ -57,6 +57,7 @@ class ExmentServiceProvider extends ServiceProvider
      * @var array commands
      */
     protected $commands = [
+        'Exceedone\Exment\Console\VersionCommand',
         'Exceedone\Exment\Console\InstallCommand',
         'Exceedone\Exment\Console\UpdateCommand',
         'Exceedone\Exment\Console\PublishCommand',
