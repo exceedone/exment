@@ -889,7 +889,7 @@ class PatchDataCommand extends Command
 
         $func($query, 'system_value', function ($item) {
             $value = array_get($item, "system_value");
-            $item->system_value = str_replace('\\', '/', $value);
+            $item->system_value = \Exment::replaceBackToSlash($value);
         });
     }
 

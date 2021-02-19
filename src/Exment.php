@@ -590,6 +590,18 @@ class Exment
 
 
     /**
+     * Replace \ to /
+     *
+     * @param string $path
+     * @return string
+     */
+    public function replaceBackToSlash($path)
+    {
+        return str_replace('\\', '/', $path);
+    }
+
+
+    /**
      * Set time limit long
      */
     public function setTimeLimitLong($time = 6000)
