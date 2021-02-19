@@ -38,7 +38,7 @@ abstract class RelationBase extends BlockBase
         $block->id = null;
         $block->form_block_type = $custom_relation->relation_type;
         $block->form_block_target_table_id = $custom_relation->child_custom_table_id;
-        $block->label = $classname::getBlockLabelHeader($custom_relation->child_custom_table) . $custom_relation->child_custom_table->table_view_name;
+        $block->label = $classname::getBlockLabelHeader($custom_relation->child_custom_table);
         $block->form_block_view_name = $block->label;
         $block->available = 0;
         $block->options = [

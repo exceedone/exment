@@ -161,6 +161,10 @@ var Exment;
             // replace html name(for clone object)
             CustomFromEvent.replaceCloneColumnName($elem);
         }
+        /**
+         * Toggle addbutton show or hide
+         * @param $button
+         */
         static togglePlusButton($button) {
             let $items = $button.closest('.row').children('.custom_form_area:visible');
             // calc size
@@ -216,33 +220,6 @@ var Exment;
             let $rowcopy = $('.template_item_row .row').clone(true);
             $copy.closest('.custom_form_column_items').append($rowcopy);
         }
-        // private static setDragItemEvent($elem, initialize = true){
-        //     // get parent div
-        //     var $div = $elem.parents('.custom_form_column_block');
-        //     // get id name for connectToSortable
-        //     var id = 'ul_' 
-        //         + $div.data('form_block_type') 
-        //         + '_' + $div.data('form_block_target_table_id')
-        //         //+ '_' + ($div.data('form_column_no') == 1 ? 2 : 1);
-        //     if(initialize){
-        //         $elem.draggable({
-        //             // connect to sortable. set only same block
-        //             connectToSortable: '.' + id,
-        //             //cursor: 'move',
-        //             revert: "invalid",
-        //             droppable: "drop",
-        //             distance: 40,
-        //             stop: (event, ui) => {
-        //                 // reset draageble target
-        //                 CustomFromEvent.setDragItemEvent(ui.helper, false);
-        //                 // set column no
-        //                 ui.helper.find('.column_no').val(ui.helper.closest('[data-form_column_no]').data('form_column_no'));
-        //             }
-        //         });
-        //     }else{
-        //         $elem.draggable( "option", "connectToSortable", "." + id );
-        //     }
-        // }
         static toggleConfigIcon($elem, isShow) {
             if (isShow) {
                 $elem.find('.delete,.options,[data-toggle],.setting').show();
@@ -259,7 +236,21 @@ var Exment;
                 $clone.remove();
             }
             $item.removeClass('deleting').fadeIn();
-            $item.find('.delete_flg').remove();
+            $item.find('.delete_flg').val(0);
+        }
+        /**
+         * revert deleting box.
+         */
+        static revertDeleteBox($custom_form_area) {
+            $custom_form_area.fadeIn().find('.custom_form_column_item').each(function (index, element) {
+                let $item = $(element);
+                if (!$item.hasClass('deleteAsBox')) {
+                    return;
+                }
+                $item.removeClass('deleting').fadeIn();
+                $item.find('.delete_flg').val(0);
+                $item.removeClass('deleteAsBox');
+            });
         }
         static getHeaderName($li) {
             var header_name = $li.closest('.box-custom_form_block').find('.header_name').val();
@@ -452,27 +443,8 @@ var Exment;
             $(elem).appendTo($target_ul);
             // show item options, 
             CustomFromEvent.setMovedEvent($(elem));
-            //CustomFromEvent.toggleFormColumnItem($(elem), true);
         });
     };
-    // private static toggleFormColumnItem($elem: JQuery<Element>, isShow = true) {
-    //     CustomFromEvent.toggleConfigIcon($elem, isShow);
-    //     if(isShow){
-    //         // add hidden form
-    //         var header_name = CustomFromEvent.getHeaderName($elem);
-    //         $elem.append($('<input/>', {
-    //             name: header_name + '[form_column_target_id]',
-    //             value: $elem.find('.form_column_target_id').val(),
-    //             type: 'hidden',
-    //         }));
-    //         $elem.append($('<input/>', {
-    //             name: header_name + '[form_column_type]',
-    //             value: $elem.find('.form_column_type').val(),
-    //             type: 'hidden',
-    //         }));
-    //         CustomFromEvent.setDragItemEvent($elem);
-    //     }
-    // }
     CustomFromEvent.toggleFromBlock = (ev) => {
         ev.preventDefault();
         let available = $(ev.target).closest('.icheck_toggleblock').prop('checked');
@@ -492,7 +464,7 @@ var Exment;
         ev.preventDefault();
         CustomFromEvent.deleteColumn($(ev.target));
     };
-    CustomFromEvent.deleteColumn = ($elem, isShowToastr = true) => {
+    CustomFromEvent.deleteColumn = ($elem, isShowToastr = true, deleteAsBox = false) => {
         let item = $elem.closest('.custom_form_column_item');
         if (item.hasClass('deleting')) {
             return;
@@ -500,6 +472,10 @@ var Exment;
         item.addClass('deleting');
         // Add delete flg
         item.find('.delete_flg').val(1);
+        // if box delete, set data
+        if (deleteAsBox) {
+            item.addClass('deleteAsBox');
+        }
         item.fadeOut();
         let $clone = null;
         if (item.find('.form_column_type').val() != '99') {
@@ -544,10 +520,18 @@ var Exment;
      */
     CustomFromEvent.deleteBoxEvent = (ev) => {
         ev.preventDefault();
-        $(ev.target).closest('.custom_form_area').fadeOut();
-        $(ev.target).find('.custom_form_column_item').each(function (index, element) {
-            CustomFromEvent.deleteColumn($(element), false);
+        let $custom_form_area = $(ev.target).closest('.custom_form_area');
+        $custom_form_area.fadeOut(400, function () {
+            // toggle button show
+            let $button = $(ev.target).closest('.row').find('.addbutton_button');
+            CustomFromEvent.togglePlusButton($button);
         });
+        $custom_form_area.find('.custom_form_column_item').each(function (index, element) {
+            CustomFromEvent.deleteColumn($(element), false, true);
+        });
+        toastr.warning($('#delete_revert_message').val(), $('#delete_title').val(), { timeOut: 5000, preventDuplicates: true, positionClass: 'toast-bottom-center', onclick: function () {
+                CustomFromEvent.revertDeleteBox($custom_form_area);
+            } });
     };
     CustomFromEvent.formSubmitEvent = () => {
         if (!CustomFromEvent.validateSubmit()) {

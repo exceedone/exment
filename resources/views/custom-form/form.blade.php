@@ -30,7 +30,7 @@
             @if($custom_form_block['form_block_type'] != '0')
             <div class="custom_form_block_available">
                 {{ Form::checkbox("{$custom_form_block['header_name']}[available]", 1, $custom_form_block['available'], ['id' => "custom_form_block_{$custom_form_block['id']}__available_",
-                'class' => 'icheck icheck_toggleblock custom_form_block_available', 'data' => 'data-add-icheck']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__available_",
+                'class' => 'icheck icheck_toggleblock custom_form_block_available', 'data-add-icheck' => '1']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__available_",
                 exmtrans('common.available')) }}
             </div>
             @else 
@@ -43,9 +43,10 @@
                     {{-- select hasmany or hasmanytable --}}
                     @if($custom_form_block['form_block_type'] == '1')
                     <div class="form-group">
-                        {{ Form::checkbox("{$custom_form_block['header_name']}[options][hasmany_type]", 1, array_get($custom_form_block, 'options.hasmany_type'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
-                        'class' => 'icheck icheck_hasmany_type', 'data' => 'data-add-icheck']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
+                        {{ Form::checkbox("{$custom_form_block['header_name']}[options][hasmany_type]", 1, array_get($custom_form_block, 'hasmany_type'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
+                        'class' => 'icheck icheck_hasmany_type', 'data-add-icheck' => '1']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
                         exmtrans('custom_form.hasmany_type')) }}
+                        <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.hasmany_type_table')}}" data-help-title="{{exmtrans('custom_form.hasmany_type')}}"></i>
                     </div>
                     @endif
                 </div>
@@ -66,7 +67,7 @@
                 </div>
 
 
-                <div class="col-md-10">
+                <div class="col-md-9">
                     <div class="custom_form_column_block"
                         data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}">
 
@@ -82,7 +83,7 @@
                     </div>
                 </div>
 
-                <div class="col-xs-12 col-md-2 custom_form_column_block"
+                <div class="col-xs-12 col-md-3 custom_form_column_block"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}">
                     <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('custom_form.suggest_items') }}</h5>
                     @foreach($custom_form_block['suggests'] as $suggest)

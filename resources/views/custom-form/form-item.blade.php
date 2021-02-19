@@ -28,9 +28,7 @@
         {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[required]", array_get($custom_form_column, 'required'), ['class' => 'required_item']) }}
         @endif
 
-        @if(boolval(array_get($custom_form_column, 'delete_flg')))
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'delete_flg'])
-        @endif
 
         {{-- set value for script, and set disabled(don't post. only use script) --}}
         @include('exment::custom-form.fields.column-hidden-disabled', ['param_name' => 'form_column_type'])

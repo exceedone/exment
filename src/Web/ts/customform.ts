@@ -209,6 +209,10 @@ namespace Exment {
         }
 
         
+        /**
+         * Toggle addbutton show or hide
+         * @param $button 
+         */
         private static togglePlusButton($button: JQuery<HTMLElement>)
         {
             let $items = $button.closest('.row').children('.custom_form_area:visible');
@@ -292,38 +296,8 @@ namespace Exment {
                 $(elem).appendTo($target_ul);
                 // show item options, 
                 CustomFromEvent.setMovedEvent($(elem));
-                //CustomFromEvent.toggleFormColumnItem($(elem), true);
             });
         }
-
-
-        // private static setDragItemEvent($elem, initialize = true){
-        //     // get parent div
-        //     var $div = $elem.parents('.custom_form_column_block');
-        //     // get id name for connectToSortable
-        //     var id = 'ul_' 
-        //         + $div.data('form_block_type') 
-        //         + '_' + $div.data('form_block_target_table_id')
-        //         //+ '_' + ($div.data('form_column_no') == 1 ? 2 : 1);
-        //     if(initialize){
-        //         $elem.draggable({
-        //             // connect to sortable. set only same block
-        //             connectToSortable: '.' + id,
-        //             //cursor: 'move',
-        //             revert: "invalid",
-        //             droppable: "drop",
-        //             distance: 40,
-        //             stop: (event, ui) => {
-        //                 // reset draageble target
-        //                 CustomFromEvent.setDragItemEvent(ui.helper, false);
-        //                 // set column no
-        //                 ui.helper.find('.column_no').val(ui.helper.closest('[data-form_column_no]').data('form_column_no'));
-        //             }
-        //         });
-        //     }else{
-        //         $elem.draggable( "option", "connectToSortable", "." + id );
-        //     }
-        // }
 
 
         private static toggleConfigIcon($elem: JQuery<Element>, isShow:boolean){
@@ -334,26 +308,7 @@ namespace Exment {
             }
         }
 
-        // private static toggleFormColumnItem($elem: JQuery<Element>, isShow = true) {
-        //     CustomFromEvent.toggleConfigIcon($elem, isShow);
 
-        //     if(isShow){
-        //         // add hidden form
-        //         var header_name = CustomFromEvent.getHeaderName($elem);
-        //         $elem.append($('<input/>', {
-        //             name: header_name + '[form_column_target_id]',
-        //             value: $elem.find('.form_column_target_id').val(),
-        //             type: 'hidden',
-        //         }));
-        //         $elem.append($('<input/>', {
-        //             name: header_name + '[form_column_type]',
-        //             value: $elem.find('.form_column_type').val(),
-        //             type: 'hidden',
-        //         }));
-        //         CustomFromEvent.setDragItemEvent($elem);
-        //     }
-        // }
-        
         private static toggleFromBlock = (ev) => {
             ev.preventDefault();
             
@@ -377,7 +332,7 @@ namespace Exment {
             CustomFromEvent.deleteColumn($(ev.target));
         }
 
-        private static deleteColumn = ($elem : JQuery<HTMLElement>, isShowToastr = true) => {
+        private static deleteColumn = ($elem : JQuery<HTMLElement>, isShowToastr = true, deleteAsBox = false) => {
             let item = $elem.closest('.custom_form_column_item');
             if(item.hasClass('deleting')){
                 return;
@@ -386,6 +341,11 @@ namespace Exment {
 
             // Add delete flg
             item.find('.delete_flg').val(1);
+
+            // if box delete, set data
+            if(deleteAsBox){
+                item.addClass('deleteAsBox');
+            }
             item.fadeOut();
             let $clone: JQuery<HTMLElement> = null;
             if (item.find('.form_column_type').val() != '99') {
@@ -437,11 +397,20 @@ namespace Exment {
         private static deleteBoxEvent = (ev) => {
             ev.preventDefault();
 
-            $(ev.target).closest('.custom_form_area').fadeOut();
+            let $custom_form_area = $(ev.target).closest('.custom_form_area');
+            $custom_form_area.fadeOut(400, function(){
+                // toggle button show
+                let $button = $(ev.target).closest('.row').find('.addbutton_button');
+                CustomFromEvent.togglePlusButton($button);
+            });
 
-            $(ev.target).find('.custom_form_column_item').each(function(index, element){
-                CustomFromEvent.deleteColumn($(element), false);
-            })
+            $custom_form_area.find('.custom_form_column_item').each(function(index, element){
+                CustomFromEvent.deleteColumn($(element), false, true);
+            });
+
+            toastr.warning($('#delete_revert_message').val(), $('#delete_title').val(), {timeOut:5000, preventDuplicates: true, positionClass: 'toast-bottom-center', onclick: function(){
+                CustomFromEvent.revertDeleteBox($custom_form_area);
+            }});
         }
 
 
@@ -454,7 +423,24 @@ namespace Exment {
             }
 
             $item.removeClass('deleting').fadeIn();
-            $item.find('.delete_flg').remove();
+            $item.find('.delete_flg').val(0);
+        }
+        
+
+        /**
+         * revert deleting box.
+         */
+        private static revertDeleteBox($custom_form_area: JQuery<HTMLElement>){
+            $custom_form_area.fadeIn().find('.custom_form_column_item').each(function(index, element){
+                let $item = $(element);
+                if(!$item.hasClass('deleteAsBox')){
+                    return;
+                }
+                $item.removeClass('deleting').fadeIn();
+                $item.find('.delete_flg').val(0);
+                $item.removeClass('deleteAsBox');
+            });
+
         }
 
 

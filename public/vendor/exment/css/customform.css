@@ -142,3 +142,13 @@
 #custom_form_form .ui-resizable-handle:hover {
   background-color: #EEEEEE;
 }
+
+#custom_form_form .custom_form_column_suggests .draggables {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#custom_form_form .custom_form_column_suggests .draggables .draggable {
+  width: calc(50% - 4px) !important;
+  margin: 3px 2px;
+}

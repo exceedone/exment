@@ -128,6 +128,7 @@ abstract class BlockBase
             'header_name' => $this->getHtmlHeaderName(),
             'suggests' => $this->getSuggestItems(),
             'custom_form_rows' => $this->getCustomFormRows(),
+            'hasmany_type' => $this->custom_form_block->getOption('hasmany_type')
         ];
     }
 

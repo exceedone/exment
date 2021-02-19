@@ -761,7 +761,8 @@ class CustomFormController extends AdminControllerTableBase
                 $result_block['custom_form_columns'][] = $column;
 
                 if($new_column){
-                    $new_columns[$column_key] = $column->id;
+                    // set new column info, after gertting id.
+                    $new_columns[$column_key] = $column;
                 }
             }
             
@@ -838,7 +839,9 @@ class CustomFormController extends AdminControllerTableBase
                 }
 
                 // get custom form column's id 
-                $column_id = array_key_exists($column_id, $new_columns) ? $new_columns[$column_id] : $column_id;
+                if(array_key_exists($column_id, $new_columns)){
+                    $column_id = $new_columns[$column_id]->id ?? null;
+                }
                 $file = ExmentFile::storeAs(FileType::CUSTOM_FORM_COLUMN, $image, 'custom_form', $image->getClientOriginalName());
                 $file->custom_form_column_id = $column_id;
                 $file->save();
