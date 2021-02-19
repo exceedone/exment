@@ -1486,6 +1486,9 @@ return [
         'sort_order' => 'Sort order',
         'sort' => 'Sort',
         'priority' => 'Priority',
+        'use_view_infobox' => 'Use View Infobox',
+        'view_infobox_title' => 'Infobox-Title',
+        'view_infobox' => 'Infobox-Body',
         'pager_count_default' => 'Adjust to system settings',
         'custom_view_filters' => 'View Filter',
         'view_filter_condition' => 'Filter Condition',
@@ -1505,6 +1508,9 @@ return [
             'custom_view_type' => 'System view: A view available to all users of this table. User view: This view is available only to the created user.',
             'sort_type' => 'Specifies whether to sort in ascending order or in descending order.',
             'sort_order_summaries' => 'Sort the data to be acquired.<br />Performs sorting in ascending order of numbers from "group column" and "summary column".',
+            'use_view_infobox' => 'By setting YES, you can set an information box at the top of the view where you can enter business details and messages to users.',
+            'view_infobox_title' => 'Enter the title to be displayed in the information box.',
+            'view_infobox' => 'Please fill in the HTML to be displayed in the information box. *Images and scripts cannot be entered.',
         ],
 
         'column_sort_options' => [

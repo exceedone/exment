@@ -15,6 +15,8 @@ class Tinymce extends Textarea
 
     protected $config = [];
 
+    protected $disableImage = false;
+    
     /**
      * Set config for tinymce.
      *
@@ -26,6 +28,18 @@ class Tinymce extends Textarea
     public function config($key, $val)
     {
         $this->config[$key] = $val;
+
+        return $this;
+    }
+
+    /**
+     * Set disableImage
+     *
+     * @return  self
+     */ 
+    public function disableImage()
+    {
+        $this->disableImage = true;
 
         return $this;
     }
@@ -61,7 +75,7 @@ class Tinymce extends Textarea
 
         $locale = \App::getLocale();
 
-        $enableImage = !boolval(config('exment.diable_upload_images_editor', false));
+        $enableImage = !$this->disableImage && boolval(config('exment.diable_upload_images_editor', false));
 
         if ($enableImage) {
             $toolbar = ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link image code'];
@@ -170,4 +184,5 @@ class Tinymce extends Textarea
 EOT;
         return parent::render();
     }
+
 }

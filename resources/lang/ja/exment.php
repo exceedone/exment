@@ -1501,6 +1501,9 @@ return [
         'sort_order' => '並び順',
         'sort' => '並べ替え',
         'priority' => '優先順位',
+        'use_view_infobox' => 'ビューの情報ボックスを使用する',
+        'view_infobox_title' => '情報ボックス-タイトル',
+        'view_infobox' => '情報ボックス-本文',
         'pager_count_default' => 'システム設定に合わせる',
         'custom_view_filters' => 'データ表示条件',
         'view_filter_condition' => '検索条件',
@@ -1520,6 +1523,9 @@ return [
             'custom_view_type' => 'システムビュー：このテーブルを使用するユーザー全員が使用できるビューです。 ユーザービュー：作成したユーザーのみが使用できるビューです。',
             'sort_type' => 'ソートを、「昇順(小さい順)」で実行するか、「降順（大きい順）」で実行するか、指定します。',
             'sort_order_summaries' => '取得するデータをソートします。<br />「グループ列」「集計列」の中から、数値の小さい順に、ソートを実行します。',
+            'use_view_infobox' => 'YESにすることで、ビューの上部に、業務内容や、ユーザーへのメッセージなどを記入できる、情報ボックスを設定することができます。',
+            'view_infobox_title' => '情報ボックスに表示するタイトルを記入してください。',
+            'view_infobox' => '情報ボックスに表示するHTMLを記入してください。※画像、スクリプトは入力できません。',
         ],
 
         'column_sort_options' => [

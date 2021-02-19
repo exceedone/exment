@@ -727,6 +727,8 @@ class DefaultGrid extends GridBase
 
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         if ($view_kind_type != Enums\ViewKindType::FILTER) {
+            static::setViewInfoboxFields($form);
+    
             // columns setting
             $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
