@@ -57,17 +57,62 @@ class File extends ModelBase
         return $document_model;
     }
 
+
+    /**
+     * Save custom value information
+     *
+     * @param string|int $custom_value_id
+     * @param CustomColumn|null $custom_column
+     * @param CustomTable|null $custom_table
+     * @return $this
+     */
     public function saveCustomValue($custom_value_id, $custom_column = null, $custom_table = null)
+    {
+        if (isset($custom_column)) {
+            return $this->saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table);
+        }
+
+        if (isset($custom_value_id)) {
+            $this->parent_id = $custom_value_id;
+            $this->parent_type = $custom_table->table_name;
+        }
+        $this->save();
+        return $this;
+    }
+
+
+    /**
+     * Save custom value information and column info
+     * *Delete old column's file*
+     *
+     * @param string|int $custom_value_id
+     * @param CustomColumn|null $custom_column
+     * @param CustomTable|null $custom_table
+     * @return $this
+     */
+    public function saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table = null)
     {
         if (isset($custom_value_id)) {
             $this->parent_id = $custom_value_id;
             $this->parent_type = $custom_table->table_name;
         }
-        if (isset($custom_column)) {
-            $table_name = $this->local_dirname ?? $custom_table->table_name;
-            $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
-            $this->custom_column_id = $custom_column ? $custom_column->id : null;
+
+        $table_name = $this->local_dirname ?? $custom_table->table_name;
+        $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
+        $this->custom_column_id = $custom_column ? $custom_column->id : null;
+        
+        // get old file
+        $oldFiles = static::where('parent_id', $this->parent_id)
+            ->where('parent_type', $this->parent_type)
+            ->where('custom_column_id', $this->custom_column_id)
+            ->get();
+
+        foreach($oldFiles as $oldFile){
+            if(isset($oldFile) && isset($oldFile->custom_column_id)){
+                static::deleteFileInfo($oldFile);
+            }
         }
+
         $this->save();
         return $this;
     }

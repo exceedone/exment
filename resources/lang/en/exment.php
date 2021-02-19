@@ -1874,7 +1874,9 @@ return [
             ],
             'message' => [
                 'select_table_not_found' => 'Data with :column_view_name as :value did not exist in :target_table_name.',
-                'select_item_not_found' => 'The format of :column_view_name is invalid. Enter one of :value_options.'
+                'select_item_not_found' => 'The format of :column_view_name is invalid. Enter one of :value_options.',
+                'file_column_not_match' => 'The column name :column_name does not exist in the file / image column of table :table_name.',
+                'file_not_found' => 'The file :file_name does not exist in the capture directory :dir_path.',
             ]
         ],
         'sendmail' => [

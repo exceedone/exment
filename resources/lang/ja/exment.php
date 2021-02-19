@@ -1873,6 +1873,8 @@ return [
             'message' => [
                 'select_table_not_found' => ':column_view_nameが:valueとなるデータが、:target_table_nameに存在しませんでした。',
                 'select_item_not_found' => ':column_view_nameの形式が不正です。:value_optionsのいずれかを入力してください。',
+                'file_column_not_match' => '列名 :column_name は、テーブル :table_name のファイル・画像列に存在しません。',
+                'file_not_found' => 'ファイル :file_name が、取込ディレクトリ :dir_path に存在しません。',
             ],
         ],
         'sendmail' => [
