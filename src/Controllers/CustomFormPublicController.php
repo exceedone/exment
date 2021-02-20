@@ -8,10 +8,15 @@ use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Http\Request;
 
 /**
@@ -90,7 +95,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 });
                 
             $form->text('public_form_view_name', exmtrans("custom_form_public.public_form_view_name"))
-                ->required()
+                ->tabRequired()
                 ->rules("max:40")
                 ->help(exmtrans('common.help.view_name'));
             
@@ -229,9 +234,51 @@ class CustomFormPublicController extends AdminControllerTableBase
 
                 $form->switchbool('use_error_notify', exmtrans("custom_form_public.use_error_notify"))
                     ->help(exmtrans("custom_form_public.help.use_error_notify"))
+                    ->attribute(['data-filtertrigger' => true])
                     ->default(false);
                 ;
+                        
+                // get notify mail template
+                $notify_mail = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::PUBLICFORM_ADMIN_ERROR)->first();
+                $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
+                    return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
+                })->help(exmtrans("notify.help.mail_template_id"))
+                ->disableClear()
+                ->attribute(['data-filter' => json_encode(['key' => 'error_setting_use_error_notify', 'value' => '1'])])
+                ->default($notify_mail ? $notify_mail->id : null)->required();
+
             })->disableHeader();
+                
+            $form->hasManyJson('error_notify_actions', exmtrans("custom_form_public.error_notify_target"), function ($form) {
+                $form->select('notify_action', exmtrans("notify.notify_action"))
+                    ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
+                    ->tabRequired()
+                    ->attribute([
+                        'data-filtertrigger' =>true,
+                        'data-linkage' => json_encode([
+                            'notify_action_target' => admin_url('notify/notify_action_target'),
+                        ]),
+                        'data-linkage-getdata' =>json_encode([
+                            ['key' => 'custom_table_id', 'parent' => 1],
+                            ['key' => 'workflow_id', 'parent' => 1],
+                        ]),
+                    ])
+                    ->config('allowClear', false)
+                    ->help(exmtrans("notify.help.notify_action"))
+                    ;
+
+                $form->url('webhook_url', exmtrans("notify.webhook_url"))
+                    ->rules(["max:300"])
+                    ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
+                    ->attribute([
+                        'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])
+                    ]);
+
+                $form->switchbool('mention_here', exmtrans("notify.mention_here"))
+                    ->help(exmtrans("notify.help.mention_here"))
+                    ->attribute(['data-filter' => json_encode(['key' => 'notify_action', 'value' =>  [NotifyAction::SLACK]])
+                    ]);
+            });
         })
         ->tab(exmtrans("custom_form_public.option_setting"), function ($form) use ($public_form, $id, $custom_table) {
             $form->exmheader(exmtrans("custom_form_public.option_setting"))->hr();
@@ -265,7 +312,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
 
         $form->editing(function($form, $arr){
-            $form->model()->append(['basic_setting', 'design_setting', 'confirm_complete_setting', 'error_setting', 'option_setting']);
+            $form->model()->append(['basic_setting', 'design_setting', 'confirm_complete_setting', 'error_setting', 'option_setting', 'error_notify_actions']);
         });
         $form->saving(function($form){
             if(!isset($form->model()->proxy_user_id)){

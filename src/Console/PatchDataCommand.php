@@ -185,6 +185,9 @@ class PatchDataCommand extends Command
             case 'patch_condition':
                 $this->updateCondition();
                 return;
+            case 'publicform_mail_template':
+                $this->importPublicformTemplate();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1541,4 +1544,17 @@ class PatchDataCommand extends Command
             });
         }
     }
+    
+    /**
+     * import mail template for workflow
+     *
+     * @return void
+     */
+    protected function importPublicformTemplate()
+    {
+        $this->patchMailTemplate([
+            'publicform_admin_error',
+        ]);
+    }
+    
 }

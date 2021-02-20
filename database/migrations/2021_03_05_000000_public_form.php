@@ -31,6 +31,8 @@ class PublicForm extends Migration
 
             $table->foreign('custom_form_id')->references('id')->on('custom_forms');
         });
+
+        \Artisan::call('exment:patchdata', ['action' => 'publicform_mail_template']);
     }
 
     /**

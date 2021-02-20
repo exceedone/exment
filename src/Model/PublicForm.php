@@ -402,7 +402,6 @@ class PublicForm extends ModelBase
     {
         return $this->options;
     }
-
     public function setBasicSettingAttribute(?array $options)
     {
         $this->setOption($options);
@@ -413,7 +412,6 @@ class PublicForm extends ModelBase
     {
         return $this->options;
     }
-
     public function setDesignSettingAttribute(?array $options)
     {
         $this->setOption($options);
@@ -424,7 +422,6 @@ class PublicForm extends ModelBase
     {
         return $this->options;
     }
-
     public function setConfirmCompleteSettingAttribute(?array $options)
     {
         $this->setOption($options);
@@ -435,20 +432,29 @@ class PublicForm extends ModelBase
     {
         return $this->options;
     }
-
     public function setErrorSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;
     }
+
     public function getOptionSettingAttribute()
     {
         return $this->options;
     }
-
     public function setOptionSettingAttribute(?array $options)
     {
         $this->setOption($options);
+        return $this;
+    }
+
+    public function getErrorNotifyActionsAttribute()
+    {
+        return $this->getOption('error_notify_actions');
+    }
+    public function setErrorNotifyActionsAttribute($json)
+    {
+        $this->setOption('error_notify_actions', $json);
         return $this;
     }
 }
