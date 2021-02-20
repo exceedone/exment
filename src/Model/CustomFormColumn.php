@@ -4,6 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\FormRelationColumnType;
+use Exceedone\Exment\Services\FormSetting\FormColumn;
 
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -123,12 +126,20 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         if ($this->form_column_type == FormColumnType::COLUMN) {
             return $this->custom_column->column_item ?? null;
         }
+        elseif ($this->form_column_type == FormColumnType::RELATION) {
+            return ColumnItems\FormRelationItem::getItem($this);
+        }
         // other column
         else {
             return ColumnItems\FormOtherItem::getItem($this);
         }
     }
 
+    protected function getCustomFormBlockCacheAttribute()
+    {
+        return CustomFormBlock::getEloquentDefault($this->custom_form_block_id);
+    }
+    
     protected function getCustomColumnCacheAttribute()
     {
         if ($this->form_column_type != FormColumnType::COLUMN) {
@@ -138,6 +149,18 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         return CustomColumn::getEloquent($this->form_column_target_id);
     }
     
+    public function getTargetTableCacheAttribute()
+    {
+        $custom_form_block = $this->custom_form_block_cache ?: $this->custom_form_block;
+        return $custom_form_block ? $custom_form_block->target_table_cache : null;
+    }
+
+    public function getFormTableCacheAttribute()
+    {
+        $custom_form_block = $this->custom_form_block_cache ?: $this->custom_form_block;
+        return $custom_form_block ? $custom_form_block->form_table_cache : null;
+    }
+
     protected function getDeleteFlgAttribute()
     {
         return $this->_delete_flg;
@@ -160,7 +183,27 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         $this->_request_key = $request_key;
         return $this;
     }
-    
+        
+
+    /**
+     * Get custom relation info. for setting relation column.
+     *
+     * @return CustomRelation|null
+     */
+    public function getCustomRelation()
+    {
+        if ($this->form_column_type != FormColumnType::RELATION) {
+            return null;
+        }
+        $item = FormColumn\RelationColumnBase::make($this);
+        if(!$item){
+            return null;
+        }
+
+        return $item->getCustomRelation();
+    }
+
+
     /**
      * get Table And Column Name
      */
@@ -178,7 +221,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         }
         return [];
     }
-    
+
     protected static function importReplaceJson(&$json, $options = [])
     {
         // set form column type

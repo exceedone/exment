@@ -150,22 +150,13 @@ abstract class BlockBase
         $form_column_type = FormColumnType::COLUMN;
         // loop each column
         foreach ($custom_columns as $custom_column) {
-            $has_custom_forms = false;
-            // check $this->custom_form_block->custom_form_columns. if $custom_column has $this->custom_form_columns, add parameter has_custom_forms.
-            // if has_custom_forms is true, not show display default.
-            if (collect(array_get($this->custom_form_block, 'custom_form_columns', []))->first(function ($custom_form_column) use ($custom_column, $form_column_type) {
-                if (boolval(array_get($custom_form_column, 'delete_flg'))) {
-                    return false;
-                }
-                return array_get($custom_form_column, 'form_column_type') == $form_column_type && array_get($custom_form_column, 'form_column_target_id') == array_get($custom_column, 'id');
-            })) {
-                $has_custom_forms = true;
-            }
-
+            $has_custom_forms = $this->hasCustomForms(
+                FormColumnType::COLUMN, 
+                array_get($custom_column, 'id')
+            );
             $column_item = FormColumn\Column::makeBySuggest($custom_column)->isSelected($has_custom_forms);
             $custom_form_columns[] = $column_item->getItemsForDisplay();
         }
-    
         $suggests->push([
             'label' => exmtrans('custom_form.suggest_column_label'),
             'custom_form_columns' => $custom_form_columns,
@@ -309,6 +300,26 @@ abstract class BlockBase
         return $groupRowColumns;
     }
 
+
+    /**
+     * Check whether column has items. if true, already setted.
+     *
+     * @return boolean 
+     */
+    protected function hasCustomForms($suggest_form_column_type, $suggest_form_column_target_id)
+    {
+        $has_custom_forms = false;
+        // check $this->custom_form_block->custom_form_columns. if $custom_column has $this->custom_form_columns, add parameter has_custom_forms.
+        // if has_custom_forms is true, not show display default.
+        return collect(array_get($this->custom_form_block, 'custom_form_columns', []))
+            ->contains(function ($custom_form_column) use ($suggest_form_column_target_id, $suggest_form_column_type) {
+            if (boolval(array_get($custom_form_column, 'delete_flg'))) {
+                return false;
+            }
+            return array_get($custom_form_column, 'form_column_type') == $suggest_form_column_type && 
+                array_get($custom_form_column, 'form_column_target_id') == $suggest_form_column_target_id;
+        });
+    }
 
     abstract public static function getBlockLabelHeader(CustomTable $custom_table);
 

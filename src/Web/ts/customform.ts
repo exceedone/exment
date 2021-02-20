@@ -474,7 +474,7 @@ namespace Exment {
                         return true;
                     }
 
-                    let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests li');
+                    let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests .custom_form_column_item');
                     // if required value is 1, hasRequire is true and break
                     $suggests.each(function(i, e){
                         if($(e).find('.required_item').val() == '1'){

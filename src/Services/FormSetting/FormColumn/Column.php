@@ -12,6 +12,7 @@ use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
 use Illuminate\Support\Collection;
 
 /**
+ * Custom column
  */
 class Column extends ColumnBase
 {
@@ -94,11 +95,11 @@ class Column extends ColumnBase
         return array_filter($options, function($option, $key){
             return in_array($key, [
                 'form_column_view_name',
+                'field_label_type',
                 'required',
                 'view_only',
                 'read_only',
                 'hidden',
-                'field_label_type',
                 'changedata_target_column_id',
                 'changedata_column_id',
             ]);

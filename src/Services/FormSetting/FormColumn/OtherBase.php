@@ -8,7 +8,7 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 
 /**
  */
-class OtherBase extends ColumnBase
+abstract class OtherBase extends ColumnBase
 {
     public static function make(CustomFormColumn $custom_form_column) : ColumnBase
     {
@@ -23,6 +23,8 @@ class OtherBase extends ColumnBase
                 return new Html($custom_form_column);
             case 'image':
                 return new Image($custom_form_column);
+            case 'hr':
+                return new Hr($custom_form_column);
         }
         
         return new OtherBase($custom_form_column);

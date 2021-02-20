@@ -101,6 +101,7 @@ abstract class ColumnBase
             'validation_rules' => collect($this->getValidationRules())->toJson(),
             'has_custom_forms' => $this->isSelected,
             'delete_flg' => $this->custom_form_column->delete_flg ? 1 : 0,
+            'use_setting' => $this->useSetting(),
         ];
     }
 
@@ -127,6 +128,16 @@ abstract class ColumnBase
     public function isSelectTable() : bool
     {
         return false;
+    }
+
+    /**
+     * Whether using setting
+     *
+     * @return boolean
+     */
+    public function useSetting() : bool
+    {
+        return true;
     }
 
 
