@@ -80,6 +80,15 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         return $this->belongsTo(CustomTable::class, 'child_custom_table_id');
     }
 
+    public function getParentCustomTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->parent_custom_table_id);
+    }
+    public function getChildCustomTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->child_custom_table_id);
+    }
+
     /**
      * get relations by parent table
      */

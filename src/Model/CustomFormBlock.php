@@ -67,6 +67,10 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
     }
 
+    public function getTargetTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->form_block_target_table_id);
+    }
 
     public function getRequestKeyAttribute()
     {

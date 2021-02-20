@@ -23,7 +23,7 @@ class PublicForm extends Migration
             $table->uuid('uuid')->unique();
             $table->integer('custom_form_id')->unsigned();
             $table->string('public_form_view_name', 256);
-            $table->boolean('active_flg')->default(true);
+            $table->boolean('active_flg')->default(false);
             $table->integer('proxy_user_id')->unsigned()->index();
             $table->json('options')->nullable();
             $table->timestamps();

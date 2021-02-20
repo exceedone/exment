@@ -4,12 +4,12 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Content;
-use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\PublicContent;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
 
 /**
@@ -53,6 +53,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             $form->exmheader(exmtrans("common.basic_setting"))->hr();
                 
             if(isset($public_form)){
+                
                 $form->url('share_url', exmtrans('custom_form_public.share_url'))
                     ->setElementClass(['copyScript'])
                     ->help(exmtrans('custom_form_public.help.share_url'))
@@ -63,6 +64,10 @@ class CustomFormPublicController extends AdminControllerTableBase
                 $form->display('proxy_user_id', exmtrans('common.executed_user'))->displayText(function ($user_id) {
                     return getUserName($user_id, true);
                 })->help(exmtrans('custom_form_public.help.proxy_user_id'))->escape(false);
+
+                $form->display('active_flg', exmtrans("plugin.active_flg"))->displayText(function ($value) {
+                    return boolval($value) ? exmtrans('common.available_true') : exmtrans('common.available_false');
+                })->help(exmtrans("custom_form_public.help.active_flg"));
             }
 
             
@@ -81,10 +86,6 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ->rules("max:40")
                 ->help(exmtrans('common.help.view_name'));
             
-            $form->switchbool('active_flg', exmtrans("plugin.active_flg"))
-                    ->help(exmtrans("custom_form_public.help.active_flg"))
-                    ->default(true);
-    
             $form->embeds("basic_setting", exmtrans("common.basic_setting"), function($form) use ($custom_table){
                 
                 $form->dateTimeRange('validity_period_start', 'validity_period_end', exmtrans("custom_form_public.validity_period"))
@@ -260,7 +261,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         });
         $form->disableEditingCheck(false);
             
-        $form->tools(function (Form\Tools $tools) use ($custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($custom_table, $public_form) {
             $tools->prepend(view('exment::tools.button', [
                 'href' => 'javascript:void(0);',
                 'label' => exmtrans('common.preview'),
@@ -275,6 +276,47 @@ class CustomFormPublicController extends AdminControllerTableBase
             ])->render());
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
+
+            if(isset($public_form)){
+                if (!$public_form->active_flg) {
+                    // check relation table's count. if has select_table etc, showing modal.
+                    if($public_form->getListOfTablesUsed()->count() > 0){
+                        $tools->append(new Tools\ModalMenuButton(
+                            admin_urls("formpublic", $custom_table->table_name, $public_form->id, "activeModal"),
+                            [
+                                'label' => exmtrans('common.activate'),
+                                'button_class' => 'btn-success',
+                                'icon' => 'fa-check-circle',
+                            ]
+                        ));
+                    }
+                    // default, only message.
+                    else{
+                        $tools->append(new Tools\SwalInputButton([
+                            'url' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "activate"),
+                            'label' => exmtrans('common.activate'),
+                            'icon' => 'fa-check-circle',
+                            'btn_class' => 'btn-success',
+                            'title' => exmtrans('common.activate'),
+                            'text' => exmtrans('login.help.activate'),
+                            'method' => 'post',
+                            'redirectUrl' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "edit"),
+                        ]));
+                    }
+                } 
+                else {
+                    $tools->append(new Tools\SwalInputButton([
+                        'url' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "deactivate"),
+                        'label' => exmtrans('common.deactivate'),
+                        'icon' => 'fa-check-circle',
+                        'btn_class' => 'btn-default',
+                        'title' => exmtrans('common.deactivate'),
+                        'text' => exmtrans('custom_form_public.message.deactivate'),
+                        'method' => 'post',
+                        'redirectUrl' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "edit"),
+                    ]));
+                }
+            }
         });
 
         $table_name = $this->custom_table->table_name;
@@ -318,4 +360,88 @@ class CustomFormPublicController extends AdminControllerTableBase
     }
 
 
+
+    // Active・DeActive ----------------------------------------------------
+    /**
+     * get copy modal
+     */
+    public function activeModal(Request $request, $tableKey, $id)
+    {
+        $public_form = PublicForm::find($id);
+        if (!isset($public_form)) {
+            abort(404);
+        }
+
+        // create form fields
+        $form = new ModalForm();
+        $form->action(admin_urls("formpublic", $this->custom_table->table_name, $public_form->id, "activate"));
+        $form->method('POST');
+
+        // add form
+        $form->display('foobar', trans('admin.alert'))
+            ->displayText(exmtrans('custom_form_public.help.activate_modal_header'))
+            ->escape(false);
+        
+        $tableUseds = $public_form->getListOfTablesUsed();
+        $html = "<ul>" . $tableUseds->map(function($tableUsed){
+            return "<li>" . esc_html($tableUsed->table_view_name) . "</li>";
+        })->implode("") . "</ul>";
+        $form->descriptionHtml($html);
+
+        $form->description(exmtrans('custom_form_public.help.activate_modal_footer'));
+        
+        $form->setWidth(10, 2);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => trans('admin.alert'),
+            'submitlabel' => trans('admin.setting'),
+        ]);
+    }
+
+
+    /**
+     * Active form
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return void
+     */
+    public function activate(Request $request, $tableKey, $id)
+    {
+        return $this->toggleActivate($request, $id, true);
+    }
+
+    /**
+     * Deactive form
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return void
+     */
+    public function deactivate(Request $request, $tableKey, $id)
+    {
+        return $this->toggleActivate($request, $id, false);
+    }
+
+    /**
+     * Toggle activate and deactivate
+     *
+     * @param Request $request
+     * @param string $id
+     * @param boolean $active_flg
+     * @return void
+     */
+    protected function toggleActivate(Request $request, $id, bool $active_flg){
+        $login_setting = PublicForm::find($id);
+        $login_setting->active_flg = $active_flg;
+        $login_setting->save();
+        
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+    
 }

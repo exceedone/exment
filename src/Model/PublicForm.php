@@ -5,7 +5,10 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Form;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
 use Exceedone\Exment\Form\Field\ReCaptcha;
@@ -27,6 +30,21 @@ class PublicForm extends ModelBase
     public function deletingChildren()
     {
     }
+
+    public function getCustomFormCacheAttribute()
+    {
+        return CustomForm::getEloquent($this->custom_form_id);
+    }
+
+    public function getCustomTableCacheAttribute()
+    {
+        $custom_form = $this->custom_form_cache;
+        if(!$custom_form){
+            return null;
+        }
+        return $custom_form->custom_table_cache;
+    }
+
 
     protected static function boot()
     {
@@ -125,6 +143,51 @@ class PublicForm extends ModelBase
         
 
         return $model;
+    }
+
+
+    /**
+     * Get list of tables used.
+     * Ex: 
+     *     "Contact" form contains "select_table" column "client" and "product", return these custom table.
+     *
+     * @return Collection
+     */
+    public function getListOfTablesUsed() : Collection{
+        $result = collect();
+        foreach($this->custom_form->custom_form_blocks as $custom_form_block){
+            if(!$custom_form_block->available){
+                continue;
+            }
+
+            // if  FormBlockType is n:n, set target table
+            if($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY){
+                $result->push($custom_form_block->target_table_cache);
+                continue;
+            }
+
+            foreach($custom_form_block->custom_form_columns as $custom_form_column){
+                $custom_column = $custom_form_column->custom_column_cache;
+                if(!$custom_column){
+                    continue;
+                }
+
+                $select_target_table = $custom_column->select_target_table;   
+                if(!$select_target_table){
+                    continue;
+                }
+
+                $result->push($select_target_table);
+            }
+        }
+
+        // check 1:n parent relation
+        $parent_relation = CustomRelation::getRelationByChild($this->custom_table_cache, RelationType::ONE_TO_MANY);
+        if($parent_relation){
+            $result->push($parent_relation->parent_custom_table_cache);
+        }
+
+        return $result->unique();
     }
 
     

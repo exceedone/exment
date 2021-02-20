@@ -126,24 +126,10 @@ class PublicFormApiDataController extends AdminControllerTableBase
      */
     protected function checkContainsCustomTableInForm(Request $request)
     {
-        foreach($this->custom_form->custom_form_blocks as $custom_form_block){
-            if(!$custom_form_block->available){
-                continue;
-            }
-
-            foreach($custom_form_block->custom_form_columns as $custom_form_column){
-                $custom_column = $custom_form_column->custom_column_cache;
-                if(!$custom_column){
-                    continue;
-                }
-
-                $select_target_table = $custom_column->select_target_table;   
-                if(!$select_target_table){
-                    continue;
-                }
-                if($this->custom_table->id == $select_target_table->id){
-                    return true;
-                }
+        $tablesUseds = $this->public_form->getListOfTablesUsed();
+        foreach($tablesUseds as $table){
+            if($this->custom_table->id == $select_target_table->id){
+                return true;
             }
         }
 
