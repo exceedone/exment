@@ -19,7 +19,10 @@ body#body-publicform{
         margin: 20px auto;
         padding: 10px;
     }
-        
+    
+    .g-recaptcha{
+        display: inline-block;
+    }
 }
 
 @media (max-width: 767px)

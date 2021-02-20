@@ -25,6 +25,7 @@ use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\FormSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -65,7 +66,8 @@ class CustomFormController extends AdminControllerTableBase
         }
         
         // public form
-        if(System::publicform_available() && $this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)){
+        if(System::publicform_available() && $this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)
+            && !in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
             $content->row($this->setFormPublics());
         }
 

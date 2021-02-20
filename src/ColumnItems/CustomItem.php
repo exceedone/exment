@@ -263,7 +263,11 @@ abstract class CustomItem implements ItemInterface
         }
 
         // get request query
-        return request()->query("value_" . $this->name());
+        $default = request()->query("value_" . $this->name());
+        if(is_nullorempty($default)){
+            return null;
+        }
+        return $this->getPureValue($default) ?? $default;
     }
 
 

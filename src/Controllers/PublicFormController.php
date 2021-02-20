@@ -102,7 +102,7 @@ class PublicFormController extends Controller
     {
         $uri = boolval($this->public_form->getOption('use_confirm')) ? 'confirm' : 'create';
 
-        $form = $this->getForm($request, $custom_value)
+        $form = $this->public_form->getForm($request, $custom_value)
             ->setAction(url_join($this->public_form->getUrl(),  $uri));
 
         $content = new PublicContent;
@@ -120,12 +120,19 @@ class PublicFormController extends Controller
      */
     public function confirm(Request $request)
     {
-        $form = $this->getForm($request);
+        $form = $this->public_form->getForm($request);
+        
+        //validate
+        $response = $form->validateRedirect($request->all());
+        if($response instanceof Response){
+            return $response;
+        }
+
         $custom_value = $form->getModelByInputs();
 
-        //TODO: validate
-
+        // set session
         $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM, $custom_value);
+        $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT, $request->all());
 
         $show = $this->public_form->getShow($request, $custom_value);
 
@@ -145,11 +152,9 @@ class PublicFormController extends Controller
      */
     public function create(Request $request)
     {
-        $form = $this->getForm($request);
+        $form = $this->public_form->getForm($request, null, false);
         $public_form = $this->public_form;
         
-        //TODO: validate
-
         $form->saved(function($form) use($request, $public_form){
             $content = new PublicContent;
             $public_form->setContentOption($content);
@@ -159,18 +164,13 @@ class PublicFormController extends Controller
             return response($content);
         });
 
-        $response = $form->store();
+        // get data by session or result
+        $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
+        $response = $form->store($data);
 
         // Disable reload
         $request->session()->regenerateToken();
 
         return $response;
-    }
-
-
-
-    protected function getForm(Request $request, ?CustomValue $custom_value = null)
-    { 
-        return $this->public_form->getForm($request, $custom_value);
     }
 }

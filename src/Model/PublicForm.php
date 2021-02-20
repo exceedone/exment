@@ -196,9 +196,11 @@ class PublicForm extends ModelBase
      * Get form
      *
      * @param Request $request
-     * @return Form
+     * @param CustomValue|null $custom_value input custom value
+     * @param boolean $setRecaptcha if true, set Recaptcha. If confirm→submit, set false
+     * @return void
      */
-    public function getForm(Request $request, ?CustomValue $custom_value = null)
+    public function getForm(Request $request, ?CustomValue $custom_value = null, bool $setRecaptcha = true)
     {
         \Admin::css(asset('vendor/exment/css/publicform.css'));
         // set footer as PublicFormFooter
@@ -224,7 +226,7 @@ class PublicForm extends ModelBase
         // get footer
         $footer = $form->builder()->getFooter();
         // Google recaptcha
-        if(static::isEnableRecaptcha() && boolval($this->getOption('use_recaptcha', false))){
+        if($setRecaptcha && static::isEnableRecaptcha() && boolval($this->getOption('use_recaptcha', false))){
             $version = static::recaptchaVersion();
             if($version == 'v2'){
                 $footer->useRecaptchaV2();

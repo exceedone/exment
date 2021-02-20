@@ -4,10 +4,12 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Content;
+use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
@@ -41,6 +43,10 @@ class CustomFormPublicController extends AdminControllerTableBase
     {
         if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
             return;
+        }
+        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+            Checker::error(exmtrans("custom_form_public.message.cannot_set_master_table"));
+            return false;
         }
 
         $form = new Form(new PublicForm);

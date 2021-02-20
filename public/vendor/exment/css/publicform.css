@@ -21,6 +21,10 @@ body#body-publicform #container-inner {
   padding: 10px;
 }
 
+body#body-publicform .g-recaptcha {
+  display: inline-block;
+}
+
 @media (max-width: 767px) {
   body#body-publicform.body-container #container-inner {
     margin: 5px;

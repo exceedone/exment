@@ -200,6 +200,7 @@ class Define
     public const SYSTEM_KEY_SESSION_FILE_NODELIST = "file_treelist";
     public const SYSTEM_KEY_SESSION_COMPOSER_VERSION = "exment_composer_version";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM = "public_form_confirm";
+    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT = "public_form_input";
 
 
     public const APPEND_QUERY_WORK_STATUS_SUB_QUERY = 'APPEND_QUERY_WORK_STATUS_SUB_QUERY';
