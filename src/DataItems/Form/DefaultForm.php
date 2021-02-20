@@ -210,7 +210,8 @@ EOT;
             if (isset($this->id)) {
                 $item->id($this->id);
             }
-            $item->setCustomForm($this->custom_form);
+            $this->setColumnItemOption($item);
+
             $form->pushField($item->getAdminField($form_column));
         }
     }
@@ -237,12 +238,13 @@ EOT;
                     continue;
                 }
     
-                if (is_null($form_column->column_item)) {
+                $column_item = $form_column->column_item;             
+                if (is_null($column_item)) {
                     continue;
                 }
+                $this->setColumnItemOption($column_item);
     
-                $field = $form_column->column_item
-                    ->setCustomForm($this->custom_form)
+                $field = $column_item
                     ->setCustomValue($target_custom_value)
                     ->getAdminField($form_column);
     
@@ -717,18 +719,20 @@ EOT;
                 ->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name'), 'data-parent_id' => true]);
 
             // set buttons
-            $select->buttons([
-                [
-                    'label' => trans('admin.search'),
-                    'btn_class' => 'btn-info',
-                    'icon' => 'fa-search',
-                    'attributes' => [
-                        'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
-                        'data-widgetmodal_expand' => json_encode(['target_column_class' => 'parent_id']),
-                        'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'parent_id']),
+            if (!$this->isPublicForm()) {
+                $select->buttons([
+                    [
+                        'label' => trans('admin.search'),
+                        'btn_class' => 'btn-info',
+                        'icon' => 'fa-search',
+                        'attributes' => [
+                            'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
+                            'data-widgetmodal_expand' => json_encode(['target_column_class' => 'parent_id']),
+                            'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'parent_id']),
+                        ],
                     ],
-                ],
-            ]);
+                ]);
+            }
         }
         // if edit data or has $select_parent, only display
         else {
@@ -762,17 +766,44 @@ EOT;
         $select->ajax($parent_custom_table->getOptionAjaxUrl());
 
         // set buttons
-        $select->buttons([
-            [
-                'label' => trans('admin.search'),
-                'btn_class' => 'btn-info',
-                'icon' => 'fa-search',
-                'attributes' => [
-                    'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
-                    'data-widgetmodal_expand' => json_encode(['target_column_class' => $pivot_name, 'target_column_multiple' => true]),
-                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => $pivot_name]),
+        if(!$this->isPublicForm()){
+            $select->buttons([
+                [
+                    'label' => trans('admin.search'),
+                    'btn_class' => 'btn-info',
+                    'icon' => 'fa-search',
+                    'attributes' => [
+                        'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
+                        'data-widgetmodal_expand' => json_encode(['target_column_class' => $pivot_name, 'target_column_multiple' => true]),
+                        'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => $pivot_name]),
+                    ],
                 ],
-            ],
-        ]);
+            ]);
+        }
+    }
+
+
+    /**
+     * Set ColumnItem's option to column item
+     *
+     * @param [type] $column_item
+     * @return void
+     */
+    protected function setColumnItemOption($column_item)
+    {
+        $column_item->setCustomForm($this->custom_form);
+        if($this->isPublicForm()){
+            $column_item->options(['public_form' => true]);
+        }
+    }
+
+    /**
+     * Whether this form is publicform
+     *
+     * @return boolean
+     */
+    protected function isPublicForm() : bool
+    {
+        return $this instanceof PublicFormForm;
     }
 }

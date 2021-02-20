@@ -33,7 +33,7 @@
         </span>
 
         <!-- Header Navbar -->
-        <nav class="navbar navbar-static-top" role="navigation">
+        <nav class="navbar navbar-static-top hidden-xs" role="navigation">
         </nav>
     </header>
     @endif

@@ -49,11 +49,11 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         // Basic setting ----------------------------------------------------
         $form->tab(exmtrans("common.basic_setting"), function ($form) use ($public_form, $id, $custom_table) {
-            $form->descriptionHtml(exmtrans('common.help.more_help'));
             $form->exmheader(exmtrans("common.basic_setting"))->hr();
                 
             if(isset($public_form)){
-                
+                $form->descriptionHtml(exmtrans('common.help.more_help'));
+            
                 $form->url('share_url', exmtrans('custom_form_public.share_url'))
                     ->setElementClass(['copyScript'])
                     ->help(exmtrans('custom_form_public.help.share_url'))

@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
@@ -85,7 +86,7 @@ class PublicFormController extends Controller
      */
     public function backed(Request $request)
     {
-        $custom_value = $request->session()->pull('aaa');
+        $custom_value = $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM);
         return $this->getInputContent($request, $custom_value);
     }
 
@@ -124,7 +125,7 @@ class PublicFormController extends Controller
 
         //TODO: validate
 
-        $request->session()->put('aaa', $custom_value);
+        $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM, $custom_value);
 
         $show = $this->public_form->getShow($request, $custom_value);
 

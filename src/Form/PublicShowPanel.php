@@ -19,6 +19,8 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
 
     protected $action;
     protected $back_action;
+    protected $confirm_title;
+    protected $confirm_text;
 
 
     public function setAction(string $action)
@@ -37,6 +39,30 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
     
 
     /**
+     * Set the value of confirm_title
+     *
+     * @return  self
+     */ 
+    public function setConfirmTitle($confirm_title)
+    {
+        $this->confirm_title = $confirm_title;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of confirm_text
+     *
+     * @return  self
+     */ 
+    public function setConfirmText($confirm_text)
+    {
+        $this->confirm_text = $confirm_text;
+
+        return $this;
+    }
+    
+    /**
      * Render this panel.
      *
      * @return string
@@ -46,6 +72,9 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
         return parent::render()->with([
             'action' => $this->action,
             'back_action' => $this->back_action,
+            'confirm_title' => $this->confirm_title ?? null,
+            'confirm_text' => $this->confirm_text ?? null,
         ]);
     }
+
 }

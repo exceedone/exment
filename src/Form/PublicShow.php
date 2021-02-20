@@ -29,4 +29,28 @@ class PublicShow extends \Encore\Admin\Show
 
         return $this;
     }
+
+    /**
+     * Set the value of confirm_title
+     *
+     * @return  self
+     */ 
+    public function setConfirmTitle($confirm_title)
+    {
+        $this->panel->setConfirmTitle($confirm_title);
+
+        return $this;
+    }
+
+    /**
+     * Set the value of confirm_text
+     *
+     * @return  self
+     */ 
+    public function setConfirmText($confirm_text)
+    {
+        $this->panel->setConfirmText($confirm_text);
+
+        return $this;
+    }
 }

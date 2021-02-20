@@ -201,7 +201,7 @@ class SelectTable extends CustomItem
 
         // set buttons
         $buttons = [];
-        if (!$this->disableEdit($form_column_options) && !boolval(config('exment.select_table_modal_search_disabled', false))) {
+        if (!boolval(array_get($this->options, 'public_form')) && !$this->disableEdit($form_column_options) && !boolval(config('exment.select_table_modal_search_disabled', false))) {
             $buttons[] = [
                 'label' => trans('admin.search'),
                 'btn_class' => 'btn-info',

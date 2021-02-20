@@ -137,13 +137,13 @@ class Embeds extends AdminField\Embeds
      *             [
      *                 column: 1,
      *                 width: 1,
-     *                 col_sm: 3,
+     *                 col_md: 3,
      *                 fields: [(2 fields)],
      *             ],
      *             [
      *                 column: 2,
      *                 width: 3,
-     *                 col_sm: 9,
+     *                 col_md: 9,
      *                 fields: [(1 fields)],
      *             ],
      *         ],
@@ -154,13 +154,13 @@ class Embeds extends AdminField\Embeds
      *             [
      *                 column: 1,
      *                 width: 2,
-     *                 col_sm: 6,
+     *                 col_md: 6,
      *                 fields: [(1 fields)],
      *             ],
      *             [
      *                 column: 2,
      *                 width: 1,
-     *                 col_sm: 3,
+     *                 col_md: 3,
      *                 fields: [(2 fields)],
      *             ],
      *         ],
@@ -215,11 +215,11 @@ class Embeds extends AdminField\Embeds
         if($totalWidth <= 0){$totalWidth = 1;}
 
         
-        // Set col_sm width using total width. ----------------------------------------------------
+        // Set col_md width using total width. ----------------------------------------------------
         $fieldGroups = $fieldGroups->map(function($fieldGroups) use($totalWidth){
             $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use($totalWidth) {
-                // if $totalWidth is 1 and vertical then col_sm is 8 and offset is 2.
-                $fieldOption['col_sm'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));
+                // if $totalWidth is 1 and vertical then col_md is 8 and offset is 2.
+                $fieldOption['col_md'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));
 
                 // set field's col sm and offset
                 $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use($totalWidth){ 

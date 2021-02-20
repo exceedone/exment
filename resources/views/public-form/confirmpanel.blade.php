@@ -1,6 +1,22 @@
 
 <form method="post" accept-charset="UTF-8" class="form-horizontal click_disabled_submit">
     <div class="fields-group">
+        @if(isset($confirm_title))
+        <div class="form-group ">
+            <h2 class="col-md-8 col-md-offset-2">
+                {{ $confirm_title }}
+            </h2>
+        </div>
+        @endif
+
+        @if(isset($confirm_text))
+        <div class="form-group ">
+            <p class="col-md-8 col-md-offset-2">
+                {{ $confirm_text }}
+            </p>
+        </div>
+        @endif
+
         @foreach($fields as $field)
             {!! $field->render() !!}
         @endforeach

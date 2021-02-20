@@ -31,7 +31,16 @@ trait ItemTrait
 
     protected $id;
 
-    protected $options;
+
+    /**
+     * Form items option
+     * 
+     * [
+     *     'public_form': if this form is public_form, set
+     * ]
+     * @var array
+     */
+    protected $options = [];
 
     protected $uniqueName;
 

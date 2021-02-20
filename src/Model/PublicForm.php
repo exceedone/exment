@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
+use Exceedone\Exment\DataItems\Form\PublicFormForm;
 use Exceedone\Exment\Form\Field\ReCaptcha;
 
 class PublicForm extends ModelBase
@@ -207,7 +208,7 @@ class PublicForm extends ModelBase
         if(!$custom_form){
             return null;
         }
-        $form = $custom_form->form_item
+        $form = PublicFormForm::getItem($this->custom_table_cache, $this->custom_form_cache)
             ->disableToolsButton()
             ->disableSavedRedirectCheck()
             ->disableDefaultSavedRedirect()
@@ -260,7 +261,10 @@ class PublicForm extends ModelBase
             ->custom_value($custom_value)
             ->createShowForm()
             ->setAction(url_join($this->getUrl(),  'create'))
-            ->setBackAction($this->getUrl());
+            ->setBackAction($this->getUrl())
+            ->setConfirmTitle($this->getOption('confirm_title'))
+            ->setConfirmText($this->getOption('confirm_text'))
+            ;
 
         return $show;
     }

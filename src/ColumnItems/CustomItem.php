@@ -347,7 +347,7 @@ abstract class CustomItem implements ItemInterface
             $help = null;
         }
         // if initonly is true and now, showing help and cannot edit help
-        elseif (boolval(array_get($this->custom_column->options, 'init_only'))) {
+        elseif (!boolval(array_get($this->options, 'public_form')) && boolval(array_get($this->custom_column->options, 'init_only'))) {
             $help .= exmtrans('common.help.init_flg');
         }
 
