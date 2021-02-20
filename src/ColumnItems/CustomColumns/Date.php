@@ -224,14 +224,14 @@ class Date extends CustomItem
      *
      * @return mixed
      */
-    public function getDefaultValue()
+    protected function _getDefaultValue()
     {
         $options = $this->custom_column->options;
         if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_DATE)) {
             return \Carbon\Carbon::now()->format($this->format);
         }
 
-        return parent::getDefaultValue();
+        return null;
     }
 
 

@@ -2,7 +2,7 @@ var Exment;
 (function (Exment) {
     class WebApiPublicForm extends Exment.WebApi {
         getPrefix() {
-            return URLJoin('publicformapi', $('input.formkey').val());
+            return URLJoin($('input.publicformapi').val(), $('input.formkey').val());
         }
         ;
         getFullUrl(...args) {

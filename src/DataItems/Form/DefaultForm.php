@@ -795,6 +795,10 @@ EOT;
         if($this->isPublicForm()){
             $column_item->options(['public_form' => true]);
         }
+        if($this->enableDefaultQuery)
+        {
+            $column_item->options(['enable_default_query' => true]);
+        }
     }
 
     /**

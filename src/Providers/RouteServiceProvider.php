@@ -345,7 +345,7 @@ class RouteServiceProvider extends ServiceProvider
             if (System::publicform_available()) {
                 $routes[] = [
                     'type' => 'publicformapi', 
-                    'prefix' => 'publicformapi/{form_key}', 
+                    'prefix' => url_join(config('exment.publicformapi_route_prefix', 'publicformapi'), '{form_key}'), 
                     'middleware' => ['api', 'publicformapi'], 
                     'addScope' => false, 
                     'private' => false,

@@ -51,20 +51,22 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->tab(exmtrans("common.basic_setting"), function ($form) use ($public_form, $id, $custom_table) {
             $form->exmheader(exmtrans("common.basic_setting"))->hr();
                 
-            if(isset($public_form)){
-                $form->descriptionHtml(exmtrans('common.help.more_help'));
+            $form->descriptionHtml(exmtrans('common.help.more_help'));
             
-                $form->url('share_url', exmtrans('custom_form_public.share_url'))
-                    ->setElementClass(['copyScript'])
-                    ->help(exmtrans('custom_form_public.help.share_url'))
-                    ->default($public_form->getUrl())
-                    ->readonly();
-                $form->ignore('share_url');
-
-                $form->display('proxy_user_id', exmtrans('common.executed_user'))->displayText(function ($user_id) {
-                    return getUserName($user_id, true);
-                })->help(exmtrans('custom_form_public.help.proxy_user_id'))->escape(false);
-
+            if(isset($public_form)){
+                if($public_form->active_flg){
+                    $form->url('share_url', exmtrans('custom_form_public.share_url'))
+                        ->setElementClass(['copyScript'])
+                        ->help(exmtrans('custom_form_public.help.share_url'))
+                        ->default($public_form->getUrl())
+                        ->readonly();
+                    $form->ignore('share_url');
+                    
+                    $form->display('proxy_user_id', exmtrans('common.executed_user'))->displayText(function ($user_id) {
+                        return getUserName($user_id, true);
+                    })->help(exmtrans('custom_form_public.help.proxy_user_id'))->escape(false);
+                }
+                
                 $form->display('active_flg', exmtrans("plugin.active_flg"))->displayText(function ($value) {
                     return boolval($value) ? exmtrans('common.available_true') : exmtrans('common.available_false');
                 })->help(exmtrans("custom_form_public.help.active_flg"));
@@ -229,6 +231,11 @@ class CustomFormPublicController extends AdminControllerTableBase
             $form->exmheader(exmtrans("custom_form_public.option_setting"))->hr();
              
             $form->embeds("option_setting", exmtrans("common.option_setting"), function($form) use ($custom_table){
+                $form->switchbool('use_default_query', exmtrans("custom_form_public.use_default_query"))
+                    ->help(exmtrans("custom_form_public.help.use_default_query") . \Exment::getMoreTag('publicform'))
+                    ->default(false);
+                ;
+                
                 $form->text('analytics_tag', exmtrans("custom_form_public.analytics_tag"))
                     ->rules(['nullable', 'regex:/^(UA-|G-)/u'])
                     ->help(exmtrans("custom_form_public.help.analytics_tag"));
@@ -298,7 +305,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                             'icon' => 'fa-check-circle',
                             'btn_class' => 'btn-success',
                             'title' => exmtrans('common.activate'),
-                            'text' => exmtrans('login.help.activate'),
+                            'text' => exmtrans('custom_form_public.message.activate'),
                             'method' => 'post',
                             'redirectUrl' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "edit"),
                         ]));
@@ -440,7 +447,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         
         return getAjaxResponse([
             'result'  => true,
-            'message' => trans('admin.update_succeeded'),
+            'toastr' => trans('admin.update_succeeded'),
         ]);
     }
     

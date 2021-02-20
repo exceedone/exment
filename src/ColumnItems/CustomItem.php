@@ -223,11 +223,57 @@ abstract class CustomItem implements ItemInterface
      */
     public function getDefaultValue()
     {
+        // get request query
+        $default = $this->getDefaultValueByQuery();
+        if(!is_nullorempty($default)){
+            return $default;
+        }
+        
+        // get each default value definition
+        $default = $this->_getDefaultValue();
+        if(!is_nullorempty($default)){
+            return $default;
+        }
+
         $options = $this->custom_column->options;
         // default
         if (array_key_value_exists('default', $options)) {
             return array_get($options, 'default');
         }
+        return null;
+    }
+
+    /**
+     * Get default value by query string
+     *
+     * @return mixed
+     */
+    protected function getDefaultValueByQuery()
+    {
+        if(!is_nullorempty($this->id)){
+            return null;
+        }
+
+        if($this->isDefferentFormTable()){
+            return null;
+        }
+
+        if(!boolval(array_get($this->options, 'enable_default_query'))){
+            return null;
+        }
+
+        // get request query
+        return request()->query("value_" . $this->name());
+    }
+
+
+    /**
+     * Get default value(define each custom column)
+     *
+     * @return mixed
+     */
+    protected function _getDefaultValue()
+    {
         return null;
     }
 

@@ -1482,7 +1482,6 @@ return [
         'description' => 'ログインしなくても一般ユーザーがデータを入力できる、公開フォームを設定します。',
         'custom_form_id' => '対象フォーム',
         'validity_period' => '公開有効期限',
-        'analytics_tag' => 'Googleアナリティクス',
         'design_setting' => 'デザイン設定',
         'header_setting' => 'ヘッダー設定',
         'body_setting' => 'フォーム設定',
@@ -1517,7 +1516,9 @@ return [
         'confirm_label' => '入力内容確認',
         'option_setting' => 'オプション設定',
         'public_form_view_name' => '公開フォーム表示名',
+        'analytics_tag' => 'Googleアナリティクス',
         'use_recaptcha' => 'Google reCAPTCHAを使用する',
+        'use_default_query' => '初期値をURLから設定可能にする',
 
         'help'=> [
             'custom_form_id' => '公開フォームを設定する、フォームを選択してください。',
@@ -1549,6 +1550,7 @@ return [
             'share_url' => '一般ユーザーがこのフォームにアクセスするためのURLです。クリックすることで、URLをコピーします。',
             'proxy_user_id' => 'この公開フォームは、表示されているユーザーとして実行、データ登録を行います。',
             'analytics_tag' => 'Googleアナリティクスを使用する場合、「UA-」もしくは「G-」から始まる、Google Analyticsのタグを入力してください。',
+            'use_default_query' => 'YESにすることで、URLのクエリ文字列の値を、フォームの初期値として設定することができます。',
             'activate_modal_header' => 'このフォームでは、以下のテーブルへのアクセスを含んでいます。そのため、<span class="red">一般ユーザーが、これらのテーブルのデータを読み取ることが可能になります。</span>',
             'activate_modal_footer' => "本当にこのフォームを公開しても問題ない場合は、「設定」をクリックしてください。",
         ],
@@ -1560,6 +1562,7 @@ return [
             'complete_text' => '入力が完了しました。',
             'error_text' => 'エラーが発生しました。お手数ですが、再度入力を行ってください。',
             'recaptcha_not_setting' => 'Google reCaptchaの設定値が入力されていません。利用する場合、システム設定画面で設定を行ってください。',
+            'activate' => 'この公開フォームを有効にします。よろしいでしょうか？',
             'deactivate' => 'この公開フォームを無効にします。よろしいでしょうか？',
         ],
 

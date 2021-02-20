@@ -3,7 +3,7 @@ namespace Exment {
         
         protected getPrefix() : string
         {
-            return URLJoin('publicformapi', $('input.formkey').val());  
+            return URLJoin($('input.publicformapi').val(), $('input.formkey').val());  
         };
 
         protected getFullUrl(...args) : string{

@@ -36,6 +36,13 @@ abstract class FormBase
      * @var boolean
      */
     protected $disableDefaultSavedRedirect = false;
+
+    /**
+     * If true, enable set default value by query
+     *
+     * @var boolean
+     */
+    protected $enableDefaultQuery = false;
     
 
     public static function getItem(...$args)
@@ -104,4 +111,18 @@ abstract class FormBase
 
 
     abstract public function form();
+
+    /**
+     * Set if true, enable set default value by query
+     *
+     * @param  boolean  $enableDefaultQuery  If true, enable set default value by query
+     *
+     * @return  self
+     */ 
+    public function setEnableDefaultQuery(bool $enableDefaultQuery)
+    {
+        $this->enableDefaultQuery = $enableDefaultQuery;
+
+        return $this;
+    }
 }

@@ -104,7 +104,7 @@ class PublicForm extends ModelBase
         }
 
         if($segments[0] !== config('exment.publicform_route_prefix', 'publicform')
-            && $segments[0] !== 'publicformapi'){
+            && $segments[0] !== config('exment.publicformapi_route_prefix', 'publicformapi')){
             return null;
         }
 
@@ -208,11 +208,10 @@ class PublicForm extends ModelBase
         if(!$custom_form){
             return null;
         }
-        $form = PublicFormForm::getItem($this->custom_table_cache, $this->custom_form_cache)
-            ->disableToolsButton()
-            ->disableSavedRedirectCheck()
-            ->disableDefaultSavedRedirect()
-            ->form()
+        $public_form = PublicFormForm::getItem($this->custom_table_cache, $this->custom_form_cache)
+            ->setEnableDefaultQuery(boolval($this->getOption('use_default_query')));
+    
+        $form = $public_form->form()
             ->disablePjax()
             ->setView('exment::public-form.form')
             ->setAction($this->getUrl())
@@ -239,7 +238,12 @@ class PublicForm extends ModelBase
 
         $form->submitLabel(boolval($this->getOption('use_confirm')) ? exmtrans('custom_form_public.confirm_label') : trans('admin.submit'));
         $form->hidden('formkey')->default($this->uuid);
+        $form->hidden('publicformapi')->default(config('exment.publicformapi_route_prefix', 'publicformapi'));
         $form->hidden('rooturi')->default(asset(''));
+
+        $form->ignore('formkey');
+        $form->ignore('publicformapi');
+        $form->ignore('rooturi');
 
         return $form;
     }

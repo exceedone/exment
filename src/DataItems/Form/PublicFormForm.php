@@ -28,4 +28,24 @@ use Exceedone\Exment\Services\Calc\CalcService;
  */
 class PublicFormForm extends DefaultForm
 {
+    /**
+     * If true, all disabled tools button
+     *
+     * @var boolean
+     */
+    protected $disableToolsButton = true;
+
+    /**
+     * If true, disableSavedRedirectCheck
+     *
+     * @var boolean
+     */
+    protected $disableSavedRedirectCheck = true;
+    
+    /**
+     * If true, disableDefaultSavedRedirect.
+     *
+     * @var boolean
+     */
+    protected $disableDefaultSavedRedirect = true;
 }

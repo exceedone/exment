@@ -347,6 +347,17 @@ trait ItemTrait
         return false;
     }
     
+
+    /**
+     * Whether this form is public form.
+     *
+     * @return boolean
+     */
+    public function isPublicForm()
+    {
+        return boolval(array_get($this->options, 'public_form'));
+    }
+
     /**
      * Get Search queries for free text search
      *
@@ -451,5 +462,19 @@ trait ItemTrait
         $this->custom_form = $custom_form;
 
         return $this;
+    }
+
+    /**
+     * Whether the table in this column is different from the column in the form
+     *
+     * @return bool
+     */
+    public function isDefferentFormTable() : bool
+    {
+        if(!$this->custom_form){
+            return false;
+        }
+
+        return !isMatchString($this->custom_form->custom_table_cache->id, $this->custom_table->id);
     }
 }

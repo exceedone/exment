@@ -128,7 +128,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
     {
         $tablesUseds = $this->public_form->getListOfTablesUsed();
         foreach($tablesUseds as $table){
-            if($this->custom_table->id == $select_target_table->id){
+            if($this->custom_table->id == $table->id){
                 return true;
             }
         }

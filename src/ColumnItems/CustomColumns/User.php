@@ -21,7 +21,7 @@ class User extends SelectTable
      *
      * @return mixed
      */
-    public function getDefaultValue()
+    protected function _getDefaultValue()
     {
         $options = $this->custom_column->options;
 
@@ -35,7 +35,7 @@ class User extends SelectTable
             return \Exment::getUserId();
         }
 
-        return parent::getDefaultValue();
+        return null;
     }
 
     

@@ -913,8 +913,25 @@ return [
     'diable_upload_images_editor' => env('EXMENT_DIABLE_UPLOAD_IMAGES_EDITOR', false),
 
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | Public form route prefix
+    |--------------------------------------------------------------------------
+    |
+    | Publicform Route Prefix
+    |
+    */
     'publicform_route_prefix' => env('EXMENT_PUBLICFORM_ROUTE_PREFIX', 'publicform'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public form api route prefix
+    |--------------------------------------------------------------------------
+    |
+    | Publicform api Route Prefix
+    |
+    */
+    'publicformapi_route_prefix' => env('EXMENT_PUBLICFORMAPI_ROUTE_PREFIX', 'publicformapi'),
 
 
   
