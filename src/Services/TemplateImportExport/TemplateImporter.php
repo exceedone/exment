@@ -478,6 +478,7 @@ class TemplateImporter
         $this->import($json, $system_flg, $is_update);
 
         if (!$is_update) {
+            $locale = \App::getLocale();
             // get lang datafile
             $dataPath = path_join($basePath, 'data', $locale);
 
