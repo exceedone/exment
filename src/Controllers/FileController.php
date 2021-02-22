@@ -270,14 +270,9 @@ class FileController extends AdminControllerBase
         }
 
         // if has parent_id, check permission
-        if (isset($data->parent_id) && isset($data->parent_type)) {
-            $custom_value = CustomTable::getEloquent($data->parent_type)->getValueModel($data->parent_id);
-            if ($custom_value->enableDelete() !== true) {
-                if ($options['asApi']) {
-                    return abortJson(403, ErrorCode::PERMISSION_DENY());
-                }
-                abort(403);
-            }
+        $checkParentPermission = static::checkParentPermission($data);
+        if($checkParentPermission !== true){
+            return $checkParentPermission;
         }
 
         $path = $data->path;
@@ -381,6 +376,34 @@ class FileController extends AdminControllerBase
         $this->removeTempFiles();
 
         return static::downloadTemp($uuid);
+    }
+
+
+    /**
+     * Check parent table's permission
+     *
+     * @param mixed $data
+     * @return true|\Symfony\Component\HttpFoundation\Response
+     */
+    protected static function checkParentPermission($data){
+        if(!$data || is_nullorempty($data->parent_id) || is_nullorempty($data->parent_type)){
+            return true;
+        }
+
+        // if has parent_id, check permission
+        $parent_custom_table = CustomTable::getEloquent($data->parent_type);
+        if(!$parent_custom_table){
+            return true;
+        }
+        $custom_value = $parent_custom_table->getValueModel($data->parent_id);
+        if ($custom_value && $custom_value->enableDelete() !== true) {
+            if ($options['asApi']) {
+                return abortJson(403, ErrorCode::PERMISSION_DENY());
+            }
+            abort(403);
+        }
+
+        return true;
     }
 
     

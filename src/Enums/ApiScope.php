@@ -17,6 +17,7 @@ class ApiScope extends EnumBase
     public const NOTIFY_READ = 'notify_read';
     public const NOTIFY_WRITE = 'notify_write';
     public const PLUGIN = 'plugin';
+    public const LOG = 'log';
 
     /**
      * get scope string for middleware

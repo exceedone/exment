@@ -46,8 +46,9 @@ class CustomColumnUsingIndexRule implements Rule
 
         // get group key column count of summary view
         $count = CustomView::where('view_kind_type', 1)
+            ->withoutGlobalScopes()
             ->whereHas('custom_view_columns', function ($query) {
-                $query->where('view_column_type', 0)
+                $query->withoutGlobalScopes()->where('view_column_type', 0)
                     ->where("view_column_target_id", $this->custom_column_id);
             })->count();
 
