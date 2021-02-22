@@ -51,6 +51,7 @@ class FileColumnImportCommand extends Command
      */
     public function handle()
     {
+        $resultCode = 0;
         try {
             // get target directory (argument)
             $dir = $this->argument("dir");
@@ -88,6 +89,7 @@ class FileColumnImportCommand extends Command
                 $custom_table = $this->getTableFromFile($file_name);
                 if (!isset($custom_table)) {
                     $this->error(exmtrans('command.import.error_info') . exmtrans('command.import.error_table', $file_name));
+                    $resultCode = -1;
                     continue;
                 }
     
@@ -108,6 +110,8 @@ class FileColumnImportCommand extends Command
                 
                 if (boolval($result['result'] ?? true)) {
                     $this->line(($index + 1) . exmtrans('command.import.success_message', $file_name, array_get($result, 'data_import_cnt')));
+                }else{
+                    return $resultCode;
                 }
             }
         } catch (\Exception $e) {
@@ -116,6 +120,6 @@ class FileColumnImportCommand extends Command
             return -1;
         }
 
-        return 0;
+        return $resultCode;
     }
 }

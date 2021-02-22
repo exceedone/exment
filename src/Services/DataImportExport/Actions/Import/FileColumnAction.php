@@ -38,7 +38,8 @@ class FileColumnAction implements ActionInterface
         $messages = [];
         $data_import_cnt = 0;
 
-        foreach ($datalist as $table_name => &$data) {
+        foreach ($datalist as &$data) {
+            $table_name = $this->custom_table->table_name;
             $provider = $this->getProvider($table_name);
             if (!isset($provider)) {
                 continue;
