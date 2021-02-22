@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 /**
  * LoginService
@@ -144,11 +145,55 @@ class LoginService
         }
 
         $data = $custom_login_user->mapping_values;
-        $rules = CustomTable::getEloquent(SystemTableName::USER)->getValidateRules($data, $exment_user);
+        $custom_table = CustomTable::getEloquent(SystemTableName::USER);
+        $dbTableName = getDBTableName($custom_table);
+        $rules = $custom_table->getValidateRules($data, $exment_user);
+        // add unique rules
+        foreach ($custom_table->custom_columns as $custom_column) {
+            if (boolval($custom_column->unique)) {
+                $column_name = $custom_column->column_name;
+                $unique_rule = Rule::unique($dbTableName, "value->$column_name");
+                if ($exment_user) {
+                    $unique_rule = $unique_rule->ignore($exment_user->id);
+                }
+                $rules = array_merge_recursive($rules, [$column_name => [$unique_rule]]);
+            }
+        }
 
         $rules = static::removeInitRule($custom_login_user, $exment_user, $rules);
 
         return \Validator::make($data, $rules);
+    }
+
+    /**
+     * Validate user unique columns.
+     *
+     * @param CustomLoginUserBase $custom_login_user
+     * @return array
+     */
+    public static function validateUniques(CustomLoginUserBase $custom_login_user)
+    {
+        // get target user
+        $exment_user = static::getExmentUser($custom_login_user, false);
+        if ($exment_user === false) {
+            $exment_user = null;
+        }
+
+        if (!static::needCheck($custom_login_user, $exment_user)) {
+            return [];
+        }
+
+        $data = $custom_login_user->mapping_values;
+        $errors = CustomTable::getEloquent(SystemTableName::USER)->validatorUniques($data, $exment_user, [
+            'addValue' => false
+        ]);
+
+        $res=[];
+        array_walk($errors, function ($x) use (&$res) {
+            $res=array_merge($res, $x);
+        });
+        
+        return $res;
     }
 
     /**
@@ -161,15 +206,7 @@ class LoginService
      */
     protected static function removeInitRule(CustomLoginUserBase $custom_login_user, ?CustomValue $exment_user, array $rules)
     {
-        // remove unique, if not update and create. Because only use key for login
-        $login_setting = $custom_login_user->login_setting;
-
-        // If has exment user and update user info, return rules(all validate)
-        if (isset($exment_user) && boolval($login_setting->getOption('update_user_info'))) {
-            return $rules;
-        }
-        // If not has exment user and sso_jit, return rules(all validate)
-        elseif (!isset($exment_user) && boolval($login_setting->getOption('sso_jit'))) {
+        if (static::needCheck($custom_login_user, $exment_user)) {
             return $rules;
         }
 
@@ -177,6 +214,28 @@ class LoginService
         return [];
     }
     
+    /**
+     * check if need validate user data.
+     *
+     * @param CustomLoginUserBase $custom_login_user
+     * @param CustomValue|null $exment_user
+     * @return boolean true:need validate
+     */
+    protected static function needCheck(CustomLoginUserBase $custom_login_user, ?CustomValue $exment_user)
+    {
+        // remove unique, if not update and create. Because only use key for login
+        $login_setting = $custom_login_user->login_setting;
+
+        // If has exment user and update user info, return rules(all validate)
+        if (isset($exment_user) && boolval($login_setting->getOption('update_user_info'))) {
+            return true;
+        }
+        // If not has exment user and sso_jit, return rules(all validate)
+        elseif (!isset($exment_user) && boolval($login_setting->getOption('sso_jit'))) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Get login test result.
