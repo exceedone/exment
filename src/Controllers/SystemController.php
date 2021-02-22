@@ -99,7 +99,15 @@ class SystemController extends AdminControllerBase
                 return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
                     'selected_value' => $admin_users,
                 ]);
-            })->default($admin_users);
+            })
+            ->validationOptions(function ($option) use ($admin_users) {
+                return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
+                    'selected_value' => $admin_users,
+                    'all' => true,
+                    'notAjax' => true,
+                ]);
+            })
+            ->default($admin_users);
 
         return $form;
     }

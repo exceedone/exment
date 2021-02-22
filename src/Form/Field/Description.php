@@ -34,9 +34,13 @@ class Description extends Field\Display
 
     public function render()
     {
+        // replace offset col-sm and col-md as offset
+        $offset = array_get($this->getViewElementClasses(), 'label');
+        $offset = str_replace("col-sm-", "col-sm-offset-", $offset);
+        $offset = str_replace("col-md-", "col-md-offset-", $offset);
         return parent::render()->with(
             [
-                'offset' => str_replace("col-sm-", "col-sm-offset-", array_get($this->getViewElementClasses(), 'label')),
+                'offset' => $offset,
                 'escape' => $this->escape,
             ]
         );
