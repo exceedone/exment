@@ -57,6 +57,7 @@ class ExmentServiceProvider extends ServiceProvider
      * @var array commands
      */
     protected $commands = [
+        'Exceedone\Exment\Console\VersionCommand',
         'Exceedone\Exment\Console\InstallCommand',
         'Exceedone\Exment\Console\UpdateCommand',
         'Exceedone\Exment\Console\PublishCommand',
@@ -80,6 +81,8 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\ResetPasswordCommand',
         'Exceedone\Exment\Console\CheckConnectionCommand',
         'Exceedone\Exment\Console\TotalUpdateCommand',
+        'Exceedone\Exment\Console\FileColumnImportCommand',
+        'Exceedone\Exment\Console\DocumentImportCommand',
     ];
 
     

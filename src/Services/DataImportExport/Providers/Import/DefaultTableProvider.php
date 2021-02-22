@@ -82,7 +82,7 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // get all custom value for performance
-        $models = $this->custom_table->getMatchedCustomValues($primary_values, $this->primary_key, true);
+        $models = $this->custom_table->getMatchedCustomValues($primary_values, $this->primary_key);
 
         // set all select table's value
         $this->custom_table->setSelectTableValues(collect($value_customs));

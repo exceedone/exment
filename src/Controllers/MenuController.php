@@ -319,7 +319,7 @@ class MenuController extends AdminControllerBase
                 break;
             case MenuType::PLUGIN:
                 $options = [];
-                foreach (Plugin::where('plugin_types', PluginType::PAGE)->get() as $value) {
+                foreach (Plugin::getByPluginTypes(PluginType::PAGE) as $value) {
                     $options[] = ['id' => $value->id, 'text' => $value->plugin_view_name];
                 }
                 break;

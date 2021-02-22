@@ -26,11 +26,8 @@ trait UserOrganizationItemTrait
                 'icon' => 'fa-search',
                 'attributes' => [
                     'data-widgetmodal_url' => admin_urls_query('data', $target_table->table_name, ['modalframe' => 1]),
-                    'data-widgetmodal_expand' => json_encode([
-                        'display_table_id' => $this->custom_table->id,
-                    ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => $className]),
-                    'data-widgetmodal_expand' => json_encode(['target_column_class' => $className, 'target_column_multiple' => true, ]),
+                    'data-widgetmodal_expand' => json_encode(['display_table_id' => $this->custom_table->id, 'target_column_class' => $className, 'target_column_multiple' => true, ]),
                 ],
             ];
         }

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Auth\Database\OperationLog;
+use Exceedone\Exment\Model\OperationLog;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Show;
 use Illuminate\Support\Arr;
