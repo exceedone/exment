@@ -140,10 +140,24 @@ class FileColumnProvider extends ProviderBase
      */
     public function validateDataRow($line_no, $dataAndModel, $validate_columns, $dataObjects)
     {
+        return $this->_validateDataRow($line_no, $dataAndModel, $validate_columns, true);
+    }
+
+
+     /**
+     * validate data row
+     * @param int $line_no
+     * @param array $dataAndModel
+     * @param array $validate_columns
+     * @return array
+     */
+    protected function _validateDataRow($line_no, $dataAndModel, $validate_columns, bool $isCheckColumn)
+    {
         $data = array_get($dataAndModel, 'data');
         $model = array_get($dataAndModel, 'model');
         $fileFullPath = array_get($dataAndModel, 'fileFullPath');
         $file_name = array_get($data, 'file_name');
+        $display_file_name = array_get($data, 'display_file_name');
 
         $errors = [];
         $validateRow = true;
@@ -153,21 +167,24 @@ class FileColumnProvider extends ProviderBase
         }
         
         // Whether contains column
-        $column_name = array_get($data, 'column_name');
-        $validate_column = $validate_columns->first(function($validate_column) use($column_name){
-            return isMatchString($column_name, $validate_column->column_name);
-        });
-
-        if(!$validate_column){
-            $errors[] = exmtrans('custom_value.import.message.file_column_not_match', [
-                'column_name' => $column_name,
-                'table_name' => $this->custom_table->table_name,
-            ]);
-        }
-        elseif($validate_column->column_type == ColumnType::IMAGE){
-            $extention = \File::extension($file_name);
-            if(!in_array($extention, Define::IMAGE_RULE_EXTENSIONS)){
-                $errors[] = trans('validation.image', ['attribute' => $file_name]);
+        if($isCheckColumn)
+        {
+            $column_name = array_get($data, 'column_name');
+            $validate_column = $validate_columns->first(function($validate_column) use($column_name){
+                return isMatchString($column_name, $validate_column->column_name);
+            });
+    
+            if(!$validate_column){
+                $errors[] = exmtrans('custom_value.import.message.file_column_not_match', [
+                    'column_name' => $column_name,
+                    'table_name' => $this->custom_table->table_name,
+                ]);
+            }
+            elseif($validate_column->column_type == ColumnType::IMAGE){
+                $extention = \File::extension($file_name);
+                if(!in_array($extention, Define::IMAGE_RULE_EXTENSIONS)){
+                    $errors[] = trans('validation.image', ['attribute' => $file_name]);
+                }
             }
         }
 
@@ -177,6 +194,13 @@ class FileColumnProvider extends ProviderBase
                 'file_name' => $file_name,
                 'dir_path' => $this->fileDirFullPath,
             ]);
+        }
+
+        // if has display_file_name, check same extension
+        if(!is_nullorempty($display_file_name)){
+            if(!isMatchString(pathinfo($file_name, PATHINFO_EXTENSION), pathinfo($display_file_name, PATHINFO_EXTENSION))){
+                $errors[] = exmtrans('custom_value.import.message.file_column_extension_not_match');
+            }
         }
 
         // Append row no

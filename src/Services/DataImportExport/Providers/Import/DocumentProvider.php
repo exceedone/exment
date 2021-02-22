@@ -45,34 +45,7 @@ class DocumentProvider extends FileColumnProvider
      */
     public function validateDataRow($line_no, $dataAndModel, $validate_columns, $dataObjects)
     {
-        $data = array_get($dataAndModel, 'data');
-        $model = array_get($dataAndModel, 'model');
-        $fileFullPath = array_get($dataAndModel, 'fileFullPath');
-
-        $errors = [];
-        $validateRow = true;
-
-        if(!$model){
-            $errors[] = exmtrans('common.message.notfound_or_deny');
-        }
-        
-        // Whether file exists
-        if(is_nullorempty($fileFullPath)){
-            $errors[] = exmtrans('custom_value.import.message.file_not_found', [
-                'file_name' => array_get($data, 'file_name'),
-                'dir_path' => $this->fileDirFullPath,
-            ]);
-        }
-
-        // Append row no
-        $errors = collect($errors)->map(function($error) use($line_no){
-            return sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), $error);
-        })->toArray();
-
-        if (!is_nullorempty($errors)) {
-            return $errors;
-        }
-        return true;
+        return $this->_validateDataRow($line_no, $dataAndModel, $validate_columns, false);
     }
 
 

@@ -68,11 +68,11 @@ class File extends ModelBase
      */
     public function saveCustomValue($custom_value_id, $custom_column = null, $custom_table = null)
     {
-        if (isset($custom_column)) {
+        if (!is_nullorempty($custom_column)) {
             return $this->saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table);
         }
 
-        if (isset($custom_value_id)) {
+        if (!is_nullorempty($custom_value_id)) {
             $this->parent_id = $custom_value_id;
             $this->parent_type = $custom_table->table_name;
         }
@@ -92,7 +92,7 @@ class File extends ModelBase
      */
     public function saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table = null)
     {
-        if (isset($custom_value_id)) {
+        if (!is_nullorempty($custom_value_id)) {
             $this->parent_id = $custom_value_id;
             $this->parent_type = $custom_table->table_name;
         }
@@ -108,7 +108,7 @@ class File extends ModelBase
             ->get();
 
         foreach($oldFiles as $oldFile){
-            if(isset($oldFile) && isset($oldFile->custom_column_id)){
+            if(!is_nullorempty($oldFile) && !is_nullorempty($oldFile->custom_column_id)){
                 static::deleteFileInfo($oldFile);
             }
         }

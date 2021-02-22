@@ -1877,7 +1877,8 @@ return [
                 'select_item_not_found' => 'The format of :column_view_name is invalid. Enter one of :value_options.',
                 'file_column_not_match' => 'The column name :column_name does not exist in the file / image column of table :table_name.',
                 'file_not_found' => 'The file :file_name does not exist in the capture directory :dir_path.',
-            ]
+                'file_column_extension_not_match' => 'Specify the same value for the extension of the column file_name and the column display_file_name.',
+            ],
         ],
         'sendmail' => [
             'title' => 'Send email',
