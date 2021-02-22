@@ -784,7 +784,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // check input data
             $is_duplicate = collect($options['uniqueCheckSiblings'])
-                ->contains(function ($row) use ($input, $unique_column, &$column_keys) {
+                ->contains(function ($row) use ($input, $unique_column, $prefix, &$column_keys) {
                     foreach ([1,2,3] as $key) {
                         if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
                             continue;

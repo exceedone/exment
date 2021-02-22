@@ -13,7 +13,6 @@ use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Services\Login\OAuth\OAuthUser;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Laravel\Socialite\Two\User as SocialiteUser;
-use Illuminate\Support\Arr;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class OAuthLoginTest extends UnitTestBase
@@ -32,23 +31,21 @@ class OAuthLoginTest extends UnitTestBase
             'email' => 'unittest@mail.com'
         ], $options);
 
-        extract($options);
-
         $login_setting = LoginSetting::create([
             'login_type' => 'oauth',
             'active_flg' => 1,
             'options' => [
                 'oauth_provider_type' => 'google',
-                'mapping_user_column' => $mapping_user_column,
-                'sso_jit' => $sso_jit,
-                'update_user_info' => $update_user_info
-            ]
+                'mapping_user_column' => $options['mapping_user_column'],
+                'sso_jit' => $options['sso_jit'],
+                'update_user_info' => $options['update_user_info'],
+            ],
         ]);
 
         $test_user = (new SocialiteUser)->map([
-            'id' => $user_code,
+            'id' => $options['user_code'],
             'name' => 'テストユーザー',
-            'email' => $email,
+            'email' => $options['email'],
         ]);
 
         $custom_login_user = OAuthUser::with('google', $test_user, true);
@@ -71,13 +68,12 @@ class OAuthLoginTest extends UnitTestBase
             'update_user_info' => '1'
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-            } catch (\Exception $ex) {
-                $this->assertTrue($ex instanceof SsoLoginErrorException);
-                $this->assertRegExp('/ユーザーが存在しません/', $ex->getMessage());
-            }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        try {
+            $result = LoginService::executeLogin(request(), $custom_login_user);
+        } catch (\Exception $ex) {
+            $this->assertTrue($ex instanceof SsoLoginErrorException);
+            $this->assertMatchesRegularExpression('/ユーザーが存在しません/', $ex->getMessage());
         }
     }
 
@@ -92,13 +88,12 @@ class OAuthLoginTest extends UnitTestBase
     {
         list($custom_login_user, $validator) = $this->_commonProcess();
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-            } catch (\Exception $ex) {
-                $this->assertTrue($ex instanceof SsoLoginErrorException);
-                $this->assertRegExp('/ユーザーが存在しません/', $ex->getMessage());
-            }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        try {
+            $result = LoginService::executeLogin(request(), $custom_login_user);
+        } catch (\Exception $ex) {
+            $this->assertTrue($ex instanceof SsoLoginErrorException);
+            $this->assertMatchesRegularExpression('/ユーザーが存在しません/', $ex->getMessage());
         }
     }
 
@@ -116,16 +111,12 @@ class OAuthLoginTest extends UnitTestBase
             'update_user_info' => '1'
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, 'unittest_user');
-                $this->assertEquals($result->user_name, 'テストユーザー');
-                $this->assertEquals($result->email, 'unittest@mail.com');
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, 'unittest_user');
+        $this->assertEquals($result->user_name, 'テストユーザー');
+        $this->assertEquals($result->email, 'unittest@mail.com');
     }
 
     /**
@@ -142,16 +133,12 @@ class OAuthLoginTest extends UnitTestBase
         ]);
 
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, 'unittest_user');
-                $this->assertEquals($result->user_name, 'テストユーザー');
-                $this->assertEquals($result->email, 'unittest@mail.com');
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, 'unittest_user');
+        $this->assertEquals($result->user_name, 'テストユーザー');
+        $this->assertEquals($result->email, 'unittest@mail.com');
     }
 
     /**
@@ -170,7 +157,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/正しい形式のメールアドレスを指定してください/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/正しい形式のメールアドレスを指定してください/', $validator->errors()->first());
     }
 
     /**
@@ -189,7 +176,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/正しい形式のuser codeを指定してください/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/正しい形式のuser codeを指定してください/', $validator->errors()->first());
     }
 
     /**
@@ -209,16 +196,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, 'テストユーザー');
-                $this->assertEquals($result->email, 'unittest@mail.com');
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, 'テストユーザー');
+        $this->assertEquals($result->email, 'user1@user.foobar.test');
     }
 
     /**
@@ -237,16 +220,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user->getValue('user_name'));
+        $this->assertEquals($result->email, $user->getValue('email'));
     }
 
     /**
@@ -267,16 +246,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, 'テストユーザー');
-                $this->assertEquals($result->email, 'unittest@mail.com');
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, 'テストユーザー');
+        $this->assertEquals($result->email, 'user1@user.foobar.test');
     }
 
     /**
@@ -296,16 +271,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user->getValue('user_name'));
+        $this->assertEquals($result->email, $user->getValue('email'));
     }
 
     /**
@@ -326,7 +297,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -344,16 +315,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user->getValue('user_name'));
+        $this->assertEquals($result->email, $user->getValue('email'));
     }
 
     /**
@@ -375,7 +342,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -394,16 +361,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user->getValue('user_name'));
+        $this->assertEquals($result->email, $user->getValue('email'));
     }
 
     /**
@@ -427,7 +390,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -448,16 +411,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user->getValue('user_name'));
+        $this->assertEquals($result->email, $user->getValue('email'));
     }
 
     /**
@@ -480,7 +439,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -500,16 +459,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user1->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user1->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user1->getValue('user_name'));
-                $this->assertEquals($result->email, $user1->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user1->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user1->getValue('user_name'));
+        $this->assertEquals($result->email, $user1->getValue('email'));
     }
 
     /**
@@ -533,7 +488,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -554,16 +509,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user1->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user1->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user1->getValue('user_name'));
-                $this->assertEquals($result->email, $user1->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user1->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user1->getValue('user_name'));
+        $this->assertEquals($result->email, $user1->getValue('email'));
     }
 
     /**
@@ -583,16 +534,12 @@ class OAuthLoginTest extends UnitTestBase
             'user_code' => $user->getValue('user_code'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, 'テストユーザー');
-                $this->assertEquals($result->email, 'unittest@mail.com');
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, 'テストユーザー');
+        $this->assertEquals($result->email, 'unittest@mail.com');
     }
 
     /**
@@ -611,16 +558,12 @@ class OAuthLoginTest extends UnitTestBase
             'user_code' => $user->getValue('user_code'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user->getValue('user_name'));
+        $this->assertEquals($result->email, $user->getValue('email'));
     }
 
     /**
@@ -641,16 +584,12 @@ class OAuthLoginTest extends UnitTestBase
             'user_code' => $user->getValue('user_code'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, 'テストユーザー');
-                $this->assertEquals($result->email, 'unittest@mail.com');
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, 'テストユーザー');
+        $this->assertEquals($result->email, 'unittest@mail.com');
     }
 
     /**
@@ -670,16 +609,12 @@ class OAuthLoginTest extends UnitTestBase
             'user_code' => $user->getValue('user_code'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user->getValue('user_name'));
+        $this->assertEquals($result->email, $user->getValue('email'));
     }
 
     /**
@@ -703,7 +638,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/正しい形式のメールアドレスを指定してください/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/正しい形式のメールアドレスを指定してください/', $validator->errors()->first());
     }
 
     /**
@@ -724,16 +659,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => 'wrongaddress'
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user->getValue('user_name'));
+        $this->assertEquals($result->email, $user->getValue('email'));
     }
 
     /**
@@ -757,7 +688,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/そのemailはすでに使われています/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/そのemailはすでに使われています/', $validator->errors()->first());
     }
 
     /**
@@ -778,16 +709,12 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user1->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user2->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user2->getValue('user_name'));
+        $this->assertEquals($result->email, $user2->getValue('email'));
     }
 
     /**
@@ -812,7 +739,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertRegExp('/そのemailはすでに使われています/', $validator->errors()->first());
+        $this->assertMatchesRegularExpression('/そのemailはすでに使われています/', $validator->errors()->first());
     }
 
     /**
@@ -834,15 +761,11 @@ class OAuthLoginTest extends UnitTestBase
             'email' => $user1->getValue('email'),
         ]);
 
-        if ($validator->passes()) {
-            try {
-                $result = LoginService::executeLogin(request(), $custom_login_user);
-                $this->assertTrue($result instanceof LoginUser);
-                $this->assertEquals($result->user_code, $user->getValue('user_code'));
-                $this->assertEquals($result->user_name, $user->getValue('user_name'));
-                $this->assertEquals($result->email, $user->getValue('email'));
-            } catch (\Exception $ex) {
-            }
-        }
+        $this->assertTrue($validator->passes(), 'Validation pass error.');
+        $result = LoginService::executeLogin(request(), $custom_login_user);
+        $this->assertTrue($result instanceof LoginUser);
+        $this->assertEquals($result->user_code, $user2->getValue('user_code'));
+        $this->assertEquals($result->user_name, $user2->getValue('user_name'));
+        $this->assertEquals($result->email, $user2->getValue('email'));
     }
 }
