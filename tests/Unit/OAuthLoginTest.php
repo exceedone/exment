@@ -32,6 +32,7 @@ class OAuthLoginTest extends UnitTestBase
         ], $options);
 
         $login_setting = LoginSetting::create([
+            'login_view_name' => 'test',
             'login_type' => 'oauth',
             'active_flg' => 1,
             'options' => [
