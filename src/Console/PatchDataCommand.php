@@ -32,6 +32,7 @@ use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\EnvService;
+use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
 
@@ -188,10 +189,92 @@ class PatchDataCommand extends Command
             case 'publicform_mail_template':
                 $this->importPublicformTemplate();
                 return;
+            case 'append_column_mail_from_view_name':
+                $this->appendColumnMailFromViewName();
+                return;
         }
 
         $this->error('patch name not found.');
     }
+
+    /**
+     * patch mail template
+     *
+     * @return void
+     */
+    protected function patchMailTemplate($mail_key_names = [])
+    {
+        // get vendor folder
+        $locale = \App::getLocale();
+        $templates_data_path = exment_package_path('system_template/data');
+        $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
+        // if exists, execute data copy
+        if (!\File::exists($path)) {
+            $path = path_join($templates_data_path, "mail_template.xlsx");
+            // if exists, execute data copy
+            if (!\File::exists($path)) {
+                return;
+            }
+        }
+
+        $table_name = \File::name($path);
+        $format = \File::extension($path);
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // execute import
+        $service = (new DataImportExport\DataImportExportService())
+            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
+                'custom_table' => $custom_table,
+                'filter' => ['value.mail_key_name' => $mail_key_names],
+                'primary_key' => 'value.mail_key_name',
+            ]))
+            ->format($format);
+        $service->import($path);
+    }
+    
+    /**
+     * append custom column
+     *
+     * @return void
+     */
+    protected function appendCustomColumn(string $target_table_name, string $target_column_name, string $after)
+    {
+        // get system template
+        $template = new TemplateImporter;
+        $json = $template->getMergeJson();
+
+        // re-loop columns. because we have to get other column id --------------------------------------------------
+        foreach (array_get($json, "custom_tables", []) as $table) {
+        // find tables. --------------------------------------------------
+        $table_name = array_get($table, 'table_name');
+        if(!isMatchString($target_table_name, $table_name)){
+            continue;
+        }
+        $obj_table = CustomTable::getEloquent($table_name);
+
+        // get columns. --------------------------------------------------
+        if (array_key_exists('custom_columns', $table)) {
+            foreach (array_get($table, 'custom_columns') as $column) {
+                // find tables. --------------------------------------------------
+                $column_name = array_get($column, 'column_name');
+                if(!isMatchString($target_column_name, $column_name)){
+                    continue;
+                }
+
+                // Check already exists, if already setted, continue
+                $obj_column = CustomColumn::getEloquent($column_name, $obj_table);
+                if(isset($obj_column)){
+                    continue;
+                }
+            
+            }
+        }
+        }
+    }
+    
+
+
+
 
     /**
      * Remove decimal comma
@@ -610,41 +693,6 @@ class PatchDataCommand extends Command
             $custom_column->setOption('init_only', 1);
             $custom_column->save();
         }
-    }
-    
-    /**
-     * patch mail template
-     *
-     * @return void
-     */
-    protected function patchMailTemplate($mail_key_names = [])
-    {
-        // get vendor folder
-        $locale = \App::getLocale();
-        $templates_data_path = exment_package_path('system_template/data');
-        $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
-        // if exists, execute data copy
-        if (!\File::exists($path)) {
-            $path = path_join($templates_data_path, "mail_template.xlsx");
-            // if exists, execute data copy
-            if (!\File::exists($path)) {
-                return;
-            }
-        }
-
-        $table_name = \File::name($path);
-        $format = \File::extension($path);
-        $custom_table = CustomTable::getEloquent($table_name);
-
-        // execute import
-        $service = (new DataImportExport\DataImportExportService())
-            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
-                'custom_table' => $custom_table,
-                'filter' => ['value.mail_key_name' => $mail_key_names],
-                'primary_key' => 'value.mail_key_name',
-            ]))
-            ->format($format);
-        $service->import($path);
     }
     
     /**
@@ -1555,6 +1603,16 @@ class PatchDataCommand extends Command
         $this->patchMailTemplate([
             'publicform_admin_error',
         ]);
+    }
+    
+    /**
+     * appendColumnMailFromViewName
+     *
+     * @return void
+     */
+    protected function appendColumnMailFromViewName()
+    {
+        $this->appendCustomColumn('mail_template', 'mail_from_view_name', 'mail_template_type');
     }
     
 }

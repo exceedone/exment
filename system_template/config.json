@@ -430,6 +430,15 @@
                     }
                 },
                 {
+                    "column_name": "mail_from_view_name",
+                    "column_view_name": "Email from view name",
+                    "column_type": "text",
+                    "system_flg": "1",
+                    "options": {
+                        "help": "Please enter the display name of the sender."
+                    }
+                },
+                {
                     "column_name": "mail_subject",
                     "column_view_name": "Email subject",
                     "column_type": "text",

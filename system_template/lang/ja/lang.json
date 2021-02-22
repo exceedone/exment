@@ -225,6 +225,13 @@
                     "options": {
                         "help": "送付する通知の本文を入力します。変数を利用できます。"
                     }
+                },
+                {
+                    "column_name": "mail_from_view_name",
+                    "column_view_name": "通知表示名",
+                    "options": {
+                        "help": "送信元の表示名を入力してください。"
+                    }
                 }
             ]
         },

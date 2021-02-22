@@ -107,6 +107,7 @@ class Define
         'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'notify'],
         'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'notify'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'notify'],
+        'system_mail_from_view_name' => ['group' => 'notify'],
         'system_mail_body_type' => ['default' => 'html', 'group' => 'notify'],
 
         'system_slack_user_column' => ['group' => 'notify'],

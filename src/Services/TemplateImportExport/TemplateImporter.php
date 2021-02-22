@@ -473,21 +473,8 @@ class TemplateImporter
         $is_update = $options['is_update'];
         $basePath = $options['basePath'];
 
-        $json = json_decode($jsonString, true);
-        if (!isset($json)) {
-            // TODO:Error
-            return;
-        }
 
-        // merge language file
-        $locale = \App::getLocale();
-        $langpath = "$basePath/lang/$locale/lang.json";
-
-        if (File::exists($langpath)) {
-            $lang = json_decode(File::get($langpath), true);
-            $json = $this->mergeTemplate($json, $lang);
-        }
-
+        $json = $this->getMergeJson($jsonString, $options);
         $this->import($json, $system_flg, $is_update);
 
         if (!$is_update) {
@@ -716,6 +703,55 @@ class TemplateImporter
         }
         return null;
     }
+
+
+    /**
+     * Get merged json
+     *
+     * @param string $jsonString
+     * @param array $options
+     * @return array
+     */
+    public function getMergeJson(string $jsonString = null, array $options = [])
+    {
+        $options = array_merge(
+            [
+                'basePath' => null,
+            ],
+            $options
+        );
+        $basePath = $options['basePath'];
+
+        // if not $jsonString, get from system template
+        if(!$jsonString){
+            $templates_path = exment_package_path('system_template');
+            $paths = File::glob("$templates_path/config.json");
+            $jsonString = File::get($paths[0]);
+        }
+
+        if(!$basePath){
+            $basePath = exment_package_path('system_template');
+        }
+
+        $json = json_decode($jsonString, true);
+        if (!isset($json)) {
+            // TODO:Error
+            return;
+        }
+
+        // merge language file
+        $locale = \App::getLocale();
+        $langpath = "$basePath/lang/$locale/lang.json";
+
+        if (File::exists($langpath)) {
+            $lang = json_decode(File::get($langpath), true);
+            $json = $this->mergeTemplate($json, $lang);
+        }
+
+        return $json;
+    }
+
+
     /**
      * update template json by language json.
      */
