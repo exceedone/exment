@@ -126,9 +126,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         if ($this->form_column_type == FormColumnType::COLUMN) {
             return $this->custom_column->column_item ?? null;
         }
-        elseif ($this->form_column_type == FormColumnType::RELATION) {
-            return ColumnItems\FormRelationItem::getItem($this);
-        }
         // other column
         else {
             return ColumnItems\FormOtherItem::getItem($this);
@@ -184,25 +181,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         return $this;
     }
         
-
-    /**
-     * Get custom relation info. for setting relation column.
-     *
-     * @return CustomRelation|null
-     */
-    public function getCustomRelation()
-    {
-        if ($this->form_column_type != FormColumnType::RELATION) {
-            return null;
-        }
-        $item = FormColumn\RelationColumnBase::make($this);
-        if(!$item){
-            return null;
-        }
-
-        return $item->getCustomRelation();
-    }
-
 
     /**
      * get Table And Column Name

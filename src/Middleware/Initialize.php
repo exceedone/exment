@@ -363,17 +363,19 @@ class Initialize
                     'system_mail_password' => 'password',
                     'system_mail_encryption' => 'encryption',
                     'system_mail_from' => ['from.address', 'from.name'],
+                    'system_mail_from_view_name' => 'from.name', // If system_mail_from_view_name is not set, from.name set as system_mail_from
                 ];
 
                 foreach ($keys as $keyname => $configname) {
-                    if (!is_null($val = System::{$keyname}())) {
-                        if (!is_array($configname)) {
-                            $configname = [$configname];
-                        }
+                    if (is_nullorempty($val = System::{$keyname}())) {
+                        continue;
+                    }
+                    if (!is_array($configname)) {
+                        $configname = [$configname];
+                    }
 
-                        foreach ($configname as $c) {
-                            Config::set("mail.{$c}", $val);
-                        }
+                    foreach ($configname as $c) {
+                        Config::set("mail.{$c}", $val);
                     }
                 }
             }

@@ -12,6 +12,8 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
@@ -237,39 +239,79 @@ class PatchDataCommand extends Command
      *
      * @return void
      */
-    protected function appendCustomColumn(string $target_table_name, string $target_column_name, string $after)
+    protected function appendCustomColumn(string $target_table_name, string $target_column_name)
     {
         // get system template
         $template = new TemplateImporter;
         $json = $template->getMergeJson();
 
-        // re-loop columns. because we have to get other column id --------------------------------------------------
-        foreach (array_get($json, "custom_tables", []) as $table) {
-        // find tables. --------------------------------------------------
-        $table_name = array_get($table, 'table_name');
-        if(!isMatchString($target_table_name, $table_name)){
-            continue;
-        }
-        $obj_table = CustomTable::getEloquent($table_name);
+        try{
+            \DB::transaction(function () use ($json, $target_column_name, $target_table_name) {
+                // re-loop columns. because we have to get other column id --------------------------------------------------
+                foreach (array_get($json, "custom_tables", []) as $table) {
+                    // find tables. --------------------------------------------------
+                    $table_name = array_get($table, 'table_name');
+                    if (!isMatchString($target_table_name, $table_name)) {
+                        continue;
+                    }
+                    $obj_table = CustomTable::getEloquent($table_name);
+    
+                    // get all custom columns
+                    $current_columns = $obj_table->custom_columns;
+    
+                    // get columns. --------------------------------------------------
+                    if (array_key_exists('custom_columns', $table)) {
+                        foreach (array_get($table, 'custom_columns') as $column) {
+                            // find tables. --------------------------------------------------
+                            $column_name = array_get($column, 'column_name');
+                            if (!isMatchString($target_column_name, $column_name)) {
+                                continue;
+                            }
+    
+                            // Check already exists, if already setted, continue
+                            $obj_column = CustomColumn::getEloquent($column_name, $obj_table);
+                            if (isset($obj_column)) {
+                                continue;
+                            }
+    
+                            // Import column
+                            $obj_column = CustomColumn::importTemplate($column, false, [
+                                'system_flg' => true,
+                                'parent' => $obj_table,
+                            ]);
+    
+                            // Append custom folumn column
+                            // get custom form
+                            $custom_form = CustomForm::where('custom_table_id', $obj_table->id)->first();
+                            if(!$custom_form){
+                                continue;
+                            }
+                            $custom_form_block = CustomFormBlock::where('custom_form_id', $custom_form->id)->first();
+                            if(!$custom_form_block){
+                                continue;
+                            }
 
-        // get columns. --------------------------------------------------
-        if (array_key_exists('custom_columns', $table)) {
-            foreach (array_get($table, 'custom_columns') as $column) {
-                // find tables. --------------------------------------------------
-                $column_name = array_get($column, 'column_name');
-                if(!isMatchString($target_column_name, $column_name)){
-                    continue;
+                            // create dummy json array
+                            $count = $custom_form_block->custom_form_columns->count();
+                            $form_column = [
+                                'form_column_type' => Enums\FormColumnType::COLUMN,
+                                'options' => null,
+                                'form_column_target_name' => $obj_column->column_name,
+                                'order' => $count + 1,
+                            ];
+                            CustomFormColumn::importTemplate($form_column, false, [
+                                'system_flg' => true,
+                                'parent' => $custom_form_block,
+                            ]);
+                        }
+                    }
                 }
+            });
+        }
+        catch(\Exception $ex){
+            \Log::error($ex);
+        }
 
-                // Check already exists, if already setted, continue
-                $obj_column = CustomColumn::getEloquent($column_name, $obj_table);
-                if(isset($obj_column)){
-                    continue;
-                }
-            
-            }
-        }
-        }
     }
     
 
@@ -1612,7 +1654,7 @@ class PatchDataCommand extends Command
      */
     protected function appendColumnMailFromViewName()
     {
-        $this->appendCustomColumn('mail_template', 'mail_from_view_name', 'mail_template_type');
+        $this->appendCustomColumn('mail_template', 'mail_from_view_name');
     }
     
 }
