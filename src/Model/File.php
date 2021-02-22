@@ -107,8 +107,8 @@ class File extends ModelBase
             ->where('custom_column_id', $this->custom_column_id)
             ->get();
 
-        foreach($oldFiles as $oldFile){
-            if(!is_nullorempty($oldFile) && !is_nullorempty($oldFile->custom_column_id)){
+        foreach ($oldFiles as $oldFile) {
+            if (!is_nullorempty($oldFile) && !is_nullorempty($oldFile->custom_column_id)) {
                 static::deleteFileInfo($oldFile);
             }
         }

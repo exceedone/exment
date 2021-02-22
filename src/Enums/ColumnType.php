@@ -207,7 +207,7 @@ class ColumnType extends EnumBase
 
     protected static function _isMatchColumnType($column_type, array $types) : bool
     {
-        if($column_type instanceof CustomColumn){
+        if ($column_type instanceof CustomColumn) {
             $column_type = $column_type->column_type;
         }
 

@@ -2,13 +2,9 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
-use Carbon\Carbon;
-use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
-use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
 
@@ -112,7 +108,7 @@ class FileColumnProvider extends ProviderBase
     public function validateImportData($dataObjects)
     {
         ///// get all table columns
-        $validate_columns = $this->custom_table->custom_columns_cache->filter(function($custom_column){
+        $validate_columns = $this->custom_table->custom_columns_cache->filter(function ($custom_column) {
             return ColumnType::isAttachment($custom_column);
         });
         
@@ -144,13 +140,13 @@ class FileColumnProvider extends ProviderBase
     }
 
 
-     /**
-     * validate data row
-     * @param int $line_no
-     * @param array $dataAndModel
-     * @param array $validate_columns
-     * @return array
-     */
+    /**
+    * validate data row
+    * @param int $line_no
+    * @param array $dataAndModel
+    * @param array $validate_columns
+    * @return array
+    */
     protected function _validateDataRow($line_no, $dataAndModel, $validate_columns, bool $isCheckColumn)
     {
         $data = array_get($dataAndModel, 'data');
@@ -162,34 +158,32 @@ class FileColumnProvider extends ProviderBase
         $errors = [];
         $validateRow = true;
 
-        if(!$model){
+        if (!$model) {
             $errors[] = exmtrans('common.message.notfound_or_deny');
         }
         
         // Whether contains column
-        if($isCheckColumn)
-        {
+        if ($isCheckColumn) {
             $column_name = array_get($data, 'column_name');
-            $validate_column = $validate_columns->first(function($validate_column) use($column_name){
+            $validate_column = $validate_columns->first(function ($validate_column) use ($column_name) {
                 return isMatchString($column_name, $validate_column->column_name);
             });
     
-            if(!$validate_column){
+            if (!$validate_column) {
                 $errors[] = exmtrans('custom_value.import.message.file_column_not_match', [
                     'column_name' => $column_name,
                     'table_name' => $this->custom_table->table_name,
                 ]);
-            }
-            elseif($validate_column->column_type == ColumnType::IMAGE){
+            } elseif ($validate_column->column_type == ColumnType::IMAGE) {
                 $extention = \File::extension($file_name);
-                if(!in_array($extention, Define::IMAGE_RULE_EXTENSIONS)){
+                if (!in_array($extention, Define::IMAGE_RULE_EXTENSIONS)) {
                     $errors[] = trans('validation.image', ['attribute' => $file_name]);
                 }
             }
         }
 
         // Whether file exists
-        if(is_nullorempty($fileFullPath)){
+        if (is_nullorempty($fileFullPath)) {
             $errors[] = exmtrans('custom_value.import.message.file_not_found', [
                 'file_name' => $file_name,
                 'dir_path' => $this->fileDirFullPath,
@@ -197,14 +191,14 @@ class FileColumnProvider extends ProviderBase
         }
 
         // if has display_file_name, check same extension
-        if(!is_nullorempty($display_file_name)){
-            if(!isMatchString(pathinfo($file_name, PATHINFO_EXTENSION), pathinfo($display_file_name, PATHINFO_EXTENSION))){
+        if (!is_nullorempty($display_file_name)) {
+            if (!isMatchString(pathinfo($file_name, PATHINFO_EXTENSION), pathinfo($display_file_name, PATHINFO_EXTENSION))) {
                 $errors[] = exmtrans('custom_value.import.message.file_column_extension_not_match');
             }
         }
 
         // Append row no
-        $errors = collect($errors)->map(function($error) use($line_no){
+        $errors = collect($errors)->map(function ($error) use ($line_no) {
             return sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), $error);
         })->toArray();
 
@@ -251,13 +245,13 @@ class FileColumnProvider extends ProviderBase
     protected function getFileFullPath(array $value_custom) : ?string
     {
         $file_name = array_get($value_custom, 'file_name');
-        if(is_nullorempty($file_name)){
+        if (is_nullorempty($file_name)) {
             return null;
         }
 
         // get file
         $file_path = path_join($this->fileDirFullPath, $file_name);
-        if(!\File::exists($file_path)){
+        if (!\File::exists($file_path)) {
             return null;
         }
 

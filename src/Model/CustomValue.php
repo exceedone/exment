@@ -601,12 +601,12 @@ abstract class CustomValue extends ModelBase
         $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
         if (isset($uuids)) {
             foreach ($uuids as &$uuid) {
-                if(boolval(array_get($uuid, 'setted'))){
+                if (boolval(array_get($uuid, 'setted'))) {
                     continue;
                 }
                 // get id matching path
                 $file = File::getData(array_get($uuid, 'uuid'));
-                if(!$file){
+                if (!$file) {
                     continue;
                 }
                 $value = $file->getCustomValueFromForm($this, $uuid);

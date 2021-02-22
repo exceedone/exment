@@ -67,13 +67,13 @@ class FileColumnImportCommand extends Command
             // get file directory full path
             $fileDirectory = path_join($this->directory, static::$files_name);
 
-            if(!is_dir($fileDirectory)){
+            if (!is_dir($fileDirectory)) {
                 throw new \Exception('Directory not found : ' . $fileDirectory);
             }
 
             // get all csv file names in target directory
             $files = $this->getFiles('csv,xlsx');
-            if(count($files) == 0){
+            if (count($files) == 0) {
                 throw new \Exception('File not found : ' . $this->directory);
             }
 
@@ -110,7 +110,7 @@ class FileColumnImportCommand extends Command
                 
                 if (boolval($result['result'] ?? true)) {
                     $this->line(($index + 1) . exmtrans('command.import.success_message', $file_name, array_get($result, 'data_import_cnt')));
-                }else{
+                } else {
                     return $resultCode;
                 }
             }
