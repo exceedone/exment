@@ -33,6 +33,7 @@ class PublicForm extends Migration
         });
 
         \Artisan::call('exment:patchdata', ['action' => 'publicform_mail_template']);
+        \Artisan::call('exment:patchdata', ['action' => 'append_column_mail_from_view_name']);
     }
 
     /**

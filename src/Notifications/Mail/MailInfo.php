@@ -12,6 +12,12 @@ class MailInfo
     protected $from;
     
     /**
+     * from name
+     * @var string
+     */
+    protected $fromName;
+    
+    /**
      * @var array
      */
     protected $to = [];
@@ -65,6 +71,18 @@ class MailInfo
     public function getFrom() : string
     {
         return !is_nullorempty($this->from) ? $this->from : config('mail.from.address');
+    }
+
+    /**
+     * @return string
+     */
+    public function getFromName() : ?string
+    {
+        $fromName = !is_nullorempty($this->fromName) ? $this->fromName : config('mail.from.name');
+        if(isMatchString($fromName, $this->getFrom())){
+            return null;
+        }
+        return $fromName;
     }
 
     /**
@@ -145,6 +163,12 @@ class MailInfo
     public function setFrom($from)
     {
         $this->from = $from;
+        return $this;
+    }
+
+    public function setFromName($fromName)
+    {
+        $this->fromName = $fromName;
         return $this;
     }
 

@@ -38,7 +38,7 @@ class MailChannel
                 $body = $mailMessage->getBody();
     
                 $message
-                    ->from($mailMessage->getFrom())
+                    ->from($mailMessage->getFrom(), $mailMessage->getFromName())
                     ->to($mailMessage->getTo())
                     ->cc($mailMessage->getCc())
                     ->bcc($mailMessage->getBcc())

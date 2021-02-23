@@ -44,6 +44,14 @@ trait MailInfoTrait
     }
 
     /**
+     * @return string
+     */
+    public function getFromName() : string
+    {
+        return $this->mailInfo->getFromName();
+    }
+
+    /**
      * @return array
      */
     public function getTo() : array
@@ -120,6 +128,11 @@ trait MailInfoTrait
     public function setFrom($from)
     {
         return $this->mailInfo->setFrom($from);
+    }
+
+    public function setFromName($fromName)
+    {
+        return $this->mailInfo->setFromName($fromName);
     }
 
     public function setTo($to)

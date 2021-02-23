@@ -42,6 +42,8 @@ class MailSender extends SenderBase
             $this->mailHistory->setMailTemplate($mail_template);
             $this->setSubject($mail_template->getValue('mail_subject'));
             $this->setBody($mail_template->getJoinedBody());
+            
+            $this->setFromName($mail_template->getValue('mail_from_view_name'));
         }
     }
 
@@ -203,7 +205,8 @@ class MailSender extends SenderBase
         // get subject
         $subject = NotifyService::replaceWord($this->getSubject(), $this->getCustomValue(), $this->prms, $this->replaceOptions);
         list($body, $bodyType) = $this->getBodyAndBodyType($this->getBody(), $this->prms, $this->replaceOptions);
-
+        $fromName = NotifyService::replaceWord($this->getFromName(), $this->getCustomValue(), $this->prms, $this->replaceOptions);
+        
         // set header as password
         if ($this->getUsePassword()) {
             $password_notify_header = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', 'password_notify_header')->first();
@@ -216,6 +219,7 @@ class MailSender extends SenderBase
 
         $this->setSubject($subject)
             ->setBody($body)
+            ->setFromName($fromName)
             ->setBodyType($bodyType);
 
         $job = new MailSendJob;
@@ -235,6 +239,7 @@ class MailSender extends SenderBase
         $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', 'password_notify')->first();
         $subject = array_get($mail_template->value, 'mail_subject');
         $body = array_get($mail_template->value, 'mail_body');
+        $fromName = array_get($mail_template->value, 'mail_from_view_name');
         
         $prms = $this->prms;
         $prms['zip_password'] = $this->getPassword();
@@ -242,13 +247,15 @@ class MailSender extends SenderBase
         // get subject
         $subject = NotifyService::replaceWord($subject, $this->getCustomValue(), $prms);
         list($body, $bodyType) = $this->getBodyAndBodyType($body, $prms);
-
+        $fromName = NotifyService::replaceWord($fromName, $this->getCustomValue(), $prms);
+        
         // clone and replace value
         $mailInfo = clone $this->mailInfo;
         $mailHistory = clone $this->mailHistory;
         $mailInfo
             ->setSubject($subject)
             ->setBody($body)
+            ->setFromName($fromName)
             ->setBodyType($bodyType)
             ->setAttachments([]);
         $mailHistory
