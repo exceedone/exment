@@ -8,12 +8,14 @@ use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\ExportImportLibrary;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
@@ -747,5 +749,33 @@ class Exment
      */
     public function isAvailableGoogleRecaptcha(){
         return class_exists(\Arcanedev\NoCaptcha\NoCaptchaManager::class);
+    }
+
+    
+    /**
+     * save file info to database
+     */
+    public function setFileInfo($field, $file, $file_type, $custom_table)
+    {
+        // get local filename
+        $dirname = $field->getDirectory();
+        $filename = $file->getClientOriginalName();
+        // save file info
+        $exmentfile = ExmentFile::saveFileInfo($file_type, $dirname, [
+            'filename' => $filename,
+        ]);
+
+        // set request session to save this custom_value's id and type into files table.
+        $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
+        $file_uuids[] = [
+            'uuid' => $exmentfile->uuid,
+            'column_name' => $field->column(),
+            'custom_table' => $custom_table,
+            'path' => $exmentfile->path
+        ];
+        System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
+        
+        // return filename
+        return $exmentfile->local_filename;
     }
 }

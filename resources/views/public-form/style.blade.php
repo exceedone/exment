@@ -1,5 +1,5 @@
 <style>
-    .main-header .navbar, .main-header .logo{
+    .main-header{
         color: {{$header_text_color}};
         background-color: {{$header_background_color}};
     }

@@ -28,13 +28,7 @@
     <!-- Main Header -->
     @if($use_header)
     <header class="main-header">
-        <span class="logo">
-            {{$header_label}}
-        </span>
-
-        <!-- Header Navbar -->
-        <nav class="navbar navbar-static-top hidden-xs" role="navigation">
-        </nav>
+        {{$header_label}}
     </header>
     @endif
 

@@ -13,6 +13,16 @@ body#body-publicform{
 
     .main-header{
         border-bottom:1px solid #d2d6de;
+        margin-bottom: 0;
+        padding-left: 40px;
+        border: none;
+        border-radius: 0;
+        height: 50px;
+        min-height: 50px;
+        font-size: 20px;
+        line-height: 50px;
+        font-weight: 300;
+        overflow: hidden;
     }
 
     #container-inner{

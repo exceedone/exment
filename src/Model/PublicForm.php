@@ -286,7 +286,7 @@ class PublicForm extends ModelBase
     {
         // create link
         if(($url = $this->getOption('complete_link_url')) && ($text = $this->getOption('complete_link_text'))){
-            $link = view('exment::tools.a', [
+            $link = view('exment::tools.link', [
                 'href' => $url,
                 'label' => $text,
             ]);

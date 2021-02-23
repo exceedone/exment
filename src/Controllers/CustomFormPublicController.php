@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
+use Encore\Admin\Form\Field;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Form\Tools;
@@ -10,13 +11,17 @@ use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Exceptions\PublicFormNotFoundException;
 use Illuminate\Http\Request;
 
 /**
@@ -106,8 +111,8 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->default(true);
 
             })->disableHeader();
-        })->tab(exmtrans("custom_form_public.design_setting"), function ($form) {
-            $form->embeds("design_setting", exmtrans("common.design_setting"), function($form){
+        })->tab(exmtrans("custom_form_public.design_setting"), function ($form) use($id, $custom_table) {
+            $form->embeds("design_setting", exmtrans("common.design_setting"), function($form) use($id, $custom_table){
                 $form->exmheader(exmtrans("custom_form_public.header_setting"))->hr();            
                 
                 $form->switchbool('use_header', exmtrans("custom_form_public.use_header"))
@@ -122,8 +127,19 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->default('#3c8dbc')
                 ;
 
+                $fileOption = static::getFileOptions($custom_table, $id);
                 $form->image('header_logo', exmtrans("custom_form_public.header_logo"))
-                    ->help(exmtrans("custom_form_public.help.header_logo"))
+                    ->help(exmtrans("custom_form_public.help.header_logo", ['size' => array_get($fileOption, 'maxFileSizeHelp')]))
+                    ->options($fileOption)
+                    ->removable()
+                    ->move($custom_table->table_name)
+                    ->callableName(function ($file) use ($custom_table) {
+                        return \Exment::setFileInfo($this, $file, FileType::PUBLIC_FORM, $custom_table);
+                    })
+                    ->caption(function ($caption) {
+                        $file = ExmentFile::getData($caption);
+                        return $file->filename ?? basename($caption);
+                    })
                     ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
                 ;
 
@@ -404,9 +420,12 @@ class CustomFormPublicController extends AdminControllerTableBase
         // get this form's info
         $form = $this->form();
         $model = $form->getModelByInputs();
-
+        
         // get public form
         $preview_form = $model->getForm($request);
+        if(!$preview_form){
+            throw new PublicFormNotFoundException;
+        }
         $preview_form->disableSubmit();
 
         // set content
@@ -504,4 +523,22 @@ class CustomFormPublicController extends AdminControllerTableBase
         ]);
     }
     
+
+    
+    protected static function getFileOptions($custom_table, $id)
+    {
+        return array_merge(
+            Define::FILE_OPTION(),
+            [
+                'showPreview' => true,
+                'deleteUrl' => admin_urls('formpublic', $custom_table->table_name, $id, 'filedelete'),
+                'deleteExtraData'      => [
+                    Field::FILE_DELETE_FLAG         => $id,
+                    '_token'                         => csrf_token(),
+                    '_method'                        => 'PUT',
+                ],
+                'deletedEvent' => 'Exment.CommonEvent.CallbackExmentAjax(jqXHR.responseJSON);',
+            ]
+        );
+    }
 }
