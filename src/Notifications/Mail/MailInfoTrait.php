@@ -44,9 +44,9 @@ trait MailInfoTrait
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getFromName() : string
+    public function getFromName() : ?string
     {
         return $this->mailInfo->getFromName();
     }
