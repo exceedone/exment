@@ -157,6 +157,15 @@ class OAuthService implements LoginServiceInterface
                     $custom_login_user
                 );
             } else {
+                $errors = LoginService::validateUniques($custom_login_user);
+                if (count($errors) > 0) {
+                    return LoginService::getLoginResult(
+                        SsoLoginErrorType::SYNC_VALIDATION_ERROR,
+                        exmtrans('login.sso_provider_error_validate', ['errors' => implode(' ', $errors)]),
+                        $errors,
+                        $custom_login_user
+                    );
+                }
                 return LoginService::getLoginResult(true, [], [], $custom_login_user);
             }
         } catch (\Exception $ex) {

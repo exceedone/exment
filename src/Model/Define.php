@@ -470,6 +470,8 @@ class Define
     public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
     public const DISKNAME_TEMP_UPLOAD = 'tmpupload';
 
+    public const IMAGE_RULE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
+
     public const CHARTITEM_LABEL = 'chartitem_label';
 
     public const SAML_NAME_ID_FORMATS = [

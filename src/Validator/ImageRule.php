@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Validation\Concerns\ValidatesAttributes;
+use Exceedone\Exment\Model\Define;
 
 /**
  * ImageRule.
@@ -27,10 +28,10 @@ class ImageRule implements Rule
 
         if (is_string($value)) {
             $ext = pathinfo($value, PATHINFO_EXTENSION);
-            return in_array($ext, ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg']);
+            return in_array($ext, Define::IMAGE_RULE_EXTENSIONS);
         }
 
-        return $this->validateMimes($attribute, $value, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg']);
+        return $this->validateMimes($attribute, $value, Define::IMAGE_RULE_EXTENSIONS);
     }
 
     /**

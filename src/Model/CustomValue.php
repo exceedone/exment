@@ -600,16 +600,24 @@ abstract class CustomValue extends ModelBase
         // if requestsession "file upload uuid"(for set data this value's id and type into files)
         $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
         if (isset($uuids)) {
-            foreach ($uuids as $uuid) {
+            foreach ($uuids as &$uuid) {
+                if (boolval(array_get($uuid, 'setted'))) {
+                    continue;
+                }
                 // get id matching path
                 $file = File::getData(array_get($uuid, 'uuid'));
+                if (!$file) {
+                    continue;
+                }
                 $value = $file->getCustomValueFromForm($this, $uuid);
                 if (is_null($value)) {
                     continue;
                 }
 
-                File::getData(array_get($uuid, 'uuid'))->saveCustomValue(array_get($value, 'id'), array_get($uuid, 'column_name'), array_get($uuid, 'custom_table'));
+                $file->saveCustomValueAndColumn(array_get($value, 'id'), array_get($uuid, 'column_name'), array_get($uuid, 'custom_table'));
+                $uuid['setted'] = true;
             }
+            System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $uuids);
         }
     }
 
@@ -1256,7 +1264,7 @@ abstract class CustomValue extends ModelBase
         // if search and not has searchColumns, return null;
         if ($options['executeSearch'] && empty($searchColumns)) {
             // return no value if searchColumns is not has
-            return static::query()->whereRaw('1 = 0');
+            return static::query()->whereNotMatch();
         }
 
         $getQueryFunc = function ($searchColumn, $options) {

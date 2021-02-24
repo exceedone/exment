@@ -278,8 +278,8 @@ class FileController extends AdminControllerBase
         }
 
         // if has parent_id, check permission
-        $checkParentPermission = static::checkParentPermission($data);
-        if($checkParentPermission !== true){
+        $checkParentPermission = static::checkParentPermission($data, $options);
+        if ($checkParentPermission !== true) {
             return $checkParentPermission;
         }
 
@@ -425,14 +425,21 @@ class FileController extends AdminControllerBase
      * @param mixed $data
      * @return true|\Symfony\Component\HttpFoundation\Response
      */
-    protected static function checkParentPermission($data){
-        if(!$data || is_nullorempty($data->parent_id) || is_nullorempty($data->parent_type)){
+    protected static function checkParentPermission($data, array $options = [])
+    {
+        $options = array_merge(
+            [
+                'asApi' => false,
+            ],
+            $options
+        );
+        if (!$data || is_nullorempty($data->parent_id) || is_nullorempty($data->parent_type)) {
             return true;
         }
 
         // if has parent_id, check permission
         $parent_custom_table = CustomTable::getEloquent($data->parent_type);
-        if(!$parent_custom_table){
+        if (!$parent_custom_table) {
             return true;
         }
         $custom_value = $parent_custom_table->getValueModel($data->parent_id);

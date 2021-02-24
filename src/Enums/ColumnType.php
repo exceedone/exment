@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Enums;
 
+use Exceedone\Exment\Model\CustomColumn;
+
 class ColumnType extends EnumBase
 {
     const TEXT = 'text';
@@ -151,56 +153,65 @@ class ColumnType extends EnumBase
 
     public static function isCalc($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_CALC());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_CALC());
     }
 
     public static function isDate($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_DATE());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_DATE());
     }
 
     public static function isDateTime($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_DATETIME());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_DATETIME());
     }
     
     public static function isUrl($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_URL());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_URL());
     }
     
     public static function isAttachment($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_ATTACHMENT());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_ATTACHMENT());
     }
     
     public static function isUserOrganization($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_USER_ORGANIZATION());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_USER_ORGANIZATION());
     }
     public static function isSelectTable($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_SELECT_TABLE());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_SELECT_TABLE());
     }
     public static function is2ValueSelect($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_2VALUE_SELECT());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_2VALUE_SELECT());
     }
     public static function isMultipleEnabled($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_MULTIPLE_ENABLED());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_MULTIPLE_ENABLED());
     }
     public static function isNotEscape($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_SHOW_NOT_ESCAPE());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_SHOW_NOT_ESCAPE());
     }
     public static function isSelectForm($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_SELECT_FORM());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_SELECT_FORM());
     }
     public static function isOperationEnableSystem($column_type)
     {
-        return in_array($column_type, static::COLUMN_TYPE_OPERATION_ENABLE_SYSTEM());
+        return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_OPERATION_ENABLE_SYSTEM());
+    }
+
+    protected static function _isMatchColumnType($column_type, array $types) : bool
+    {
+        if ($column_type instanceof CustomColumn) {
+            $column_type = $column_type->column_type;
+        }
+
+        return in_array($column_type, $types);
     }
 
     /**

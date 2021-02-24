@@ -19,6 +19,26 @@ trait ExtendedBuilderTrait
     protected $appendedQuery = [];
 
     /**
+     * Set not match query
+     *
+     * @return $this
+     */
+    public function whereNotMatch(){
+        $this->whereRaw("1 = 0");
+        return $this;
+    }
+
+    /**
+     * Set not match query
+     *
+     * @return $this
+     */
+    public function orWhereNotMatch(){
+        $this->orWhereRaw("1 = 0");
+        return $this;
+    }
+
+    /**
      * Whether appended query or sub query. If not appended, return false, and set query
      *
      * @param string $keyName
@@ -115,7 +135,7 @@ trait ExtendedBuilderTrait
             throw new \Exception('Now whereInMultiple is only support 2 columns.');
         }
         if (boolval($zeroQueryIfEmpty) && empty($values)) {
-            return $this->whereRaw('1 = 0');
+            return $this->whereNotMatch();
         }
 
         // is suport where in multiple ----------------------------------------------------
@@ -215,7 +235,7 @@ trait ExtendedBuilderTrait
     protected function _whereInArrayString($column, $values, bool $isOr = false, bool $isNot = false)
     {
         if (is_null($values)) {
-            return $this->whereRaw('1 = 0');
+            return $this->whereNotMatch();
         }
 
         $tableName = $this->model->getTable();
@@ -256,7 +276,7 @@ trait ExtendedBuilderTrait
         $values = array_values($values);
 
         if (count($values) < 2) {
-            return $this->whereRaw('1 = 0');
+            return $this->whereNotMatch();
         }
 
         if ($isOr) {
@@ -379,7 +399,7 @@ trait ExtendedBuilderTrait
     protected function _whereDate(string $column, $value, bool $isDatetime, bool $isOr = false)
     {
         if (is_null($value)) {
-            return $this->whereRaw('1 = 0');
+            return $this->whereNotMatch();
         }
 
         if (is_string($value)) {
@@ -395,7 +415,7 @@ trait ExtendedBuilderTrait
     protected function _whereYear(string $column, $value, bool $isDatetime, bool $isOr = false)
     {
         if (is_null($value)) {
-            return $this->whereRaw('1 = 0');
+            return $this->whereNotMatch();
         }
 
         if (preg_match("|^\d{4}$|", $value)) {
@@ -416,7 +436,7 @@ trait ExtendedBuilderTrait
     protected function _whereYearMonth(string $column, $value, bool $isDatetime, bool $isOr = false)
     {
         if (is_null($value)) {
-            return $this->whereRaw('1 = 0');
+            return $this->whereNotMatch();
         }
 
         if (is_string($value)) {
@@ -455,7 +475,7 @@ trait ExtendedBuilderTrait
     protected function _whereDateMark(string $column, $value, $mark, bool $isDatetime, bool $isOr = false)
     {
         if (is_null($value)) {
-            return $this->whereRaw('1 = 0');
+            return $this->whereNotMatch();
         }
 
         if (is_string($value)) {

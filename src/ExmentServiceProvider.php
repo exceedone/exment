@@ -85,6 +85,8 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\ResetPasswordCommand',
         'Exceedone\Exment\Console\CheckConnectionCommand',
         'Exceedone\Exment\Console\TotalUpdateCommand',
+        'Exceedone\Exment\Console\FileColumnImportCommand',
+        'Exceedone\Exment\Console\DocumentImportCommand',
     ];
 
     
