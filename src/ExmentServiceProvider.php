@@ -131,6 +131,7 @@ class ExmentServiceProvider extends ServiceProvider
         'publicform.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicForm::class,
         'publicform.bootstrap'       => \Exceedone\Exment\Middleware\BootstrapPublicForm::class,
         'publicformapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicFormApi::class,
+        'publicform.session'    => \Exceedone\Exment\Middleware\PublicFormSession::class,
         
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
@@ -241,7 +242,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.pjax',
             'admin.bootstrap',
             'publicform.bootstrap',
-            'admin.session',
+            'publicform.session',
         ],
     ];
 
@@ -313,7 +314,7 @@ class ExmentServiceProvider extends ServiceProvider
             return Plugin::getPluginPageModel();
         });
         $this->app->bind(PublicForm::class, function ($app) {
-            return PublicForm::getPublicFormByRequest(PublicForm::getUuidByRequest());
+            return PublicForm::getPublicFormByRequest();
         });
         $this->app->bind(CustomTable::class, function ($app) {
             return CustomTable::findByEndpoint();

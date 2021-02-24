@@ -21,6 +21,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -35,4 +36,18 @@ use Exceedone\Exment\Services\PartialCrudService;
 class PublicFormShow extends DefaultShow
 {
     protected static $showClassName = \Exceedone\Exment\Form\PublicShow::class;
+    
+    /**
+     * Set public Form
+     *
+     * @param  PublicForm  $public_form  Public Form
+     *
+     * @return  self
+     */ 
+    public function setPublicForm(PublicForm $public_form)
+    {
+        $this->public_form = $public_form;
+
+        return $this;
+    }
 }

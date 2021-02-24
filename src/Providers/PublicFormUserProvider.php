@@ -51,7 +51,7 @@ class PublicFormUserProvider extends \Illuminate\Auth\EloquentUserProvider
      */
     public function retrieveByCredentials(array $credentials){
         $uuid = array_get($credentials, 'uuid');
-        $public_form = PublicForm::getPublicFormByRequest($uuid);
+        $public_form = PublicForm::getPublicFormByUuid($uuid);
         if(!$public_form){
             return null;
         }

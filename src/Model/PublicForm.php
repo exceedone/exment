@@ -70,13 +70,23 @@ class PublicForm extends ModelBase
 
 
     /**
+     * Get form base path
+     *
+     * @return string
+     */
+    public function getBasePath() : string
+    {
+        return url_join(config('exment.publicform_route_prefix', 'publicform'), $this->uuid);
+    }
+
+    /**
      * Get form url
      *
      * @return string
      */
     public function getUrl() : string
     {
-        return asset_urls(config('exment.publicform_route_prefix', 'publicform'), $this->uuid);
+        return asset_urls($this->getBasePath());
     }
 
 
@@ -112,11 +122,11 @@ class PublicForm extends ModelBase
     }
 
     /**
-     * Get from by request
+     * Get from by uuid
      *
      * @return PublicForm|null
      */
-    public static function getPublicFormByRequest($uuid) : ?PublicForm
+    public static function getPublicFormByUuid($uuid) : ?PublicForm
     {
         if(!$uuid){
             return null;
@@ -141,9 +151,20 @@ class PublicForm extends ModelBase
         if(!is_nullorempty($end) && Carbon::parse($end)->lt($now)){
             return null;
         }
-        
 
         return $model;
+    }
+
+
+    /**
+     * Get from by uuid
+     *
+     * @return PublicForm|null
+     */
+    public static function getPublicFormByRequest() : ?PublicForm
+    {
+        $uuid = static::getUuidByRequest();
+        return static::getPublicFormByUuid($uuid);
     }
 
 
@@ -211,7 +232,8 @@ class PublicForm extends ModelBase
             return null;
         }
         $public_form = PublicFormForm::getItem($this->custom_table_cache, $this->custom_form_cache)
-            ->setEnableDefaultQuery(boolval($this->getOption('use_default_query')));
+        ->setPublicForm($this)
+        ->setEnableDefaultQuery(boolval($this->getOption('use_default_query')));
     
         $form = $public_form->form()
             ->disablePjax()
@@ -265,6 +287,7 @@ class PublicForm extends ModelBase
         }
         $show = PublicFormShow::getItem($custom_value->custom_table, $custom_form)
             ->custom_value($custom_value)
+            ->setPublicForm($this)
             ->createShowForm()
             ->setAction(url_join($this->getUrl(),  'create'))
             ->setBackAction($this->getUrl())

@@ -216,6 +216,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->delete('files/{tableKey}/{uuid}', 'FileController@deleteTable');
             
             $router->post('tmpfiles', 'FileController@uploadTempFile');
+            $router->post('tmpimages', 'FileController@uploadTempImage');
             $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFile');
             
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
@@ -304,6 +305,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('/confirm', 'PublicFormController@confirm');
             $router->post('/create', 'PublicFormController@create');
             $router->get('files/{uuid}', 'FileController@downloadPublicForm');
+            $router->post('tmpimages', 'FileController@uploadTempImage');
+            $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFilePublicForm');
         });
     }
     

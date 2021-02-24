@@ -74,6 +74,10 @@ class Editor extends CustomItem
         $field->callbackValue(function ($value) use ($item) {
             return $item->replaceImgUrl($value);
         });
+
+        if($this->isPublicForm()){
+            $field->setPostImageUri($this->options['public_form']->getUrl());
+        }
     }
     
     protected function setValidates(&$validates, $form_column_options)

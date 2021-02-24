@@ -36,7 +36,7 @@ trait ItemTrait
      * Form items option
      * 
      * [
-     *     'public_form': if this form is public_form, set
+     *     'public_form': if this form is public_form, set publcform model
      * ]
      * @var array
      */
@@ -353,9 +353,9 @@ trait ItemTrait
      *
      * @return boolean
      */
-    public function isPublicForm()
+    public function isPublicForm() : bool
     {
-        return boolval(array_get($this->options, 'public_form'));
+        return !is_nullorempty(array_get($this->options, 'public_form'));
     }
 
     /**

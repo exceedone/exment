@@ -10,9 +10,11 @@
             <i class="fa fa-trash"></i>
         </a>
         
+        @if(boolval($custom_form_column['use_setting']))
         <a href="javascript:void(0);" class="config-icon pull-right setting" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-widgetmodal_method="POST" data-toggle="tooltip" title="{{trans('admin.setting')}}">
             <i class="fa fa-cog"></i>
         </a>
+        @endif
         
         @include('exment::custom-form.fields.block-hidden', ['param_name' => 'form_block_type'])
         @include('exment::custom-form.fields.block-hidden', ['param_name' => 'form_block_target_table_id'])

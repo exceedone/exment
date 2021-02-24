@@ -75,7 +75,6 @@ class PublicFormController extends Controller
      */
     public function index(Request $request)
     {
-        $request->session()->regenerate();
         return $this->getInputContent($request);
     }
 

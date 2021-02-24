@@ -31,6 +31,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\ColumnItems\ItemInterface;
 
 class DefaultShow extends ShowBase
 {
@@ -114,6 +115,8 @@ class DefaultShow extends ShowBase
                         if (!isset($item)) {
                             continue;
                         }
+                        $this->setColumnItemOption($item);
+                        
                         $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
                             ->as(function ($v) use ($item) {
                                 if (is_null($this)) {
@@ -807,5 +810,30 @@ EOT;
             'result' => true,
             'toastr' => trans('admin.delete_succeeded'),
         ]);
+    }
+    
+
+
+    /**
+     * Set ColumnItem's option to column item
+     *
+     * @param ItemInterface $column_item
+     * @return void
+     */
+    protected function setColumnItemOption(ItemInterface $column_item)
+    {
+        if($this->isPublicForm()){
+            $column_item->options(['public_form' => $this->public_form]);
+        }
+    }
+
+    /**
+     * Whether this form is publicform
+     *
+     * @return boolean
+     */
+    protected function isPublicForm() : bool
+    {
+        return $this instanceof PublicFormShow;
     }
 }

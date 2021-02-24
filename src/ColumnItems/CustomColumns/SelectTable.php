@@ -153,7 +153,7 @@ class SelectTable extends CustomItem
         if ($text === false) {
             return $model;
         // get text column
-        } elseif ($html) {
+        } elseif ($html && !$this->isPublicForm()) {
             return $model->getUrl(true);
         } else {
             return $model->getLabel();

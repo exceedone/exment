@@ -16,6 +16,13 @@ class Tinymce extends Textarea
     protected $config = [];
 
     /**
+     * POST url. If null, return adminurl, else, return this value
+     *
+     * @var string
+     */
+    protected $postImageUri;
+
+    /**
      * Set config for tinymce.
      *
      * @param string $key
@@ -48,6 +55,33 @@ class Tinymce extends Textarea
         }
         
         return $tags;
+    }
+
+    /**
+     * Get pOST url. If null, return adminurl, else, return this value
+     *
+     * @return  string
+     */ 
+    public function getPostImageUri()
+    {
+        if($this->postImageUri){
+            return $this->postImageUri;
+        }
+        return admin_url();
+    }
+
+    /**
+     * Set pOST url. If null, return adminurl, else, return this value
+     *
+     * @param  string  $postUrl  POST url. If null, return adminurl, else, return this value
+     *
+     * @return  self
+     */ 
+    public function setPostImageUri(string $postImageUri)
+    {
+        $this->postImageUri = $postImageUri;
+
+        return $this;
     }
 
     public function render()
@@ -93,7 +127,7 @@ class Tinymce extends Textarea
 
         $max_file_size = \Exment::getUploadMaxFileSize();
         $message = exmtrans('custom_value.message.editor_image_oversize');
-        $url =  admin_url('tmpfiles') . '?_token='. csrf_token();
+        $url =  url_join($this->getPostImageUri(), 'tmpimages') . '?_token='. csrf_token();
 
         $this->script = <<<EOT
         var config = $configs;

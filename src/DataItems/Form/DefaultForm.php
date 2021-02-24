@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\Calc\CalcService;
+use Exceedone\Exment\ColumnItems\ItemInterface;
 
 class DefaultForm extends FormBase
 {
@@ -786,14 +787,14 @@ EOT;
     /**
      * Set ColumnItem's option to column item
      *
-     * @param [type] $column_item
+     * @param ItemInterface $column_item
      * @return void
      */
-    protected function setColumnItemOption($column_item)
+    protected function setColumnItemOption(ItemInterface $column_item)
     {
         $column_item->setCustomForm($this->custom_form);
         if($this->isPublicForm()){
-            $column_item->options(['public_form' => true]);
+            $column_item->options(['public_form' => $this->public_form]);
         }
         if($this->enableDefaultQuery)
         {

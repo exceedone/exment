@@ -172,7 +172,7 @@ var Exment;
             $items.each(function (index, element) {
                 allWidth += $(element).find('[data-width]').data('width');
             });
-            if (allWidth >= 4) {
+            if (allWidth >= 4 || allWidth == 0) {
                 $button.closest('.addbutton_block').hide();
             }
             else {

@@ -60,6 +60,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         }
 
         $form = new Form(new PublicForm);
+        $form->disableValidate(); // Not working validation if tab.
         $public_form = PublicForm::find($id);
         $custom_table = $this->custom_table;
 
@@ -91,7 +92,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             
             
             $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
-                ->tabRequired()
+                ->requiredRule()
                 ->help(exmtrans("custom_form_public.help.custom_form_id"))
                 ->options(function ($value) use ($custom_table) {
                     return $custom_table->custom_forms->mapWithKeys(function ($item) {
@@ -100,7 +101,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 });
                 
             $form->text('public_form_view_name', exmtrans("custom_form_public.public_form_view_name"))
-                ->tabRequired()
+                ->requiredRule()
                 ->rules("max:40")
                 ->help(exmtrans('common.help.view_name'));
             
@@ -269,17 +270,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             $form->hasManyJson('error_notify_actions', exmtrans("custom_form_public.error_notify_target"), function ($form) {
                 $form->select('notify_action', exmtrans("notify.notify_action"))
                     ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
-                    ->tabRequired()
-                    ->attribute([
-                        'data-filtertrigger' =>true,
-                        'data-linkage' => json_encode([
-                            'notify_action_target' => admin_url('notify/notify_action_target'),
-                        ]),
-                        'data-linkage-getdata' =>json_encode([
-                            ['key' => 'custom_table_id', 'parent' => 1],
-                            ['key' => 'workflow_id', 'parent' => 1],
-                        ]),
-                    ])
+                    ->required()
                     ->config('allowClear', false)
                     ->help(exmtrans("notify.help.notify_action"))
                     ;
@@ -422,7 +413,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $original_public_form = PublicForm::find($id);
         // get this form's info
         $form = $this->form();
-        $model = $form->getModelByInputs();
+        $model = $form->getModelByInputs($original_public_form);
 
         // Now, cannot set header logo by getModelByInputs.
         if($original_public_form){
