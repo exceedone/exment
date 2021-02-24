@@ -24,6 +24,14 @@ class FileController extends AdminControllerBase
     }
 
     /**
+     * Download file (call as publicform)
+     */
+    public function downloadPublicForm(Request $request, $publicFormUuid, $uuid)
+    {
+        return static::downloadFile($uuid);
+    }
+
+    /**
      * Download file (call as web)
      */
     public function downloadTable(Request $request, $tableKey, $uuid)

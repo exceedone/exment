@@ -132,7 +132,8 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->help(exmtrans("custom_form_public.help.header_logo", ['size' => array_get($fileOption, 'maxFileSizeHelp')]))
                     ->options($fileOption)
                     ->removable()
-                    ->move($custom_table->table_name)
+                    ->attribute(['accept' => "image/*"])
+                    ->move("publicform/{$custom_table->table_name}")
                     ->callableName(function ($file) use ($custom_table) {
                         return \Exment::setFileInfo($this, $file, FileType::PUBLIC_FORM, $custom_table);
                     })
@@ -337,7 +338,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         });
         $form->disableEditingCheck(false);
             
-        $form->tools(function (Form\Tools $tools) use ($custom_table, $public_form) {
+        $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $public_form) {
             $tools->prepend(view('exment::tools.button', [
                 'href' => 'javascript:void(0);',
                 'label' => exmtrans('common.preview'),
@@ -345,7 +346,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 'btn_class' => 'btn-warning',
                 'attributes' => [
                     'data-preview' => true,
-                    'data-preview-url' => admin_urls('formpublic', $custom_table->table_name, 'preview'),
+                    'data-preview-url' => admin_urls('formpublic', $custom_table->table_name, $id, 'preview'),
                     'data-preview-error-title' => '',
                     'data-preview-error-text' => '',
                 ],
@@ -413,13 +414,20 @@ class CustomFormPublicController extends AdminControllerTableBase
      * Showing preview
      *
      * @param Request $request
+     * @param string|int|null $id If already saved model, set id
      * @return void
      */
-    public function preview(Request $request)
+    public function preview(Request $request, $tableKey, $id = null)
     {
+        $original_public_form = PublicForm::find($id);
         // get this form's info
         $form = $this->form();
         $model = $form->getModelByInputs();
+
+        // Now, cannot set header logo by getModelByInputs.
+        if($original_public_form){
+            $model->setOption('header_logo', $original_public_form->getOption('header_logo'));
+        }
         
         // get public form
         $preview_form = $model->getForm($request);

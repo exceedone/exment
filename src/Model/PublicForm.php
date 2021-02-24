@@ -314,6 +314,12 @@ class PublicForm extends ModelBase
             ],
             $options
         );
+
+        $header_logo = $this->getOption('header_logo');
+        if(isset($header_logo)){
+            $data = File::getData($header_logo);
+            $header_logo = $data ? File::getUrl($data, ['asPublicForm' => true, 'publicFormKey' => $this->uuid]) : null;
+        }
         $content->setBackgroundColor($this->getOption('background_color') ?? '#FFFFFF')
             ->setBackgroundColorOuter($this->getOption('background_color_outer') ?? '#FFFFFF')
             ->setHeaderBackgroundColor($this->getOption('header_background_color'))
@@ -322,6 +328,7 @@ class PublicForm extends ModelBase
             ->setUseHeader($this->getOption('use_header') ?? true)
             ->setUseFooter($this->getOption('use_footer') ?? true)
             ->setIsContainerFluid(($this->getOption('body_content_type') ?? 'width100') == 'width100')
+            ->setHeaderLogoUrl($header_logo)
             ->setHeaderLabel($this->getOption('header_label'))
             ;
 

@@ -28,7 +28,15 @@
     <!-- Main Header -->
     @if($use_header)
     <header class="main-header">
-        {{$header_label}}
+        @if(!is_nullorempty($header_logo_url))
+            <div class="logo">
+                <span class="logo-lg">
+                    <img src="{{$header_logo_url}}" alt="header logo">
+                </span>
+            </div>
+        @else
+            {{$header_label}}
+        @endif
     </header>
     @endif
 

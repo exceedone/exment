@@ -54,24 +54,38 @@ class File extends ModelBase
      * get the file url
      *
      * @param string $path file path
-     * @param boolean|null $asApi
+     * @param array|boolean|null $options (Old version, this args is boolean)
      * @return string|null
      */
-    public static function getUrl($path, ?bool $asApi = false) : ?string
+    public static function getUrl($path, $options = []) : ?string
     {
+        if($options === true){
+            $options = ['asApi' => true];
+        }
+        $options = array_merge(
+            [
+                'asApi' => false,
+                'asPublicForm' => false,
+                'publicFormKey' => null,
+            ],
+            $options
+        );
+
         $file = static::getData($path);
         if (is_null($file)) {
             return null;
         }
 
-        if (!is_nullorempty($file->extension)) {
-            $name = "files/".$file->uuid . '.' . $file->extension;
-        } else {
-            $name = "files/".$file->uuid;
-        }
+        $name = $file->uuid . (!is_nullorempty($file->extension) ? ('.' . $file->extension) : '');
+        $name = "files/{$name}";
 
-        if ($asApi) {
-            $name = url_join('api', "files/".$file->uuid);
+        // append prefix
+        if ($options['asApi']) {
+            $name = url_join('api', $name);
+        }elseif($options['asPublicForm']){
+            $name = url_join(config('exment.publicform_route_prefix', 'publicform'), $options['publicFormKey'], $name);
+            // If public form, return name
+            return asset($name);
         }
 
         return admin_url($name);

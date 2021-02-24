@@ -203,6 +203,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('form/{tableKey}/preview', 'CustomFormController@preview');
             $router->post('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
             $router->put('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
+            $router->post('formpublic/{tableKey}/{id}/preview', 'CustomFormPublicController@preview');
+            $router->put('formpublic/{tableKey}/{id}/preview', 'CustomFormPublicController@preview');
             $router->get("formpublic/{tableKey}/{id}/activeModal", 'CustomFormPublicController@activeModal');
             $router->post('formpublic/{tableKey}/{id}/activate', 'CustomFormPublicController@activate')->name('exment.login_activate');
             $router->post('formpublic/{tableKey}/{id}/deactivate', 'CustomFormPublicController@deactivate')->name('exment.login_deactivate');
@@ -301,6 +303,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('/', 'PublicFormController@backed');
             $router->post('/confirm', 'PublicFormController@confirm');
             $router->post('/create', 'PublicFormController@create');
+            $router->get('files/{uuid}', 'FileController@downloadPublicForm');
         });
     }
     

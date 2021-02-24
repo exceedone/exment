@@ -16,6 +16,7 @@ class PublicContent implements Renderable
      */
     protected $rows = [];
 
+    protected $header_logo_url;
     protected $header_label;
 
     protected $use_header = true;
@@ -150,6 +151,19 @@ class PublicContent implements Renderable
         return $this;
     }
 
+
+    /**
+     * Set the value of header_logo_url
+     *
+     * @return  self
+     */ 
+    public function setHeaderLogoUrl($header_logo_url)
+    {
+        $this->header_logo_url = $header_logo_url;
+
+        return $this;
+    }
+
     /**
      * Set analytics
      *
@@ -262,6 +276,7 @@ class PublicContent implements Renderable
             
             'container_fluid' => $this->container_fluid,
 
+            'header_logo_url' => $this->header_logo_url,
             'header_label' => $this->header_label,
             'use_header' => $this->use_header,
             'use_footer' => $this->use_footer,
