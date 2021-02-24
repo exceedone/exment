@@ -589,8 +589,8 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $from_table_view_name = $this->custom_table->table_view_name;
-        $to_table_view_name = $copy->to_custom_table->table_view_name;
+        $from_table_view_name = esc_html($this->custom_table->table_view_name);
+        $to_table_view_name = esc_html($copy->to_custom_table->table_view_name);
         $path = admin_urls('data', $this->custom_table->table_name, $id, 'copyClick');
         
         // create form fields
