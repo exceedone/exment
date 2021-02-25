@@ -25,9 +25,10 @@ class Image extends FormOtherItem
             return null;
         }
 
+        $public_form = $this->isPublicForm() ? array_get($this->options, 'public_form') : null;
         $url = ExmentFile::getUrl($file, [
             'asPublicForm' => $this->isPublicForm(),
-            'publicFormKey' => array_get($this->options, 'public_form')->uuid,
+            'publicFormKey' => $public_form ? $public_form->uuid : null,
         ]);
 
         $imageTag = '<img src="'.$url.'" class="mw-100 image_html" />';
