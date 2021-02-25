@@ -128,6 +128,10 @@ var Exment;
                 cache: true
             };
         }
+        isAbsolute(...args) {
+            let uri = URLJoin(...args);
+            return uri.indexOf('http://') === 0 || uri.indexOf('https://') === 0;
+        }
     }
     Exment.WebApi = WebApi;
 })(Exment || (Exment = {}));

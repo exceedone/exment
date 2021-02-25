@@ -140,6 +140,12 @@ namespace Exment {
             };
         }
 
+
+        protected isAbsolute(...args) : boolean{
+            let uri = URLJoin(...args);
+            return uri.indexOf('http://') === 0 || uri.indexOf('https://') === 0;
+        }
+
         
         /**
          * Get url's prefix

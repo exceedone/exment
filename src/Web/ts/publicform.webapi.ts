@@ -10,6 +10,11 @@ namespace Exment {
             if(!args){
                 args = [];
             }
+
+            if(this.isAbsolute(...args)){
+                return URLJoin(...args);
+            }
+
             args.unshift(this.getPrefix());
             args.unshift($('input.rooturi').val());
 

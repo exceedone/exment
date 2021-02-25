@@ -9,6 +9,9 @@ var Exment;
             if (!args) {
                 args = [];
             }
+            if (this.isAbsolute(...args)) {
+                return URLJoin(...args);
+            }
             args.unshift(this.getPrefix());
             return admin_url(URLJoin(...args));
         }
