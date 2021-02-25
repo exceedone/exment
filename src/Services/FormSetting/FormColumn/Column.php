@@ -184,7 +184,7 @@ class Column extends ColumnBase
             $form->select('changedata_column_id', exmtrans('custom_form.changedata_column'))
                 ->help(exmtrans('custom_form.changedata_column_then'))
                 ->options(function() use($parameters){
-                    if(is_null(array_get($changedata_target_column_id = $parameters, 'changedata_target_column_id'))){
+                    if(is_null($changedata_target_column_id = array_get($parameters, 'changedata_target_column_id'))){
                         return [];
                     }
 
