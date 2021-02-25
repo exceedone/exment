@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Form\Field;
 
 use Encore\Admin\Form\Field\Radio;
-use Encore\Admin\Validator\HasOptionRule;
 
 class RadioButton extends Radio
 {

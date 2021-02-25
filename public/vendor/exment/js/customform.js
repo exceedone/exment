@@ -217,7 +217,7 @@ var Exment;
             if ($copy.find('[data-column_no]').data('column_no') != 1) {
                 return;
             }
-            let $rowcopy = $('.template_item_row .row').clone(true);
+            let $rowcopy = $copy.closest('.custom_form_block').find('.template_item_row .row').clone(true);
             $copy.closest('.custom_form_column_items').append($rowcopy);
         }
         static toggleConfigIcon($elem, isShow) {

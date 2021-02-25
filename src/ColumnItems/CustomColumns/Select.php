@@ -109,7 +109,7 @@ class Select extends CustomItem
 
         $field->options($options);
 
-        if ($field instanceof RadioButton) {
+        if ($field instanceof RadioButton && !$this->required($form_column_options)) {
             $field->addEmpty(true);
         }
     }
