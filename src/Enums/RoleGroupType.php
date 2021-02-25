@@ -50,7 +50,7 @@ class RoleGroupType extends EnumBase
                 $permissions = Permission::TABLE_ROLE_PERMISSION;
                 if (!boolval(System::publicform_available())) {
                     $permissions = collect($permissions)->filter(function($permission){
-                        return !in_array($permission, [Permission::CUSTOM_FORM_PUBLIC_ALL, Permission::CUSTOM_FORM_PUBLIC]);
+                        return !in_array($permission, [Permission::CUSTOM_FORM_PUBLIC]);
                     })->toArray();
                 }
                 return $permissions;

@@ -1839,8 +1839,7 @@ return [
         'role_type_option_table' => [
             'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除、論理削除されたデータを再表示できます。'],
             'custom_form' => ['label' => 'フォーム設定', 'help' => 'フォームを追加・変更・削除できます。'],
-            'custom_form_public_all' => ['label' => '公開フォーム<br/>全体管理', 'help' => 'すべての公開フォームを追加・変更・削除できます。'],
-            'custom_form_public' => ['label' => '公開フォーム<br/>管理', 'help' => '自分が作成した公開フォームを追加・変更・削除できます。'],
+            'custom_form_public' => ['label' => '公開フォーム管理', 'help' => '公開フォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'システムビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => '全データの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
             'custom_value_view_all' => ['label' => '全データの閲覧', 'help' => 'すべてのデータを閲覧できます。'],

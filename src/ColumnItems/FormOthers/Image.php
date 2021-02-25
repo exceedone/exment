@@ -25,7 +25,10 @@ class Image extends FormOtherItem
             return null;
         }
 
-        $url = ExmentFile::getUrl($file);
+        $url = ExmentFile::getUrl($file, [
+            'asPublicForm' => $this->isPublicForm(),
+            'publicFormKey' => array_get($this->options, 'public_form')->uuid,
+        ]);
 
         $imageTag = '<img src="'.$url.'" class="mw-100 image_html" />';
         if(!boolval(array_get($this->form_column, 'options.image_aslink', false))){

@@ -438,6 +438,41 @@ class CustomFormPublicController extends AdminControllerTableBase
     }
 
 
+    /**
+     * file delete. Now only header_logo, If other file, todo refactor.
+     */
+    public function filedelete(Request $request, $tableKey, $id)
+    {
+        // If not id, sot saving, so return nothing doing.
+        $trueResult = getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
+        if(!$id){
+            return $trueResult;
+        }
+        
+        $original_public_form = PublicForm::find($id);
+        if(!$original_public_form){
+            return $trueResult;
+        }
+
+        $uri = $original_public_form->getOption('header_logo');
+        if(!$uri){
+            return $trueResult;
+        }
+
+        ExmentFile::deleteFileInfo($uri);
+        
+        $original_public_form->forgetOption('header_logo')
+            ->save();
+        
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
+    }
+    
 
     // Active・DeActive ----------------------------------------------------
     /**
@@ -532,7 +567,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 'showPreview' => true,
                 'deleteUrl' => admin_urls('formpublic', $custom_table->table_name, $id, 'filedelete'),
                 'deleteExtraData'      => [
-                    Field::FILE_DELETE_FLAG         => $id,
+                    Field::FILE_DELETE_FLAG         => 'header_logo',
                     '_token'                         => csrf_token(),
                     '_method'                        => 'PUT',
                 ],

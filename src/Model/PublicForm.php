@@ -54,18 +54,6 @@ class PublicForm extends ModelBase
         static::deleting(function ($model) {
             $model->deletingChildren();
         });
-        
-        static::addGlobalScope('only_self', function ($builder) {
-            $user = \Exment::user();
-            if (!isset($user)) {
-                return;
-            }
-            if ($user->hasPermission(Permission::CUSTOM_FORM_PUBLIC_ALL)) {
-                return;
-            }
-
-            $builder->where('proxy_user_id', $user->getUserId());
-        });
     }
 
 

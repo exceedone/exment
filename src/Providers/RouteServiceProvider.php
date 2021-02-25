@@ -208,6 +208,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("formpublic/{tableKey}/{id}/activeModal", 'CustomFormPublicController@activeModal');
             $router->post('formpublic/{tableKey}/{id}/activate', 'CustomFormPublicController@activate')->name('exment.login_activate');
             $router->post('formpublic/{tableKey}/{id}/deactivate', 'CustomFormPublicController@deactivate')->name('exment.login_deactivate');
+            $router->put('formpublic/{tableKey}/filedelete', 'CustomFormPublicController@filedelete');
+            $router->put('formpublic/{tableKey}/{id}/filedelete', 'CustomFormPublicController@filedelete');
             
             $router->get('files/{uuid}', 'FileController@download');
             $router->get('files/{tableKey}/{uuid}', 'FileController@downloadTable');
