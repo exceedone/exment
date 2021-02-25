@@ -79,6 +79,11 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->hasMany(CustomFormPriority::class, 'custom_form_id');
     }
     
+    public function public_forms()
+    {
+        return $this->hasMany(PublicForm::class, 'custom_form_id');
+    }
+    
     public function custom_form_columns()
     {
         return $this->hasManyThrough(CustomFormColumn::class, CustomFormBlock::class, 'custom_form_id', 'custom_form_block_id');
@@ -224,6 +229,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         $this->custom_form_blocks()->delete();
         $this->custom_form_priorities()->delete();
+        $this->public_forms()->delete();
     }
 
     protected static function boot()
