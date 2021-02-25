@@ -172,10 +172,11 @@ class Embeds extends AdminField\Embeds
      */
     protected function convertRowColumnGroups(array $fieldOptions)
     {
-        $fieldGroups = collect($fieldOptions)->sortBy(function($fieldOption){
+        $fieldGroups = collect($fieldOptions)->sortBy(function($fieldOption, $index){
             $row = array_get($fieldOption, 'options.row', 1);
             $column = array_get($fieldOption, 'options.column', 1);
-            return "{$row}-{$column}";
+            $index = str_pad($index, 3, 0, STR_PAD_LEFT);
+            return "{$row}-{$column}-{$index}";
         })
         // grid form, group row
         ->groupBy(function ($fieldOption, $key) {
