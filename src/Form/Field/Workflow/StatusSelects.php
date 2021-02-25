@@ -65,7 +65,7 @@ class StatusSelects extends Select
         }
 
         if ($this->options instanceof \Closure) {
-            if ($this->form) {
+            if ($this->form && $this->form->model()) {
                 $this->options = $this->options->bindTo($this->form->model());
             }
 
