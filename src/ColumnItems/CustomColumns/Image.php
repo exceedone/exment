@@ -26,6 +26,9 @@ class Image extends File
 
     protected function getAdminFieldClass()
     {
+        if($this->isMultipleEnabled()){
+            return Field\MultipleImage::class;
+        }
         return Field\Image::class;
     }
     
@@ -36,10 +39,13 @@ class Image extends File
         $field->attribute(['accept' => "image/*"]);
     }
 
-    protected function setValidates(&$validates, $form_column_options)
+    /**
+     * Get separate word for multiple
+     *
+     * @return string|null
+     */
+    protected function getSeparateWord() : ?string
     {
-        $validates[] = new \Exceedone\Exment\Validator\ImageRule;
-
-        parent::setValidates($validates, $form_column_options);
+        return '';
     }
 }

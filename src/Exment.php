@@ -756,7 +756,7 @@ class Exment
     /**
      * save file info to database
      */
-    public function setFileInfo($field, $file, $file_type, $custom_table)
+    public function setFileInfo($field, $file, $file_type, $custom_table, bool $replace = true)
     {
         // get local filename
         $dirname = $field->getDirectory();
@@ -772,7 +772,8 @@ class Exment
             'uuid' => $exmentfile->uuid,
             'column_name' => $field->column(),
             'custom_table' => $custom_table,
-            'path' => $exmentfile->path
+            'path' => $exmentfile->path,
+            'replace' => $replace,
         ];
         System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
         
