@@ -356,4 +356,17 @@ class File extends CustomItem
         // enable multiple
         $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"));
     }
+    
+    /**
+     * Get separate word for multiple
+     *
+     * @return string|null
+     */
+    protected function getSeparateWord() : ?string
+    {
+        if(boolval(array_get($this->options, 'asApi'))){
+            return ",";
+        }
+        return exmtrans('common.separate_word');
+    }
 }
