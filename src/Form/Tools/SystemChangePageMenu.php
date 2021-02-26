@@ -78,13 +78,6 @@ class SystemChangePageMenu extends ModalTileMenuButton
                 'permission' => \Exment::user()->hasPermission(Permission::WORKFLOW),
             ],
             [
-                'href' => admin_url('notify'),
-                'icon' => 'fa-bell',
-                'header' => exmtrans('notify.header'),
-                'description' => exmtrans('notify.description'),
-                'permission' => \Exment::user()->hasPermission(Permission::SYSTEM),
-            ],
-            [
                 'href' => admin_url('api_setting'),
                 'icon' => 'fa-code-fork',
                 'header' => exmtrans('api.header'),

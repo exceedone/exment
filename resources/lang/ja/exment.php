@@ -976,6 +976,7 @@ return [
         'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
         'custom_operation' => 'データ更新設定',
+        'notify' => '通知設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],

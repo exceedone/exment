@@ -40,7 +40,7 @@ use \Carbon\Carbon;
 
 class WorkflowController extends AdminControllerBase
 {
-    use HasResourceActions;
+    use HasResourceActions, WorkflowTrait;
 
     protected $exists = false;
 
@@ -95,6 +95,14 @@ class WorkflowController extends AdminControllerBase
                 ->tooltip(exmtrans('workflow.action'));
             $actions->prepend($linker);
             
+            if($actions->row->setting_completed_flg){
+                $linker = (new Linker)
+                    ->url(admin_urls('workflow', $actions->getKey(), 'notify'))
+                    ->icon('fa-bell')
+                    ->tooltip(exmtrans('notify.header'));
+                $actions->prepend($linker);
+            }
+
             if ($actions->row->disabled_delete) {
                 $actions->disableDelete();
             }
@@ -835,46 +843,6 @@ class WorkflowController extends AdminControllerBase
             return back()->withErrors($errors)
                         ->withInput();
         }
-    }
-
-    protected function getProgressInfo($workflow, $action)
-    {
-        $id = $workflow->id ?? null;
-
-        $steps = [];
-        $hasAction = false;
-        $workflow_action_url = null;
-        $workflow_status_url = null;
-        if (isset($id)) {
-            $hasAction = WorkflowAction::where('workflow_id', $id)->count() > 0;
-            $workflow_action_url = admin_urls('workflow', $id, 'edit?action=2');
-            $workflow_status_url = admin_urls('workflow', $id, 'edit');
-        }
-        
-        $steps[] = [
-            'active' => ($action == 1),
-            'complete' => false,
-            'url' => ($action != 1)? $workflow_status_url: null,
-            'description' => exmtrans('workflow.workflow_statuses')
-        ];
-
-        $steps[] = [
-            'active' => ($action == 2),
-            'complete' => false,
-            'url' => ($action != 2)? $workflow_action_url: null,
-            'description' => exmtrans('workflow.workflow_actions')
-        ];
-
-        if (isset($workflow) && boolval($workflow->setting_completed_flg)) {
-            $steps[] = [
-                'active' => ($action == 3),
-                'complete' => false,
-                'url' => ($action != 3) ? admin_url('workflow/beginning') : null,
-                'description' => exmtrans('workflow.beginning'),
-            ];
-        }
-        
-        return $steps;
     }
 
     /**

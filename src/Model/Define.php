@@ -332,6 +332,7 @@ class Define
         ['name' => 'view', 'href' => 'view/:table_name', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view', 'description' => 'custom_view.description'],
         ['name' => 'copy', 'href' => 'copy/:table_name', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy', 'description' => 'custom_copy.description'],
         ['name' => 'operation', 'href' => 'operation/:table_name', 'icon' => 'fa-reply-all', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_operation', 'description' => 'custom_operation.description'],
+        ['name' => 'notify', 'href' => 'notify/:table_name', 'icon' => 'fa-bell', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.notify', 'description' => 'notify.description'],
         ['name' => 'data', 'href' => 'data/:table_name', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value', 'description' => 'custom_value.description'],
     ];
 

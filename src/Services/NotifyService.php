@@ -698,9 +698,9 @@ class NotifyService
             'get_organization' => false,
         ], $options);
 
-        if (!isset($notify_action)) {
-            return [];
-        }
+        // if (!isset($notify_action)) {
+        //     return [];
+        // }
 
         $array = getTransArray(($options['as_workflow'] ? NotifyActionTarget::ACTION_TARGET_WORKFLOW() :  NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE()), 'notify.notify_action_target_options');
         $items = [];

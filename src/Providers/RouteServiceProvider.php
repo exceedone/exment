@@ -82,13 +82,15 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('template/export', function () {
                 return redirect(admin_url('template'));
             });
-            
-            $router->post('notify/setting', 'NotifyController@postNotifySetting');
-            $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
-            $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
-            $router->get('notify/notify_action_target_workflow', 'NotifyController@notify_action_target_workflow');
+
+            $router->get("workflow/beginning", 'WorkflowController@beginningForm');
+            $router->post("workflow/beginning", 'WorkflowController@beginningPost');
+            $router->get('workflow/{workflow_id}/notify/notify_action_target', 'WorkflowNotifyController@notify_action_target');
+            $this->setResouce($router, 'workflow/{workflow_id}/notify', 'WorkflowNotifyController');
+
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
-            $router->resource('notify', 'NotifyController');
+            $router->get('notify/{tableKey}/notify_action_target', 'CustomNotifyController@notify_action_target');
+            
             $router->post("notify_navbar/batchAll/{type}", 'NotifyNavbarController@batchAll');
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
@@ -114,9 +116,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('plugin/{id}/executeBatch', 'PluginController@executeBatch');
 
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
-
-            $router->get("workflow/beginning", 'WorkflowController@beginningForm');
-            $router->post("workflow/beginning", 'WorkflowController@beginningPost');
 
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');
@@ -230,7 +229,8 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'relation', 'CustomRelationController');
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
             $this->setTableResouce($router, 'operation', 'CustomOperationController');
-
+            $this->setTableResouce($router, 'notify', 'CustomNotifyController');
+            
             // only webapi api function
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
