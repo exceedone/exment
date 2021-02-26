@@ -106,7 +106,14 @@ class ParentItem implements ItemInterface
      */
     protected function _html($v)
     {
-        return isset($v) ? $v->getUrl(true) : null;
+        if (!isset($v)) {
+            return null;
+        // get text column
+        } elseif ($this->isPublicForm()) {
+            return $v->getLabel();
+        } else {
+            return $v->getUrl(true);
+        }
     }
 
     /**

@@ -57,6 +57,7 @@ var Exment;
         //
         const $target = $(ev.target);
         const val = $target.val();
+        const form_uniqueName = $target.closest('form[data-form_uniquename]').data('form_uniquename');
         // get changehtml items
         let items = $target.data('changehtml');
         for (let i = 0; i < items.length; i++) {
@@ -80,6 +81,7 @@ var Exment;
                 data: {
                     'val': val,
                     'form_type': form_type,
+                    'form_uniqueName': form_uniqueName,
                 },
                 context: {
                     html: $html,

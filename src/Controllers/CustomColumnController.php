@@ -232,21 +232,6 @@ class CustomColumnController extends AdminControllerTableBase
                     return getTransArray($arrays, "custom_column.column_type_options");
                 })
                 ->attribute(['data-filtertrigger' =>true,
-                    'data-linkage' => json_encode([
-                        'options_select_import_column_id' => [
-                            'url' => admin_url('webapi/table/indexcolumns'),
-                            'text' => 'column_view_name',
-                        ],
-                        'options_select_export_column_id' => [
-                            'url' => admin_url('webapi/table/columns'),
-                            'text' => 'column_view_name',
-                        ],
-                        'options_select_target_view' => [
-                            'url' => admin_url('webapi/table/filterviews'),
-                            'text' => 'view_view_name',
-                        ],
-                    ]),
-                    'data-linkage-expand' => json_encode(['custom_type' => true]),
                     'data-changehtml' => json_encode([
                         [
                             'url' => admin_urls('column', $this->custom_table->table_name, $id, 'columnTypeHtml'),
@@ -481,13 +466,14 @@ class CustomColumnController extends AdminControllerTableBase
     public function columnTypeHtml(Request $request){
         $val = $request->get('val');
         $form_type = $request->get('form_type');
+        $form_uniqueName = $request->get('form_uniqueName');
         $id = $request->route('id');
 
         // get custom item
         $column_item = $this->getCustomItem($request, $id, $val);
 
         $form = new Form(new CustomColumn);
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use($form_type, $column_item) {
+        $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("custom_column.options.header"), function ($form) use($form_type, $column_item) {
             if($form_type == 'option'){
                 // Form options area -- start
                 $form->html('<div class="form_dynamic_options_response">')->plain();

@@ -74,6 +74,7 @@ class DefaultShow extends ShowBase
             if (isset($relations)) {
                 foreach ($relations as $relation) {
                     $item = ColumnItems\ParentItem::getItemWithParent($relation->child_custom_table, $relation->parent_custom_table);
+                    $this->setColumnItemOption($item);
 
                     $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
                         if (is_null($this)) {

@@ -228,6 +228,49 @@ var Exment;
                 $elem.find('.delete,.options,[data-toggle],.setting').hide();
             }
         }
+        static toggleColumnSuggest(isShow, $item) {
+            let $clone = null;
+            if ($item.find('.form_column_type').val() != '99') {
+                let form_column_type = $item.find('.form_column_type').val();
+                let form_column_target_id = $item.find('.form_column_target_id').val();
+                let form_block_type = $item.closest('.custom_form_column_block').data('form_block_type');
+                let form_block_target_table_id = $item.closest('.custom_form_column_block').data('form_block_target_table_id');
+                // get suggest_form_column_type.
+                let suggest_form_column_type;
+                if (form_column_type == '1') {
+                    suggest_form_column_type = '0';
+                }
+                else {
+                    suggest_form_column_type = form_column_type;
+                }
+                // get target suggest div area.
+                let $custom_form_block_target = $('.custom_form_column_block')
+                    .filter('[data-form_block_type="' + form_block_type + '"]')
+                    .filter('[data-form_block_target_table_id="' + form_block_target_table_id + '"]');
+                let $custom_form_column_suggests = $custom_form_block_target
+                    .find('.custom_form_column_suggests')
+                    .filter('[data-form_column_type="' + suggest_form_column_type + '"]')
+                    .find('.draggables');
+                // If showing, get clone from template.
+                if (isShow) {
+                    // find the same value hidden in suggest ul.
+                    let $template = $custom_form_block_target.find('[data-form_column_target_id="' + form_column_target_id + '"]')
+                        .filter('[data-form_column_type="' + form_column_type + '"]');
+                    if ($template) {
+                        $clone = $template.children('.custom_form_column_item').clone(true);
+                        $clone.appendTo($custom_form_column_suggests).show();
+                        CustomFromEvent.addDragSuggestEvent($clone);
+                    }
+                }
+                // Else, remove from suggest showing 
+                else {
+                    // get suggest item
+                    let $suggest = $custom_form_column_suggests.find('.form_column_target_id[value="' + form_column_target_id + '"]').closest('.custom_form_column_item');
+                    $suggest.remove();
+                }
+            }
+            return $clone;
+        }
         /**
          * revert deleting column.
          */
@@ -250,6 +293,7 @@ var Exment;
                 $item.removeClass('deleting').fadeIn();
                 $item.find('.delete_flg').val(0);
                 $item.removeClass('deleteAsBox');
+                CustomFromEvent.toggleColumnSuggest(false, $item);
             });
         }
         static getHeaderName($li) {
@@ -477,37 +521,7 @@ var Exment;
             item.addClass('deleteAsBox');
         }
         item.fadeOut();
-        let $clone = null;
-        if (item.find('.form_column_type').val() != '99') {
-            let form_column_type = item.find('.form_column_type').val();
-            let form_column_target_id = item.find('.form_column_target_id').val();
-            let form_block_type = item.closest('.custom_form_column_block').data('form_block_type');
-            let form_block_target_table_id = item.closest('.custom_form_column_block').data('form_block_target_table_id');
-            // get suggest_form_column_type.
-            let suggest_form_column_type;
-            if (form_column_type == '1') {
-                suggest_form_column_type = '0';
-            }
-            else {
-                suggest_form_column_type = form_column_type;
-            }
-            // get target suggest div area.
-            let $custom_form_block_target = $('.custom_form_column_block')
-                .filter('[data-form_block_type="' + form_block_type + '"]')
-                .filter('[data-form_block_target_table_id="' + form_block_target_table_id + '"]');
-            let $custom_form_column_suggests = $custom_form_block_target
-                .find('.custom_form_column_suggests')
-                .filter('[data-form_column_type="' + suggest_form_column_type + '"]')
-                .find('.draggables');
-            // find the same value hidden in suggest ul.
-            let $template = $custom_form_block_target.find('[data-form_column_target_id="' + form_column_target_id + '"]')
-                .filter('[data-form_column_type="' + form_column_type + '"]');
-            if ($template) {
-                $clone = $template.children('.custom_form_column_item').clone(true);
-                $clone.appendTo($custom_form_column_suggests).show();
-                CustomFromEvent.addDragSuggestEvent($clone);
-            }
-        }
+        let $clone = CustomFromEvent.toggleColumnSuggest(true, item);
         if (isShowToastr) {
             toastr.warning($('#delete_revert_message').val(), $('#delete_title').val(), { timeOut: 5000, preventDuplicates: true, positionClass: 'toast-bottom-center', onclick: function () {
                     CustomFromEvent.revertDeleteColumn(item, $clone);
