@@ -259,6 +259,11 @@ abstract class CustomItem implements ItemInterface
      */
     public function getDefaultValue()
     {
+        // If change field, return null
+        if (boolval(array_get($this->options, 'changefield', false))) {
+            return null;
+        }
+
         // get request query
         $default = $this->getDefaultValueByQuery();
         if(!is_nullorempty($default)){
@@ -409,6 +414,11 @@ abstract class CustomItem implements ItemInterface
         // default
         if (is_null($this->id) && !is_null($default = $this->getDefaultValue())) {
             $field->default($default);
+        }
+
+        // number_format
+        if (boolval(array_get($options, 'number_format'))) {
+            $field->attribute(['number_format' => true]);
         }
 
         // readonly

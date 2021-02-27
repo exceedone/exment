@@ -1259,8 +1259,8 @@ return [
             'multiple_enabled' => '複数選択を許可する',
             'calc_formula' => '計算式',
             'currency_symbol' => '通貨の表示形式',
-            'checkbox_enabled' => 'チェックボックス形式で表示',
-            'radiobutton_enabled' => 'ラジオボタン形式で表示',
+            'check_radio_enabled' => 'ラジオボタン・チェックボックス形式で表示',
+            'checkbox_enabled' => 'ラジオボタン・チェックボックス形式で表示',
             'free_input' => '自由に入力可能にする',
         ],
         'column_type_options' => [
@@ -1329,8 +1329,8 @@ return [
             'select_table_deny' => '参照先のテーブル「%s」の権限がありません。システム管理者に問い合わせし、権限の追加を依頼してください。',
             'login_user_default' => 'YESにすることで、項目の初期値がログインユーザーになります。',
             'multiple_enabled' => 'YESにすることで、この列に複数の値を登録することができます。※一部の機能に制限がかかります。',
+            'check_radio_enabled' => 'YESにすることで、ラジオボタン形式またはチェックボックス形式で表示されます。',
             'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
-            'radiobutton_enabled' => 'YESにすることで、ラジオボタン形式で表示されます。',
             'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
         ],
         'available_characters' => [
