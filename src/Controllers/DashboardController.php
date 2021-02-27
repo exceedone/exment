@@ -259,14 +259,14 @@ EOT;
             ->rules("max:40");
 
         if (!System::userdashboard_available()) {
-            $form->hidden('dashboard_type')->default(DashboardType::SYSTEM);
+            $form->internal('dashboard_type')->default(DashboardType::SYSTEM);
         } elseif (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
                 ->config('allowClear', false)
                 ->default(DashboardType::SYSTEM);
         } else {
-            $form->hidden('dashboard_type')->default(DashboardType::USER);
+            $form->internal('dashboard_type')->default(DashboardType::USER);
         }
 
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);

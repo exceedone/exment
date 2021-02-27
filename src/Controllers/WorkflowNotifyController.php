@@ -146,7 +146,7 @@ class WorkflowNotifyController extends AdminControllerBase
         $notify = Notify::find($id);
         $workflow = $this->workflow;
 
-        $form->hidden('workflow_id')->default($this->workflow->id);
+        $form->internal('workflow_id')->default($this->workflow->id);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->default($this->workflow->workflow_view_name);
        
@@ -154,7 +154,7 @@ class WorkflowNotifyController extends AdminControllerBase
 
         $form->exmheader(exmtrans('notify.header_trigger'))->hr();
         
-        $form->hidden('notify_trigger')->default(NotifyTrigger::WORKFLOW);
+        $form->internal('notify_trigger')->default(NotifyTrigger::WORKFLOW);
         $form->display('notify_trigger', exmtrans("notify.notify_trigger"))
             ->displayText(exmtrans("notify.notify_trigger_options.workflow"));
        

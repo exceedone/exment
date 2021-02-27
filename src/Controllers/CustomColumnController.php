@@ -253,7 +253,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->displayText(function ($val) {
                     return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
                 })->escape(false);
-            $form->hidden('column_type')->default($column_type);
+            $form->internal('column_type')->default($column_type);
         }
 
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $column_item, $id) {

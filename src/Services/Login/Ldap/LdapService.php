@@ -154,7 +154,7 @@ class LdapService implements LoginServiceInterface
             $form->display('ldap_name_text', exmtrans('login.ldap_name'))->default(function () use ($login_setting) {
                 return $login_setting->getOption('ldap_name');
             });
-            $form->hidden('ldap_name');
+            $form->internal('ldap_name');
         }
 
         $form->exmheader(exmtrans('login.ldap_setting'))->hr()

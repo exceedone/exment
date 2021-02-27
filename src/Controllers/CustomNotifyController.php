@@ -35,7 +35,7 @@ class CustomNotifyController extends AdminControllerTableBase
         parent::__construct($custom_table, $request);
         
         $title = exmtrans("notify.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
-        $this->setPageInfo($title, $title, exmtrans("notify.description"), 'fa-th-list');
+        $this->setPageInfo($title, $title, exmtrans("notify.description"), 'fa-bell');
     }
 
 
@@ -137,7 +137,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $notify = Notify::find($id);
         $custom_table = $this->custom_table;
 
-        $form->hidden('custom_table_id')->default($this->custom_table->id);
+        $form->internal('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
         
         $this->setBasicForm($form, $notify);

@@ -80,7 +80,7 @@ trait NotifyTrait
     }
 
 
-    protected function setBasicForm(Form $form, ?Notify $notfiy)
+    protected function setBasicForm(Form $form, ?Notify $notify)
     {
         if (!isset($notify) || is_nullorempty($notify->notify_name)) {
             $form->text('notify_name', exmtrans("notify.notify_name"))
@@ -99,7 +99,7 @@ trait NotifyTrait
     }
 
 
-    protected function setActionForm($form, ?Notify $notfiy, $custom_table = null, $workflow_id = null)
+    protected function setActionForm($form, ?Notify $notify, $custom_table = null, $workflow_id = null)
     {
         $form->url('webhook_url', exmtrans("notify.webhook_url"))
             ->required()
@@ -145,7 +145,7 @@ trait NotifyTrait
         }
     }
 
-    protected function setMailTemplateForm($form, ?Notify $notfiy, $mail_template_id = null)
+    protected function setMailTemplateForm($form, ?Notify $notify, $mail_template_id = null)
     {
         $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
             return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
@@ -156,7 +156,7 @@ trait NotifyTrait
     }
 
 
-    protected function setFooterForm(Form $form, ?Notify $notfiy)
+    protected function setFooterForm(Form $form, ?Notify $notify)
     {
         $form->saving(function (Form $form) {
             $error = false;
