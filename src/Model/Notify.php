@@ -7,7 +7,7 @@ use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
@@ -251,55 +251,18 @@ class Notify extends ModelBase
      * notify workflow
      * *Contains Comment, share
      */
-    public function notifyWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo)
+    public function notifyWorkflow(CustomValue $custom_value, WorkflowAction $workflow_action, WorkflowValue $workflow_value, $statusTo)
     {
         $workflow = $workflow_action->workflow_cache;
 
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
-            $users = collect();
-            $notify_action_target = array_get($action_setting, 'notify_action_target', []);
-        
-            if (in_array(NotifyActionTarget::CREATED_USER, $notify_action_target)) {
-                $created_user = $custom_value->created_user_value;
-                $users = $users->merge(collect([$created_user]));
-            }
-    
-            if (in_array(NotifyActionTarget::WORK_USER, $notify_action_target)) {
-                // if this workflow is completed
-                if (!isset($workflow_value) || !$workflow_value->isCompleted()) {
-                    WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
-                    ->each(function ($workflow_action) use (&$users, $custom_value) {
-                        $users = $users->merge($workflow_action->getAuthorityTargets($custom_value, true));
-                    });
-                }
-            }
-    
-            $loginuser = \Exment::user();
-            $users = $users->unique()->filter(function ($user) use ($loginuser) {
-                if (is_nullorempty($loginuser)) {
-                    return true;
-                }
-                if ($this->isNotifyMyself()) {
-                    return true;
-                }
-                if ($loginuser->getUserId() != $user->getUserId()) {
-                    return true;
-                }
-                return false;
-            });
-    
-            // convert as NotifyTarget
-            $users = $users->map(function ($user) {
-                return NotifyTarget::getModelAsUser($user);
-            });
-    
+            $users = $this->getNotifyTargetUsersWorkflow($custom_value, $action_setting, $workflow_action, $workflow_value, $statusTo);
             $mail_template = $this->getMailTemplate();
     
             $prms = [
                 'notify' => $this,
             ];
-    
             if (NotifyAction::isChatMessage($action_setting)) {
                 // send slack message
                 NotifyService::executeNotifyAction($this, [
@@ -500,11 +463,57 @@ class Notify extends ModelBase
         // loop
         $values = collect([]);
         foreach (stringToArray($notify_action_target) as $notify_act) {
-            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act);
+            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act, $action_setting);
             foreach ($values_inner as $u) {
                 $values->push($u);
             }
         }
+
+        return $values;
+    }
+
+
+    /**
+     * get notify target users for workflow
+     *
+     * @param CustomValue $custom_value target custom value
+     * @param array $action_setting
+     * @return array
+     */
+    public function getNotifyTargetUsersWorkflow(CustomValue $custom_value, array $action_setting, WorkflowAction $workflow_action, WorkflowValue $workflow_value, $statusTo)
+    {
+        $notify_action_target = array_get($action_setting, 'notify_action_target');
+        if (!isset($notify_action_target)) {
+            return [];
+        }
+
+        // loop
+        $values = collect();
+        foreach (stringToArray($notify_action_target) as $notify_act) {
+            $notifyTarget = NotifyTargetBase::make($notify_act, $this, $action_setting);
+            if(!$notifyTarget){
+                continue;
+            }
+
+            $values_inner = $notifyTarget->getModelsWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo);
+            foreach ($values_inner as $u) {
+                $values->push($u);
+            }
+        }
+        
+        $loginuser = \Exment::user();
+        $values = $values->unique()->filter(function ($value) use ($loginuser) {
+            if (is_nullorempty($loginuser)) {
+                return true;
+            }
+            if ($this->isNotifyMyself()) {
+                return true;
+            }
+            if ($loginuser->getUserId() != $value->getUserId()) {
+                return true;
+            }
+            return false;
+        });
 
         return $values;
     }

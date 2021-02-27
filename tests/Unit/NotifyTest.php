@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Jobs;
@@ -395,6 +396,18 @@ class NotifyTest extends UnitTestBase
     /**
      * @return void
      */
+    public function testNotifyTargetAdministrator()
+    {
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::ADMINISTRATOR, function($targets, $custom_value){
+            $user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+            $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
+            $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
+        });
+    }
+
+    /**
+     * @return void
+     */
     public function testNotifyTargetCreatedUser()
     {
         $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::CREATED_USER, function($targets, $custom_value){
@@ -402,7 +415,6 @@ class NotifyTest extends UnitTestBase
             $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
             $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
         });
-
     }
 
 
@@ -412,7 +424,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyTargetHasRoles()
     {
         $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::HAS_ROLES, function($targets, $custom_value){
-            $users = $this->callStaticProtectedMethod(NotifyTarget::class, 'getModelsAsRole', $custom_value);
+            $users = NotifyTarget::getModelsAsRole($custom_value);
             $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
 
             foreach($users as $user){
@@ -432,7 +444,7 @@ class NotifyTest extends UnitTestBase
     /**
      * @return void
      */
-    public function testNotifyTargetEmail()
+    public function testNotifyTargetEmailColumn()
     {
         // get email column
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
@@ -524,17 +536,68 @@ class NotifyTest extends UnitTestBase
     }
 
     
+    /**
+     * @return void
+     */
+    public function testNotifyTargetFixedEmail()
+    {
+        $this->_testNotifyTargetFixedEmail([TestDefine::TESTDATA_DUMMY_EMAIL], [NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL)]);
+    }
+
+    
+    /**
+     * @return void
+     */
+    public function testNotifyTargetFixedEmail2()
+    {
+        $this->_testNotifyTargetFixedEmail([TestDefine::TESTDATA_DUMMY_EMAIL, TestDefine::TESTDATA_DUMMY_EMAIL2], [NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL), NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL2)]);
+    }
+
+    
+    /**
+     * @return void
+     */
+    public function testNotifyTargetFixedEmail3()
+    {
+        $this->_testNotifyTargetFixedEmail(TestDefine::TESTDATA_DUMMY_EMAIL . ',' . TestDefine::TESTDATA_DUMMY_EMAIL2, [NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL), NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL2)]);
+    }
+
 
     /**
      * @return void
      */
-    protected function _testNotifyTarget(CustomTable $custom_table, $notify_action_target, \Closure $checkCallback)
+    protected function _testNotifyTargetFixedEmail($target_emails, array $exceptUsers)
+    {
+        $users = $exceptUsers;
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::FIXED_EMAIL, function($targets, $custom_value) use($users){
+            $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
+
+            foreach($users as $user){
+                $this->assertTrue(collect($targets)->contains(function($target) use($user){
+                    return isMatchString($user->email(), $target->email());
+                }));
+            }
+            foreach($targets as $target){
+                $this->assertTrue(collect($users)->contains(function($user) use($target){
+                    return isMatchString($user->email(), $target->email());
+                }));
+            }
+        }, ['target_emails' => $target_emails]);
+    }
+
+    
+
+
+    /**
+     * @return void
+     */
+    protected function _testNotifyTarget(CustomTable $custom_table, $notify_action_target, \Closure $checkCallback, array $action_setting = [])
     {
         $this->init(true);
 
         foreach([2, 1, 10] as $id){
             $custom_value = $custom_table->getValueModel($id);
-            $targets = NotifyTarget::getModels(new Notify, $custom_value, $notify_action_target);
+            $targets = NotifyTarget::getModels(new Notify, $custom_value, $notify_action_target, $action_setting);
             
             $checkCallback($targets, $custom_value);
         }

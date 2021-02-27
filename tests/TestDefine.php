@@ -58,6 +58,7 @@ class TestDefine
     public const FILE2_TESTSTRING = 'Exment is Open Source Software.'; //text file.
 
     public const TESTDATA_DUMMY_EMAIL = 'foobar@test.com';
+    public const TESTDATA_DUMMY_EMAIL2 = 'foobar2@test.com';
 
     public const TESTDATA_COLUMN_NAMES = [
         'default' => [

@@ -210,6 +210,7 @@ return [
         'empty' => ':attributeの値は空欄のみ指定できます。',
         'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
+        'email_multiline' => 'Eメールアドレスでない行が含まれています。',
         
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
@@ -2169,6 +2170,7 @@ return [
         'mail_template_id' => '通知テンプレート',
         'notify_button_name' => 'ボタン表示名',
         'notify_select' => '送信先選択',
+        'target_emails' => '送信先メールアドレス',
         'message_input' => 'メッセージ入力',
         'webhook_url' => 'Webhook URL',
         'mention_here' => 'メンバー全員に通知を実施',
@@ -2191,6 +2193,7 @@ return [
             'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 ',
             'mention_here' => '指定のチャンネルで、ステータスがアクティブになっているメンバー全員に通知を行う、「@here」メンションを送ります。※個別のメンションを行うには、下の「通知対象」項目を設定してください。',
             'slack_user_column_not_setting' => '※システム設定の「Slack ID設定列(ユーザー)」が登録されていません。Slack IDを登録する列を指定後、通知対象を設定できます。',
+            'target_emails' => '通知を送信するメールアドレスを入力してください。複数指定する場合、改行区切りで入力してください。',
         ],
 
         'notify_trigger_options' => [
@@ -2211,9 +2214,11 @@ return [
         ],
 
         'notify_action_target_options' => [
+            'administrator' => 'システム管理者',
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
             'work_user' => '次の作業ユーザー',
+            'fixed_email' => '指定のメールアドレス',
         ],
 
         'message' => [
