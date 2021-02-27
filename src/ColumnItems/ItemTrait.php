@@ -36,7 +36,8 @@ trait ItemTrait
      * Form items option
      * 
      * [
-     *     'public_form': if this form is public_form, set publcform model
+     *     'public_form': If this form is public_form, set publcform model
+     *     'as_confirm' : If this form is before confirm, set true.
      * ]
      * @var array
      */

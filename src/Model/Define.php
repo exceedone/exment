@@ -202,6 +202,8 @@ class Define
     public const SYSTEM_KEY_SESSION_COMPOSER_VERSION = "exment_composer_version";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM = "public_form_confirm";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT = "public_form_input";
+    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES = "public_form_input_filenames";
+    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES = "public_form_saved_filenames";
 
 
     public const APPEND_QUERY_WORK_STATUS_SUB_QUERY = 'APPEND_QUERY_WORK_STATUS_SUB_QUERY';
@@ -470,6 +472,7 @@ class Define
     public const DISKNAME_PLUGIN_TEST = 'plugin_test';
     public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
     public const DISKNAME_TEMP_UPLOAD = 'tmpupload';
+    public const DISKNAME_PUBLIC_FORM_TMP = 'public_form_tmp';
 
     public const IMAGE_RULE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
 

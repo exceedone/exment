@@ -800,6 +800,9 @@ EOT;
         {
             $column_item->options(['enable_default_query' => true]);
         }
+        if($this->asConfirm){
+            $column_item->options(['as_confirm' => true]);
+        }
     }
 
     /**

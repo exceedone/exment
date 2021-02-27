@@ -18,6 +18,7 @@ use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
@@ -120,7 +121,9 @@ class PublicFormController extends Controller
      */
     public function confirm(Request $request)
     {
-        $form = $this->public_form->getForm($request);
+        $form = $this->public_form->getForm($request, null, [
+            'asConfirm' => true,
+        ]);
         
         //validate
         $response = $form->validateRedirect($request->all());
@@ -132,7 +135,9 @@ class PublicFormController extends Controller
 
         // set session
         $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM, $custom_value);
-        $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT, $request->all());
+        
+        $inputs = $this->removeUploadedFile($request->all());
+        $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT, $inputs);
 
         $show = $this->public_form->getShow($request, $custom_value);
 
@@ -152,7 +157,7 @@ class PublicFormController extends Controller
      */
     public function create(Request $request)
     {
-        $form = $this->public_form->getForm($request, null, false);
+        $form = $this->public_form->getForm($request, null, ['setRecaptcha' => false]);
         $public_form = $this->public_form;
         
         $form->saved(function($form) use($request, $public_form){
@@ -172,5 +177,27 @@ class PublicFormController extends Controller
         $request->session()->regenerateToken();
 
         return $response;
+    }
+
+
+    /**
+     * Remove uploaded file. For setting session.
+     *
+     * @param array $inputs
+     * @return array
+     */
+    protected function removeUploadedFile(array $inputs) : array{
+        foreach($inputs as &$input){
+            if(is_array($input)){
+                $input = $this->removeUploadedFile($input);
+            }
+            // $input is uploaded file, set requestsession key name
+            if($input instanceof \Illuminate\Http\UploadedFile){
+                $hashName = $input->hashName();
+                $input = System::requestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES . $hashName);
+            }
+        }
+
+        return $inputs;
     }
 }

@@ -177,6 +177,13 @@ class Initialize
             ]);
         }
 
+        if (!Config::has('filesystems.disks.public_form_tmp')) {
+            Config::set('filesystems.disks.public_form_tmp', [
+                'driver' => 'local',
+                'root' => storage_path('app/public_form_tmp'),
+            ]);
+        }
+
 
         /// only set by system
         Config::set('filesystems.disks.admin_tmp', [

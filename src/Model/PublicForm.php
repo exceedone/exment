@@ -209,8 +209,15 @@ class PublicForm extends ModelBase
      * @param boolean $setRecaptcha if true, set Recaptcha. If confirm→submit, set false
      * @return void
      */
-    public function getForm(Request $request, ?CustomValue $custom_value = null, bool $setRecaptcha = true)
+    public function getForm(Request $request, ?CustomValue $custom_value = null, array $options = [])
     {
+        $options = array_merge([
+            'setRecaptcha' => true,
+            'asConfirm' => false,
+        ], $options);
+        $setRecaptcha = $options['setRecaptcha'];
+
+
         \Admin::css(asset('vendor/exment/css/publicform.css'));
         // set footer as PublicFormFooter
         \Encore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
@@ -221,6 +228,7 @@ class PublicForm extends ModelBase
         }
         $public_form = PublicFormForm::getItem($this->custom_table_cache, $this->custom_form_cache)
         ->setPublicForm($this)
+        ->setAsConfirm($options['asConfirm'])
         ->setEnableDefaultQuery(boolval($this->getOption('use_default_query')));
     
         $form = $public_form->form()
