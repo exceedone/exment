@@ -45,6 +45,8 @@ abstract class NotifyTargetBase
         }
         
         switch($notify_action_target){
+            case NotifyActionTarget::ADMINISTRATOR:
+                return new Administrator($notify, $action_setting);
             case NotifyActionTarget::CREATED_USER:
                 return new CreatedUser($notify, $action_setting);
             case NotifyActionTarget::HAS_ROLES:

@@ -2040,6 +2040,7 @@ return [
         ],
 
         'notify_action_target_options' => [
+            'administrator' => 'システム管理者',
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
             'work_user' => '次の作業ユーザー',
