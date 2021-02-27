@@ -30,7 +30,7 @@ class Time extends Date
         return config('admin.time_format');
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $validates[] = new Validator\TimeRule();
     }
@@ -76,7 +76,7 @@ class Time extends Date
      * @param Form $form
      * @return void
      */
-    public function setCustomColumnDefaultValueForm(&$form)
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
         $form->select('default_type', exmtrans("custom_column.options.default_type"))
             ->help(exmtrans("custom_column.help.default_type"))
@@ -85,7 +85,7 @@ class Time extends Date
 
         $form->time('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
-            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_default_type', 'value' => ColumnDefaultType::SELECT_TIME])])
+            ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_TIME])])
             ;
     }
 }

@@ -21,12 +21,12 @@ class Header extends FormOtherItem
         return Field\Header::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         // not escape because always calls escape in "_html" function
         $field->escape(false);
 
-        if(boolval(array_get($form_column_options, 'append_hr'))){
+        if(boolval(array_get($this->form_column_options, 'append_hr'))){
             $field->hr();
         }
     }

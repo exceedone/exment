@@ -82,7 +82,7 @@ class Datetime extends Date
      * @param Form $form
      * @return void
      */
-    public function setCustomColumnDefaultValueForm(&$form)
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
         $form->select('default_type', exmtrans("custom_column.options.default_type"))
             ->attribute(['data-filtertrigger' =>true])
@@ -91,7 +91,7 @@ class Datetime extends Date
 
         $form->datetime('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
-            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATETIME])])
+            ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATETIME])])
             ;
     }
 }

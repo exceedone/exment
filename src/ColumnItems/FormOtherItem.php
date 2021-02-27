@@ -13,6 +13,13 @@ abstract class FormOtherItem implements ItemInterface
     protected $form_column;
 
     /**
+     * Custom form column options
+     *
+     * @var array
+     */
+    protected $form_column_options;
+    
+    /**
      * Available fields.
      *
      * @var array
@@ -114,17 +121,18 @@ abstract class FormOtherItem implements ItemInterface
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $form_column_options = $form_column->options ?? null;
+        $this->form_column_options = $form_column_options;
 
         $classname = $this->getAdminFieldClass();
         $field = new $classname($this->html(), []);
-        $this->setAdminOptions($field, $form_column_options);
+        $this->setAdminOptions($field);
 
         return $field;
     }
 
     abstract protected function getAdminFieldClass();
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
     }
 

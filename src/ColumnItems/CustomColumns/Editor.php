@@ -65,7 +65,7 @@ class Editor extends CustomItem
         return Field\Tinymce::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
         $field->rows(array_get($options, 'rows', 6));
@@ -80,7 +80,7 @@ class Editor extends CustomItem
         }
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         // value string
         $validates[] = new Validator\StringNumericRule();
@@ -252,7 +252,7 @@ class Editor extends CustomItem
      * @param Form $form
      * @return void
      */
-    public function setCustomColumnDefaultValueForm(&$form)
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
         $form->tinymce('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))

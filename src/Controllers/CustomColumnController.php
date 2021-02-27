@@ -278,6 +278,7 @@ class CustomColumnController extends AdminControllerTableBase
 
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"))
                 ->help(exmtrans("custom_column.help.placeholder"));
+            
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             
             $form->numberRange('min_width', 'max_width', exmtrans("custom_column.options.min_max_width"))

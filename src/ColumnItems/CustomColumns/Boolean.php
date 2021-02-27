@@ -43,13 +43,13 @@ class Boolean extends CustomItem
         return Filter\Equal::class;
     }
  
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $option = $this->getImportValueOption();
         $validates[] = new Validator\BooleanRule($option);
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
         

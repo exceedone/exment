@@ -22,7 +22,7 @@ class Text extends CustomItem
         return Field\Text::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
         
@@ -38,7 +38,7 @@ class Text extends CustomItem
         }
     }
 
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
         
@@ -57,7 +57,7 @@ class Text extends CustomItem
         }
     }
     
-    protected function getAppendHelpText($form_column_options) : ?string
+    protected function getAppendHelpText() : ?string
     {
         if ($this->initonly() && isset($this->value)) {
             return null;

@@ -1384,6 +1384,7 @@ return [
         'read_only' => '読み取り専用',
         'view_only' => '表示専用',
         'hidden' => '隠しフィールド',
+        'internal' => '非表示',
         'required' => '必須項目',
         'text' => 'テキスト',
         'html' => 'HTML',

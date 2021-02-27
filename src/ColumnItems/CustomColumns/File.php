@@ -96,7 +96,7 @@ class File extends CustomItem
         return ExmWhere::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         // set file options
         $fileOption = File::getFileOptions($this->custom_column, $this->id);
@@ -150,23 +150,23 @@ class File extends CustomItem
         return $v;
     }
 
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
 
-        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required', [])))) {
+        if ($this->required()) {
             $validates[] = new Validator\FileRequredRule($this->custom_column, $this->custom_value);
         }
     }
     
-    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    protected function getCustomField($classname, $column_name_prefix = null)
     {
-        $field = parent::getCustomField($classname, $form_column_options, $column_name_prefix);
+        $field = parent::getCustomField($classname, $column_name_prefix);
 
         $options = $this->custom_column->options;
 
         // required
-        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required')))) {
+        if ($this->required()) {
             $field->removeRule('required');
         }
 
@@ -263,5 +263,16 @@ class File extends CustomItem
             ->where('filename', $mark, $value)
             ->select(['parent_id'])
             ->get()->pluck('parent_id');
+    }
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
     }
 }

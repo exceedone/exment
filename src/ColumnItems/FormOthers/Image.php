@@ -41,7 +41,7 @@ class Image extends FormOtherItem
         ]);
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
     }
 }

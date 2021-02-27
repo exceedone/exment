@@ -40,7 +40,7 @@ class Integer extends CustomItem
         return Field\Number::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
         
@@ -62,7 +62,7 @@ class Integer extends CustomItem
         });
     }
 
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
         

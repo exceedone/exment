@@ -100,6 +100,10 @@ class Column extends ColumnBase
                 'view_only',
                 'read_only',
                 'hidden',
+                'internal',
+                'default_type',
+                'default',
+                'help',
                 'changedata_target_column_id',
                 'changedata_column_id',
             ]);
@@ -115,7 +119,7 @@ class Column extends ColumnBase
      */
     protected function convertFieldDisplayType(array $options) : ?string
     {
-        foreach(['view_only','read_only','hidden'] as $key)
+        foreach(['view_only','read_only','hidden','internal'] as $key)
         {
             if(isMatchString($key, array_get($options, 'field_showing_type'))){
                 return $key;
@@ -134,6 +138,7 @@ class Column extends ColumnBase
     public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
     {
         $form = new WidgetForm($parameters);
+        $column_item = $this->custom_column->column_item;
 
         $form->text('form_column_view_name', exmtrans('custom_form.form_column_view_name'))
             ->help(exmtrans('custom_form.help.form_column_view_name'))
@@ -151,9 +156,10 @@ class Column extends ColumnBase
             'read_only' => exmtrans('custom_form.read_only'),
             'view_only' => exmtrans('custom_form.view_only'),
             'hidden' => exmtrans('custom_form.hidden'),
+            'internal' => exmtrans('custom_form.internal'),
         ])->help(exmtrans('custom_form.help.field_showing_type') . \Exment::getMoreTag('form', 'custom_form.items_detail'))
         ->default(function() use($parameters){
-            foreach(['read_only', 'view_only', 'hidden'] as $key){
+            foreach(['read_only', 'view_only', 'hidden', 'internal'] as $key){
                 if(boolval(array_get($parameters, $key, false))){
                     return $key;
                 }
@@ -169,6 +175,10 @@ class Column extends ColumnBase
                 ->help(exmtrans('custom_form.help.required'));
         }
 
+        $column_item->setCustomColumnDefaultValueForm($form, true);
+
+        $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
+            
         $selectColumns = $this->getSelectTableColumns($block_item)->filter(function($selectColumn, $key){
             return !isMatchString($key, $this->custom_column->id);
         });
