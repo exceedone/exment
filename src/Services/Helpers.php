@@ -1103,7 +1103,7 @@ if (!function_exists('replaceBrTag')) {
 if (!function_exists('explodeBreak')) {
     /**
      * explode new line code
-     * @return string
+     * @return array
      */
     function explodeBreak($text)
     {

@@ -703,6 +703,12 @@ class NotifyService
         // }
 
         $array = getTransArray(($options['as_workflow'] ? NotifyActionTarget::ACTION_TARGET_WORKFLOW() :  NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE()), 'notify.notify_action_target_options');
+
+        // if $notify_action is email, set fixed email
+        if(\isMatchString($notify_action, NotifyAction::EMAIL)){
+            $array[NotifyActionTarget::FIXED_EMAIL] = exmtrans('notify.notify_action_target_options.fixed_email');
+        }
+
         $items = [];
         foreach ($array as $k => $v) {
             $items[] = ['id' => $k, 'text' => $v];
