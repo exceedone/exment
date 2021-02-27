@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class Image extends \Encore\Admin\Form\Field\Image
+class MultipleImage extends \Encore\Admin\Form\Field\MultipleImage
 {
     /**
      *  Validation rules.

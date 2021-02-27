@@ -6,7 +6,6 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FileType;
@@ -14,6 +13,8 @@ use Exceedone\Exment\Validator;
 
 class File extends CustomItem
 {
+    use SelectTrait;
+    
     /**
      * get file info
      */
@@ -88,6 +89,9 @@ class File extends CustomItem
 
     protected function getAdminFieldClass()
     {
+        if($this->isMultipleEnabled()){
+            return Field\MultipleFile::class;
+        }
         return Field\File::class;
     }
     
@@ -105,14 +109,84 @@ class File extends CustomItem
         
         // set filename rule
         $custom_table = $this->getCustomTable();
-        $field->move($custom_table->table_name);
-        $field->callableName(function ($file) use ($custom_table) {
-            return \Exment::setFileInfo($this, $file, FileType::CUSTOM_VALUE_COLUMN, $custom_table);
-        });
-        $field->caption(function ($caption) {
-            $file = ExmentFile::getData($caption);
+        $multiple = $this->isMultipleEnabled();
+        $field->move($custom_table->table_name)
+        ->callableName(function ($file) use ($custom_table, $multiple) {
+            return \Exment::setFileInfo($this, $file, FileType::CUSTOM_VALUE_COLUMN, $custom_table, !$multiple);
+        })->fileIndex(function ($index, $file) {
+            $file = ExmentFile::getData($file);
+            return $file->uuid ?? 0;
+        })->caption(function ($caption, $key) {
+            $file = ExmentFile::getData($key);
             return $file->filename ?? basename($caption);
         });
+    }
+
+
+    /**
+     * Delete attachment's file
+     *
+     * @param string $del_key
+     * @return void
+     */
+    public function deleteFile(string $del_key)
+    {
+        $del_column_name = $this->custom_column->column_name;
+        $field = $this->getAdminField();
+
+        // get original value
+        $value = $this->getOriginalForDeleteFile();
+        $field->setOriginal($value);
+        $fileValue = array_get($value, $del_column_name);
+
+        $field->destroy($del_key); // delete file
+        ExmentFile::deleteFileInfo($del_key); // delete file table
+        
+        // updated value
+        if(!$this->isMultipleEnabled()){
+            $updatedValue = null;
+        }
+        else{
+            array_forget($fileValue, $del_key);
+            $updatedValue = array_values($fileValue);
+        }
+
+        $this->custom_value->setValue($this->custom_column->column_name, $updatedValue)
+            ->remove_file_columns($del_column_name)
+            ->save();
+    }
+
+    /**
+     * Get original for deleting file
+     *
+     * @return mixed
+     */
+    protected function getOriginalForDeleteFile()
+    {
+        $del_column_name = $this->custom_column->column_name;
+        $value = $this->custom_value->value;
+        $fileValue = array_get($value, $del_column_name);
+        
+        if(is_nullorempty($fileValue)){
+            return null;
+        }
+
+        // if multiple, return uuid and file mapping
+        if(!$this->isMultipleEnabled()){
+            return $value;
+        }
+
+        if(!is_array($fileValue)){
+            $fileValue = array_filter([$fileValue]);
+        }
+
+        $value[$del_column_name] = collect($fileValue)
+            ->mapWithKeys(function($v){
+                $filedata = ExmentFile::getData($v);
+                $uuid = $filedata->uuid ?? null;
+                return [$uuid  => $v];
+        })->toArray();
+        return $value;
     }
     
     protected static function getFileOptions($custom_column, $id)
@@ -264,7 +338,12 @@ class File extends CustomItem
             ->select(['parent_id'])
             ->get()->pluck('parent_id');
     }
-    
+
+    public function isMultipleEnabled()
+    {
+        return $this->isMultipleEnabledTrait();
+    }
+
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
@@ -274,5 +353,31 @@ class File extends CustomItem
      */
     public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
+    }
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // enable multiple
+        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"));
+    }
+    
+    /**
+     * Get separate word for multiple
+     *
+     * @return string|null
+     */
+    protected function getSeparateWord() : ?string
+    {
+        if(boolval(array_get($this->options, 'asApi'))){
+            return ",";
+        }
+        return exmtrans('common.separate_word');
     }
 }

@@ -622,7 +622,7 @@ class ApiDataController extends AdminControllerTableBase
             }
 
             // Convert base64 encode file
-            list($value, $fileColumns) = $this->custom_table->convertFileData($value);
+            list($value, $fileColumns) = $this->convertFileData($value);
             $files[$index] = $fileColumns;
 
             // merge value for validate
@@ -670,7 +670,7 @@ class ApiDataController extends AdminControllerTableBase
             }
 
             // Save file data
-            $this->saveFile($this->custom_table, $files[$index], $rootValue['value']);
+            $this->saveFile($this->custom_table, $files[$index], $rootValue['value'], $model->value);
 
             $model->setValue($rootValue['value']);
 
@@ -682,8 +682,6 @@ class ApiDataController extends AdminControllerTableBase
             }
 
             $model->saveOrFail();
-
-            $this->customValueFile($this->custom_table, $files[$index], $model);
 
             $response[] = $this->modifyAfterGetValue($request, $model);
         }
@@ -939,39 +937,115 @@ class ApiDataController extends AdminControllerTableBase
         $task['allDayBetween'] = $allDayBetween;
     }
 
+    
+    /**
+     * Convert base64 encode file
+     *
+     * @param array $value input value
+     * @return array Value after converting base64 encode file, and files value
+     */
+    protected function convertFileData($value)
+    {
+        // get file columns
+        $file_columns = $this->custom_table->custom_columns_cache->filter(function ($column) {
+            return ColumnType::isAttachment($column->column_type);
+        });
+        
+        $files = [];
+
+        foreach ($file_columns as $file_column) {
+            // if not key in value, set default value
+            if (!array_has($value, $file_column->column_name)) {
+                continue;
+            }
+            $file_value = $value[$file_column->column_name];
+            // convert file name for validation
+            list($fileNames, $fileValues) = $this->getFileValue($file_column, $file_value);
+            $value[$file_column->column_name] = $fileNames;
+
+            // append file data
+            $files[$file_column->column_name] = $fileValues;
+        }
+
+        return [$value, $files];
+    }
+
+
+    protected function getFileValue(CustomColumn $file_column, $file_value) : array
+    {
+        // whether is_vector, set as array
+        if(!is_vector($file_value)){
+            $file_value = [$file_value];
+        }
+
+        $names = [];
+        $result = [];
+        foreach($file_value as $file_v){
+            if (!array_has($file_v, 'name') && !array_has($file_v, 'base64')) {
+                continue;
+            }
+    
+            $file_name = $file_v['name'];
+            $file_data = $file_v['base64'];
+            $file_data = base64_decode($file_data);
+
+            $names[] = $file_name;
+            $result[] = [
+                'name' => $file_name,
+                'data' => $file_data,
+                'custom_column' => $file_column,
+            ];
+        }
+
+        if(!$file_column->isMultipleEnabled()){
+            return count($result) > 0 ? [$names[0], $result[0]] : null;
+        }
+
+        return [$names, $result];
+    }
+
+
     /**
      * Save fileinfo after custom_value save
      *
      * @param CustomTable $custom_table
      * @param array $files
      * @param array $value
+     * @param array $oroginalValue
      * @return void
      */
-    protected function saveFile($custom_table, &$files, &$value)
+    protected function saveFile($custom_table, $files, &$value, $originalValue)
     {
-        foreach ($files as $column_name => &$fileInfo) {
-            // save filename
-            $file = File::storeAs(FileType::CUSTOM_VALUE_COLUMN, $fileInfo['data'], $custom_table->table_name, $fileInfo['name']);
+        foreach ($files as $column_name => $fileInfos) {
+            $result = [];
 
-            // convert value array
-            $value[$column_name] = path_join($file->local_dirname, $file->local_filename);
+            if(!is_vector($fileInfos)){
+                $fileInfos = [$fileInfos];
+            }
 
-            $fileInfo['model'] = $file;
-        }
-    }
+            foreach($fileInfos as $fileInfo){
+                $custom_column = array_get($fileInfo, 'custom_column');
+                // save filename
+                $file = File::storeAs(FileType::CUSTOM_VALUE_COLUMN, array_get($fileInfo, 'data'), $custom_table->table_name, array_get($fileInfo, 'name'));
 
-    /**
-     * Append custom value info after custom_value save
-     *
-     * @param CustomTable $custom_table
-     * @param array $files
-     * @param CustomValue $custom_value
-     * @return void
-     */
-    protected function customValueFile($custom_table, $files, $custom_value)
-    {
-        foreach ($files as $column_name => $fileInfo) {
-            $fileInfo['model']->saveCustomValue($custom_value->id, $fileInfo['custom_column'], $custom_table);
+                // save file info
+                \Exment::setFileRequestSession(
+                    $file, 
+                    $custom_column->column_name, 
+                    $custom_table, 
+                    !$custom_column->isMultipleEnabled()
+                );
+                $result[] = path_join($file->local_dirname, $file->local_filename);
+            }
+
+            // set custom value
+            if(!$custom_column->isMultipleEnabled()){
+                $value[$column_name] = count($result) > 0 ? $result[0] : null;
+            }
+            else{
+                // If multiple, merge original array 
+                $value[$column_name] = array_merge(array_get($originalValue, $column_name) ?? [], $result);
+            }
         }
     }
 

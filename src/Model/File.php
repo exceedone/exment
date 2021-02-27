@@ -61,6 +61,8 @@ class File extends ModelBase
     {
         if($options === true){
             $options = ['asApi' => true];
+        }elseif($options === false){
+            $options = ['asApi' => false];
         }
         $options = array_merge(
             [
@@ -160,7 +162,7 @@ class File extends ModelBase
      * @param CustomTable|null $custom_table
      * @return $this
      */
-    public function saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table = null)
+    public function saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table = null, bool $replace = true)
     {
         if (!is_nullorempty($custom_value_id)) {
             $this->parent_id = $custom_value_id;
@@ -171,15 +173,17 @@ class File extends ModelBase
         $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
         $this->custom_column_id = $custom_column ? $custom_column->id : null;
         
-        // get old file
-        $oldFiles = static::where('parent_id', $this->parent_id)
+        // get old file if replace
+        if($replace){
+            $oldFiles = static::where('parent_id', $this->parent_id)
             ->where('parent_type', $this->parent_type)
             ->where('custom_column_id', $this->custom_column_id)
             ->get();
 
-        foreach ($oldFiles as $oldFile) {
-            if (!is_nullorempty($oldFile) && !is_nullorempty($oldFile->custom_column_id)) {
-                static::deleteFileInfo($oldFile);
+            foreach ($oldFiles as $oldFile) {
+                if (!is_nullorempty($oldFile) && !is_nullorempty($oldFile->custom_column_id)) {
+                    static::deleteFileInfo($oldFile);
+                }
             }
         }
 
@@ -291,18 +295,27 @@ class File extends ModelBase
 
         // get from model
         $value = $custom_value->toArray();
-        // if match path, return this model's id
-        if (array_get($value, 'value.' . array_get($uuidObj, 'column_name')) == $path) {
-            return $value;
-        } else {
-            $file_uuid = collect($custom_value->file_uuids())->first(function ($file_uuid) {
-                return isMatchString(array_get($file_uuid, 'uuid'), $this->uuid);
-            });
-            if (isset($file_uuid)) {
+        $fileValues = array_get($value, 'value.' . array_get($uuidObj, 'column_name'));
+        if(!is_array($fileValues)){
+            $fileValues = [$fileValues];
+        }
+
+        $uuids = collect($custom_value->file_uuids());
+
+        foreach($fileValues as $fileValue){
+            // if match path, return this model's id
+            if (isMatchString($fileValue, $path)) {
                 return $value;
+            } else {
+                $file_uuid = $uuids->first(function ($file_uuid) {
+                    return isMatchString(array_get($file_uuid, 'uuid'), $this->uuid);
+                });
+                if (isset($file_uuid)) {
+                    return $fileValue;
+                }
             }
         }
-        
+
 
         return null;
     }

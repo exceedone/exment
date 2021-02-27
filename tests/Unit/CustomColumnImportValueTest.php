@@ -12,71 +12,71 @@ class CustomColumnImportValueTest extends UnitTestBase
 {
     use CustomColumnTrait;
     
-    // // SELECT_VALTEXT ----------------------------------------------------
-    // const SELECT_VALTEXT_VALUE = 'orange';
-    // const SELECT_VALTEXT_TEXT = 'Orange';
-    // public function _testSelectValTextImportValue($checkValue, $matchedValue, bool $result, $options = []){
-    //     $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_VALTEXT, $options);
-    //     list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, static::SELECT_VALTEXT_VALUE);
+    // SELECT_VALTEXT ----------------------------------------------------
+    const SELECT_VALTEXT_VALUE = 'orange';
+    const SELECT_VALTEXT_TEXT = 'Orange';
+    public function _testSelectValTextImportValue($checkValue, $matchedValue, bool $result, $options = []){
+        $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_VALTEXT, $options);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, static::SELECT_VALTEXT_VALUE);
 
-    //     $v = $column_item->getImportValue($checkValue);
-    //     $this->checkImportValueResult($v, $matchedValue, $result);
-    // }
-    // public function testSelectValTextValue(){
-    //     return $this->_testSelectValTextImportValue(static::SELECT_VALTEXT_VALUE, static::SELECT_VALTEXT_VALUE, true, ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
-    // }
-    // public function testSelectValTextText(){
-    //     return $this->_testSelectValTextImportValue(static::SELECT_VALTEXT_TEXT, static::SELECT_VALTEXT_VALUE, true, ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
-    // }
-    // public function testSelectValTextError(){
-    //     return $this->_testSelectValTextImportValue('aaaa', static::SELECT_VALTEXT_VALUE, false, ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
-    // }
+        $v = $column_item->getImportValue($checkValue);
+        $this->checkImportValueResult($v, $matchedValue, $result);
+    }
+    public function testSelectValTextValue(){
+        return $this->_testSelectValTextImportValue(static::SELECT_VALTEXT_VALUE, static::SELECT_VALTEXT_VALUE, true, ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
+    }
+    public function testSelectValTextText(){
+        return $this->_testSelectValTextImportValue(static::SELECT_VALTEXT_TEXT, static::SELECT_VALTEXT_VALUE, true, ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
+    }
+    public function testSelectValTextError(){
+        return $this->_testSelectValTextImportValue('aaaa', static::SELECT_VALTEXT_VALUE, false, ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
+    }
 
 
 
 
     
-    // // YESNO ----------------------------------------------------
-    // public function _testYesNoImportValue($checkValue, $matchedValue, bool $result, $options = []){
-    //     $custom_column = $this->getCustomColumnModel(ColumnType::YESNO, $options);
-    //     list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, 1);
+    // YESNO ----------------------------------------------------
+    public function _testYesNoImportValue($checkValue, $matchedValue, bool $result, $options = []){
+        $custom_column = $this->getCustomColumnModel(ColumnType::YESNO, $options);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, 1);
 
-    //     $v = $column_item->getImportValue($checkValue);
-    //     $this->checkImportValueResult($v, $matchedValue, $result);
-    // }
-    // public function testYesNoValue(){
-    //     return $this->_testYesNoImportValue(1, 1, true);
-    // }
-    // public function testYesNoText(){
-    //     return $this->_testYesNoImportValue('YES', 1, true);
-    // }
-    // public function testYesNoError(){
-    //     return $this->_testYesNoImportValue('sfjsfi', 1, false);
-    // }
-
-
+        $v = $column_item->getImportValue($checkValue);
+        $this->checkImportValueResult($v, $matchedValue, $result);
+    }
+    public function testYesNoValue(){
+        return $this->_testYesNoImportValue(1, 1, true);
+    }
+    public function testYesNoText(){
+        return $this->_testYesNoImportValue('YES', 1, true);
+    }
+    public function testYesNoError(){
+        return $this->_testYesNoImportValue('sfjsfi', 1, false);
+    }
 
 
 
-    // // BOOLEAN ----------------------------------------------------
-    // const BOOLEAN_VALUE = 'man';
-    // const BOOLEAN_TEXT = 'MAN';
-    // public function _testBooleanImportValue($checkValue, $matchedValue, bool $result, $options = []){
-    //     $custom_column = $this->getCustomColumnModel(ColumnType::BOOLEAN, $options);
-    //     list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, static::BOOLEAN_VALUE);
 
-    //     $v = $column_item->getImportValue($checkValue);
-    //     $this->checkImportValueResult($v, $matchedValue, $result);
-    // }
-    // public function testBooleanValue(){
-    //     return $this->_testBooleanImportValue(static::BOOLEAN_VALUE, static::BOOLEAN_VALUE, true, ['true_value' => 'man', 'true_label' => 'MAN', 'false_value' => 'woman', 'false_label' => 'WOMAN']);
-    // }
-    // public function testBooleanText(){
-    //     return $this->_testBooleanImportValue(static::BOOLEAN_TEXT, static::BOOLEAN_VALUE, true, ['true_value' => 'man', 'true_label' => 'MAN', 'false_value' => 'woman', 'false_label' => 'WOMAN']);
-    // }
-    // public function testBooleanError(){
-    //     return $this->_testBooleanImportValue('ehfui', static::BOOLEAN_TEXT, false, ['true_value' => 'man', 'true_label' => 'MAN', 'false_value' => 'woman', 'false_label' => 'WOMAN']);
-    // }
+
+    // BOOLEAN ----------------------------------------------------
+    const BOOLEAN_VALUE = 'man';
+    const BOOLEAN_TEXT = 'MAN';
+    public function _testBooleanImportValue($checkValue, $matchedValue, bool $result, $options = []){
+        $custom_column = $this->getCustomColumnModel(ColumnType::BOOLEAN, $options);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, static::BOOLEAN_VALUE);
+
+        $v = $column_item->getImportValue($checkValue);
+        $this->checkImportValueResult($v, $matchedValue, $result);
+    }
+    public function testBooleanValue(){
+        return $this->_testBooleanImportValue(static::BOOLEAN_VALUE, static::BOOLEAN_VALUE, true, ['true_value' => 'man', 'true_label' => 'MAN', 'false_value' => 'woman', 'false_label' => 'WOMAN']);
+    }
+    public function testBooleanText(){
+        return $this->_testBooleanImportValue(static::BOOLEAN_TEXT, static::BOOLEAN_VALUE, true, ['true_value' => 'man', 'true_label' => 'MAN', 'false_value' => 'woman', 'false_label' => 'WOMAN']);
+    }
+    public function testBooleanError(){
+        return $this->_testBooleanImportValue('ehfui', static::BOOLEAN_TEXT, false, ['true_value' => 'man', 'true_label' => 'MAN', 'false_value' => 'woman', 'false_label' => 'WOMAN']);
+    }
 
 
 

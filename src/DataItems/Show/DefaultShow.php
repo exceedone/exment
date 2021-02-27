@@ -20,6 +20,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -731,29 +732,15 @@ EOT;
     {
         // get file delete flg column name
         $del_column_name = $request->input(Field::FILE_DELETE_FLAG);
-        /// file remove
-        $fields = $form->builder()->fields();
-        // filter file
-        $fields->filter(function ($field) {
-            return $field instanceof Field\Embeds;
-        })->each(function ($field) use ($del_column_name) {
-            // get fields
-            $embedFields = $field->fields();
-            $embedFields->filter(function ($field) use ($del_column_name) {
-                return $field->column() == $del_column_name;
-            })->each(function ($field) use ($del_column_name) {
-                // get file path
-                $obj = $this->custom_value;
-                $original = $obj->getValue($del_column_name, true);
-                $field->setOriginal($obj->value);
+        // get key name for delete
+        $del_key = $request->input('key');
 
-                $field->destroy(); // delete file
-                ExmentFile::deleteFileInfo($original); // delete file table
-                $obj->setValue($del_column_name, null)
-                    ->remove_file_columns($del_column_name)
-                    ->save();
-            });
-        });
+        // get custom column and item
+        $custom_column = CustomColumn::getEloquent($del_column_name, $this->custom_table);
+        $custom_item = $custom_column ? $custom_column->column_item : null;
+        if($custom_item && method_exists($custom_item, 'deleteFile')){
+            $custom_item->setCustomValue($this->custom_value)->deleteFile($del_key);
+        }
 
         // reget custom value
         $updated_value = getModelName($this->custom_table)::find($this->custom_value->id);

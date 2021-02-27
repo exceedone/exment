@@ -969,49 +969,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * Convert base64 encode file
-     *
-     * @param array $value input value
-     * @return array Value after converting base64 encode file, and files value
-     */
-    public function convertFileData($value)
-    {
-        // get file columns
-        $file_columns = $this->custom_columns_cache->filter(function ($column) {
-            return ColumnType::isAttachment($column->column_type);
-        });
-        
-        $files = [];
-
-        foreach ($file_columns as $file_column) {
-            // if not key in value, set default value
-            if (!array_has($value, $file_column->column_name)) {
-                continue;
-            }
-            $file_value = $value[$file_column->column_name];
-            if (!array_has($file_value, 'name') && !array_has($file_value, 'base64')) {
-                continue;
-            }
-
-            $file_name = $file_value['name'];
-            $file_data = $file_value['base64'];
-            $file_data = base64_decode($file_data);
-
-            // convert file name for validation
-            $value[$file_column->column_name] = $file_name;
-
-            // append file data
-            $files[$file_column->column_name] = [
-                'name' => $file_name,
-                'data' => $file_data,
-                'custom_column' => $file_column,
-            ];
-        }
-
-        return [$value, $files];
-    }
-
-    /**
      * get CustomTable by url
      */
     public static function findByEndpoint($endpoint = null, $withs = [])

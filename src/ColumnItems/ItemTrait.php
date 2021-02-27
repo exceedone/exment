@@ -93,7 +93,7 @@ trait ItemTrait
             return $this->_text($v);
         });
 
-        return is_list($text) ? collect($text)->implode(exmtrans('common.separate_word')) : $text;
+        return is_list($text) ? collect($text)->implode($this->getSeparateWord()) : $text;
     }
 
     /**
@@ -106,7 +106,7 @@ trait ItemTrait
             return $this->_html($v);
         });
 
-        return is_list($html) ? collect($html)->implode(exmtrans('common.separate_word')) : $html;
+        return is_list($html) ? collect($html)->implode($this->getSeparateWord()) : $html;
     }
 
     protected function _getMultipleValue($singleValueCallback)
@@ -476,5 +476,15 @@ trait ItemTrait
         }
 
         return !isMatchString($this->custom_form->custom_table_cache->id, $this->custom_table->id);
+    }
+
+    /**
+     * Get separate word for multiple
+     *
+     * @return string|null
+     */
+    protected function getSeparateWord() : ?string
+    {
+        return exmtrans('common.separate_word');
     }
 }

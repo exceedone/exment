@@ -20,7 +20,9 @@ use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 use Encore\Admin\Admin;
+use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class Admin.
@@ -755,24 +757,56 @@ class Exment
     
     /**
      * save file info to database
+     *
+     * @param UploadField $field
+     * @param string|UploadedFile $file
+     * @param string $file_type
+     * @param CustomTable $custom_table
+     * @param boolean $replace
+     * @return string
      */
-    public function setFileInfo($field, $file, $file_type, $custom_table)
+    public function setFileInfo($field, $file, $file_type, $custom_table, bool $replace = true)
     {
-        // get local filename
         $dirname = $field->getDirectory();
-        $filename = $file->getClientOriginalName();
+
+        if($file instanceof UploadedFile){
+            $filename = $file->getClientOriginalName();
+        }
+        else{
+            $filename = $file;
+        }
+
         // save file info
         $exmentfile = ExmentFile::saveFileInfo($file_type, $dirname, [
             'filename' => $filename,
         ]);
 
+        $this->setFileRequestSession($exmentfile, $field->column(), $custom_table, $replace);
+        
+        // return filename
+        return $exmentfile->local_filename;
+    }
+    
+    /**
+     * save file request session. for after saved custom value, set custom value's id.
+     *
+     * @param UploadField $field
+     * @param string|UploadedFile $file
+     * @param string $file_type
+     * @param CustomTable $custom_table
+     * @param boolean $replace
+     * @return string
+     */
+    public function setFileRequestSession(ExmentFile $exmentfile, string $column_name, CustomTable $custom_table, bool $replace = true)
+    {
         // set request session to save this custom_value's id and type into files table.
         $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
         $file_uuids[] = [
             'uuid' => $exmentfile->uuid,
-            'column_name' => $field->column(),
+            'column_name' => $column_name,
             'custom_table' => $custom_table,
-            'path' => $exmentfile->path
+            'path' => $exmentfile->path,
+            'replace' => $replace,
         ];
         System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
         

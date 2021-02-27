@@ -116,6 +116,8 @@ class ColumnType extends EnumBase
             ColumnType::SELECT_TABLE,
             ColumnType::USER,
             ColumnType::ORGANIZATION,
+            ColumnType::FILE,
+            ColumnType::IMAGE,
         ];
     }
 

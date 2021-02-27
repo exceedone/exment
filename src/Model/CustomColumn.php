@@ -417,6 +417,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
 
     /**
+     * Whether this column is isMultipleEnabled
+     *
+     * @return boolean
+     */
+    public function isMultipleEnabled()
+    {
+        return ColumnType::isMultipleEnabled($this) && boolval($this->getOption('multiple_enabled'));
+    }
+
+    /**
      * Set customAvailableCharacters
      *
      * @param array $array
