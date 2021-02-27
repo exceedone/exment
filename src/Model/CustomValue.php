@@ -1264,7 +1264,7 @@ abstract class CustomValue extends ModelBase
         // if search and not has searchColumns, return null;
         if ($options['executeSearch'] && empty($searchColumns)) {
             // return no value if searchColumns is not has
-            return static::query()->whereRaw('1 = 0');
+            return static::query()->whereNotMatch();
         }
 
         $getQueryFunc = function ($searchColumn, $options) {

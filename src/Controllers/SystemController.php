@@ -158,26 +158,26 @@ class SystemController extends AdminControllerBase
 
         $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
         ->options(getPagerOptions())
-        ->config('allowClear', false)
+        ->disableClear()
         ->default(20)
         ->help(exmtrans("system.help.grid_pager_count"));
             
         $form->select('datalist_pager_count', exmtrans("system.datalist_pager_count"))
             ->options(getPagerOptions(false, Define::PAGER_DATALIST_COUNTS))
-            ->config('allowClear', false)
+            ->disableClear()
             ->default(5)
             ->help(exmtrans("system.help.datalist_pager_count"));
         
         $form->select('default_date_format', exmtrans("system.default_date_format"))
             ->options(getTransArray(Define::SYSTEM_DATE_FORMAT, "system.date_format_options"))
-            ->config('allowClear', false)
+            ->disableClear()
             ->default('format_default')
             ->help(exmtrans("system.help.default_date_format"));
 
         $form->select('filter_search_type', exmtrans("system.filter_search_type"))
             ->default(FilterSearchType::FORWARD)
             ->options(FilterSearchType::transArray("system.filter_search_type_options"))
-            ->config('allowClear', false)
+            ->disableClear()
             ->required()
             ->help(exmtrans("system.help.filter_search_type"));
 
@@ -193,6 +193,43 @@ class SystemController extends AdminControllerBase
             ->options(Enums\DataSubmitRedirect::transKeyArray("admin", false))
             ->help(exmtrans("system.help.data_submit_redirect"));
 
+  
+        $form->exmheader(exmtrans('system.publicform'))->hr();
+        $form->switchbool('publicform_available', exmtrans("system.publicform_available"))
+            ->default(0)
+            ->attribute(['data-filtertrigger' => true])
+            ->help(exmtrans("system.help.publicform_available"));
+
+        $form->radio('recaptcha_type', exmtrans('system.recaptcha_type'))
+            ->attribute(['data-filter' => json_encode(['key' => 'publicform_available', 'value' => '1'])])
+            ->help(exmtrans("system.help.recaptcha_type"))
+            ->options([
+                '' => exmtrans('common.no_use'),
+                'v2' => 'V2',
+                'v3' => 'V3',
+            ]);
+
+        $form->password('recaptcha_site_key', exmtrans('system.recaptcha_site_key'))
+            ->attribute([
+                'data-filter' => json_encode([
+                    ['key' => 'publicform_available', 'value' => "1"],
+                    ['key' => 'recaptcha_type', 'hasValue' => "1"],
+                ]),
+            ])
+            ->help(exmtrans("system.help.recaptcha_site_key"));
+
+        $form->password('recaptcha_secret_key', exmtrans('system.recaptcha_secret_key'))
+        ->attribute([
+            'data-filter' => json_encode([
+                ['key' => 'publicform_available', 'value' => "1"],
+                ['key' => 'recaptcha_type', 'hasValue' => "1"],
+            ]),
+        ])
+            ->help(exmtrans("system.help.recaptcha_secret_key"));
+
+
+
+
         if (boolval(System::organization_available())) {
             $form->exmheader(exmtrans('system.organization_header'))->hr();
 
@@ -200,21 +237,21 @@ class SystemController extends AdminControllerBase
             $form->select('org_joined_type_role_group', exmtrans("system.org_joined_type_role_group"))
                 ->help(exmtrans("system.help.org_joined_type_role_group") . exmtrans("common.help.more_help_here", $manualUrl))
                 ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_role_group_options'))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->default(JoinedOrgFilterType::ALL)
                 ;
 
             $form->select('org_joined_type_custom_value', exmtrans("system.org_joined_type_custom_value"))
                 ->help(exmtrans("system.help.org_joined_type_custom_value") . exmtrans("common.help.more_help_here", $manualUrl))
                 ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_custom_value_options'))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->default(JoinedOrgFilterType::ONLY_JOIN)
                 ;
 
             $form->select('custom_value_save_autoshare', exmtrans("system.custom_value_save_autoshare"))
                 ->help(exmtrans("system.help.custom_value_save_autoshare") . exmtrans("common.help.more_help_here", $manualUrl))
                 ->options(CustomValueAutoShare::transKeyArray('system.custom_value_save_autoshare_options'))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->default(CustomValueAutoShare::USER_ONLY)
                 ;
         }
@@ -223,7 +260,7 @@ class SystemController extends AdminControllerBase
         $form->select('filter_multi_user', exmtrans(boolval(System::organization_available()) ? "system.filter_multi_orguser" : "system.filter_multi_user"))
             ->help(exmtrans("system.help.filter_multi_orguser") . exmtrans("common.help.more_help_here", $manualUrl))
             ->options(JoinedMultiUserFilterType::getOptions())
-            ->config('allowClear', false)
+            ->disableClear()
             ->default(JoinedMultiUserFilterType::NOT_FILTER)
         ;
 

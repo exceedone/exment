@@ -45,7 +45,7 @@ class Yesno extends CustomItem
         }
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
             $field->option([
@@ -64,7 +64,7 @@ class Yesno extends CustomItem
         $filter->radio(Define::YESNO_RADIO);
     }
         
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $validates[] = new Validator\YesNoRule();
     }
@@ -117,6 +117,7 @@ class Yesno extends CustomItem
         $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
             ->help(exmtrans("custom_column.help.checkbox_enabled"));
     }
+    
     public function getFalseValue()
     {
         return 0;

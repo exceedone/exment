@@ -14,7 +14,7 @@ class AutoNumber extends CustomItem
         return Field\Display::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         if (!isset($this->id)) {
             $field->default(exmtrans('custom_value.auto_number_create'));

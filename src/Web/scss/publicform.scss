@@ -1,0 +1,45 @@
+body#body-publicform{
+    &, .wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    footer {
+        margin-top: auto;
+    }
+    .content-wrapper, .right-side, .main-footer{
+        margin-left: 0;
+    }
+
+    .main-header{
+        border-bottom:1px solid #d2d6de;
+        margin-bottom: 0;
+        padding-left: 40px;
+        border: none;
+        border-radius: 0;
+        height: 50px;
+        min-height: 50px;
+        font-size: 20px;
+        line-height: 50px;
+        font-weight: 300;
+        overflow: hidden;
+    }
+
+    #container-inner{
+        margin: 20px auto;
+        padding: 10px;
+    }
+    
+    .g-recaptcha{
+        display: inline-block;
+    }
+}
+
+@media (max-width: 767px)
+{
+    body#body-publicform{
+        &.body-container #container-inner{
+            margin: 5px;
+        }
+    }
+}

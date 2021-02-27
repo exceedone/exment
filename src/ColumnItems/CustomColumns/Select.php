@@ -87,7 +87,7 @@ class Select extends CustomItem
         return [$type, false, []];
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->createSelectOptions();
 
@@ -109,12 +109,12 @@ class Select extends CustomItem
 
         $field->options($options);
 
-        if ($field instanceof RadioButton) {
+        if ($field instanceof RadioButton && !$this->required()) {
             $field->addEmpty(true);
         }
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         if (!$this->isFreeInput()) {
             $select_options = $this->custom_column->createSelectOptions();

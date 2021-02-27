@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\UrlTagType;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Validator;
 
 class File extends CustomItem
@@ -95,7 +96,7 @@ class File extends CustomItem
         return ExmWhere::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         // set file options
         $fileOption = File::getFileOptions($this->custom_column, $this->id);
@@ -106,7 +107,7 @@ class File extends CustomItem
         $custom_table = $this->getCustomTable();
         $field->move($custom_table->table_name);
         $field->callableName(function ($file) use ($custom_table) {
-            return File::setFileInfo($this, $file, $custom_table);
+            return \Exment::setFileInfo($this, $file, FileType::CUSTOM_VALUE_COLUMN, $custom_table);
         });
         $field->caption(function ($caption) {
             $file = ExmentFile::getData($caption);
@@ -132,31 +133,6 @@ class File extends CustomItem
     }
 
     /**
-     * save file info to database
-     */
-    public static function setFileInfo($field, $file, $custom_table)
-    {
-        // get local filename
-        $dirname = $field->getDirectory();
-        $filename = $file->getClientOriginalName();
-        // save file info
-        $exmentfile = ExmentFile::saveFileInfo($dirname, $filename);
-
-        // set request session to save this custom_value's id and type into files table.
-        $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
-        $file_uuids[] = [
-            'uuid' => $exmentfile->uuid,
-            'column_name' => $field->column(),
-            'custom_table' => $custom_table,
-            'path' => $exmentfile->path
-        ];
-        System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
-        
-        // return filename
-        return $exmentfile->local_filename;
-    }
-
-    /**
      * Get File Value. checking array
      *
      * @return string
@@ -174,23 +150,23 @@ class File extends CustomItem
         return $v;
     }
 
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
 
-        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required', [])))) {
+        if ($this->required()) {
             $validates[] = new Validator\FileRequredRule($this->custom_column, $this->custom_value);
         }
     }
     
-    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    protected function getCustomField($classname, $column_name_prefix = null)
     {
-        $field = parent::getCustomField($classname, $form_column_options, $column_name_prefix);
+        $field = parent::getCustomField($classname, $column_name_prefix);
 
         $options = $this->custom_column->options;
 
         // required
-        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required')))) {
+        if ($this->required()) {
             $field->removeRule('required');
         }
 
@@ -218,7 +194,7 @@ class File extends CustomItem
         // get values ids
         $ids = $this->getQueryIds($mark, $value);
         if (is_nullorempty($ids)) {
-            $query->whereRaw("0 = 1");
+            $query->whereNotMatch();
         }
         
         $query->whereOrIn('id', $ids);
@@ -287,5 +263,16 @@ class File extends CustomItem
             ->where('filename', $mark, $value)
             ->select(['parent_id'])
             ->get()->pluck('parent_id');
+    }
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
     }
 }

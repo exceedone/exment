@@ -19,7 +19,7 @@ class Email extends CustomItem
      * @param Form $form
      * @return void
      */
-    public function setCustomColumnDefaultValueForm(&$form)
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
         $form->email('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"));

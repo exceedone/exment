@@ -40,7 +40,7 @@ class Integer extends CustomItem
         return Field\Number::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
         
@@ -55,9 +55,14 @@ class Integer extends CustomItem
         if (!is_null(array_get($options, 'number_max'))) {
             $field->attribute(['max' => array_get($options, 'number_max')]);
         }
+
+        $field->attribute(['type' => 'number']);
+        $field->callbackValue(function($value){
+            return rmcomma($value);
+        });
     }
 
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
         

@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Model\Condition;
@@ -49,7 +50,7 @@ class TestDataSeeder extends Seeder
      */
     public function run()
     {
-        Config::set('exment.column_index_enabled_count', 25);
+        Config::set('exment.column_index_enabled_count', 100);
 
         $this->createSystem();
 
@@ -81,6 +82,7 @@ class TestDataSeeder extends Seeder
             'initialized' => true,
             'system_admin_users' => [1],
             'api_available' => true,
+            'publicform_available' => true,
         ];
         foreach ($systems as $key => $value) {
             System::{$key}($value);
@@ -774,42 +776,8 @@ class TestDataSeeder extends Seeder
             $createRelationCallback($custom_table);
         }
 
-        $custom_form_conditions = [
-            [
-                'condition_type' => ConditionType::CONDITION,
-                'condition_key' => FilterOption::SELECT_EXISTS,
-                'target_column_id' => ConditionTypeDetail::ORGANIZATION,
-                'condition_value' => ["2"], // dev
-            ],
-            []
-        ];
 
-        foreach ($custom_form_conditions as $index => $condition) {
-            // create form
-            $custom_form = CustomForm::create([
-                'custom_table_id' => $custom_table->id,
-                'form_view_name' => ($index === 1 ? 'form_default' : 'form'),
-                'default_flg' => ($index === 1),
-            ]);
-            CustomForm::getDefault($custom_table);
-        
-            if (count($condition) == 0) {
-                continue;
-            }
-            
-            $custom_form_priority = CustomFormPriority::create([
-                'custom_form_id' => $custom_form->id,
-                'order' => $index + 1,
-            ]);
-
-            $custom_form_condition = new Condition;
-            $custom_form_condition->morph_type = 'custom_form_priority';
-            $custom_form_condition->morph_id = $custom_form_priority->id;
-            foreach ($condition as $k => $c) {
-                $custom_form_condition->{$k} = $c;
-            }
-            $custom_form_condition->save();
-        }
+        $this->createForm($custom_table);
 
         $this->createView($custom_table, $custom_columns);
 
@@ -911,7 +879,7 @@ class TestDataSeeder extends Seeder
 
                 // set attachment
                 if ($i === 1) {
-                    Model\File::storeAs(TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt')
+                    Model\File::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt')
                         ->saveCustomValue($custom_value->id, null, $custom_table)
                         ->saveDocumentModel($custom_value, 'test.txt');
                 }
@@ -1101,6 +1069,90 @@ class TestDataSeeder extends Seeder
         $notify->save();
         return $notify->id;
     }
+
+
+    /**
+     * Create Form (and priority, public)
+     *
+     * @return void
+     */
+    protected function createForm(CustomTable $custom_table)
+    {
+        $custom_form_conditions = [
+            [
+                'condition_type' => ConditionType::CONDITION,
+                'condition_key' => FilterOption::SELECT_EXISTS,
+                'target_column_id' => ConditionTypeDetail::ORGANIZATION,
+                'condition_value' => ["2"], // dev
+            ],
+            []
+        ];
+
+        foreach ($custom_form_conditions as $index => $condition) {
+            // create form
+            $custom_form = CustomForm::create([
+                'custom_table_id' => $custom_table->id,
+                'form_view_name' => ($index === 1 ? 'form_default' : 'form'),
+                'default_flg' => ($index === 1),
+            ]);
+            CustomForm::getDefault($custom_table);
+        
+            if (count($condition) == 0) {
+                continue;
+            }
+            
+            $custom_form_priority = CustomFormPriority::create([
+                'custom_form_id' => $custom_form->id,
+                'order' => $index + 1,
+            ]);
+
+            $custom_form_condition = new Condition;
+            $custom_form_condition->morph_type = 'custom_form_priority';
+            $custom_form_condition->morph_id = $custom_form_priority->id;
+            foreach ($condition as $k => $c) {
+                $custom_form_condition->{$k} = $c;
+            }
+            $custom_form_condition->save();
+        }
+
+        // Custom form public ----------------------------------------------------
+        // user type 2
+        foreach([1, 2] as $user_id){
+            Model\PublicForm::create([
+                'custom_form_id' => $custom_form->id,
+                'public_form_view_name' => "Public Form User : {$user_id}",
+                'active_flg' => 1,
+                'proxy_user_id' => $user_id,
+                'options' => [
+                    'error_text' => exmtrans('custom_form_public.error_text'),
+                    'use_footer' => '1',
+                    'use_header' => '1',
+                    'use_confirm' => '0',
+                    'confirm_text' => exmtrans('custom_form_public.confirm_text'),
+                    'header_label' => NULL,
+                    'analytics_tag' => NULL,
+                    'complete_text' => exmtrans('custom_form_public.complete_text'),
+                    'confirm_title' => exmtrans('custom_form_public.confirm_title'),
+                    'complete_title' => exmtrans('custom_form_public.complete_title'),
+                    'error_link_url' => NULL,
+                    'error_link_text' => NULL,
+                    'background_color' => '#ffffff',
+                    'use_error_notify' => '0',
+                    'body_content_type' => 'width100',
+                    'complete_link_url' => NULL,
+                    'footer_text_color' => '#ffffff',
+                    'header_text_color' => '#ffffff',
+                    'complete_link_text' => NULL,
+                    'validity_period_end' => NULL,
+                    'validity_period_start' => NULL,
+                    'footer_background_color' => '#000000',
+                    'header_background_color' => '#3c8dbc',
+                ],
+            ]);
+        }
+
+    }
+
 
     /**
      * Create View

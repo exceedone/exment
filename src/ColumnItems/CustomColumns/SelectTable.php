@@ -153,7 +153,7 @@ class SelectTable extends CustomItem
         if ($text === false) {
             return $model;
         // get text column
-        } elseif ($html) {
+        } elseif ($html && !$this->isPublicForm()) {
             return $model->getUrl(true);
         } else {
             return $model->getLabel();
@@ -177,7 +177,7 @@ class SelectTable extends CustomItem
         return Filter\Equal::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         if (!isset($this->target_table)) {
             return;
@@ -191,7 +191,7 @@ class SelectTable extends CustomItem
             return;
         }
 
-        $linkage = $this->getLinkage($form_column_options);
+        $linkage = $this->getLinkage();
         $linkage_expand = !is_null($linkage) ? [
             'parent_select_table_id' => $linkage->parent_column->select_target_table->id,
             'child_select_table_id' => $linkage->child_column->select_target_table->id,
@@ -201,7 +201,7 @@ class SelectTable extends CustomItem
 
         // set buttons
         $buttons = [];
-        if (!$this->disableEdit($form_column_options) && !boolval(config('exment.select_table_modal_search_disabled', false))) {
+        if (!$this->isPublicForm() && !$this->disableEdit() && !boolval(config('exment.select_table_modal_search_disabled', false))) {
             $buttons[] = [
                 'label' => trans('admin.search'),
                 'btn_class' => 'btn-info',
@@ -268,17 +268,16 @@ class SelectTable extends CustomItem
     /**
      * Get relation filter object
      *
-     * @param ?array $form_column_options
      * @return Linkage|null
      */
-    protected function getLinkage($form_column_options)
+    protected function getLinkage()
     {
         // if config "select_relation_linkage_disabled" is true, not callback
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
             return;
         }
 
-        $relation_filter_target_column_id = array_get($form_column_options, 'relation_filter_target_column_id');
+        $relation_filter_target_column_id = array_get($this->form_column_options, 'relation_filter_target_column_id');
         if (!isset($relation_filter_target_column_id)) {
             return;
         }
@@ -327,7 +326,7 @@ class SelectTable extends CustomItem
         })->ajax($ajax);
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $validates[] = new Validator\SelectTableNumericRule();
         $validates[] = new Validator\CustomValueRule($this->target_table, $this->custom_column->getOption('select_target_view'));

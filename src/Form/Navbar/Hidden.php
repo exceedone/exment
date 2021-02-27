@@ -20,6 +20,7 @@ class Hidden implements Renderable
             'copy_toastr' => exmtrans('common.message.copy_execute'),
             'exment_undefined_error' => exmtrans('error.undefined_error'),
             'exment_error_title' => exmtrans('common.error'),
+            'exment_expired_error' => exmtrans('error.expired_error'),
         ];
 
         $html = '';

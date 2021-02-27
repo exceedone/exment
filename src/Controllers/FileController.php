@@ -24,6 +24,14 @@ class FileController extends AdminControllerBase
     }
 
     /**
+     * Download file (call as publicform)
+     */
+    public function downloadPublicForm(Request $request, $publicFormUuid, $uuid)
+    {
+        return static::downloadFile($uuid);
+    }
+
+    /**
      * Download file (call as web)
      */
     public function downloadTable(Request $request, $tableKey, $uuid)
@@ -343,13 +351,34 @@ class FileController extends AdminControllerBase
      */
     protected function uploadTempFile(Request $request)
     {
+        return $this->_uploadTempFile($request, false);
+    }
+
+    /**
+     *  upload Image as temporary
+     */
+    protected function uploadTempImage(Request $request)
+    {
+        return $this->_uploadTempFile($request, true);
+    }
+
+    /**
+     *  upload file as temporary
+     */
+    protected function _uploadTempFile(Request $request, bool $isImage)
+    {
         // delete old temporary files
         $this->removeTempFiles();
         
-        // check image file. *NOW Only this endpoint is image*
-        $validator = \Validator::make($request->all(), [
-            'file' => ['required', new ImageRule],
-        ]);
+        // check image file.
+        $rules = [
+            'file' => ['required']
+        ];
+        if($isImage){
+            $rules['file'][] = new ImageRule;
+        }
+
+        $validator = \Validator::make($request->all(), $rules);
         if ($validator->fails()) {
             return response()->json(array_get($validator->errors()->toArray(), 'file'), 400);
         }
@@ -371,6 +400,17 @@ class FileController extends AdminControllerBase
      * Download temporary saved file
      */
     public function downloadTempFile(Request $request, $uuid)
+    {
+        // delete old temporary files
+        $this->removeTempFiles();
+
+        return static::downloadTemp($uuid);
+    }
+
+    /**
+     * Download temporary saved file
+     */
+    public function downloadTempFilePublicForm(Request $request, $publicFormUuid, $uuid)
     {
         // delete old temporary files
         $this->removeTempFiles();

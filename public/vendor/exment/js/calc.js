@@ -87,7 +87,8 @@ var Exment;
                     // when summary value, get value
                     else if (param.type == 'summary' || param.type == 'sum') {
                         let sum_count = 0;
-                        $('.box-body').find('.has-many-' + param.child_relation_name + '-form:visible, .has-many-table-' + param.child_relation_name + '-row:visible')
+                        let box = Exment.GetBox.make();
+                        box.getBox().find('.has-many-' + param.child_relation_name + '-form:visible, .has-many-table-' + param.child_relation_name + '-row:visible')
                             .find(Exment.CommonEvent.getClassKey(param.formula_column))
                             .each(function () {
                             if (hasValue($(this).val())) {
@@ -98,7 +99,8 @@ var Exment;
                     }
                     // when count value, get count
                     else if (param.type == 'count') {
-                        val = $('.box-body').find('.has-many-' + param.child_relation_name + '-form:visible, .has-many-table-' + param.child_relation_name + '-row:visible').length;
+                        let box = Exment.GetBox.make();
+                        val = box.getBox().find('.has-many-' + param.child_relation_name + '-form:visible, .has-many-table-' + param.child_relation_name + '-row:visible').length;
                         if (!hasValue(val)) {
                             val = 0;
                         }
@@ -276,7 +278,8 @@ var Exment;
             // count event
             for (let child_relation_key in blockData.calc_counts) {
                 let calc_count = blockData.calc_counts[child_relation_key];
-                let $childbox = $('.box-body').find('.hasmanyblock-' + calc_count.child_relation_name);
+                let box = Exment.GetBox.make();
+                let $childbox = box.getBox().find('.hasmanyblock-' + calc_count.child_relation_name);
                 // add laravel-admin row plusminus event
                 $childbox.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { calc_count: calc_count }, (ev) => __awaiter(this, void 0, void 0, function* () {
                     yield CalcEvent.setCalc(ev.data.calc_count, $(ev.target));

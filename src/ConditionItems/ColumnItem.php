@@ -250,10 +250,10 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             return;
         }
 
-        // $view_column_target is wraped
         $view_column_target = $column_item->getSortColumn();
         $sort_order = $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc';
         //set order
+        // $view_column_target is wraped
         $query->orderByRaw("$view_column_target $sort_order");
     }
     

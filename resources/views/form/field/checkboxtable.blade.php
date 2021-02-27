@@ -28,7 +28,11 @@
     <div class="checkboxtable-header">
     @foreach($options as $option => $label)
     <span style="width:{{$checkWidth}}px; display:inline-block; text-align:center; font-size:0.85em;">
+        @if($headerEsacape)
         {{$label}}
+        @else
+        {!! $label !!}
+        @endif
 
         @if(!empty($headerHelps[$option]))
         <br/>

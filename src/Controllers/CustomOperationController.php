@@ -238,7 +238,7 @@ class CustomOperationController extends AdminControllerTableBase
         $filterTable = new Tools\ConditionHasManyTable($form, [
             'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
             'name' => 'custom_operation_conditions',
-            'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
+            'linkage' => json_encode(['condition_key' => url_join($custom_table->table_name, 'filter-condition')]),
             'targetOptions' => $custom_table->getColumnsSelectOptions([
                 'include_system' => false,
                 'include_condition' => true,

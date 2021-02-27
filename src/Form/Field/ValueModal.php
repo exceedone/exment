@@ -246,7 +246,7 @@ EOT;
     {
         // set text
         if ($this->text instanceof \Closure) {
-            if ($this->form) {
+            if ($this->form && $this->form->model()) {
                 $this->text = $this->text->bindTo($this->form->model());
             }
 

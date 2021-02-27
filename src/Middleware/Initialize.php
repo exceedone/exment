@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -133,6 +134,17 @@ class Initialize
             'driver' => 'exment-auth',
         ]);
     
+        
+        // for login publicform
+        Config::set('auth.guards.publicform', [
+            'driver' => 'publicformtoken',
+            'provider' => 'publicform-provider',
+            'storage_key' => 'uuid',
+        ]);
+        Config::set('auth.providers.publicform-provider', [
+            'driver' => 'publicform-provider-driver',
+        ]);
+
 
         ///// File info
         /// maybe update setting by user
@@ -270,6 +282,8 @@ class Initialize
             'explain'        => FormOthers\Explain::class,
             'html'        => FormOthers\Html::class,
             'exhtml'      => FormOthers\ExHtml::class,
+            'image'      => FormOthers\Image::class,
+            'hr'      => FormOthers\Hr::class,
         ];
         foreach ($map as $abstract => $class) {
             FormOtherItem::extend($abstract, $class);
@@ -349,19 +363,32 @@ class Initialize
                     'system_mail_password' => 'password',
                     'system_mail_encryption' => 'encryption',
                     'system_mail_from' => ['from.address', 'from.name'],
+                    'system_mail_from_view_name' => 'from.name', // If system_mail_from_view_name is not set, from.name set as system_mail_from
                 ];
 
                 foreach ($keys as $keyname => $configname) {
-                    if (!is_null($val = System::{$keyname}())) {
-                        if (!is_array($configname)) {
-                            $configname = [$configname];
-                        }
+                    if (is_nullorempty($val = System::{$keyname}())) {
+                        continue;
+                    }
+                    if (!is_array($configname)) {
+                        $configname = [$configname];
+                    }
 
-                        foreach ($configname as $c) {
-                            Config::set("mail.{$c}", $val);
-                        }
+                    foreach ($configname as $c) {
+                        Config::set("mail.{$c}", $val);
                     }
                 }
+            }
+            
+            // Google reCAPTCHA ----------------------------------------------------
+            if(!is_null($val = Model\PublicForm::recaptchaSiteKey())){
+                Config::set('no-captcha.sitekey', $val);
+            }
+            if(!is_null($val = Model\PublicForm::recaptchaSecretKey())){
+                Config::set('no-captcha.secret', $val);
+            }
+            if(!is_null($val = Model\PublicForm::recaptchaVersion())){
+                Config::set('no-captcha.version', $val);
             }
         }
     }
@@ -434,11 +461,11 @@ class Initialize
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
-            'display'        => Field\Display::class,
             'link'           => Field\Link::class,
             'exmheader'           => Field\Header::class,
             'description'           => Field\Description::class,
             'descriptionHtml'           => Field\DescriptionHtml::class,
+            'internal'           => Field\Internal::class,
             'switchbool'          => Field\SwitchBoolField::class,
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,
             'checkboxone'          => Field\Checkboxone::class,

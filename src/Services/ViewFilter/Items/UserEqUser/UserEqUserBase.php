@@ -19,7 +19,7 @@ abstract class UserEqUserBase extends ViewFilterBase
             $mark = $this->getMark();
             $query->{$method_name}($query_column, $mark, $user_id);
         } else {
-            $query->{$method_name . 'Raw'}('1 = 0');
+            $query->{$method_name . 'NotMatch'}();
         }
     }
     

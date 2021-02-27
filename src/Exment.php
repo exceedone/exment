@@ -8,12 +8,14 @@ use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\ExportImportLibrary;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
@@ -25,6 +27,13 @@ use Carbon\Carbon;
  */
 class Exment
 {
+    /**
+     * guard name.
+     *
+     * @var string
+     */
+    protected $guard;
+
     /**
      * Left sider-bar menu.
      *
@@ -70,18 +79,21 @@ class Exment
     }
 
     /**
-     * get user. multi supported admin and adminapi
+     * get user. Use "Auth::shouldUse", so get only logined user.
      */
     public function user($guards = null)
     {
-        $guards = [Define::AUTHENTICATE_KEY_WEB, Define::AUTHENTICATE_KEY_API];
-        foreach ($guards as $guard) {
-            if (\Auth::guard($guard)->check()) {
-                return \Auth::guard($guard)->user();
-            }
-        }
+        return \Auth::guard($this->guard)->user();
+    }
 
-        return null;
+
+    /**
+     * set gurad info.
+     */
+    public function setGuard(string $guard)
+    {
+        $this->guard = $guard;
+        \Auth::shouldUse($guard);
     }
 
 
@@ -418,7 +430,8 @@ class Exment
             $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
             $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
             $documentDbName = getDBTableName($custom_table);
-            $targetDbName = getDBTableName($target_custom_table);
+            $documentDbNameWrap = \Exment::wrapTable($documentDbName);
+            $targetDbNameWrap = \Exment::wrapTable(getDBTableName($target_custom_table));
 
             // search document name
             list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
@@ -427,7 +440,7 @@ class Exment
                 ->from($documentDbName)
                 ->where($documentDbName . '.' . $column_document_name->getQueryKey(), $mark, $q)
                 ->where("$documentDbName.parent_type", $target_custom_table->table_name)
-                ->whereRaw("$documentDbName.parent_id = $targetDbName.id");
+                ->whereRaw("$documentDbNameWrap.parent_id = $targetDbNameWrap.id");
             ;
         });
     }
@@ -727,5 +740,43 @@ class Exment
             };
         }
         return true;
+    }
+
+
+    /**
+     * Whether Available Google recaptcha (whether has class)
+     *
+     * @return boolean
+     */
+    public function isAvailableGoogleRecaptcha(){
+        return class_exists(\Arcanedev\NoCaptcha\NoCaptchaManager::class);
+    }
+
+    
+    /**
+     * save file info to database
+     */
+    public function setFileInfo($field, $file, $file_type, $custom_table)
+    {
+        // get local filename
+        $dirname = $field->getDirectory();
+        $filename = $file->getClientOriginalName();
+        // save file info
+        $exmentfile = ExmentFile::saveFileInfo($file_type, $dirname, [
+            'filename' => $filename,
+        ]);
+
+        // set request session to save this custom_value's id and type into files table.
+        $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
+        $file_uuids[] = [
+            'uuid' => $exmentfile->uuid,
+            'column_name' => $field->column(),
+            'custom_table' => $custom_table,
+            'path' => $exmentfile->path
+        ];
+        System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
+        
+        // return filename
+        return $exmentfile->local_filename;
     }
 }

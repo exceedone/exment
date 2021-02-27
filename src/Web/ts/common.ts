@@ -32,6 +32,10 @@ namespace Exment {
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
+                        
+            $(document).on('pjax:error', function(xhr, textStatus, error, options) {
+                CommonEvent.pjaxError(xhr, textStatus, error, options);
+            });
         }
         public static AddEvent() {
             CommonEvent.ToggleHelp();
@@ -466,9 +470,6 @@ namespace Exment {
 
             // if has data, get from data object
             if (hasValue(data)) {
-                // if data is not array, set as array
-                //if(!Array.isArray(data)){data = [data];}
-                // loop for model table
                 for (var table_name in data) {
                     var target_table_data = data[table_name];
                     if (!hasValue(target_table_data)) {
@@ -481,28 +482,20 @@ namespace Exment {
                         await CommonEvent.setModelItem(null, $parent, $target, target_table_data);
                         continue;
                     }
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('[name="_token"]').val() as string
-                        }
-                    });
-                    $.ajax({
-                        url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                        type: 'POST',
-                        context: {
-                            data: target_table_data,
-                        }
+
+                    const webapi = WebApi.make();
+                    webapi.findValue(table_name, value, {
+                        data: target_table_data,
                     })
-                        .done(async function (modeldata) {
-                            await CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
-                            $d.resolve();
-                        })
-                        .fail(function (errordata) {
-                            console.log(errordata);
-                            $d.reject();
-                        });
+                    .done(async function (modeldata, context) {
+                        await CommonEvent.setModelItem(modeldata, $parent, $target, context.data);
+                        $d.resolve();
+                    })
+                    .fail(function (errordata) {
+                        console.log(errordata);
+                        $d.reject();
+                    });
                 }
-                //}
             }
 
             // getItem
@@ -633,7 +626,7 @@ namespace Exment {
                 CommonEvent.relatedLinkageList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
 
                 // set linkage event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
+                GetBox.make().getBox().on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
             }
         }
 
@@ -655,7 +648,7 @@ namespace Exment {
             for (var key in linkages) {
                 // set param from PHP
                 var link = linkages[key];
-                var url = link.url;
+                var uri = link.uri;
                 var expand = link.expand;
                 var $target = $parent.find(CommonEvent.getClassKey(link.to));
 
@@ -673,7 +666,7 @@ namespace Exment {
                     $target.data('add-select2-expand', select2_expand).val(null).trigger("change");
                     continue;
                 }
-                CommonEvent.linkage($target, url, $base.val(), expand);
+                WebApi.make().linkage($target, uri, $base.val(), expand);
             }
         }
 
@@ -725,39 +718,9 @@ namespace Exment {
                     linkage_text = link.text;
                 }
                 var $target = $parent.find(CommonEvent.getClassKey(key));
-                CommonEvent.linkage($target, url, $base.val(), expand, linkage_text);
+                WebApi.make().linkage($target, url, $base.val(), expand, linkage_text);
             }
         }
-
-        private static linkage($target: JQuery<Element>, url: string, val: any, expand?: any, linkage_text?: string) {
-            var $d = $.Deferred();
-
-            // create querystring
-            if (!hasValue(expand)) { expand = {}; }
-            if (!hasValue(linkage_text)) { linkage_text = 'text'; }
-
-            expand['q'] = val;
-            var query = $.param(expand);
-            $.get(url + '?' + query, function (json) {
-                $target.find("option").remove();
-                var options = [];
-                options.push({id: '', text: ''});
-
-                $.each(json, function(index, d){
-                    options.push({id: hasValue(d.id) ? d.id : '', text: d[linkage_text]});
-                })
-
-                $target.select2({
-                    data: options,
-                    "allowClear": true,
-                    "placeholder": $target.next().find('.select2-selection__placeholder').text(),
-                }).trigger('change');
-
-                $d.resolve();
-            });
-            return $d.promise();
-        }
-
 
         /**
          * Set linkage expand info for modal search
@@ -907,36 +870,19 @@ namespace Exment {
             }
         }
 
-        
+
         /**
          * find table data
          * @param table_name 
          * @param value 
          * @param context 
+         * 
+         * @deprecated Please use webapi model
          */
         public static findModel(table_name, value, context = null) {
-            var $d = $.Deferred();
-            if (!hasValue(value)) {
-                $d.resolve(null);
-            } else {
-                $.ajax({
-                    url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                    type: 'GET',
-                    context: context
-                })
-                    .done(function (modeldata) {
-                        $d.resolve(modeldata);
-                    })
-                    .fail(function (errordata) {
-                        console.log(errordata);
-
-                        $d.reject();
-                    });
-            }
-
-            return $d.promise();
+            return WebApi.make().findValue(table_name, value, context);
         }
-
+        
         /**
          * set value. check number format, column type, etc...
          * @param $target 
@@ -976,11 +922,6 @@ namespace Exment {
                 }
             }
 
-            // if number format, add comma
-            if (isNumber && $target.attr('number_format')) {
-                value = comma(value);
-            }
-
             // switch bootstrapSwitch
             if ($.inArray(column_type, ['boolean', 'yesno']) != -1) {
                 let $bootstrapSwitch = $target.filter('[type="checkbox"]');
@@ -989,17 +930,8 @@ namespace Exment {
             
             // if select2 and has 'data-add-select2-ajax-webapi', call api, and select2 options
             if ($target.filter('[data-add-select2-ajax-webapi]').length > 0) {
-                let api = URLJoin($target.data('add-select2-ajax-webapi'), value);
-                $.ajax({
-                    type: 'GET',
-                    url: api,
-                    data: {'label': 1},
-                    async: false,
-                    success: function (repsonse) {
-                        let newOption = new Option(repsonse.label, repsonse.id, true, true);
-                        $target.append(newOption);
-                    }
-                });
+                let uri = URLJoin($target.data('add-select2-ajax-webapi'), value);
+                WebApi.make().select2Option(uri, $target);
             }
             
             // set value and trigger next
@@ -1021,34 +953,8 @@ namespace Exment {
                     "allowClear": allowClear, "placeholder": $elem.data('add-select2'), width: '100%'
                 };
                 if (hasValue($elem.data('add-select2-ajax'))) {
-                    options['ajax'] = {
-                        url: $(elem).data('add-select2-ajax'),
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                q: params.term,
-                                page: params.page,
-                                expand: $elem.data('add-select2-expand'),
-                            };
-                        },
-                        processResults: function (data, params) {
-                            if (!hasValue(data) || !hasValue(data.data)) { return { results: [] }; }
-                            params.page = params.page || 1;
-
-                            return {
-                                results: $.map(data.data, function (d) {
-                                    d.id = d.id;
-                                    d.text = hasValue(d.text) ? d.text : d.label; // label is custom value label appended.
-                                    return d;
-                                }),
-                                pagination: {
-                                    more: data.next_page_url
-                                }
-                            };
-                        },
-                        cache: true
-                    };
+                    // get ue
+                    options['ajax'] = WebApi.make().getSelect2AjaxOption($elem);
                     options['escapeMarkup'] = function (markup) {
                         return markup;
                     };
@@ -1065,20 +971,21 @@ namespace Exment {
          * @param block_name block name
          */
         public static getBlockElement(block_name) : JQuery<HTMLElement>{
+            const box = GetBox.make();
             if(!hasValue(block_name) || block_name == 'default'){
                 return CommonEvent.getDefaultBox();
             }
             if(block_name == 'parent_id'){
-                return $('.box-body .parent_id').closest('.form-group');
+                return box.getBox().find('.parent_id').closest('.form-group');
             }
 
             // if 1:n, return children.
-            return $('.box-body .hasmanyblock-' + block_name);
+            return box.getBox().find('.hasmanyblock-' + block_name);
         }
 
 
         public static getDefaultBox() : JQuery<HTMLElement>{
-            return $('.box-body >.fields-group > .embed-value');
+            return GetBox.make().getBox().children('.fields-group').children('.embed-value');
         }
 
         
@@ -1145,6 +1052,12 @@ namespace Exment {
                 }
             }
             return false;
+        }
+
+        private static pjaxError(xhr, textStatus, error, options){
+            if(textStatus.status == 419){
+                toastr.error($('#exment_expired_error').val(), null, {timeOut:10000});
+            }
         }
     }
 }

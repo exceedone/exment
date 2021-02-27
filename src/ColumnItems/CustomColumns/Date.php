@@ -92,13 +92,13 @@ class Date extends CustomItem
         return Filter\BetweenDate::class;
     }
 
-    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    protected function getCustomField($classname, $column_name_prefix = null)
     {
         $this->autoDate();
-        return parent::getCustomField($classname, $form_column_options, $column_name_prefix);
+        return parent::getCustomField($classname, $column_name_prefix);
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         if ($this->displayDate()) {
             $field->default($this->getNowString());
@@ -107,7 +107,7 @@ class Date extends CustomItem
         }
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $validates[] = 'date';
     }
@@ -224,14 +224,14 @@ class Date extends CustomItem
      *
      * @return mixed
      */
-    public function getDefaultValue()
+    protected function _getDefaultValue()
     {
         $options = $this->custom_column->options;
         if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_DATE)) {
             return \Carbon\Carbon::now()->format($this->format);
         }
 
-        return parent::getDefaultValue();
+        return null;
     }
 
 
@@ -262,7 +262,7 @@ class Date extends CustomItem
      * @param Form $form
      * @return void
      */
-    public function setCustomColumnDefaultValueForm(&$form)
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
         $form->select('default_type', exmtrans("custom_column.options.default_type"))
             ->attribute(['data-filtertrigger' =>true])
@@ -271,7 +271,7 @@ class Date extends CustomItem
 
         $form->date('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
-            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATE])])
+            ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATE])])
             ;
     }
 }

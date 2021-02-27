@@ -24,7 +24,7 @@ class SelectValtext extends Select
         return $returns;
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $select_options = $this->custom_column->createSelectOptions();
         $validates[] = new Validator\SelectValTextRule($select_options);

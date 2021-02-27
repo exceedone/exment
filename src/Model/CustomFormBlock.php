@@ -13,6 +13,13 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     
     protected $casts = ['options' => 'json'];
 
+    /**
+     * request key. Used by custom form setting display. Ex. NEW__f482dce0-662c-11eb-8f65-5f9d12681ab1
+     *
+     * @var string
+     */
+    protected $_request_key;
+
     public static $templateItems = [
         'excepts' => ['custom_form_id', 'target_table'],
         'langs' => [
@@ -59,6 +66,34 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     {
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
     }
+
+    public function getCustomFormCacheAttribute()
+    {
+        return CustomForm::getEloquent($this->custom_form_id);
+    }
+
+    public function getTargetTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->form_block_target_table_id);
+    }
+
+    public function getFormTableCacheAttribute()
+    {
+        $custom_form = $this->custom_form_cache;
+        return $custom_form ? $custom_form->custom_table_cache : null;
+    }
+
+    public function getRequestKeyAttribute()
+    {
+        return $this->_request_key ?? $this->id;
+    }
+
+    public function setRequestKeyAttribute($request_key)
+    {
+        $this->_request_key = $request_key;
+        return $this;
+    }
+
     
     public function isMultipleColumn()
     {

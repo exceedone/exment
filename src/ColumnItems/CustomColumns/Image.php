@@ -19,7 +19,7 @@ class Image extends File
             return $url;
         }
 
-        return \Exment::getUrlTag($url, '<img src="'.$url.'" class="image_html" />', UrlTagType::BLANK, [], [
+        return \Exment::getUrlTag($url, '<img src="'.$url.'" class="mw-100 image_html" />', UrlTagType::BLANK, [], [
             'notEscape' => true,
         ]);
     }
@@ -29,17 +29,17 @@ class Image extends File
         return Field\Image::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
-        parent::setAdminOptions($field, $form_column_options);
+        parent::setAdminOptions($field);
 
         $field->attribute(['accept' => "image/*"]);
     }
 
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $validates[] = new \Exceedone\Exment\Validator\ImageRule;
 
-        parent::setValidates($validates, $form_column_options);
+        parent::setValidates($validates);
     }
 }

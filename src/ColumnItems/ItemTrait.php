@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomForm;
 
 /**
  *
@@ -30,7 +31,16 @@ trait ItemTrait
 
     protected $id;
 
-    protected $options;
+
+    /**
+     * Form items option
+     * 
+     * [
+     *     'public_form': if this form is public_form, set publcform model
+     * ]
+     * @var array
+     */
+    protected $options = [];
 
     protected $uniqueName;
 
@@ -45,6 +55,13 @@ trait ItemTrait
 
         return $this;
     }
+
+    /**
+     * CustomForm
+     *
+     * @var CustomForm
+     */
+    protected $custom_form;
 
     /**
      * get value
@@ -330,6 +347,17 @@ trait ItemTrait
         return false;
     }
     
+
+    /**
+     * Whether this form is public form.
+     *
+     * @return boolean
+     */
+    public function isPublicForm() : bool
+    {
+        return !is_nullorempty(array_get($this->options, 'public_form'));
+    }
+
     /**
      * Get Search queries for free text search
      *
@@ -420,5 +448,33 @@ trait ItemTrait
     public function convertFilterValue($value)
     {
         return $value;
+    }
+
+    /**
+     * Set customForm
+     *
+     * @param  CustomForm  $custom_form  CustomForm
+     *
+     * @return  self
+     */ 
+    public function setCustomForm(CustomForm $custom_form)
+    {
+        $this->custom_form = $custom_form;
+
+        return $this;
+    }
+
+    /**
+     * Whether the table in this column is different from the column in the form
+     *
+     * @return bool
+     */
+    public function isDefferentFormTable() : bool
+    {
+        if(!$this->custom_form){
+            return false;
+        }
+
+        return !isMatchString($this->custom_form->custom_table_cache->id, $this->custom_table->id);
     }
 }

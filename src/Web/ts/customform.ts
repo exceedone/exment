@@ -1,215 +1,319 @@
 
 namespace Exment {
     export class CustomFromEvent {
-        private static $targetLi;
-
         public static AddEvent() {
-            $('.box-custom_form_block').on('ifChanged check', '.icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
-            $('.box-custom_form_block').on('click', '.delete', {}, CustomFromEvent.deleteColumn);
-            $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
-            $('.box-custom_form_block').on('click', '.changedata-modal', {}, CustomFromEvent.changedataModalEvent);
-            $('.box-custom_form_block').on('click', '.input_texthtml-modal', {}, CustomFromEvent.editTextHtmlModalEvent);
-            $('.box-custom_form_block').on('click', '.relation_filter-modal', {}, CustomFromEvent.relationfilterModalEvent);
-            $('.box-custom_form_block').on('click.custom_form', '[data-toggle-expanded-value]', {}, CustomFromEvent.toggoleListOpenClose);
+            
+            $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
 
-            $(document).off('change.custom_form', '.changedata_target_column').on('change.custom_form', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
-            $(document).off('click.custom_form', '#changedata-button-setting').on('click.custom_form', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
-            $(document).off('click.custom_form', '#changedata-button-reset').on('click.custom_form', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
-            $(document).off('click.custom_form', '#relation_filter-button-setting').on('click.custom_form', '#relation_filter-button-setting', {}, CustomFromEvent.relationfilterSetting);
-            $(document).off('click.custom_form', '#relation_filter-button-reset').on('click.custom_form', '#relation_filter-button-reset', {}, CustomFromEvent.relationfilterReset);
-            $(document).off('click.custom_form', '#textinput-button-setting').on('click.custom_form', '#textinput-button-setting', {}, CustomFromEvent.textinputSetting);
-            $(document).off('click.custom_form', '#textinput-button-reset').on('click.custom_form', '#textinput-button-reset', {}, CustomFromEvent.textinputReset);
-
-            CustomFromEvent.addDragEvent();
-            CustomFromEvent.addCollapseEvent();
-            CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
-            CustomFromEvent.appendIcheckEvent($('.box-custom_form_block .icheck:visible, .box-custom_form_block .icheck.icheck_hasmany_type'));
-            $('form').on('submit', CustomFromEvent.formSubmitEvent);
+            CustomFromEvent.loadingEvent();
+            CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
         }
 
         public static AddEventOnce() {
+            $(document).on('ifChanged check', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
+            
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_area_header .delete', {}, CustomFromEvent.deleteBoxEvent);
+            
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .btn-addallitems', {}, CustomFromEvent.addAllItems);           
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .addbutton_button', {}, CustomFromEvent.addAreaButtonEvent);
+
+            $(document).on('change.exment_custom_form', '#modal-showmodal .modal-customform .changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
+            $(document).on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
+            $(document).on('click.exment_custom_form', '.preview-custom_form', {}, CustomFromEvent.previewCustomForm);
+
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
             });
         }
 
+        
         /**
-         * Add All item button event
+         * Call loading event
          */
-        private static toggoleListOpenClose = (ev) => {
-            const $button = $(ev.target).closest('[data-toggle-expanded-value]');
-            const expanded = $button.data('toggle-expanded-value')
-            const $li = $button.closest('.custom_form_column_block').find('li [data-toggle="collapse"]').filter('[aria-expanded="' + expanded + '"]');
-            $li.trigger('click');
+        private static loadingEvent() {
+            // Add drag item event
+            $('.custom_form_column_items .draggables').each(function(index:number, elem:Element){
+                CustomFromEvent.addDragItemEvent($(elem).children('.draggable'));
+            });
+            $('.custom_form_column_suggests .draggables').each(function(index:number, elem:Element){
+                CustomFromEvent.addDragSuggestEvent($(elem).children('.draggable'));
+            });
         }
+
+
+        /**
+         * Append event for setted item, for loading display.
+         * @param $draggable item area list
+         */
+        public static addDragItemEvent($draggable: JQuery<Element>){
+            let $draggables = $draggable.closest('.draggables');
+            let connectToSortable = '.' + $draggables.data('connecttosortable') + ' .draggables';
+
+            // destory first, for dragged from suggest.
+            //$draggable.draggable('destroy');
+
+            // set event for fix area   
+            $draggable.draggable({
+                // connect to sortable. set only same block
+                connectToSortable: connectToSortable,
+                //cursor: 'move',
+                revert: "invalid",
+                droppable: "drop",
+                distance: 40,
+                start: (event, ui) => {
+                    // reset draageble target
+                    ui.helper.addClass('moving');
+                },
+                stop: (event, ui) => {
+                    // reset draageble target
+                    CustomFromEvent.setMovedEvent(ui.helper);
+                    ui.helper.removeClass('moving');
+                },
+            });
+        }
+
+
+        /**
+         * Append event for suggest item, for loading display.
+         * @param $draggable suggest area list
+         */
+        public static addDragSuggestEvent($draggable: JQuery<Element>){
+            let $draggables = $draggable.closest('.draggables');
+            let connectToSortable = '.' + $draggables.data('connecttosortable') + ' .draggables';
+
+            $draggable.draggable({
+                // connect to sortable. set only same block
+                // and filter not draggable_setted
+                connectToSortable: connectToSortable,
+                helper: $draggables.closest('[data-draggable_clone]').data('draggable_clone') ? 'clone' : '',
+                revert: "invalid",
+                droppable: "drop",
+                distance: 40,
+                start: (event, ui) => {
+                    // reset draageble target
+                    ui.helper.addClass('moving');
+                },
+                stop: (event, ui) => {
+                    ui.helper.removeClass('moving');
+                    // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
+                    if (ui.helper.closest('.custom_form_column_items').length > 0) {
+                        CustomFromEvent.setMovedEvent(ui.helper);
+                        CustomFromEvent.addDragItemEvent(ui.helper.closest('.draggable'));
+                    }
+                }
+            });
+
+            CustomFromEvent.addSortableEvent($draggable);
+        }
+        
+
+        /**
+         * Append event for suggest item, for loading display.
+         * @param $draggable suggest area list
+         */
+        public static addSortableEvent($draggable: JQuery<Element>){
+            let $draggables = $draggable.closest('.draggables');
+            let connectToSortable = '.' + $draggables.data('connecttosortable') + ' .draggables';
+            $(connectToSortable)
+                .not('.added-sortable')
+                .sortable({
+                    distance: 40,
+                }).each(function(index:number, elem:Element){
+                    let d = $(elem);
+                    let $draggable = d.children('.draggable');
+                    $draggable.each(function(index2, elem2){
+                        //CustomFromEvent.setDragItemEvent($(elem2));
+                    });
+                    
+                    d.addClass('added-sortable');
+                });
+        }
+        
+
+        /**
+         * Set event after dragged erea.
+         */
+        private static setMovedEvent($elem: JQuery<Element>){
+            CustomFromEvent.toggleConfigIcon($elem, true);
+            // add hidden form
+            let header_name = CustomFromEvent.getHeaderName($elem);
+            $elem.append($('<input/>', {
+                name: header_name + '[form_column_target_id]',
+                value: $elem.find('.form_column_target_id').val(),
+                type: 'hidden',
+            }));
+            $elem.append($('<input/>', {
+                name: header_name + '[form_column_type]',
+                value: $elem.find('.form_column_type').val(),
+                type: 'hidden',
+            }));
+            $elem.append($('<input/>', {
+                name: header_name + '[required]',
+                value: $elem.find('.required_item').val(), // if name 'required', validation wrong call.
+                type: 'hidden',
+            }));
+            $elem.append($('<input/>', {
+                name: header_name + '[row_no]',
+                value: $elem.closest('[data-row_no]').data('row_no'),
+                'class': 'row_no',
+                type: 'hidden',
+            }));
+            $elem.append($('<input/>', {
+                name: header_name + '[column_no]',
+                value: $elem.closest('[data-column_no]').data('column_no'),
+                'class': 'column_no',
+                type: 'hidden',
+            }));
+            $elem.append($('<input/>', {
+                name: header_name + '[width]',
+                value: $elem.closest('[data-width]').data('width'),
+                'class': 'width',
+                type: 'hidden',
+            }));
+
+            // rename for toggle
+            if(hasValue($elem.find('[data-toggle]'))){
+                let uuid = getUuid();
+                $elem.find('[data-parent]')
+                    .attr('data-parent', '#' + uuid)
+                    .attr('href', '#' + uuid);
+                $elem.find('.panel-collapse').prop('id', uuid);
+            }
+
+            // replace html name(for clone object)
+            CustomFromEvent.replaceCloneColumnName($elem);
+        }
+
+
+        private static addAreaButtonEvent = (ev) => {
+            let $button = $(ev.target).closest('.addbutton_button');
+
+            let $copy: JQuery<HTMLElement> = null;
+            $copy = $button.closest('.box-custom_form_block').find('.template_item_column .custom_form_area').clone(true);
+            $button.closest('.addbutton_block').before($copy);
+
+            // update data row and column no
+            CustomFromEvent.updateAreaRowNo($copy);
+            CustomFromEvent.updateAreaColumnNo($copy);
+
+            // toggle plus button
+            CustomFromEvent.togglePlusButton($button);
+
+            CustomFromEvent.appendRow($copy);
+
+            CustomFromEvent.resizeEvent($copy);
+
+            CustomFromEvent.addSortableEvent($copy.find('.draggables'));
+        }
+
+        
+        /**
+         * Toggle addbutton show or hide
+         * @param $button 
+         */
+        private static togglePlusButton($button: JQuery<HTMLElement>)
+        {
+            let $items = $button.closest('.row').children('.custom_form_area:visible');
+            // calc size
+            let allWidth = 0;
+            $items.each(function(index, element){
+                allWidth += $(element).find('[data-width]').data('width');
+            });
+
+            if(allWidth >= 4 || allWidth == 0){
+                $button.closest('.addbutton_block').hide();
+            }
+            else{
+                $button.closest('.addbutton_block').show();
+            }
+        }
+
+        /**
+         * Update row no. area and each items
+         * @param $elem 
+         */
+        private static updateAreaRowNo($elem: JQuery<HTMLElement>)
+        {
+            // update data row and column no
+            let row = $elem.closest('.custom_form_column_items').children('.row:visible').index($elem.closest('.row')) + 1;
+            $elem.find('.draggables').data('row_no', row);
+
+            // update items row no
+            $elem.find('.row_no').val(row);
+        }
+        
+        /**
+         * Update column no. area and each items
+         * @param $elem 
+         */
+        private static updateAreaColumnNo($elem: JQuery<HTMLElement>)
+        {
+            // update data row and column no
+            let column = $elem.closest('.row').children('.custom_form_area:visible').index($elem.closest('.custom_form_area')) + 1;
+            $elem.find('.draggables').data('column_no', column);
+
+            // update items column no
+            $elem.find('.column_no').val(column);
+        }
+        
+        /**
+         * Update width no. each items.
+         * @param $elem 
+         */
+        private static updateAreaWidth($elem: JQuery<HTMLElement>)
+        {
+            // update data row and column no
+            let $custom_form_area = $elem.closest('.custom_form_area');
+
+            let width = $custom_form_area.data('grid_column') / 3;
+            $custom_form_area.find('.draggables').data('width', width);
+
+            // update items column no
+            $elem.find('.width').val(width);
+        }
+
+
+        private static appendRow($copy){
+            if($copy.find('[data-column_no]').data('column_no') != 1){
+                return;
+            }
+            let $rowcopy = $copy.closest('.custom_form_block').find('.template_item_row .row').clone(true);
+            
+            $copy.closest('.custom_form_column_items').append($rowcopy);
+        }
+        
 
         /**
          * Add All item button event
          */
         private static addAllItems = (ev) => {
-            var $block = $(ev.target).closest('.custom_form_column_block_inner');
-            var $items = $block.find('.custom_form_column_item:visible'); // ignore template item
-            var $target_ul = $block.closest('.box-body').find('.custom_form_column_items').first();
+            let $block = $(ev.target).closest('.custom_form_column_block_inner');
+            let $items = $block.find('.custom_form_column_item:visible'); // ignore template item
+            let $target_ul = $block.closest('.box-body').find('.custom_form_column_items .draggables').first();
             $items.each(function(index:number, elem:Element){
                 $(elem).appendTo($target_ul);
                 // show item options, 
-                CustomFromEvent.toggleFormColumnItem($(elem), true);
+                CustomFromEvent.setMovedEvent($(elem));
             });
         }
 
-        private static addDragEvent($elem: JQuery<Element>= null) {
-            //if (!$elem) {
-            // create draagble form
-            $('.custom_form_column_suggests.draggables').each(function(index:number, elem:Element){
-                var d = $(elem);
-                $elem = d.children('.draggable');
 
-                $elem.draggable({
-                    // connect to sortable. set only same block
-                    connectToSortable: '.' + d.data('connecttosortable') + ' .draggables',
-                    //cursor: 'move',
-                    helper: d.data('draggable_clone') ? 'clone' : '',
-                    revert: "invalid",
-                    droppable: "drop",
-                    distance: 40,
-                    stop: (event, ui) => {
-                        var $ul = ui.helper.closest('.draggables');
-                        // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
-                        if ($ul.hasClass('custom_form_column_items')) {
-                            ui.helper.find('.delete,.options,[data-toggle]').show();
-                            // add hidden form
-                            var header_name = CustomFromEvent.getHeaderName(ui.helper);
-                            ui.helper.append($('<input/>', {
-                                name: header_name + '[form_column_target_id]',
-                                value: ui.helper.find('.form_column_target_id').val(),
-                                type: 'hidden',
-                            }));
-                            ui.helper.append($('<input/>', {
-                                name: header_name + '[form_column_type]',
-                                value: ui.helper.find('.form_column_type').val(),
-                                type: 'hidden',
-                            }));
-                            ui.helper.append($('<input/>', {
-                                name: header_name + '[required]',
-                                value: ui.helper.find('.required').val(),
-                                type: 'hidden',
-                            }));
-                            ui.helper.append($('<input/>', {
-                                name: header_name + '[column_no]',
-                                value: ui.helper.closest('[data-form_column_no]').data('form_column_no'),
-                                'class': 'column_no',
-                                type: 'hidden',
-                            }));
-
-                            // rename for toggle
-                            if(hasValue(ui.helper.find('[data-toggle]'))){
-                                let uuid = getUuid();
-                                ui.helper.find('[data-parent]')
-                                    .attr('data-parent', '#' + uuid)
-                                    .attr('href', '#' + uuid);
-                                ui.helper.find('.panel-collapse').prop('id', uuid);
-                                CustomFromEvent.addCollapseEvent(ui.helper.find('.panel-collapse'));
-                            }
-
-                            // add icheck event
-                            CustomFromEvent.appendIcheckEvent(ui.helper.find('.icheck'));
-
-                            // replace html name(for clone object)
-                            CustomFromEvent.replaceCloneColumnName(ui.helper);
-                        } else {
-                            ui.helper.find('.delete,.options,[data-toggle]').hide();
-                        }
-                    }
-                });
-            });
-            // add sorable event (only left column)
-            $(".custom_form_column_items.draggables")
-                .sortable({
-                    distance: 40,
-                })
-                // add 1to2 or 2to1 draagable event
-                .each(function(index:number, elem:Element){
-                    var d = $(elem);
-                    $elem = d.children('.draggable');
-
-                    $elem.each(function(index2, elem2){
-                        CustomFromEvent.setDragItemEvent($(elem2));
-                    });
-                });
-        }
-
-        private static addCollapseEvent($elem: JQuery<Element>= null) {
-            if(!hasValue($elem)){
-                $elem = $('.panel-collapse');
-            }
-            $elem.off('show.bs.collapse').on('show.bs.collapse', function () {
-                CustomFromEvent.appendIcheckEvent($(this));
-                $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-up').removeClass('fa-chevron-down');
-            });
-        
-            $elem.off('hide.bs.collapse').on('hide.bs.collapse', function () {
-                $(this).siblings('.panel-heading').removeClass('active');
-                $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-down').removeClass('fa-chevron-up');
-            });
-        }
-
-        private static setDragItemEvent($elem, initialize = true){
-            // get parent div
-            var $div = $elem.parents('.custom_form_column_block');
-            // get id name for connectToSortable
-            var id = 'ul_' 
-                + $div.data('form_block_type') 
-                + '_' + $div.data('form_block_target_table_id')
-                //+ '_' + ($div.data('form_column_no') == 1 ? 2 : 1);
-            if(initialize){
-                $elem.draggable({
-                    // connect to sortable. set only same block
-                    connectToSortable: '.' + id,
-                    //cursor: 'move',
-                    revert: "invalid",
-                    droppable: "drop",
-                    distance: 40,
-                    stop: (event, ui) => {
-                        // reset draageble target
-                        CustomFromEvent.setDragItemEvent(ui.helper, false);
-                        // set column no
-                        ui.helper.find('.column_no').val(ui.helper.closest('[data-form_column_no]').data('form_column_no'));
-                    }
-                });
-            }else{
-                $elem.draggable( "option", "connectToSortable", "." + id );
-            }
-        }
-
-        private static toggleFormColumnItem($elem: JQuery<Element>, isShow = true) {
+        private static toggleConfigIcon($elem: JQuery<Element>, isShow:boolean){
             if(isShow){
-                $elem.find('.delete,.options,[data-toggle]').show();
-                // add hidden form
-                var header_name = CustomFromEvent.getHeaderName($elem);
-                $elem.append($('<input/>', {
-                    name: header_name + '[form_column_target_id]',
-                    value: $elem.find('.form_column_target_id').val(),
-                    type: 'hidden',
-                }));
-                $elem.append($('<input/>', {
-                    name: header_name + '[form_column_type]',
-                    value: $elem.find('.form_column_type').val(),
-                    type: 'hidden',
-                }));
-                // add icheck event
-                CustomFromEvent.appendIcheckEvent($elem.find('.icheck'));
-
-                CustomFromEvent.setDragItemEvent($elem);
+                $elem.find('.delete,.options,[data-toggle],.setting').show();
             }else{
-                $elem.find('.delete,.options,[data-toggle]').hide();
+                $elem.find('.delete,.options,[data-toggle],.setting').hide();
             }
         }
-        
+
+
         private static toggleFromBlock = (ev) => {
             ev.preventDefault();
             
-            var available = $(ev.target).closest('.icheck_toggleblock').prop('checked');
-            var $block = $(ev.target).closest('.box-custom_form_block').find('.custom_form_block');
+            let available = $(ev.target).closest('.icheck_toggleblock').prop('checked');
+            let $block = $(ev.target).closest('.box-custom_form_block').find('.custom_form_block');
             if (available) {
                 $block.show();
             } else {
@@ -217,55 +321,147 @@ namespace Exment {
             }
         }
 
-        private static deleteColumn = (ev) => {
+
+        /**
+         * delete form column
+         * @param ev 
+         */
+        private static deleteColumnEvent = (ev) => {
             ev.preventDefault();
 
-            var item = $(ev.target).closest('.custom_form_column_item');
+            CustomFromEvent.deleteColumn($(ev.target));
+        }
+
+        private static deleteColumn = ($elem : JQuery<HTMLElement>, isShowToastr = true, deleteAsBox = false) => {
+            let item = $elem.closest('.custom_form_column_item');
             if(item.hasClass('deleting')){
                 return;
             }
             item.addClass('deleting');
 
-            var header_name = CustomFromEvent.getHeaderName(item);
             // Add delete flg
-            item.append($('<input/>', {
-                type: 'hidden',
-                name: header_name + '[delete_flg]',
-                value: 1
-            }));
+            item.find('.delete_flg').val(1);
+
+            // if box delete, set data
+            if(deleteAsBox){
+                item.addClass('deleteAsBox');
+            }
             item.fadeOut();
-            if (item.find('.form_column_type').val() != '99') {
-                var form_column_type = item.find('.form_column_type').val();
-                var form_column_target_id = item.find('.form_column_target_id').val();
-                var form_block_type = item.closest('.custom_form_column_block').data('form_block_type');
-                var form_block_target_table_id = item.closest('.custom_form_column_block').data('form_block_target_table_id');
+            let $clone = CustomFromEvent.toggleColumnSuggest(true, item);
+
+            if(isShowToastr){
+                toastr.warning($('#delete_revert_message').val(), $('#delete_title').val(), {timeOut:5000, preventDuplicates: true, positionClass: 'toast-bottom-center', onclick: function(){
+                    CustomFromEvent.revertDeleteColumn(item, $clone);
+                }});
+            }
+        }
+
+
+        /**
+         * delete box
+         * @param ev 
+         */
+        private static deleteBoxEvent = (ev) => {
+            ev.preventDefault();
+
+            let $custom_form_area = $(ev.target).closest('.custom_form_area');
+            $custom_form_area.fadeOut(400, function(){
+                // toggle button show
+                let $button = $(ev.target).closest('.row').find('.addbutton_button');
+                CustomFromEvent.togglePlusButton($button);
+            });
+
+            $custom_form_area.find('.custom_form_column_item').each(function(index, element){
+                CustomFromEvent.deleteColumn($(element), false, true);
+            });
+
+            toastr.warning($('#delete_revert_message').val(), $('#delete_title').val(), {timeOut:5000, preventDuplicates: true, positionClass: 'toast-bottom-center', onclick: function(){
+                CustomFromEvent.revertDeleteBox($custom_form_area);
+            }});
+        }
+
+
+        private static toggleColumnSuggest(isShow:boolean, $item:JQuery<HTMLElement>){
+            let $clone: JQuery<HTMLElement> = null;
+            if ($item.find('.form_column_type').val() != '99') {
+                let form_column_type = $item.find('.form_column_type').val();
+                let form_column_target_id = $item.find('.form_column_target_id').val();
+                let form_block_type = $item.closest('.custom_form_column_block').data('form_block_type');
+                let form_block_target_table_id = $item.closest('.custom_form_column_block').data('form_block_target_table_id');
 
                 // get suggest_form_column_type.
+                let suggest_form_column_type;
                 if(form_column_type == '1'){
-                   var suggest_form_column_type:any = '0';
+                    suggest_form_column_type = '0';
                 }else{
                     suggest_form_column_type = form_column_type;
                 }
 
                 // get target suggest div area.
-                var $custom_form_block_target = $('.custom_form_column_block')
-                .filter('[data-form_block_type="' + form_block_type + '"]')
-                .filter('[data-form_block_target_table_id="' + form_block_target_table_id + '"]');
+                let $custom_form_block_target = $('.custom_form_column_block')
+                    .filter('[data-form_block_type="' + form_block_type + '"]')
+                    .filter('[data-form_block_target_table_id="' + form_block_target_table_id + '"]');
 
-                var $custom_form_column_suggests = $custom_form_block_target
+                let $custom_form_column_suggests = $custom_form_block_target
                     .find('.custom_form_column_suggests')
-                    .filter('[data-form_column_type="' + suggest_form_column_type + '"]');
-                // find the same value hidden in suggest ul.
-                var $template = $custom_form_block_target.find('[data-form_column_target_id="' + form_column_target_id + '"]')
-                    .filter('[data-form_column_type="' + form_column_type + '"]');
-                if ($template) {
-                    var $clone: any = $template.children('li').clone(true);
-                    $clone.appendTo($custom_form_column_suggests).show();
+                    .filter('[data-form_column_type="' + suggest_form_column_type + '"]')
+                    .find('.draggables');
 
-                    CustomFromEvent.addDragEvent($clone);
+                // If showing, get clone from template.
+                if(isShow){
+                    // find the same value hidden in suggest ul.
+                    let $template = $custom_form_block_target.find('[data-form_column_target_id="' + form_column_target_id + '"]')
+                        .filter('[data-form_column_type="' + form_column_type + '"]');
+    
+                    if ($template) {
+                        $clone = $template.children('.custom_form_column_item').clone(true);
+                        $clone.appendTo($custom_form_column_suggests).show();
+
+                        CustomFromEvent.addDragSuggestEvent($clone);
+                    }
+                }
+                // Else, remove from suggest showing 
+                else{
+                    // get suggest item
+                    let $suggest = $custom_form_column_suggests.find('.form_column_target_id[value="' + form_column_target_id + '"]').closest('.custom_form_column_item');
+                    $suggest.remove();
                 }
             }
+            return $clone;
         }
+
+
+        /**
+         * revert deleting column.
+         */
+        private static revertDeleteColumn($item: JQuery<HTMLElement>, $clone: JQuery<HTMLElement>){
+            if($clone){
+                $clone.remove();
+            }
+
+            $item.removeClass('deleting').fadeIn();
+            $item.find('.delete_flg').val(0);
+        }
+        
+
+        /**
+         * revert deleting box.
+         */
+        private static revertDeleteBox($custom_form_area: JQuery<HTMLElement>){
+            $custom_form_area.fadeIn().find('.custom_form_column_item').each(function(index, element){
+                let $item = $(element);
+                if(!$item.hasClass('deleteAsBox')){
+                    return;
+                }
+                $item.removeClass('deleting').fadeIn();
+                $item.find('.delete_flg').val(0);
+                $item.removeClass('deleteAsBox');
+
+                CustomFromEvent.toggleColumnSuggest(false, $item);
+            });
+
+        }
+
 
         private static getHeaderName($li: JQuery<Element>): string {
             var header_name = $li.closest('.box-custom_form_block').find('.header_name').val() as string;
@@ -274,6 +470,16 @@ namespace Exment {
         }
 
         private static formSubmitEvent = () => {
+            if(!CustomFromEvent.validateSubmit()){
+                CommonEvent.ShowSwal(null, {
+                    type: 'error',
+                    title: $('#validate_error_title').val(),
+                    text: $('#validate_error_message').val(),
+                    showCancelButton: false,
+                });
+                return false;
+            };
+
             // loop "custom_form_block_available" is 1
             let hasRequire = false;
             if(!$('form.custom_form_form').hasClass('confirmed')){
@@ -287,10 +493,10 @@ namespace Exment {
                         return true;
                     }
 
-                    let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests li');
+                    let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests .custom_form_column_item');
                     // if required value is 1, hasRequire is true and break
                     $suggests.each(function(i, e){
-                        if($(e).find('.required').val() == '1'){
+                        if($(e).find('.required_item').val() == '1'){
                             hasRequire = true;
                             return false;
                         }
@@ -308,7 +514,6 @@ namespace Exment {
                 title: $('#cofirm_required_title').val(),
                 text: $('#cofirm_required_text').val(),
                 confirmCallback: function(result){
-                    console.log(result);
                     if(pBool(result.value)){
                         $('form.custom_form_form').addClass('confirmed').submit();
                     }
@@ -317,37 +522,88 @@ namespace Exment {
 
             return false;
         }
+
+
+        private static validateSubmit() : boolean{
+            $.validator.addMethod('options', function(value, element){
+                return CustomFromEvent.validateOption(value, element);
+            });
+
+            $('#custom_form_form').validate({
+                ignore: [],
+                errorPlacement: function (err, element) {
+                    // append class "error" to .custom_form_column_item
+                    element.closest('.custom_form_column_item').addClass('error');
+                },  
+            });
+
+            $('[name$="options\]"]').each(function() {
+                $(this).rules('add', {
+                    options: true,
+                    messages: {
+                        options: '',
+                    },
+                });
+            });
+
+
+            let result = $('#custom_form_form').valid();
+            if(result){
+                $('#custom_form_form .error').removeClass('error');
+            }
+            return result;
+        }
+
+
+        private static validateOption(value, element) : boolean
+        {
+            if($(element).closest('.custom_form_column_suggests').length > 0){
+                return true;
+            }
+            let $elem = $(element);
+            let $item = $elem.closest('.custom_form_column_item');
+            let optionJson = JSON.parse(value);
+
+            // if already deleted, skip
+            if(pBool($item.find('.delete_flg').val())){
+                return true;
+            }
+
+            // get rules
+            let rules = JSON.parse($elem.closest('.custom_form_column_item').find('.validation_rules').val() as string);
+            for(let key in rules){
+                let rule = rules[key];
+                let optionVal = optionJson[key];
+
+                // execute rule
+                switch(rule){
+                    // required
+                    case 'required':
+                        if(!hasValue(optionVal)){
+                            return false;
+                        }
+                        break;
+                    case 'required_image':
+                        if(hasValue(optionJson['image_url'])){
+                            continue;
+                        }
+                        // check image element and has item
+                        if(!hasValue($item.find('.image')) || $item.find('.image').get(0).isDefaultNamespace.length == 0){
+                            return false;
+                        }
+                        break;
+                }
+            }
+
+            return true;
+        }
         
 
         private static ignoreSuggests = () => {
-            $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select').attr('disabled', 'disabled');
+            $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select,file').attr('disabled', 'disabled');
             return true;
         }
 
-        static appendSwitchEvent($elem) {
-            $elem.each(function (index, elem) {
-                var $e = $(elem);
-                $e.bootstrapSwitch({
-                    size:'small',
-                    onText: 'YES',
-                    offText: 'NO',
-                    onColor: 'primary',
-                    offColor: 'default',
-                    onSwitchChange: function(event, state) {
-                        $(event.target).closest('.bootstrap-switch').next().val(state ? '1' : '0').change();
-                    }
-                });
-            });
-        }
-        private static appendIcheckEvent($elem: JQuery<Element>) {
-            $elem.each(function(index, elem){
-                var $e = $(elem);
-                if (!$e.data('ichecked')) {
-                    $e.iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
-                    $e.data('ichecked', true);
-                }    
-            });
-        }
 
         /**
          * Replace clone suggest li name.
@@ -383,52 +639,6 @@ namespace Exment {
             $replaceLi.attr('id', newHeaderName);
         }
 
-        private static changedataModalEvent = (ev) => {
-            // get target header_column_name
-            var $target_li = $(ev.target).closest('.custom_form_column_item');
-            var target_header_column_name = $target_li.data('header_column_name');
-            var $block = $target_li.closest('.box-custom_form_block');
-
-            // get default value
-            var changedata_target_column_id = $target_li.find('.changedata_target_column_id').val();
-            var changedata_column_id = $target_li.find('.changedata_column_id').val();
-
-            // get select target columns in target table columns
-            var select_table_columns = JSON.parse($block.find('.select-table-columns').val() as string);
-            $('.changedata_target_column,.changedata_column').children('option').remove();
-            $('.changedata_target_column').append($('<option>').val('').text(''));
-            $.each(select_table_columns, function (value, name) {
-                var $option = $('<option>')
-                    .val(value as string)
-                    .text(name)
-                    .prop('selected', changedata_target_column_id == value);
-                    $('.changedata_target_column').append($option);
-            });
-
-            // if no select_table_columns, show error message
-            if(!hasValue(select_table_columns) || select_table_columns.length == 0){
-                $('.select_no_item').show();
-                $('.select_item').hide();
-            }else{
-                $('.select_no_item').hide();
-                $('.select_item').show();
-            }
-
-            $('#form-changedata-modal').find('.target_header_column_name').val(target_header_column_name);
-
-            // check default changedata_target_column_id value
-            if(hasValue(changedata_target_column_id)){
-                //hasValue, get changedataColumns, then open modal
-                $.when(CustomFromEvent.changedataColumnEvent(changedata_target_column_id, changedata_column_id))
-                    .then(function(){
-                        $('#form-changedata-modal').modal('show');
-                    })
-            }
-            // not default value
-            else{
-                $('#form-changedata-modal').modal('show');
-            }
-        }
 
         private static changedataColumnEvent = (ev:any, changedata_column_id?) => {
             var $d = $.Deferred();
@@ -443,7 +653,7 @@ namespace Exment {
             }
 
             if(!hasValue(custom_column_id)){
-                $('.changedata_column').children('option').remove();
+                $('.changedata_column_id').children('option').remove();
                 $d.resolve();
             }
             else{
@@ -452,14 +662,14 @@ namespace Exment {
                     type: 'GET'
                 })
                 .done(function (data) {
-                    $('.changedata_column').children('option').remove();
-                    $('.changedata_column').append($('<option>').val('').text(''));
+                    $('.changedata_column_id').children('option').remove();
+                    $('.changedata_column_id').append($('<option>').val('').text(''));
                     $.each(data, function (value, name) {
                         var $option = $('<option>')
                             .val(value as string)
                             .text(name)
                             .prop('selected', changedata_column_id == value);
-                            $('.changedata_column').append($option);
+                            $('.changedata_column_id').append($option);
                     });
                     $d.resolve();
                 })
@@ -472,136 +682,159 @@ namespace Exment {
             return $d.promise();
         }
 
+
+        private static settingModalEvent = (ev:JQueryEventObject) => {
+            let formItem = CustomFromItem.makeByHidden($(ev.target).closest('.custom_form_column_item'));
+            formItem.showSettingModal($(ev.target).closest('.setting'));
+        }
+ 
         
         /**
-         * Reset changedata Setting
+         * Settng modal Setting
          */
-        private static changedataReset = (ev) => {
-            // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi('#form-changedata-modal');
-            
-            // data setting and show message
-            $target_li.find('.changedata_target_column_id').val('');
-            $target_li.find('.changedata_column_id').val('');
-            $target_li.find('.changedata_available').hide();
+        private static settingModalSetting = (ev) => {
+            ev.preventDefault();
 
-            $('#form-changedata-modal').modal('hide');
-        }
-        /**
-         * Settng changedata Setting
-         */
-        private static changedataSetting = (ev) => {
-            // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi('#form-changedata-modal');
-            
-            // data setting and show message
-            $target_li.find('.changedata_target_column_id').val($('.changedata_target_column').val());
-            $target_li.find('.changedata_column_id').val($('.changedata_column').val());
-            $target_li.find('.changedata_available').show();
-
-            $('#form-changedata-modal').modal('hide');
-        }
-
-
-        private static relationfilterModalEvent = (ev) => {
-            // get target header_column_name
-            var $target_li = $(ev.target).closest('.custom_form_column_item');
-            var target_header_column_name = $target_li.data('header_column_name');
-
-            // get default value
-            var target_column_id = $target_li.find('.form_column_target_id').val();
-            var relation_filter_target_column_id = $target_li.find('.relation_filter_target_column_id').val();
-
-            $.ajax({
-                type: 'GET',
-                url: $('#relationFilterUrl').val() as string,
-                //container: "#pjax-container",
-                data: {target_column_id:target_column_id, relation_filter_target_column_id:relation_filter_target_column_id},
-                success: function (repsonse) {
-                    $('#form-relation_filter-modal').html(repsonse);
-                    $('#form-relation_filter-modal').modal('show');
-                    $('#form-relation_filter-modal').find('.target_header_column_name').val(target_header_column_name);
-
-                },
-                error: function (repsonse) {
-                }
-            });
-        }
-
-        /**
-         * Reset relation_filter Setting
-         */
-        private static relationfilterReset = (ev) => {
-            // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi('#form-relation_filter-modal');
-            
-            // data setting and show message
-            $target_li.find('.relation_filter_target_column_id').val('');
-            $target_li.find('.relation_filter_available').hide();
-
-            $('#form-relation_filter-modal').modal('hide');
-        }
-        /**
-         * Settng relation_filter Setting
-         */
-        private static relationfilterSetting = (ev) => {
-            // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi('#form-relation_filter-modal');
-            
-            // data setting and show message
-            $target_li.find('.relation_filter_target_column_id').val($('.relation_filter_target_column').val());
-            $target_li.find('.relation_filter_available').show();
-
-            $('#form-relation_filter-modal').modal('hide');
-        }
-
-
-        private static getModalTargetLi(formSelector){
-            // get target_header_column_name for updating.
-            var target_header_column_name = $(formSelector).find('.target_header_column_name').val();
-            var $target_li = $('[data-header_column_name="' + target_header_column_name + '"]');
-
-            return $target_li;
-        }
-
-
-        
-        private static editTextHtmlModalEvent = (ev) => {
-            let $target_li = $(ev.target).closest('.custom_form_column_item');
-            let $val = $target_li.find('.input_texthtml');
-            CustomFromEvent.$targetLi = $target_li;
-
-            $('#form-textinput-modal').find('#textinput-modal-textarea').val($val.val());
-            
-            $('#form-textinput-modal').modal('show');
-        }
-
-        
-        /**
-         */
-        private static textinputReset = (ev) => {
-            let $target_li = CustomFromEvent.$targetLi;
-            $target_li.find('.input_texthtml').val('');
-            $target_li.find('.input_texthtml-label').text('');
-            
-            $('#form-textinput-modal').modal('hide');
-        }
-        /**
-         * Settng changedata Setting
-         */
-        private static textinputSetting = (ev) => {
-            let $target_li = CustomFromEvent.$targetLi;
-            $target_li.find('.input_texthtml').val($('#textinput-modal-textarea').val());
-
-            let slice = ($('#textinput-modal-textarea').val() as string).slice( 0, 50 );
-            if(slice.length >= 50){
-                slice += '...';
+            let form : HTMLFormElement = $('#modal-showmodal form').get()[0] as HTMLFormElement;
+            if(!form.reportValidity()){
+                return;
             }
-            $target_li.find('.input_texthtml-label').text(slice);
             
-            $('#form-textinput-modal').modal('hide');
+            let formItem = CustomFromItem.makeByModal();
+            let options = formItem.getOption();
+            let $modal = $('#modal-showmodal');
+
+            // get target_header_column_name for updating.
+            let widgetmodal_uuid = $modal.find('.widgetmodal_uuid').val();
+            let $target_li = $('[data-widgetmodal_uuid="' + widgetmodal_uuid + '"]').closest('.custom_form_column_item');
+            
+            // data setting and show message
+            $target_li.find('.options').val(JSON.stringify(options));
+
+            // move image event
+            let header_name = CustomFromEvent.getHeaderName($target_li);
+            $target_li.find('.image').remove();
+            $modal.find('.image').appendTo($target_li).prop('name', header_name + '[options][image]').hide();
+
+            $modal.modal('hide');
+        }
+
+
+        /**
+         * Box resize event
+         * https://codepen.io/delagics/pen/PWxjMN
+         * Delagics CA
+         * Customized
+         */
+        private static resizeEvent(resizableEl:JQuery<HTMLElement>){
+            let columns = 12,
+                fullWidth = resizableEl.parent().width(),
+                columnWidth = fullWidth / columns,
+                updateClass = function(el, col, updateValue) {
+                    el.css('width', ''); // remove width, our class already has it
+                    el.removeClass(function(index, className) {
+                    return (className.match(/(^|\s)col-\S+/g) || []).join(' ');
+                    }).addClass('col-sm-' + col);
+
+                    // if 1 or 2, resize this
+                    if(updateValue == 1 || updateValue == 2){
+                        el.data('grid_column', col);
+                        CustomFromEvent.updateAreaWidth(el);
+                    }
+                    // if 2, size down next element and resize.
+                    if(updateValue == 2){
+                        let $next = $(el).closest('[data-grid_column]').next('[data-grid_column]');
+                        updateClass($next, $next.data('grid_column') - 3, 1);
+                    }
+                };
+
+            // jQuery UI Resizable
+            resizableEl.resizable({
+                handles: 'e',
+                start: function(event, ui) {
+                let target = ui.element;
+                
+                let targetCol = Math.round(target.width() / columnWidth);
+                target.resizable('option', 'minWidth', columnWidth);
+                },
+                resize: function(event, ui) {
+                    let $element = $(ui.element);
+                    let beforeGridColumn = $element.data('grid_column');
+            
+                    let target = ui.element;
+                    let targetColumnCount = Math.round(target.width() / columnWidth);
+                    let updateValue = 1;
+
+                    // Whether update next
+                    if(beforeGridColumn == targetColumnCount || targetColumnCount % 3 !== 0){
+                        targetColumnCount = beforeGridColumn;
+                        updateValue = 0;
+                    }
+                    else{
+                        updateValue = CustomFromEvent.isEnableResize($element, targetColumnCount);
+                        if(updateValue == 0){
+                            targetColumnCount = beforeGridColumn;
+                        }
+                    }
+                    updateClass(target, targetColumnCount, updateValue);
+
+                    // toggle append button
+                    let $button = target.closest('.row').find('.addbutton_button');
+                    CustomFromEvent.togglePlusButton($button);
+                },
+            });
+            resizableEl.prop('data-add-resizable', 1);
+            $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
+        }
+        
+        /**
+         * whether inable resize
+         * @param el 
+         * @param nextSize resizing expects size
+         * @return 1: can resize. 0: cannot resize. 2: next box size resize to down.
+         */
+        private static isEnableResize = function(el, nextSize){
+            // calc size
+            let $items = $(el).closest('.row').find('[data-grid_column]:visible').not(el);
+            let columns = 0;
+            $items.each(function(index, elem){
+                columns += $(elem).data('grid_column');
+            });
+    
+            if(columns + nextSize <= 12){
+                return 1;
+            }
+
+            // if next size is upper 6 and can resize, return 2;
+            let $next = $(el).closest('[data-grid_column]').next('[data-grid_column]');
+            if(hasValue($next) && $next.data('grid_column') >= 6){
+                return 2;
+            }
+
+            return 0;
+        }
+
+
+        /**
+         * Showing preview
+         */
+        private static previewCustomForm()
+        {
+            const preview = new Preview(
+                URLJoin($('#formroot').val(), 'preview'),
+                $('#custom_form_form'),
+                {
+                    validateErrorTitle: $('#validate_error_title').val(),
+                    validateErrorText: $('#validate_error_message').val(),
+                    validateSubmitEvent: function(){
+                        return CustomFromEvent.validateSubmit();
+                    }
+                }
+            );
+            preview.openPreview();
         }
     }
+    
 }
 $(function () {
     Exment.CustomFromEvent.AddEvent();

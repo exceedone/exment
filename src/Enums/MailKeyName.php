@@ -16,4 +16,5 @@ class MailKeyName extends EnumBase
     const PASSWORD_NOTIFY_HEADER = 'password_notify_header';
     const MAIL_FOOTER = 'mail_footer';
     const WORKFLOW_NOTIFY = 'workflow_notify';
+    const PUBLICFORM_ADMIN_ERROR = 'publicform_admin_error';
 }

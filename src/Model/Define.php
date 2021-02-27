@@ -72,6 +72,12 @@ class Define
         'userview_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
         'userdashboard_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
 
+        // public form ----------------------------------------------------
+        'publicform_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
+        'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
+        'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
+        'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],
+
         'complex_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
         'first_change_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
@@ -101,6 +107,7 @@ class Define
         'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'notify'],
         'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'notify'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'notify'],
+        'system_mail_from_view_name' => ['group' => 'notify'],
         'system_mail_body_type' => ['default' => 'html', 'group' => 'notify'],
 
         'system_slack_user_column' => ['group' => 'notify'],
@@ -193,14 +200,18 @@ class Define
     public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
     public const SYSTEM_KEY_SESSION_FILE_NODELIST = "file_treelist";
     public const SYSTEM_KEY_SESSION_COMPOSER_VERSION = "exment_composer_version";
+    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM = "public_form_confirm";
+    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT = "public_form_input";
 
 
     public const APPEND_QUERY_WORK_STATUS_SUB_QUERY = 'APPEND_QUERY_WORK_STATUS_SUB_QUERY';
     public const APPEND_QUERY_WORK_USERS_SUB_QUERY = 'APPEND_QUERY_WORK_USERS_SUB_QUERY';
 
+
     // Authenticate ----------------------------------------------------
     public const AUTHENTICATE_KEY_WEB = 'admin';
     public const AUTHENTICATE_KEY_API = 'adminapi';
+    public const AUTHENTICATE_KEY_PUBLIC_FORM = 'publicform';
     
     /**
      * MENU SYSTEM DIFINITION
@@ -321,6 +332,7 @@ class Define
         ['name' => 'view', 'href' => 'view/:table_name', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view', 'description' => 'custom_view.description'],
         ['name' => 'copy', 'href' => 'copy/:table_name', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy', 'description' => 'custom_copy.description'],
         ['name' => 'operation', 'href' => 'operation/:table_name', 'icon' => 'fa-reply-all', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_operation', 'description' => 'custom_operation.description'],
+        ['name' => 'notify', 'href' => 'notify/:table_name', 'icon' => 'fa-bell', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.notify', 'description' => 'notify.description'],
         ['name' => 'data', 'href' => 'data/:table_name', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value', 'description' => 'custom_value.description'],
     ];
 
@@ -381,6 +393,7 @@ class Define
         'copy',
         'form',
         'formpriority',
+        'formpublic',
         'operation',
         'relation',
         'view',
@@ -416,6 +429,7 @@ class Define
         ['uri'=> 'table', 'help_uri'=> 'table'],
         ['uri'=> 'column', 'help_uri'=> 'column'],
         ['uri'=> 'relation', 'help_uri'=> 'relation'],
+        ['uri'=> 'formpublic', 'help_uri'=> 'publicform'],
         ['uri'=> 'form', 'help_uri'=> 'form'],
         ['uri'=> 'view', 'help_uri'=> 'view'],
         ['uri'=> 'relation', 'help_uri'=> 'relation'],

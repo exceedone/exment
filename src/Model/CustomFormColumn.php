@@ -4,6 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\FormRelationColumnType;
+use Exceedone\Exment\Services\FormSetting\FormColumn;
 
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -12,10 +15,25 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     use Traits\UniqueKeyCustomColumnTrait;
+    use Traits\AutoSUuidTrait;
     
     protected $casts = ['options' => 'json'];
     protected $appends = ['form_column_target'];
     protected $with = ['custom_column'];
+
+    /**
+     * for form display. Whether is delete
+     *
+     * @var bool
+     */
+    protected $_delete_flg;
+
+    /**
+     * request key. Used by custom form setting display. Ex. NEW__f482dce0-662c-11eb-8f65-5f9d12681ab1
+     *
+     * @var string
+     */
+    protected $_request_key;
 
     public static $templateItems = [
         'excepts' => ['custom_column', 'form_column_target', 'options.changedata_target_column_id', 'options.changedata_column_id', 'options.relation_filter_target_column_id'],
@@ -114,6 +132,11 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         }
     }
 
+    protected function getCustomFormBlockCacheAttribute()
+    {
+        return CustomFormBlock::getEloquentDefault($this->custom_form_block_id);
+    }
+    
     protected function getCustomColumnCacheAttribute()
     {
         if ($this->form_column_type != FormColumnType::COLUMN) {
@@ -123,6 +146,42 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         return CustomColumn::getEloquent($this->form_column_target_id);
     }
     
+    public function getTargetTableCacheAttribute()
+    {
+        $custom_form_block = $this->custom_form_block_cache ?: $this->custom_form_block;
+        return $custom_form_block ? $custom_form_block->target_table_cache : null;
+    }
+
+    public function getFormTableCacheAttribute()
+    {
+        $custom_form_block = $this->custom_form_block_cache ?: $this->custom_form_block;
+        return $custom_form_block ? $custom_form_block->form_table_cache : null;
+    }
+
+    protected function getDeleteFlgAttribute()
+    {
+        return $this->_delete_flg;
+    }
+    
+    
+    protected function setDeleteFlgAttribute($delete_flg)
+    {
+        $this->_delete_flg = $delete_flg;
+        return $this;
+    }
+    
+    public function getRequestKeyAttribute()
+    {
+        return $this->_request_key ?? $this->id;
+    }
+
+    public function setRequestKeyAttribute($request_key)
+    {
+        $this->_request_key = $request_key;
+        return $this;
+    }
+        
+
     /**
      * get Table And Column Name
      */
@@ -140,7 +199,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         }
         return [];
     }
-    
+
     protected static function importReplaceJson(&$json, $options = [])
     {
         // set form column type

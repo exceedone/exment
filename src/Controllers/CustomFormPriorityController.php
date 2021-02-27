@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
+use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomFormPriority;
@@ -24,6 +25,11 @@ class CustomFormPriorityController extends AdminControllerTableBase
         $this->setPageInfo($title, $title, exmtrans("custom_form_priority.description"), 'fa-keyboard-o');
     }
 
+    public function index(Request $request, Content $content)
+    {
+        return redirect(admin_urls('form', $this->custom_table->table_name));
+    }
+    
     /**
      * Make a form builder.
      *
@@ -46,7 +52,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
         $hasManyTable = new Tools\ConditionHasManyTable($form, [
             'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
             'name' => 'custom_form_priority_conditions',
-            'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
+            'linkage' => json_encode(['condition_key' => url_join($custom_table->table_name, 'filter-condition')]),
             'targetOptions' => $custom_table->getColumnsSelectOptions([
                 'include_condition' => true,
                 'include_system' => false,

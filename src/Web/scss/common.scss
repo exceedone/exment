@@ -34,6 +34,10 @@
     margin-bottom: 0;
 }
 
+.colorpicker-element .input-group-addon{
+    cursor: pointer;
+}
+
 .user-avatar{
     width: 22px;
     height: 22px;
@@ -206,6 +210,16 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
         vertical-align: middle;
     }
 }
+
+.box-body .nav-tabs-custom>.tab-content{
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+.box-body .nav-tabs-custom>.nav-tabs>li.active>a, .box-body .nav-tabs-custom>.nav-tabs>li.active:hover>a{
+    background-color: #d7e6ef;
+}
+
 
 .calc_formula_modal{
     .col-value-item{
@@ -422,6 +436,10 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
 
 .form-group .radio-inline:first-child{
     padding-left: 0;
+}
+
+.form-group-vertical{
+    margin-bottom: 10px;
 }
 
 // data image style

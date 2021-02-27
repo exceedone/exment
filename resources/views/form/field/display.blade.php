@@ -18,7 +18,7 @@
                     {{ $value }}
                     @endif
                 @endif
-                </span>&nbsp;
+                </span>
             </div><!-- /.box-body -->
         </div>
 

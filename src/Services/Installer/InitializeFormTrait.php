@@ -153,6 +153,9 @@ trait InitializeFormTrait
             
             $form->email('system_mail_from', exmtrans("system.system_mail_from"))
                 ->help(exmtrans("system.help.system_mail_from"));
+
+            $form->text('system_mail_from_view_name', exmtrans("system.system_mail_from_view_name"))
+                ->help(exmtrans("system.help.system_mail_from_view_name"));
         }
         $form->select('system_mail_body_type', exmtrans("system.system_mail_body_type"))
             ->help(exmtrans("system.help.system_mail_body_type"))

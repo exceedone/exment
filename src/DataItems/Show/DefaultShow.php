@@ -7,7 +7,6 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Row;
-use Exceedone\Exment\Form\Show;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Form\Field;
@@ -22,6 +21,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -31,9 +31,12 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\ColumnItems\ItemInterface;
 
 class DefaultShow extends ShowBase
 {
+    protected static $showClassName = \Exceedone\Exment\Form\Show::class;
+
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -60,7 +63,7 @@ class DefaultShow extends ShowBase
      */
     public function createShowForm()
     {
-        return new Show($this->custom_value, function (Show $show) {
+        return new static::$showClassName($this->custom_value, function ($show) {
             if (!$this->modal) {
                 $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
                 $field->border = false;
@@ -71,6 +74,7 @@ class DefaultShow extends ShowBase
             if (isset($relations)) {
                 foreach ($relations as $relation) {
                     $item = ColumnItems\ParentItem::getItemWithParent($relation->child_custom_table, $relation->parent_custom_table);
+                    $this->setColumnItemOption($item);
 
                     $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
                         if (is_null($this)) {
@@ -112,6 +116,8 @@ class DefaultShow extends ShowBase
                         if (!isset($item)) {
                             continue;
                         }
+                        $this->setColumnItemOption($item);
+                        
                         $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
                             ->as(function ($v) use ($item) {
                                 if (is_null($this)) {
@@ -700,10 +706,8 @@ EOT;
         // file put(store)
         foreach (toArray($httpfiles) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
-            // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
-            // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
             $custom_value = $this->custom_value;
-            $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
+            $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $httpfile, $this->custom_table->table_name, $filename)
                 ->saveCustomValue($custom_value->id, null, $this->custom_table);
             // save document model
             $document_model = $file->saveDocumentModel($custom_value, $filename);
@@ -807,5 +811,30 @@ EOT;
             'result' => true,
             'toastr' => trans('admin.delete_succeeded'),
         ]);
+    }
+    
+
+
+    /**
+     * Set ColumnItem's option to column item
+     *
+     * @param ItemInterface $column_item
+     * @return void
+     */
+    protected function setColumnItemOption(ItemInterface $column_item)
+    {
+        if($this->isPublicForm()){
+            $column_item->options(['public_form' => $this->public_form]);
+        }
+    }
+
+    /**
+     * Whether this form is publicform
+     *
+     * @return boolean
+     */
+    protected function isPublicForm() : bool
+    {
+        return $this instanceof PublicFormShow;
     }
 }

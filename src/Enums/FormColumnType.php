@@ -15,6 +15,8 @@ class FormColumnType extends EnumBase
         2 => ['id' => 2, 'column_name' => 'explain'],
         3 => ['id' => 3, 'column_name' => 'html'],
         4 => ['id' => 4, 'column_name' => 'exhtml'],
+        5 => ['id' => 5, 'column_name' => 'image'],
+        6 => ['id' => 6, 'column_name' => 'hr'],
     ];
     
     public static function getEnum($value, $default = null)

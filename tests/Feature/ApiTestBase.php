@@ -3,10 +3,14 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use Tests\TestCase;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\ApiClient;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Tests\TestTrait;
+use Exceedone\Exment\Tests\TestDefine;
 
 abstract class ApiTestBase extends TestCase
 {
@@ -135,6 +139,23 @@ abstract class ApiTestBase extends TestCase
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }
+    
+    /**
+     * Get public form uri
+     *
+     * @return string
+     */
+    protected function getPublicFormApiUri($userid)
+    {
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_form = CustomForm::getDefault($custom_table);
+        $public_form = PublicForm::where('custom_form_id', $custom_form->id)->first();
+        
+        return $public_form->getApiUrl();
+    }
+    
+
+
     
     /**
      * Json inner fragment

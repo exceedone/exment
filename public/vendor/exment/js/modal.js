@@ -19,7 +19,14 @@ var Exment;
         }
         static AddEvent() {
         }
-        static ShowModal($target, url, params = []) {
+        /**
+         * Show modal
+         * @param $target click target button
+         * @param url request url
+         * @param post_params post params
+         * @param options options
+         */
+        static ShowModal($target, url, post_params = {}) {
             let original_title = $target.data('original-title');
             let data = { targetid: $target.attr('id') };
             /// get data from "data-widgetmodal_getdata". only get in targets.
@@ -57,7 +64,7 @@ var Exment;
             if (hasValue($target.data('widgetmodal_hasmany'))) {
                 data['index'] = Exment.ModalEvent.getIndex($target);
             }
-            data = $.extend(data, params);
+            data = $.extend(data, post_params);
             // get ajax
             $.ajax({
                 url: url,
@@ -151,7 +158,7 @@ var Exment;
          * @param button
          * @param original_title
          */
-        static setBodyHtml(res, button, original_title) {
+        static setBodyHtml(res, button = null, original_title = null) {
             // change html
             if (res.body) {
                 $('#modal-showmodal .modal-body').html(res.body);
@@ -371,14 +378,14 @@ var Exment;
         if (!formurl)
             return;
         e.preventDefault();
-        let form = $('#modal-showmodal form').get()[0];
-        if (!form.reportValidity()) {
-            return;
-        }
         // get button element
         let button = $(e.target).closest('button');
         // if has 'preventSubmit' class, not submit
         if (button.hasClass('preventSubmit')) {
+            return;
+        }
+        let form = $('#modal-showmodal form').get()[0];
+        if (!form.reportValidity()) {
             return;
         }
         button.data('buttontext', button.text());

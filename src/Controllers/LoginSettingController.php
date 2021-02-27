@@ -522,14 +522,7 @@ class LoginSettingController extends AdminControllerBase
      */
     public function activate(Request $request, $id)
     {
-        $login_setting = LoginSetting::getEloquent($id);
-        $login_setting->active_flg = true;
-        $login_setting->save();
-        
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.update_succeeded'),
-        ]);
+        return $this->toggleActivate($request, $id, true);
     }
 
     /**
@@ -541,8 +534,20 @@ class LoginSettingController extends AdminControllerBase
      */
     public function deactivate(Request $request, $id)
     {
+        return $this->toggleActivate($request, $id, false);
+    }
+
+    /**
+     * Toggle activate and deactivate
+     *
+     * @param Request $request
+     * @param string $id
+     * @param boolean $active_flg
+     * @return void
+     */
+    protected function toggleActivate(Request $request, $id, bool $active_flg){
         $login_setting = LoginSetting::getEloquent($id);
-        $login_setting->active_flg = false;
+        $login_setting->active_flg = $active_flg;
         $login_setting->save();
         
         return getAjaxResponse([
