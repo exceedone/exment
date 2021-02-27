@@ -1486,6 +1486,118 @@ class ApiTest extends ApiTestBase
         $this->assertFileUrl($token, $response);
     }
 
+    public function testPostFileMultiple(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST), [
+            'value' => [
+                'text' => $text,
+                'user' => 2,
+                'file_multiple' => [
+                    [
+                        'name' => 'test.txt',
+                        'base64' => TestDefine::FILE_BASE64,
+                    ],
+                    [
+                        'name' => 'test2.txt',
+                        'base64' => TestDefine::FILE2_BASE64,
+                    ],
+                ],
+            ]
+        ])
+        ->assertStatus(201);
+
+        $this->assertJsonTrue($response, [
+            'value' => [
+                'text' => $text,
+                'user' => 2
+            ],
+            'created_user_id' => "1" //ADMIN
+        ]);
+
+        $this->assertFilesUrl($token, $response, ['test', TestDefine::FILE2_TESTSTRING]);
+    }
+    
+    /**
+     * Put file multiple, not contains file.
+     */
+    public function testPutFileMultiple(){
+        $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+
+        $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
+            ->getValueModel()->query()
+            ->whereNull('value->file_multiple')
+            ->first();
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $custom_value->id), [
+            'value' => [
+                'file_multiple' => [
+                    [
+                        'name' => 'test.txt',
+                        'base64' => TestDefine::FILE_BASE64,
+                    ],
+                    [
+                        'name' => 'test2.txt',
+                        'base64' => TestDefine::FILE2_BASE64,
+                    ],
+                ],
+            ]
+        ])
+        ->assertStatus(200);
+
+        $this->assertFilesUrl($token, $response, ['test', TestDefine::FILE2_TESTSTRING]);
+    }
+
+    /**
+     * Put file multiple, append file.
+     */
+    public function testPutFileMultipleAppend(){
+        $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+
+        $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
+            ->getValueModel()->query()
+            ->whereNull('value->file_multiple')
+            ->first();
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $custom_value->id), [
+            'value' => [
+                'file_multiple' => [
+                    [
+                        'name' => 'test2.txt',
+                        'base64' => TestDefine::FILE2_BASE64,
+                    ],
+                ],
+            ]
+        ])
+        ->assertStatus(200);
+        $this->assertFilesUrl($token, $response, [TestDefine::FILE2_TESTSTRING]);
+        
+
+        // Append file ----------------------------------------------------
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $custom_value->id), [
+            'value' => [
+                'file_multiple' => [
+                    [
+                        'name' => 'test.txt',
+                        'base64' => TestDefine::FILE_BASE64,
+                    ],
+                ],
+            ]
+        ])
+        ->assertStatus(200);
+
+        $this->assertFilesUrl($token, $response, [TestDefine::FILE2_TESTSTRING, 'test']);
+    }
+
     public function testPostDocument(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
 
@@ -2811,5 +2923,52 @@ class ApiTest extends ApiTestBase
         $file = $response->baseResponse->getContent();
 
         $this->assertMatch($file, 'test');
+    }
+
+
+    protected function assertFilesUrl($token, $response, $matchValues){
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $id = array_get($json, 'id');
+
+        // get file url as uuid
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $id . '?valuetype=text'))
+        ->assertStatus(200);
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $urls = array_get($json, 'value.file_multiple');
+        $this->assertTrue(isset($urls));
+        $this->assertMatch(count(stringToArray($urls)), count($matchValues));
+
+        foreach(stringToArray($urls) as $index => $url){
+            $response = $this->withHeaders([
+                'Authorization' => "Bearer $token",
+            ])->get($url);
+    
+            $file = $response->baseResponse->getContent();
+    
+            $this->assertMatch($file, $matchValues[$index]);
+        }
+
+
+        // get file url as tableKey and filename
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $id))
+        ->assertStatus(200);
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $paths = array_get($json, 'value.file_multiple');
+        $this->assertTrue(isset($paths));
+        $this->assertMatch(count($paths), count($matchValues));
+
+        foreach($paths as $index => $path){
+            $response = $this->withHeaders([
+                'Authorization' => "Bearer $token",
+            ])->get(admin_urls('api', 'files', str_replace("\\", "/", $path)));
+    
+            $file = $response->baseResponse->getContent();
+    
+            $this->assertMatch($file, $matchValues[$index]);
+        }
     }
 }

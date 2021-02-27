@@ -168,32 +168,54 @@ class DefaultTableProvider extends ProviderBase
                 $key = (isset($array_header_key) ? $array_header_key : "").$column;
             }
             
-            $value = array_get($record, $key);
-            if (is_array($value)) {
-                $value = implode(",", $value);
-            }
+            $value = $this->getBodyValue(array_get($record, $key), $column, $view_column_type);
+            $body_items[] = $value;
+        }
+        return $body_items;
+    }
 
+    /**
+     * Get body value
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    protected function getBodyValue($values, $column, $view_column_type)
+    {
+        if(is_nullorempty($values)){
+            return null;
+        }
+
+        $convertValueFunc = function($value, $column, $view_column_type){
             // if $view_column_type is column, get customcolumn
             if ($view_column_type == ConditionType::COLUMN) {
                 // if attachment, set url
                 if (ColumnType::isAttachment(array_get($column, 'column_type'))) {
-                    $value = ExmentFile::getUrl($value);
+                    return ExmentFile::getUrl($value);
                 }
 
                 // if select table and has select_export_column_id, change value
                 elseif (ColumnType::isSelectTable(array_get($column, 'column_type'))) {
-                    $value = $this->getSelectTableExportValue($column, $value);
+                    return $this->getSelectTableExportValue($column, $value);
                 }
             }
 
             // export parent id
             elseif ($view_column_type == ConditionType::SYSTEM && $column == 'parent_id') {
-                $value = $this->getParentExportValue($value, array_get($record, 'parent_type'));
+                return $this->getParentExportValue($value, array_get($record, 'parent_type'));
             }
 
-            $body_items[] = $value;
+            return $value;
+        };
+
+        if (!is_array($values)) {
+            return $convertValueFunc($values, $column, $view_column_type);
         }
-        return $body_items;
+
+        // if array convert value and append comma
+        return collect($values)->map(function($value) use($convertValueFunc, $column, $view_column_type){
+            return $convertValueFunc($value, $column, $view_column_type);
+        })->filter()->implode(",");
     }
 
     /**

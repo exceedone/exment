@@ -26,6 +26,21 @@ class ImageRule implements Rule
             return true;
         }
 
+        if (is_array($value)) {
+            foreach($value as $v){
+                if(!$this->validateImage($attribute, $v)){
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        else{
+            return $this->validateImage($attribute, $value);
+        }
+    }
+
+    protected function validateImage($attribute, $value){
         if (is_string($value)) {
             $ext = pathinfo($value, PATHINFO_EXTENSION);
             return in_array($ext, Define::IMAGE_RULE_EXTENSIONS);

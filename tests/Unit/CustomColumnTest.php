@@ -351,6 +351,25 @@ class CustomColumnTest extends UnitTestBase
     public function testSelectHtml(){
         return $this->_testSelect(ValueType::HTML, static::SELECT_VALUE, ["select_item" => "orange\r\nbanana\r\napple"]);
     }
+    
+    // SELECT(multiple) ----------------------------------------------------
+    const SELECT_VALUE_MULTIPLE = ['orange', 'banana'];
+    public function _testSelectMultiple($value_type, $matchedValue, $options = []){
+        $custom_column = $this->getCustomColumnModel(ColumnType::SELECT, $options);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, static::SELECT_VALUE_MULTIPLE);
+
+        $v = $column_item->{$value_type}();
+        $this->assertMatch($v, $matchedValue);
+    }
+    public function testSelectMultipleValue(){
+        return $this->_testSelectMultiple(ValueType::VALUE, static::SELECT_VALUE_MULTIPLE, ["select_item" => "orange\r\nbanana\r\napple"]);
+    }
+    public function testSelectMultipleText(){
+        return $this->_testSelectMultiple(ValueType::TEXT, collect(static::SELECT_VALUE_MULTIPLE)->implode(exmtrans('common.separate_word')), ["select_item" => "orange\r\nbanana\r\napple"]);
+    }
+    public function testSelectMultipleHtml(){
+        return $this->_testSelectMultiple(ValueType::HTML, collect(static::SELECT_VALUE_MULTIPLE)->implode(exmtrans('common.separate_word')), ["select_item" => "orange\r\nbanana\r\napple"]);
+    }
 
 
 
@@ -376,6 +395,26 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testSelectValText(ValueType::HTML, static::SELECT_VALTEXT_TEXT, ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
     }
 
+    // SELECT_VALTEXT(multiple) ----------------------------------------------------
+    const SELECT_VALTEXT_VALUE_MULTIPLE = ['orange', 'banana'];
+    const SELECT_VALTEXT_TEXT_MULTIPLE = ['Orange', 'Banana'];
+    public function _testSelectValTextMultiple($value_type, $matchedValue, $options = []){
+        $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_VALTEXT, $options);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, static::SELECT_VALTEXT_VALUE_MULTIPLE);
+
+        $v = $column_item->{$value_type}();
+        $this->assertMatch($v, $matchedValue);
+    }
+    public function testSelectValTextMultipleValue(){
+        return $this->_testSelectValTextMultiple(ValueType::VALUE, static::SELECT_VALTEXT_VALUE_MULTIPLE, ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
+    }
+    public function testSelectValTextMultipleText(){
+        return $this->_testSelectValTextMultiple(ValueType::TEXT, collect(static::SELECT_VALTEXT_TEXT_MULTIPLE)->implode(exmtrans('common.separate_word')), ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
+    }
+    public function testSelectValTextMultipleHtml(){
+        return $this->_testSelectValTextMultiple(ValueType::HTML, collect(static::SELECT_VALTEXT_TEXT_MULTIPLE)->implode(exmtrans('common.separate_word')), ["select_item_valtext" => "orange,Orange\r\nbanana,Banana\r\napple,Apple"]);
+    }
+
 
 
     
@@ -399,6 +438,28 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testSelectTable(ValueType::HTML, CustomTable::getEloquent('information')->getValueModel(1)->getUrl(true));
     }
 
+    // SELECT_TABLE(multiple) ----------------------------------------------------
+    public function _testSelectTableMultiple($value_type, $matchedValue, $options = []){
+        $options['select_target_table'] = CustomTable::getEloquent('information')->id;
+
+        $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_TABLE, $options);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, [1, 2]);
+
+        $v = $column_item->{$value_type}();
+        $this->assertMatch($v, $matchedValue);
+    }
+    public function testSelectTableMultipleValue(){
+        $custom_table = CustomTable::getEloquent('information');
+        return $this->_testSelectTableMultiple(ValueType::VALUE, [$custom_table->getValueModel(1), $custom_table->getValueModel(2)]);
+    }
+    public function testSelectTableMultipleText(){
+        $custom_table = CustomTable::getEloquent('information');
+        return $this->_testSelectTableMultiple(ValueType::TEXT, collect([$custom_table->getValueModel(1)->getLabel(), $custom_table->getValueModel(2)->getLabel()])->implode(exmtrans('common.separate_word')));
+    }
+    public function testSelectTableMultipleHtml(){
+        $custom_table = CustomTable::getEloquent('information');
+        return $this->_testSelectTableMultiple(ValueType::HTML, collect([$custom_table->getValueModel(1)->getUrl(true), $custom_table->getValueModel(2)->getUrl(true)])->implode(exmtrans('common.separate_word')));
+    }
 
 
 
