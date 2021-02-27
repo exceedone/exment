@@ -82,7 +82,7 @@ class Date extends CustomItem
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
-            return ExmentField\Display::class;
+            return Field\Display::class;
         }
         return Field\Date::class;
     }

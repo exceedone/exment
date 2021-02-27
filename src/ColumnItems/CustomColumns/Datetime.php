@@ -25,7 +25,7 @@ class Datetime extends Date
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
-            return ExmentField\Display::class;
+            return Field\Display::class;
         }
         if (FilterKind::useDate(array_get($this->options, 'filterKind'))) {
             return Field\Date::class;
