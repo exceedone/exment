@@ -559,6 +559,9 @@ if (!function_exists('deleteDirectory')) {
         if (is_nullorempty($path)) {
             return;
         }
+        if(is_string($disk)){
+            $disk = \Storage::disk($disk);
+        }
         
         try {
             $directories = $disk->directories($path);

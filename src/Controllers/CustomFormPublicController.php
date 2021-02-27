@@ -29,7 +29,7 @@ use Illuminate\Http\Request;
  */
 class CustomFormPublicController extends AdminControllerTableBase
 {
-    use HasResourceTableActions;
+    use HasResourceTableActions, NotifyTrait;
 
     public function __construct(?CustomTable $custom_table, Request $request)
     {
@@ -234,7 +234,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->help(exmtrans("custom_form_public.help.complete_link_text"));
                 ;
             })->disableHeader();
-        })->tab(exmtrans("custom_form_public.error_setting"), function ($form) {
+        })->tab(exmtrans("custom_form_public.error_setting"), function ($form) use($custom_table) {
             $form->embeds("error_setting", exmtrans("common.confirm_complete_setting"), function($form){
                 $form->exmheader(exmtrans("custom_form_public.error_setting"))->hr();
 
@@ -266,26 +266,24 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ->default($notify_mail ? $notify_mail->id : null)->required();
 
             })->disableHeader();
-                
-            $form->hasManyJson('error_notify_actions', exmtrans("custom_form_public.error_notify_target"), function ($form) {
+            
+            $this->setMailTemplateForm($form, null);
+
+            $form->hasManyJson('error_notify_actions', exmtrans("custom_form_public.error_notify_target"), function ($form) use($custom_table) {
                 $form->select('notify_action', exmtrans("notify.notify_action"))
                     ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
                     ->required()
                     ->config('allowClear', false)
+                    ->attribute([
+                        'data-filtertrigger' =>true,
+                        'data-linkage' => json_encode([
+                            'notify_action_target' => admin_urls('notify', $this->custom_table->table_name, 'notify_action_target'),
+                        ]),
+                    ])
                     ->help(exmtrans("notify.help.notify_action"))
                     ;
-
-                $form->url('webhook_url', exmtrans("notify.webhook_url"))
-                    ->rules(["max:300"])
-                    ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
-                    ->attribute([
-                        'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])
-                    ]);
-
-                $form->switchbool('mention_here', exmtrans("notify.mention_here"))
-                    ->help(exmtrans("notify.help.mention_here"))
-                    ->attribute(['data-filter' => json_encode(['key' => 'notify_action', 'value' =>  [NotifyAction::SLACK]])
-                    ]);
+                
+                $this->setActionForm($form, null, $custom_table);
             });
         })
         ->tab(exmtrans("custom_form_public.option_setting"), function ($form) use ($public_form, $id, $custom_table) {
