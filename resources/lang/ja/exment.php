@@ -648,6 +648,7 @@ return [
             'api' => 'API',
             'event' => 'イベント',
             'button' => 'ボタン',
+            'grid' => 'ビュー',
         ],
     ],
 
@@ -1765,6 +1766,7 @@ return [
             'aggregate' => '集計ビュー',
             'calendar' => 'カレンダービュー',
             'filter' => '条件ビュー',
+            'plugin' => '独自ビュー',
             'alldata' => '全件ビュー',
         ],
     ],

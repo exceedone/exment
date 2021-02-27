@@ -112,6 +112,9 @@ class Plugin extends ModelBase
 
     public static function getPluginByUUID($uuid)
     {
+        if($uuid instanceof Plugin){
+            return $uuid;
+        }
         return static::getPluginsCache()->first(function ($plugin) use ($uuid) {
             return strcmp($plugin->uuid, $uuid) == 0;
         });
@@ -634,9 +637,9 @@ class Plugin extends ModelBase
      *
      * @return Collection
      */
-    public static function getPluginPublics()
+    public static function getPluginScriptStyles()
     {
-        return static::getPluginPublicSessions([PluginType::SCRIPT, PluginType::STYLE], true);
+        return static::getPluginPublicSessions(PluginType::PLUGIN_TYPE_SCRIPT_STYLE(), true);
     }
 
     /**
@@ -710,11 +713,12 @@ class Plugin extends ModelBase
             
             // get target plugin
             $plugin = static::getPluginsCache()->first(function ($plugin) use ($pluginName) {
-                return $plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())
-                    && (
-                        pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
-                        || $plugin->getOption('uri') == $pluginName
-                    )
+                if(!$plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())){
+                    return false;
+                }
+
+                return pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
+                    || $plugin->getOption('uri') == $pluginName
                 ;
             });
     

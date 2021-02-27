@@ -412,7 +412,7 @@ class SelectTableTest extends UnitTestBase
         if(boolval($options['target_view'])){
             $target_view = $custom_column->select_target_view;
             if(isset($target_view)){
-                $target_view->filterModel($query);
+                $target_view->filterSortModel($query);
             }
         }
 

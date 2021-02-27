@@ -1,0 +1,45 @@
+#kanban{
+  overflow-x: auto;
+  padding-bottom: 1em;
+}
+
+#kanban .kanban-board .kanban-drag{
+  min-height: 300px;
+}
+
+#kanban .kanban-container .kanban-item{
+  position: relative;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+#kanban .kanban-container .kanban-item-text{
+  display: inline-block;
+  width: calc(100% - 40px);
+  word-wrap: break-word;
+  font-size:0.85em;
+}
+
+#kanban .kanban-board .kanban-drag{
+  padding: 15px;
+}
+
+.kanban-container .kanban-item-icon{
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin: auto;
+  transform: translateY(-50%);
+  -webkit-transform: translateY(-50%);
+}
+
+.kanban-container .kanban-item-icon i{
+  padding: 2px;
+}
+
+.kanban-container .kanban-item-icon i.fa-eye,.kanban-container .kanban-item-icon i.fa-external-link{
+  cursor: pointer;
+}
+.kanban-container .kanban-item-icon i.fa-arrows{
+  cursor:move;
+}

@@ -19,6 +19,8 @@ use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Contracts\Support\Htmlable;
 use Encore\Admin\Admin;
 use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
@@ -116,6 +118,20 @@ class Exment
         return $user->getUserId();
     }
 
+
+    public function getRender($grid) : ?string
+    {
+        if ($grid instanceof Renderable) {
+            return $grid->render();
+        }
+
+        if ($grid instanceof Htmlable) {
+            return $grid->toHtml();
+        }
+
+        return $grid;
+    }
+    
 
     /**
      * get exment version

@@ -27,7 +27,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     //protected $appends = ['view_calendar_target', 'pager_count'];
     //protected $appends = ['pager_count', 'condition_join'];
     protected $guarded = ['id', 'suuid'];
-    protected $casts = ['options' => 'json'];
+    protected $casts = ['options' => 'json', 'custom_options' => 'json'];
     //protected $with = ['custom_table', 'custom_view_columns'];
     
     private $_grid_item;
@@ -154,6 +154,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->_grid_item = $classname::getItem($this->custom_table, $this);
 
         return $this->_grid_item;
+    }
+
+    public function getCustomOption($key, $default = null)
+    {
+        return $this->getJson('custom_options', $key, $default);
+    }
+    public function setCustomOption($key, $val = null)
+    {
+        return $this->setJson('custom_options', $key, $val);
     }
 
     public function deletingChildren()
@@ -558,7 +567,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function filterModel($model, $options = [])
     {
         $options = array_merge([
-            'sort' => true,
+            'sort' => false, // v4.0.0, default is false
             'callback' => null,
         ], $options);
 
@@ -585,6 +594,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         ///// We don't need filter using role here because filter auto using global scope.
 
         return $model;
+    }
+
+
+    /**
+     * filter and sort target model
+     */
+    public function filterSortModel($query, $options = [])
+    {
+        $options = array_merge([
+            'sort' => true,
+        ], $options);
+        return $this->filterModel($query, $options);
     }
 
 

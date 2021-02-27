@@ -179,7 +179,7 @@ class CustomViewTest extends UnitTestBase
         $custom_view = CustomView::where('view_view_name', $view_name)->first();
 
         if(isset($custom_view)){
-            $custom_view->filterModel($grid->model());
+            $custom_view->filterSortModel($grid->model());
             // create grid
             $custom_view->setGrid($grid);
         }

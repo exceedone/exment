@@ -38,7 +38,7 @@ class PluginServiceProvider extends ServiceProvider
         }
     
         // get plugin script's and style's
-        $pluginPublics = Plugin::getPluginPublics();
+        $pluginPublics = Plugin::getPluginScriptStyles();
         
         // loop
         foreach ($pluginPublics as $pluginScriptStyle) {
@@ -187,7 +187,7 @@ class PluginServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => url_join(config('admin.route.prefix'), $pluginScriptStyle->_plugin()->getRouteUri()),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
-            'middleware'    => ['adminweb', 'admin_plugin_public'],
+            'middleware'    => ['adminweb', 'admin_plugin_public', 'cache.headers:public;max_age=3600'],
         ], function (Router $router) {
             // for public file
             Route::get('public/{arg1?}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
