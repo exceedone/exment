@@ -1530,6 +1530,11 @@ return [
         'analytics_tag' => 'Googleアナリティクス',
         'use_recaptcha' => 'Google reCAPTCHAを使用する',
         'use_default_query' => '初期値をURLから設定可能にする',
+        'css_js_setting' => 'CSS・Javascript',
+        'custom_css' => 'カスタムCSS',
+        'plugin_css' => 'プラグイン(CSS)',
+        'custom_js' => 'カスタムJavascript',
+        'plugin_js' => 'プラグイン(Javascript)',
 
         'help'=> [
             'custom_form_id' => '公開フォームを設定する、フォームを選択してください。',
@@ -1568,6 +1573,10 @@ return [
             'use_default_query' => 'YESにすることで、URLのクエリ文字列の値を、フォームの初期値として設定することができます。',
             'activate_modal_header' => 'このフォームでは、以下のテーブルへのアクセスを含んでいます。そのため、<span class="red">一般ユーザーが、これらのテーブルのデータを読み取ることが可能になります。</span>',
             'activate_modal_footer' => "本当にこのフォームを公開しても問題ない場合は、「設定」をクリックしてください。",
+            'custom_css' => '独自のCSSを使用する場合は、記入してください。※&lt;style&gt;タグは不要です。',
+            'plugin_css' => 'インストールされているプラグイン(CSS)を、公開フォームにも反映させる場合、反映させるCSSを指定してください。',
+            'custom_js' => '独自のJavascriptを使用する場合は、記入してください。※&lt;script&gt;タグは不要です。',
+            'plugin_js' => 'インストールされているプラグイン(Javascript)を、公開フォームにも反映させる場合、反映させるJavascriptを指定してください。',
         ],
 
         'message' => [

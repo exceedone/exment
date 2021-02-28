@@ -874,7 +874,7 @@ class CustomFormController extends AdminControllerTableBase
         if(!$this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)){
             return false;
         }
-        if(!$this->custom_table->getOption('one_record_flg')){
+        if(boolval($this->custom_table->getOption('one_record_flg'))){
             return false;
         }
         if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){

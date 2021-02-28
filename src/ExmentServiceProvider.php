@@ -246,6 +246,10 @@ class ExmentServiceProvider extends ServiceProvider
             'publicform.bootstrap',
             'publicform.session',
         ],
+
+        // Dynamic append ----------------------------------------------------
+        //'adminwebapi' : web api middleware. Alomost same "adminapi", but difference Auth and ip-filter.
+        //'publicformapi' : Publicofmr api middleware. Alomost same "adminapi", but difference Auth, and not use ip-filter.
     ];
 
     /**

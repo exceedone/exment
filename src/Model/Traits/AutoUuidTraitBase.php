@@ -30,9 +30,9 @@ trait AutoUuidTraitBase
         // if exists "allRecords" class, call this
         if (method_exists(get_called_class(), "allRecords")) {
             return static::allRecords(function ($record) use ($uuid) {
-                return array_get($record, static::$key) == $uuid;
+                return array_get($record, static::$uuid_key) == $uuid;
             })->first();
         }
-        return static::where(static::$key, $uuid)->first();
+        return static::where(static::$uuid_key, $uuid)->first();
     }
 }

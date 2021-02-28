@@ -12,7 +12,7 @@ trait AutoSUuidTrait
 {
     use AutoUuidTraitBase;
 
-    protected static $key = 'suuid';
+    protected static $uuid_key = 'suuid';
 
     public static function bootAutoSUuidTrait()
     {

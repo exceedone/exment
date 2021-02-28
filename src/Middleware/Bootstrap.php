@@ -103,40 +103,13 @@ class Bootstrap
         // set scripts
         $pluginPublics = Plugin::getPluginPublics();
         foreach ($pluginPublics as $pluginPublic) {
-            // get scripts
-            $plugin = $pluginPublic->_plugin();
-            $p = $plugin->matchPluginType(PluginType::SCRIPT) ? 'js' : 'css';
-            $cdns = array_get($plugin, 'options.cdns', []);
-            foreach ($cdns as $cdn) {
-                Ad::{$p.'last'}($cdn);
-            }
-
-            // get each scripts
-            $items = collect($pluginPublic->{$p}(true))->map(function ($item) use ($pluginPublic) {
-                return admin_urls($pluginPublic->_plugin()->getRouteUri(), 'public/', $item);
-            });
-            if (!empty($items)) {
-                foreach ($items as $item) {
-                    Ad::{$p.'last'}($item);
-                }
-            }
+            static::appendStyleScript($pluginPublic);
         }
 
         // set Plugin resource
         $pluginPages = Plugin::getPluginPages();
         foreach ($pluginPages as $pluginPage) {
-            // get css and js
-            $publics = ['css', 'js'];
-            foreach ($publics as $p) {
-                $items = collect($pluginPage->{$p}())->map(function ($item) use ($pluginPage) {
-                    return admin_urls($pluginPage->_plugin()->getRouteUri(), 'public/', $item);
-                });
-                if (!empty($items)) {
-                    foreach ($items as $item) {
-                        Ad::{$p.'last'}($item);
-                    }
-                }
-            }
+            static::appendStyleScript($pluginPage);
         }
 
         // get exment version

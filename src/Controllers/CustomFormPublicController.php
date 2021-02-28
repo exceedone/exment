@@ -13,7 +13,9 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\NotifyAction;
@@ -348,6 +350,34 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ]);
             })->disableHeader();
         })
+        ->tab(exmtrans("custom_form_public.css_js_setting"), function ($form) use ($public_form, $id, $custom_table) {
+            $form->exmheader(exmtrans("custom_form_public.css_js_setting"))->hr();
+             
+            $form->embeds("css_js_setting", exmtrans("common.css_js_setting"), function($form) use ($custom_table){
+                $form->codeEditor('custom_css', exmtrans("custom_form_public.custom_css"))
+                    ->help(exmtrans("custom_form_public.help.custom_css"))
+                    ->mode('css')
+                    ->height(200)
+                ;
+                $form->multipleSelect('plugin_css', exmtrans("custom_form_public.plugin_css"))
+                    ->help(exmtrans("custom_form_public.help.plugin_css"))
+                    ->options(function(){
+                        return Plugin::getByPluginTypes(PluginType::STYLE)->pluck('plugin_view_name', 'id')->toArray();
+                    })
+                ;
+                $form->codeEditor('custom_js', exmtrans("custom_form_public.custom_js"))
+                    ->help(exmtrans("custom_form_public.help.custom_js"))
+                    ->mode('javascript')
+                    ->height(200)
+                ;
+                $form->multipleSelect('plugin_js', exmtrans("custom_form_public.plugin_js"))
+                    ->help(exmtrans("custom_form_public.help.plugin_js"))
+                    ->options(function(){
+                        return Plugin::getByPluginTypes(PluginType::SCRIPT)->pluck('plugin_view_name', 'id')->toArray();
+                    })
+                ;
+            })->disableHeader();
+        })
         ->tab(exmtrans("custom_form_public.option_setting"), function ($form) use ($public_form, $id, $custom_table) {
             $form->exmheader(exmtrans("custom_form_public.option_setting"))->hr();
              
@@ -386,6 +416,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 'confirm_complete_setting', 
                 'confirm_complete_setting2', 
                 'error_setting', 
+                'css_js_setting',
                 'option_setting', 
                 'notify_actions_error',
                 'notify_mail_template_error',

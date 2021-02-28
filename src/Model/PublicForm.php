@@ -157,11 +157,12 @@ class PublicForm extends ModelBase
             return null;
         }
 
-        $model = PublicForm::where('uuid', $uuid)
-            ->where('active_flg', 1)
-            ->withoutGlobalScopes()
-            ->first();
+        $model = PublicForm::findByUuid($uuid);
         if(!$model){
+            return null;
+        }
+
+        if(!boolval($model->active_flg)){
             return null;
         }
 
@@ -304,6 +305,9 @@ class PublicForm extends ModelBase
         $form->ignore('publicformapi');
         $form->ignore('rooturi');
 
+        // Set custom css and js
+        \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
+
         return $form;
     }
 
@@ -333,6 +337,9 @@ class PublicForm extends ModelBase
             ->setConfirmText(replaceTextFromFormat($this->getOption('confirm_text'), $custom_value))
             ;
 
+        // Set custom css and js
+        \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
+
         return $show;
     }
 
@@ -352,6 +359,9 @@ class PublicForm extends ModelBase
                 'label' => $text,
             ]);
         }
+
+        // Set custom css and js
+        \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
 
         return view('exment::public-form.complete', [
             'model' => $custom_value,
@@ -377,6 +387,9 @@ class PublicForm extends ModelBase
             ]);
         }
 
+        // Set custom css and js
+        \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
+        
         return view('exment::public-form.error', [
             'error_title' => $this->getOption('error_title'),
             'error_text' => $this->getOption('error_text'),
@@ -587,6 +600,16 @@ class PublicForm extends ModelBase
         return $this->options;
     }
     public function setOptionSettingAttribute(?array $options)
+    {
+        $this->setOption($options);
+        return $this;
+    }
+
+    public function getCssJsSettingAttribute()
+    {
+        return $this->options;
+    }
+    public function setCssJsSettingAttribute(?array $options)
     {
         $this->setOption($options);
         return $this;
