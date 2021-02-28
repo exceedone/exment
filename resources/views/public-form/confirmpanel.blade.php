@@ -22,6 +22,10 @@
         @endforeach
 
 
+        @foreach($relations as $relation)
+            {!! $relation->render() !!}
+        @endforeach
+
         <div class="box-footer" style="background-color: inherit;">
 
             {{ csrf_field() }}

@@ -318,15 +318,19 @@ class PublicForm extends ModelBase
      * @param Request $request
      * @return Form
      */
-    public function getShow(Request $request, CustomValue $custom_value)
+    public function getShow(Request $request, CustomValue $custom_value, array $inputs = [])
     {
         $custom_form = $this->custom_form;
         if(!$custom_form){
             return null;
         }
-        $show = PublicFormShow::getItem($custom_value->custom_table, $custom_form)
+
+        $show_item = PublicFormShow::getItem($custom_value->custom_table, $custom_form)
             ->custom_value($custom_value)
-            ->setPublicForm($this)
+            ->setPublicForm($this);
+        $child_items = $show_item->getChildRelationShows($inputs);
+
+        $show = $show_item
             ->createShowForm()
             ->renderException(function($ex){
                 return $this->showError($ex, true);
@@ -335,6 +339,7 @@ class PublicForm extends ModelBase
             ->setBackAction($this->getUrl())
             ->setConfirmTitle(replaceTextFromFormat($this->getOption('confirm_title'), $custom_value))
             ->setConfirmText(replaceTextFromFormat($this->getOption('confirm_text'), $custom_value))
+            ->setChildRelationShows($child_items);
             ;
 
         // Set custom css and js

@@ -87,8 +87,9 @@ class PublicFormController extends Controller
      */
     public function backed(Request $request)
     {
-        $custom_value = $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM);
-        return $this->getInputContent($request, $custom_value);
+        $inputs = $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT);
+
+        return redirect($this->public_form->getUrl())->withInput($inputs);
     }
 
 
@@ -96,15 +97,14 @@ class PublicFormController extends Controller
      * Get input content (Contains form)
      *
      * @param Request $request
-     * @param CustomValue|null $custom_value
      * @return void
      */
-    protected function getInputContent(Request $request, ?CustomValue $custom_value = null)
+    protected function getInputContent(Request $request)
     {
         try{
             $uri = boolval($this->public_form->getOption('use_confirm')) ? 'confirm' : 'create';
 
-            $form = $this->public_form->getForm($request, $custom_value)
+            $form = $this->public_form->getForm($request)
                 ->setAction(url_join($this->public_form->getUrl(),  $uri));
     
             $content = new PublicContent;
@@ -142,12 +142,10 @@ class PublicFormController extends Controller
             $custom_value = $form->getModelByInputs();
 
             // set session
-            $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM, $custom_value);
-        
             $inputs = $this->removeUploadedFile($request->all());
             $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT, $inputs);
 
-            $show = $this->public_form->getShow($request, $custom_value);
+            $show = $this->public_form->getShow($request, $custom_value, $inputs);
 
             $content = new PublicContent;
             $this->public_form->setContentOption($content);

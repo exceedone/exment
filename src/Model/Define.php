@@ -200,7 +200,6 @@ class Define
     public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
     public const SYSTEM_KEY_SESSION_FILE_NODELIST = "file_treelist";
     public const SYSTEM_KEY_SESSION_COMPOSER_VERSION = "exment_composer_version";
-    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM = "public_form_confirm";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT = "public_form_input";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES = "public_form_input_filenames";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES = "public_form_saved_filenames";

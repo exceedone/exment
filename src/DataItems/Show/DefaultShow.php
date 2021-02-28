@@ -92,46 +92,11 @@ class DefaultShow extends ShowBase
 
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
-                // whether update set width
-                $updateSetWidth = $custom_form_block->isMultipleColumn() || $this->modal;
-    
-                // if available is false, continue
-                if (!$custom_form_block->available) {
+                ////// default block(no relation block)
+                if (array_get($custom_form_block, 'form_block_type') != FormBlockType::DEFAULT) {
                     continue;
                 }
-                ////// default block(no relation block)
-                if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
-                    $hasMultiColumn = false;
-
-                    foreach ($custom_form_block->custom_form_columns as $form_column) {
-                        if ($form_column->form_column_type == FormColumnType::SYSTEM) {
-                            continue;
-                        }
-                        
-                        // if hidden field, continue
-                        if (boolval(config('exment.hide_hiddenfield', false)) && boolval(array_get($form_column, 'options.hidden', false))) {
-                            continue;
-                        }
-
-                        $item = $form_column->column_item;
-                        if (!isset($item)) {
-                            continue;
-                        }
-                        $this->setColumnItemOption($item);
-                        
-                        $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
-                            ->as(function ($v) use ($item) {
-                                if (is_null($this)) {
-                                    return '';
-                                }
-                                return $item->setCustomValue($this)->html();
-                            })->setEscape(false);
-                        
-                        if ($updateSetWidth) {
-                            $field->setWidth(9, 3);
-                        }
-                    }
-                }
+                $this->setByCustomFormBlock($show, $custom_form_block);
             }
             
             // if modal, disable list and delete
@@ -260,6 +225,56 @@ class DefaultShow extends ShowBase
             });
         });
     }
+
+
+    /**
+     * Set show item by custom form block
+     *
+     * @param Show $show
+     * @param CustomFormBlock $custom_form_block
+     * @return void
+     */
+    public function setByCustomFormBlock($show, $custom_form_block)
+    {
+        // whether update set width
+        $updateSetWidth = $custom_form_block->isMultipleColumn() || $this->modal;
+    
+        // if available is false, continue
+        if (!$custom_form_block->available) {
+            return;
+        }
+        $hasMultiColumn = false;
+
+        foreach ($custom_form_block->custom_form_columns as $form_column) {
+            if ($form_column->form_column_type == FormColumnType::SYSTEM) {
+                continue;
+            }
+            
+            // if hidden field, continue
+            if (boolval(config('exment.hide_hiddenfield', false)) && boolval(array_get($form_column, 'options.hidden', false))) {
+                continue;
+            }
+
+            $item = $form_column->column_item;
+            if (!isset($item)) {
+                continue;
+            }
+            $this->setColumnItemOption($item);
+            
+            $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
+                ->as(function ($v) use ($item) {
+                    if (is_null($this)) {
+                        return '';
+                    }
+                    return $item->setCustomValue($this)->html();
+                })->setEscape(false);
+            
+            if ($updateSetWidth) {
+                $field->setWidth(9, 3);
+            }
+        }
+    }
+
 
     /**
      * Append child block box.

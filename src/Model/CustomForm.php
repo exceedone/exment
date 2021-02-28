@@ -94,6 +94,11 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         return CustomTable::getEloquent($this->custom_table_id);
     }
 
+    public function getCustomFormBlocksCacheAttribute()
+    {
+        return $this->hasManyCache(CustomFormBlock::class, 'custom_form_id');
+    }
+
     /**
      * Show Item for data detail
      *
