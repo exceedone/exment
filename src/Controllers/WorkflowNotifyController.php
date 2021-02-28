@@ -85,9 +85,10 @@ class WorkflowNotifyController extends AdminControllerBase
                 ->render();
         });
 
-        $grid->column('workflow_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
-            if (isset($this->workflow_id)) {
-                return Workflow::getEloquent($this->workflow_id)->workflow_view_name ?? null;
+        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
+            $workflow = Workflow::getEloquent($this->target_id);
+            if (isset($workflow)) {
+                return $workflow->workflow_view_name ?? null;
             }
             return null;
         });
@@ -109,7 +110,7 @@ class WorkflowNotifyController extends AdminControllerBase
             $tools->prepend(new Tools\SystemChangePageMenu());
         });
 
-        $grid->model()->where('workflow_id', $this->workflow->id);
+        $grid->model()->where('target_id', $this->workflow->id);
 
         $workflow = $this->workflow;
         $grid->actions(function (Grid\Displayers\Actions $actions) use($workflow) {
@@ -146,7 +147,7 @@ class WorkflowNotifyController extends AdminControllerBase
         $notify = Notify::find($id);
         $workflow = $this->workflow;
 
-        $form->internal('workflow_id')->default($this->workflow->id);
+        $form->internal('target_id')->default($this->workflow->id);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->default($this->workflow->workflow_view_name);
        

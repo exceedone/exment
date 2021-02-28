@@ -4,13 +4,14 @@ namespace Exceedone\Exment\Services\Notify;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\NotifyTarget;
 
 class WorkUser extends NotifyTargetBase
 {
-    public function getModels(CustomValue $custom_value) : Collection
+    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
     {
         // work user not use getModels
         return collect();
@@ -23,7 +24,7 @@ class WorkUser extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
-    public function getModelsWorkflow(CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
     {
         $workflow = $workflow_action->workflow_cache;
         $users = collect();

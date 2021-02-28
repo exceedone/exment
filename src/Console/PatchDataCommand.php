@@ -194,6 +194,9 @@ class PatchDataCommand extends Command
             case 'append_column_mail_from_view_name':
                 $this->appendColumnMailFromViewName();
                 return;
+            case 'notify_target_id':
+                $this->notifyTargetId();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1657,4 +1660,20 @@ class PatchDataCommand extends Command
         $this->appendCustomColumn('mail_template', 'mail_from_view_name');
     }
     
+
+    public function notifyTargetId(){
+        Model\Notify::get()
+            ->each(function($notify){
+                $target_id = $notify->custom_table_id;
+                if(is_null($target_id) || isMatchString($target_id, 0)){
+                    $target_id = $notify->workflow_id;
+                }
+                if(is_null($target_id) || isMatchString($target_id, 0)){
+                    return;
+                }
+                
+                $notify->target_id = $target_id;
+                $notify->save();
+            });
+    }
 }

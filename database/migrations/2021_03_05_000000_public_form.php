@@ -32,8 +32,15 @@ class PublicForm extends Migration
             $table->foreign('custom_form_id')->references('id')->on('custom_forms');
         });
 
+        $schema->table('notifies', function (ExtendedBlueprint $table) {
+            if (!Schema::hasColumn('notifies', 'target_id')) {
+                $table->integer('target_id')->unsigned()->index()->after('suuid')->nullable();
+            }
+        });
+
         \Artisan::call('exment:patchdata', ['action' => 'publicform_mail_template']);
         \Artisan::call('exment:patchdata', ['action' => 'append_column_mail_from_view_name']);
+        \Artisan::call('exment:patchdata', ['action' => 'notify_target_id']);
     }
 
     /**

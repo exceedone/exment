@@ -101,16 +101,23 @@ class PublicFormController extends Controller
      */
     protected function getInputContent(Request $request, ?CustomValue $custom_value = null)
     {
-        $uri = boolval($this->public_form->getOption('use_confirm')) ? 'confirm' : 'create';
+        try{
+            $uri = boolval($this->public_form->getOption('use_confirm')) ? 'confirm' : 'create';
 
-        $form = $this->public_form->getForm($request, $custom_value)
-            ->setAction(url_join($this->public_form->getUrl(),  $uri));
-
-        $content = new PublicContent;
-        $this->public_form->setContentOption($content);
-
-        $content->row($form);
-        return $content;
+            $form = $this->public_form->getForm($request, $custom_value)
+                ->setAction(url_join($this->public_form->getUrl(),  $uri));
+    
+            $content = new PublicContent;
+            $this->public_form->setContentOption($content);
+    
+            $content->row($form);
+            return $content;
+        }
+        catch(\Exception $ex){
+            return $this->public_form->showError($ex);
+        } catch (Throwable $ex) {
+            return $this->public_form->showError($ex);
+        }
     }
 
 
@@ -121,31 +128,37 @@ class PublicFormController extends Controller
      */
     public function confirm(Request $request)
     {
-        $form = $this->public_form->getForm($request, null, [
-            'asConfirm' => true,
-        ]);
+        try {
+            $form = $this->public_form->getForm($request, null, [
+                'asConfirm' => true,
+            ]);
         
-        //validate
-        $response = $form->validateRedirect($request->all());
-        if($response instanceof Response){
-            return $response;
+            //validate
+            $response = $form->validateRedirect($request->all());
+            if ($response instanceof Response) {
+                return $response;
+            }
+
+            $custom_value = $form->getModelByInputs();
+
+            // set session
+            $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM, $custom_value);
+        
+            $inputs = $this->removeUploadedFile($request->all());
+            $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT, $inputs);
+
+            $show = $this->public_form->getShow($request, $custom_value);
+
+            $content = new PublicContent;
+            $this->public_form->setContentOption($content);
+
+            $content->row($show);
+            return $content;
+        } catch (\Exception $ex) {
+            return $this->public_form->showError($ex);
+        } catch (Throwable $ex) {
+            return $this->public_form->showError($ex);
         }
-
-        $custom_value = $form->getModelByInputs();
-
-        // set session
-        $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM, $custom_value);
-        
-        $inputs = $this->removeUploadedFile($request->all());
-        $request->session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT, $inputs);
-
-        $show = $this->public_form->getShow($request, $custom_value);
-
-        $content = new PublicContent;
-        $this->public_form->setContentOption($content);
-
-        $content->row($show);
-        return $content;
     }
 
 
@@ -157,26 +170,51 @@ class PublicFormController extends Controller
      */
     public function create(Request $request)
     {
-        $form = $this->public_form->getForm($request, null, ['setRecaptcha' => false]);
-        $public_form = $this->public_form;
-        
-        $form->saved(function($form) use($request, $public_form){
-            $content = new PublicContent;
-            $public_form->setContentOption($content);
+        try {
+            $form = $this->public_form->getForm($request, null, ['setRecaptcha' => false]);
+            $public_form = $this->public_form;
+            
+            $form->saving(function($form) use($request, $public_form){
+                // Disable saved notify
+                $form->model()->saved_notify(false);
+            });
 
-            $content->row($public_form->getCompleteView($request, $form->model()));
+            // notify
+            $form->savedInTransaction(function ($form) use($public_form) {
+                $model = $form->model();
 
-            return response($content);
-        });
+                if(!is_null($notify = $public_form->notify_complete_admin)){
+                    $notify->notifyUser($model);
+                }
+                
+                if(!is_null($notify = $public_form->notify_complete_user)){
+                    $notify->notifyUser($model);
+                }
+            });
 
-        // get data by session or result
-        $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
-        $response = $form->store($data);
+            $form->saved(function($form) use($request, $public_form){
+                $content = new PublicContent;
+                $public_form->setContentOption($content);
 
-        // Disable reload
-        $request->session()->regenerateToken();
+                $content->row($public_form->getCompleteView($request, $form->model()));
 
-        return $response;
+                return response($content);
+            });
+
+            // get data by session or result
+            $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
+            $response = $form->store($data);
+
+            // Disable reload
+            $request->session()->regenerateToken();
+
+            return $response;
+            
+        } catch (\Exception $ex) {
+            return $this->public_form->showError($ex);
+        } catch (Throwable $ex) {
+            return $this->public_form->showError($ex);
+        }
     }
 
 

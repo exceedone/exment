@@ -7,6 +7,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
+use Exceedone\Exment\Validator\EmailMultiline;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
@@ -18,6 +19,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifyBeforeAfter;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
@@ -99,7 +101,7 @@ trait NotifyTrait
     }
 
 
-    protected function setActionForm($form, ?Notify $notify, $custom_table = null, $workflow_id = null)
+    protected function setActionForm($form, ?Notify $notify, $custom_table = null, $workflow_id = null, array $options = [])
     {
         $form->url('webhook_url', exmtrans("notify.webhook_url"))
             ->required()
@@ -117,10 +119,10 @@ trait NotifyTrait
         $system_slack_user_column = CustomColumn::getEloquent(System::system_slack_user_column());
         $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE];
         $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-            ->options(function ($val, $field, $notify) use($custom_table, $workflow_id) {
-                $options = [
+            ->options(function ($val, $field, $notify) use($custom_table, $workflow_id, $options) {
+                $options = array_merge([
                     'as_workflow' => !is_nullorempty($workflow_id),
-                ];
+                ], $options);
                 return collect(NotifyService::getNotifyTargetColumns($custom_table ?? null, array_get($field->data(), 'notify_action'), $options))
                     ->pluck('text', 'id');
             })
@@ -132,6 +134,18 @@ trait NotifyTrait
             ])
             ->help(exmtrans("notify.help.notify_action_target"));
 
+        $form->textarea('target_emails', exmtrans("notify.target_emails"))
+            ->required()
+            ->rows(3)
+            ->help(exmtrans("notify.help.target_emails"))
+            ->rules([new EmailMultiline()])
+            ->attribute([
+                'data-filter' => json_encode([
+                    ['key' => 'notify_action', 'value' => [NotifyAction::EMAIL]],
+                    ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_EMAIL]],
+                ])
+            ]);
+            
         if (!isset($system_slack_user_column)) {
             $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
                 ->displayText(exmtrans('notify.help.slack_user_column_not_setting') . \Exment::getMoreTag('notify_webhook', 'notify.mention_setting_manual_id'))
@@ -150,9 +164,9 @@ trait NotifyTrait
         $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
             return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
         })->help(exmtrans("notify.help.mail_template_id"))
-        ->config('allowClear', false)
-        ->default($mail_template_id)
-        ->requiredRule();
+            ->config('allowClear', false)
+            ->default($mail_template_id)
+            ->requiredRule();
     }
 
 

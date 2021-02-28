@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Notify;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\WorkflowAction;
@@ -71,7 +72,7 @@ abstract class NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection Please return Notify target's collection
      */
-    abstract public function getModels(CustomValue $custom_value) : Collection;
+    abstract public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection;
 
 
     /**
@@ -83,7 +84,7 @@ abstract class NotifyTargetBase
      * @param mixed $statusTo
      * @return Collection Please return Notify target's collection
      */
-    public function getModelsWorkflow(CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
     {
         return collect();
     }

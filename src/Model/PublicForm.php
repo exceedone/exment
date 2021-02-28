@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
 use Exceedone\Exment\DataItems\Form\PublicFormForm;
@@ -23,9 +24,41 @@ class PublicForm extends ModelBase
 
     protected $casts = ['options' => 'json'];
 
+    /**
+     * error_notify_actions. If set from display, called after saved.
+     *
+     * @var mixed
+     */
+    protected $tmp_notify_action_error;
+    protected $tmp_notify_mail_template_error;
+    protected $tmp_notify_action_complete_user;
+    protected $tmp_notify_mail_template_complete_user;
+    protected $tmp_notify_action_complete_admin;
+    protected $tmp_notify_mail_template_complete_admin;
+
+
     public function custom_form()
     {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
+    }
+
+    public function notify_complete_admin()
+    {
+        return $this->hasOne(Notify::class, 'target_id')
+            ->where('notify_trigger', NotifyTrigger::PUBLIC_FORM_COMPLETE_ADMIN)
+            ->where('active_flg', 1);
+    }
+    public function notify_complete_user()
+    {
+        return $this->hasOne(Notify::class, 'target_id')
+            ->where('notify_trigger', NotifyTrigger::PUBLIC_FORM_COMPLETE_USER)
+            ->where('active_flg', 1);
+    }
+    public function notify_error()
+    {
+        return $this->hasOne(Notify::class, 'target_id')
+            ->where('notify_trigger', NotifyTrigger::PUBLIC_FORM_ERROR)
+            ->where('active_flg', 1);
     }
 
     public function deletingChildren()
@@ -53,6 +86,10 @@ class PublicForm extends ModelBase
         
         static::deleting(function ($model) {
             $model->deletingChildren();
+        });
+
+        static::saved(function ($model) {
+            $model->toggleNotify();
         });
     }
 
@@ -232,6 +269,9 @@ class PublicForm extends ModelBase
         ->setEnableDefaultQuery(boolval($this->getOption('use_default_query')));
     
         $form = $public_form->form()
+            ->renderException(function($ex){
+                return $this->showError($ex, true);
+            })
             ->disablePjax()
             ->setView('exment::public-form.form')
             ->setAction($this->getUrl())
@@ -287,8 +327,8 @@ class PublicForm extends ModelBase
             ->createShowForm()
             ->setAction(url_join($this->getUrl(),  'create'))
             ->setBackAction($this->getUrl())
-            ->setConfirmTitle($this->getOption('confirm_title'))
-            ->setConfirmText($this->getOption('confirm_text'))
+            ->setConfirmTitle(ReplaceFormatService::replaceTextFromFormat($this->getOption('confirm_title'), $custom_value))
+            ->setConfirmText(ReplaceFormatService::replaceTextFromFormat($this->getOption('confirm_text'), $custom_value))
             ;
 
         return $show;
@@ -313,10 +353,71 @@ class PublicForm extends ModelBase
 
         return view('exment::public-form.complete', [
             'model' => $custom_value,
-            'complete_title' => $this->getOption('complete_title'),
-            'complete_text' => $this->getOption('complete_text'),
+            'complete_title' => ReplaceFormatService::replaceTextFromFormat($this->getOption('complete_title'), $custom_value),
+            'complete_text' => ReplaceFormatService::replaceTextFromFormat($this->getOption('complete_text'), $custom_value),
             'link' => $link ?? null,
         ]);
+    }
+    
+    /**
+     * getErrorView
+     *
+     * @param Request $request
+     * @return Form
+     */
+    public function getErrorView(Request $request)
+    {
+        // create link
+        if(($url = $this->getOption('error_link_url')) && ($text = $this->getOption('error_link_text'))){
+            $link = view('exment::tools.link', [
+                'href' => $url,
+                'label' => $text,
+            ]);
+        }
+
+        return view('exment::public-form.error', [
+            'error_title' => $this->getOption('error_title'),
+            'error_text' => $this->getOption('error_text'),
+            'link' => $link ?? null,
+        ]);
+    }
+
+
+    /**
+     * Show error page and notify
+     *
+     * @return void
+     */
+    public function showError($ex, $asInner = false){
+        try{
+            \Log::error($ex);
+
+            try{
+                if(!is_null($notify = $this->notify_error)){
+                    $notify->notifyUser(null, [
+                        'custom_table' => $this->custom_table_cache,
+                    ]);
+                }
+            }
+            catch(\Exception $ex){
+                \Log::error($ex);
+            }
+
+            $view = $this->getErrorView(request());
+            if($asInner){
+                return $view;
+            }
+            $content = new PublicContent;
+            $this->setContentOption($content);
+            $content->row($view);
+
+            return response($content);
+        }
+        catch(\Excedption $ex){
+            throw $ex;
+        } catch (Throwable $ex) {
+            throw $ex;
+        }
     }
 
 
@@ -453,6 +554,15 @@ class PublicForm extends ModelBase
         $this->setOption($options);
         return $this;
     }
+    public function getConfirmCompleteSetting2Attribute()
+    {
+        return $this->options;
+    }
+    public function setConfirmCompleteSetting2Attribute(?array $options)
+    {
+        $this->setOption($options);
+        return $this;
+    }
 
     public function getErrorSettingAttribute()
     {
@@ -474,13 +584,130 @@ class PublicForm extends ModelBase
         return $this;
     }
 
-    public function getErrorNotifyActionsAttribute()
+    public function getNotifyActionsCompleteUserAttribute()
     {
-        return $this->getOption('error_notify_actions');
+        $notify = $this->notify_complete_user;
+        return $notify ? $notify->action_settings : null;
     }
-    public function setErrorNotifyActionsAttribute($json)
+    public function setNotifyActionsCompleteUserAttribute($json)
     {
-        $this->setOption('error_notify_actions', $json);
+        $this->tmp_notify_action_complete_user = $json;
         return $this;
+    }
+    public function getNotifyActionsCompleteAdminAttribute()
+    {
+        $notify = $this->notify_complete_admin;
+        return $notify ? $notify->action_settings : null;
+    }
+    public function setNotifyActionsCompleteAdminAttribute($json)
+    {
+        $this->tmp_notify_action_complete_admin = $json;
+        return $this;
+    }
+    public function getNotifyActionsErrorAttribute()
+    {
+        $notify = $this->notify_error;
+        return $notify ? $notify->action_settings : null;
+    }
+    public function setNotifyActionsErrorAttribute($json)
+    {
+        $this->tmp_notify_action_error = $json;
+        return $this;
+    }
+
+    public function getNotifyMailTemplateCompleteUserAttribute()
+    {
+        $notify = $this->notify_complete_user;
+        return $notify ? $notify->mail_template_id : null;
+    }
+    public function setNotifyMailTemplateCompleteUserAttribute($value)
+    {
+        $this->tmp_notify_mail_template_complete_user = $value;
+        return $this;
+    }
+    public function getNotifyMailTemplateCompleteAdminAttribute()
+    {
+        $notify = $this->notify_complete_admin;
+        return $notify ? $notify->mail_template_id : null;
+    }
+    public function setNotifyMailTemplateCompleteAdminAttribute($value)
+    {
+        $this->tmp_notify_mail_template_complete_admin = $value;
+        return $this;
+    }
+    public function getNotifyMailTemplateErrorAttribute()
+    {
+        $notify = $this->notify_error;
+        return $notify ? $notify->mail_template_id : null;
+    }
+    public function setNotifyMailTemplateErrorAttribute($value)
+    {
+        $this->tmp_notify_mail_template_error = $value;
+        return $this;
+    }
+
+    /**
+     * Save or delete notify
+     *
+     * @return void
+     */
+    protected function toggleNotify()
+    {
+        $keys = [
+            [
+                'enable' => 'use_notify_error',
+                'notify' => 'notify_error',
+                'params' => 'notify_action_error',
+                'mail_template' => 'notify_mail_template_error',
+                'trigger' => NotifyTrigger::PUBLIC_FORM_ERROR,
+            ],
+            [
+                'enable' => 'use_notify_complete_user',
+                'notify' => 'notify_complete_user',
+                'params' => 'notify_action_complete_user',
+                'mail_template' => 'notify_mail_template_complete_user',
+                'trigger' => NotifyTrigger::PUBLIC_FORM_COMPLETE_USER,
+            ],
+            [
+                'enable' => 'use_notify_complete_admin',
+                'notify' => 'notify_complete_admin',
+                'params' => 'notify_action_complete_admin',
+                'mail_template' => 'notify_mail_template_complete_admin',
+                'trigger' => NotifyTrigger::PUBLIC_FORM_COMPLETE_ADMIN,
+            ],
+        ];
+
+        foreach($keys as $key){
+            $enable = boolval($this->getOption($key['enable']));
+            $notify = $this->{$key['notify']};
+            $tmp_mail_template = $this->{'tmp_' . $key['mail_template']};
+            $tmp_params = $this->{'tmp_' . $key['params']};
+
+            // If enable, create or update notify
+            if($enable){
+                if(!$tmp_params || !$tmp_mail_template){
+                    continue;
+                }
+
+                if(!$notify){
+                    $notify = new Notify([
+                        'target_id' => $this->id,
+                        'notify_view_name' => make_uuid(),
+                        'active_flg' => 1,
+                        'notify_trigger' => $key['trigger'],
+                    ]);
+                }
+
+                $notify->action_settings = $tmp_params;
+                $notify->mail_template_id = $tmp_mail_template;
+                $notify->save();
+            }
+            else{
+                if (!$notify) {
+                    continue;
+                }
+                $notify->delete();
+            }
+        }
     }
 }

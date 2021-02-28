@@ -135,18 +135,18 @@ class NotifyTarget
      * Get notify target models
      *
      * @param Notify $notify
-     * @param CustomValue $custom_value
+     * @param CustomValue|null $custom_value
      * @param string|CustomColumn $notify_action_target NotifyActionTarget or custom column id or CustomColumn.
      * @return array Notify targets
      */
-    public static function getModels(Notify $notify, CustomValue $custom_value, $notify_action_target, array $action_setting)
+    public static function getModels(Notify $notify, ?CustomValue $custom_value, $notify_action_target, array $action_setting, ?CustomTable $custom_table = null)
     {
         $notifyTarget = NotifyTargetBase::make($notify_action_target, $notify, $action_setting);
         if(!$notifyTarget){
             return collect();
         }
 
-        return $notifyTarget->getModels($custom_value);
+        return $notifyTarget->getModels($custom_value, $custom_table);
     }
 
     /**
@@ -171,11 +171,11 @@ class NotifyTarget
     /**
      * get model as SelectTable(user, organization, select table)
      *
-     * @param CustomValue $target_value
+     * @param CustomValue|null $target_value
      * @param string $notify_target
      * @return NotifyTarget|null
      */
-    public static function getModelAsSelectTable(CustomValue $target_value, string $notify_target, ?CustomColumn $custom_column = null) : ?NotifyTarget
+    public static function getModelAsSelectTable(?CustomValue $target_value, string $notify_target, ?CustomColumn $custom_column = null) : ?NotifyTarget
     {
         if (is_nullorempty($target_value)) {
             return null;
@@ -204,7 +204,7 @@ class NotifyTarget
         return $notifyTarget;
     }
 
-    public static function getModelAsUser(CustomValue $target_value, ?CustomColumn $custom_column = null) : ?NotifyTarget
+    public static function getModelAsUser(?CustomValue $target_value, ?CustomColumn $custom_column = null) : ?NotifyTarget
     {
         if (is_null($custom_column)) {
             $custom_column = CustomColumn::getEloquent('email', SystemTableName::USER);
@@ -212,7 +212,7 @@ class NotifyTarget
         return NotifyTarget::getModelAsSelectTable($target_value, NotifyTargetType::USER, $custom_column);
     }
     
-    public static function getModelsAsOrganization(CustomValue $target_value, ?CustomColumn $custom_column = null) : Collection
+    public static function getModelsAsOrganization(?CustomValue $target_value, ?CustomColumn $custom_column = null) : Collection
     {
         // get organization user
         $result = collect();
@@ -233,9 +233,9 @@ class NotifyTarget
      * @param CustomValue $custom_value
      * @return Collection
      */
-    public static function getModelsAsRole(CustomValue $custom_value) : Collection
+    public static function getModelsAsRole(?CustomValue $custom_value, ?CustomTable $custom_table = null) : Collection
     {
-        $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, $custom_table);
         
         $list = collect();
         foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $key) {
@@ -250,7 +250,7 @@ class NotifyTarget
         return $list->filter()->unique();
     }
 
-    public static function getSelectedNotifyTarget($select_target, Notify $notify, CustomValue $custom_value)
+    public static function getSelectedNotifyTarget($select_target, Notify $notify, ?CustomValue $custom_value)
     {
         // all target users
         $allUsers = collect();
@@ -263,7 +263,7 @@ class NotifyTarget
         return $user;
     }
 
-    public static function getSelectedNotifyTargets($select_targets, Notify $notify, CustomValue $custom_value)
+    public static function getSelectedNotifyTargets($select_targets, Notify $notify, ?CustomValue $custom_value)
     {
         // all target users
         $allUsers = collect();

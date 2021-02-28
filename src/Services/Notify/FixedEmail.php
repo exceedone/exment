@@ -4,12 +4,13 @@ namespace Exceedone\Exment\Services\Notify;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\NotifyTarget;
 
 class FixedEmail extends NotifyTargetBase
 {
-    public function getModels(CustomValue $custom_value) : Collection
+    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
     {
         return $this->getFixedEmail();
     }
@@ -21,7 +22,7 @@ class FixedEmail extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
-    public function getModelsWorkflow(CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
     {
         return $this->getFixedEmail();
     }

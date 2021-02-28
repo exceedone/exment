@@ -5,7 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field\Date;
 use Encore\Admin\Form\Field\Select;
 use Encore\Admin\Form\Field\Text;
-use Exceedone\Exment\Form\Field;
+use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterType;

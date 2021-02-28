@@ -62,7 +62,7 @@ class CustomNotifyController extends AdminControllerTableBase
     {
         $grid = new Grid(new Notify);
 
-        $grid->column('custom_table_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
+        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
             $custom_table = CustomTable::getEloquent($val);
             if (isset($custom_table)) {
                 return $custom_table->table_view_name ?? null;
@@ -90,9 +90,9 @@ class CustomNotifyController extends AdminControllerTableBase
         // filter only custom table user has permission custom table
         if (!\Exment::user()->isAdministrator()) {
             $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
-            $grid->model()->whereIn('custom_table_id', $custom_tables);
+            $grid->model()->whereIn('target_id', $custom_tables);
         }
-        $grid->model()->where('custom_table_id', $this->custom_table->id);
+        $grid->model()->where('target_id', $this->custom_table->id);
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\CustomTableMenuButton('notify', $this->custom_table));
@@ -113,7 +113,7 @@ class CustomNotifyController extends AdminControllerTableBase
                 return NotifyTrigger::transKeyArray("notify.notify_trigger_options");
             });
             
-            $filter->equal('custom_table_id', exmtrans("notify.custom_table_id"))->select(function ($val) {
+            $filter->equal('target_id', exmtrans("notify.target_id"))->select(function ($val) {
                 return CustomTable::filterList()->pluck('table_view_name', 'id');
             });
         });
@@ -137,7 +137,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $notify = Notify::find($id);
         $custom_table = $this->custom_table;
 
-        $form->internal('custom_table_id')->default($this->custom_table->id);
+        $form->internal('target_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
         
         $this->setBasicForm($form, $notify);
@@ -145,7 +145,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $form->exmheader(exmtrans('notify.header_trigger'))->hr();
         
         $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
-            ->options(NotifyTrigger::transKeyArray("notify.notify_trigger_options"))
+            ->options(NotifyTrigger::transKeyArrayFilter("notify.notify_trigger_options", NotifyTrigger::CUSTOM_TABLES()))
             ->required()
             ->config('allowClear', false)
             ->attribute([

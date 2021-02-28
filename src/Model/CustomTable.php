@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
@@ -103,7 +104,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
     public function notifies()
     {
-        return $this->hasMany(Notify::class, 'custom_table_id')
+        return $this->hasMany(Notify::class, 'target_id')
+            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES())
             ->where('active_flg', 1);
     }
     

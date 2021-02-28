@@ -358,6 +358,7 @@ class NotifyService
             [
                 'mail_template' => null,
                 'custom_value' => null,
+                'custom_table' => null,
                 'subject' => null,
                 'body' => null,
                 'is_chat' => false,
@@ -369,9 +370,10 @@ class NotifyService
         );
         $params['notify'] = $notify;
         $custom_value = $params['custom_value'];
+        $custom_table = isset($params['custom_table']) ? $params['custom_table'] : $custom_value->custom_table;
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTING, $custom_value->custom_table, [
-            'custom_table' => $custom_value->custom_table,
+        Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTING, $custom_table, [
+            'custom_table' => $custom_table,
             'custom_value' => $custom_value,
             'notify' => $notify,
         ]);
@@ -417,8 +419,8 @@ class NotifyService
             //CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
         }
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTED, $custom_value->custom_table, [
-            'custom_table' => $custom_value->custom_table,
+        Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTED, $custom_table, [
+            'custom_table' => $custom_table,
             'custom_value' => $custom_value,
             'notify' => $notify,
         ]);
@@ -493,6 +495,7 @@ class NotifyService
                 'mail_template' => null,
                 'prms' => [],
                 'user' => null,
+                'custom_table' => null,
                 'custom_value' => null,
                 'subject' => null,
                 'body' => null,
@@ -507,6 +510,7 @@ class NotifyService
         $prms = $params['prms'];
         $user = $params['user'];
         $custom_value = $params['custom_value'];
+        $custom_table = isset($params['custom_table']) ? $params['custom_table'] : $custom_value->custom_table;
         $subject = $params['subject'];
         $body = $params['body'];
         $replaceOptions = $params['replaceOptions'];
@@ -523,6 +527,7 @@ class NotifyService
 
         $sender = Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params);
         $sender->custom_value($custom_value)
+            ->custom_table($custom_table)
             ->user($user)
             ->send();
 
@@ -690,19 +695,37 @@ class NotifyService
         $options = array_merge(NotifyAction::getColumnGettingOptions($notify_action), $options);
         $options = array_merge([
             'as_workflow' => false,
-            'as_default' => false,
+            'as_default' => true,
+            'as_administrator' => false, // Only use "as_default" is false
+            'as_has_roles' => false, // Only use "as_default" is false
+            'as_created_user' => false, // Only use "as_default" is false
             
             'get_email' => false,
             'get_select_table_email' => false,
             'get_user' => false,
             'get_organization' => false,
+            'get_custom_columns' => true,
         ], $options);
 
         // if (!isset($notify_action)) {
         //     return [];
         // }
 
-        $array = getTransArray(($options['as_workflow'] ? NotifyActionTarget::ACTION_TARGET_WORKFLOW() :  NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE()), 'notify.notify_action_target_options');
+        if($options['as_default']){
+            $array = getTransArray(($options['as_workflow'] ? NotifyActionTarget::ACTION_TARGET_WORKFLOW() :  NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE()), 'notify.notify_action_target_options');
+        }
+        else{
+            $array = [];
+            if($options['as_administrator']){
+                $array[NotifyActionTarget::ADMINISTRATOR] = exmtrans('notify.notify_action_target_options.administrator');
+            }
+            if($options['as_has_roles']){
+                $array[NotifyActionTarget::HAS_ROLES] = exmtrans('notify.notify_action_target_options.has_roles');
+            }
+            if($options['as_created_user']){
+                $array[NotifyActionTarget::CREATED_USER] = exmtrans('notify.notify_action_target_options.created_user');
+            }
+        }
 
         // if $notify_action is email, set fixed email
         if(\isMatchString($notify_action, NotifyAction::EMAIL)){
@@ -723,47 +746,49 @@ class NotifyService
             return [];
         }
 
-        $custom_columns = $custom_table->custom_columns_cache;
+        if($options['get_custom_columns']){
+            $custom_columns = $custom_table->custom_columns_cache;
 
-        $column_items = [];
-        foreach ($custom_columns as $custom_column) {
-            if ($options['get_email']) {
-                if (ismatchString($custom_column->column_type, ColumnType::EMAIL)) {
-                    $column_items[] = $custom_column;
-                    continue;
-                }
-            }
-
-            if ($options['get_user']) {
-                if (ismatchString($custom_column->column_type, ColumnType::USER)) {
-                    $column_items[] = $custom_column;
-                    continue;
-                }
-            }
-
-            if ($options['get_organization']) {
-                if (ismatchString($custom_column->column_type, ColumnType::ORGANIZATION)) {
-                    $column_items[] = $custom_column;
-                    continue;
-                }
-            }
-            
-            if ($options['get_select_table_email']) {
-                // if select table, getting column
-                if (ColumnType::isSelectTable($custom_column->column_type)) {
-                    $select_target_table = $custom_column->select_target_table;
-                    if ($select_target_table && $select_target_table->custom_columns_cache->contains(function ($custom_column) {
-                        return ismatchString($custom_column->column_type, ColumnType::EMAIL);
-                    })) {
+            $column_items = [];
+            foreach ($custom_columns as $custom_column) {
+                if ($options['get_email']) {
+                    if (ismatchString($custom_column->column_type, ColumnType::EMAIL)) {
                         $column_items[] = $custom_column;
                         continue;
                     }
                 }
+    
+                if ($options['get_user']) {
+                    if (ismatchString($custom_column->column_type, ColumnType::USER)) {
+                        $column_items[] = $custom_column;
+                        continue;
+                    }
+                }
+    
+                if ($options['get_organization']) {
+                    if (ismatchString($custom_column->column_type, ColumnType::ORGANIZATION)) {
+                        $column_items[] = $custom_column;
+                        continue;
+                    }
+                }
+                
+                if ($options['get_select_table_email']) {
+                    // if select table, getting column
+                    if (ColumnType::isSelectTable($custom_column->column_type)) {
+                        $select_target_table = $custom_column->select_target_table;
+                        if ($select_target_table && $select_target_table->custom_columns_cache->contains(function ($custom_column) {
+                            return ismatchString($custom_column->column_type, ColumnType::EMAIL);
+                        })) {
+                            $column_items[] = $custom_column;
+                            continue;
+                        }
+                    }
+                }
             }
-        }
-
-        foreach ($column_items as $column_item) {
-            $items[] = ['id' => $column_item->id, 'text' => exmtrans('common.custom_column') . ' : ' . $column_item->column_view_name];
+    
+            foreach ($column_items as $column_item) {
+                $items[] = ['id' => $column_item->id, 'text' => exmtrans('common.custom_column') . ' : ' . $column_item->column_view_name];
+            }
         }
 
         return $items;

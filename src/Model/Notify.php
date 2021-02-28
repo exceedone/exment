@@ -13,6 +13,14 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
 
+/**
+ * Notify user.
+ * 
+ * *Now disable these params.
+ * - custom_table_id to target_id
+ * - workflow_id to target_id
+ * - notify_actions to action_settings
+ */
 class Notify extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
@@ -25,7 +33,9 @@ class Notify extends ModelBase
     
     public function custom_table()
     {
-        return $this->belongsTo(CustomTable::class, 'custom_table_id');
+        return $this->belongsTo(CustomTable::class, 'target_id')
+            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES())
+            ;
     }
     
     public function custom_view()
@@ -137,18 +147,11 @@ class Notify extends ModelBase
      */
     public function notifyCreateUpdateUser($custom_value, $notifySavedType, $options = [])
     {
-        $options = array_merge(
-            [
-                'targetUserOrgs' => null,
-                'comment' => null,
-                'attachment' => null,
-            ],
-            $options
-        );
-
         if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
             return;
         }
+
+        $notifySavedType = NotifySavedType::getEnum($notifySavedType);
 
         // check trigger
         $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
@@ -156,9 +159,34 @@ class Notify extends ModelBase
             return;
         }
 
-        $notifySavedType = NotifySavedType::getEnum($notifySavedType);
+        $prms = [
+            'target_user' => $notifySavedType->getTargetUserName($custom_value),
+            'create_or_update' => $notifySavedType->getLabel(),
+        ];
+        $options['prms'] = $prms;
 
-        $custom_table = $custom_value->custom_table;
+        return $this->notifyUser($custom_value, $options);
+    }
+    
+    /**
+     * notify target user.
+     * *Contains Comment, share
+     */
+    public function notifyUser($custom_value, $options = [])
+    {
+        $options = array_merge(
+            [
+                'targetUserOrgs' => null,
+                'comment' => null,
+                'attachment' => null,
+                'prms' => [],
+                'custom_table' => null, // Set custom table if custom value is null.
+            ],
+            $options
+        );
+        $prms = $options['prms'];
+
+        $custom_table = $options['custom_table'] ?? $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
 
@@ -170,19 +198,17 @@ class Notify extends ModelBase
             $freeSpace = exmtrans('common.attachment') . ":" . $options['attachment'];
         }
 
-        $prms = [
+        $prms = array_merge([
             'notify' => $this,
-            'target_user' => $notifySavedType->getTargetUserName($custom_value),
             'target_table' => $custom_table->table_view_name ?? null,
             'target_datetime' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
-            'create_or_update' => $notifySavedType->getLabel(),
             'free_space' => $freeSpace,
-        ];
+        ], $prms);
 
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
             if (!isset($options['targetUserOrgs'])) {
-                $users = $this->getNotifyTargetUsers($custom_value, $action_setting);
+                $users = $this->getNotifyTargetUsers($custom_value, $action_setting, $custom_table);
             } else {
                 $users = [];
                 foreach ($options['targetUserOrgs'] as $targetUserOrg) {
@@ -206,6 +232,7 @@ class Notify extends ModelBase
                 NotifyService::executeNotifyAction($this, [
                     'mail_template' => $mail_template,
                     'prms' => $prms,
+                    'custom_table' => $custom_table,
                     'custom_value' => $custom_value,
                     'mention_here' => $this->getMentionHere($action_setting),
                     'mention_users' => $this->getMentionUsers($users),
@@ -232,6 +259,7 @@ class Notify extends ModelBase
                         'mail_template' => $mail_template,
                         'prms' => array_merge(['user' => $user->toArray()], $prms),
                         'user' => $user,
+                        'custom_table' => $custom_table,
                         'custom_value' => $custom_value,
                         'action_setting' => $action_setting,
                     ]);
@@ -453,7 +481,7 @@ class Notify extends ModelBase
      * @param array $action_setting
      * @return array
      */
-    public function getNotifyTargetUsers($custom_value, array $action_setting)
+    public function getNotifyTargetUsers($custom_value, array $action_setting, ?CustomTable $custom_table = null)
     {
         $notify_action_target = array_get($action_setting, 'notify_action_target');
         if (!isset($notify_action_target)) {
@@ -463,7 +491,7 @@ class Notify extends ModelBase
         // loop
         $values = collect([]);
         foreach (stringToArray($notify_action_target) as $notify_act) {
-            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act, $action_setting);
+            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act, $action_setting, $custom_table);
             foreach ($values_inner as $u) {
                 $values->push($u);
             }
@@ -535,7 +563,7 @@ class Notify extends ModelBase
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
         // if already send notify in 1 minutes, continue.
-        if ($checkHistory) {
+        if ($checkHistory && $custom_value) {
             $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
             $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)

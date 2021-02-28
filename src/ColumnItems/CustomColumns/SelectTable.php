@@ -15,7 +15,6 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -182,7 +181,7 @@ class SelectTable extends CustomItem
         if (!isset($this->target_table)) {
             return;
         }
-        if ($field instanceof ExmentField\Display) {
+        if ($field instanceof Field\Display) {
             return;
         }
 
