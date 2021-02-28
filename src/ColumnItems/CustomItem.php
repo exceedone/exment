@@ -28,13 +28,6 @@ abstract class CustomItem implements ItemInterface
     
     protected $custom_column;
     
-    /**
-     * Custom form column options
-     *
-     * @var array
-     */
-    protected $form_column_options;
-    
     protected $custom_value;
 
     /**

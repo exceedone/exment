@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Encore\Admin\Show\Field as ShowField;
 
 abstract class FormOtherItem implements ItemInterface
 {
@@ -12,13 +13,6 @@ abstract class FormOtherItem implements ItemInterface
     
     protected $form_column;
 
-    /**
-     * Custom form column options
-     *
-     * @var array
-     */
-    protected $form_column_options;
-    
     /**
      * Available fields.
      *
@@ -120,8 +114,15 @@ abstract class FormOtherItem implements ItemInterface
 
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
-        $form_column_options = $form_column->options ?? null;
-        $this->form_column_options = $form_column_options;
+        if(is_array($form_column)){
+            $form_column_options = $form_column;    
+        }
+        else{
+            $form_column_options = $form_column->options ?? null;
+        }
+        if(!is_nullorempty($form_column_options)){
+            $this->form_column_options = $form_column_options;
+        }
 
         $classname = $this->getAdminFieldClass();
         $field = new $classname($this->html(), []);
@@ -134,6 +135,28 @@ abstract class FormOtherItem implements ItemInterface
 
     protected function setAdminOptions(&$field)
     {
+    }
+
+    /**
+     * Set show field options
+     *
+     * @param mixed $field
+     * @return void
+     */
+    public function setShowFieldOptions(ShowField $field)
+    {
+        $item = $this;
+        // get form field
+        $formField = $this->getAdminField($this->form_column_options);
+
+        $field->as(function ($v) use ($item, $formField) {
+            if (is_null($this)) {
+                return '';
+            }
+            return $formField->render();
+        })->setEscape(false);
+
+        $field->setWidth(12, 0);
     }
 
     public static function getItem(...$args)

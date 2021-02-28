@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Form;
+namespace Exceedone\Exment\Form\Show;
 
 use Encore\Admin\Show;
 
@@ -88,6 +88,7 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
             'back_action' => $this->back_action,
             'confirm_title' => $this->confirm_title ?? null,
             'confirm_text' => $this->confirm_text ?? null,
+            'fieldGroups' => array_get($this->data, 'fieldGroups', []),
             'relations' => $this->relations ?? [],
         ]);
     }

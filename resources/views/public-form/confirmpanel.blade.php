@@ -17,10 +17,7 @@
         </div>
         @endif
 
-        @foreach($fields as $field)
-            {!! $field->render() !!}
-        @endforeach
-
+        @include('exment::form.gridshow-item')
 
         @foreach($relations as $relation)
             {!! $relation->render() !!}

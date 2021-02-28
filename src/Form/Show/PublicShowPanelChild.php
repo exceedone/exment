@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Form;
+namespace Exceedone\Exment\Form\Show;
 
 use Encore\Admin\Show;
 

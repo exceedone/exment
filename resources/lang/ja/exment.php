@@ -1516,7 +1516,7 @@ return [
         'use_notify_complete_user' => '完了通知をユーザーに行う',
         'notify_complete_admin' => '完了通知(管理者)',
         'use_notify_complete_admin' => '完了通知を管理者に行う',
-        'error_setting'=> 'エラー画面タイトル',
+        'error_setting'=> 'エラー設定',
         'error_title' => 'エラーテキスト',
         'error_text' => 'エラーテキスト',
         'error_link_text' => 'エラーリンク先テキスト',

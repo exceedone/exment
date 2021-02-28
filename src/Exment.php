@@ -71,6 +71,10 @@ class Exment
                 return back();
             }
 
+            if ($this->isPublicFormEndpoint()) {
+                return $callback($request, $exception);
+            }
+
             if (!$request->pjax() && $request->ajax()) {
                 // if memory error, throw ajax response
                 if (strpos($exception->getMessage(), 'Allowed memory size of') === 0) {

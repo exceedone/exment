@@ -1,11 +1,11 @@
 <?php
 
-namespace Exceedone\Exment\Form;
+namespace Exceedone\Exment\Form\Show;
 
 use Encore\Admin\Show\Field;
 use Illuminate\Support\Collection;
 
-class PublicShowChild extends \Encore\Admin\Show
+class PublicShowChild extends \Exceedone\Exment\Form\Show
 {
     /**
      * Initialize panel.

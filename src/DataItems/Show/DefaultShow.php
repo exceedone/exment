@@ -10,6 +10,7 @@ use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Show\Field as ShowField;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -22,6 +23,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -68,6 +70,7 @@ class DefaultShow extends ShowBase
             if (!$this->modal) {
                 $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
                 $field->border = false;
+                $show->gridShows();
             }
 
             // add parent link
@@ -77,7 +80,8 @@ class DefaultShow extends ShowBase
                     $item = ColumnItems\ParentItem::getItemWithParent($relation->child_custom_table, $relation->parent_custom_table);
                     $this->setColumnItemOption($item);
 
-                    $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
+                    $field = new ShowField($item->name(), $item->label());
+                    $field->as(function ($v) use ($item) {
                         if (is_null($this)) {
                             return '';
                         }
@@ -87,6 +91,11 @@ class DefaultShow extends ShowBase
                     if ($this->modal) {
                         $field->setWidth(9, 3);
                     }
+                    $show->addFieldAndOption($field, [
+                        'row' => 1,
+                        'column' => 1,
+                        'width' => 4,
+                    ]);
                 }
             }
 
@@ -236,9 +245,6 @@ class DefaultShow extends ShowBase
      */
     public function setByCustomFormBlock($show, $custom_form_block)
     {
-        // whether update set width
-        $updateSetWidth = $custom_form_block->isMultipleColumn() || $this->modal;
-    
         // if available is false, continue
         if (!$custom_form_block->available) {
             return;
@@ -259,19 +265,15 @@ class DefaultShow extends ShowBase
             if (!isset($item)) {
                 continue;
             }
-            $this->setColumnItemOption($item);
+            $this->setColumnItemOption($item, $form_column);
             
-            $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
-                ->as(function ($v) use ($item) {
-                    if (is_null($this)) {
-                        return '';
-                    }
-                    return $item->setCustomValue($this)->html();
-                })->setEscape(false);
-            
-            if ($updateSetWidth) {
-                $field->setWidth(9, 3);
-            }
+            $field = new ShowField($item->name(), $item->label());
+            $item->setShowFieldOptions($field);
+            $show->addFieldAndOption($field, [
+                'row' => $form_column->row_no,
+                'column' => $form_column->column_no,
+                'width' => $form_column->width ?? 4,
+            ]);
         }
     }
 
@@ -823,11 +825,16 @@ EOT;
      * @param ItemInterface $column_item
      * @return void
      */
-    protected function setColumnItemOption(ItemInterface $column_item)
+    protected function setColumnItemOption(ItemInterface $column_item, ?CustomFormColumn $form_column = null)
     {
         if($this->isPublicForm()){
             $column_item->options(['public_form' => $this->public_form]);
         }
+
+        if($form_column){
+            $column_item->setFormColumnOptions($form_column->options);
+        }
+        $column_item->setCustomForm($this->custom_form);
     }
 
     /**

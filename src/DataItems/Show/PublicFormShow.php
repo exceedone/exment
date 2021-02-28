@@ -32,11 +32,12 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Form\Show as PublicShow;
 use Illuminate\Database\Eloquent\Relations;
 
 class PublicFormShow extends DefaultShow
 {
-    protected static $showClassName = \Exceedone\Exment\Form\PublicShow::class;
+    protected static $showClassName = PublicShow\PublicShow::class;
     
     /**
      * Set public Form
@@ -72,13 +73,13 @@ class PublicFormShow extends DefaultShow
             $custom_form_block = $custom_values[0]['custom_form_block'];
                 
             // Create show panel for relation
-            $relationShowPanel = new \Exceedone\Exment\Form\PublicShowRelation();
+            $relationShowPanel = new PublicShow\PublicShowRelation();
             $relationShowPanel->setTitle($custom_form_block->getRelationInfo()[2]);
 
             foreach($custom_values as $info){
                 $custom_value = $info['custom_value'];
                 // Create child panel
-                $childShow = new \Exceedone\Exment\Form\PublicShowChild($custom_value, function($show) use($custom_form_block){
+                $childShow = new PublicShow\PublicShowChild($custom_value, function($show) use($custom_form_block){
                     $this->setByCustomFormBlock($show, $custom_form_block);
                 });
                 $relationShowPanel->addChildren($childShow);
@@ -97,6 +98,7 @@ class PublicFormShow extends DefaultShow
      */
     protected function getRelationModels(array $relationInputs)
     {
+        $relations = [];
         foreach ($relationInputs as $column => $value) {
             if (!method_exists($this->custom_value, $column)) {
                 continue;

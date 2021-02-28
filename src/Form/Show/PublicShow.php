@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Form;
+namespace Exceedone\Exment\Form\Show;
 
 use Encore\Admin\Show\Field;
 use Illuminate\Support\Collection;
@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
  * Show for public form.
  * Contains hasManys. If has hasMany, set "setChildRelationShows"
  */
-class PublicShow extends \Encore\Admin\Show
+class PublicShow extends \Exceedone\Exment\Form\Show
 {
     /**
      * Initialize panel.
