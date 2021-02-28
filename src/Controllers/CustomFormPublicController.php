@@ -57,10 +57,6 @@ class CustomFormPublicController extends AdminControllerTableBase
         if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
             return;
         }
-        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
-            Checker::error(exmtrans("custom_form_public.message.cannot_set_master_table"));
-            return false;
-        }
 
         $form = new Form(new PublicForm);
         $form->disableValidate(); // Not working validation if tab.
@@ -679,5 +675,23 @@ class CustomFormPublicController extends AdminControllerTableBase
                 'deletedEvent' => 'Exment.CommonEvent.CallbackExmentAjax(jqXHR.responseJSON);',
             ]
         );
+    }
+    
+    /**
+     * validation table
+     * @param mixed $table id or customtable
+     */
+    protected function validateTable($table, $role_name)
+    {
+        $table = CustomTable::getEloquent($table);
+        if(boolval($table->getOption('one_record_flg'))){
+            Checker::error(exmtrans("custom_form_public.message.cannot_set_master_table"));
+            return false;
+        }
+        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+            Checker::error(exmtrans("custom_form_public.message.cannot_set_master_table"));
+            return false;
+        }
+        return parent::validateTable($table, $role_name);
     }
 }

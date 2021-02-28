@@ -66,8 +66,7 @@ class CustomFormController extends AdminControllerTableBase
         }
         
         // public form
-        if(System::publicform_available() && $this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)
-            && !in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+        if($this->enablePublicForm()){
             $content->row($this->setFormPublics());
         }
 
@@ -864,5 +863,23 @@ class CustomFormController extends AdminControllerTableBase
         })->filter()->each(function($file){
             ExmentFile::deleteFileInfo($file);
         });
+    }
+
+
+    protected function enablePublicForm() : bool
+    {
+        if(!System::publicform_available()){
+            return false;
+        }
+        if(!$this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)){
+            return false;
+        }
+        if(!$this->custom_table->getOption('one_record_flg')){
+            return false;
+        }
+        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+            return false;
+        }
+        return true;
     }
 }
