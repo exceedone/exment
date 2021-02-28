@@ -333,6 +333,14 @@ class ExmentServiceProvider extends ServiceProvider
             });
         });
 
+        // Set error page
+        if(!boolval(config('exment.disable_exment_exception_handler', false))){
+            $this->app->singleton(
+                \Illuminate\Contracts\Debug\ExceptionHandler::class,
+                \Exceedone\Exment\Exceptions\Handler::class
+            );
+        }
+
         Passport::ignoreMigrations();
     }
 

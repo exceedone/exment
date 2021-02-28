@@ -162,6 +162,7 @@ return [
         'public_form_not_found' => 'フォームがありませんでした。URLが誤っているか、有効期限でない場合があります。',
         'captcha' => 'Google reCAPTCHA実施に失敗しました。再読み込みし、再度入力を行ってください。',
         'expired_error' => 'ページの有効期限が切れました。画面の更新を実施してください。',
+        'expired_error_reinput' => 'ページの有効期限が切れました。お手数ですが、再入力を行ってください。',
     ],
 
     'install' => [

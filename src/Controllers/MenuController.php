@@ -224,7 +224,6 @@ class MenuController extends AdminControllerBase
         $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
         $form->icon('icon', trans('admin.icon'))->required()->default('');
         $form->hidden('order');
-        $form->setWidth(8, 3);
 
         $form->saving(function ($form) {
             // whether set order

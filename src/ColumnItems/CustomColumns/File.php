@@ -153,7 +153,7 @@ class File extends CustomItem
 
         // if this field as confirm, set tmp function
         if(boolval(array_get($this->options, 'as_confirm'))){
-            $field->setTmp(function($files){
+            $field->setPrepareConfirm(function($files){
                 if(!is_array($files)){
                     $files = [$files]; 
                 }

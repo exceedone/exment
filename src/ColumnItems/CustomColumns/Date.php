@@ -17,6 +17,10 @@ class Date extends CustomItem
 
     protected function _text($v)
     {
+        if ($this->displayDate() && boolval(array_get($this->options, 'public_form')) && !isset($v)) {
+            return exmtrans('custom_value.auto_number_create');
+        }
+
         // if not empty format, using carbon
         $format = array_get($this->custom_column, 'options.format');
         if (is_nullorempty($format)) {
@@ -101,7 +105,8 @@ class Date extends CustomItem
     protected function setAdminOptions(&$field)
     {
         if ($this->displayDate()) {
-            $field->default($this->getNowString());
+            $field->default(exmtrans('custom_value.auto_number_create'));
+            $field->setInternal(true);
         } else {
             $field->options(['useCurrent' => false]);
         }
