@@ -255,7 +255,6 @@ class PublicForm extends ModelBase
         $setRecaptcha = $options['setRecaptcha'];
 
 
-        \Admin::css(asset('vendor/exment/css/publicform.css'));
         // set footer as PublicFormFooter
         \Encore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
 
@@ -325,10 +324,13 @@ class PublicForm extends ModelBase
             ->custom_value($custom_value)
             ->setPublicForm($this)
             ->createShowForm()
+            ->renderException(function($ex){
+                return $this->showError($ex, true);
+            })
             ->setAction(url_join($this->getUrl(),  'create'))
             ->setBackAction($this->getUrl())
-            ->setConfirmTitle(ReplaceFormatService::replaceTextFromFormat($this->getOption('confirm_title'), $custom_value))
-            ->setConfirmText(ReplaceFormatService::replaceTextFromFormat($this->getOption('confirm_text'), $custom_value))
+            ->setConfirmTitle(replaceTextFromFormat($this->getOption('confirm_title'), $custom_value))
+            ->setConfirmText(replaceTextFromFormat($this->getOption('confirm_text'), $custom_value))
             ;
 
         return $show;
@@ -353,8 +355,8 @@ class PublicForm extends ModelBase
 
         return view('exment::public-form.complete', [
             'model' => $custom_value,
-            'complete_title' => ReplaceFormatService::replaceTextFromFormat($this->getOption('complete_title'), $custom_value),
-            'complete_text' => ReplaceFormatService::replaceTextFromFormat($this->getOption('complete_text'), $custom_value),
+            'complete_title' => replaceTextFromFormat($this->getOption('complete_title'), $custom_value),
+            'complete_text' => replaceTextFromFormat($this->getOption('complete_text'), $custom_value),
             'link' => $link ?? null,
         ]);
     }
@@ -396,6 +398,11 @@ class PublicForm extends ModelBase
                 if(!is_null($notify = $this->notify_error)){
                     $notify->notifyUser(null, [
                         'custom_table' => $this->custom_table_cache,
+                        'prms' => [
+                            'error:message' => $ex->getMessage(),
+                            'error:stacktrace' => $ex->getTraceAsString(),
+                            'publicform:public_form_view_name' => $this->public_form_view_name,
+                        ],
                     ]);
                 }
             }
@@ -411,11 +418,11 @@ class PublicForm extends ModelBase
             $this->setContentOption($content);
             $content->row($view);
 
-            return response($content);
+            return $content;
         }
         catch(\Excedption $ex){
             throw $ex;
-        } catch (Throwable $ex) {
+        } catch (\Throwable $ex) {
             throw $ex;
         }
     }
@@ -429,6 +436,7 @@ class PublicForm extends ModelBase
      */
     public function setContentOption(PublicContent $content, array $options = [])
     {
+        \Admin::css(asset('vendor/exment/css/publicform.css'));
         $options = array_merge([
                 'add_analytics' => true,
             ],

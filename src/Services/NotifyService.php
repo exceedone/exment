@@ -675,6 +675,9 @@ class NotifyService
         $replaceOptions = array_merge([
             'matchBeforeCallback' => function ($length_array, $matchKey, $format, $custom_value, $options) use ($prms) {
                 // if has prms using $match, return value
+                if (isset($prms) && array_has($prms, $matchKey)) {
+                    return array_get($prms, $matchKey);
+                }
                 $matchKey = str_replace(":", ".", $matchKey);
                 if (isset($prms) && array_has($prms, $matchKey)) {
                     return array_get($prms, $matchKey);

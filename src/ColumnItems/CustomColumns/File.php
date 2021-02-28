@@ -133,38 +133,57 @@ class File extends CustomItem
             return $file->filename ?? basename($caption);
         })
         // get tmp file from request
-        ->getTmp(function($file){
-            // If public form tmp file
-            if(!is_string($file) || strpos($file, Field\File::TMP_FILE_PREFIX) !== 0){
-                return null;
+        ->getTmp(function($files){
+            if(!is_array($files)){
+                $files = [$files]; 
             }
-            return $this->getTmpFile($file);
+
+            $result = [];
+            foreach($files as $file){
+                // If public form tmp file
+                if(!is_string($file) || strpos($file, Field\File::TMP_FILE_PREFIX) !== 0){
+                    continue;
+                }
+                $result[] = $this->getTmpFile($file);
+            }
+            $result = array_filter($result);
+
+            return $this->isMultipleEnabled() ? $result : (count($result) > 0 ? $result[0] : null);
         });
 
         // if this field as confirm, set tmp function
         if(boolval(array_get($this->options, 'as_confirm'))){
-            $field->setTmp(function($file){
-                if(!($file instanceof UploadedFile)){
-                    return null;
+            $field->setTmp(function($files){
+                if(!is_array($files)){
+                    $files = [$files]; 
+                }
+    
+                $result = [];
+                foreach ($files as $file) {
+                    if (!($file instanceof UploadedFile)) {
+                        continue;
+                    }
+
+                    $resultFileName = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP)->putFile('', $file);
+
+                    // get hash name
+                    $fileName = Field\File::TMP_FILE_PREFIX . $resultFileName;
+                    $hashName = $file->hashName();
+                    // set session filename, tmpfilename, hasname to session.
+                    $sessions = session()->get(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, []);
+                    $sessions[] = [
+                        'fileName' => $fileName,
+                        'originalFileName' => $file->getClientOriginalName(),
+                        'hashName' => $file->hashName(),
+                    ];
+                    session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, $sessions);
+                    // and set request session for using removing UploadedFile
+                    System::setRequestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES . $hashName, $fileName);
+                
+                    $result[] = $fileName;
                 }
 
-                $result = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP)->putFile('', $file);
-
-                // get hash name
-                $fileName = Field\File::TMP_FILE_PREFIX . $result;
-                $hashName = $file->hashName();
-                // set session filename, tmpfilename, hasname to session.
-                $sessions = session()->get(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, []);
-                $sessions[] = [
-                    'fileName' => $fileName,
-                    'originalFileName' => $file->getClientOriginalName(),
-                    'hashName' => $file->hashName(),
-                ];
-                session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, $sessions);
-                // and set request session for using removing UploadedFile
-                System::setRequestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES . $hashName, $fileName);
-                
-                return $fileName;
+                return $this->isMultipleEnabled() ? $result : (count($result) > 0 ? $result[0] : null);
             });
         }
     }

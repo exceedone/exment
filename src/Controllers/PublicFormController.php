@@ -115,7 +115,7 @@ class PublicFormController extends Controller
         }
         catch(\Exception $ex){
             return $this->public_form->showError($ex);
-        } catch (Throwable $ex) {
+        } catch (\Throwable $ex) {
             return $this->public_form->showError($ex);
         }
     }
@@ -156,7 +156,7 @@ class PublicFormController extends Controller
             return $content;
         } catch (\Exception $ex) {
             return $this->public_form->showError($ex);
-        } catch (Throwable $ex) {
+        } catch (\Throwable $ex) {
             return $this->public_form->showError($ex);
         }
     }
@@ -212,7 +212,7 @@ class PublicFormController extends Controller
             
         } catch (\Exception $ex) {
             return $this->public_form->showError($ex);
-        } catch (Throwable $ex) {
+        } catch (\Throwable $ex) {
             return $this->public_form->showError($ex);
         }
     }
