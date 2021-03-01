@@ -255,7 +255,6 @@ class CustomFormPublicController extends AdminControllerTableBase
                         $options = [
                             'as_default' => false,
                             'get_email' => true,
-                            'get_custom_columns' => false,
                         ];
                         return collect(NotifyService::getNotifyTargetColumns($custom_table ?? null, array_get($field->data(), 'notify_action'), $options))
                             ->pluck('text', 'id');
