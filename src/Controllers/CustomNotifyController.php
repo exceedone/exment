@@ -135,6 +135,11 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $form = new Form(new Notify);
         $notify = Notify::find($id);
+        if($notify && !is_array($notify->notify_trigger, NotifyTrigger::CUSTOM_TABLES())){
+            Checker::error(exmtrans('common.message.wrongdata'));
+            return false;
+        }
+
         $custom_table = $this->custom_table;
 
         $form->internal('target_id')->default($this->custom_table->id);

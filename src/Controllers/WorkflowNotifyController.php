@@ -30,7 +30,10 @@ use App\Http\Controllers\Controller;
 
 class WorkflowNotifyController extends Controller
 {
-    use HasResourceActions, NotifyTrait, WorkflowTrait, ExmentControllerTrait;
+    use HasResourceActions{
+        destroy as destroyTrait;
+    }
+    use NotifyTrait, WorkflowTrait, ExmentControllerTrait;
 
     protected $workflow;
 
@@ -146,6 +149,11 @@ class WorkflowNotifyController extends Controller
         $form->progressTracker()->options($this->getProgressInfo($this->workflow, 3));
 
         $notify = Notify::find($id);
+        if($notify && $notify->notify_trigger != NotifyTrigger::WORKFLOW){
+            Checker::error(exmtrans('common.message.wrongdata'));
+            return false;
+        }
+        
         $workflow = $this->workflow;
 
         $form->internal('target_id')->default($this->workflow->id);
@@ -266,5 +274,18 @@ class WorkflowNotifyController extends Controller
     public function edit(Request $request, Content $content, $workflow_id, $id)
     {
         return $this->AdminContent($content)->body($this->form($id)->edit($id));
+    }
+    
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($workflow_id, $id)
+    {
+        return $this->destroyTrait($id);
     }
 }
