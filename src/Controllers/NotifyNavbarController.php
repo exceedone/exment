@@ -6,7 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Form\Show;
+use Encore\Admin\Show;
 use Exceedone\Exment\Form\Tools\SwalMenuButton;
 use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
