@@ -33,9 +33,7 @@ class Notify extends ModelBase
     
     public function custom_table()
     {
-        return $this->belongsTo(CustomTable::class, 'target_id')
-            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES())
-            ;
+        return $this->belongsTo(CustomTable::class, 'target_id');
     }
     
     public function custom_view()
