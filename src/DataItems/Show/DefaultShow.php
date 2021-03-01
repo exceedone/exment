@@ -70,6 +70,9 @@ class DefaultShow extends ShowBase
             if (!$this->modal) {
                 $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
                 $field->border = false;
+            }
+
+            if($this->gridShows()){
                 $show->gridShows();
             }
 
@@ -845,5 +848,14 @@ EOT;
     protected function isPublicForm() : bool
     {
         return $this instanceof PublicFormShow;
+    }
+
+    /**
+     * Whether this show is grid.
+     *
+     * @return bool
+     */
+    protected function gridShows(){
+        return !$this->modal;
     }
 }

@@ -457,9 +457,18 @@ class PublicForm extends ModelBase
         \Admin::css(asset('vendor/exment/css/publicform.css'));
         $options = array_merge([
                 'add_analytics' => true,
+                'isContainer' => null, // If container force, set true
             ],
             $options
         );
+
+        // set container
+        if(boolval($options['isContainer'])){
+            $isContainerFluid = false;
+        }
+        else{
+            $isContainerFluid = ($this->getOption('body_content_type') ?? 'width100') == 'width100';
+        }
 
         $header_logo = $this->getOption('header_logo');
         if(isset($header_logo)){
@@ -473,7 +482,7 @@ class PublicForm extends ModelBase
             ->setFooterTextColor($this->getOption('footer_text_color') ?? '#FFFFFF')
             ->setUseHeader($this->getOption('use_header') ?? true)
             ->setUseFooter($this->getOption('use_footer') ?? true)
-            ->setIsContainerFluid(($this->getOption('body_content_type') ?? 'width100') == 'width100')
+            ->setIsContainerFluid($isContainerFluid)
             ->setHeaderLogoUrl($header_logo)
             ->setHeaderLabel($this->getOption('header_label'))
             ;

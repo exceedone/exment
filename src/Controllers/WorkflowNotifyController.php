@@ -26,10 +26,11 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
-class WorkflowNotifyController extends AdminControllerBase
+class WorkflowNotifyController extends Controller
 {
-    use HasResourceActions, NotifyTrait, WorkflowTrait;
+    use HasResourceActions, NotifyTrait, WorkflowTrait, ExmentControllerTrait;
 
     protected $workflow;
 
@@ -67,7 +68,7 @@ class WorkflowNotifyController extends AdminControllerBase
             return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['notify_view_name']));
         }
 
-        return parent::create($request, $content);
+        return $this->AdminContent($content)->body($this->form());
     }
 
     /**
@@ -212,6 +213,7 @@ class WorkflowNotifyController extends AdminControllerBase
                 'btn_class' => 'btn-default',
             ]));
         });
+
         return $form;
     }
 
@@ -223,5 +225,46 @@ class WorkflowNotifyController extends AdminControllerBase
         ]);
 
         return $options;
+    }
+
+    
+    /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    public function index(Request $request, Content $content)
+    {
+        return $this->AdminContent($content)->body($this->grid());
+    }
+
+    /**
+     * Show interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function show(Request $request, Content $content, $workflow_id, $id)
+    {
+        if (method_exists($this, 'detail')) {
+            $render = $this->detail($id);
+        } else {
+            $url = url_join($request->url(), 'edit');
+            return redirect($url);
+        }
+        return $this->AdminContent($content)->body($render);
+    }
+
+    /**
+     * Edit interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function edit(Request $request, Content $content, $workflow_id, $id)
+    {
+        return $this->AdminContent($content)->body($this->form($id)->edit($id));
     }
 }

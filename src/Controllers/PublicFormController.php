@@ -148,7 +148,7 @@ class PublicFormController extends Controller
             $show = $this->public_form->getShow($request, $custom_value, $inputs);
 
             $content = new PublicContent;
-            $this->public_form->setContentOption($content);
+           $this->public_form->setContentOption($content, ['isContainer' => true]);
 
             $content->row($show);
             return $content;
@@ -192,7 +192,7 @@ class PublicFormController extends Controller
 
             $form->saved(function($form) use($request, $public_form){
                 $content = new PublicContent;
-                $public_form->setContentOption($content);
+                $public_form->setContentOption($content, ['isContainer' => true]);
 
                 $content->row($public_form->getCompleteView($request, $form->model()));
 

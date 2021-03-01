@@ -2,22 +2,29 @@
 <form method="post" accept-charset="UTF-8" class="form-horizontal click_disabled_submit">
     <div class="fields-group">
         @if(isset($confirm_title))
-        <div class="form-group ">
-            <h2 class="col-md-8 col-md-offset-2">
+        <div class="form-group">
+            <h2 class="col-md-8 col-md-offset-2 text-center">
                 {{ $confirm_title }}
             </h2>
         </div>
         @endif
 
         @if(isset($confirm_text))
-        <div class="form-group ">
-            <p class="col-md-8 col-md-offset-2">
-                {{ $confirm_text }}
-            </p>
+        <div class="form-group">
+            <div class="col-md-8 col-md-offset-2">
+                {!! html_clean($confirm_text) !!}
+            </div>
         </div>
         @endif
 
+        @if(isset($gridShows) && boolval($gridShows))
         @include('exment::form.gridshow-item')
+        @elseif(isset($fields))
+            @foreach($fields as $field)
+                {!! $field->render() !!}
+            @endforeach        
+        @endif
+
 
         @foreach($relations as $relation)
             {!! $relation->render() !!}

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
@@ -68,7 +69,13 @@ class Exment
 
             if($exception instanceof \Illuminate\Session\TokenMismatchException){
                 admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
-                return back();
+                if ($this->isPublicFormEndpoint()) {
+                    $public_form = PublicForm::getPublicFormByRequest();
+                    return $public_form ? redirect($public_form->getUrl()) : back();
+                }
+                else{
+                    back();
+                }
             }
 
             if ($this->isPublicFormEndpoint()) {

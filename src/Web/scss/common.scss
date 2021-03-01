@@ -198,6 +198,14 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     min-width: 45px;
 }
 
+.embed-value-form .gridembeds-row{
+    margin-bottom: 2em;
+
+    &:last-child{
+        margin-bottom: 0;
+    }
+}
+
 // checkbox table
 .checkboxtable{
     .checkboxtable-header{
@@ -599,7 +607,7 @@ table img.image_html{
     border-left-color:#605ca8;
 }
 
-@media (max-width: 767px)
+@media (max-width: 992px)
 {
     .navbar{
         .sidebar-toggle{
@@ -626,6 +634,9 @@ table img.image_html{
 
     .nprogress-custom-parent{
         overflow: visible;
+    }
+    .embed-value-form .gridembeds-row{
+        margin-bottom: 0;
     }
 }
 
