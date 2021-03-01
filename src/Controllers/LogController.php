@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\OperationLog;
 use Encore\Admin\Grid;
-use Exceedone\Exment\Form\Show;
+use Encore\Admin\Show;
 use Illuminate\Support\Arr;
 
 class LogController extends AdminControllerBase
