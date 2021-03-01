@@ -1512,8 +1512,8 @@ return [
         'complete_text' => '完了テキスト',
         'complete_link_text' => '完了リンク先テキスト',
         'complete_link_url' => '完了リンク先URL',
-        'notify_complete_user' => '完了通知(ユーザー)',
-        'use_notify_complete_user' => '完了通知をユーザーに行う',
+        'notify_complete_user' => '完了通知(一般ユーザー)',
+        'use_notify_complete_user' => '完了通知を一般ユーザーに行う',
         'notify_complete_admin' => '完了通知(管理者)',
         'use_notify_complete_admin' => '完了通知を管理者に行う',
         'error_setting'=> 'エラー設定',
@@ -1560,7 +1560,7 @@ return [
             'complete_text' => '入力完了画面のページ上部に表示するテキスト・HTMLを入力してください。※<a href=":url" target="_blank" rel="noopener noreferrer">パラメータ</a>を入力できます。また、スクリプトは実行できません。',
             'complete_link_text' => '完了画面でリンクを表示する場合、リンク先テキストを入力してください。',
             'complete_link_url' => '完了画面でリンクを表示する場合、リンク先のURLを入力してください。',
-            'use_notify_complete_user' => '完了通知をユーザーに送信する場合、YESにしてください。',
+            'use_notify_complete_user' => '完了通知を一般ユーザーに送信する場合、YESにしてください。',
             'use_notify_complete_admin' => '完了通知を管理者に送信する場合、YESにしてください。',
             'error_title' => 'エラー画面のタイトルを入力してください。',
             'error_text' => 'エラー画面のページ上部に表示するテキスト・HTMLを入力してください。※スクリプトは実行できません。',
@@ -2170,6 +2170,8 @@ return [
         'header_trigger' => '通知条件設定',
         'header_action' => '通知アクション設定',
         'description' => '特定の条件で、通知を行うための設定を行います。',
+        'notify_moved' => '通知設定は移動しました',
+        'notify_moved_tag' => '一覧画面表示',
         'notify_name' => '通知名(英数字)',
         'notify_view_name' => '通知表示名',
         'notify_target' => '対象',
@@ -2242,6 +2244,7 @@ return [
 
         'message' => [
             'no_action_target' => '通知対象がありませんでした。',
+            'notify_moved' => '通知設定は移動しました。メニューから削除をお願いします。',
         ],
     ],
     

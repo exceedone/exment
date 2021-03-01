@@ -90,7 +90,8 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
             $router->get('notify/{tableKey}/notify_action_target', 'CustomNotifyController@notify_action_target');
-            
+            $router->get('notify', 'NotifyController@index');
+
             $router->post("notify_navbar/batchAll/{type}", 'NotifyNavbarController@batchAll');
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
