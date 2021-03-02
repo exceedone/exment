@@ -315,9 +315,11 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * get select column display text
      *
+     * @param Model\CustomViewColumn|Model\CustomViewSummary $custom_view_column
+     * @param Model\CustomTable $custom_table
      * @return string|null
      */
-    public function getSelectColumnText(Model\CustomViewColumn $custom_view_column, Model\CustomTable $custom_table) : ?string
+    public function getSelectColumnText($custom_view_column, Model\CustomTable $custom_table) : ?string
     {
         return null;
     }
@@ -326,9 +328,10 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * Whether this column is number
      *
-     * @return bool
+     * @param Model\CustomViewColumn|Model\CustomViewSummary $custom_view_column
+     * @return boolean
      */
-    public function isSelectColumnNumber(Model\CustomViewColumn $custom_view_column) : bool
+    public function isSelectColumnNumber($custom_view_column) : bool
     {
         return false;
     }

@@ -11,6 +11,7 @@ class CustomViewSummary extends ModelBase
     use Traits\CustomViewColumnOptionTrait;
     use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
+    use Traits\ConditionTypeTrait;
     use Traits\UseRequestSessionTrait;
 
     protected $guarded = ['id'];
