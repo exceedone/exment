@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Form\Field\RadioButton;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Encore\Admin\Form\Field;
-use Encore\Admin\Grid\Filter;
 
 class Select extends CustomItem
 {

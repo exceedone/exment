@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Date;
 use Encore\Admin\Form\Field\Select;
+use Encore\Admin\Form\Field\MultipleSelect;
 use Encore\Admin\Form\Field\Text;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -309,8 +310,10 @@ class SystemItem implements ItemInterface
                 $field = new Date($this->name(), [$this->label()]);
                 $field->default($this->value);
                 break;
+            // Now "select" is only user
             case 'user':
-                $field = new Select($this->name(), [$this->label()]);
+            case 'select':
+                $field = new MultipleSelect($this->name(), [$this->label()]);
                 $field->options(function ($value) {
                     // get DB option value
                     return CustomTable::getEloquent(SystemTableName::USER)

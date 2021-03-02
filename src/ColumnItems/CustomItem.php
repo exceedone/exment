@@ -328,7 +328,7 @@ abstract class CustomItem implements ItemInterface
                     $classname = Field\Number::class;
                     break;
                 case FilterType::SELECT:
-                    $classname = Field\Select::class;
+                    $classname = Field\MultipleSelect::class;
                     break;
                 default:
                     $classname = $this->getFilterFieldClass();

@@ -128,13 +128,15 @@ class CCustomViewTest extends ExmentKitTestCase
                     'view_column_target' => "{$custom_column_text->id}?table_id={$custom_table->id}",
                     'view_filter_condition' => 1,
                     'view_filter_condition_value' => 'test',
+                    'view_filter_condition_value_query' => 'test',
                     'order' => 0,
                     '_remove_' => 0,
                 ],
                 'new_2' => [
                     'view_column_target' => "{$custom_column_user->id}?table_id={$custom_table->id}",
                     'view_filter_condition' => 2001,
-                    'view_filter_condition_value' => 1,
+                    'view_filter_condition_value' => ["1"],
+                    'view_filter_condition_value_query' => '["1"]',
                     'order' => 0,
                     '_remove_' => 0,
                 ],
@@ -175,7 +177,7 @@ class CCustomViewTest extends ExmentKitTestCase
             'custom_view_columns' => ['classname' => Model\CustomViewColumn::class],
             'custom_view_filters' => ['classname' => Model\CustomViewFilter::class, 'callback' => function($query, $v){
                 $query->where('view_filter_condition', $v['view_filter_condition'])
-                    ->where('view_filter_condition_value_text', $v['view_filter_condition_value'])
+                    ->whereOrIn('view_filter_condition_value_text', $v['view_filter_condition_value_query'])
                     ;
             }],
             'custom_view_sorts' => ['classname' => Model\CustomViewSort::class, 'callback' => function($query, $v){
