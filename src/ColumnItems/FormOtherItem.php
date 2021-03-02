@@ -143,7 +143,7 @@ abstract class FormOtherItem implements ItemInterface
      * @param mixed $field
      * @return void
      */
-    public function setShowFieldOptions(ShowField $field)
+    public function setShowFieldOptions(ShowField $field, array $options = [])
     {
         $item = $this;
         // get form field

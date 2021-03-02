@@ -82,6 +82,10 @@ trait FieldGroupTrait
                 return [
                     'column' => $key,
                     'width' => intval(array_get($g->last(), 'options.width', 1)),
+                    // If set calcWidth:false, then return 0; Check not contains calcWidth is false
+                    'calcWidth' => !$g->contains(function($g){
+                        return !boolval(array_get($g, 'options.calcWidth', true));
+                    }),
                     'fields' => $g->map(function($g){
                         return ['field' => array_get($g, 'field')];
                     }),
@@ -101,6 +105,10 @@ trait FieldGroupTrait
         // Ex. column:1 width:3 and column:2 width:1 → total_width:4
         $totalWidth = $fieldGroups->max(function($fieldGroupRows){
             return $fieldGroupRows['columns']->sum(function ($fieldOption) {
+                // If set calcWidth:false, then return 0; For use parent and system values
+                if(!boolval($fieldOption['calcWidth'] ?? true)){
+                    return 0;
+                }
                 return $fieldOption['width'];
             });
         });

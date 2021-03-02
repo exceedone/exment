@@ -1,5 +1,5 @@
 
-<form method="post" accept-charset="UTF-8" class="form-horizontal click_disabled_submit">
+<form method="post" accept-charset="UTF-8" class="form-horizontal click_disabled_submit block_custom_value_show">
     <div class="fields-group">
         @if(isset($confirm_title))
         <div class="form-group">

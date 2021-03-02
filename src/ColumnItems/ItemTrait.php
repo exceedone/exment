@@ -319,8 +319,12 @@ trait ItemTrait
      * @param mixed $field
      * @return void
      */
-    public function setShowFieldOptions(ShowField $field)
+    public function setShowFieldOptions(ShowField $field, array $options = [])
     {
+        $options = array_merge([
+            'gridShows' => false,
+        ], $options);
+
         $item = $this;
         $field->as(function ($v) use ($item) {
             if (is_null($this)) {
@@ -329,7 +333,8 @@ trait ItemTrait
             return $item->setCustomValue($this)->html();
         })->setEscape(false);
 
-        if(method_exists($this, 'setLabelType')){
+        // If grid shows, set label style
+        if($options['gridShows'] && method_exists($this, 'setLabelType')){
             $this->setLabelType($field);
         }
     }

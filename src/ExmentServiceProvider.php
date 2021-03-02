@@ -54,6 +54,7 @@ class ExmentServiceProvider extends ServiceProvider
         ExmentProviders\Route2factorServiceProvider::class,
         ExmentProviders\RouteOAuthServiceProvider::class,
         ExmentProviders\PasswordResetServiceProvider::class,
+        ExmentProviders\RoutePublicFormServiceProvider::class,
         ExmentProviders\PluginServiceProvider::class,
     ];
 
@@ -245,6 +246,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'publicform.bootstrap',
             'publicform.session',
+        ],
+        // Exment plugin's css and js for publicform.
+        'publicform_plugin_public' => [
+            'publicform.auth',
+            'admin.bootstrap2',
         ],
 
         // Dynamic append ----------------------------------------------------

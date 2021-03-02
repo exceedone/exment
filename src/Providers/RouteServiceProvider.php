@@ -34,7 +34,6 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
-        $this->mapExmentPublicFormWebRotes();
     }
 
     /**
@@ -291,26 +290,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('favicon', 'FileController@downloadFavicon');
             $router->get('auth/login/background', 'FileController@downloadLoginBackground');
             $router->get('auth/login/header', 'FileController@downloadLoginHeader');
-        });
-    }
-    
-    protected function mapExmentPublicFormWebRotes()
-    {
-        if(!canConnection() || !hasTable(SystemTableName::SYSTEM) || !System::publicform_available()){
-            return;
-        }
-        Route::group([
-            'prefix'        => url_join(config('exment.publicform_route_prefix', 'publicform'), '{form_key}'),
-            'namespace'     => $this->namespace,
-            'middleware'    => ['adminweb', 'publicform'],
-        ], function (Router $router) {
-            $router->get('/', 'PublicFormController@index');
-            $router->post('/', 'PublicFormController@backed');
-            $router->post('/confirm', 'PublicFormController@confirm');
-            $router->post('/create', 'PublicFormController@create');
-            $router->get('files/{uuid}', 'FileController@downloadPublicForm');
-            $router->post('tmpimages', 'FileController@uploadTempImage');
-            $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFilePublicForm');
         });
     }
     

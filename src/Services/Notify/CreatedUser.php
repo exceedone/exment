@@ -2,7 +2,6 @@
 namespace Exceedone\Exment\Services\Notify;
 
 use Illuminate\Support\Collection;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\WorkflowAction;
@@ -13,8 +12,7 @@ class CreatedUser extends NotifyTargetBase
 {
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
     {
-        $item = NotifyTarget::getModelAsUser($custom_value->created_user_value);
-        return collect([$item]);
+        return $this->_getModel($custom_value);
     }
 
 
@@ -26,6 +24,15 @@ class CreatedUser extends NotifyTargetBase
      */
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
     {
+        return $this->_getModel($custom_value);
+    }
+
+
+    protected function _getModel(?CustomValue $custom_value)
+    {
+        if(!$custom_value){
+            return collect();
+        }
         $item = NotifyTarget::getModelAsUser($custom_value->created_user_value);
         return collect([$item]);
     }

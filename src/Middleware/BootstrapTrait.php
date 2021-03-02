@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\PluginType;
 
 trait BootstrapTrait
 {
-    protected function setCssJsList(array $list, bool $isCss, bool $isLast = false)
+    protected static function setCssJsList(array $list, bool $isCss, bool $isLast = false)
     {
         $ver = \Exment::getExmentCurrentVersion();
         if (!isset($ver)) {
@@ -39,7 +39,7 @@ trait BootstrapTrait
      * @param mixed $pluginBase Exceedone\Exment\Services\Plugin\PluginBase
      * @return void
      */
-    protected static function appendStyleScript($pl)
+    protected static function appendStyleScript($pl, bool $asPublicForm = false)
     {
         // get each scripts
         foreach(['css', 'js'] as $p)
@@ -69,8 +69,8 @@ trait BootstrapTrait
                 Ad::{$p.'last'}($cdn);
             }
 
-            $items = collect($pluginClass->{$p}(true))->map(function ($item) use ($pluginClass) {
-                return admin_urls($pluginClass->_plugin()->getRouteUri(), 'public/', $item);
+            $items = collect($pluginClass->{$p}(true))->map(function ($item) use ($pluginClass, $asPublicForm) {
+                return $pluginClass->getCssJsUrl($item, $asPublicForm);
             });
             if (!empty($items)) {
                 foreach ($items as $item) {

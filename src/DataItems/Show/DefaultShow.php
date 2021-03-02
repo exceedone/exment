@@ -40,10 +40,18 @@ class DefaultShow extends ShowBase
 {
     protected static $showClassName = \Exceedone\Exment\Form\Show::class;
 
+    /**
+     * Set row count. if contains parent or system values, set increment.
+     *
+     * @var integer
+     */
+    protected $rowCount = 0;
+
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
         $this->custom_form = $custom_form;
+        $this->rowCount = 0;
     }
 
     /**
@@ -70,9 +78,10 @@ class DefaultShow extends ShowBase
             if (!$this->modal) {
                 $field = (new ShowField(null, null))->system_values()->setWidth(12, 0);
                 $show->addFieldAndOption($field, [
-                    'row' => 1,
+                    'row' => $this->rowCount++,
                     'column' => 1,
                     'width' => 4,
+                    'calcWidth' => false,
                 ]);
                 $field->border = false;
             }
@@ -100,9 +109,10 @@ class DefaultShow extends ShowBase
                         $field->setWidth(9, 3);
                     }
                     $show->addFieldAndOption($field, [
-                        'row' => 1,
+                        'row' => $this->rowCount++,
                         'column' => 1,
                         'width' => 4,
+                        'calcWidth' => false,
                     ]);
                 }
             }
@@ -276,14 +286,16 @@ class DefaultShow extends ShowBase
             $this->setColumnItemOption($item, $form_column);
             
             $field = new ShowField($item->name(), $item->label());
-            $item->setShowFieldOptions($field);
+            $item->setShowFieldOptions($field, [
+                'gridShows' => $this->gridShows(),
+            ]);
             
             if ($this->modal) {
                 $field->setWidth(9, 3);
             }
-            
+
             $show->addFieldAndOption($field, [
-                'row' => $form_column->row_no,
+                'row' => $this->rowCount + $form_column->row_no,
                 'column' => $form_column->column_no,
                 'width' => $form_column->width ?? 4,
             ]);

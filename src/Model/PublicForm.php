@@ -275,6 +275,7 @@ class PublicForm extends ModelBase
             ->disablePjax()
             ->setView('exment::public-form.form')
             ->setAction($this->getUrl())
+            ->setClass('block_custom_value_form')
             ;
 
         if($custom_value){
@@ -549,6 +550,26 @@ class PublicForm extends ModelBase
             return '<span class="red">' . $message . '</span>';
         }
         return true;
+    }
+
+
+    /**
+     * Get css and js plugins
+     *
+     * @return Collection
+     */
+    public function getCssJsPlugins()
+    {
+        $result = collect();
+        foreach(['css', 'js'] as $p){
+            $pluginIds = $this->getOption("plugin_{$p}") ?? [];
+            foreach($pluginIds as $pluginId){
+                $plugin = Plugin::getEloquent($pluginId);
+                $result->push($plugin);
+            }
+        }
+
+        return $result;
     }
 
     
