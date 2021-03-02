@@ -358,10 +358,11 @@ class PublicForm extends ModelBase
     public function getCompleteView(Request $request, CustomValue $custom_value)
     {
         // create link
-        if(($url = $this->getOption('complete_link_url')) && ($text = $this->getOption('complete_link_text'))){
+        $text = $this->getOption('complete_link_text');
+        if(($url = $this->getOption('complete_link_url'))){
             $link = view('exment::tools.link', [
                 'href' => $url,
-                'label' => $text,
+                'label' => $text ?? $url,
             ]);
         }
 
@@ -385,10 +386,11 @@ class PublicForm extends ModelBase
     public function getErrorView(Request $request)
     {
         // create link
-        if(($url = $this->getOption('error_link_url')) && ($text = $this->getOption('error_link_text'))){
+        $text = $this->getOption('error_link_text');
+        if(($url = $this->getOption('error_link_url'))){
             $link = view('exment::tools.link', [
                 'href' => $url,
-                'label' => $text,
+                'label' => $text ?? $url,
             ]);
         }
 
@@ -457,18 +459,10 @@ class PublicForm extends ModelBase
         \Admin::css(asset('vendor/exment/css/publicform.css'));
         $options = array_merge([
                 'add_analytics' => true,
-                'isContainer' => null, // If container force, set true
+                'isContainer' => false,
             ],
             $options
         );
-
-        // set container
-        if(boolval($options['isContainer'])){
-            $isContainerFluid = false;
-        }
-        else{
-            $isContainerFluid = ($this->getOption('body_content_type') ?? 'width100') == 'width100';
-        }
 
         $header_logo = $this->getOption('header_logo');
         if(isset($header_logo)){
@@ -482,7 +476,7 @@ class PublicForm extends ModelBase
             ->setFooterTextColor($this->getOption('footer_text_color') ?? '#FFFFFF')
             ->setUseHeader($this->getOption('use_header') ?? true)
             ->setUseFooter($this->getOption('use_footer') ?? true)
-            ->setIsContainerFluid($isContainerFluid)
+            ->setIsContainer($options['isContainer'])
             ->setHeaderLogoUrl($header_logo)
             ->setHeaderLabel($this->getOption('header_label'))
             ;

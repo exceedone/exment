@@ -1140,7 +1140,6 @@ class TestDataSeeder extends Seeder
                     'error_link_text' => NULL,
                     'background_color' => '#ffffff',
                     'use_notify_error' => '0',
-                    'body_content_type' => 'width100',
                     'complete_link_url' => NULL,
                     'footer_text_color' => '#ffffff',
                     'header_text_color' => '#ffffff',

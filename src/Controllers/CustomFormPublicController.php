@@ -159,19 +159,10 @@ class CustomFormPublicController extends AdminControllerTableBase
 
 
                 $form->exmheader(exmtrans("custom_form_public.body_setting"))->hr();
-                $form->radio('body_content_type', exmtrans("custom_form_public.body_content_type"))
-                    ->help(exmtrans("custom_form_public.help.body_content_type"))
-                    ->options([
-                        'width100' => exmtrans("custom_form_public.body_content_type_options.width100"), 
-                        'centering' => exmtrans("custom_form_public.body_content_type_options.centering"), 
-                    ])
-                    ->attribute(['data-filtertrigger' => true])
-                    ->default('width100');
-                    ;
+                ;
                 
                 $form->color('background_color_outer', exmtrans("custom_form_public.background_color_outer"))
                     ->help(exmtrans("custom_form_public.help.background_color_outer"))
-                    ->attribute(['data-filter' => json_encode(['key' => 'design_setting_body_content_type', 'value' => 'centering'])])
                     ->default('#FFFFFF')
                     ;
                 $form->color('background_color', exmtrans("custom_form_public.background_color"))

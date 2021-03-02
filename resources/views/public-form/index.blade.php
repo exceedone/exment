@@ -23,7 +23,7 @@
     {!! Admin::headerJs() !!}
 </head>
 
-<body id="body-publicform" class="hold-transition {{$container_fluid ? 'body-container-fluid' : 'body-container'}}">
+<body id="body-publicform" class="hold-transition">
 <div class="wrapper">
     <!-- Main Header -->
     @if($use_header)
@@ -43,7 +43,7 @@
     <div id="">
         {!! Admin::style() !!}
         <div id="app">
-            <div id="container-inner" class="{{$container_fluid ? 'container-fluid' : 'container'}}">
+            <div id="container-inner" class="{{$container ? 'container' : 'container-middle'}}">
             @yield('content')
             </div>
         </div>

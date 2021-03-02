@@ -86,6 +86,9 @@ class BootstrapPublicForm
             'vendor/exment/js/publicform.getbox.js',
         ], false);
 
+        $this->setCssJsList([
+            'vendor/exment/js/customscript.js',
+        ], false, true);
         // Get public form and set style script ----------------------------------------------------
         // Now, this function calls from PublicForm's. Because We want to call same timing preview and real form.
         // $public_form = PublicForm::getPublicFormByRequest();

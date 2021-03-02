@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\PluginType;
 
 trait BootstrapTrait
 {
-    protected function setCssJsList(array $list, bool $isCss)
+    protected function setCssJsList(array $list, bool $isCss, bool $isLast = false)
     {
         $ver = \Exment::getExmentCurrentVersion();
         if (!isset($ver)) {
@@ -16,6 +16,9 @@ trait BootstrapTrait
         }
         
         $func = ($isCss ? 'css' : 'js');
+        if($isLast){
+            $func .= 'last';
+        }
         foreach ($list as $l) {
             Ad::{$func}(asset($l . '?ver='.$ver));
         }

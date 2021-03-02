@@ -9,7 +9,7 @@
     .main-footer, .main-footer a{
         color: {{$footer_text_color}};
     }
-    body.body-container, body.body-container .wrapper{
+    body, .wrapper{
         background-color: {{$background_color_outer}};
     }
 
