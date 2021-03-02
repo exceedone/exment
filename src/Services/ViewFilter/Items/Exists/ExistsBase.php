@@ -14,6 +14,7 @@ abstract class ExistsBase extends ViewFilterBase
 
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
+        $query_value = jsonToArray($query_value);
         $isMultiple = $this->column_item->isMultipleEnabled();
         if ($isMultiple) {
             $method_name_suffix = $this->isExists() ? 'InArrayString' : 'NotInArrayString';
