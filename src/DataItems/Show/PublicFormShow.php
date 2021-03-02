@@ -137,6 +137,7 @@ class PublicFormShow extends DefaultShow
         return $relations;
     }
 
+    
     /**
      * Whether this show is grid.
      *

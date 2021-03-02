@@ -14,8 +14,16 @@
 
             <div class="fields-group">
 
+            @if(isset($gridShows) && boolval($gridShows))
             @include('exment::form.gridshow-item')
-            
+            @elseif(isset($fields))
+                @foreach($fields as $field)
+                    {!! $field->render() !!}
+                @endforeach        
+            @endif
+
+
+
             </div>
 
         </div>

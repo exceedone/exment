@@ -68,7 +68,12 @@ class DefaultShow extends ShowBase
     {
         return new static::$showClassName($this->custom_value, function ($show) {
             if (!$this->modal) {
-                $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
+                $field = (new ShowField(null, null))->system_values()->setWidth(12, 0);
+                $show->addFieldAndOption($field, [
+                    'row' => 1,
+                    'column' => 1,
+                    'width' => 4,
+                ]);
                 $field->border = false;
             }
 
@@ -272,6 +277,11 @@ class DefaultShow extends ShowBase
             
             $field = new ShowField($item->name(), $item->label());
             $item->setShowFieldOptions($field);
+            
+            if ($this->modal) {
+                $field->setWidth(9, 3);
+            }
+            
             $show->addFieldAndOption($field, [
                 'row' => $form_column->row_no,
                 'column' => $form_column->column_no,

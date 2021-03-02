@@ -276,6 +276,17 @@ class WorkflowNotifyController extends Controller
         return $this->AdminContent($content)->body($this->form($id)->edit($id));
     }
     
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update($workflow_id, $id)
+    {
+        return $this->form($id)->update($id);
+    }
 
     /**
      * Remove the specified resource from storage.
