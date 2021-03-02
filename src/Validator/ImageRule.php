@@ -27,6 +27,11 @@ class ImageRule implements Rule
         }
 
         if (is_array($value)) {
+            $value = array_filter($value);
+            if (is_nullorempty($value)) {
+                return true;
+            }
+            
             foreach($value as $v){
                 if(!$this->validateImage($attribute, $v)){
                     return false;
