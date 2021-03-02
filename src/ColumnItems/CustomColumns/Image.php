@@ -59,6 +59,9 @@ class Image extends File
      */
     protected function getSeparateWord() : ?string
     {
+        if(boolval(array_get($this->options, 'as_confirm'))){
+            return parent::getSeparateWord();
+        }
         return '';
     }
 }

@@ -702,6 +702,7 @@ class NotifyService
             'as_administrator' => false, // Only use "as_default" is false
             'as_has_roles' => false, // Only use "as_default" is false
             'as_created_user' => false, // Only use "as_default" is false
+            'as_fixed_email' => true, // If true, set "FIXED_EMAIL"
             
             'get_email' => false,
             'get_select_table_email' => false,
@@ -731,7 +732,7 @@ class NotifyService
         }
 
         // if $notify_action is email, set fixed email
-        if(\isMatchString($notify_action, NotifyAction::EMAIL)){
+        if($options['as_fixed_email'] && isMatchString($notify_action, NotifyAction::EMAIL)){
             $array[NotifyActionTarget::FIXED_EMAIL] = exmtrans('notify.notify_action_target_options.fixed_email');
         }
 

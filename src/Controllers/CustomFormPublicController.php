@@ -227,6 +227,9 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ;
                     
                 $form->exmheader(exmtrans("custom_form_public.notify_complete_user"))->hr();
+                
+                $form->description(exmtrans("custom_form_public.help.notify_complete_user"));
+                
                 $form->switchbool('use_notify_complete_user', exmtrans("custom_form_public.use_notify_complete_user"))
                     ->help(exmtrans("custom_form_public.help.use_notify_complete_user"))
                     ->default(false);
@@ -235,28 +238,30 @@ class CustomFormPublicController extends AdminControllerTableBase
 
             // get notify mail template
             $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_user', MailKeyName::PUBLICFORM_SUCCESS_USER, 'confirm_complete_setting_use_notify_complete_user');
-
-            $form->exmheader(exmtrans("notify.notify_action_target"))->no(5);
-            $form->hasManyJson('notify_actions_complete_user', exmtrans("custom_form_public.notify_target"), function ($form) use($custom_table) {
+            $form->embeds("notify_actions_complete_user", exmtrans("common.confirm_complete_setting"), function($form) use($custom_table){
+                
                 $form->internal('notify_action')
                     ->default(NotifyAction::EMAIL);
                 
                 $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-                    ->options(function ($val, $field, $notify) use($custom_table) {
-                        $options = [
-                            'as_default' => false,
-                            'get_email' => true,
-                        ];
-                        return collect(NotifyService::getNotifyTargetColumns($custom_table ?? null, array_get($field->data(), 'notify_action'), $options))
-                            ->pluck('text', 'id');
-                    })
-                    ->required()
-                    ->help(exmtrans("notify.help.notify_action_target"));
+                ->options(function ($val, $field, $notify) use ($custom_table) {
+                    $options = [
+                        'as_default' => false,
+                        'get_email' => true,
+                        'get_select_table_email' => false,
+                        'as_fixed_email' => false,
+                    ];
+                    return collect(NotifyService::getNotifyTargetColumns($custom_table ?? null, array_get($field->data(), 'notify_action'), $options))
+                        ->pluck('text', 'id');
+                })
+                ->help(exmtrans("custom_form_public.help.notify_action_target_complete_user"));
             })->disableHeader();
 
-
+            
             $form->embeds("confirm_complete_setting2", exmtrans("common.confirm_complete_setting"), function($form) use($custom_table){
                 $form->exmheader(exmtrans("custom_form_public.notify_complete_admin"))->hr();
+                $form->description(exmtrans("custom_form_public.help.notify_complete_admin"));
+                
                 $form->switchbool('use_notify_complete_admin', exmtrans("custom_form_public.use_notify_complete_admin"))
                     ->help(exmtrans("custom_form_public.help.use_notify_complete_admin"))
                     ->default(false);
@@ -309,6 +314,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ;
 
                 $form->exmheader(exmtrans("custom_form_public.notify_error"))->hr();
+                $form->description(exmtrans("custom_form_public.help.notify_error"));
                 $form->switchbool('use_notify_error', exmtrans("custom_form_public.use_notify_error"))
                     ->help(exmtrans("custom_form_public.help.use_notify_error"))
                     ->default(false);

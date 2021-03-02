@@ -33,6 +33,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
 
@@ -878,6 +879,11 @@ EOT;
      * @return bool
      */
     protected function gridShows(){
-        return !$this->modal;
+        if($this->modal){
+            return false;
+        }
+
+        $show_grid_type = $this->custom_form->getOption('show_grid_type') ?? ShowGridType::GRID;
+        return isMatchString($show_grid_type, ShowGridType::GRID);
     }
 }

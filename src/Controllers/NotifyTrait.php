@@ -190,6 +190,8 @@ trait NotifyTrait
             //     return back()->withInput();
             // }
         });
+
+        $form->disableEditingCheck(false);
     }
 
 

@@ -22,6 +22,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\PublicForm;
+use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -33,6 +34,7 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Form\Show as PublicShow;
+use Exceedone\Exment\ColumnItems\ItemInterface;
 use Illuminate\Database\Eloquent\Relations;
 
 class PublicFormShow extends DefaultShow
@@ -137,13 +139,19 @@ class PublicFormShow extends DefaultShow
         return $relations;
     }
 
-    
+
     /**
-     * Whether this show is grid.
+     * Set ColumnItem's option to column item
      *
-     * @return bool
+     * @param ItemInterface $column_item
+     * @return void
      */
-    protected function gridShows(){
-        return false;
+    protected function setColumnItemOption(ItemInterface $column_item, ?CustomFormColumn $form_column = null)
+    {
+        $column_item->options(['public_form' => $this->public_form]);
+        $column_item->options(['as_confirm' => true]);
+
+        return parent::setColumnItemOption($column_item, $form_column);
     }
+
 }

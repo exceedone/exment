@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\Services\FormSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -441,6 +442,9 @@ class CustomFormController extends AdminControllerTableBase
                 $form = new CustomForm;
             }
         }
+        else{
+            $form->append(['show_grid_type', 'form_label_type']);
+        }
 
         // get form block list
         $custom_form_block_items = $this->getFormBlocks($form);
@@ -478,14 +482,20 @@ class CustomFormController extends AdminControllerTableBase
         $form->text('form_view_name', exmtrans('custom_form.form_view_name'))
             ->required();
 
+        $form->switchbool('default_flg', exmtrans('custom_form.default_flg'))
+            ->default(false);
+
+        
+        $form->radio('show_grid_type', exmtrans('custom_form.show_grid_type'))
+            ->help(exmtrans('custom_form.help.show_grid_type'))
+            ->default(ShowGridType::GRID)
+            ->options(ShowGridType::transArray('custom_form.show_grid_type_options'));
+        
         $form->radio('form_label_type', exmtrans('custom_form.form_label_type'))
             ->help(exmtrans('custom_form.help.form_label_type'))
             ->default(FormLabelType::HORIZONTAL)
             ->options(FormLabelType::transArrayFilter('custom_form.form_label_type_options', FormLabelType::getFormLabelTypes()));
-            
-        $form->switchbool('default_flg', exmtrans('custom_form.default_flg'))
-            ->default(false);
-
+         
         $box = new Box(exmtrans('custom_form.header_basic_setting'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => 'javascript:void(0);',
@@ -700,6 +710,7 @@ class CustomFormController extends AdminControllerTableBase
         $form->form_view_name = $request->get('form_view_name');
         $form->default_flg = $request->get('default_flg');
         $form->form_label_type = $request->get('form_label_type', FormLabelType::HORIZONTAL);
+        $form->show_grid_type = $request->get('show_grid_type', ShowGridType::GRID);
 
         $new_columns = [];
         $deletes = [];
