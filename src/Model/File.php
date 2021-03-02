@@ -162,8 +162,12 @@ class File extends ModelBase
      * @param CustomTable|null $custom_table
      * @return $this
      */
-    public function saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table = null, bool $replace = true)
+    public function saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table = null, ?bool $replace = true)
     {
+        if(is_null($replace)){
+            $replace = true;
+        }
+        
         if (!is_nullorempty($custom_value_id)) {
             $this->parent_id = $custom_value_id;
             $this->parent_type = $custom_table->table_name;

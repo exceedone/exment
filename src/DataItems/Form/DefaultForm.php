@@ -45,6 +45,8 @@ class DefaultForm extends FormBase
         $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
 
+        $form->setHorizontal(boolval($this->custom_form->getOption('form_label_type') ?? true));
+
         if (isset($this->id)) {
             $form->systemValues()->setWidth(12, 0);
         }

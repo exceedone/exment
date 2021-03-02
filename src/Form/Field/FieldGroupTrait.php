@@ -81,7 +81,7 @@ trait FieldGroupTrait
             })->map(function($g, $key){
                 return [
                     'column' => $key,
-                    'width' => intval(array_get($g->first(), 'options.width', 1)),
+                    'width' => intval(array_get($g->last(), 'options.width', 1)),
                     'fields' => $g->map(function($g){
                         return ['field' => array_get($g, 'field')];
                     }),
