@@ -27,9 +27,11 @@ class ParentIdItem extends SystemItem
     /**
      * get select column display text
      *
+     * @param Model\CustomViewColumn|Model\CustomViewSummary $custom_view_column
+     * @param Model\CustomTable $custom_table
      * @return string|null
      */
-    public function getSelectColumnText(Model\CustomViewColumn $custom_view_column, Model\CustomTable $custom_table) : ?string
+    public function getSelectColumnText($custom_view_column, Model\CustomTable $custom_table) : ?string
     {
         $column_view_name = array_get($custom_view_column, 'view_column_name');
         
