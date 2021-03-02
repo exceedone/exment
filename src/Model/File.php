@@ -85,7 +85,7 @@ class File extends ModelBase
         if ($options['asApi']) {
             $name = url_join('api', $name);
         }elseif($options['asPublicForm']){
-            $name = url_join(config('exment.publicform_route_prefix', 'publicform'), $options['publicFormKey'], $name);
+            $name = url_join(public_form_base_path(), $options['publicFormKey'], $name);
             // If public form, return name
             return asset($name);
         }

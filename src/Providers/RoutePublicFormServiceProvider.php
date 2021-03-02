@@ -41,7 +41,7 @@ class RoutePublicFormServiceProvider extends ServiceProvider
             return;
         }
 
-        $prefix = config('exment.publicform_route_prefix', 'publicform');
+        $prefix = public_form_base_path();
         Route::group([
             'prefix'        => url_join($prefix, '{form_key}'),
             'namespace'     => $this->namespace,
@@ -52,7 +52,7 @@ class RoutePublicFormServiceProvider extends ServiceProvider
             $router->post('/confirm', 'PublicFormController@confirm');
             $router->post('/create', 'PublicFormController@create');
             $router->get('files/{uuid}', 'FileController@downloadPublicForm');
-            $router->post('tmpimages', 'FileController@uploadTempImage');
+            $router->post('tmpimages', 'FileController@uploadTempImagePublicForm');
             $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFilePublicForm');
         });
 

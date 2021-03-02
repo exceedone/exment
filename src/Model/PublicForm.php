@@ -87,9 +87,9 @@ class PublicForm extends ModelBase
      *
      * @return string
      */
-    public function getBasePath() : string
+    public function getBasePath(...$pass_array) : string
     {
-        return url_join(config('exment.publicform_route_prefix', 'publicform'), $this->uuid);
+        return url_join(public_form_base_path(), $this->uuid, ...$pass_array);
     }
 
     /**
@@ -97,9 +97,9 @@ class PublicForm extends ModelBase
      *
      * @return string
      */
-    public function getUrl() : string
+    public function getUrl(...$pass_array) : string
     {
-        return asset_urls($this->getBasePath());
+        return asset_urls($this->getBasePath(...$pass_array));
     }
 
 
@@ -126,7 +126,7 @@ class PublicForm extends ModelBase
             return null;
         }
 
-        if($segments[0] !== config('exment.publicform_route_prefix', 'publicform')
+        if($segments[0] !== public_form_base_path()
             && $segments[0] !== config('exment.publicformapi_route_prefix', 'publicformapi')){
             return null;
         }

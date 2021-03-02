@@ -71,7 +71,7 @@ class Tinymce extends Textarea
     }
 
     /**
-     * Set pOST url. If null, return adminurl, else, return this value
+     * Set post url. If null, return adminurl, else, return this value
      *
      * @param  string  $postUrl  POST url. If null, return adminurl, else, return this value
      *

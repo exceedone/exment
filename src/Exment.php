@@ -610,7 +610,7 @@ class Exment
      */
     public function isPublicFormEndpoint()
     {
-        $route = config('exment.publicform_route_prefix', 'publicform');
+        $route = public_form_base_path();
         return request()->is("{$route}/*");
     }
 
