@@ -418,7 +418,8 @@ class Exment
             $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
             $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
             $documentDbName = getDBTableName($custom_table);
-            $targetDbName = getDBTableName($target_custom_table);
+            $documentDbNameWrap = \Exment::wrapTable($documentDbName);
+            $targetDbNameWrap = \Exment::wrapTable(getDBTableName($target_custom_table));
 
             // search document name
             list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
@@ -427,7 +428,7 @@ class Exment
                 ->from($documentDbName)
                 ->where($documentDbName . '.' . $column_document_name->getQueryKey(), $mark, $q)
                 ->where("$documentDbName.parent_type", $target_custom_table->table_name)
-                ->whereRaw("$documentDbName.parent_id = $targetDbName.id");
+                ->whereRaw("$documentDbNameWrap.parent_id = $targetDbNameWrap.id");
             ;
         });
     }

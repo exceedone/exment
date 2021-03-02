@@ -64,8 +64,6 @@ class FilterOption extends EnumBase
             case static::DAY_ON_OR_AFTER:
             case static::DAY_ON_OR_BEFORE:
                 return FilterType::DAY;
-            case static::USER_EQ:
-            case static::USER_NE:
             case static::EQ:
             case static::NE:
             case static::LIKE:
@@ -84,6 +82,8 @@ class FilterOption extends EnumBase
                 return FilterType::NUMBER;
             case static::SELECT_EXISTS:
             case static::SELECT_NOT_EXISTS:
+            case static::USER_EQ:
+            case static::USER_NE:
                 return FilterType::SELECT;
             // "none" is not showing condition value options
             default:

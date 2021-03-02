@@ -218,7 +218,7 @@ class File extends CustomItem
         // get values ids
         $ids = $this->getQueryIds($mark, $value);
         if (is_nullorempty($ids)) {
-            $query->whereRaw("0 = 1");
+            $query->whereNotMatch();
         }
         
         $query->whereOrIn('id', $ids);

@@ -276,7 +276,7 @@ class ApiController extends AdminControllerBase
             if ($base_user) {
                 $query->whereIn('user_id', $base_user->login_users->pluck('id')->toArray());
             } else {
-                $query->whereRaw("1 = 0");
+                $query->whereNotMatch();
             }
         }
         if ($request->has('path')) {

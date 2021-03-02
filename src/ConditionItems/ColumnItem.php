@@ -250,10 +250,10 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             return;
         }
 
-        // $view_column_target is wraped
         $view_column_target = $column_item->getSortColumn();
         $sort_order = $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc';
         //set order
+        // $view_column_target is wraped
         $query->orderByRaw("$view_column_target $sort_order");
     }
     
@@ -261,9 +261,11 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * get select column display text
      *
+     * @param Model\CustomViewColumn|Model\CustomViewSummary $custom_view_column
+     * @param Model\CustomTable $custom_table
      * @return string|null
      */
-    public function getSelectColumnText(Model\CustomViewColumn $custom_view_column, Model\CustomTable $custom_table) : ?string
+    public function getSelectColumnText($custom_view_column, Model\CustomTable $custom_table) : ?string
     {
         $column = $custom_view_column->custom_column;
         $column_view_name = array_get($custom_view_column, 'view_column_name');
@@ -279,13 +281,13 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         return $column_view_name;
     }
 
-
     /**
      * Whether this column is number
      *
-     * @return bool
+     * @param Model\CustomViewColumn|Model\CustomViewSummary $custom_view_column
+     * @return boolean
      */
-    public function isSelectColumnNumber(Model\CustomViewColumn $custom_view_column) : bool
+    public function isSelectColumnNumber($custom_view_column) : bool
     {
         $column = $custom_view_column->custom_column;
         return ColumnType::isCalc(array_get($column, 'column_type'));
