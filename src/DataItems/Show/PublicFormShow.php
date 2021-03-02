@@ -143,6 +143,6 @@ class PublicFormShow extends DefaultShow
      * @return bool
      */
     protected function gridShows(){
-        return true;
+        return false;
     }
 }
