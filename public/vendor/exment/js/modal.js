@@ -8,6 +8,7 @@ var Exment;
             $(document).off('click', '[data-widgetmodal_url]').on('click', '[data-widgetmodal_url]', {}, Exment.ModalEvent.setModalEvent);
             $(document).off('click', '#modal-showmodal .modal-body a').on('click', '#modal-showmodal .modal-body a', {}, Exment.ModalEvent.setLinkClickEvent);
             $(document).off('click', '#modal-showmodal .modal-submit').on('click', '#modal-showmodal .modal-submit', {}, Exment.ModalEvent.setSubmitEvent);
+            $(document).off('keydown', '#modal-showmodal form input').on('keydown', '#modal-showmodal form input', {}, Exment.ModalEvent.setEnterEvent);
             // selectitem box
             $(document).off('click', '.table .button-append-selectitem').on('click', '.table .button-append-selectitem', {}, Exment.ModalEvent.appendSelectItemEvent);
             $(document).off('click', '#modal-showmodal .selectitembox-item .button-delete').on('click', '#modal-showmodal .selectitembox-item .button-delete', {}, Exment.ModalEvent.deleteSelectItemEvent);
@@ -368,6 +369,14 @@ var Exment;
         }
         $('#modal-showmodal .modal-body').html('');
         $('#modal-showmodal').modal('hide');
+    };
+    ModalEvent.setEnterEvent = (e) => {
+        if (e.keyCode != 13) {
+            return;
+        }
+        // get target button
+        let $button = $(e.target).closest('.modal-content').find('.modal-submit');
+        $button.trigger('click');
     };
     /**
      * set modal submit event
