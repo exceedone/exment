@@ -93,21 +93,31 @@ class Column extends ColumnBase
             $options[$key] = 1;
         }
         return array_filter($options, function($option, $key){
-            return in_array($key, [
-                'form_column_view_name',
-                'field_label_type',
-                'required',
-                'view_only',
-                'read_only',
-                'hidden',
-                'internal',
-                'default_type',
-                'default',
-                'help',
-                'changedata_target_column_id',
-                'changedata_column_id',
-            ]);
+            return in_array($key, $this->prepareSavingOptionsKeys());
         }, ARRAY_FILTER_USE_BOTH);
+    }
+
+
+    /**
+     * Get prepare options keys
+     *
+     * @return array
+     */
+    protected function prepareSavingOptionsKeys(){
+        return [
+            'form_column_view_name',
+            'field_label_type',
+            'required',
+            'view_only',
+            'read_only',
+            'hidden',
+            'internal',
+            'default_type',
+            'default',
+            'help',
+            'changedata_target_column_id',
+            'changedata_column_id',
+        ];
     }
 
 
