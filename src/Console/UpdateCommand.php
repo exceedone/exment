@@ -63,7 +63,14 @@ class UpdateCommand extends Command
      */
     public function initDatabase()
     {
-        $this->call('cache:clear');
+        foreach(['cache:clear', 'config:clear', 'route:clear', 'view:clear'] as $command){
+            try
+            {
+                $this->call($command);
+            }
+            catch(\Exception $ex){}
+        }
+
         $this->call('migrate');
 
         // Remove template import if update
