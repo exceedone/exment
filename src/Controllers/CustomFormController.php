@@ -131,7 +131,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->column('public_form_view_name', exmtrans("custom_form_public.public_form_view_name"));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         $grid->column('validity_period', exmtrans("custom_form_public.validity_period"))
             ->display(function($value, $column, $model){
                 if(!$model){

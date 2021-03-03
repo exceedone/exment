@@ -97,8 +97,8 @@ class PluginController extends AdminControllerBase
         $grid->column('author', exmtrans("plugin.author"));
         $grid->column('version', exmtrans("plugin.version"));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
-            return boolval($active_flg) ? exmtrans("common.available_true") : exmtrans("common.available_false");
-        });
+            return \Exment::getTrueMark($active_flg);
+        })->escape(false);
 
         $grid->disableCreateButton();
         $grid->disableExport();

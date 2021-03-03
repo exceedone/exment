@@ -85,7 +85,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->sortable()->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         
         // filter only custom table user has permission custom table
         if (!\Exment::user()->isAdministrator()) {

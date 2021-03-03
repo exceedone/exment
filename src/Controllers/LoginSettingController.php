@@ -72,8 +72,8 @@ class LoginSettingController extends AdminControllerBase
         });
         $grid->column('login_view_name', exmtrans('login.login_view_name'));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
-            return boolval($active_flg) ? exmtrans("common.available_true") : exmtrans("common.available_false");
-        });
+            return \Exment::getTrueMark($active_flg);
+        })->escape(false);
         
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
