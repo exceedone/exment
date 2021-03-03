@@ -210,11 +210,16 @@ var Exment;
             if (res.preventSubmit !== undefined) {
                 preventSubmit = res.preventSubmit;
             }
+            // toggle form pjax-container
+            let $form = $submitButton.closest('.modal-content').find('form');
             if (preventSubmit) {
                 $submitButton.addClass('preventSubmit');
+                // remove pjax-container in form
+                $form.removeAttr('pjax-container');
             }
             else {
                 $submitButton.removeClass('preventSubmit');
+                $form.attr('pjax-container', 1);
             }
             let modalSize = 'modal-lg';
             if (hasValue(res.modalSize)) {
@@ -371,6 +376,9 @@ var Exment;
         $('#modal-showmodal').modal('hide');
     };
     ModalEvent.setEnterEvent = (e) => {
+        if ($(e.target).closest('form').filter('[pjax-container]').length > 0) {
+            return;
+        }
         if (e.keyCode != 13) {
             return;
         }

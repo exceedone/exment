@@ -25,16 +25,4 @@ class ModalForm extends WidgetForm
             return $field->getScript();
         })->filter()->values()->toArray();
     }
-
-    /**
-     * Render the form.
-     *
-     * @return string
-     */
-    public function render()
-    {
-        $this->disablePjax();
-
-        return parent::render();
-    }
 }
