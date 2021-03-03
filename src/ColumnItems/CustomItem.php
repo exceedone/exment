@@ -258,6 +258,11 @@ abstract class CustomItem implements ItemInterface
             return $default;
         }
         
+        // If initonly, not set default
+        if ($this->initonly()){
+            return null;
+        }
+
         // get each default value definition
         $default = $this->_getDefaultValue();
         if(!is_nullorempty($default)){
@@ -265,14 +270,26 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default
+        list($default_type, $default) = $this->getDefaultSetting();
         $options = $this->custom_column->options;
-        if (array_key_value_exists('default', $this->form_column_options)) {
-            return array_get($this->form_column_options, 'default');
-        }
-        elseif (array_key_value_exists('default', $options)) {
-            return array_get($options, 'default');
+        if (!is_nullorempty($default)) {
+            return $default;
         }
         return null;
+    }
+
+
+    /**
+     * Get default type and value
+     *
+     * @return offset 0: type, 1: value
+     */
+    protected function getDefaultSetting()
+    {
+        return [
+            array_get($this->form_column_options, 'default_type') ?? array_get($this->custom_column->options, 'default_type') ?? null,
+            array_get($this->form_column_options, 'default') ?? array_get($this->custom_column->options, 'default') ?? null,
+        ];
     }
 
     /**
