@@ -3,7 +3,7 @@
         @if($escape)
         {{ $label }}
         @else
-        {!! $label !!}
+        {!! html_clean($label) !!}
         @endif
     </div>
 </div>
