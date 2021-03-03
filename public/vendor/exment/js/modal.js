@@ -215,11 +215,9 @@ var Exment;
             if (preventSubmit) {
                 $submitButton.addClass('preventSubmit');
                 // remove pjax-container in form
-                $form.removeAttr('pjax-container');
             }
             else {
                 $submitButton.removeClass('preventSubmit');
-                $form.attr('pjax-container', 1);
             }
             let modalSize = 'modal-lg';
             if (hasValue(res.modalSize)) {
@@ -375,16 +373,15 @@ var Exment;
         $('#modal-showmodal .modal-body').html('');
         $('#modal-showmodal').modal('hide');
     };
+    /**
+     * Enter Keydown event. Now disable click event
+     * @param e
+     */
     ModalEvent.setEnterEvent = (e) => {
-        if ($(e.target).closest('form').filter('[pjax-container]').length > 0) {
-            return;
-        }
         if (e.keyCode != 13) {
             return;
         }
-        // get target button
-        let $button = $(e.target).closest('.modal-content').find('.modal-submit');
-        $button.trigger('click');
+        e.preventDefault();
     };
     /**
      * set modal submit event

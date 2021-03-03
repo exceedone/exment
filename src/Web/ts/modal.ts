@@ -178,17 +178,15 @@ namespace Exment {
             $('#modal-showmodal').modal('hide');
         }
         
+        /**
+         * Enter Keydown event. Now disable click event
+         * @param e 
+         */
         private static setEnterEvent = (e) => {
-            if($(e.target).closest('form').filter('[pjax-container]').length > 0){
-                return;
-            }
             if(e.keyCode != 13){
                 return;
             }
-
-            // get target button
-            let $button = $(e.target).closest('.modal-content').find('.modal-submit');
-            $button.trigger('click');
+            e.preventDefault();
         }
 
         /**
@@ -395,11 +393,9 @@ namespace Exment {
             if(preventSubmit){
                 $submitButton.addClass('preventSubmit');
                 // remove pjax-container in form
-                $form.removeAttr('pjax-container');
             }
             else{
                 $submitButton.removeClass('preventSubmit');
-                $form.attr('pjax-container', 1);
             }
 
             let modalSize = 'modal-lg';
