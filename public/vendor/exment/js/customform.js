@@ -586,8 +586,8 @@ var Exment;
         }
         // if has require, show swal
         Exment.CommonEvent.ShowSwal(null, {
-            title: $('#cofirm_required_title').val(),
-            text: $('#cofirm_required_text').val(),
+            title: $('#confirm_required_title').val(),
+            text: $('#confirm_required_text').val(),
             confirmCallback: function (result) {
                 if (pBool(result.value)) {
                     $('form.custom_form_form').addClass('confirmed').submit();

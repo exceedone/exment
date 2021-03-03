@@ -1,5 +1,5 @@
-<input type="hidden" id="cofirm_required_title" value="{{trans('admin.confirm')}}">
-<input type="hidden" id="cofirm_required_text" value="{{exmtrans('custom_form.message.confirm_required')}}">
+<input type="hidden" id="confirm_required_title" value="{{trans('admin.confirm')}}">
+<input type="hidden" id="confirm_required_text" value="{{exmtrans('custom_form.message.confirm_required')}}">
 <input type="hidden" id="formroot" value="{{ $formroot }}">
 <input type="hidden" id="resize_box_tooltip" value="{{ exmtrans('custom_form.resize_box_tooltip') }}">
 <input type="hidden" id="delete_title" value="{{ exmtrans('common.deleted') }}">
