@@ -133,7 +133,7 @@ class CustomFormController extends AdminControllerTableBase
             return \Exment::getTrueMark($val);
         });
         $grid->column('validity_period', exmtrans("custom_form_public.validity_period"))
-            ->displayEscape(function($value, $column, $model){
+            ->display(function($value, $column, $model){
                 if(!$model){
                     return null;
                 }

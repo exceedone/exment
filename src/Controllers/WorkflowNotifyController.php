@@ -89,7 +89,7 @@ class WorkflowNotifyController extends Controller
                 ->render();
         });
 
-        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
+        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val) {
             $workflow = Workflow::getEloquent($this->target_id);
             if (isset($workflow)) {
                 return $workflow->workflow_view_name ?? null;
@@ -99,7 +99,7 @@ class WorkflowNotifyController extends Controller
 
         $this->setBasicGrid($grid);
 
-        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->displayEscape(function ($val) {
+        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
             return collect($val)->map(function ($v) {
                 $enum = NotifyAction::getEnum(array_get($v, 'notify_action'));
                 return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;

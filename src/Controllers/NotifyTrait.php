@@ -53,7 +53,7 @@ trait NotifyTrait
     protected function setBasicGrid($grid)
     {
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
-        $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->displayEscape(function ($val) {
+        $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->display(function ($val) {
             $enum = NotifyTrigger::getEnum($val);
             return $enum ? $enum->transKey('notify.notify_trigger_options') : null;
         });

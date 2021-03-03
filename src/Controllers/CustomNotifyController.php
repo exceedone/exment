@@ -62,7 +62,7 @@ class CustomNotifyController extends AdminControllerTableBase
     {
         $grid = new Grid(new Notify);
 
-        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
+        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val) {
             $custom_table = CustomTable::getEloquent($val);
             if (isset($custom_table)) {
                 return $custom_table->table_view_name ?? null;
@@ -76,7 +76,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $this->setBasicGrid($grid);
         
-        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->displayEscape(function ($val) {
+        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
             return collect($val)->map(function ($v) {
                 $enum = NotifyAction::getEnum(array_get($v, 'notify_action'));
                 return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;
