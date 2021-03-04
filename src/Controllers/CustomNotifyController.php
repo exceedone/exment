@@ -92,7 +92,8 @@ class CustomNotifyController extends AdminControllerTableBase
             $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
             $grid->model()->whereIn('target_id', $custom_tables);
         }
-        $grid->model()->where('target_id', $this->custom_table->id);
+        $grid->model()->where('target_id', $this->custom_table->id)
+            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES());
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\CustomTableMenuButton('notify', $this->custom_table));

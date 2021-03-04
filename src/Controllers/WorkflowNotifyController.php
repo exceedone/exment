@@ -114,7 +114,8 @@ class WorkflowNotifyController extends Controller
             $tools->prepend(new Tools\SystemChangePageMenu());
         });
 
-        $grid->model()->where('target_id', $this->workflow->id);
+        $grid->model()->where('target_id', $this->workflow->id)
+            ->where('notify_trigger', NotifyTrigger::WORKFLOW);
 
         $workflow = $this->workflow;
         $grid->actions(function (Grid\Displayers\Actions $actions) use($workflow) {
