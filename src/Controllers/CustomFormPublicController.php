@@ -131,7 +131,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
                 $fileOption = static::getFileOptions($custom_table, $id);
                 $form->image('header_logo', exmtrans("custom_form_public.header_logo"))
-                    ->help(exmtrans("custom_form_public.help.header_logo", ['size' => array_get($fileOption, 'maxFileSizeHelp')]))
+                    ->help(exmtrans("custom_form_public.help.header_logo", ['size' => array_get($fileOption, 'maxFileSizeHelp')]) . exmtrans("common.message.cannot_preview", ['name' => exmtrans("custom_form_public.header_logo")]))
                     ->options($fileOption)
                     ->removable()
                     ->attribute(['accept' => "image/*"])

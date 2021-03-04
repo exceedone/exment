@@ -5,6 +5,7 @@ var Exment;
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
             CustomFromEvent.loadingEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
+            //CustomFromEvent.resizeEvent($('.custom_form_area'));
         }
         static AddEventOnce() {
             $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
@@ -398,55 +399,60 @@ var Exment;
          * Customized
          */
         static resizeEvent(resizableEl) {
-            let columns = 12, fullWidth = resizableEl.parent().width(), columnWidth = fullWidth / columns, updateClass = function (el, col, updateValue) {
-                el.css('width', ''); // remove width, our class already has it
-                el.removeClass(function (index, className) {
-                    return (className.match(/(^|\s)col-\S+/g) || []).join(' ');
-                }).addClass('col-sm-' + col);
-                // if 1 or 2, resize this
-                if (updateValue == 1 || updateValue == 2) {
-                    el.data('grid_column', col);
-                    CustomFromEvent.updateAreaWidth(el);
-                }
-                // if 2, size down next element and resize.
-                if (updateValue == 2) {
-                    let $next = $(el).closest('[data-grid_column]').next('[data-grid_column]');
-                    updateClass($next, $next.data('grid_column') - 3, 1);
-                }
-            };
-            // jQuery UI Resizable
-            resizableEl.resizable({
-                handles: 'e',
-                start: function (event, ui) {
-                    let target = ui.element;
-                    let targetCol = Math.round(target.width() / columnWidth);
-                    target.resizable('option', 'minWidth', columnWidth);
-                },
-                resize: function (event, ui) {
-                    let $element = $(ui.element);
-                    let beforeGridColumn = $element.data('grid_column');
-                    let target = ui.element;
-                    let targetColumnCount = Math.round(target.width() / columnWidth);
-                    let updateValue = 1;
-                    // Whether update next
-                    if (beforeGridColumn == targetColumnCount || targetColumnCount % 3 !== 0) {
-                        targetColumnCount = beforeGridColumn;
-                        updateValue = 0;
+            if (!hasValue(resizableEl)) {
+                return;
+            }
+            resizableEl.not('[data-add-resizable]').each(function (index, elem) {
+                let resizableEl = $(elem);
+                let columns = 12, fullWidth = resizableEl.parent().width(), columnWidth = fullWidth / columns, updateClass = function (el, col, updateValue) {
+                    el.css('width', ''); // remove width, our class already has it
+                    el.removeClass(function (index, className) {
+                        return (className.match(/(^|\s)col-\S+/g) || []).join(' ');
+                    }).addClass('col-sm-' + col);
+                    // if 1 or 2, resize this
+                    if (updateValue == 1 || updateValue == 2) {
+                        el.data('grid_column', col);
+                        CustomFromEvent.updateAreaWidth(el);
                     }
-                    else {
-                        updateValue = CustomFromEvent.isEnableResize($element, targetColumnCount);
-                        if (updateValue == 0) {
+                    // if 2, size down next element and resize.
+                    if (updateValue == 2) {
+                        let $next = $(el).closest('[data-grid_column]').next('[data-grid_column]');
+                        updateClass($next, $next.data('grid_column') - 3, 1);
+                    }
+                };
+                // jQuery UI Resizable
+                resizableEl.resizable({
+                    handles: 'e',
+                    start: function (event, ui) {
+                        let target = ui.element;
+                        target.resizable('option', 'minWidth', columnWidth);
+                    },
+                    resize: function (event, ui) {
+                        let $element = $(ui.element);
+                        let beforeGridColumn = $element.data('grid_column');
+                        let target = ui.element;
+                        let targetColumnCount = Math.round(target.width() / columnWidth);
+                        let updateValue = 1;
+                        // Whether update next
+                        if (beforeGridColumn == targetColumnCount || targetColumnCount % 3 !== 0) {
                             targetColumnCount = beforeGridColumn;
+                            updateValue = 0;
                         }
-                    }
-                    updateClass(target, targetColumnCount, updateValue);
-                    // toggle append button
-                    let $button = target.closest('.row').find('.addbutton_button');
-                    CustomFromEvent.togglePlusButton($button);
-                },
+                        else {
+                            updateValue = CustomFromEvent.isEnableResize($element, targetColumnCount);
+                            if (updateValue == 0) {
+                                targetColumnCount = beforeGridColumn;
+                            }
+                        }
+                        updateClass(target, targetColumnCount, updateValue);
+                        // toggle append button
+                        let $button = target.closest('.row').find('.addbutton_button');
+                        CustomFromEvent.togglePlusButton($button);
+                    },
+                });
+                resizableEl.prop('data-add-resizable', 1);
+                $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
             });
-            resizableEl.prop('data-add-resizable', 1);
-            $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
         }
         /**
          * Showing preview
@@ -495,6 +501,7 @@ var Exment;
         let $block = $(ev.target).closest('.box-custom_form_block').find('.custom_form_block');
         if (available) {
             $block.show();
+            CustomFromEvent.resizeEvent($block.find('.custom_form_area:visible'));
         }
         else {
             $block.hide();
@@ -573,7 +580,7 @@ var Exment;
                 let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests .custom_form_column_item');
                 // if required value is 1, hasRequire is true and break
                 $suggests.each(function (i, e) {
-                    if ($(e).find('.required_item').val() == '1') {
+                    if ($(e).find('.required').val() == '1') {
                         hasRequire = true;
                         return false;
                     }

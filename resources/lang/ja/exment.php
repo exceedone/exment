@@ -102,6 +102,7 @@ return [
             'modal_confirm' => '実施する場合は、「%s」を入力してください。',
             'label_link' => ':labelは、<a href=":link" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご確認ください。',
             'preview' => 'この画面はプレビューです。内容を最新化する場合、元々のウィンドウで、再度プレビューボタンをクリックしてください。',
+            'cannot_preview' => '※:nameは、編集中のプレビュー機能に対応していません。確認する場合、一度保存後に実施してください。'
         ],
 
         'help' =>[
@@ -1550,7 +1551,7 @@ return [
             'use_recaptcha' => 'Google reCAPTCHAを使用する場合は、YESに設定してください。※サイトキーとシークレットキーは、システム設定画面で設定してください。',
             'use_header' => 'ヘッダーを使用する場合は、YESに設定してください。',
             'header_background_color' => 'ヘッダーの背景色を指定してください。',
-            'header_logo' => 'ヘッダーのロゴを指定してください。推奨サイズ：200px * 40px / :size <br/>※ヘッダーロゴは、編集中のプレビュー機能に対応していません。確認する場合、一度保存後に実施してください。',
+            'header_logo' => 'ヘッダーのロゴを指定してください。推奨サイズ：200px * 40px / :size <br/>',
             'header_label' => 'ヘッダーのテキストを設定してください。※ヘッダーロゴを指定していない場合のみ表示されます。',
             'header_text_color' => 'ヘッダーの文字色を指定してください。',
             'background_color_outer' => 'フォーム外枠の背景色を設定してください。',
