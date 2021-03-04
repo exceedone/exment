@@ -127,11 +127,13 @@ trait ItemTrait
             $items[] = $singleValueCallback($value);
         }
         
+        $items = collect($items)->filter(function($item){ return !is_nullorempty($item); });
+ 
         if ($isList) {
-            return collect($items);
+            return $items;
         }
-
-        return collect($items)->first();
+ 
+        return $items->first();
     }
 
     /**

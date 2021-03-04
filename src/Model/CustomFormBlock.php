@@ -109,7 +109,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     /**
      * get relation name etc for form block
      */
-    public function getRelationInfo()
+    public function getRelationInfo(?CustomTable $custom_form_table = null)
     {
         $target_table = $this->target_table;
         // get label hasmany
@@ -126,7 +126,8 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         
         // get form columns count
         $form_block_options = array_get($this, 'options', []);
-        $relation = CustomRelation::getRelationByParentChild($this->custom_form->custom_table, $target_table);
+        $relation = CustomRelation::getRelationByParentChild(
+            $custom_form_table ?? $this->custom_form->custom_table, $target_table);
         $relation_name = $relation ? $relation->getRelationName() : null;
         
         return [$relation, $relation_name, $block_label];
