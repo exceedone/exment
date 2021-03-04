@@ -436,7 +436,7 @@ class SummaryGrid extends GridBase
                 } else {
                     return $item->setCustomValue($custom_value)->html();
                 }
-            });
+            })->escape(false);
         }
     }
 
