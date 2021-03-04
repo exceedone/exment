@@ -13,7 +13,7 @@
         {!! $headerBox !!}
     </div>
     
-    @foreach($custom_form_blocks as $custom_form_block)
+    @foreach($custom_form_blocks as $index => $custom_form_block)
     <div class="box box-custom_form_block">
         <div class="box-header with-border">
             <h3 class="box-title">{{$custom_form_block['label']}}</h3>
@@ -29,8 +29,10 @@
             {{-- Use checkbox only relation block --}} 
             @if($custom_form_block['form_block_type'] != '0')
             <div class="custom_form_block_available">
-                {{ Form::checkbox("{$custom_form_block['header_name']}[available]", 1, $custom_form_block['available'], ['id' => "custom_form_block_{$custom_form_block['id']}__available_",
-                'class' => 'icheck icheck_toggleblock custom_form_block_available', 'data-add-icheck' => '1']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__available_",
+                {{ Form::checkbox("{$custom_form_block['header_name']}[available]", 1, $custom_form_block['available'], 
+                ['id' => "custom_form_block_{$custom_form_block['header_name']}__available_",
+                'class' => 'icheck icheck_toggleblock custom_form_block_available', 'data-add-icheck' => '1']) }} 
+                {{ Form::label("custom_form_block_{$custom_form_block['header_name']}__available_",
                 exmtrans('common.available')) }}
             </div>
             @else 

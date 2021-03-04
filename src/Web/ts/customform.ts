@@ -10,7 +10,7 @@ namespace Exment {
         }
 
         public static AddEventOnce() {
-            $(document).on('ifChanged check', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
             
