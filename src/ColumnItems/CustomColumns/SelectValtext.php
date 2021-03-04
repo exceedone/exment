@@ -78,7 +78,8 @@ class SelectValtext extends Select
         // define select-item
         $form->textarea('select_item_valtext', exmtrans("custom_column.options.select_item"))
             ->required()
-            ->help(exmtrans("custom_column.help.select_item_valtext"));
+            ->help(exmtrans("custom_column.help.select_item_valtext"))
+            ->rules([new Validator\SelectValTextSettingRule]);
 
         // enable multiple
         $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))

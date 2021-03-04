@@ -1265,6 +1265,7 @@ return [
             'checkbox_enabled' => 'チェックボックス形式で表示',
             'radiobutton_enabled' => 'ラジオボタン形式で表示',
             'free_input' => '自由に入力可能にする',
+            'accept_extensions' => 'アップロード許可する拡張子',
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -1332,6 +1333,8 @@ return [
             'select_table_deny' => '参照先のテーブル「%s」の権限がありません。システム管理者に問い合わせし、権限の追加を依頼してください。',
             'login_user_default' => 'YESにすることで、項目の初期値がログインユーザーになります。',
             'multiple_enabled' => 'YESにすることで、この列に複数の値を登録することができます。※一部の機能に制限がかかります。',
+            'multiple_enabled_file' => 'YESにすることで、複数のファイルをアップロードすることができます。',
+            'accept_extensions' => 'アップロードを許可するファイルの拡張子を指定する場合、ドットを含まずに、拡張子を入力してください。複数指定する場合は、カンマ区切りで入力してください。例：docx,pdf,xlsx',
             'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
             'radiobutton_enabled' => 'YESにすることで、ラジオボタン形式で表示されます。',
             'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
@@ -1369,6 +1372,12 @@ return [
             "select_datetime" => "指定の日時",
             "login_user" => "ログインユーザー",
             "select_user" => "指定のユーザー(現在、IDの指定が必要)",
+        ],
+
+        'error' => [
+            'select_valtext_notkeyvalue' => '行%s : 値と見出しが設定されていません。例に従い、値と見出しの両方を設定してください。',
+            'select_valtext_notkey' => '行%s : 値を空に設定することはできません。',
+            'select_valtext_toocomma' => '行%s : カンマが多すぎます。値と見出しを見直してください。',
         ],
     ],
 

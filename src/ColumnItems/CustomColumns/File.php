@@ -186,6 +186,15 @@ class File extends CustomItem
                 return $this->isMultipleEnabled() ? $result : (count($result) > 0 ? $result[0] : null);
             });
         }
+        
+        if(!is_null($accept_extensions = array_get($this->custom_column->options, 'accept_extensions')))
+        {
+            // append accept rule. And add dot.
+            $accept_extensions = collect(stringToArray($accept_extensions))->map(function($accept_extension){
+                return ".{$accept_extension}";
+            })->implode(",");
+            $field->attribute(['accept' => $accept_extensions]);
+        }
     }
 
 
@@ -296,6 +305,11 @@ class File extends CustomItem
 
         if ($this->required()) {
             $validates[] = new Validator\FileRequredRule($this->custom_column, $this->custom_value);
+        }
+
+        if(!is_null($accept_extensions = array_get($options, 'accept_extensions')))
+        {
+            $validates[] = "mimes:$accept_extensions";
         }
     }
     
@@ -431,7 +445,14 @@ class File extends CustomItem
     public function setCustomColumnOptionForm(&$form)
     {
         // enable multiple
-        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"));
+        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
+            ->help(exmtrans("custom_column.help.multiple_enabled_file"));
+
+        // Accept extension
+        if(isMatchString(get_class($this), \Exceedone\Exment\ColumnItems\CustomColumns\File::class)){
+            $form->text('accept_extensions', exmtrans("custom_column.options.accept_extensions"))
+                ->help(exmtrans("custom_column.help.accept_extensions"));
+        }
     }
     
     /**
