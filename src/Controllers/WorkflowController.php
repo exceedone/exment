@@ -746,7 +746,7 @@ class WorkflowController extends AdminControllerBase
         $notify = new Notify;
         $notify->notify_view_name = exmtrans('notify.notify_trigger_options.workflow');
         $notify->notify_trigger = NotifyTrigger::WORKFLOW;
-        $notify->workflow_id = $workflow->id;
+        $notify->target_id = $workflow->id;
         $notify->mail_template_id = $mail_template->id;
         $notify->action_settings = [[
             'notify_action' => NotifyAction::SHOW_PAGE,
