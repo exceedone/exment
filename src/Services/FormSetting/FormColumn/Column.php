@@ -277,4 +277,9 @@ class Column extends ColumnBase
 
         return collect($result);
     }
+
+    
+    public function getFontAwesomeClass() : ?string{
+        return $this->custom_column->getFontAwesomeClass();
+    }
 }

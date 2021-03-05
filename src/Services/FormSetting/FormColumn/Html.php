@@ -49,4 +49,8 @@ class Html extends OtherBase
     {
         return ['html' => 'required'];
     }
+
+    public function getFontAwesomeClass() : ?string{
+        return 'fa-code';
+    }
 }

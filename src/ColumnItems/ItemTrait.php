@@ -568,4 +568,13 @@ trait ItemTrait
         return exmtrans('common.separate_word');
     }
 
+
+    /**
+     * Get font awesome class
+     *
+     * @return string|null
+     */
+    public function getFontAwesomeClass() : ?string{
+        return null;
+    }
 }

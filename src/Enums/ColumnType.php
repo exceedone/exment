@@ -233,4 +233,62 @@ class ColumnType extends EnumBase
         }
         return null;
     }
+
+
+    /**
+     * Get font awesome class
+     *
+     * @param mixed $column_type
+     * @return ?string
+     */
+    public static function getFontAwesomeClass($column_type)
+    {
+        if ($column_type instanceof CustomColumn) {
+            $column_type = $column_type->column_type;
+        }
+
+        switch($column_type){
+            case static::TEXT:
+                return 'fa-font';
+            case static::TEXTAREA:
+            case static::EDITOR:
+                return 'fa-align-justify';
+            case static::URL:
+                return 'fa-link';
+            case static::EMAIL:
+                return 'fa-envelope-o';
+            case static::INTEGER:
+            case static::DECIMAL:
+            case static::CURRENCY:
+            case static::AUTO_NUMBER:
+                return 'fa-calculator';
+            case static::DATE:
+            case static::TIME:
+            case static::DATETIME:
+                return 'fa-calendar';
+            case static::SELECT:
+            case static::SELECT_VALTEXT:
+            case static::DATETIME:
+                return 'fa-list';   
+            case static::SELECT_TABLE:
+            case static::SELECT_VALTEXT:
+            case static::DATETIME:
+                return 'fa-table';  
+            case static::YESNO:
+            case static::BOOLEAN:
+                return 'fa-toggle-on';  
+            case static::AUTO_NUMBER:
+                return 'fa-toggle-on';  
+            case static::IMAGE:
+                return 'fa-picture-o';  
+            case static::FILE:
+                return 'fa-file';  
+            case static::USER:
+                return 'fa-user';  
+            case static::ORGANIZATION:
+                return 'fa-users'; 
+        }
+        
+        return null;
+    }
 }

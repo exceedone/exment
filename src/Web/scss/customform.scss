@@ -66,9 +66,19 @@
                 background-color: lightpink;
                 color: red;
             }
+
+            &.moving{
+                max-width:200px !important;
+            }
         }
         .item-label{
             font-weight: bold;
+        }
+        .item-label-top, .item-label-bottom{
+            margin: 0;
+        }
+        .item-label-bottom{
+            margin-left: 1em;
         }
         label{
             font-weight: normal;

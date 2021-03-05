@@ -4,17 +4,32 @@
 <div class="ui-state-default custom_form_column_item draggable form_column_type_{{$custom_form_column['form_column_type']}}"
     style="{{boolval(array_get($custom_form_column, 'delete_flg')) ? 'display:none' : ''}}"
     id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" data-header_column_name="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}">
-        <span class="item-label {{array_get($custom_form_column, 'required') ? 'asterisk' : ''}}">{{ $custom_form_column['column_view_name'] }}</span>
+        <p class="item-label-top">
+            <span class="item-label {{array_get($custom_form_column, 'required') ? 'asterisk' : ''}}">
+                @if(isset($custom_form_column['font_awesome']))
+                <i class="fa {{$custom_form_column['font_awesome']}}" aria-hidden="true"></i>
+                @endif
+                {{ $custom_form_column['column_view_name'] }}
+            </span>
 
-        <a href="javascript:void(0);" class="config-icon pull-right delete" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-toggle="tooltip" title="{{exmtrans('common.deleted')}}">
-            <i class="fa fa-trash"></i>
-        </a>
-        
-        @if(boolval($custom_form_column['use_setting']))
-        <a href="javascript:void(0);" class="config-icon pull-right setting" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-widgetmodal_method="POST" data-toggle="tooltip" title="{{trans('admin.setting')}}">
-            <i class="fa fa-cog"></i>
-        </a>
-        @endif
+            <a href="javascript:void(0);" class="config-icon pull-right delete" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-toggle="tooltip" title="{{exmtrans('common.deleted')}}">
+                <i class="fa fa-trash"></i>
+            </a>
+            
+            @if(boolval($custom_form_column['use_setting']))
+            <a href="javascript:void(0);" class="config-icon pull-right setting" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-widgetmodal_method="POST" data-toggle="tooltip" title="{{trans('admin.setting')}}">
+                <i class="fa fa-cog"></i>
+            </a>
+            @endif
+        </p>
+        <p class="item-label-bottom">
+            @foreach($custom_form_column['option_labels'] ?? [] as $option_label)
+            {{$option_label}}
+            @if(!$loop->last)
+            <br/>
+            @endif
+            @endforeach
+        </p>
         
         @include('exment::custom-form.fields.block-hidden', ['param_name' => 'form_block_type'])
         @include('exment::custom-form.fields.block-hidden', ['param_name' => 'form_block_target_table_id'])

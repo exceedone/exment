@@ -51,4 +51,8 @@ class Header extends OtherBase
     {
         return ['text' => 'required'];
     }
+
+    public function getFontAwesomeClass() : ?string{
+        return 'fa-header';
+    }
 }

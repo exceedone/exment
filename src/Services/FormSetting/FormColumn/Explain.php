@@ -23,4 +23,8 @@ class Explain extends Header
 
         return $form;
     }
+    
+    public function getFontAwesomeClass() : ?string{
+        return 'fa-align-justify';
+    }
 }

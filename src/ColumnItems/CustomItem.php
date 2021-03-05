@@ -680,7 +680,16 @@ abstract class CustomItem implements ItemInterface
 
         return null;
     }
-    
+
+    /**
+     * Get font awesome class
+     *
+     * @return string|null
+     */
+    public function getFontAwesomeClass() : ?string{
+        return $this->custom_column->getFontAwesomeClass();
+    }
+
     /**
      * Find item class.
      *

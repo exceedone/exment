@@ -94,4 +94,8 @@ class Image extends OtherBase
     {
         return ['image' => 'required_image'];
     }
+
+    public function getFontAwesomeClass() : ?string{
+        return 'fa-picture-o';
+    }
 }

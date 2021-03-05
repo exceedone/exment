@@ -222,13 +222,15 @@ class CustomColumnController extends AdminControllerTableBase
             $form->select('column_type', exmtrans("custom_column.column_type"))
                 ->help(exmtrans("custom_column.help.column_type"))
                 ->options(function () {
-                    $arrays = collect(ColumnType::arrays())->filter(function ($arr) {
-                        if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    })->toArray();
+                    // return collect(ColumnType::arrays())->filter(function ($arr) {
+                    //     if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
+                    //         return true;
+                    //     } else {
+                    //         return false;
+                    //     }
+                    // })->map(function($column_type){
+
+                    // });
                     return getTransArray($arrays, "custom_column.column_type_options");
                 })
                 ->attribute(['data-filtertrigger' =>true,

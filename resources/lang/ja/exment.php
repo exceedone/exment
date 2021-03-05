@@ -1412,7 +1412,7 @@ return [
         'suggest_items' => '候補一覧',
         'add_all_items' => 'すべて項目に追加',
         'changedata_target_column' => '列を選択',
-        'changedata_target_column_available' => '設定済',
+        'setting_available' => '設定済',
         'changedata_target_column_when' => 'の項目を選択したとき',
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',

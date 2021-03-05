@@ -1362,7 +1362,7 @@ return [
         'suggest_items' => 'Suggest Items',
         'add_all_items' => 'Add All Items',
         'changedata_target_column' => 'Select Column',
-        'changedata_target_column_available' => 'Already Setting',
+        'setting_available' => 'Already Setting',
         'changedata_target_column_when' => 'When select this column,',
         'changedata_column' => 'Select Link Column',
         'changedata_column_then' => 'Copy this column',

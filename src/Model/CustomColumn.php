@@ -406,6 +406,15 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
     /**
+     * Get font awesome class
+     *
+     * @return string|null
+     */
+    public function getFontAwesomeClass() : ?string{
+        return ColumnType::getFontAwesomeClass($this);
+    }
+
+    /**
      * Is get all user or org. Not filtering display table.
      *
      * @return boolean

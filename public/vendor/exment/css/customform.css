@@ -65,8 +65,20 @@
   color: red;
 }
 
+#custom_form_form .draggables .draggable.moving {
+  max-width: 200px !important;
+}
+
 #custom_form_form .draggables .item-label {
   font-weight: bold;
+}
+
+#custom_form_form .draggables .item-label-top, #custom_form_form .draggables .item-label-bottom {
+  margin: 0;
+}
+
+#custom_form_form .draggables .item-label-bottom {
+  margin-left: 1em;
 }
 
 #custom_form_form .draggables label {

@@ -102,6 +102,10 @@ abstract class ColumnBase
             'has_custom_forms' => $this->isSelected,
             'delete_flg' => $this->custom_form_column->delete_flg ? 1 : 0,
             'use_setting' => $this->useSetting(),
+
+            'font_awesome' => $this->getFontAwesomeClass(),
+
+            'option_labels' => $this->getOptionLabels(),
         ];
     }
 
@@ -130,6 +134,46 @@ abstract class ColumnBase
         return false;
     }
 
+
+    /**
+     * Get label for option
+     *
+     * @return array
+     */
+    public function getOptionLabels() : array
+    {
+        $options = $this->custom_form_column->options ?? [];
+
+        $result = [];
+        if(array_key_value_exists('required', $options)){
+            $result[] = exmtrans('common.required');
+        }
+
+        // get field display type
+        foreach(['read_only', 'view_only', 'hidden', 'internal'] as $key){
+            if(boolval(array_get($options, $key))){
+                $result[] = exmtrans("custom_form.$key");
+                break;
+            }
+        }
+        
+        foreach(['default_type', 'default'] as $key){
+            if(boolval(array_get($options, $key))){
+                $result[] = exmtrans("custom_column.options.default") . ':' . exmtrans('custom_form.setting_available');
+                break;
+            }
+        }
+
+        if(array_key_value_exists('relation_filter_target_column_id', $options)){
+            $result[] = exmtrans('custom_form.relation_filter') . ':' . exmtrans('custom_form.setting_available');
+        }
+        if(array_key_value_exists('changedata_column_id', $options)){
+            $result[] = exmtrans('custom_form.changedata') . ':' . exmtrans('custom_form.setting_available');
+        }
+        
+        return $result;
+    }
+
     /**
      * Whether using setting
      *
@@ -140,6 +184,8 @@ abstract class ColumnBase
         return true;
     }
 
+
+    abstract public function getFontAwesomeClass() : ?string;
 
     /**
      * Get validation rules for jquery

@@ -4,6 +4,7 @@ var Exment;
         static AddEvent() {
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
             CustomFromEvent.loadingEvent();
+            CustomFromEvent.addDropableEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             //CustomFromEvent.resizeEvent($('.custom_form_area'));
         }
@@ -40,8 +41,6 @@ var Exment;
         static addDragItemEvent($draggable) {
             let $draggables = $draggable.closest('.draggables');
             let connectToSortable = '.' + $draggables.data('connecttosortable') + ' .draggables';
-            // destory first, for dragged from suggest.
-            //$draggable.draggable('destroy');
             // set event for fix area   
             $draggable.draggable({
                 // connect to sortable. set only same block
@@ -50,7 +49,7 @@ var Exment;
                 revert: "invalid",
                 droppable: "drop",
                 distance: 40,
-                start: (event, ui) => {
+                drag: (event, ui) => {
                     // reset draageble target
                     ui.helper.addClass('moving');
                 },
@@ -76,7 +75,7 @@ var Exment;
                 revert: "invalid",
                 droppable: "drop",
                 distance: 40,
-                start: (event, ui) => {
+                drag: (event, ui) => {
                     // reset draageble target
                     ui.helper.addClass('moving');
                 },
@@ -90,6 +89,22 @@ var Exment;
                 }
             });
             CustomFromEvent.addSortableEvent($draggable);
+        }
+        /**
+         * Append Dropable event
+         */
+        static addDropableEvent() {
+            let $draggables = $('.custom_form_column_items .draggables').not('.added-dropable');
+            $draggables.droppable({
+                over: function (event, ui) {
+                    $(this)
+                        .addClass("ui-state-highlight");
+                },
+                deactivate: function (event, ui) {
+                    $(this)
+                        .removeClass("ui-state-highlight");
+                },
+            }).addClass('added-dropable');
         }
         /**
          * Append event for suggest item, for loading display.
@@ -161,6 +176,7 @@ var Exment;
             }
             // replace html name(for clone object)
             CustomFromEvent.replaceCloneColumnName($elem);
+            toastr.clear();
         }
         /**
          * Toggle addbutton show or hide
@@ -469,6 +485,7 @@ var Exment;
         }
     }
     CustomFromEvent.addAreaButtonEvent = (ev) => {
+        toastr.clear();
         let $button = $(ev.target).closest('.addbutton_button');
         let $copy = null;
         $copy = $button.closest('.box-custom_form_block').find('.template_item_column .custom_form_area').clone(true);
@@ -481,6 +498,7 @@ var Exment;
         CustomFromEvent.appendRow($copy);
         CustomFromEvent.resizeEvent($copy);
         CustomFromEvent.addSortableEvent($copy.find('.draggables'));
+        CustomFromEvent.addDropableEvent();
     };
     /**
      * Add All item button event
@@ -494,6 +512,7 @@ var Exment;
             // show item options, 
             CustomFromEvent.setMovedEvent($(elem));
         });
+        toastr.clear();
     };
     CustomFromEvent.toggleFromBlock = (ev) => {
         ev.preventDefault();

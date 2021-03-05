@@ -6,6 +6,7 @@ namespace Exment {
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
 
             CustomFromEvent.loadingEvent();
+            CustomFromEvent.addDropableEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             //CustomFromEvent.resizeEvent($('.custom_form_area'));
         }
@@ -52,9 +53,6 @@ namespace Exment {
             let $draggables = $draggable.closest('.draggables');
             let connectToSortable = '.' + $draggables.data('connecttosortable') + ' .draggables';
 
-            // destory first, for dragged from suggest.
-            //$draggable.draggable('destroy');
-
             // set event for fix area   
             $draggable.draggable({
                 // connect to sortable. set only same block
@@ -63,7 +61,7 @@ namespace Exment {
                 revert: "invalid",
                 droppable: "drop",
                 distance: 40,
-                start: (event, ui) => {
+                drag: (event, ui) => {
                     // reset draageble target
                     ui.helper.addClass('moving');
                 },
@@ -92,7 +90,7 @@ namespace Exment {
                 revert: "invalid",
                 droppable: "drop",
                 distance: 40,
-                start: (event, ui) => {
+                drag: (event, ui) => {
                     // reset draageble target
                     ui.helper.addClass('moving');
                 },
@@ -107,6 +105,24 @@ namespace Exment {
             });
 
             CustomFromEvent.addSortableEvent($draggable);
+        }
+
+
+        /**
+         * Append Dropable event
+         */
+        public static addDropableEvent(){
+            let $draggables = $('.custom_form_column_items .draggables').not('.added-dropable');
+            $draggables.droppable({
+                over: function( event, ui ) {
+                    $( this )
+                        .addClass( "ui-state-highlight" );
+                },
+                deactivate: function( event, ui ) {
+                    $( this )
+                        .removeClass( "ui-state-highlight" );
+                },
+            }).addClass('added-dropable');
         }
         
 
@@ -185,10 +201,14 @@ namespace Exment {
 
             // replace html name(for clone object)
             CustomFromEvent.replaceCloneColumnName($elem);
+
+            toastr.clear();
         }
 
 
         private static addAreaButtonEvent = (ev) => {
+            toastr.clear();
+
             let $button = $(ev.target).closest('.addbutton_button');
 
             let $copy: JQuery<HTMLElement> = null;
@@ -207,6 +227,8 @@ namespace Exment {
             CustomFromEvent.resizeEvent($copy);
 
             CustomFromEvent.addSortableEvent($copy.find('.draggables'));
+
+            CustomFromEvent.addDropableEvent();
         }
 
         
@@ -298,6 +320,7 @@ namespace Exment {
                 // show item options, 
                 CustomFromEvent.setMovedEvent($(elem));
             });
+            toastr.clear();
         }
 
 

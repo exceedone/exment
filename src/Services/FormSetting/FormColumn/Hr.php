@@ -38,4 +38,8 @@ class Hr extends OtherBase
     {
         return false;
     }
+
+    public function getFontAwesomeClass() : ?string{
+        return 'fa-window-minimize';
+    }
 }
