@@ -614,6 +614,7 @@ return [
             'samename_plugin' => 'There is a plug-in with the same name. Please check and try once.',
             'wrongname_plugin' => 'UUID exists, but the plug-in name is incorrect. Please check and try again.',
             'cannot_read' => 'The plugin :plugin_view_name could not be loaded successfully. Please check the plug-in file itself or contact your system administrator.',
+            'class_requirement' => 'The required libraries were not installed. Please install the following libraries with composer. :composer',
         ],
     
         'plugin_type_options' => [

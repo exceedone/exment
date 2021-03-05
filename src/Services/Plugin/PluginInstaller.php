@@ -101,10 +101,15 @@ class PluginInstaller
         }
     }
 
-    public static function templateInstall($pluginFileBasePath, PluginDiskService $diskService)
+    public static function templateInstall($pluginFileBasePath, PluginDiskService $diskService, array $json)
     {
+        // If temlates not install, return true
+        if(!boolval(array_get($json, "templates"))){
+            return true;
+        }
+
         $tmpDiskItem = $diskService->tmpDiskItem();
-        $directories = $tmpDiskItem->disk()->directories("$pluginFileBasePath/templates");
+        $directories = static::getTemplateDirectories($pluginFileBasePath, $diskService, $tmpDiskItem);
 
         $importer = new TemplateImportExport\TemplateImporter();
 
@@ -114,6 +119,50 @@ class PluginInstaller
             }
         }
         return true;
+    }
+
+    /**
+     * GetTemplateDirectories.
+     * Support these paths.
+     * (1)templates
+     *        config.json
+     *        lang
+     * (2)templates
+     *            template1
+     *                config.json
+     *                lang
+     *            template2
+     *                config.json
+     *                lang
+     * @param string  $pluginFileBasePath
+     * @param PluginDiskService $diskService
+     * @return array
+     */
+    protected static function getTemplateDirectories(string $pluginFileBasePath, PluginDiskService $diskService, $tmpDiskItem) : array
+    {
+        $result = [];
+        $checkFunc = function($directory, &$result) use($tmpDiskItem){
+            $config_path = path_join($directory, "config.json");
+            if($tmpDiskItem->disk()->exists($config_path)){
+                $result[] = $directory;
+            }
+        };
+
+        // check current dir
+        $checkFunc("$pluginFileBasePath/templates", $result);
+
+        $directories = $tmpDiskItem->disk()->directories("$pluginFileBasePath/templates");
+        foreach($directories as $directory){
+            $checkFunc($directory, $result);
+
+            // // get sub directory
+            // $subDirectories = $tmpDiskItem->disk()->directories($directory);
+            // foreach($subDirectories as $subDirectory){
+            //     $checkFunc($subDirectory, $result);
+            // }
+        }
+
+        return $result;
     }
 
     public static function copySavePlugin($config_path, $pluginFileBasePath, ?PluginDiskService $diskService = null)
@@ -133,7 +182,7 @@ class PluginInstaller
             //Validate json file with fields require
             $checkRuleConfig = static::checkRuleConfigFile($json);
             if ($checkRuleConfig === true) {
-                $templateInstall = static::templateInstall($pluginFileBasePath, $diskService);
+                $templateInstall = static::templateInstall($pluginFileBasePath, $diskService, $json);
                 if ($templateInstall === false) {
                     return back()->with('errorMess', exmtrans('common.message.template_error'));
                 }

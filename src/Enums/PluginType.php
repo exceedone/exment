@@ -262,7 +262,7 @@ class PluginType extends EnumBase
      * @param array $options
      * @return ?string
      */
-    public static function getPluginClassName($plugin_type, $plugin, $options = []) : string
+    public static function getPluginClassName($plugin_type, $plugin, $options = []) : ?string
     {
         $options = array_merge([
             'custom_table' => null,

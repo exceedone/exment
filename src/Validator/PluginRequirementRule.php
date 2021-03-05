@@ -58,7 +58,7 @@ class PluginRequirementRule implements Rule
      */
     public function message()
     {
-        $composer = implode(',', $this->composers);
-        return str_replace(':composer', $composer, trans('validation.class_requirement'));
+        $composer = implode(exmtrans('common.separate_word'), $this->composers);
+        return exmtrans('plugin.error.class_requirement', ['composer' => $composer]);
     }
 }
