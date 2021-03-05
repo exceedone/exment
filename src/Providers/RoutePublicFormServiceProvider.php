@@ -49,7 +49,9 @@ class RoutePublicFormServiceProvider extends ServiceProvider
         ], function (Router $router) {
             $router->get('/', 'PublicFormController@index');
             $router->post('/', 'PublicFormController@backed');
+            $router->get('/confirm', 'PublicFormController@redirect');
             $router->post('/confirm', 'PublicFormController@confirm');
+            $router->get('/create', 'PublicFormController@redirect');
             $router->post('/create', 'PublicFormController@create');
             $router->get('files/{uuid}', 'FileController@downloadPublicForm');
             $router->post('tmpimages', 'FileController@uploadTempImagePublicForm');

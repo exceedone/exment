@@ -516,7 +516,6 @@ var Exment;
         CustomFromEvent.appendRow($copy);
         CustomFromEvent.resizeEvent($copy);
         CustomFromEvent.addSortableEvent($copy.find('.draggables'));
-        CustomFromEvent.addDropableEvent();
     };
     /**
      * Add All item button event

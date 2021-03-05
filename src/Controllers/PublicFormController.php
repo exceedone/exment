@@ -79,6 +79,11 @@ class PublicFormController extends Controller
         return $this->getInputContent($request);
     }
 
+    public function redirect(Request $request)
+    {
+        admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
+        return redirect($this->public_form->getUrl());
+    }
 
     /**
      * Backed interface.

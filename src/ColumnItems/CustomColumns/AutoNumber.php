@@ -103,7 +103,7 @@ class AutoNumber extends CustomItem
      * @param Form $form
      * @return void
      */
-    public function setCustomColumnDefaultValueForm(&$form)
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
     }
 }

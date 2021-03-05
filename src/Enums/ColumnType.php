@@ -264,9 +264,11 @@ class ColumnType extends EnumBase
             case static::CURRENCY:
                 return 'fa-jpy';
             case static::DATE:
-            case static::TIME:
-            case static::DATETIME:
                 return 'fa-calendar';
+            case static::TIME:
+                return 'fa-clock-o';
+            case static::DATETIME:
+                return 'fa-calendar-o';
             case static::SELECT:
             case static::SELECT_VALTEXT:
             case static::DATETIME:
@@ -299,6 +301,6 @@ class ColumnType extends EnumBase
         }
 
         $icon = static::getFontAwesomeClass($column_type);
-        return '<i class="text-center fa ' . esc_html($icon) . '" aria-hidden="true" style="width:16px;"></i>&nbsp;&nbsp;<span>' . esc_html(exmtrans("custom_column.column_type_options.{$column_type}")) . '</span>';
+        return \Exment::getSelectOptionHtml($icon, exmtrans("custom_column.column_type_options.{$column_type}"));
     }
 }

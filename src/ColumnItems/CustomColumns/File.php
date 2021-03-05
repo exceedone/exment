@@ -309,7 +309,7 @@ class File extends CustomItem
 
         if(!is_null($accept_extensions = array_get($options, 'accept_extensions')))
         {
-            $validates[] = "mimes:$accept_extensions";
+            $validates[] = new Validator\FileRule(stringToArray($accept_extensions));
         }
     }
     

@@ -477,6 +477,20 @@ class Exment
         });
     }
 
+
+    /**
+     * Get select options html for select.
+     *
+     * @param string $font_awesome
+     * @param string $text
+     * @return string
+     */
+    public static function getSelectOptionHtml(?string $font_awesome, ?string $text)
+    {
+        // decode escapeMarkup, so call esc_html twice.
+        return '<i class="text-center fa ' . esc_html(esc_html($font_awesome)) . '" aria-hidden="true" style="width:16px;"></i>&nbsp;&nbsp;<span>' . esc_html(esc_html($text)) . '</span>';
+    }
+
     /**
      * Push collection. if $item is Collection, loop
      *

@@ -1263,7 +1263,7 @@ return [
             'calc_formula' => '計算式',
             'currency_symbol' => '通貨の表示形式',
             'check_radio_enabled' => 'ラジオボタン・チェックボックス形式で表示',
-            'checkbox_enabled' => 'ラジオボタン・チェックボックス形式で表示',
+            'checkbox_enabled' => 'チェックボックス形式で表示',
             'free_input' => '自由に入力可能にする',
             'accept_extensions' => 'アップロード許可する拡張子',
         ],

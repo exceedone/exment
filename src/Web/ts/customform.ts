@@ -208,8 +208,6 @@ namespace Exment {
             CustomFromEvent.resizeEvent($copy);
 
             CustomFromEvent.addSortableEvent($copy.find('.draggables'));
-
-            CustomFromEvent.addDropableEvent();
         }
 
         
