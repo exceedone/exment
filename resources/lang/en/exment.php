@@ -2042,6 +2042,7 @@ return [
         ],
 
         'notify_action_target_options' => [
+            'administrator' => 'Administrator',
             'has_roles' => 'Have the Role User',
             'created_user' => 'Create User',
             'work_user' => 'Next Work User',

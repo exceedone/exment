@@ -66,14 +66,14 @@ class LoginSettingController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new LoginSetting);
-        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function ($v) {
+        $grid->column('login_type', exmtrans('login.login_type'))->display(function ($v) {
             $enum = LoginType::getEnum($v);
             return $enum ? $enum->transKey('login.login_type_options') : null;
         });
         $grid->column('login_view_name', exmtrans('login.login_view_name'));
-        $grid->column('active_flg', exmtrans("plugin.active_flg"))->displayEscape(function ($active_flg) {
-            return boolval($active_flg) ? exmtrans("common.available_true") : exmtrans("common.available_false");
-        });
+        $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
+            return \Exment::getTrueMark($active_flg);
+        })->escape(false);
         
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();

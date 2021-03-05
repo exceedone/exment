@@ -7,14 +7,21 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Validator;
+use Illuminate\Http\UploadedFile;
 
 class File extends CustomItem
 {
     use SelectTrait;
-    
+
+    public function saved(){
+        $this->refreshTmpFile();
+    }
+
+
     /**
      * get file info
      */
@@ -37,6 +44,11 @@ class File extends CustomItem
      */
     protected function _html($v)
     {
+        // If public form tmp file, return Only file name.
+        if(is_string($v) && strpos($v, Field\File::TMP_FILE_PREFIX) === 0){
+            return esc_html(array_get($this->getTmpFileInfo($v), 'originalFileName'));
+        }
+
         // get image url
         $url = ExmentFile::getUrl($this->fileValue($v));
         $file = ExmentFile::getData($this->fileValue($v));
@@ -119,7 +131,70 @@ class File extends CustomItem
         })->caption(function ($caption, $key) {
             $file = ExmentFile::getData($key);
             return $file->filename ?? basename($caption);
+        })
+        // get tmp file from request
+        ->getTmp(function($files){
+            if(!is_array($files)){
+                $files = [$files]; 
+            }
+
+            $result = [];
+            foreach($files as $file){
+                // If public form tmp file
+                if(!is_string($file) || strpos($file, Field\File::TMP_FILE_PREFIX) !== 0){
+                    continue;
+                }
+                $result[] = $this->getTmpFile($file);
+            }
+            $result = array_filter($result);
+
+            return $this->isMultipleEnabled() ? $result : (count($result) > 0 ? $result[0] : null);
         });
+
+        // if this field as confirm, set tmp function
+        if(boolval(array_get($this->options, 'as_confirm'))){
+            $field->setPrepareConfirm(function($files){
+                if(!is_array($files)){
+                    $files = [$files]; 
+                }
+    
+                $result = [];
+                foreach ($files as $file) {
+                    if (!($file instanceof UploadedFile)) {
+                        continue;
+                    }
+
+                    $resultFileName = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP)->putFile('', $file);
+
+                    // get hash name
+                    $fileName = Field\File::TMP_FILE_PREFIX . $resultFileName;
+                    $hashName = $file->hashName();
+                    // set session filename, tmpfilename, hasname to session.
+                    $sessions = session()->get(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, []);
+                    $sessions[] = [
+                        'fileName' => $fileName,
+                        'originalFileName' => $file->getClientOriginalName(),
+                        'hashName' => $file->hashName(),
+                    ];
+                    session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, $sessions);
+                    // and set request session for using removing UploadedFile
+                    System::setRequestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES . $hashName, $fileName);
+                
+                    $result[] = $fileName;
+                }
+
+                return $this->isMultipleEnabled() ? $result : (count($result) > 0 ? $result[0] : null);
+            });
+        }
+        
+        if(!is_null($accept_extensions = array_get($this->custom_column->options, 'accept_extensions')))
+        {
+            // append accept rule. And add dot.
+            $accept_extensions = collect(stringToArray($accept_extensions))->map(function($accept_extension){
+                return ".{$accept_extension}";
+            })->implode(",");
+            $field->attribute(['accept' => $accept_extensions]);
+        }
     }
 
 
@@ -230,6 +305,11 @@ class File extends CustomItem
 
         if ($this->required()) {
             $validates[] = new Validator\FileRequredRule($this->custom_column, $this->custom_value);
+        }
+
+        if(!is_null($accept_extensions = array_get($options, 'accept_extensions')))
+        {
+            $validates[] = "mimes:$accept_extensions";
         }
     }
     
@@ -362,10 +442,28 @@ class File extends CustomItem
      * @param Form $form
      * @return void
      */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
+    }
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
     public function setCustomColumnOptionForm(&$form)
     {
         // enable multiple
-        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"));
+        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
+            ->help(exmtrans("custom_column.help.multiple_enabled_file"));
+
+        // Accept extension
+        if(isMatchString(get_class($this), \Exceedone\Exment\ColumnItems\CustomColumns\File::class)){
+            $form->text('accept_extensions', exmtrans("custom_column.options.accept_extensions"))
+                ->help(exmtrans("custom_column.help.accept_extensions"));
+        }
     }
     
     /**
@@ -379,5 +477,84 @@ class File extends CustomItem
             return ",";
         }
         return exmtrans('common.separate_word');
+    }
+
+    /**
+     * Get tmp file info
+     *
+     * @param string $name
+     * @return array|null
+     */
+    protected function getTmpFileInfo(string $name)
+    {
+        $files = session()->get(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, []);
+        foreach($files as $file){
+            if(isMatchString($name, array_get($file, 'fileName'))){
+                return $file;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get tmp file from tmp folder
+     *
+     * @param string $name
+     * @return string
+     */
+    protected function getTmpFile(string $name)
+    {
+        $localFileName = str_replace(Field\File::TMP_FILE_PREFIX, "", $name);
+        
+        // get file info
+        $fileInfo = $this->getTmpFileInfo($name);
+
+        $disk = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP);
+        if(!$disk->exists($localFileName)){
+            return null;
+        }
+        $content = $disk->get($localFileName);
+
+        // Set admin tmp
+        $tmpDisk = \Storage::disk(Define::DISKNAME_ADMIN_TMP);
+        $tmpDisk->put($localFileName, $content);
+
+        // set request session localfilename, for deleting tmp file after saved
+        $settedFiles = System::requestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES) ?? [];
+        $settedFiles[] = $localFileName;
+        System::setRequestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES, $settedFiles);
+
+        // Create UploadedFile
+        return new UploadedFile(getFullpath($localFileName, Define::DISKNAME_ADMIN_TMP), array_get($fileInfo, 'originalFileName'));
+    }
+
+
+    /**
+     * Refresh tmp file.
+     *
+     * @return void
+     */
+    protected function refreshTmpFile()
+    {
+        foreach (System::requestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES) ?? [] as $name) {
+            $localFileName = str_replace(Field\File::TMP_FILE_PREFIX, "", $name);
+        
+            // get file info
+            $fileInfo = $this->getTmpFileInfo($name);
+
+            // delete file from PUBLIC_FORM_TMP
+            $disk = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP);
+            if ($disk->exists($localFileName)) {
+                $disk->delete($localFileName);
+            }
+
+            $tmpDisk = \Storage::disk(Define::DISKNAME_ADMIN_TMP);
+            if ($tmpDisk->exists($localFileName)) {
+                $tmpDisk->delete($localFileName);
+            }
+        }
+
+        System::clearRequestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES);
     }
 }

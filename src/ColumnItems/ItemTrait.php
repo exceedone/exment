@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
+use Encore\Admin\Show\Field as ShowField;
 
 /**
  *
@@ -31,12 +32,19 @@ trait ItemTrait
 
     protected $id;
 
-
+    /**
+     * Custom form column options
+     *
+     * @var array
+     */
+    protected $form_column_options = [];
+    
     /**
      * Form items option
      * 
      * [
-     *     'public_form': if this form is public_form, set publcform model
+     *     'public_form': If this form is public_form, set publcform model
+     *     'as_confirm' : If this form is before confirm, set true.
      * ]
      * @var array
      */
@@ -119,11 +127,13 @@ trait ItemTrait
             $items[] = $singleValueCallback($value);
         }
         
+        $items = collect($items)->filter(function($item){ return !is_nullorempty($item); });
+ 
         if ($isList) {
-            return collect($items);
+            return $items;
         }
-
-        return collect($items)->first();
+ 
+        return $items->first();
     }
 
     /**
@@ -306,6 +316,46 @@ trait ItemTrait
     }
 
     /**
+     * Set show field options
+     *
+     * @param mixed $field
+     * @return void
+     */
+    public function setShowFieldOptions(ShowField $field, array $options = [])
+    {
+        $options = array_merge([
+            'gridShows' => false,
+        ], $options);
+
+        $item = $this;
+        $field->as(function ($v) use ($item) {
+            if (is_null($this)) {
+                return '';
+            }
+            return $item->setCustomValue($this)->html();
+        })->setEscape(false);
+
+        // If grid shows, set label style
+        if($options['gridShows'] && method_exists($this, 'setLabelType')){
+            $this->setLabelType($field);
+        }
+    }
+
+    /**
+     * Set custom form column options
+     *
+     * @param  array  $form_column_options  Custom form column options
+     *
+     * @return  self
+     */ 
+    public function setFormColumnOptions(?array $form_column_options)
+    {
+        $this->form_column_options = $form_column_options;
+
+        return $this;
+    }
+    
+    /**
      * Get relation.
      *
      * @return CustomRelation|null
@@ -356,6 +406,36 @@ trait ItemTrait
     public function isPublicForm() : bool
     {
         return !is_nullorempty(array_get($this->options, 'public_form'));
+    }
+
+    public function readonly()
+    {
+        return false;
+    }
+
+    public function viewonly()
+    {
+        return false;
+    }
+
+    public function hidden()
+    {
+        return false;
+    }
+
+    public function internal()
+    {
+        return false;
+    }
+
+    /**
+     * Hide when showing display
+     *
+     * @return bool
+     */
+    public function disableDisplayWhenShow() : bool
+    {
+        return false;
     }
 
     /**
@@ -487,4 +567,5 @@ trait ItemTrait
     {
         return exmtrans('common.separate_word');
     }
+
 }

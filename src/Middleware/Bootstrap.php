@@ -51,7 +51,7 @@ class Bootstrap
 
         Ad::js(asset('lib/js/bignumber.min.js'));
 
-        $this->setCssJsList([
+        static::setCssJsList([
             'vendor/exment/fullcalendar/core/main.min.css',
             'vendor/exment/fullcalendar/daygrid/main.min.css',
             'vendor/exment/fullcalendar/list/main.min.css',
@@ -63,7 +63,7 @@ class Bootstrap
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);
 
-        $this->setCssJsList([
+        static::setCssJsList([
             'vendor/exment/validation/jquery.validate.js',
             'vendor/exment/chartjs/chart.min.js',
             'vendor/exment/codemirror/codemirror.js',
@@ -101,7 +101,16 @@ class Bootstrap
         ], false);
 
         // set scripts
-        $this->setScriptStyle();
+        $pluginPublics = Plugin::getPluginPublics();
+        foreach ($pluginPublics as $pluginPublic) {
+            static::appendStyleScript($pluginPublic);
+        }
+
+        // set Plugin resource
+        $pluginPages = Plugin::getPluginPages();
+        foreach ($pluginPages as $pluginPage) {
+            static::appendStyleScript($pluginPage);
+        }
 
         // get exment version
         $ver = \Exment::getExmentCurrentVersion();

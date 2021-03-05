@@ -28,7 +28,7 @@ class PublicContent implements Renderable
     protected $footer_background_color = '#FFFFFF';
     protected $header_text_color = '#FFFFFF';
     protected $footer_text_color = '#000000';
-    protected $container_fluid = true;
+    protected $container = false;
     protected $analytics;
 
     /**
@@ -132,9 +132,9 @@ class PublicContent implements Renderable
      *
      * @return  self
      */ 
-    public function setIsContainerFluid(bool $container_fluid)
+    public function setIsContainer(bool $container)
     {
-        $this->container_fluid = $container_fluid;
+        $this->container = $container;
 
         return $this;
     }
@@ -274,12 +274,13 @@ class PublicContent implements Renderable
             'header_background_color' => $this->header_background_color,
             'footer_background_color' => $this->footer_background_color,
             
-            'container_fluid' => $this->container_fluid,
+            'container' => $this->container,
 
             'header_logo_url' => $this->header_logo_url,
             'header_label' => $this->header_label,
             'use_header' => $this->use_header,
             'use_footer' => $this->use_footer,
+            'use_footer_label' => !boolval(config('exment.disable_publicform_use_footer_label', false)),
             'analytics' => $this->analytics,
 
             'container_height' => 40 + ($this->use_header ? 50 : 0) + ($this->use_footer ? 51 : 0),

@@ -26,10 +26,14 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
-class WorkflowNotifyController extends AdminControllerBase
+class WorkflowNotifyController extends Controller
 {
-    use HasResourceActions, NotifyTrait, WorkflowTrait;
+    use HasResourceActions{
+        destroy as destroyTrait;
+    }
+    use NotifyTrait, WorkflowTrait, ExmentControllerTrait;
 
     protected $workflow;
 
@@ -67,7 +71,7 @@ class WorkflowNotifyController extends AdminControllerBase
             return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['notify_view_name']));
         }
 
-        return parent::create($request, $content);
+        return $this->AdminContent($content)->body($this->form());
     }
 
     /**
@@ -85,16 +89,17 @@ class WorkflowNotifyController extends AdminControllerBase
                 ->render();
         });
 
-        $grid->column('workflow_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
-            if (isset($this->workflow_id)) {
-                return Workflow::getEloquent($this->workflow_id)->workflow_view_name ?? null;
+        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val) {
+            $workflow = Workflow::getEloquent($this->target_id);
+            if (isset($workflow)) {
+                return $workflow->workflow_view_name ?? null;
             }
             return null;
         });
 
         $this->setBasicGrid($grid);
 
-        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->displayEscape(function ($val) {
+        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
             return collect($val)->map(function ($v) {
                 $enum = NotifyAction::getEnum(array_get($v, 'notify_action'));
                 return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;
@@ -103,13 +108,14 @@ class WorkflowNotifyController extends AdminControllerBase
 
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->sortable()->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->prepend(new Tools\SystemChangePageMenu());
         });
 
-        $grid->model()->where('workflow_id', $this->workflow->id);
+        $grid->model()->where('target_id', $this->workflow->id)
+            ->where('notify_trigger', NotifyTrigger::WORKFLOW);
 
         $workflow = $this->workflow;
         $grid->actions(function (Grid\Displayers\Actions $actions) use($workflow) {
@@ -144,9 +150,14 @@ class WorkflowNotifyController extends AdminControllerBase
         $form->progressTracker()->options($this->getProgressInfo($this->workflow, 3));
 
         $notify = Notify::find($id);
+        if($notify && $notify->notify_trigger != NotifyTrigger::WORKFLOW){
+            Checker::error(exmtrans('common.message.wrongdata'));
+            return false;
+        }
+        
         $workflow = $this->workflow;
 
-        $form->internal('workflow_id')->default($this->workflow->id);
+        $form->internal('target_id')->default($this->workflow->id);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->default($this->workflow->workflow_view_name);
        
@@ -211,6 +222,7 @@ class WorkflowNotifyController extends AdminControllerBase
                 'btn_class' => 'btn-default',
             ]));
         });
+
         return $form;
     }
 
@@ -222,5 +234,70 @@ class WorkflowNotifyController extends AdminControllerBase
         ]);
 
         return $options;
+    }
+
+    
+    /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    public function index(Request $request, Content $content)
+    {
+        return $this->AdminContent($content)->body($this->grid());
+    }
+
+    /**
+     * Show interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function show(Request $request, Content $content, $workflow_id, $id)
+    {
+        if (method_exists($this, 'detail')) {
+            $render = $this->detail($id);
+        } else {
+            $url = url_join($request->url(), 'edit');
+            return redirect($url);
+        }
+        return $this->AdminContent($content)->body($render);
+    }
+
+    /**
+     * Edit interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function edit(Request $request, Content $content, $workflow_id, $id)
+    {
+        return $this->AdminContent($content)->body($this->form($id)->edit($id));
+    }
+    
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update($workflow_id, $id)
+    {
+        return $this->form($id)->update($id);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($workflow_id, $id)
+    {
+        return $this->destroyTrait($id);
     }
 }

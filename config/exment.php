@@ -63,6 +63,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | diable exment exception handler
+    |--------------------------------------------------------------------------
+    |
+    */
+    'disable_exment_exception_handler' => env('EXMENT_DISABLE_EXMENT_EXCEPTION_HANDLER', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | exment debug mode request
     |--------------------------------------------------------------------------
     |
@@ -932,6 +940,14 @@ return [
     |
     */
     'publicformapi_route_prefix' => env('EXMENT_PUBLICFORMAPI_ROUTE_PREFIX', 'publicformapi'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public form disable footer label
+    |--------------------------------------------------------------------------
+    |
+    */
+    'disable_publicform_use_footer_label' => env('EXMENT_DISABLE_PUBLICFORM_USE_FOOTER_LABEL', false),
 
 
   

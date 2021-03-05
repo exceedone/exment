@@ -34,7 +34,6 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
-        $this->mapExmentPublicFormWebRotes();
     }
 
     /**
@@ -89,7 +88,8 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
             $router->get('notify/{tableKey}/notify_action_target', 'CustomNotifyController@notify_action_target');
-            
+            $router->get('notify', 'NotifyController@index');
+
             $router->post("notify_navbar/batchAll/{type}", 'NotifyNavbarController@batchAll');
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
@@ -199,13 +199,14 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('form/{tableKey}/preview/{suuid}', 'CustomFormController@previewBySuuid');
             $router->post('form/{tableKey}/preview', 'CustomFormController@preview');
             $router->put('form/{tableKey}/preview', 'CustomFormController@preview');
+            $router->get('formpublic/{tableKey}/notify_action_target', 'CustomFormPublicController@notify_action_target');
             $router->post('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
             $router->put('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
             $router->post('formpublic/{tableKey}/{id}/preview', 'CustomFormPublicController@preview');
             $router->put('formpublic/{tableKey}/{id}/preview', 'CustomFormPublicController@preview');
             $router->get("formpublic/{tableKey}/{id}/activeModal", 'CustomFormPublicController@activeModal');
-            $router->post('formpublic/{tableKey}/{id}/activate', 'CustomFormPublicController@activate')->name('exment.login_activate');
-            $router->post('formpublic/{tableKey}/{id}/deactivate', 'CustomFormPublicController@deactivate')->name('exment.login_deactivate');
+            $router->post('formpublic/{tableKey}/{id}/activate', 'CustomFormPublicController@activate');
+            $router->post('formpublic/{tableKey}/{id}/deactivate', 'CustomFormPublicController@deactivate');
             $router->put('formpublic/{tableKey}/filedelete', 'CustomFormPublicController@filedelete');
             $router->put('formpublic/{tableKey}/{id}/filedelete', 'CustomFormPublicController@filedelete');
             
@@ -288,26 +289,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('favicon', 'FileController@downloadFavicon');
             $router->get('auth/login/background', 'FileController@downloadLoginBackground');
             $router->get('auth/login/header', 'FileController@downloadLoginHeader');
-        });
-    }
-    
-    protected function mapExmentPublicFormWebRotes()
-    {
-        if(!canConnection() || !hasTable(SystemTableName::SYSTEM) || !System::publicform_available()){
-            return;
-        }
-        Route::group([
-            'prefix'        => url_join(config('exment.publicform_route_prefix', 'publicform'), '{form_key}'),
-            'namespace'     => $this->namespace,
-            'middleware'    => ['adminweb', 'publicform'],
-        ], function (Router $router) {
-            $router->get('/', 'PublicFormController@index');
-            $router->post('/', 'PublicFormController@backed');
-            $router->post('/confirm', 'PublicFormController@confirm');
-            $router->post('/create', 'PublicFormController@create');
-            $router->get('files/{uuid}', 'FileController@downloadPublicForm');
-            $router->post('tmpimages', 'FileController@uploadTempImage');
-            $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFilePublicForm');
         });
     }
     

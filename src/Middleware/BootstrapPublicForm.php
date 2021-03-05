@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin as Ad;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\PublicForm;
 
 /**
  * Middleware as Bootstrap, for public form.
@@ -41,7 +43,7 @@ class BootstrapPublicForm
         Ad::css(asset('lib/css/jquery-ui.min.css'));
         Ad::js(asset('lib/js/bignumber.min.js'));
 
-        $this->setCssJsList([
+        static::setCssJsList([
             'vendor/exment/fullcalendar/core/main.min.css',
             'vendor/exment/fullcalendar/daygrid/main.min.css',
             'vendor/exment/fullcalendar/list/main.min.css',
@@ -53,7 +55,7 @@ class BootstrapPublicForm
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);
 
-        $this->setCssJsList([
+        static::setCssJsList([
             'vendor/exment/validation/jquery.validate.js',
             'vendor/exment/chartjs/chart.min.js',
             'vendor/exment/codemirror/codemirror.js',
@@ -83,5 +85,30 @@ class BootstrapPublicForm
             'vendor/exment/js/getbox.js',
             'vendor/exment/js/publicform.getbox.js',
         ], false);
+        // Get public form and set style script ----------------------------------------------------
+        // Now, this function calls from PublicForm's. Because We want to call same timing preview and real form.
+        // $public_form = PublicForm::getPublicFormByRequest();
+        // static::setPublicFormCssJs($public_form);
+    }
+
+
+    public static function setPublicFormCssJs(?PublicForm $public_form)
+    {
+        if($public_form){
+            foreach($public_form->getCssJsPlugins() as $plugin){
+                static::appendStyleScript($plugin, true);
+            }
+
+            if(!is_null($css = $public_form->getOption("custom_css"))){
+                Ad::style($css);
+            }
+            if(!is_null($js = $public_form->getOption("custom_js"))){
+                Ad::script($js);
+            }
+        }
+
+        static::setCssJsList([
+            'vendor/exment/js/customscript.js',
+        ], false, true);
     }
 }

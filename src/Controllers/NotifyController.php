@@ -31,6 +31,19 @@ use Illuminate\Http\Request;
 
 class NotifyController extends AdminControllerBase
 {
+    public function __construct(Request $request)
+    {
+        $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
+    }
+
+    public function index(Request $request, Content $content)
+    {
+        $this->AdminContent($content);
+        $content->withWarning(exmtrans("notify.notify_moved"), exmtrans("notify.message.notify_moved") . \Exment::getMoreTag('notify', 'notify.notify_moved_tag'));
+        return $content;
+    }
+
+
     public function getNotifyTriggerTemplate(Request $request)
     {
         $keyName = 'mail_template_id';

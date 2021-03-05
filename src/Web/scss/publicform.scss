@@ -24,6 +24,10 @@ body#body-publicform{
         font-weight: 300;
         overflow: hidden;
     }
+    .main-footer{
+        height: 50px;
+        min-height: 50px;
+    }
 
     #container-inner{
         margin: 20px auto;
@@ -33,6 +37,17 @@ body#body-publicform{
     .g-recaptcha{
         display: inline-block;
     }
+
+    .complete_link, .error_link{
+        margin-top: 2em;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+
+    .complete_text, .error_text{
+        margin-top: 2em;
+    }
 }
 
 @media (max-width: 767px)
@@ -41,5 +56,27 @@ body#body-publicform{
         &.body-container #container-inner{
             margin: 5px;
         }
+    }
+}
+
+
+@media (min-width: 768px){
+    .container-middle {
+        width: 750px;
+    }
+}
+@media (min-width: 992px){
+    .container-middle {
+        width: 970px;
+    }
+}
+@media (min-width: 1200px){
+    .container-middle {
+        width: 1170px;
+    }
+}
+@media (min-width: 1500px){
+    .container-middle {
+        width: 1470px;
     }
 }

@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\NotifyTargetType;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\NotifyTarget;
 
@@ -24,7 +25,7 @@ class Column extends NotifyTargetBase
         $this->column = $column;
     }
 
-    public function getModels(CustomValue $custom_value) : Collection
+    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
     {
         $result = collect();
 

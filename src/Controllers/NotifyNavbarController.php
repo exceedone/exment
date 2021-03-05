@@ -6,7 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Form\Show;
+use Encore\Admin\Show;
 use Exceedone\Exment\Form\Tools\SwalMenuButton;
 use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
@@ -29,10 +29,10 @@ class NotifyNavbarController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new NotifyNavbar);
-        $grid->column('read_flg', exmtrans('notify_navbar.read_flg'))->sortable()->displayEscape(function ($read_flg) {
+        $grid->column('read_flg', exmtrans('notify_navbar.read_flg'))->sortable()->display(function ($read_flg) {
             return exmtrans("notify_navbar.read_flg_options.$read_flg");
         });
-        $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->displayEscape(function ($parent_type) {
+        $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->display(function ($parent_type) {
             if (is_null($parent_type) || is_null($custom_table = CustomTable::getEloquent($parent_type))) {
                 return null;
             }

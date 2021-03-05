@@ -4,79 +4,82 @@ namespace Exceedone\Exment\Form;
 
 use Encore\Admin\Show\Field;
 use Encore\Admin\Show as AdminShow;
-use Illuminate\Support\Collection;
+use Exceedone\Exment\Form\Field\FieldGroupTrait;
+use Exceedone\Exment\Form\Show\GridShowPanel;
 
 class Show extends AdminShow
 {
+    use FieldGroupTrait;
 
     /**
-     * Add a model field to show.
-     *
-     * @param string $name
-     * @param string $label
-     *
-     * @return Field
+     * Initialize panel.
      */
-    public function field($name, $label = '', $column_no = 1)
+    protected function initPanel()
     {
-        return $this->addField($name, $label, $column_no);
+        $this->panel = new GridShowPanel($this);
     }
 
     /**
-     * Add a model field to show.
+     * Whether grid shows
      *
-     * @param string $name
-     * @param string $label
-     *
-     * @return Field
+     * @var boolean
      */
-    protected function addField($name, $label = '', $column_no = 1)
-    {
-        $field = new Field($name, $label);
-
-        $field->setParent($this);
-
-        //$this->overwriteExistingField($name);
-
-        return tap($field, function ($field) use ($column_no, $name) {
-            $columns = $this->fields->get($column_no) ?? new Collection();
-            $columns = $columns->filter(function (Field $field) use ($name) {
-                return $field->getName() != $name;
-            });
-            $columns->push($field);
-            $this->fields->put($column_no, $columns);
-        });
-    }
+    protected $gridShows = false;
 
     /**
-     * Render the show panels.
+     * field option
      *
-     * @return string
+     * [
+     *     'options' => [], // Set row no, column no, width
+     *     'field' => AdminField, // Set adminfield
+     * ]
+     * @var array
      */
-    public function render()
+    protected $fieldAndOptions = [];
+
+
+    /**
+     * Set as gridShows
+     * 
+     * @return $this
+     */
+    public function gridShows()
     {
-        if (is_callable($this->builder)) {
-            call_user_func($this->builder, $this);
-        }
+        $this->gridShows = true;
+        return $this;
+    }
+    
+    /**
+     * Push field and set for grid
+     *
+     * @param Field $field
+     * @param string $label
+     * @param array $options
+     * @return Field
+     */
+    public function addFieldAndOption($field, array $options)
+    {
+        $field = $this->addField($field);
 
-        if ($this->fields->isEmpty()) {
-            $this->all();
-        }
-
-        if (is_array($this->builder)) {
-            $this->fields($this->builder);
-        }
-
-        $this->fields->each(function ($item, $key) {
-            $item->each->setValue($this->model);
-        });
-        $this->relations->each->setModel($this->model);
-
-        $data = [
-            'panel'     => $this->panel->fill($this->fields),
-            'relations' => $this->relations,
+        $this->fieldAndOptions[] = [
+            'field' => $field,
+            'options' => $options,
         ];
 
-        return view('admin::show', $data)->render();
+        return $field;
+    }
+
+    protected function renderView($data)
+    {
+        if(!$this->gridShows){
+            return parent::renderView($data);
+        }
+
+        ////// for grid column
+        // sort by option row and column
+        $fieldGroups = $this->convertRowColumnGroups($this->fieldAndOptions);
+        $this->panel->setData('fieldGroups', $fieldGroups)
+            ->setData('gridShows', true);
+        return parent::renderView($data);
     }
 }

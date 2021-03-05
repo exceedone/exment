@@ -28,13 +28,6 @@ abstract class CustomItem implements ItemInterface
     
     protected $custom_column;
     
-    /**
-     * Custom form column options
-     *
-     * @var array
-     */
-    protected $form_column_options;
-    
     protected $custom_value;
 
     /**
@@ -270,6 +263,11 @@ abstract class CustomItem implements ItemInterface
             return $default;
         }
         
+        // If initonly, not set default
+        if ($this->initonly()){
+            return null;
+        }
+
         // get each default value definition
         $default = $this->_getDefaultValue();
         if(!is_nullorempty($default)){
@@ -277,14 +275,26 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default
+        list($default_type, $default) = $this->getDefaultSetting();
         $options = $this->custom_column->options;
-        if (array_key_value_exists('default', $this->form_column_options)) {
-            return array_get($this->form_column_options, 'default');
-        }
-        elseif (array_key_value_exists('default', $options)) {
-            return array_get($options, 'default');
+        if (!is_nullorempty($default)) {
+            return $default;
         }
         return null;
+    }
+
+
+    /**
+     * Get default type and value
+     *
+     * @return offset 0: type, 1: value
+     */
+    protected function getDefaultSetting()
+    {
+        return [
+            array_get($this->form_column_options, 'default_type') ?? array_get($this->custom_column->options, 'default_type') ?? null,
+            array_get($this->form_column_options, 'default') ?? array_get($this->custom_column->options, 'default') ?? null,
+        ];
     }
 
     /**
@@ -340,7 +350,7 @@ abstract class CustomItem implements ItemInterface
                     $classname = Field\Number::class;
                     break;
                 case FilterType::SELECT:
-                    $classname = Field\Select::class;
+                    $classname = Field\MultipleSelect::class;
                     break;
                 default:
                     $classname = $this->getFilterFieldClass();
@@ -753,34 +763,48 @@ abstract class CustomItem implements ItemInterface
     }
 
     
-    protected function initonly()
+    public function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
 
         return $initOnly && isset($this->value);
     }
 
-    protected function readonly()
+    public function readonly()
     {
         return boolval(array_get($this->form_column_options, 'read_only'));
     }
 
-    protected function viewonly()
+    public function viewonly()
     {
         return boolval(array_get($this->form_column_options, 'view_only'));
     }
 
-    protected function hidden()
+    public function hidden()
     {
         return boolval(array_get($this->form_column_options, 'hidden'));
     }
 
-    protected function internal()
+    public function internal()
     {
         return boolval(array_get($this->form_column_options, 'internal'));
     }
 
-    protected function required()
+    /**
+     * Hide when showing display
+     *
+     * @return bool
+     */
+    public function disableDisplayWhenShow() : bool
+    {
+        if($this->internal() || $this->hidden()){
+            return true;
+        }
+
+        return false;
+    }
+
+    public function required()
     {
         if ($this->initonly() || $this->viewonly() || $this->internal()) {
             return false;
@@ -798,7 +822,7 @@ abstract class CustomItem implements ItemInterface
         return !$this->hidden() && 
             !$this->initonly() && 
             !$this->viewonly() &&
-            !$this->hidden();
+            !$this->internal();
     }
 
     

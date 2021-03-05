@@ -6,9 +6,8 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Form\Field\RadioButton;
-use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Encore\Admin\Form\Field;
-use Encore\Admin\Grid\Filter;
 
 class Select extends CustomItem
 {
@@ -72,10 +71,10 @@ class Select extends CustomItem
     
     protected function getAdminFilterClass()
     {
-        if (boolval($this->custom_column->getOption('multiple_enabled'))) {
-            return ExmWhere::class;
+        if ($this->isMultipleEnabled()) {
+            return ExmFilter\Where::class;
         }
-        return Filter\Equal::class;
+        return ExmFilter\EqualOrIn::class;
     }
 
     /**
@@ -130,7 +129,7 @@ class Select extends CustomItem
     protected function setAdminFilterOptions(&$filter)
     {
         $options = $this->custom_column->createSelectOptions();
-        $filter->select($options);
+        $filter->multipleSelect($options);
     }
     
     /**

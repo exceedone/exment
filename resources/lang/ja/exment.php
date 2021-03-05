@@ -102,6 +102,7 @@ return [
             'modal_confirm' => '実施する場合は、「%s」を入力してください。',
             'label_link' => ':labelは、<a href=":link" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご確認ください。',
             'preview' => 'この画面はプレビューです。内容を最新化する場合、元々のウィンドウで、再度プレビューボタンをクリックしてください。',
+            'cannot_preview' => '※:nameは、編集中のプレビュー機能に対応していません。確認する場合、一度保存後に実施してください。'
         ],
 
         'help' =>[
@@ -162,6 +163,7 @@ return [
         'public_form_not_found' => 'フォームがありませんでした。URLが誤っているか、有効期限でない場合があります。',
         'captcha' => 'Google reCAPTCHA実施に失敗しました。再読み込みし、再度入力を行ってください。',
         'expired_error' => 'ページの有効期限が切れました。画面の更新を実施してください。',
+        'expired_error_reinput' => 'ページの有効期限が切れました。お手数ですが、再入力を行ってください。',
     ],
 
     'install' => [
@@ -1264,6 +1266,7 @@ return [
             'check_radio_enabled' => 'ラジオボタン・チェックボックス形式で表示',
             'checkbox_enabled' => 'ラジオボタン・チェックボックス形式で表示',
             'free_input' => '自由に入力可能にする',
+            'accept_extensions' => 'アップロード許可する拡張子',
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -1332,6 +1335,8 @@ return [
             'login_user_default' => 'YESにすることで、項目の初期値がログインユーザーになります。',
             'multiple_enabled' => 'YESにすることで、この列に複数の値を登録することができます。※一部の機能に制限がかかります。',
             'check_radio_enabled' => 'YESにすることで、ラジオボタン形式またはチェックボックス形式で表示されます。',
+            'multiple_enabled_file' => 'YESにすることで、複数のファイルをアップロードすることができます。',
+            'accept_extensions' => 'アップロードを許可するファイルの拡張子を指定する場合、ドットを含まずに、拡張子を入力してください。複数指定する場合は、カンマ区切りで入力してください。例：docx,pdf,xlsx',
             'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
             'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
         ],
@@ -1368,6 +1373,12 @@ return [
             "select_datetime" => "指定の日時",
             "login_user" => "ログインユーザー",
             "select_user" => "指定のユーザー(現在、IDの指定が必要)",
+        ],
+
+        'error' => [
+            'select_valtext_notkeyvalue' => '行%s : 値と見出しが設定されていません。例に従い、値と見出しの両方を設定してください。',
+            'select_valtext_notkey' => '行%s : 値を空に設定することはできません。',
+            'select_valtext_toocomma' => '行%s : カンマが多すぎます。値と見出しを見直してください。',
         ],
     ],
 
@@ -1410,10 +1421,11 @@ return [
         'field_showing_type' => 'フィールド種類',
         'form_column_view_name' => 'フィールド表示名',
         'image_aslink' => '画像をリンクとして表示',
-        'append_button_tooltip' => 'ブロックを追加',
-        'resize_box_tooltip' => 'ブロックのサイズを変更',
-        'delete_box_tooltip' => 'ブロックを削除',
+        'append_button_tooltip' => 'ボックスを追加',
+        'resize_box_tooltip' => 'ボックスのサイズを変更',
+        'delete_box_tooltip' => 'ボックスを削除',
         'form_label_type' => '見出し表示方法',
+        'show_grid_type' => '詳細画面表示方法',
         'append_hr' => '罫線を引く',
 
         'priority' => [
@@ -1444,6 +1456,11 @@ return [
             'hidden' => '非表示',
         ],
 
+        'show_grid_type_options' => [
+            'grid' => '行・列を分けて表示',
+            'one_column' => '全項目を1列で表示',
+        ],
+
         'help'=> [
             'items' => 'データフォームに表示する項目を設定します。<br />「フォーム項目 候補一覧」の中から、フォームに表示したい項目を、ドラッグ＆ドロップで設定してください。',
             'changedata' => 'フォーム内の他の項目を選択したときに、選択したデータの値を、項目にコピーすることができます。<br />詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -1454,6 +1471,7 @@ return [
             'field_showing_type' => 'フィールドの種類を選択します。画面に表示する方法を選択してください。',
             'form_column_view_name' => 'フォームに表示する名称を変更する場合は、記入してください。',
             'image_aslink' => 'YESにすることで、画像をリンク形式で表示します。',
+            'show_grid_type' => 'このフォームで詳細画面を表示した時に、行・列を設定した通りに分けて表示するか、すべての項目を縦1列で表示するかどうかを設定してください。※全項目を1列で表示した場合、「見出し表示方法」設定は無効化されます。',
             'form_label_type' => '各項目の見出しを、どのように表示するかを設定します。※フォーム全体の設定です。個別に設定する場合は、各項目の設定を変更してください。',
             'field_label_type' => 'この項目の見出しを、どのように表示するかを設定します。',
             'required' => 'このフォームで、この項目を必須にする場合、YESにしてください.',
@@ -1512,13 +1530,17 @@ return [
         'complete_text' => '完了テキスト',
         'complete_link_text' => '完了リンク先テキスト',
         'complete_link_url' => '完了リンク先URL',
+        'notify_complete_user' => '完了通知(一般ユーザー)',
+        'use_notify_complete_user' => '完了通知を一般ユーザーに行う',
+        'notify_complete_admin' => '完了通知(管理者)',
+        'use_notify_complete_admin' => '完了通知を管理者に行う',
         'error_setting'=> 'エラー設定',
+        'error_title' => 'エラーテキスト',
         'error_text' => 'エラーテキスト',
         'error_link_text' => 'エラーリンク先テキスト',
         'error_link_url' => 'エラーリンク先URL',
-        'use_error_notify' => 'エラー通知を行う',
-        'error_notify_target' => 'エラー通知方法',
-        'body_content_type' => 'フォーム表示レイアウト',
+        'notify_error' => 'エラー通知(管理者)',
+        'use_notify_error' => 'エラー通知を行う',
         'share_url' => '公開フォームURL',
         'confirm_label' => '入力内容確認',
         'option_setting' => 'オプション設定',
@@ -1526,6 +1548,11 @@ return [
         'analytics_tag' => 'Googleアナリティクス',
         'use_recaptcha' => 'Google reCAPTCHAを使用する',
         'use_default_query' => '初期値をURLから設定可能にする',
+        'css_js_setting' => 'CSS・Javascript',
+        'custom_css' => 'カスタムCSS',
+        'plugin_css' => 'プラグイン(CSS)',
+        'custom_js' => 'カスタムJavascript',
+        'plugin_js' => 'プラグイン(Javascript)',
 
         'help'=> [
             'custom_form_id' => '公開フォームを設定する、フォームを選択してください。',
@@ -1534,10 +1561,9 @@ return [
             'use_recaptcha' => 'Google reCAPTCHAを使用する場合は、YESに設定してください。※サイトキーとシークレットキーは、システム設定画面で設定してください。',
             'use_header' => 'ヘッダーを使用する場合は、YESに設定してください。',
             'header_background_color' => 'ヘッダーの背景色を指定してください。',
-            'header_logo' => 'ヘッダーのロゴを指定してください。推奨サイズ：200px * 40px / :size <br/>※ヘッダーロゴは、編集中のプレビュー機能に対応していません。確認する場合、一度保存後に実施してください。',
+            'header_logo' => 'ヘッダーのロゴを指定してください。推奨サイズ：200px * 40px / :size <br/>',
             'header_label' => 'ヘッダーのテキストを設定してください。※ヘッダーロゴを指定していない場合のみ表示されます。',
             'header_text_color' => 'ヘッダーの文字色を指定してください。',
-            'body_content_type' => 'フォームをどのように表示するかを選択します。「真ん中寄せ」の場合、フォームの外枠に背景色を設定できます。',
             'background_color_outer' => 'フォーム外枠の背景色を設定してください。',
             'background_color' => 'フォーム内の背景色を設定してください。',
             'use_footer' => 'フッターを使用する場合は、YESに設定してください。',
@@ -1550,24 +1576,36 @@ return [
             'complete_text' => '入力完了画面のページ上部に表示するテキスト・HTMLを入力してください。※<a href=":url" target="_blank" rel="noopener noreferrer">パラメータ</a>を入力できます。また、スクリプトは実行できません。',
             'complete_link_text' => '完了画面でリンクを表示する場合、リンク先テキストを入力してください。',
             'complete_link_url' => '完了画面でリンクを表示する場合、リンク先のURLを入力してください。',
+            'notify_complete_user' => 'データを入力した一般ユーザーに、登録完了後、メールを送信することができます。※システムにログインしていない一般のユーザー向けの通知のため、通知方法はEメール送信のみになります。また、通知先は、一般ユーザーが記入したEメールアドレスのみになります。',
+            'use_notify_complete_user' => '完了通知を一般ユーザーに送信する場合、YESにしてください。',
+            'notify_complete_admin' => '一般ユーザーがデータの入力完了後、管理者に通知を送信することができます。※通知を実施する場合、「通知対象」を1件以上登録してください。',
+            'use_notify_complete_admin' => '完了通知を管理者に送信する場合、YESにしてください。',
+            'notify_action_target_complete_user' => '通知先の対象を選択します。※通知先は、カスタム列種類「メールアドレス」の項目のみになります。',
+            'error_title' => 'エラー画面のタイトルを入力してください。',
             'error_text' => 'エラー画面のページ上部に表示するテキスト・HTMLを入力してください。※スクリプトは実行できません。',
             'error_link_text' => 'エラー画面でリンクを表示する場合、リンク先テキストを入力してください。',
             'error_link_url' => 'エラー画面でリンクを表示する場合、リンク先のURLを入力してください。',
             'error_notify_target' => 'エラー通知を行う方法を選択してください。',
-            'use_error_notify' => 'エラーが発生した場合、管理者に通知を行うことができます。',
+            'notify_error' => 'エラーが発生した場合、管理者に通知を送信することができます。※通知を実施する場合、「通知対象」を1件以上登録してください。',
+            'use_notify_error' => 'エラー通知を実施する場合、YESに設定してください。',
             'share_url' => '一般ユーザーがこのフォームにアクセスするためのURLです。クリックすることで、URLをコピーします。',
             'proxy_user_id' => 'この公開フォームは、表示されているユーザーとして実行、データ登録を行います。',
             'analytics_tag' => 'Googleアナリティクスを使用する場合、「UA-」もしくは「G-」から始まる、Google Analyticsのタグを入力してください。',
             'use_default_query' => 'YESにすることで、URLのクエリ文字列の値を、フォームの初期値として設定することができます。',
             'activate_modal_header' => 'このフォームでは、以下のテーブルへのアクセスを含んでいます。そのため、<span class="red">一般ユーザーが、これらのテーブルのデータを読み取ることが可能になります。</span>',
             'activate_modal_footer' => "本当にこのフォームを公開しても問題ない場合は、「設定」をクリックしてください。",
+            'custom_css' => '独自のCSSを使用する場合は、記入してください。※&lt;style&gt;タグは不要です。',
+            'plugin_css' => 'インストールされているプラグイン(CSS)を、公開フォームにも反映させる場合、反映させるCSSを指定してください。',
+            'custom_js' => '独自のJavascriptを使用する場合は、記入してください。※&lt;script&gt;タグは不要です。',
+            'plugin_js' => 'インストールされているプラグイン(Javascript)を、公開フォームにも反映させる場合、反映させるJavascriptを指定してください。',
         ],
 
         'message' => [
             'confirm_title' => '入力内容確認',
-            'confirm_text' => '入力内容をご確認の上、よろしければ「送信」ボタンを押してください。入力をやり直す場合は、「修正」ボタンを押して入力画面に戻り、再度入力してください。',
+            'confirm_text' => '入力内容をご確認の上、よろしければ「送信」ボタンを押してください。入力をやり直す場合は、「戻る」ボタンを押して入力画面に戻り、再度入力してください。',
             'complete_title' => '入力完了',
             'complete_text' => '入力が完了しました。',
+            'error_title' => 'エラーが発生しました',
             'error_text' => 'エラーが発生しました。お手数ですが、再度入力を行ってください。',
             'recaptcha_not_setting' => 'Google reCaptchaの設定値が入力されていません。利用する場合、システム設定画面で設定を行ってください。',
             'cannot_set_master_table' => 'このテーブルでは、公開フォームを設定できません。',
@@ -2153,6 +2191,8 @@ return [
         'header_trigger' => '通知条件設定',
         'header_action' => '通知アクション設定',
         'description' => '特定の条件で、通知を行うための設定を行います。',
+        'notify_moved' => '通知設定は移動しました',
+        'notify_moved_tag' => '一覧画面表示',
         'notify_name' => '通知名(英数字)',
         'notify_view_name' => '通知表示名',
         'notify_target' => '対象',
@@ -2216,6 +2256,7 @@ return [
         ],
 
         'notify_action_target_options' => [
+            'administrator' => 'システム管理者',
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
             'work_user' => '次の作業ユーザー',
@@ -2224,6 +2265,7 @@ return [
 
         'message' => [
             'no_action_target' => '通知対象がありませんでした。',
+            'notify_moved' => '通知設定は移動しました。メニューから削除をお願いします。',
         ],
     ],
     

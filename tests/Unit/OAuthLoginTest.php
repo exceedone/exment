@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;

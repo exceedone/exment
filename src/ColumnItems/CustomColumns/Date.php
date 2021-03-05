@@ -17,6 +17,10 @@ class Date extends CustomItem
 
     protected function _text($v)
     {
+        if ($this->displayDate() && boolval(array_get($this->options, 'public_form')) && !isset($v)) {
+            return exmtrans('custom_value.auto_number_create');
+        }
+
         // if not empty format, using carbon
         $format = array_get($this->custom_column, 'options.format');
         if (is_nullorempty($format)) {
@@ -82,7 +86,7 @@ class Date extends CustomItem
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
-            return ExmentField\Display::class;
+            return Field\Display::class;
         }
         return Field\Date::class;
     }
@@ -101,7 +105,8 @@ class Date extends CustomItem
     protected function setAdminOptions(&$field)
     {
         if ($this->displayDate()) {
-            $field->default($this->getNowString());
+            $field->default(exmtrans('custom_value.auto_number_create'));
+            $field->setInternal(true);
         } else {
             $field->options(['useCurrent' => false]);
         }
@@ -226,11 +231,8 @@ class Date extends CustomItem
      */
     protected function _getDefaultValue()
     {
-        if (boolval(array_get($this->options, 'changefield', false))) {
-            return null;
-        }
-        $options = $this->custom_column->options;
-        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_DATE)) {
+        list($default_type, $default) = $this->getDefaultSetting();
+        if (isMatchString($default_type, ColumnDefaultType::EXECUTING_DATE)) {
             return \Carbon\Carbon::now()->format($this->format);
         }
 

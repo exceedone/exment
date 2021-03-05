@@ -981,7 +981,7 @@ class TestDataSeeder extends Seeder
     {
         $notify = new Notify;
         $notify->notify_view_name = $custom_table->table_name . '_notify';
-        $notify->custom_table_id = $custom_table->id;
+        $notify->target_id = $custom_table->id;
         $notify->notify_trigger = Enums\NotifyTrigger::CREATE_UPDATE_DATA;
         $notify->mail_template_id = 6;
         $notify->trigger_settings = [
@@ -1031,7 +1031,7 @@ class TestDataSeeder extends Seeder
         foreach ($items as $item) {
             $notify = new Notify;
             $notify->notify_view_name = $item['name'];
-            $notify->custom_table_id = $custom_table->id;
+            $notify->target_id = $custom_table->id;
             $notify->notify_trigger = Enums\NotifyTrigger::BUTTON;
             $notify->mail_template_id = 5;
             $notify->trigger_settings = [
@@ -1054,7 +1054,7 @@ class TestDataSeeder extends Seeder
         }
         $notify = new Notify;
         $notify->notify_view_name = $custom_table->table_name . '_notify_limit';
-        $notify->custom_table_id = $custom_table->id;
+        $notify->target_id = $custom_table->id;
         $notify->notify_trigger = 1;
         $notify->mail_template_id = 5;
         $notify->trigger_settings = [
@@ -1139,8 +1139,7 @@ class TestDataSeeder extends Seeder
                     'error_link_url' => NULL,
                     'error_link_text' => NULL,
                     'background_color' => '#ffffff',
-                    'use_error_notify' => '0',
-                    'body_content_type' => 'width100',
+                    'use_notify_error' => '0',
                     'complete_link_url' => NULL,
                     'footer_text_color' => '#ffffff',
                     'header_text_color' => '#ffffff',

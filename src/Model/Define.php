@@ -200,8 +200,9 @@ class Define
     public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
     public const SYSTEM_KEY_SESSION_FILE_NODELIST = "file_treelist";
     public const SYSTEM_KEY_SESSION_COMPOSER_VERSION = "exment_composer_version";
-    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_CONFIRM = "public_form_confirm";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT = "public_form_input";
+    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES = "public_form_input_filenames";
+    public const SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES = "public_form_saved_filenames";
 
 
     public const APPEND_QUERY_WORK_STATUS_SUB_QUERY = 'APPEND_QUERY_WORK_STATUS_SUB_QUERY';
@@ -252,10 +253,6 @@ class Define
         'plugin' => [
             'uri' => 'plugin',
             'icon' => 'fa-plug',
-        ],
-        'notify' => [
-            'uri' => 'notify',
-            'icon' => 'fa-bell',
         ],
         'loginuser' => [
             'uri' => 'loginuser',
@@ -470,6 +467,7 @@ class Define
     public const DISKNAME_PLUGIN_TEST = 'plugin_test';
     public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
     public const DISKNAME_TEMP_UPLOAD = 'tmpupload';
+    public const DISKNAME_PUBLIC_FORM_TMP = 'public_form_tmp';
 
     public const IMAGE_RULE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
 
@@ -495,7 +493,7 @@ class Define
 
 
     public const HTML_ALLOWED_DEFAULT = 'div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr';
-    public const HTML_ALLOWED_EDITOR_DEFAULT = '@[style],div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr';
-    public const HTML_ALLOWED_ATTRIBUTES_DEFAULT = '*.style';
+    public const HTML_ALLOWED_EDITOR_DEFAULT = '@[style],@[class],div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr';
+    public const HTML_ALLOWED_ATTRIBUTES_DEFAULT = '*.style,*.class';
     public const CSS_ALLOWED_PROPERTIES_DEFAULT = '*';
 }

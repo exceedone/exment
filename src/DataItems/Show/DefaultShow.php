@@ -10,6 +10,7 @@ use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Show\Field as ShowField;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -22,6 +23,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -31,6 +33,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
 
@@ -38,10 +41,18 @@ class DefaultShow extends ShowBase
 {
     protected static $showClassName = \Exceedone\Exment\Form\Show::class;
 
+    /**
+     * Set row count. if contains parent or system values, set increment.
+     *
+     * @var integer
+     */
+    protected $rowCount = 0;
+
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
         $this->custom_form = $custom_form;
+        $this->rowCount = 0;
     }
 
     /**
@@ -66,8 +77,18 @@ class DefaultShow extends ShowBase
     {
         return new static::$showClassName($this->custom_value, function ($show) {
             if (!$this->modal) {
-                $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
+                $field = (new ShowField(null, null))->system_values()->setWidth(12, 0);
+                $show->addFieldAndOption($field, [
+                    'row' => $this->rowCount++,
+                    'column' => 1,
+                    'width' => 4,
+                    'calcWidth' => false,
+                ]);
                 $field->border = false;
+            }
+
+            if($this->gridShows()){
+                $show->gridShows();
             }
 
             // add parent link
@@ -77,7 +98,8 @@ class DefaultShow extends ShowBase
                     $item = ColumnItems\ParentItem::getItemWithParent($relation->child_custom_table, $relation->parent_custom_table);
                     $this->setColumnItemOption($item);
 
-                    $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
+                    $field = new ShowField($item->name(), $item->label());
+                    $field->as(function ($v) use ($item) {
                         if (is_null($this)) {
                             return '';
                         }
@@ -87,51 +109,22 @@ class DefaultShow extends ShowBase
                     if ($this->modal) {
                         $field->setWidth(9, 3);
                     }
+                    $show->addFieldAndOption($field, [
+                        'row' => $this->rowCount++,
+                        'column' => 1,
+                        'width' => 4,
+                        'calcWidth' => false,
+                    ]);
                 }
             }
 
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
-                // whether update set width
-                $updateSetWidth = $custom_form_block->isMultipleColumn() || $this->modal;
-    
-                // if available is false, continue
-                if (!$custom_form_block->available) {
+                ////// default block(no relation block)
+                if (array_get($custom_form_block, 'form_block_type') != FormBlockType::DEFAULT) {
                     continue;
                 }
-                ////// default block(no relation block)
-                if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
-                    $hasMultiColumn = false;
-
-                    foreach ($custom_form_block->custom_form_columns as $form_column) {
-                        if ($form_column->form_column_type == FormColumnType::SYSTEM) {
-                            continue;
-                        }
-                        
-                        // if hidden field, continue
-                        if (boolval(config('exment.hide_hiddenfield', false)) && boolval(array_get($form_column, 'options.hidden', false))) {
-                            continue;
-                        }
-
-                        $item = $form_column->column_item;
-                        if (!isset($item)) {
-                            continue;
-                        }
-                        $this->setColumnItemOption($item);
-                        
-                        $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
-                            ->as(function ($v) use ($item) {
-                                if (is_null($this)) {
-                                    return '';
-                                }
-                                return $item->setCustomValue($this)->html();
-                            })->setEscape(false);
-                        
-                        if ($updateSetWidth) {
-                            $field->setWidth(9, 3);
-                        }
-                    }
-                }
+                $this->setByCustomFormBlock($show, $custom_form_block);
             }
             
             // if modal, disable list and delete
@@ -260,6 +253,57 @@ class DefaultShow extends ShowBase
             });
         });
     }
+
+
+    /**
+     * Set show item by custom form block
+     *
+     * @param Show $show
+     * @param CustomFormBlock $custom_form_block
+     * @return void
+     */
+    public function setByCustomFormBlock($show, $custom_form_block)
+    {
+        // if available is false, continue
+        if (!$custom_form_block->available) {
+            return;
+        }
+        $hasMultiColumn = false;
+
+        foreach ($custom_form_block->custom_form_columns as $form_column) {
+            if ($form_column->form_column_type == FormColumnType::SYSTEM) {
+                continue;
+            }
+            
+            $item = $form_column->column_item;
+            if (!isset($item)) {
+                continue;
+            }
+
+            $this->setColumnItemOption($item, $form_column);
+            
+            // if hidden field, continue
+            if ($item->disableDisplayWhenShow()) {
+                continue;
+            }
+
+            $field = new ShowField($item->name(), $item->label());
+            $item->setShowFieldOptions($field, [
+                'gridShows' => $this->gridShows(),
+            ]);
+            
+            if ($this->modal) {
+                $field->setWidth(9, 3);
+            }
+
+            $show->addFieldAndOption($field, [
+                'row' => $this->rowCount + $form_column->row_no,
+                'column' => $form_column->column_no,
+                'width' => $form_column->width ?? 4,
+            ]);
+        }
+    }
+
 
     /**
      * Append child block box.
@@ -808,11 +852,16 @@ EOT;
      * @param ItemInterface $column_item
      * @return void
      */
-    protected function setColumnItemOption(ItemInterface $column_item)
+    protected function setColumnItemOption(ItemInterface $column_item, ?CustomFormColumn $form_column = null)
     {
         if($this->isPublicForm()){
             $column_item->options(['public_form' => $this->public_form]);
         }
+
+        if($form_column){
+            $column_item->setFormColumnOptions($form_column->options);
+        }
+        $column_item->setCustomForm($this->custom_form);
     }
 
     /**
@@ -823,5 +872,19 @@ EOT;
     protected function isPublicForm() : bool
     {
         return $this instanceof PublicFormShow;
+    }
+
+    /**
+     * Whether this show is grid.
+     *
+     * @return bool
+     */
+    protected function gridShows(){
+        if($this->modal){
+            return false;
+        }
+
+        $show_grid_type = $this->custom_form->getOption('show_grid_type') ?? ShowGridType::GRID;
+        return isMatchString($show_grid_type, ShowGridType::GRID);
     }
 }

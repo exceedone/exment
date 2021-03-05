@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
 use Exceedone\Exment\DataItems\Form\PublicFormForm;
@@ -20,12 +21,32 @@ class PublicForm extends ModelBase
     use Traits\ClearCacheTrait;
     use Traits\AutoUuidTrait;
     use Traits\DatabaseJsonOptionTrait;
+    use Traits\PublicFormInputTrait;
 
     protected $casts = ['options' => 'json'];
 
     public function custom_form()
     {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
+    }
+
+    public function notify_complete_admin()
+    {
+        return $this->hasOne(Notify::class, 'target_id')
+            ->where('notify_trigger', NotifyTrigger::PUBLIC_FORM_COMPLETE_ADMIN)
+            ->where('active_flg', 1);
+    }
+    public function notify_complete_user()
+    {
+        return $this->hasOne(Notify::class, 'target_id')
+            ->where('notify_trigger', NotifyTrigger::PUBLIC_FORM_COMPLETE_USER)
+            ->where('active_flg', 1);
+    }
+    public function notify_error()
+    {
+        return $this->hasOne(Notify::class, 'target_id')
+            ->where('notify_trigger', NotifyTrigger::PUBLIC_FORM_ERROR)
+            ->where('active_flg', 1);
     }
 
     public function deletingChildren()
@@ -54,6 +75,10 @@ class PublicForm extends ModelBase
         static::deleting(function ($model) {
             $model->deletingChildren();
         });
+
+        static::saved(function ($model) {
+            $model->toggleNotify();
+        });
     }
 
 
@@ -62,9 +87,9 @@ class PublicForm extends ModelBase
      *
      * @return string
      */
-    public function getBasePath() : string
+    public function getBasePath(...$pass_array) : string
     {
-        return url_join(config('exment.publicform_route_prefix', 'publicform'), $this->uuid);
+        return url_join(public_form_base_path(), $this->uuid, ...$pass_array);
     }
 
     /**
@@ -72,9 +97,9 @@ class PublicForm extends ModelBase
      *
      * @return string
      */
-    public function getUrl() : string
+    public function getUrl(...$pass_array) : string
     {
-        return asset_urls($this->getBasePath());
+        return asset_urls($this->getBasePath(...$pass_array));
     }
 
 
@@ -101,7 +126,7 @@ class PublicForm extends ModelBase
             return null;
         }
 
-        if($segments[0] !== config('exment.publicform_route_prefix', 'publicform')
+        if($segments[0] !== public_form_base_path()
             && $segments[0] !== config('exment.publicformapi_route_prefix', 'publicformapi')){
             return null;
         }
@@ -120,11 +145,12 @@ class PublicForm extends ModelBase
             return null;
         }
 
-        $model = PublicForm::where('uuid', $uuid)
-            ->where('active_flg', 1)
-            ->withoutGlobalScopes()
-            ->first();
+        $model = PublicForm::findByUuid($uuid);
         if(!$model){
+            return null;
+        }
+
+        if(!boolval($model->active_flg)){
             return null;
         }
 
@@ -209,9 +235,15 @@ class PublicForm extends ModelBase
      * @param boolean $setRecaptcha if true, set Recaptcha. If confirm→submit, set false
      * @return void
      */
-    public function getForm(Request $request, ?CustomValue $custom_value = null, bool $setRecaptcha = true)
+    public function getForm(Request $request, ?CustomValue $custom_value = null, array $options = [])
     {
-        \Admin::css(asset('vendor/exment/css/publicform.css'));
+        $options = array_merge([
+            'setRecaptcha' => true,
+            'asConfirm' => false,
+        ], $options);
+        $setRecaptcha = $options['setRecaptcha'];
+
+
         // set footer as PublicFormFooter
         \Encore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
 
@@ -221,12 +253,17 @@ class PublicForm extends ModelBase
         }
         $public_form = PublicFormForm::getItem($this->custom_table_cache, $this->custom_form_cache)
         ->setPublicForm($this)
+        ->setAsConfirm($options['asConfirm'])
         ->setEnableDefaultQuery(boolval($this->getOption('use_default_query')));
     
         $form = $public_form->form()
+            ->renderException(function($ex){
+                return $this->showError($ex, true);
+            })
             ->disablePjax()
             ->setView('exment::public-form.form')
             ->setAction($this->getUrl())
+            ->setClass('block_custom_value_form')
             ;
 
         if($custom_value){
@@ -257,6 +294,9 @@ class PublicForm extends ModelBase
         $form->ignore('publicformapi');
         $form->ignore('rooturi');
 
+        // Set custom css and js
+        \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
+
         return $form;
     }
 
@@ -267,21 +307,32 @@ class PublicForm extends ModelBase
      * @param Request $request
      * @return Form
      */
-    public function getShow(Request $request, CustomValue $custom_value)
+    public function getShow(Request $request, CustomValue $custom_value, array $inputs = [])
     {
         $custom_form = $this->custom_form;
         if(!$custom_form){
             return null;
         }
-        $show = PublicFormShow::getItem($custom_value->custom_table, $custom_form)
+
+        $show_item = PublicFormShow::getItem($custom_value->custom_table, $custom_form)
             ->custom_value($custom_value)
-            ->setPublicForm($this)
+            ->setPublicForm($this);
+        $child_items = $show_item->getChildRelationShows($inputs);
+
+        $show = $show_item
             ->createShowForm()
+            ->renderException(function($ex){
+                return $this->showError($ex, true);
+            })
             ->setAction(url_join($this->getUrl(),  'create'))
             ->setBackAction($this->getUrl())
-            ->setConfirmTitle($this->getOption('confirm_title'))
-            ->setConfirmText($this->getOption('confirm_text'))
+            ->setConfirmTitle(replaceTextFromFormat($this->getOption('confirm_title'), $custom_value))
+            ->setConfirmText(replaceTextFromFormat($this->getOption('confirm_text'), $custom_value))
+            ->setChildRelationShows($child_items);
             ;
+
+        // Set custom css and js
+        \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
 
         return $show;
     }
@@ -296,19 +347,93 @@ class PublicForm extends ModelBase
     public function getCompleteView(Request $request, CustomValue $custom_value)
     {
         // create link
-        if(($url = $this->getOption('complete_link_url')) && ($text = $this->getOption('complete_link_text'))){
+        $text = $this->getOption('complete_link_text');
+        if(($url = $this->getOption('complete_link_url'))){
             $link = view('exment::tools.link', [
                 'href' => $url,
-                'label' => $text,
+                'label' => $text ?? $url,
             ]);
         }
 
+        // Set custom css and js
+        \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
+
         return view('exment::public-form.complete', [
             'model' => $custom_value,
-            'complete_title' => $this->getOption('complete_title'),
-            'complete_text' => $this->getOption('complete_text'),
+            'complete_title' => replaceTextFromFormat($this->getOption('complete_title'), $custom_value),
+            'complete_text' => replaceTextFromFormat($this->getOption('complete_text'), $custom_value),
             'link' => $link ?? null,
         ]);
+    }
+    
+    /**
+     * getErrorView
+     *
+     * @param Request $request
+     * @return Form
+     */
+    public function getErrorView(Request $request)
+    {
+        // create link
+        $text = $this->getOption('error_link_text');
+        if(($url = $this->getOption('error_link_url'))){
+            $link = view('exment::tools.link', [
+                'href' => $url,
+                'label' => $text ?? $url,
+            ]);
+        }
+
+        // Set custom css and js
+        \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
+        
+        return view('exment::public-form.error', [
+            'error_title' => $this->getOption('error_title'),
+            'error_text' => $this->getOption('error_text'),
+            'link' => $link ?? null,
+        ]);
+    }
+
+
+    /**
+     * Show error page and notify
+     *
+     * @return void
+     */
+    public function showError($ex, $asInner = false){
+        try{
+            \Log::error($ex);
+
+            try{
+                if(!is_null($notify = $this->notify_error)){
+                    $notify->notifyUser(null, [
+                        'custom_table' => $this->custom_table_cache,
+                        'prms' => [
+                            'error:message' => $ex->getMessage(),
+                            'error:stacktrace' => $ex->getTraceAsString(),
+                            'publicform:public_form_view_name' => $this->public_form_view_name,
+                        ],
+                    ]);
+                }
+            }
+            catch(\Exception $ex){
+                \Log::error($ex);
+            }
+
+            $view = $this->getErrorView(request());
+            if($asInner){
+                return $view;
+            }
+            $content = new PublicContent;
+            $this->setContentOption($content);
+            $content->row($view);
+
+            return $content;
+        }
+        catch(\Excedption $ex){
+            throw $ex;
+        } catch (\Throwable $ex) {
+            throw $ex;
+        }
     }
 
 
@@ -320,8 +445,10 @@ class PublicForm extends ModelBase
      */
     public function setContentOption(PublicContent $content, array $options = [])
     {
+        \Admin::css(asset('vendor/exment/css/publicform.css'));
         $options = array_merge([
                 'add_analytics' => true,
+                'isContainer' => false,
             ],
             $options
         );
@@ -338,7 +465,7 @@ class PublicForm extends ModelBase
             ->setFooterTextColor($this->getOption('footer_text_color') ?? '#FFFFFF')
             ->setUseHeader($this->getOption('use_header') ?? true)
             ->setUseFooter($this->getOption('use_footer') ?? true)
-            ->setIsContainerFluid(($this->getOption('body_content_type') ?? 'width100') == 'width100')
+            ->setIsContainer($options['isContainer'])
             ->setHeaderLogoUrl($header_logo)
             ->setHeaderLabel($this->getOption('header_label'))
             ;
@@ -413,66 +540,24 @@ class PublicForm extends ModelBase
         return true;
     }
 
-    
 
-    // For tab ----------------------------------------------------
-    public function getBasicSettingAttribute()
+    /**
+     * Get css and js plugins
+     *
+     * @return Collection
+     */
+    public function getCssJsPlugins()
     {
-        return $this->options;
-    }
-    public function setBasicSettingAttribute(?array $options)
-    {
-        $this->setOption($options);
-        return $this;
-    }
+        $result = collect();
+        foreach(['css', 'js'] as $p){
+            $pluginIds = $this->getOption("plugin_{$p}") ?? [];
+            foreach($pluginIds as $pluginId){
+                $plugin = Plugin::getEloquent($pluginId);
+                $result->push($plugin);
+            }
+        }
 
-    public function getDesignSettingAttribute()
-    {
-        return $this->options;
-    }
-    public function setDesignSettingAttribute(?array $options)
-    {
-        $this->setOption($options);
-        return $this;
+        return $result;
     }
 
-    public function getConfirmCompleteSettingAttribute()
-    {
-        return $this->options;
-    }
-    public function setConfirmCompleteSettingAttribute(?array $options)
-    {
-        $this->setOption($options);
-        return $this;
-    }
-
-    public function getErrorSettingAttribute()
-    {
-        return $this->options;
-    }
-    public function setErrorSettingAttribute(?array $options)
-    {
-        $this->setOption($options);
-        return $this;
-    }
-
-    public function getOptionSettingAttribute()
-    {
-        return $this->options;
-    }
-    public function setOptionSettingAttribute(?array $options)
-    {
-        $this->setOption($options);
-        return $this;
-    }
-
-    public function getErrorNotifyActionsAttribute()
-    {
-        return $this->getOption('error_notify_actions');
-    }
-    public function setErrorNotifyActionsAttribute($json)
-    {
-        $this->setOption('error_notify_actions', $json);
-        return $this;
-    }
 }

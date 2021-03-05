@@ -1,4 +1,4 @@
-<h2 class="col-md-10 col-md-offset-1">
+<h2 class="col-md-10 col-md-offset-1 text-center">
 {{ $complete_title }}
 </h2>
 

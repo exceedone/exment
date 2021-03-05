@@ -23,7 +23,7 @@
     {!! Admin::headerJs() !!}
 </head>
 
-<body id="body-publicform" class="hold-transition {{$container_fluid ? 'body-container-fluid' : 'body-container'}}">
+<body id="body-publicform" class="hold-transition">
 <div class="wrapper">
     <!-- Main Header -->
     @if($use_header)
@@ -43,7 +43,7 @@
     <div id="">
         {!! Admin::style() !!}
         <div id="app">
-            <div id="container-inner" class="{{$container_fluid ? 'container-fluid' : 'container'}}">
+            <div id="container-inner" class="{{$container ? 'container' : 'container-middle'}}">
             @yield('content')
             </div>
         </div>
@@ -53,7 +53,9 @@
     <!-- Main Footer -->
     @if($use_footer)
     <footer class="main-footer">
-        <strong>Powered by <a href="https://github.com/exceedone/exment" target="_blank">Exment</a></strong>
+        @if($use_footer_label)
+        <strong>Powered by <a href="https://exment.net" target="_blank">Exment</a></strong>
+        @endif
     </footer>
     @endif
 </div>

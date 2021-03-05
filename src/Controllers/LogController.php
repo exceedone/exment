@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\OperationLog;
 use Encore\Admin\Grid;
-use Exceedone\Exment\Form\Show;
+use Encore\Admin\Show;
 use Illuminate\Support\Arr;
 
 class LogController extends AdminControllerBase
@@ -25,7 +25,7 @@ class LogController extends AdminControllerBase
 
         $grid->model()->orderBy('id', 'DESC');
 
-        $grid->column('user.user_name', exmtrans('operation_log.user_name'))->displayEscape(function ($foo, $column, $model) {
+        $grid->column('user.user_name', exmtrans('operation_log.user_name'))->display(function ($foo, $column, $model) {
             return ($model->user ? $model->user->user_name : null);
         });
         $grid->column('method', exmtrans('operation_log.method'));

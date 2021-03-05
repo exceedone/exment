@@ -1,11 +1,15 @@
 <?php
 
-namespace Exceedone\Exment\Form;
+namespace Exceedone\Exment\Form\Show;
 
 use Encore\Admin\Show\Field;
 use Illuminate\Support\Collection;
 
-class PublicShow extends \Encore\Admin\Show
+/**
+ * Show for public form.
+ * Contains hasManys. If has hasMany, set "setChildRelationShows"
+ */
+class PublicShow extends \Exceedone\Exment\Form\Show
 {
     /**
      * Initialize panel.
@@ -50,6 +54,18 @@ class PublicShow extends \Encore\Admin\Show
     public function setConfirmText($confirm_text)
     {
         $this->panel->setConfirmText($confirm_text);
+
+        return $this;
+    }
+
+    /**
+     * Set child relation shows
+     *
+     * @return self
+     */ 
+    public function setChildRelationShows($childRelationShows)
+    {
+        $this->panel->setChildRelationShows($childRelationShows);
 
         return $this;
     }

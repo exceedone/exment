@@ -17,31 +17,18 @@ class SelectTable extends Column
 
 
     /**
-     * prepare saving option.
+     * Get prepare options keys
      *
      * @return array
      */
-    public function prepareSavingOptions(array $options) : array
+    protected function prepareSavingOptionsKeys()
     {
-        // convert field_showing_type
-        if(!is_null($key = $this->convertFieldDisplayType($options))){
-            $options[$key] = 1;
-        }
-        
-        return array_filter($options, function($option, $key){
-            return in_array($key, [
-                'form_column_view_name',
-                'view_only',
-                'read_only',
-                'required',
-                'hidden',
-                'changedata_target_column_id',
-                'changedata_column_id',
-                'relation_filter_target_column_id',
-            ]);
-        }, ARRAY_FILTER_USE_BOTH);
+        return array_merge(parent::prepareSavingOptionsKeys(), [
+            'changedata_target_column_id',
+            'changedata_column_id',
+            'relation_filter_target_column_id',
+        ]);
     }
-
 
     /**
      * Get setting modal form 

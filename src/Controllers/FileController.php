@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Model\PublicForm;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Response;
@@ -363,9 +364,18 @@ class FileController extends AdminControllerBase
     }
 
     /**
+     *  upload Image as temporary
+     */
+    protected function uploadTempImagePublicForm(Request $request, $publicFormUuid)
+    {
+        $public_form = PublicForm::getPublicFormByUuid($publicFormUuid);
+        return $this->_uploadTempFile($request, true, $public_form);
+    }
+
+    /**
      *  upload file as temporary
      */
-    protected function _uploadTempFile(Request $request, bool $isImage)
+    protected function _uploadTempFile(Request $request, bool $isImage, ?PublicForm $public_form = null)
     {
         // delete old temporary files
         $this->removeTempFiles();
@@ -393,7 +403,16 @@ class FileController extends AdminControllerBase
             $request->session()->put($uuid, $original_name);
         } catch (\Exception $e) {
         }
-        return json_encode(['location' => admin_urls('tmpfiles', basename($filename))]);
+
+        // If this request is as public_form, return as url
+        if($public_form)
+        {
+            $localtion = $public_form->getUrl('tmpfiles', basename($filename));
+        }
+        else{
+            $localtion = admin_urls('tmpfiles', basename($filename));
+        }
+        return json_encode(['location' => $localtion]);
     }
 
     /**

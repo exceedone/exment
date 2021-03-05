@@ -23,7 +23,8 @@ trait ExtendedBuilderTrait
      *
      * @return $this
      */
-    public function whereNotMatch(){
+    public function whereNotMatch()
+    {
         $this->whereRaw("1 = 0");
         return $this;
     }
@@ -33,7 +34,8 @@ trait ExtendedBuilderTrait
      *
      * @return $this
      */
-    public function orWhereNotMatch(){
+    public function orWhereNotMatch()
+    {
         $this->orWhereRaw("1 = 0");
         return $this;
     }

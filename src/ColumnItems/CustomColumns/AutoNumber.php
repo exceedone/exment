@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use Exceedone\Exment\Form\Field;
+use Encore\Admin\Form\Field;
 
 class AutoNumber extends CustomItem
 {

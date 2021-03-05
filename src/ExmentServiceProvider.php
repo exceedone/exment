@@ -54,6 +54,7 @@ class ExmentServiceProvider extends ServiceProvider
         ExmentProviders\Route2factorServiceProvider::class,
         ExmentProviders\RouteOAuthServiceProvider::class,
         ExmentProviders\PasswordResetServiceProvider::class,
+        ExmentProviders\RoutePublicFormServiceProvider::class,
         ExmentProviders\PluginServiceProvider::class,
     ];
 
@@ -246,6 +247,15 @@ class ExmentServiceProvider extends ServiceProvider
             'publicform.bootstrap',
             'publicform.session',
         ],
+        // Exment plugin's css and js for publicform.
+        'publicform_plugin_public' => [
+            'publicform.auth',
+            'admin.bootstrap2',
+        ],
+
+        // Dynamic append ----------------------------------------------------
+        //'adminwebapi' : web api middleware. Alomost same "adminapi", but difference Auth and ip-filter.
+        //'publicformapi' : Publicofmr api middleware. Alomost same "adminapi", but difference Auth, and not use ip-filter.
     ];
 
     /**
@@ -328,6 +338,14 @@ class ExmentServiceProvider extends ServiceProvider
                 $this->app->refresh('request', $guard, 'setRequest');
             });
         });
+
+        // Set error page
+        if(!boolval(config('exment.disable_exment_exception_handler', false))){
+            $this->app->singleton(
+                \Illuminate\Contracts\Debug\ExceptionHandler::class,
+                \Exceedone\Exment\Exceptions\Handler::class
+            );
+        }
 
         Passport::ignoreMigrations();
     }

@@ -354,6 +354,28 @@ if (!function_exists('assets_query')) {
         return $url . '?' . http_build_query($query);
     }
 }
+
+if (!function_exists('public_form_base_path')) {
+    /**
+     * Join public form base path.
+     */
+    function public_form_base_path()
+    {
+        return config('exment.publicform_route_prefix', 'publicform');
+    }
+}
+
+if (!function_exists('public_form_url')) {
+    /**
+     * Join public form urls.
+     * "Cannot join path, because when you want to use public form, you have to set public form's uuid."
+     */
+    function public_form_url()
+    {
+        return asset(public_form_base_path());
+    }
+}
+
 if (!function_exists('namespace_join')) {
     /**
      * Join NameSpace.
@@ -558,6 +580,9 @@ if (!function_exists('deleteDirectory')) {
     {
         if (is_nullorempty($path)) {
             return;
+        }
+        if(is_string($disk)){
+            $disk = \Storage::disk($disk);
         }
         
         try {

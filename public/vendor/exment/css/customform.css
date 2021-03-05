@@ -17,6 +17,7 @@
   border: 1px solid black;
   padding: 5px;
   height: 100%;
+  min-height: 150px;
 }
 
 #custom_form_form .custom_form_area_inner .custom_form_area_header {

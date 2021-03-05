@@ -22,6 +22,7 @@ class Image extends OtherBase
         if(!isset($imageurl)){
             $form->image('image', exmtrans('custom_form.image'))
                 ->required()
+                ->help(exmtrans("common.message.cannot_preview", ['name' => exmtrans("custom_form.image")]))
                 ->attribute(['accept' => "image/*"]);
         }
         else{

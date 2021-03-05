@@ -101,21 +101,21 @@ class CustomColumnController extends AdminControllerTableBase
         $grid = new Grid(new CustomColumn);
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
-        $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->displayEscape(function ($val) {
+        $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
             return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
         });
         $grid->column('required', exmtrans("common.required"))->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         $grid->column('options->freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         $grid->column('order', exmtrans("custom_column.order"))->sortable()->editable();
 
         if (isset($this->custom_table)) {

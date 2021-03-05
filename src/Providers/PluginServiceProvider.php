@@ -15,6 +15,8 @@ use Exceedone\Exment\Services\Plugin\PluginPageBase;
 
 class PluginServiceProvider extends ServiceProvider
 {
+    use PluginPublicTrait;
+
     /**
      * Define the routes for the application.
      *
@@ -42,7 +44,7 @@ class PluginServiceProvider extends ServiceProvider
         
         // loop
         foreach ($pluginPublics as $pluginScriptStyle) {
-            $this->pluginScriptStyleRoute($pluginScriptStyle);
+            $this->pluginScriptStyleRoute($pluginScriptStyle->_plugin(), config('admin.route.prefix'), 'admin_plugin_public');
         }
     }
 
@@ -132,7 +134,7 @@ class PluginServiceProvider extends ServiceProvider
             });
         }
 
-        $this->pluginScriptStyleRoute($pluginPage);
+        $this->pluginScriptStyleRoute($plugin, config('admin.route.prefix'), 'admin_plugin_public');
     }
 
     /**
@@ -170,27 +172,5 @@ class PluginServiceProvider extends ServiceProvider
         }
 
         return false;
-    }
-    
-    /**
-     * routing plugin
-     *
-     * @param PluginPageBase $pluginScriptStyle
-     * @return void
-     */
-    protected function pluginScriptStyleRoute($pluginScriptStyle)
-    {
-        if ($this->app->routesAreCached()) {
-            return;
-        }
-
-        Route::group([
-            'prefix'        => url_join(config('admin.route.prefix'), $pluginScriptStyle->_plugin()->getRouteUri()),
-            'namespace'     => 'Exceedone\Exment\Services\Plugin',
-            'middleware'    => ['adminweb', 'admin_plugin_public', 'cache.headers:public;max_age=3600'],
-        ], function (Router $router) {
-            // for public file
-            Route::get('public/{arg1?}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
-        });
     }
 }

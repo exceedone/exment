@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
@@ -48,25 +49,54 @@ class Exment
         return (new Menu())->toTree();
     }
 
-    public static function error($request, $exception, $callback)
+
+    /**
+     * Error handling.
+     * Now we created \Exceedone\Exment\Exceptions\Handler, 
+     * so we want to write logic on that class, 
+     * But we wrote manual calling this function..
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Exception $exception
+     * @param \Illuminate\Http\Response $callback
+     * @return mixed
+     */
+    public function error($request, $exception, $callback)
     {
-        if (\Exment::isApiEndpoint()) {
-            return $callback($request, $exception);
-        }
-        if (!$request->pjax() && $request->ajax()) {
-            // if memory error, throw ajax response
-            if (strpos($exception->getMessage(), 'Allowed memory size of') === 0) {
-                $manualUrl = getManualUrl('quickstart_more');
-                return getAjaxResponse([
-                    'result'  => false,
-                    'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
-                ]);
+        try {
+            // Api is default callback
+            if ($this->isApiEndpoint()) {
+                return $callback($request, $exception);
             }
 
-            return $callback($request, $exception);
-        }
+            if($exception instanceof \Illuminate\Session\TokenMismatchException){
+                admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
+                if ($this->isPublicFormEndpoint()) {
+                    $public_form = PublicForm::getPublicFormByRequest();
+                    return $public_form ? redirect($public_form->getUrl()) : back();
+                }
+                else{
+                    back();
+                }
+            }
+
+            if ($this->isPublicFormEndpoint()) {
+                return $callback($request, $exception);
+            }
+
+            if (!$request->pjax() && $request->ajax()) {
+                // if memory error, throw ajax response
+                if (strpos($exception->getMessage(), 'Allowed memory size of') === 0) {
+                    $manualUrl = getManualUrl('quickstart_more');
+                    return getAjaxResponse([
+                        'result'  => false,
+                        'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
+                    ]);
+                }
+
+                return $callback($request, $exception);
+            }
         
-        try {
             // whether has User
             $user = \Exment::user();
             if (!$user) {
@@ -587,7 +617,17 @@ class Exment
     public function isApiEndpoint()
     {
         $basePath = ltrim(admin_base_path(), '/');
-        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
+        $route = config('exment.publicformapi_route_prefix', 'publicformapi');
+        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*') || request()->is("{$route}/*");
+    }
+
+    /**
+     * this url is Public form endpoint
+     */
+    public function isPublicFormEndpoint()
+    {
+        $route = public_form_base_path();
+        return request()->is("{$route}/*");
     }
 
     

@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\Services\FormSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -66,8 +67,7 @@ class CustomFormController extends AdminControllerTableBase
         }
         
         // public form
-        if(System::publicform_available() && $this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)
-            && !in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+        if($this->enablePublicForm()){
             $content->row($this->setFormPublics());
         }
 
@@ -131,9 +131,9 @@ class CustomFormController extends AdminControllerTableBase
         $grid->column('public_form_view_name', exmtrans("custom_form_public.public_form_view_name"));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         $grid->column('validity_period', exmtrans("custom_form_public.validity_period"))
-            ->displayEscape(function($value, $column, $model){
+            ->display(function($value, $column, $model){
                 if(!$model){
                     return null;
                 }
@@ -361,7 +361,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->column('form_view_name', exmtrans("custom_form.form_view_name"))->sortable();
         $grid->column('default_flg', exmtrans("custom_form.default_flg"))->sortable()->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
 
         if (isset($this->custom_table)) {
             $grid->model()->where('custom_table_id', $this->custom_table->id);
@@ -442,6 +442,9 @@ class CustomFormController extends AdminControllerTableBase
                 $form = new CustomForm;
             }
         }
+        else{
+            $form->append(['show_grid_type', 'form_label_type']);
+        }
 
         // get form block list
         $custom_form_block_items = $this->getFormBlocks($form);
@@ -479,14 +482,20 @@ class CustomFormController extends AdminControllerTableBase
         $form->text('form_view_name', exmtrans('custom_form.form_view_name'))
             ->required();
 
+        $form->switchbool('default_flg', exmtrans('custom_form.default_flg'))
+            ->default(false);
+
+        
+        $form->radio('show_grid_type', exmtrans('custom_form.show_grid_type'))
+            ->help(exmtrans('custom_form.help.show_grid_type'))
+            ->default(ShowGridType::GRID)
+            ->options(ShowGridType::transArray('custom_form.show_grid_type_options'));
+        
         $form->radio('form_label_type', exmtrans('custom_form.form_label_type'))
             ->help(exmtrans('custom_form.help.form_label_type'))
             ->default(FormLabelType::HORIZONTAL)
             ->options(FormLabelType::transArrayFilter('custom_form.form_label_type_options', FormLabelType::getFormLabelTypes()));
-            
-        $form->switchbool('default_flg', exmtrans('custom_form.default_flg'))
-            ->default(false);
-
+         
         $box = new Box(exmtrans('custom_form.header_basic_setting'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => 'javascript:void(0);',
@@ -701,6 +710,7 @@ class CustomFormController extends AdminControllerTableBase
         $form->form_view_name = $request->get('form_view_name');
         $form->default_flg = $request->get('default_flg');
         $form->form_label_type = $request->get('form_label_type', FormLabelType::HORIZONTAL);
+        $form->show_grid_type = $request->get('show_grid_type', ShowGridType::GRID);
 
         $new_columns = [];
         $deletes = [];
@@ -864,5 +874,23 @@ class CustomFormController extends AdminControllerTableBase
         })->filter()->each(function($file){
             ExmentFile::deleteFileInfo($file);
         });
+    }
+
+
+    protected function enablePublicForm() : bool
+    {
+        if(!System::publicform_available()){
+            return false;
+        }
+        if(!$this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)){
+            return false;
+        }
+        if(boolval($this->custom_table->getOption('one_record_flg'))){
+            return false;
+        }
+        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+            return false;
+        }
+        return true;
     }
 }

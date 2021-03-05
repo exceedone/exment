@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\WorkflowType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 
 class Workflow extends ModelBase
 {
@@ -37,7 +38,8 @@ class Workflow extends ModelBase
         
     public function notifies()
     {
-        return $this->hasMany(Notify::class, 'workflow_id')
+        return $this->hasMany(Notify::class, 'target_id')
+            ->where('notify_trigger', NotifyTrigger::WORKFLOW)
             ->where('active_flg', 1);
     }
 

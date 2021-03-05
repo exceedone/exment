@@ -45,6 +45,8 @@ class DefaultForm extends FormBase
         $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
 
+        $form->setHorizontal(boolval($this->custom_form->getOption('form_label_type') ?? true));
+
         if (isset($this->id)) {
             $form->systemValues()->setWidth(12, 0);
         }
@@ -80,7 +82,7 @@ class DefaultForm extends FormBase
             }
             // one_to_many or manytomany
             else {
-                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
+                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo($this->custom_table);
                 $target_table = $custom_form_block->target_table;
                 // if user doesn't have edit permission, hide child block
                 if ($target_table->enableEdit() !== true) {
@@ -272,7 +274,7 @@ EOT;
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             // set calc rule for javascript
-            $relation = $custom_form_block->getRelationInfo()[0];
+            $relation = $custom_form_block->getRelationInfo($this->custom_table)[0];
             $calc_formula_key = $relation ? $relation->getRelationName() : '';
             $calc_formula_array[$calc_formula_key] = CalcService::getCalcFormArray($this->custom_table, $custom_form_block);
 
@@ -799,6 +801,9 @@ EOT;
         if($this->enableDefaultQuery)
         {
             $column_item->options(['enable_default_query' => true]);
+        }
+        if($this->asConfirm){
+            $column_item->options(['as_confirm' => true]);
         }
     }
 

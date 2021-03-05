@@ -8,6 +8,7 @@ var Exment;
             $(document).off('click', '[data-widgetmodal_url]').on('click', '[data-widgetmodal_url]', {}, Exment.ModalEvent.setModalEvent);
             $(document).off('click', '#modal-showmodal .modal-body a').on('click', '#modal-showmodal .modal-body a', {}, Exment.ModalEvent.setLinkClickEvent);
             $(document).off('click', '#modal-showmodal .modal-submit').on('click', '#modal-showmodal .modal-submit', {}, Exment.ModalEvent.setSubmitEvent);
+            $(document).off('keydown', '#modal-showmodal form input').on('keydown', '#modal-showmodal form input', {}, Exment.ModalEvent.setEnterEvent);
             // selectitem box
             $(document).off('click', '.table .button-append-selectitem').on('click', '.table .button-append-selectitem', {}, Exment.ModalEvent.appendSelectItemEvent);
             $(document).off('click', '#modal-showmodal .selectitembox-item .button-delete').on('click', '#modal-showmodal .selectitembox-item .button-delete', {}, Exment.ModalEvent.deleteSelectItemEvent);
@@ -209,8 +210,11 @@ var Exment;
             if (res.preventSubmit !== undefined) {
                 preventSubmit = res.preventSubmit;
             }
+            // toggle form pjax-container
+            let $form = $submitButton.closest('.modal-content').find('form');
             if (preventSubmit) {
                 $submitButton.addClass('preventSubmit');
+                // remove pjax-container in form
             }
             else {
                 $submitButton.removeClass('preventSubmit');
@@ -368,6 +372,16 @@ var Exment;
         }
         $('#modal-showmodal .modal-body').html('');
         $('#modal-showmodal').modal('hide');
+    };
+    /**
+     * Enter Keydown event. Now disable click event
+     * @param e
+     */
+    ModalEvent.setEnterEvent = (e) => {
+        if (e.keyCode != 13) {
+            return;
+        }
+        e.preventDefault();
     };
     /**
      * set modal submit event

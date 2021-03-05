@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Services\Plugin;
 
+use Exceedone\Exment\Model\PublicForm;
+
 /**
  * Plugin (Style, Script) base class
  */
@@ -56,5 +58,28 @@ class PluginPublicBase
             $path = trim(str_replace($base_path, '', $file->getPathName()), '/');
             return str_replace('\\', '/', $path);
         })->toArray();
+    }
+
+
+    /**
+     * Get css and js url
+     *
+     * @return void
+     */
+    public function getCssJsUrl($fileName, bool $asPublicForm = false)
+    {
+        if($asPublicForm){
+            $public_form = PublicForm::getPublicFormByRequest();
+            if(!$public_form){
+                return null;
+            }
+
+            $url = $public_form->getUrl();
+        }
+        else{
+            $url = admin_urls();
+        }
+
+        return url_join($url, $this->plugin->getRouteUri(), 'public', $fileName);
     }
 }

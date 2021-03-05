@@ -28,9 +28,10 @@ class User extends SelectTable
         }
 
         $options = $this->custom_column->options;
-
+        list($default_type, $default) = $this->getDefaultSetting();
+        
         // default (login user)
-        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::LOGIN_USER)) {
+        if (isMatchString($default_type, ColumnDefaultType::LOGIN_USER)) {
             return \Exment::getUserId();
         }
 

@@ -7,10 +7,11 @@ namespace Exment {
 
             CustomFromEvent.loadingEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
+            //CustomFromEvent.resizeEvent($('.custom_form_area'));
         }
 
         public static AddEventOnce() {
-            $(document).on('ifChanged check', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
             
@@ -316,6 +317,7 @@ namespace Exment {
             let $block = $(ev.target).closest('.box-custom_form_block').find('.custom_form_block');
             if (available) {
                 $block.show();
+                CustomFromEvent.resizeEvent($block.find('.custom_form_area:visible'));
             } else {
                 $block.hide();
             }
@@ -496,7 +498,7 @@ namespace Exment {
                     let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests .custom_form_column_item');
                     // if required value is 1, hasRequire is true and break
                     $suggests.each(function(i, e){
-                        if($(e).find('.required_item').val() == '1'){
+                        if($(e).find('.required').val() == '1'){
                             hasRequire = true;
                             return false;
                         }
@@ -511,8 +513,8 @@ namespace Exment {
 
             // if has require, show swal
             CommonEvent.ShowSwal(null, {
-                title: $('#cofirm_required_title').val(),
-                text: $('#cofirm_required_text').val(),
+                title: $('#confirm_required_title').val(),
+                text: $('#confirm_required_text').val(),
                 confirmCallback: function(result){
                     if(pBool(result.value)){
                         $('form.custom_form_form').addClass('confirmed').submit();
@@ -727,7 +729,13 @@ namespace Exment {
          * Customized
          */
         private static resizeEvent(resizableEl:JQuery<HTMLElement>){
-            let columns = 12,
+            if(!hasValue(resizableEl)){
+                return;
+            }
+            resizableEl.not('[data-add-resizable]').each(function(index, elem){
+                let resizableEl = $(elem);
+                    
+                let columns = 12,
                 fullWidth = resizableEl.parent().width(),
                 columnWidth = fullWidth / columns,
                 updateClass = function(el, col, updateValue) {
@@ -748,43 +756,43 @@ namespace Exment {
                     }
                 };
 
-            // jQuery UI Resizable
-            resizableEl.resizable({
-                handles: 'e',
-                start: function(event, ui) {
-                let target = ui.element;
+                // jQuery UI Resizable
+                resizableEl.resizable({
+                    handles: 'e',
+                    start: function(event, ui) {
+                        let target = ui.element;
+                        
+                        target.resizable('option', 'minWidth', columnWidth);
+                    },
+                    resize: function(event, ui) {
+                        let $element = $(ui.element);
+                        let beforeGridColumn = $element.data('grid_column');
                 
-                let targetCol = Math.round(target.width() / columnWidth);
-                target.resizable('option', 'minWidth', columnWidth);
-                },
-                resize: function(event, ui) {
-                    let $element = $(ui.element);
-                    let beforeGridColumn = $element.data('grid_column');
-            
-                    let target = ui.element;
-                    let targetColumnCount = Math.round(target.width() / columnWidth);
-                    let updateValue = 1;
+                        let target = ui.element;
+                        let targetColumnCount = Math.round(target.width() / columnWidth);
+                        let updateValue = 1;
 
-                    // Whether update next
-                    if(beforeGridColumn == targetColumnCount || targetColumnCount % 3 !== 0){
-                        targetColumnCount = beforeGridColumn;
-                        updateValue = 0;
-                    }
-                    else{
-                        updateValue = CustomFromEvent.isEnableResize($element, targetColumnCount);
-                        if(updateValue == 0){
+                        // Whether update next
+                        if(beforeGridColumn == targetColumnCount || targetColumnCount % 3 !== 0){
                             targetColumnCount = beforeGridColumn;
+                            updateValue = 0;
                         }
-                    }
-                    updateClass(target, targetColumnCount, updateValue);
+                        else{
+                            updateValue = CustomFromEvent.isEnableResize($element, targetColumnCount);
+                            if(updateValue == 0){
+                                targetColumnCount = beforeGridColumn;
+                            }
+                        }
+                        updateClass(target, targetColumnCount, updateValue);
 
-                    // toggle append button
-                    let $button = target.closest('.row').find('.addbutton_button');
-                    CustomFromEvent.togglePlusButton($button);
-                },
+                        // toggle append button
+                        let $button = target.closest('.row').find('.addbutton_button');
+                        CustomFromEvent.togglePlusButton($button);
+                    },
+                });
+                resizableEl.prop('data-add-resizable', 1);
+                $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
             });
-            resizableEl.prop('data-add-resizable', 1);
-            $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
         }
         
         /**

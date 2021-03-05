@@ -3637,6 +3637,14 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   min-width: 45px;
 }
 
+.embed-value-form .gridembeds-row {
+  margin-bottom: 2em;
+}
+
+.embed-value-form .gridembeds-row:last-child {
+  margin-bottom: 0;
+}
+
 .checkboxtable .checkboxtable-header {
   height: 50px;
   vertical-align: bottom;
@@ -4016,7 +4024,7 @@ table img.image_html:hover {
   border-left-color: #605ca8;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 992px) {
   .navbar .sidebar-toggle {
     width: 42px;
   }
@@ -4036,6 +4044,9 @@ table img.image_html:hover {
   }
   .nprogress-custom-parent {
     overflow: visible;
+  }
+  .embed-value-form .gridembeds-row {
+    margin-bottom: 0;
   }
 }
 

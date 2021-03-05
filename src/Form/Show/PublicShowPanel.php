@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Form;
+namespace Exceedone\Exment\Form\Show;
 
 use Encore\Admin\Show;
 
@@ -21,6 +21,7 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
     protected $back_action;
     protected $confirm_title;
     protected $confirm_text;
+    protected $relations = [];
 
 
     public function setAction(string $action)
@@ -61,6 +62,19 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
 
         return $this;
     }
+
+
+    /**
+     * Set the value of relations
+     *
+     * @return  self
+     */ 
+    public function setChildRelationShows($relations)
+    {
+        $this->relations = $relations;
+
+        return $this;
+    }
     
     /**
      * Render this panel.
@@ -74,7 +88,8 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
             'back_action' => $this->back_action,
             'confirm_title' => $this->confirm_title ?? null,
             'confirm_text' => $this->confirm_text ?? null,
+            'fieldGroups' => array_get($this->data, 'fieldGroups', []),
+            'relations' => $this->relations ?? [],
         ]);
     }
-
 }

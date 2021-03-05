@@ -44,6 +44,13 @@ abstract class FormBase
      */
     protected $enableDefaultQuery = false;
     
+    /**
+     * If true, This form is as confirm.
+     *
+     * @var boolean
+     */
+    protected $asConfirm = false;
+
 
     public static function getItem(...$args)
     {
@@ -110,6 +117,20 @@ abstract class FormBase
     }
 
 
+    /**
+     * Set if true, This form is as confirm.
+     *
+     * @param  boolean  $asConfirm  If true, This form is as confirm.
+     *
+     * @return  self
+     */ 
+    public function setAsConfirm(bool $asConfirm)
+    {
+        $this->asConfirm = $asConfirm;
+
+        return $this;
+    }
+    
     abstract public function form();
 
     /**
@@ -125,4 +146,5 @@ abstract class FormBase
 
         return $this;
     }
+
 }

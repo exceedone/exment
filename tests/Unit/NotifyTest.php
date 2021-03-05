@@ -396,6 +396,18 @@ class NotifyTest extends UnitTestBase
     /**
      * @return void
      */
+    public function testNotifyTargetAdministrator()
+    {
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::ADMINISTRATOR, function($targets, $custom_value){
+            $user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+            $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
+            $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
+        });
+    }
+
+    /**
+     * @return void
+     */
     public function testNotifyTargetCreatedUser()
     {
         $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::CREATED_USER, function($targets, $custom_value){
@@ -403,7 +415,6 @@ class NotifyTest extends UnitTestBase
             $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
             $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
         });
-
     }
 
 

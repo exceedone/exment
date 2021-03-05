@@ -15,7 +15,7 @@ class Time extends Date
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
-            return ExmentField\Display::class;
+            return Field\Display::class;
         }
         return Field\Time::class;
     }
@@ -60,11 +60,8 @@ class Time extends Date
      */
     protected function _getDefaultValue()
     {
-        if (boolval(array_get($this->options, 'changefield', false))) {
-            return null;
-        }
-        $options = $this->custom_column->options;
-        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_TIME)) {
+        list($default_type, $default) = $this->getDefaultSetting();
+        if (isMatchString($default_type, ColumnDefaultType::EXECUTING_TIME)) {
             return \Carbon\Carbon::now()->format($this->format);
         }
 

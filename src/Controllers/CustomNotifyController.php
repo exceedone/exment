@@ -62,7 +62,7 @@ class CustomNotifyController extends AdminControllerTableBase
     {
         $grid = new Grid(new Notify);
 
-        $grid->column('custom_table_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
+        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val) {
             $custom_table = CustomTable::getEloquent($val);
             if (isset($custom_table)) {
                 return $custom_table->table_view_name ?? null;
@@ -76,7 +76,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $this->setBasicGrid($grid);
         
-        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->displayEscape(function ($val) {
+        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
             return collect($val)->map(function ($v) {
                 $enum = NotifyAction::getEnum(array_get($v, 'notify_action'));
                 return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;
@@ -85,14 +85,15 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->sortable()->display(function ($val) {
             return \Exment::getTrueMark($val);
-        });
+        })->escape(false);
         
         // filter only custom table user has permission custom table
         if (!\Exment::user()->isAdministrator()) {
             $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
-            $grid->model()->whereIn('custom_table_id', $custom_tables);
+            $grid->model()->whereIn('target_id', $custom_tables);
         }
-        $grid->model()->where('custom_table_id', $this->custom_table->id);
+        $grid->model()->where('target_id', $this->custom_table->id)
+            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES());
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\CustomTableMenuButton('notify', $this->custom_table));
@@ -113,7 +114,7 @@ class CustomNotifyController extends AdminControllerTableBase
                 return NotifyTrigger::transKeyArray("notify.notify_trigger_options");
             });
             
-            $filter->equal('custom_table_id', exmtrans("notify.custom_table_id"))->select(function ($val) {
+            $filter->equal('target_id', exmtrans("notify.target_id"))->select(function ($val) {
                 return CustomTable::filterList()->pluck('table_view_name', 'id');
             });
         });
@@ -135,9 +136,14 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $form = new Form(new Notify);
         $notify = Notify::find($id);
+        if($notify && !in_array($notify->notify_trigger, NotifyTrigger::CUSTOM_TABLES())){
+            Checker::error(exmtrans('common.message.wrongdata'));
+            return false;
+        }
+
         $custom_table = $this->custom_table;
 
-        $form->internal('custom_table_id')->default($this->custom_table->id);
+        $form->internal('target_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
         
         $this->setBasicForm($form, $notify);
@@ -145,7 +151,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $form->exmheader(exmtrans('notify.header_trigger'))->hr();
         
         $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
-            ->options(NotifyTrigger::transKeyArray("notify.notify_trigger_options"))
+            ->options(NotifyTrigger::transKeyArrayFilter("notify.notify_trigger_options", NotifyTrigger::CUSTOM_TABLES()))
             ->required()
             ->config('allowClear', false)
             ->attribute([
@@ -238,7 +244,8 @@ class CustomNotifyController extends AdminControllerTableBase
         $this->setMailTemplateForm($form, $notify);
         
         $this->setFooterForm($form, $notify);
-        
+
+        $form->disableEditingCheck(false);
         $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('notify', $custom_table));
         });

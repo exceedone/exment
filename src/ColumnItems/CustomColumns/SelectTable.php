@@ -15,8 +15,7 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Form\Field as ExmentField;
-use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
@@ -172,9 +171,9 @@ class SelectTable extends CustomItem
     protected function getAdminFilterClass()
     {
         if ($this->isMultipleEnabled()) {
-            return ExmWhere::class;
+            return ExmFilter\Where::class;
         }
-        return Filter\Equal::class;
+        return ExmFilter\EqualOrIn::class;
     }
 
     protected function setAdminOptions(&$field)
@@ -182,7 +181,7 @@ class SelectTable extends CustomItem
         if (!isset($this->target_table)) {
             return;
         }
-        if ($field instanceof ExmentField\Display) {
+        if ($field instanceof Field\Display) {
             return;
         }
 
@@ -319,7 +318,7 @@ class SelectTable extends CustomItem
         $selectOption = $this->getSelectFieldOptions();
         $ajax = $target_table->getOptionAjaxUrl($selectOption);
         
-        $filter->select(function ($value) use ($target_table, $selectOption) {
+        $filter->multipleSelect(function ($value) use ($target_table, $selectOption) {
             $selectOption['selected_value'] = $value;
             // get DB option value
             return $target_table->getSelectOptions($selectOption);

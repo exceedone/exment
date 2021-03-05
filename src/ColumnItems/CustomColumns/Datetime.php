@@ -25,7 +25,7 @@ class Datetime extends Date
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
-            return ExmentField\Display::class;
+            return Field\Display::class;
         }
         if (FilterKind::useDate(array_get($this->options, 'filterKind'))) {
             return Field\Date::class;
@@ -63,14 +63,11 @@ class Datetime extends Date
      */
     protected function _getDefaultValue()
     {
-        if (boolval(array_get($this->options, 'changefield', false))) {
-            return null;
-        }
-        $options = $this->custom_column->options;
-        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_DATETIME)) {
+        list($default_type, $default) = $this->getDefaultSetting();
+        if (isMatchString($default_type, ColumnDefaultType::EXECUTING_DATETIME)) {
             return \Carbon\Carbon::now()->format($this->format);
         }
-        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_TODAY)) {
+        if (isMatchString($default_type, ColumnDefaultType::EXECUTING_TODAY)) {
             return \Carbon\Carbon::today()->format($this->format);
         }
 

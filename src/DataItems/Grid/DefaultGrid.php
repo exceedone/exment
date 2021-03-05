@@ -135,7 +135,7 @@ class DefaultGrid extends GridBase
                         return '';
                     }
                     return $item->setCustomValue($this)->html();
-                });
+                })->escape(false);
         }
 
         // set parpage

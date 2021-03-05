@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
@@ -103,7 +104,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
     public function notifies()
     {
-        return $this->hasMany(Notify::class, 'custom_table_id')
+        return $this->hasMany(Notify::class, 'target_id')
+            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES())
             ->where('active_flg', 1);
     }
     
@@ -519,9 +521,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->from_custom_copies()->delete();
             $model->to_custom_copies()->delete();
             $model->operations()->delete();
+            $model->notifies()->delete();
 
             // delete items
-            Notify::where('custom_table_id', $model->id)->delete();
             Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
             Revision::where('revisionable_type', $model->table_name)->delete();
             
