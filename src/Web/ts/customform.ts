@@ -745,7 +745,7 @@ namespace Exment {
                     isMatch = pBool(value);
                 }
                 else if(key == 'image'){
-                    isMatch = $modal.find('.image').get(0).files.length > 0;
+                    isMatch = hasValue($modal.find('.image')) ? $modal.find('.image').get(0).files.length > 0 : false;
                 }
                 else{
                     isMatch = hasValue(value);
