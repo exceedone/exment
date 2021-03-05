@@ -408,6 +408,36 @@ trait ItemTrait
         return !is_nullorempty(array_get($this->options, 'public_form'));
     }
 
+    public function readonly()
+    {
+        return false;
+    }
+
+    public function viewonly()
+    {
+        return false;
+    }
+
+    public function hidden()
+    {
+        return false;
+    }
+
+    public function internal()
+    {
+        return false;
+    }
+
+    /**
+     * Hide when showing display
+     *
+     * @return bool
+     */
+    public function disableDisplayWhenShow() : bool
+    {
+        return false;
+    }
+
     /**
      * Get Search queries for free text search
      *

@@ -280,6 +280,7 @@ class PublicContent implements Renderable
             'header_label' => $this->header_label,
             'use_header' => $this->use_header,
             'use_footer' => $this->use_footer,
+            'use_footer_label' => !boolval(config('exment.disable_publicform_use_footer_label', false)),
             'analytics' => $this->analytics,
 
             'container_height' => 40 + ($this->use_header ? 50 : 0) + ($this->use_footer ? 51 : 0),

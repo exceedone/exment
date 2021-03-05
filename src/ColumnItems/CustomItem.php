@@ -753,34 +753,48 @@ abstract class CustomItem implements ItemInterface
     }
 
     
-    protected function initonly()
+    public function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
 
         return $initOnly && isset($this->value);
     }
 
-    protected function readonly()
+    public function readonly()
     {
         return boolval(array_get($this->form_column_options, 'read_only'));
     }
 
-    protected function viewonly()
+    public function viewonly()
     {
         return boolval(array_get($this->form_column_options, 'view_only'));
     }
 
-    protected function hidden()
+    public function hidden()
     {
         return boolval(array_get($this->form_column_options, 'hidden'));
     }
 
-    protected function internal()
+    public function internal()
     {
         return boolval(array_get($this->form_column_options, 'internal'));
     }
 
-    protected function required()
+    /**
+     * Hide when showing display
+     *
+     * @return bool
+     */
+    public function disableDisplayWhenShow() : bool
+    {
+        if($this->internal() || $this->hidden()){
+            return true;
+        }
+
+        return false;
+    }
+
+    public function required()
     {
         if ($this->initonly() || $this->viewonly() || $this->internal()) {
             return false;
@@ -798,7 +812,7 @@ abstract class CustomItem implements ItemInterface
         return !$this->hidden() && 
             !$this->initonly() && 
             !$this->viewonly() &&
-            !$this->hidden();
+            !$this->internal();
     }
 
     

@@ -53,7 +53,9 @@
     <!-- Main Footer -->
     @if($use_footer)
     <footer class="main-footer">
-        <strong>Powered by <a href="https://github.com/exceedone/exment" target="_blank">Exment</a></strong>
+        @if($use_footer_label)
+        <strong>Powered by <a href="https://exment.net" target="_blank">Exment</a></strong>
+        @endif
     </footer>
     @endif
 </div>

@@ -275,17 +275,18 @@ class DefaultShow extends ShowBase
                 continue;
             }
             
-            // if hidden field, continue
-            if (boolval(config('exment.hide_hiddenfield', false)) && boolval(array_get($form_column, 'options.hidden', false))) {
-                continue;
-            }
-
             $item = $form_column->column_item;
             if (!isset($item)) {
                 continue;
             }
+
             $this->setColumnItemOption($item, $form_column);
             
+            // if hidden field, continue
+            if ($item->disableDisplayWhenShow()) {
+                continue;
+            }
+
             $field = new ShowField($item->name(), $item->label());
             $item->setShowFieldOptions($field, [
                 'gridShows' => $this->gridShows(),

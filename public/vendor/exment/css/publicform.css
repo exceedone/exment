@@ -26,6 +26,11 @@ body#body-publicform .main-header {
   overflow: hidden;
 }
 
+body#body-publicform .main-footer {
+  height: 50px;
+  min-height: 50px;
+}
+
 body#body-publicform #container-inner {
   margin: 20px auto;
   padding: 10px;
