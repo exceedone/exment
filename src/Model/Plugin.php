@@ -637,6 +637,16 @@ class Plugin extends ModelBase
      *
      * @return Collection
      */
+    public static function getPluginPublics()
+    {
+        return static::getPluginPublicSessions([PluginType::SCRIPT, PluginType::STYLE], true);
+    }
+
+    /**
+     * Get plugin scripts and styles
+     *
+     * @return Collection
+     */
     public static function getPluginScriptStyles()
     {
         return static::getPluginPublicSessions(PluginType::PLUGIN_TYPE_SCRIPT_STYLE(), true);

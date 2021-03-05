@@ -423,17 +423,6 @@ class File extends CustomItem
     {
         return $this->isMultipleEnabledTrait();
     }
-
-    /**
-     * Set Custom Column Option Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
-     *
-     * @param Form $form
-     * @return void
-     */
-    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
-    {
-    }
     
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
