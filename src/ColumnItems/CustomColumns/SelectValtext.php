@@ -86,12 +86,7 @@ class SelectValtext extends Select
             ->attribute(['data-filtertrigger' =>true])
             ->help(exmtrans("custom_column.help.multiple_enabled"));
 
-            $form->switchbool('radiobutton_enabled', exmtrans("custom_column.options.radiobutton_enabled"))
-            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '0'])])
-            ->help(exmtrans("custom_column.help.radiobutton_enabled"));
-
-        $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
-            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '1'])])
-            ->help(exmtrans("custom_column.help.checkbox_enabled"));
+        $form->switchbool('check_radio_enabled', exmtrans("custom_column.options.check_radio_enabled"))
+            ->help(exmtrans("custom_column.help.check_radio_enabled"));
     }
 }

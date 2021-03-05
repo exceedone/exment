@@ -23,6 +23,10 @@ class User extends SelectTable
      */
     protected function _getDefaultValue()
     {
+        if (boolval(array_get($this->options, 'changefield', false))) {
+            return null;
+        }
+
         $options = $this->custom_column->options;
         list($default_type, $default) = $this->getDefaultSetting();
         

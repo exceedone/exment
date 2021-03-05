@@ -55,13 +55,13 @@ class Select extends CustomItem
     protected function getAdminFieldClass()
     {
         if ($this->isMultipleEnabled()) {
-            if (boolval($this->custom_column->getOption('checkbox_enabled', false))) {
+            if (boolval($this->custom_column->getOption('check_radio_enabled', false))) {
                 return Field\Checkbox::class;
             } else {
                 return Field\MultipleSelect::class;
             }
         } else {
-            if (boolval($this->custom_column->getOption('radiobutton_enabled', false))) {
+            if (boolval($this->custom_column->getOption('check_radio_enabled', false))) {
                 return RadioButton::class;
             } else {
                 return Field\Select::class;
@@ -165,10 +165,13 @@ class Select extends CustomItem
 
     public function isFreeInput()
     {
-        if (boolval($this->custom_column->getOption('radiobutton_enabled', false)) ||
-            boolval($this->custom_column->getOption('checkbox_enabled', false))) {
+        if (boolval($this->custom_column->getOption('check_radio_enabled', false))) {
             return false;
         }
+        if (boolval(array_get($this->options, 'changefield', false))) {
+            return false;
+        }
+
         return boolval($this->custom_column->getOption('free_input', false));
     }
     protected function getFilterFieldClass()
@@ -194,18 +197,12 @@ class Select extends CustomItem
             ->attribute(['data-filtertrigger' =>true])
             ->help(exmtrans("custom_column.help.multiple_enabled"));
 
-        $form->switchbool('radiobutton_enabled', exmtrans("custom_column.options.radiobutton_enabled"))
-            ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '0'])])
-            ->help(exmtrans("custom_column.help.radiobutton_enabled"));
-
-        $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
-            ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '1'])])
-            ->help(exmtrans("custom_column.help.checkbox_enabled"));
+        $form->switchbool('check_radio_enabled', exmtrans("custom_column.options.check_radio_enabled"))
+            ->attribute(['data-filtertrigger' =>true])
+            ->help(exmtrans("custom_column.help.check_radio_enabled"));
 
         $form->switchbool('free_input', exmtrans("custom_column.options.free_input"))
-            ->attribute(['data-filter' => json_encode([
-                ['parent' => 1, 'key' => 'options_radiobutton_enabled', 'value' => '0'],
-                ['parent' => 1, 'key' => 'options_checkbox_enabled', 'value' => '0']])])
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_check_radio_enabled', 'value' => '0'])])
             ->help(exmtrans("custom_column.help.free_input"));
     }
 
