@@ -91,6 +91,7 @@ class Bootstrap
             'vendor/exment/js/modal.js',
             'vendor/exment/js/workflow.js',
             'vendor/exment/js/changefield.js',
+            'vendor/exment/js/customcolumn.js',
             'vendor/exment/js/customformitem.js',
             'vendor/exment/js/customform.js',
             'vendor/exment/js/preview.js',

@@ -259,9 +259,10 @@ class ColumnType extends EnumBase
                 return 'fa-envelope-o';
             case static::INTEGER:
             case static::DECIMAL:
-            case static::CURRENCY:
             case static::AUTO_NUMBER:
                 return 'fa-calculator';
+            case static::CURRENCY:
+                return 'fa-jpy';
             case static::DATE:
             case static::TIME:
             case static::DATETIME:
@@ -277,8 +278,6 @@ class ColumnType extends EnumBase
             case static::YESNO:
             case static::BOOLEAN:
                 return 'fa-toggle-on';  
-            case static::AUTO_NUMBER:
-                return 'fa-toggle-on';  
             case static::IMAGE:
                 return 'fa-picture-o';  
             case static::FILE:
@@ -290,5 +289,16 @@ class ColumnType extends EnumBase
         }
         
         return null;
+    }
+
+
+    public static function getHtml($column_type)
+    {
+        if ($column_type instanceof CustomColumn) {
+            $column_type = $column_type->column_type;
+        }
+
+        $icon = static::getFontAwesomeClass($column_type);
+        return '<i class="text-center fa ' . esc_html($icon) . '" aria-hidden="true" style="width:16px;"></i>&nbsp;&nbsp;<span>' . esc_html(exmtrans("custom_column.column_type_options.{$column_type}")) . '</span>';
     }
 }

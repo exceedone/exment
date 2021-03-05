@@ -184,13 +184,6 @@ class CustomColumnController extends AdminControllerTableBase
             $column_item = null;
         }
 
-        // set script
-        $ver = \Exment::getExmentCurrentVersion();
-        if (!isset($ver)) {
-            $ver = date('YmdHis');
-        }
-        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$ver).'"></script>');
-
         $form->hidden('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
         
@@ -222,17 +215,17 @@ class CustomColumnController extends AdminControllerTableBase
             $form->select('column_type', exmtrans("custom_column.column_type"))
                 ->help(exmtrans("custom_column.help.column_type"))
                 ->options(function () {
-                    // return collect(ColumnType::arrays())->filter(function ($arr) {
-                    //     if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
-                    //         return true;
-                    //     } else {
-                    //         return false;
-                    //     }
-                    // })->map(function($column_type){
-
-                    // });
-                    return getTransArray($arrays, "custom_column.column_type_options");
+                    return collect(ColumnType::arrays())->filter(function ($arr) {
+                        if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    })->mapWithKeys(function($column_type){
+                        return [$column_type => ColumnType::getHtml($column_type)];
+                    })->toArray();
                 })
+                ->escapeMarkup(true)
                 ->attribute(['data-filtertrigger' =>true,
                     'data-changehtml' => json_encode([
                         [
@@ -253,7 +246,7 @@ class CustomColumnController extends AdminControllerTableBase
         } else {
             $form->display('column_type', exmtrans("custom_column.column_type"))
                 ->displayText(function ($val) {
-                    return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
+                    return ColumnType::getHtml($val);
                 })->escape(false);
             $form->internal('column_type')->default($column_type);
         }

@@ -106,6 +106,7 @@ abstract class ColumnBase
             'font_awesome' => $this->getFontAwesomeClass(),
 
             'option_labels' => $this->getOptionLabels(),
+            'option_labels_definitions' => collect($this->getOptionLabelsDefinitions())->toJson(),
         ];
     }
 
@@ -143,34 +144,49 @@ abstract class ColumnBase
     public function getOptionLabels() : array
     {
         $options = $this->custom_form_column->options ?? [];
+        $difinitions = $this->getOptionLabelsDefinitions();
 
         $result = [];
-        if(array_key_value_exists('required', $options)){
-            $result[] = exmtrans('common.required');
+        foreach($difinitions as $key => $difinition){
+            if(!array_key_value_exists($key, $options)){
+                continue;
+            }
+
+            // hard coding
+            $value = $options[$key];
+            if($key == 'required'){
+                if(!boolval($value)){
+                    continue;
+                }
+            }
+            $result[] = $difinition;
         }
+
+        return $result;
+    }
+
+    /**
+     * Get option labels difinitions. for getting label, and js
+     *
+     * @return array
+     */
+    public function getOptionLabelsDefinitions() : array
+    {
+        $result = [];
+        $result['required'] = exmtrans('common.required');
 
         // get field display type
         foreach(['read_only', 'view_only', 'hidden', 'internal'] as $key){
-            if(boolval(array_get($options, $key))){
-                $result[] = exmtrans("custom_form.$key");
-                break;
-            }
+            $result[$key] = exmtrans("custom_form.$key");
         }
         
         foreach(['default_type', 'default'] as $key){
-            if(boolval(array_get($options, $key))){
-                $result[] = exmtrans("custom_column.options.default") . ':' . exmtrans('custom_form.setting_available');
-                break;
-            }
+            $result[$key] = exmtrans("custom_column.options.default") . ':' . exmtrans('custom_form.setting_available');
         }
 
-        if(array_key_value_exists('relation_filter_target_column_id', $options)){
-            $result[] = exmtrans('custom_form.relation_filter') . ':' . exmtrans('custom_form.setting_available');
-        }
-        if(array_key_value_exists('changedata_column_id', $options)){
-            $result[] = exmtrans('custom_form.changedata') . ':' . exmtrans('custom_form.setting_available');
-        }
-        
+        $result['relation_filter_id'] = exmtrans('custom_form.relation_filter') . ':' . exmtrans('custom_form.setting_available');
+        $result['changedata_column_id'] = exmtrans('custom_form.changedata') . ':' . exmtrans('custom_form.setting_available');
+
         return $result;
     }
 

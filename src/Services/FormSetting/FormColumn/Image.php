@@ -98,4 +98,20 @@ class Image extends OtherBase
     public function getFontAwesomeClass() : ?string{
         return 'fa-picture-o';
     }
+
+    /**
+     * Get option labels difinitions. for getting label, and js
+     *
+     * @return array
+     */
+    public function getOptionLabels() : array
+    {
+        $result = parent::getOptionLabels();
+
+        if(!is_nullorempty($this->getImageUrl())){
+            $result['image'] = exmtrans('custom_form.setting_available');
+        }
+        
+        return $result;
+    }
 }

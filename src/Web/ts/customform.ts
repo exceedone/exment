@@ -6,7 +6,6 @@ namespace Exment {
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
 
             CustomFromEvent.loadingEvent();
-            CustomFromEvent.addDropableEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             //CustomFromEvent.resizeEvent($('.custom_form_area'));
         }
@@ -107,24 +106,6 @@ namespace Exment {
             CustomFromEvent.addSortableEvent($draggable);
         }
 
-
-        /**
-         * Append Dropable event
-         */
-        public static addDropableEvent(){
-            let $draggables = $('.custom_form_column_items .draggables').not('.added-dropable');
-            $draggables.droppable({
-                over: function( event, ui ) {
-                    $( this )
-                        .addClass( "ui-state-highlight" );
-                },
-                deactivate: function( event, ui ) {
-                    $( this )
-                        .removeClass( "ui-state-highlight" );
-                },
-            }).addClass('added-dropable');
-        }
-        
 
         /**
          * Append event for suggest item, for loading display.
@@ -736,6 +717,8 @@ namespace Exment {
             // data setting and show message
             $target_li.find('.options').val(JSON.stringify(options));
 
+            $target_li.find('.item-label-bottom').html(CustomFromEvent.getOptionLabel($modal, $target_li, options));
+
             // move image event
             let header_name = CustomFromEvent.getHeaderName($target_li);
             $target_li.find('.image').remove();
@@ -744,6 +727,47 @@ namespace Exment {
             $modal.modal('hide');
         }
 
+
+        /**
+         * Get option label 
+         */
+        private static getOptionLabel($modal, $target_li:JQuery<HTMLElement>, options) : string{
+            let keyLabels = $target_li.data('option_labels_definitions');
+
+            let results = [];
+            for(let key in keyLabels){
+                let isMatch = false;
+                let value = options[key];
+
+                //// Now this is hard coding.
+                if(['read_only', 'view_only', 'hidden', 'internal'].includes(key)){
+                    isMatch = options['field_showing_type'] == key;
+                }
+                else if(key == 'required'){
+                    isMatch = pBool(value);
+                }
+                else if(key == 'image'){
+                    isMatch = $modal.find('.image').get(0).files.length > 0;
+                }
+                else{
+                    isMatch = hasValue(value);
+                }
+
+                if(!isMatch){
+                    continue;
+                }
+                // append result, and escape
+                results.push($('<p/>', {
+                    text: keyLabels[key],
+                }).html());
+            }
+
+            return results.filter(CustomFromEvent.onlyUnique).join('<br/>');
+        }
+
+        private static onlyUnique(value, index, self) {
+            return self.indexOf(value) === index;
+        }
 
         /**
          * Box resize event

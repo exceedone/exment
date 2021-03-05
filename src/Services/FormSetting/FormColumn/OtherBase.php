@@ -90,4 +90,45 @@ abstract class OtherBase extends ColumnBase
     {
         return $options;
     }
+
+
+    /**
+     * Get label for option
+     *
+     * @return array
+     */
+    public function getOptionLabels() : array
+    {
+        $options = $this->custom_form_column->options ?? [];
+        $difinitions = $this->getOptionLabelsDefinitions();
+
+        $result = [];
+        foreach($difinitions as $key => $difinition){
+            if(!array_key_value_exists($key, $options)){
+                continue;
+            }
+
+            $result[] = $difinition;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get option labels difinitions. for getting label, and js
+     *
+     * @return array
+     */
+    public function getOptionLabelsDefinitions() : array
+    {
+        $result = [];
+        $result['required'] = exmtrans('common.required');
+
+        // get field display type
+        foreach(['image', 'text', 'html'] as $key){
+            $result[$key] = exmtrans('custom_form.setting_available');
+        }
+        
+        return $result;
+    }
 }

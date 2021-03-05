@@ -3,11 +3,14 @@
 @else
 <div class="ui-state-default custom_form_column_item draggable form_column_type_{{$custom_form_column['form_column_type']}}"
     style="{{boolval(array_get($custom_form_column, 'delete_flg')) ? 'display:none' : ''}}"
-    id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" data-header_column_name="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}">
+    id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" 
+    data-header_column_name="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}"
+    data-option_labels_definitions="{{$custom_form_column['option_labels_definitions'] }}"
+    >
         <p class="item-label-top">
             <span class="item-label {{array_get($custom_form_column, 'required') ? 'asterisk' : ''}}">
                 @if(isset($custom_form_column['font_awesome']))
-                <i class="fa {{$custom_form_column['font_awesome']}}" aria-hidden="true"></i>
+                <i class="text-center fa {{$custom_form_column['font_awesome']}}" aria-hidden="true" style="width:16px;"></i>
                 @endif
                 {{ $custom_form_column['column_view_name'] }}
             </span>
