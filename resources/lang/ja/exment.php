@@ -94,6 +94,7 @@ return [
             'notfound_or_deny' => 'データが存在しないか、権限がありません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
+            'template_error' => '前提となるテンプレートのインストールに失敗しました。',
             'exists_row' => '%sは必ず1行以上入力してください。',
             'sendmail_succeeded' => 'メールを送信しました。',
             'input_keyword' => '「%s」と入力してください。',
