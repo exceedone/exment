@@ -68,7 +68,7 @@ abstract class FormOtherItem implements ItemInterface
      */
     protected function _text($v)
     {
-        return array_get($this->form_column, 'options.text');
+        return array_get($this->form_column_options, 'text');
     }
 
     /**

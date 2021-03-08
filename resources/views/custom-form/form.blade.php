@@ -109,6 +109,9 @@
                     {{-- for template --}}
                     <div class="template_item_block">
                     @foreach($custom_form_block['suggests'] as $suggest) 
+                        @if($suggest['form_column_type'] == '99')
+                            @continue
+                        @endif
                         @foreach($suggest['custom_form_columns'] as $custom_form_column)
                         <div style="display:none;" data-form_column_target_id="{{$custom_form_column['form_column_target_id']}}" data-form_column_type="{{$custom_form_column['form_column_type']}}">
                             @include("exment::custom-form.form-item", ['custom_form_column' => $custom_form_column, 'suggest' => true, 'template_item' => true])

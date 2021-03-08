@@ -228,7 +228,7 @@ class CustomFormController extends AdminControllerTableBase
     public function preview(Request $request)
     {
         // get requested form
-        $requestItem = $this->getModelFromRequest($request);
+        $requestItem = $this->getModelFromRequest($request, null, false);
         $custom_form = $requestItem['custom_form'];
 
         // loop form block and column
@@ -691,7 +691,7 @@ class CustomFormController extends AdminControllerTableBase
      *     'deletes' => [(column_ids)],
      * ]
      */
-    protected function getModelFromRequest(Request $request, $id = null) : array
+    protected function getModelFromRequest(Request $request, $id = null, $isPrepareOptions = true) : array
     {
         $result = [
             'custom_form_blocks' => [],
@@ -767,7 +767,15 @@ class CustomFormController extends AdminControllerTableBase
                 $column->row_no = array_get($column_value, 'row_no', 1);
                 $column->column_no = array_get($column_value, 'column_no', 1);
                 $column->width = array_get($column_value, 'width', 1);
-                $column->options = $column_item->prepareSavingOptions(json_decode(array_get($column_value, 'options', "[]"), true));
+
+                $form_options = jsonToArray(array_get($column_value, 'options', "[]"));
+                if($isPrepareOptions){
+                    $column->options = $column_item->prepareSavingOptions($form_options);
+                }
+                // if preview, options set directrly.
+                else{
+                    $column->options = $form_options;
+                }
                 $column->order = $order++;
 
                 $result_block['custom_form_columns'][] = $column;

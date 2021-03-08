@@ -1,6 +1,8 @@
 
 namespace Exment {
     export class CustomFromEvent {
+        private static disableRequireValidate = false;
+
         public static AddEvent() {
             
             $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
@@ -484,6 +486,11 @@ namespace Exment {
                 return false;
             };
 
+            // If disable RequireValidate (for preview), return true;
+            if(CustomFromEvent.disableRequireValidate){
+                return true;
+            }
+
             // loop "custom_form_block_available" is 1
             let hasRequire = false;
             if(!$('form.custom_form_form').hasClass('confirmed')){
@@ -873,6 +880,9 @@ namespace Exment {
          */
         private static previewCustomForm()
         {
+            // disable required field event once
+            CustomFromEvent.disableRequireValidate = true;
+
             const preview = new Preview(
                 URLJoin($('#formroot').val(), 'preview'),
                 $('#custom_form_form'),
@@ -885,6 +895,8 @@ namespace Exment {
                 }
             );
             preview.openPreview();
+
+            CustomFromEvent.disableRequireValidate = false;
         }
     }
     

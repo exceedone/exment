@@ -492,6 +492,8 @@ var Exment;
          * Showing preview
          */
         static previewCustomForm() {
+            // disable required field event once
+            CustomFromEvent.disableRequireValidate = true;
             const preview = new Exment.Preview(URLJoin($('#formroot').val(), 'preview'), $('#custom_form_form'), {
                 validateErrorTitle: $('#validate_error_title').val(),
                 validateErrorText: $('#validate_error_message').val(),
@@ -500,8 +502,10 @@ var Exment;
                 }
             });
             preview.openPreview();
+            CustomFromEvent.disableRequireValidate = false;
         }
     }
+    CustomFromEvent.disableRequireValidate = false;
     CustomFromEvent.addAreaButtonEvent = (ev) => {
         toastr.clear();
         let $button = $(ev.target).closest('.addbutton_button');
@@ -601,6 +605,10 @@ var Exment;
             return false;
         }
         ;
+        // If disable RequireValidate (for preview), return true;
+        if (CustomFromEvent.disableRequireValidate) {
+            return true;
+        }
         // loop "custom_form_block_available" is 1
         let hasRequire = false;
         if (!$('form.custom_form_form').hasClass('confirmed')) {
