@@ -355,9 +355,8 @@ class ExmentServiceProvider extends ServiceProvider
     protected function bootSchedule()
     {
         // set hourly event
-        $this->app->booted(function () {
-            $schedule = $this->app->make(Schedule::class);
-            $schedule->command('exment:schedule')->hourly();
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule)  {
+            $schedule->command('exment:schedule')->everyMinute();
                 
             // set cron event
             try {
