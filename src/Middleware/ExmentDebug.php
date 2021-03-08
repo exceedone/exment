@@ -122,5 +122,6 @@ class ExmentDebug
         $schedule->call(function () {
             \Log::debug('Exment schedule debug hourly called.');
         })->hourly();
+        \Log::debug('Exment schedule debug defined.');
     }
 }
