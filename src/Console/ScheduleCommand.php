@@ -3,10 +3,8 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Enums\NotifyTrigger;
 use Carbon\Carbon;
 
 class ScheduleCommand extends Command

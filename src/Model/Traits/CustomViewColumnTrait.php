@@ -173,7 +173,7 @@ trait CustomViewColumnTrait
 
         $custom_table = CustomTable::getEloquent($custom_table);
 
-        if(is_null($column_name) || is_null($view_column_type)){
+        if (is_null($column_name) || is_null($view_column_type)) {
             return [null, $custom_table ? $custom_table->id : null];
         }
 
