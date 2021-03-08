@@ -68,6 +68,6 @@ class FileRule implements Rule
      */
     public function message()
     {
-        return trans('validation.file');
+        return trans('validation.mimes', ['values' => arrayToString($this->extensions)]);
     }
 }
