@@ -156,16 +156,25 @@ trait CustomViewColumnTrait
 
     
     /**
-     * get column target id and target table id.
+     * Get column target id and target table id.
      *
-     * @return array first, target column id. second, target table id.
+     * @param string|null $view_column_type
+     * @param string|null $column_name
+     * @param string|CustomTable|null $custom_table
+     * @return array offset 0 : column id, 1 : table id
      */
-    protected static function getColumnAndTableId($view_column_type, $column_name, ?CustomTable $custom_table = null)
+    protected static function getColumnAndTableId($view_column_type, $column_name, $custom_table = null) : array
     {
         if (!isset($view_column_type)) {
             $view_column_type = ConditionType::COLUMN;
         } else {
             $view_column_type = ConditionType::getEnumValue($view_column_type);
+        }
+
+        $custom_table = CustomTable::getEloquent($custom_table);
+
+        if (is_null($column_name) || is_null($view_column_type)) {
+            return [null, $custom_table ? $custom_table->id : null];
         }
 
         $item = ConditionItemBase::getItem($custom_table, $view_column_type, $column_name);
