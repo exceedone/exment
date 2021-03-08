@@ -708,6 +708,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function setValueSort($model)
     {
+        return $this->sortModel($model);
+    }
+
+    /**
+     * set value sort
+     */
+    public function sortModel($model)
+    {
         // if request has "_sort", not executing
         if (request()->has('_sort')) {
             return $model;

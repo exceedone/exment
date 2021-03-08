@@ -10,8 +10,20 @@ function appendKanbanItemEvent(){
 
 function getBoardUrl($target, isWebApi){
   let kanban = $target.closest('.kanban-item');
-  let url = admin_url(URLJoin((isWebApi ? 'webapi' : null), 'data', kanban.data('table_name'), kanban.data('dataid')));
+  let url = admin_url(URLJoin('data', kanban.data('table_name'), kanban.data('dataid')));
   return url;
+}
+
+function getUpdateUrl($target){
+  let kanban = $target.closest('.kanban-item');
+  let url = kanban.data('update_url');
+  return url;
+}
+
+function mergeIdAndTable($target, value){
+  let kanban = $target.closest('.kanban-item');
+  value['id'] = kanban.data('dataid');
+  value['table_name'] = kanban.data('table_name');
 }
 
 function callJkanban(){
@@ -44,7 +56,7 @@ function callJkanban(){
       dragendEl        : function (el) {
       },                             
       dropEl           : function (el, target, source, sibling) {
-        let url = getBoardUrl($(el), true);
+        let url = getUpdateUrl($(el));
 
         // get board
         let boardid = $(el).closest('.kanban-board').data('id');
@@ -68,8 +80,10 @@ function callJkanban(){
           _token: LA.token,
           value:value,
         };
+        mergeIdAndTable($(el), data);
+
         $.ajax({
-          type: 'PUT',
+          type: 'POST',
           url: url,
           data: data,
           success: function (repsonse) {

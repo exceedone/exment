@@ -81,6 +81,10 @@ class PluginServiceProvider extends ServiceProvider
                 $prefix = $pluginPage->getRouteUri();
                 $defaultFunction = 'index';
                 break;
+            case PluginType::VIEW:
+                $prefix = $plugin->getRouteUri();
+                $defaultFunction = 'grid';
+                break;
             case PluginType::API:
                 $prefix = $pluginPage->getRouteUri();
                 // set contains "api", and not contains "api"

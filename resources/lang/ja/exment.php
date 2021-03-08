@@ -629,7 +629,7 @@ return [
             'api' => 'API',
             'event' => 'イベント',
             'button' => 'ボタン',
-            'grid' => 'ビュー',
+            'view' => 'ビュー',
         ],
     ],
 

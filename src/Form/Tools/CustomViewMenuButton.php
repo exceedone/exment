@@ -209,7 +209,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
 
             // Append grid plugins
             $plugins = Plugin::getPluginsByTable($this->custom_table, false)->filter(function($plugin){
-                return $plugin->matchPluginType(PluginType::GRID);
+                return $plugin->matchPluginType(PluginType::VIEW);
             });
             foreach($plugins as $plugin){
                 $items[] = [

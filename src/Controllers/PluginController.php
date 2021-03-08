@@ -263,7 +263,7 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
-            if($plugin->matchPluginType(PluginType::GRID))
+            if($plugin->matchPluginType(PluginType::VIEW))
             {
                 $form->text('grid_menu_title', exmtrans("plugin.options.grid_menu_title"))
                     ->help(exmtrans("plugin.help.grid_menu_title"))
