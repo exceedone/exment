@@ -356,7 +356,7 @@ class ExmentServiceProvider extends ServiceProvider
     {
         // set hourly event
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule)  {
-            $schedule->command('exment:schedule')->everyMinute();
+            $schedule->command('exment:schedule')->hourly();
                 
             // set cron event
             try {
