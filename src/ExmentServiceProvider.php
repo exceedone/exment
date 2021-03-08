@@ -354,6 +354,10 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootSchedule()
     {
+        if (!$this->app->runningInConsole()) {
+            return;
+        }
+
         // set hourly event
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
