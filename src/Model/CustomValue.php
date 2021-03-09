@@ -98,6 +98,17 @@ abstract class CustomValue extends ModelBase
             ;
     }
 
+    /**
+     * Get all workflow values
+     *
+     * @return void
+     */
+    public function workflow_values()
+    {
+        return $this->hasMany(WorkflowValue::class, 'morph_id')
+            ->where('morph_type', $this->custom_table->table_name);
+    }
+
     public function getLabelAttribute()
     {
         if (is_null($this->_label)) {
@@ -743,6 +754,10 @@ abstract class CustomValue extends ModelBase
      */
     protected function deleteRelationValues()
     {
+        if (!$this->isForceDeleting()) {
+            return;
+        }
+
         $custom_table = $this->custom_table;
         // delete custom relation is 1:n value
         $this->deleteChildrenValues();
@@ -779,9 +794,12 @@ abstract class CustomValue extends ModelBase
         RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
 
         // remove history if hard deleting
-        if ($this->isForceDeleting()) {
-            $this->revisionHistory()->delete();
-        }
+        $this->revisionHistory()->delete();
+
+        // Delete all workflow values
+        $this->workflow_values->each(function($workflow_value){
+            $workflow_value->delete();
+        });
     }
 
     
