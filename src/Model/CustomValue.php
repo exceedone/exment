@@ -717,7 +717,7 @@ abstract class CustomValue extends ModelBase
                 if(!$file){
                     return;
                 }
-                File::deleteFileInfo($file);
+                File::deleteDocumentModel($file);
             });
     }
 
