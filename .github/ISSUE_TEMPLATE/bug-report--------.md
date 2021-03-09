@@ -27,5 +27,5 @@ If possible, paste error log. Log's path is "storage/logs/laravel.log". / 可能
 If possible, paste the screenshot. / 可能であれば、スクリーンショットを貼り付けてください。
 
 
-### Additional context / その他### 
+### Additional context / その他  
 Add any other context about the problem here. / その他に記載すべき内容がありましたら、ご記載ください。
