@@ -826,13 +826,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | File delete timing
+    | Delete force custom value
     |--------------------------------------------------------------------------
     | 
-    | Whether file delete timing only hard delete
-    | If false, file delete when soft deleting
+    | Custom value delete always force
     */
-    'delete_file_timing_hard_delete' => env('EXMENT_DELETE_FILE_TIMING_HARD_DELETE', false),
+    'delete_force_custom_value' => env('EXMENT_DELETE_FORCE_CUSTOM_VALUE', false),
 
     /*
     |--------------------------------------------------------------------------

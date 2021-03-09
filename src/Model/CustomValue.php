@@ -404,43 +404,53 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
+            $deleteForce = boolval(config('exment.delete_force_custom_value', false));
 
-            $model->deleted_user_id = \Exment::getUserId();
+            if($deleteForce){
+                $model->forceDeleting = true;
+            }
 
-            // saved_notify(as update) disable
-            $saved_notify = $model->saved_notify;
-            $model->saved_notify = false;
-            $model->save();
-            $model->saved_notify = $saved_notify;
+            // delete hard
+            if($model->isForceDeleting()){
+                $model->deleteFile();
+                $model->deleteRelationValues();
+            }
+            // Execute only not force deleting
+            else{
+                // Delete only children.
+                $model->deleteChildrenValues();
 
-            $model->deleteRelationValues();
+                $model->deleted_user_id = \Exment::getUserId();
+
+                // saved_notify(as update) disable
+                $saved_notify = $model->saved_notify;
+                $model->saved_notify = false;
+                $model->save();
+                $model->saved_notify = $saved_notify;
+            }
         });
 
         static::deleted(function ($model) {
-            $deleteFileTimingHard = boolval(config('exment.delete_file_timing_hard_delete', false));
-
+            // Delete file hard delete
             if ($model->isForceDeleting()) {
-                // Delete file hard delete
-                if($deleteFileTimingHard){
-                    // delete tmp file
-                    $model->deleteFile();
+                // Execute notify if delete_force_custom_value is true
+                if($model->saved_notify && boolval(config('exment.delete_force_custom_value', false))){
+                    $model->notify(NotifySavedType::DELETE);
                 }
+                $model->postForceDelete();
                 return;
-            }
-
-            // Delete file soft delete
-            if(!$deleteFileTimingHard){
-                // delete tmp file
-                $model->deleteFile();
             }
             
             $model->preSave();
             $model->postDelete();
 
-            $model->notify(NotifySavedType::DELETE);
+            if($model->saved_notify){
+                $model->notify(NotifySavedType::DELETE);
+            }
         });
 
         static::restored(function ($model) {
+            $model->restoreChildrenValues();
             $model->deleted_user_id = null;
 
             // saved_notify(as update) disable
@@ -674,7 +684,7 @@ abstract class CustomValue extends ModelBase
     /**
      * delete file and document.
      */
-    protected function deleteFile()
+    public function deleteFile()
     {
         ///// delete file column
         $this->custom_table
@@ -735,16 +745,7 @@ abstract class CustomValue extends ModelBase
     {
         $custom_table = $this->custom_table;
         // delete custom relation is 1:n value
-        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
-        // loop relations
-        foreach ($relations as $relation) {
-            $child_table = $relation->child_custom_table;
-            // find keys
-            getModelName($child_table)
-                ::where('parent_id', $this->id)
-                ->where('parent_type', $custom_table->table_name)
-                ->delete();
-        }
+        $this->deleteChildrenValues();
 
         // delete custom relation is n:n value
         $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::MANY_TO_MANY);
@@ -780,6 +781,54 @@ abstract class CustomValue extends ModelBase
         // remove history if hard deleting
         if ($this->isForceDeleting()) {
             $this->revisionHistory()->delete();
+        }
+    }
+
+    
+    /**
+     * delete relation if record delete
+     */
+    protected function deleteChildrenValues()
+    {
+        $custom_table = $this->custom_table;
+        $deleteForce = $this->isForceDeleting();
+
+        // delete custom relation is 1:n value
+        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
+        // loop relations
+        foreach ($relations as $relation) {
+            $this->getChildrenValues($relation, true)
+                ->withTrashed()
+                ->get()
+                ->each(function($child) use($deleteForce){
+                    // disable notify
+                    $child->saved_notify(false);
+                    if($deleteForce){
+                        $child->forceDelete();
+                    }
+                    else{
+                        $child->delete();
+                    }
+                });
+        }
+    }
+
+    /**
+     * restore relation if record delete
+     */
+    protected function restoreChildrenValues()
+    {
+        $custom_table = $this->custom_table;
+        // delete custom relation is 1:n value
+        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
+        // loop relations
+        foreach ($relations as $relation) {
+            $child_table = $relation->child_custom_table;
+            // find keys
+            getModelName($child_table)
+                ::where('parent_id', $this->id)
+                ->where('parent_type', $custom_table->table_name)
+                ->restore();
         }
     }
 
@@ -1282,14 +1331,19 @@ abstract class CustomValue extends ModelBase
         }
 
         // get custom column as array
-        $child_table = CustomTable::getEloquent($relation);
-        $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
+        if($relation instanceof CustomRelation){
+            $pivot_table_name = $relation->getRelationName();
+        }
+        else{
+            $child_table = CustomTable::getEloquent($relation);
+            $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
+        }
 
         if (!is_nullorempty($pivot_table_name)) {
             return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
         }
 
-        return null;
+        return colelct();
     }
 
     /**
