@@ -52,7 +52,7 @@ class OperationValueType extends EnumBase
                 }
 
                 // get joined user's id
-                $ids = $login_user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN);
+                $ids = $login_user->getOrganizationIdsForQuery(JoinedOrgFilterType::ONLY_JOIN);
                 // get enable select organizations
                 $selectIds = $custom_column->column_item->getSelectOptions(null, null, ['notAjax' => true])->keys();
 

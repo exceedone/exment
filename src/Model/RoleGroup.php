@@ -76,7 +76,7 @@ class RoleGroup extends ModelBase
                             // ge check contains parent and child organizaions.
                             $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
                             
-                            $targetOrgIds = $org->getOrganizationIds($enum);
+                            $targetOrgIds = $org->getOrganizationIdsForQuery($enum);
                             if (in_array($organization_id, $targetOrgIds)) {
                                 return true;
                             }

@@ -108,10 +108,13 @@ trait OrganizationTrait
     /**
      * Get Parent and Children Ids
      *
+     * IMPORTANT: Please look this topic.
+     * https://exment.net/docs/#/ja/developing_memo
+     * 
      * @param string $joinedOrgFilterType
      * @return array
      */
-    public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
+    public function getOrganizationIdsForQuery($filterType = JoinedOrgFilterType::ALL)
     {
         return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS_ORG, $this->id, $filterType), function () use ($filterType) {
             $orgs = collect();

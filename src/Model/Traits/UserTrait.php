@@ -38,15 +38,18 @@ trait UserTrait
     
     /**
      * get organizations that this_user joins.
-     * @return mixed
+     * 
+     * IMPORTANT: Please look this topic.
+     * https://exment.net/docs/#/ja/developing_memo
+     * @return array
      */
-    public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
+    public function getOrganizationIdsForQuery($filterType = JoinedOrgFilterType::ALL)
     {
         // if system doesn't use organization, return empty array.
         if (!System::organization_available()) {
             return [];
         }
-        return AuthUserOrgHelper::getOrganizationIds($filterType, $this->id);
+        return AuthUserOrgHelper::getOrganizationIdsForQuery($filterType, $this->id);
     }
 
     /**
@@ -85,7 +88,7 @@ trait UserTrait
                 $qry->where('role_group_target_id', $this->id)
                     ->where('role_group_user_org_type', 'user');
             })->orWhere(function ($qry) {
-                $qry->whereIn('role_group_target_id', $this->getOrganizationIds())
+                $qry->whereIn('role_group_target_id', $this->getOrganizationIdsForQuery())
                     ->where('role_group_user_org_type', 'organization');
             });
         })->get();

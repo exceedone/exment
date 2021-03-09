@@ -354,8 +354,8 @@ return [
         'filter_multi_orguser_options' => [
             'not_filter' => 'Not filter',
             'all' => 'Organization to which the logged-in user belongs and organization of parent-child hierarchy. And, the users to which they belong',
-            'only_upper' => 'Organization to which the logged-in user belongs and organization of parent hierarchy. And, the users to which they belong',
-            'only_downer' => 'Organization to which the logged-in user belongs and organization of child hierarchy. And, the users to which they belong',
+            'only_upper' => 'Organization to which the logged-in user belongs and organization of child hierarchy. And, the users to which they belong',
+            'only_downer' => 'Organization to which the logged-in user belongs and organization of parent hierarchy. And, the users to which they belong',
             'only_join' => 'Organization to which the logged-in user belongs. And, the users to which they belong',
         ],
 
