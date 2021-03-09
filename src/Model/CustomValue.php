@@ -404,6 +404,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
+
             $model->deleted_user_id = \Exment::getUserId();
 
             // saved_notify(as update) disable
@@ -416,8 +417,21 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
+            $deleteFileTimingHard = boolval(config('exment.delete_file_timing_hard_delete', false));
+
             if ($model->isForceDeleting()) {
+                // Delete file hard delete
+                if($deleteFileTimingHard){
+                    // delete tmp file
+                    $model->deleteFile();
+                }
                 return;
+            }
+
+            // Delete file soft delete
+            if(!$deleteFileTimingHard){
+                // delete tmp file
+                $model->deleteFile();
             }
             
             $model->preSave();
@@ -654,6 +668,47 @@ abstract class CustomValue extends ModelBase
             $this->already_updated = true;
             $this->save();
         }
+    }
+
+
+    /**
+     * delete file and document.
+     */
+    protected function deleteFile()
+    {
+        ///// delete file column
+        $this->custom_table
+            ->custom_columns_cache
+            ->filter(function($custom_column){
+                return ColumnType::isAttachment($custom_column);
+            })->each(function($custom_column){
+                $value = array_get($this->value, $custom_column->column_name);
+                if(!$value){
+                    return;
+                }
+
+                $file = File::getData($value);
+                if(!$file){
+                    return;
+                }
+                File::deleteFileInfo($file);
+            });
+
+
+        // Delete Attachment ----------------------------------------------------
+        $this->getDocuments()
+            ->each(function($document){
+                $value = array_get($document->value, 'file_uuid');
+                if(!$value){
+                    return;
+                }
+
+                $file = File::getData($value);
+                if(!$file){
+                    return;
+                }
+                File::deleteFileInfo($file);
+            });
     }
 
 

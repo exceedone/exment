@@ -826,6 +826,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | File delete timing
+    |--------------------------------------------------------------------------
+    | 
+    | Whether file delete timing only hard delete
+    | If false, file delete when soft deleting
+    */
+    'delete_file_timing_hard_delete' => env('EXMENT_DELETE_FILE_TIMING_HARD_DELETE', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Document upload max count one request
     |--------------------------------------------------------------------------
     | 
