@@ -7,6 +7,8 @@ use Exceedone\Exment\Enums\SystemColumn;
 
 trait SystemValuesTrait
 {
+    public $withTrashed = false;
+
     public function renderSystemItem(?CustomValue $custom_value)
     {
         if (!isset($custom_value) || !isset($custom_value->id)) {
@@ -94,6 +96,9 @@ trait SystemValuesTrait
         }
 
         $link = url_join($custom_value->getUrl(), 'workflowHistoryModal');
+        if ($this->withTrashed) {
+            $link .= '?trashed=1';
+        }
         return [
             'label' => exmtrans('common.history'),
             'value' => '<a href="javascript:void(0);" data-widgetmodal_url="' . $link . '">' . trans('admin.show') . '</a>'
