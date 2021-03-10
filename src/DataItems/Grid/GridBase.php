@@ -116,6 +116,25 @@ abstract class GridBase
         return $filter_func;
     }
 
+
+    protected static function setViewInfoboxFields(&$form)
+    {
+        // view input area ----------------------------------------------------
+        $form->switchbool('use_view_infobox', exmtrans("custom_view.use_view_infobox"))
+            ->help(exmtrans("custom_view.help.use_view_infobox"))
+            ->default(false)
+            ->attribute(['data-filtertrigger' =>true]);
+
+        $form->text('view_infobox_title', exmtrans("custom_view.view_infobox_title"))
+            ->help(exmtrans("custom_view.help.view_infobox_title"))
+            ->attribute(['data-filter' => json_encode(['key' => 'use_view_infobox', 'value' => '1'])]);
+
+        $form->tinymce('view_infobox', exmtrans("custom_view.view_infobox"))
+            ->help(exmtrans("custom_view.help.view_infobox"))
+            ->disableImage()
+            ->attribute(['data-filter' => json_encode(['key' => 'use_view_infobox', 'value' => '1'])]);
+    }
+    
     
     /**
      * Set filter fileds form

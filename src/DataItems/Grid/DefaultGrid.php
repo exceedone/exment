@@ -727,6 +727,8 @@ class DefaultGrid extends GridBase
 
         // column setting
         if ($view_kind_type != Enums\ViewKindType::FILTER) {
+            static::setViewInfoboxFields($form);
+
             static::setColumnFields($form, $custom_table);
         }
 

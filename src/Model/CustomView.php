@@ -852,6 +852,40 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this;
     }
 
+    public function getUseViewInfoboxAttribute()
+    {
+        return $this->getOption('use_view_infobox');
+    }
+
+    public function setUseViewInfoboxAttribute($val)
+    {
+        $this->setOption('use_view_infobox', $val);
+
+        return $this;
+    }
+
+    public function getViewInfoboxTitleAttribute()
+    {
+        return $this->getOption('view_infobox_title');
+    }
+    public function setViewInfoboxTitleAttribute($val)
+    {
+        $this->setOption('view_infobox_title', $val);
+
+        return $this;
+    }
+
+    public function getViewInfoboxAttribute()
+    {
+        return $this->getOption('view_infobox');
+    }
+    public function setViewInfoboxAttribute($val)
+    {
+        $this->setOption('view_infobox', $val);
+
+        return $this;
+    }
+
     /**
      * Whether this model disable delete
      *
