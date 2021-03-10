@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomFormColumn;
 use Encore\Admin\Show\Field as ShowField;
 
 /**
@@ -348,8 +349,14 @@ trait ItemTrait
      *
      * @return  self
      */ 
-    public function setFormColumnOptions(?array $form_column_options)
+    public function setFormColumnOptions($form_column_options)
     {
+        if(is_null($form_column_options)){
+            return;
+        }
+        if($form_column_options instanceof CustomFormColumn){
+            $form_column_options = $form_column_options->options;
+        }
         $this->form_column_options = $form_column_options;
 
         return $this;

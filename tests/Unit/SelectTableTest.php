@@ -369,7 +369,7 @@ class SelectTableTest extends UnitTestBase
 
         // get form_column
         $custom_form_column = CustomFormColumn::where('form_column_target_id', $custom_column->id)->where('form_column_type', FormColumnType::COLUMN)->orderBy('id', 'desc')->first();
-
+        $custom_column->column_item->setFormColumnOptions($custom_form_column);
         // copy and paste from SelectTable.php
         $linkage = $this->callProtectedMethod($custom_column->column_item, 'getLinkage', ['relation_filter_target_column_id' => $custom_form_column ? $custom_form_column->id : null]);
         if(!isset($linkage)){

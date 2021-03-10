@@ -258,6 +258,9 @@ class PatchDataCommand extends Command
                         continue;
                     }
                     $obj_table = CustomTable::getEloquent($table_name);
+                    if(!$obj_table){
+                        continue;
+                    }
     
                     // get all custom columns
                     $current_columns = $obj_table->custom_columns;

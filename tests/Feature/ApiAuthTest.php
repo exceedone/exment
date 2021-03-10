@@ -194,7 +194,7 @@ class ApiAuthTest extends ApiTestBase
 
         $this->withHeaders([
         ])->get(url_join($uri, 'data', 'custom_value_edit', 5))
-            ->assertStatus(401);
+            ->assertStatus(404);
 
         $this->withHeaders([
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit'))
@@ -225,7 +225,7 @@ class ApiAuthTest extends ApiTestBase
                 'text' => $text,
                 'user' => 3
             ]
-        ])->assertStatus(405);
+        ])->assertStatus(404);
         
         // not allowed
         $response = $this->withHeaders([
@@ -246,6 +246,6 @@ class ApiAuthTest extends ApiTestBase
                 'user' => 3
             ]
         ])
-        ->assertStatus(405);
+        ->assertStatus(404);
     }
 }
