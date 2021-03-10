@@ -264,6 +264,17 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
+            if($plugin->matchPluginType(PluginType::GRID))
+            {
+                $form->text('grid_menu_title', exmtrans("plugin.options.grid_menu_title"))
+                    ->help(exmtrans("plugin.help.grid_menu_title"))
+                    ->rules('max:50');
+                $form->text('grid_menu_description', exmtrans("plugin.options.grid_menu_description"))
+                    ->help(exmtrans("plugin.help.grid_menu_description"))
+                    ->rules('max:200');
+                $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
+            }
+
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
                 $form->switchbool('all_user_enabled', exmtrans("plugin.options.all_user_enabled"))->help(exmtrans("plugin.help.all_user_enabled"));
             }

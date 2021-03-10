@@ -69,8 +69,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/version', 'SystemController@version');
             $router->post('system/send_testmail', 'SystemController@sendTestMail');
             
-            //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
-            //$router->post('system/call_update', 'SystemController@callUpdate');
+            $router->post('system/call_update', 'SystemController@callUpdate');
             
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');

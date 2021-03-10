@@ -1,15 +1,8 @@
 <div class="box">
     <div class="box-header with-border">
-        <div class="pull-right">
-            <div class="btn-group pull-right" style="margin-right: 10px">
-                <a href="{{ $createUrl }}" class="btn btn-sm btn-success" title="{$new}">
-                    <i class="fa fa-plus"></i><span class="hidden-xs">&nbsp;&nbsp;{{$new}}</span>
-                </a>
-            </div>
-        </div>
         <span>
             @foreach($tools as $tool)
-            {!! $tool->render() !!}
+            {!! $tool !!}
             @endforeach
         </span>
     </div>

@@ -90,7 +90,7 @@ trait CustomViewTrait
             $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
             $data = $grid->getQuery($query)->get();
         } else {
-            $custom_view->filterModel($query);
+            $custom_view->filterSortModel($query);
             if ($get_count) {
                 $data = $query->count();
             } else {

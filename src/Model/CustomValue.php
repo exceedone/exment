@@ -1309,7 +1309,7 @@ abstract class CustomValue extends ModelBase
 
                 // set custom view's filter
                 if (isset($options['target_view'])) {
-                    $options['target_view']->filterModel($query, ['sort' => false]);
+                    $options['target_view']->filterModel($query); // sort is false.
                 }
             }
 

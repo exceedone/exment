@@ -468,7 +468,6 @@ class File extends CustomItem
         return exmtrans('common.separate_word');
     }
 
-
     /**
      * Get tmp file info
      *

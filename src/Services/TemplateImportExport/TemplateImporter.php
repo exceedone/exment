@@ -316,6 +316,54 @@ class TemplateImporter
     }
 
     /**
+     * Upload Template with plugin
+     */
+    public function uploadTemplateWithPlugin($tmpDiskItem, $directory)
+    {
+        $tmpDisk = $tmpDiskItem->disk();
+        $tmpfolderpath = $tmpDiskItem->dirFullPath();
+
+        $config_path = path_join($directory, "config.json");
+        if (!$tmpDisk->exists($config_path)) {
+            return false;
+        }
+
+        // get config.json
+        $json = json_decode($tmpDisk->get($config_path), true);
+        if (!isset($json)) {
+            return false;
+        }
+
+        // get template name
+        $template_name = array_get($json, 'template_name');
+        if (!isset($template_name)) {
+            return false;
+        }
+
+        // get thumbnail name
+        $thumbnail_name = array_get($json, 'thumbnail');
+        if (isset($thumbnail_name)) {
+            $thumbnail_path = path_join($directory, $thumbnail_name);
+            if (!$tmpDisk->exists($thumbnail_path)) {
+                $thumbnail_path = null;
+            }
+        }
+
+        // copy to app/templates path
+        $files = [
+            $config_path => path_join($template_name, 'config.json')
+        ];
+        if (isset($thumbnail_path)) {
+            $files[$thumbnail_path] = path_join($template_name, pathinfo($thumbnail_path)['basename']);
+        }
+        $this->diskService->upload($files);
+
+        $this->importFromFile($tmpDisk->get($config_path), [
+            'basePath' => $tmpfolderpath,
+        ]);
+    }
+
+    /**
      * upload from excel and import
      */
     public function uploadTemplateExcel($file)

@@ -7,6 +7,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Exceedone\Exment\Validator\PluginTypeRule;
+use Exceedone\Exment\Validator\PluginRequirementRule;
+use Exceedone\Exment\Services\TemplateImportExport;
 use ZipArchive;
 use File;
 use Validator;
@@ -99,6 +101,69 @@ class PluginInstaller
         }
     }
 
+    public static function templateInstall($pluginFileBasePath, PluginDiskService $diskService, array $json)
+    {
+        // If temlates not install, return true
+        if(!boolval(array_get($json, "templates"))){
+            return true;
+        }
+
+        $tmpDiskItem = $diskService->tmpDiskItem();
+        $directories = static::getTemplateDirectories($pluginFileBasePath, $diskService, $tmpDiskItem);
+
+        $importer = new TemplateImportExport\TemplateImporter();
+
+        foreach ($directories as $directory) {
+            if (false === $importer->uploadTemplateWithPlugin($tmpDiskItem, $directory)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * GetTemplateDirectories.
+     * Support these paths.
+     * (1)templates
+     *        config.json
+     *        lang
+     * (2)templates
+     *            template1
+     *                config.json
+     *                lang
+     *            template2
+     *                config.json
+     *                lang
+     * @param string  $pluginFileBasePath
+     * @param PluginDiskService $diskService
+     * @return array
+     */
+    protected static function getTemplateDirectories(string $pluginFileBasePath, PluginDiskService $diskService, $tmpDiskItem) : array
+    {
+        $result = [];
+        $checkFunc = function($directory, &$result) use($tmpDiskItem){
+            $config_path = path_join($directory, "config.json");
+            if($tmpDiskItem->disk()->exists($config_path)){
+                $result[] = $directory;
+            }
+        };
+
+        // check current dir
+        $checkFunc("$pluginFileBasePath/templates", $result);
+
+        $directories = $tmpDiskItem->disk()->directories("$pluginFileBasePath/templates");
+        foreach($directories as $directory){
+            $checkFunc($directory, $result);
+
+            // // get sub directory
+            // $subDirectories = $tmpDiskItem->disk()->directories($directory);
+            // foreach($subDirectories as $subDirectory){
+            //     $checkFunc($subDirectory, $result);
+            // }
+        }
+
+        return $result;
+    }
 
     public static function copySavePlugin($config_path, $pluginFileBasePath, ?PluginDiskService $diskService = null)
     {
@@ -117,6 +182,10 @@ class PluginInstaller
             //Validate json file with fields require
             $checkRuleConfig = static::checkRuleConfigFile($json);
             if ($checkRuleConfig === true) {
+                $templateInstall = static::templateInstall($pluginFileBasePath, $diskService, $json);
+                if ($templateInstall === false) {
+                    return back()->with('errorMess', exmtrans('common.message.template_error'));
+                }
                 //Check if the name of the plugin has existed
                 $plugineExistByName = Plugin::getPluginByName(array_get($json, 'plugin_name'));
                 //Check if the uuid of the plugin has existed
@@ -176,7 +245,8 @@ class PluginInstaller
             'plugin_name' => 'required',
             'plugin_type' => new PluginTypeRule(),
             'plugin_view_name' => 'required',
-            'uuid' => 'required'
+            'uuid' => 'required',
+            'requirement' => new PluginRequirementRule(),
         ];
 
         //If pass validation return true, else return false

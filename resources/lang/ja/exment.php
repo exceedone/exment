@@ -94,6 +94,7 @@ return [
             'notfound_or_deny' => 'データが存在しないか、権限がありません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
+            'template_error' => '前提となるテンプレートのインストールに失敗しました。',
             'exists_row' => '%sは必ず1行以上入力してください。',
             'sendmail_succeeded' => 'メールを送信しました。',
             'input_keyword' => '「%s」と入力してください。',
@@ -634,6 +635,7 @@ return [
             'samename_plugin' => '同名プラグインが存在します。確認してから一度お試してください。',
             'wrongname_plugin' => 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。',
             'cannot_read' => 'プラグイン :plugin_view_name が正常に読み込めませんでした。プラグインファイル本体を一度ご確認いただくか、システム管理者にお問い合わせください。',
+            'class_requirement' => '必須ライブラリがインストールされていませんでした。以下のライブラリを、composerでインストールしてください。 :composer',
         ],
     
         'plugin_type_options' => [
@@ -650,6 +652,7 @@ return [
             'api' => 'API',
             'event' => 'イベント',
             'button' => 'ボタン',
+            'grid' => 'ビュー',
         ],
     ],
 
@@ -1336,6 +1339,8 @@ return [
             'multiple_enabled_file' => 'YESにすることで、複数のファイルをアップロードすることができます。',
             'accept_extensions' => 'アップロードを許可するファイルの拡張子を指定する場合、ドットを含まずに、拡張子を入力してください。複数指定する場合は、カンマ区切りで入力してください。例：docx,pdf,xlsx',
             'check_radio_enabled' => 'YESにすることで、ラジオボタン形式またはチェックボックス形式で表示されます。（複数選択を許可している場合はチェックボックス形式で、通常はラジオボタン形式で表示されます）',
+            'multiple_enabled_file' => 'YESにすることで、複数のファイルをアップロードすることができます。',
+            'accept_extensions' => 'アップロードを許可するファイルの拡張子を指定する場合、ドットを含まずに、拡張子を入力してください。複数指定する場合は、カンマ区切りで入力してください。例：docx,pdf,xlsx',
             'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
             'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
         ],
@@ -1692,6 +1697,9 @@ return [
         'sort_order' => '並び順',
         'sort' => '並べ替え',
         'priority' => '優先順位',
+        'use_view_infobox' => 'ビューの情報ボックスを使用する',
+        'view_infobox_title' => '情報ボックス-タイトル',
+        'view_infobox' => '情報ボックス-本文',
         'pager_count_default' => 'システム設定に合わせる',
         'custom_view_filters' => 'データ表示条件',
         'view_filter_condition' => '検索条件',
@@ -1711,6 +1719,9 @@ return [
             'custom_view_type' => 'システムビュー：このテーブルを使用するユーザー全員が使用できるビューです。 ユーザービュー：作成したユーザーのみが使用できるビューです。',
             'sort_type' => 'ソートを、「昇順(小さい順)」で実行するか、「降順（大きい順）」で実行するか、指定します。',
             'sort_order_summaries' => '取得するデータをソートします。<br />「グループ列」「集計列」の中から、数値の小さい順に、ソートを実行します。',
+            'use_view_infobox' => 'YESにすることで、ビューの上部に、業務内容や、ユーザーへのメッセージなどを記入できる、情報ボックスを設定することができます。',
+            'view_infobox_title' => '情報ボックスに表示するタイトルを記入してください。',
+            'view_infobox' => '情報ボックスに表示するHTMLを記入してください。※画像、スクリプトは入力できません。',
         ],
 
         'column_sort_options' => [
@@ -1803,6 +1814,7 @@ return [
             'aggregate' => '集計ビュー',
             'calendar' => 'カレンダービュー',
             'filter' => '条件ビュー',
+            'plugin' => '独自ビュー',
             'alldata' => '全件ビュー',
         ],
     ],

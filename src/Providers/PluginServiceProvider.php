@@ -40,7 +40,7 @@ class PluginServiceProvider extends ServiceProvider
         }
     
         // get plugin script's and style's
-        $pluginPublics = Plugin::getPluginPublics();
+        $pluginPublics = Plugin::getPluginScriptStyles();
         
         // loop
         foreach ($pluginPublics as $pluginScriptStyle) {
