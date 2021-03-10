@@ -185,7 +185,7 @@ class File extends ModelBase
     /**
      * delete file info to database
      * @param string|File $file
-     * @return void
+     * @return File|null
      */
     public static function deleteFileInfo($file)
     {
@@ -200,8 +200,34 @@ class File extends ModelBase
         $file->delete();
 
         Storage::disk(config('admin.upload.disk'))->delete($path);
+
+        return $file;
     }
 
+
+    /**
+     * Delete document model and file
+     */
+    public static function deleteDocumentModel($file, bool $isDeleteFile = true)
+    {
+        if($isDeleteFile){
+            $file = static::deleteFileInfo($file);
+        }
+        else{
+            $file = static::getData($file);
+        }
+
+        if(!$file){
+            return;
+        }
+        
+        $column_name = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getIndexColumnName('file_uuid');
+    
+        // delete document info
+        getModelName(SystemTableName::DOCUMENT)
+            ::where($column_name, $file->uuid)
+            ->delete();
+    }
     /**
      * Get file object(laravel)
      *

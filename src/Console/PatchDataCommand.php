@@ -44,7 +44,7 @@ class PatchDataCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:patchdata {action}';
+    protected $signature = 'exment:patchdata {action} {options1?} {options2?} {options3?}';
 
     /**
      * The console command description.
@@ -182,6 +182,9 @@ class PatchDataCommand extends Command
                 return;
             case 'patch_condition':
                 $this->updateCondition();
+                return;
+            case 'delete_junk_file':
+                $this->deleteJunkFile();
                 return;
         }
 
@@ -1519,6 +1522,63 @@ class PatchDataCommand extends Command
 
                 $model->save();
             });
+        }
+    }
+
+
+    /**
+     * Delete junk file
+     *
+     * @return void
+     */
+    protected function deleteJunkFile()
+    {
+        $table_name = $this->argument('options1');
+        if(!$table_name){
+            $this->error('Please input argument Table name.');
+            return;
+        }
+        
+        $custom_table = CustomTable::getEloquent($table_name);
+        if(!$custom_table){
+            $this->error("Table name {$table_name} is not found.");
+            return;
+        }
+        
+        $disk = \Storage::disk(config('admin.upload.disk'));
+        
+        // Remove file eloquent, If not contains custom value data.
+        Model\File::where('parent_type', $custom_table->table_name)
+            ->chunk(1000, function($files) use($custom_table){
+                foreach($files as $file){
+                    $exists = $custom_table->getValueModel()->query()
+                        ->where('id', $file->parent_id)
+                        ->withoutGlobalScopes()
+                        ->withTrashed()
+                        ->exists();
+                    if($exists){
+                        continue;
+                    }
+        
+                    Model\File::deleteFileInfo($file);
+                }
+            });
+
+
+        // get file list, and remove if not exists file model
+        $storageFiles = $disk->files($custom_table->table_name);
+
+        foreach($storageFiles as $storageFile){
+            $file = Model\File::getData($storageFile);
+            // Exists file model, continue
+            if($file){
+                continue;
+            }
+
+            try{
+                $disk->delete($storageFile);
+            }
+            catch(\Exception $ex){}
         }
     }
 }

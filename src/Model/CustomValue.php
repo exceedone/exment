@@ -98,6 +98,17 @@ abstract class CustomValue extends ModelBase
             ;
     }
 
+    /**
+     * Get all workflow values
+     *
+     * @return void
+     */
+    public function workflow_values()
+    {
+        return $this->hasMany(WorkflowValue::class, 'morph_id')
+            ->where('morph_type', $this->custom_table->table_name);
+    }
+
     public function getLabelAttribute()
     {
         if (is_null($this->_label)) {
@@ -404,29 +415,53 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
-            $model->deleted_user_id = \Exment::getUserId();
+            $deleteForce = boolval(config('exment.delete_force_custom_value', false));
 
-            // saved_notify(as update) disable
-            $saved_notify = $model->saved_notify;
-            $model->saved_notify = false;
-            $model->save();
-            $model->saved_notify = $saved_notify;
+            if($deleteForce){
+                $model->forceDeleting = true;
+            }
 
-            $model->deleteRelationValues();
+            // delete hard
+            if($model->isForceDeleting()){
+                $model->deleteFile();
+                $model->deleteRelationValues();
+            }
+            // Execute only not force deleting
+            else{
+                // Delete only children.
+                $model->deleteChildrenValues();
+
+                $model->deleted_user_id = \Exment::getUserId();
+
+                // saved_notify(as update) disable
+                $saved_notify = $model->saved_notify;
+                $model->saved_notify = false;
+                $model->save();
+                $model->saved_notify = $saved_notify;
+            }
         });
 
         static::deleted(function ($model) {
+            // Delete file hard delete
             if ($model->isForceDeleting()) {
+                // Execute notify if delete_force_custom_value is true
+                if($model->saved_notify && boolval(config('exment.delete_force_custom_value', false))){
+                    $model->notify(NotifySavedType::DELETE);
+                }
+                $model->postForceDelete();
                 return;
             }
             
             $model->preSave();
             $model->postDelete();
 
-            $model->notify(NotifySavedType::DELETE);
+            if($model->saved_notify){
+                $model->notify(NotifySavedType::DELETE);
+            }
         });
 
         static::restored(function ($model) {
+            $model->restoreChildrenValues();
             $model->deleted_user_id = null;
 
             // saved_notify(as update) disable
@@ -657,6 +692,47 @@ abstract class CustomValue extends ModelBase
     }
 
 
+    /**
+     * delete file and document.
+     */
+    public function deleteFile()
+    {
+        ///// delete file column
+        $this->custom_table
+            ->custom_columns_cache
+            ->filter(function($custom_column){
+                return ColumnType::isAttachment($custom_column);
+            })->each(function($custom_column){
+                $value = array_get($this->value, $custom_column->column_name);
+                if(!$value){
+                    return;
+                }
+
+                $file = File::getData($value);
+                if(!$file){
+                    return;
+                }
+                File::deleteFileInfo($file);
+            });
+
+
+        // Delete Attachment ----------------------------------------------------
+        $this->getDocuments()
+            ->each(function($document){
+                $value = array_get($document->value, 'file_uuid');
+                if(!$value){
+                    return;
+                }
+
+                $file = File::getData($value);
+                if(!$file){
+                    return;
+                }
+                File::deleteDocumentModel($file);
+            });
+    }
+
+
     // notify user --------------------------------------------------
     public function notify($notifySavedType)
     {
@@ -678,18 +754,13 @@ abstract class CustomValue extends ModelBase
      */
     protected function deleteRelationValues()
     {
+        if (!$this->isForceDeleting()) {
+            return;
+        }
+
         $custom_table = $this->custom_table;
         // delete custom relation is 1:n value
-        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
-        // loop relations
-        foreach ($relations as $relation) {
-            $child_table = $relation->child_custom_table;
-            // find keys
-            getModelName($child_table)
-                ::where('parent_id', $this->id)
-                ->where('parent_type', $custom_table->table_name)
-                ->delete();
-        }
+        $this->deleteChildrenValues();
 
         // delete custom relation is n:n value
         $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::MANY_TO_MANY);
@@ -723,8 +794,59 @@ abstract class CustomValue extends ModelBase
         RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
 
         // remove history if hard deleting
-        if ($this->isForceDeleting()) {
-            $this->revisionHistory()->delete();
+        $this->revisionHistory()->delete();
+
+        // Delete all workflow values
+        $this->workflow_values->each(function($workflow_value){
+            $workflow_value->delete();
+        });
+    }
+
+    
+    /**
+     * delete relation if record delete
+     */
+    protected function deleteChildrenValues()
+    {
+        $custom_table = $this->custom_table;
+        $deleteForce = $this->isForceDeleting();
+
+        // delete custom relation is 1:n value
+        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
+        // loop relations
+        foreach ($relations as $relation) {
+            $this->getChildrenValues($relation, true)
+                ->withTrashed()
+                ->get()
+                ->each(function($child) use($deleteForce){
+                    // disable notify
+                    $child->saved_notify(false);
+                    if($deleteForce){
+                        $child->forceDelete();
+                    }
+                    else{
+                        $child->delete();
+                    }
+                });
+        }
+    }
+
+    /**
+     * restore relation if record delete
+     */
+    protected function restoreChildrenValues()
+    {
+        $custom_table = $this->custom_table;
+        // delete custom relation is 1:n value
+        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
+        // loop relations
+        foreach ($relations as $relation) {
+            $child_table = $relation->child_custom_table;
+            // find keys
+            getModelName($child_table)
+                ::where('parent_id', $this->id)
+                ->where('parent_type', $custom_table->table_name)
+                ->restore();
         }
     }
 
@@ -1227,14 +1349,19 @@ abstract class CustomValue extends ModelBase
         }
 
         // get custom column as array
-        $child_table = CustomTable::getEloquent($relation);
-        $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
+        if($relation instanceof CustomRelation){
+            $pivot_table_name = $relation->getRelationName();
+        }
+        else{
+            $child_table = CustomTable::getEloquent($relation);
+            $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
+        }
 
         if (!is_nullorempty($pivot_table_name)) {
             return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
         }
 
-        return null;
+        return colelct();
     }
 
     /**
