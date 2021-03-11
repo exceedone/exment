@@ -33,7 +33,7 @@ class ViewOnly extends Display
     {
         return parent::render()->with([
             'prepareDefault'   => $this->prepareDefault,
-            'default'          => $this->default,
+            'default'          => is_array($this->default)? json_encode($this->default): $this->default,
         ]);
     }
 }

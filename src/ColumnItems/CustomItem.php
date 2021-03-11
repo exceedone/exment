@@ -737,10 +737,11 @@ abstract class CustomItem implements ItemInterface
         // init_flg(for validation)
         if ($this->initonly()) {
             $validates[] = new Validator\InitOnlyRule($this->custom_column, $this->custom_value);
+        } else {
+            // set column's validates
+            $this->setValidates($validates);
         }
 
-        // set column's validates
-        $this->setValidates($validates);
 
         // get removing fields.
         $field->removeRules($this->getRemoveValidates());
