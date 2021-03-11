@@ -53,11 +53,11 @@ class RoleGroupPermission extends ModelBase
         switch ($this->role_group_permission_type) {
             case RoleType::SYSTEM:
                 return [
-                    'role_group_target_name' => $this->role_group_target_id ?? null,
+                    'table_name' => $this->role_group_target_id ?? null,
                 ];
             case RoleType::TABLE:
                 return [
-                    'role_group_target_name' => CustomTable::getEloquent($this->role_group_target_id)->table_name ?? null,
+                    'table_name' => CustomTable::getEloquent($this->role_group_target_id)->table_name ?? null,
                 ];
         }
         return [];
