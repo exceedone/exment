@@ -304,6 +304,24 @@ trait RevisionableTrait
     }
 
     /**
+     * Force delete are enabled, store the deleted time
+     */
+    public function postForceDelete()
+    {
+        if ((!isset($this->revisionEnabled) || $this->revisionEnabled)
+        ) {
+
+            $changes_to_record = $this->changedRevisionableFields();
+            $revisions = array();
+            $revisions[] = array(
+                'revisionable_type' => $this->getMorphClass(),
+                'revisionable_id' => $this->getKey(),
+            );
+            $this->forceDeleteData($revisions);
+        }
+    }
+
+    /**
      * If softdeletes are enabled, restore event
      */
     public function postRestore()
@@ -383,6 +401,16 @@ trait RevisionableTrait
                 $obj_revision->{$key} = $r;
             }
             $obj_revision->save();
+        }
+    }
+
+    protected function forceDeleteData($revisions)
+    {
+        foreach ($revisions as $revision) {
+            Revision
+                ::where('revisionable_type', array_get($revision, 'revisionable_type'))
+                ->where('revisionable_id', array_get($revision, 'revisionable_id'))
+                ->forceDelete();
         }
     }
 

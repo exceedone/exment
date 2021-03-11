@@ -255,7 +255,7 @@ class CustomOperationTest extends UnitTestBase
                         case OperationValueType::BERONG_ORGANIZATIONS:
                             $login_user = \Exment::user();
                             // get joined user's id
-                            $orgs = $login_user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN);
+                            $orgs = $login_user->getOrganizationIdsForQuery(JoinedOrgFilterType::ONLY_JOIN);
                             $this->assertTrue($value instanceof CustomValue);
                             $this->assertTrue(in_array($value->id, $orgs));
                             break;

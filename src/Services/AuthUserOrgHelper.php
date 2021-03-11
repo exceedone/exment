@@ -89,7 +89,7 @@ class AuthUserOrgHelper
             foreach ($organizations as $organization) {
                 // get JoinedOrgFilterType. this method is for org_joined_type_role_group. get users for has role groups.
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ONLY_JOIN);
-                $relatedOrgs = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel()->with('users')->find($organization->getOrganizationIds($enum));
+                $relatedOrgs = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel()->with('users')->find($organization->getOrganizationIdsForQuery($enum));
 
                 foreach ($relatedOrgs as $related_organization) {
                     foreach ($related_organization->users as $user) {
@@ -275,10 +275,14 @@ class AuthUserOrgHelper
 
     
     /**
-     * get organization ids
-     * @return mixed
+     * get organization ids for query.
+     * 
+     * IMPORTANT: Please look this topic.
+     * https://exment.net/docs/#/ja/developing_memo
+     * 
+     * @return array
      */
-    public static function getOrganizationIds($filterType = JoinedOrgFilterType::ALL, $targetUserId = null)
+    public static function getOrganizationIdsForQuery($filterType = JoinedOrgFilterType::ALL, $targetUserId = null)
     {
         // if system doesn't use organization, return empty array.
         if (!System::organization_available()) {
@@ -427,7 +431,7 @@ class AuthUserOrgHelper
 
         // First, get users org joined
         $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
-        $target_users = \DB::table($db_table_name_pivot)->whereIn('parent_id', $user->getOrganizationIds($joinedOrgFilterType))
+        $target_users = \DB::table($db_table_name_pivot)->whereIn('parent_id', $user->getOrganizationIdsForQuery($joinedOrgFilterType))
             ->get(['child_id'])->pluck('child_id');
 
         $target_users = $target_users->merge($user->getUserId())->unique();
@@ -459,7 +463,7 @@ class AuthUserOrgHelper
         $joinedOrgFilterType = JoinedOrgFilterType::getEnum($setting);
 
         // get only login user's organization
-        $builder->whereIn("$db_table_name.id", $user->getOrganizationIds($joinedOrgFilterType));
+        $builder->whereIn("$db_table_name.id", $user->getOrganizationIdsForQuery($joinedOrgFilterType));
     }
 
     /**

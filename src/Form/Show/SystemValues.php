@@ -11,8 +11,11 @@ class SystemValues extends AbstractField
 
     public $escape = false;
 
-    public function render()
+    public function render($options = [])
     {
+        if (boolval(array_get($options, 'withTrashed'))) {
+            $this->withTrashed = true;
+        }
         return $this->renderSystemItem($this->model);
     }
 }

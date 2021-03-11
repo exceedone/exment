@@ -23,8 +23,8 @@ class JoinedMultiUserFilterType extends EnumBase
      * Mistake naming...
      */
     const ALL = '99';
-    const ONLY_UPPER = '1';
     const ONLY_DOWNER = '2';
+    const ONLY_UPPER = '1';
     const ONLY_JOIN = '0';
 
 

@@ -112,9 +112,14 @@ trait ApiTrait
      * @param string|int|null $id
      * @return CustomValue|\Symfony\Component\HttpFoundation\Response
      */
-    protected function getCustomValue(CustomTable $custom_table, $id)
+    protected function getCustomValue(CustomTable $custom_table, $id, bool $withTrashed = false)
     {
-        $custom_value = getModelName($custom_table->table_name)::find($id);
+        $query = getModelName($custom_table->table_name)::query();
+        if($withTrashed){
+            $query->withTrashed();
+        }
+        $custom_value = $query->find($id);
+
         // not contains data, return empty data.
         if (!isset($custom_value)) {
             $code = $custom_table->getNoDataErrorCode($id);
