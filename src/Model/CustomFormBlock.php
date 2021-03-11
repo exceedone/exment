@@ -83,6 +83,11 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         return $custom_form ? $custom_form->custom_table_cache : null;
     }
 
+    public function getCustomFormColumnsCacheAttribute()
+    {
+        return $this->hasManyCache(CustomFormColumn::class, 'custom_form_block_id');
+    }
+
     public function getRequestKeyAttribute()
     {
         return $this->_request_key ?? $this->id;
@@ -108,6 +113,8 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     
     /**
      * get relation name etc for form block
+     * 
+     * @return array offset 0 : CustomRelation, 1:relation name, 2:block label.
      */
     public function getRelationInfo(?CustomTable $custom_form_table = null)
     {

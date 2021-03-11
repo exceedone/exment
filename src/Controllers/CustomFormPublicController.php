@@ -265,7 +265,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             })->disableHeader();
 
             // get notify mail template
-            $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_user', MailKeyName::PUBLICFORM_SUCCESS_USER, 'confirm_complete_setting_use_notify_complete_user');
+            $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_user', MailKeyName::PUBLICFORM_COMPLETE_USER, 'confirm_complete_setting_use_notify_complete_user');
             $form->embeds("notify_actions_complete_user", exmtrans("common.confirm_complete_setting"), function($form) use($custom_table){
                 
                 $form->internal('notify_action')
@@ -297,7 +297,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             })->disableHeader();
 
             // get notify mail template
-            $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_admin', null, 'use_notify_complete_admin');
+            $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_admin', MailKeyName::PUBLICFORM_COMPLETE_ADMIN, 'use_notify_complete_admin');
 
             $form->exmheader(exmtrans("notify.notify_action_target"))->no(5);
             $form->hasManyJson('notify_actions_complete_admin', exmtrans("custom_form_public.notify_target"), function ($form) use($custom_table) {
@@ -350,7 +350,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             })->disableHeader();
 
             // get notify mail template
-            $this->setNotifyMailTemplate($form, 'notify_mail_template_error', MailKeyName::PUBLICFORM_ADMIN_ERROR, 'error_setting_use_notify_error');
+            $this->setNotifyMailTemplate($form, 'notify_mail_template_error', MailKeyName::PUBLICFORM_ERROR, 'error_setting_use_notify_error');
 
             $form->exmheader(exmtrans("notify.notify_action_target"))->no(5);
             $form->hasManyJson('notify_actions_error', exmtrans("custom_form_public.notify_target"), function ($form) use($custom_table) {
@@ -661,7 +661,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $original_public_form = PublicForm::find($id);
         // get this form's info
         $form = $this->form();
-        $model = $form->getModelByInputs($original_public_form);
+        $model = $form->getModelByInputs(null, $original_public_form);
 
         // Now, cannot set header logo by getModelByInputs.
         if($original_public_form){

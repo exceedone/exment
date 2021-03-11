@@ -86,7 +86,9 @@ class PublicForm extends ModelBase
         });
 
         static::creating(function ($model) {
-            $model->proxy_user_id = \Exment::getUserId();
+            if(is_null($model->proxy_user_id)){
+                $model->proxy_user_id = \Exment::getUserId();
+            }
         });
 
         static::saved(function ($model) {
@@ -202,7 +204,8 @@ class PublicForm extends ModelBase
      *
      * @return Collection
      */
-    public function getListOfTablesUsed() : Collection{
+    public function getListOfTablesUsed() : Collection
+    {
         $result = collect();
         foreach($this->custom_form->custom_form_blocks as $custom_form_block){
             if(!$custom_form_block->available){
@@ -230,8 +233,8 @@ class PublicForm extends ModelBase
             }
         }
 
-        // check 1:n parent relation
-        $parent_relation = CustomRelation::getRelationByChild($this->custom_table_cache, RelationType::ONE_TO_MANY);
+        // check parent relation
+        $parent_relation = CustomRelation::getRelationByChild($this->custom_table_cache);
         if($parent_relation){
             $result->push($parent_relation->parent_custom_table_cache);
         }
@@ -412,19 +415,20 @@ class PublicForm extends ModelBase
      *
      * @return void
      */
-    public function showError($ex, $asInner = false){
+    public function showError($ex, $asInner = false, ?array $data = null){
         try{
             \Log::error($ex);
 
             try{
                 if(!is_null($notify = $this->notify_error)){
+                    $prms = array_merge([
+                        'error:message' => $ex->getMessage(),
+                        'error:stacktrace' => $ex->getTraceAsString(),
+                    ], $this->getNotifyParams(null, null, $data));
+
                     $notify->notifyUser(null, [
                         'custom_table' => $this->custom_table_cache,
-                        'prms' => [
-                            'error:message' => $ex->getMessage(),
-                            'error:stacktrace' => $ex->getTraceAsString(),
-                            'publicform:public_form_view_name' => $this->public_form_view_name,
-                        ],
+                        'prms' => $prms,
                     ]);
                 }
             }
@@ -446,6 +450,97 @@ class PublicForm extends ModelBase
             throw $ex;
         } catch (\Throwable $ex) {
             throw $ex;
+        }
+    }
+
+
+    public function getNotifyParams(?CustomValue $custom_value = null, array $relationInputs = null, ?array $data = null)
+    {
+        return [
+            'publicform:public_form_view_name' => $this->public_form_view_name,
+            'publicform:inputs' => $this->getInputValueText($custom_value, $relationInputs, $data),
+        ];
+    }
+
+
+    /**
+     * Get input values text. Contains label and input text.
+     *
+     * @return void
+     */
+    protected function getInputValueText(?CustomValue $custom_value = null, array $relationInputs = null, ?array $data = null)
+    {
+        try{
+            $form = null;
+            // get input values
+            if(!$custom_value){
+                $form = $this->getForm(request(), null, [
+                    'asConfirm' => true,
+                ]);
+                $custom_value = $form->getModelByInputs($data ?? null);
+            }
+            if(is_null($relationInputs)){
+                $form = !is_null($form) ? $form : $this->getForm(request(), null, [
+                    'asConfirm' => true,
+                ]);
+                $relationInputs = $form->getRelationModelByInputs();
+            }
+
+            // set label and text function
+            $result = [];
+            $setLabelTextFunc = function($relationName, $custom_value, $index) use(&$result){
+                foreach($this->custom_form->custom_form_blocks_cache as $custom_form_block){
+                    $relationInfo = $custom_form_block->getRelationInfo();
+                    if(!isMatchString($relationName, $relationInfo[1])){
+                        continue;
+                    }
+
+                    foreach($custom_form_block->custom_form_columns_cache as $custom_form_column){
+                        $column_item = $custom_form_column->column_item;
+                        if(!$column_item){
+                            continue;
+                        }
+
+                        // if hidden field, continue
+                        if ($column_item->disableDisplayWhenShow()) {
+                            continue;
+                        }
+        
+                        $column_item->setCustomValue($custom_value);
+        
+                        $label = $column_item->label();
+                        $text = $column_item->text();
+        
+                        // if relation, set relation label
+                        if(!is_null($relationInfo[0]) && !is_null($relationInfo[2])){
+                            $label = $relationInfo[2] . " - " . ($index + 1) . " - " . $label;
+                        }
+
+                        $result[] = [
+                            'label' => $label,
+                            'text' => $text,
+                        ];
+                    }
+                }
+            };
+   
+            $setLabelTextFunc(null, $custom_value, null);
+
+            foreach($relationInputs as $key => $relations){
+                foreach($relations as $index => $custom_value){
+                    $setLabelTextFunc($key, $custom_value, $index);
+                }
+            }
+
+            return collect($result)->map(function($result){
+                return exmtrans('common.format_keyvalue', $result['label'],  $result['text']);
+            })->implode("\r\n");
+        }
+        catch(\Exception $ex)
+        {
+            return exmtrans('custom_value.message.cannot_get_input_value');
+        } catch (\Throwable $ex) {
+            return exmtrans('custom_value.message.cannot_get_input_value');
         }
     }
 

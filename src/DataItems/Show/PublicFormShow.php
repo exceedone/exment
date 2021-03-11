@@ -153,5 +153,4 @@ class PublicFormShow extends DefaultShow
 
         return parent::setColumnItemOption($column_item, $form_column);
     }
-
 }

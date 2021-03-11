@@ -1649,7 +1649,9 @@ class PatchDataCommand extends Command
     protected function importPublicformTemplate()
     {
         $this->patchMailTemplate([
-            'publicform_admin_error',
+            MailKeyName::PUBLICFORM_COMPLETE_USER,
+            MailKeyName::PUBLICFORM_COMPLETE_ADMIN,
+            MailKeyName::PUBLICFORM_ERROR,
         ]);
     }
     

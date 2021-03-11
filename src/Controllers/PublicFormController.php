@@ -137,7 +137,7 @@ class PublicFormController extends Controller
             $form = $this->public_form->getForm($request, null, [
                 'asConfirm' => true,
             ]);
-        
+
             //validate
             $response = $form->validateRedirect($request->all());
             if ($response instanceof Response) {
@@ -173,25 +173,36 @@ class PublicFormController extends Controller
      */
     public function create(Request $request)
     {
+        // get data by session or result
+        $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
         try {
             $form = $this->public_form->getForm($request, null, ['setRecaptcha' => false]);
             $public_form = $this->public_form;
-            
+            $custom_table = $this->custom_table;
+
             $form->saving(function($form) use($request, $public_form){
-                // Disable saved notify
+                // Disable default saved notify
                 $form->model()->saved_notify(false);
             });
 
             // notify
-            $form->savedInTransaction(function ($form) use($public_form) {
+            $form->savedInTransaction(function ($form) use($custom_table, $public_form, $data) {
                 $model = $form->model();
+                $notifies = array_filter([
+                    $public_form->notify_complete_admin,
+                    $public_form->notify_complete_user
+                ]);
 
-                if(!is_null($notify = $public_form->notify_complete_admin)){
-                    $notify->notifyUser($model);
-                }
-                
-                if(!is_null($notify = $public_form->notify_complete_user)){
-                    $notify->notifyUser($model);
+                // if has notify, get inputs by $data
+                if(!is_nullorempty($notifies)){
+                    $prms = $public_form->getNotifyParams(null, null, $data);
+
+                    foreach($notifies as $notify){
+                        $notify->notifyUser($model, [
+                            'custom_table' => $custom_table,
+                            'prms' => $prms,
+                        ]);
+                    }
                 }
             });
 
@@ -204,8 +215,6 @@ class PublicFormController extends Controller
                 return response($content);
             });
 
-            // get data by session or result
-            $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
             $response = $form->store($data);
 
             // Disable reload
@@ -214,9 +223,9 @@ class PublicFormController extends Controller
             return $response;
             
         } catch (\Exception $ex) {
-            return $this->public_form->showError($ex);
+            return $this->public_form->showError($ex, false, $data);
         } catch (\Throwable $ex) {
-            return $this->public_form->showError($ex);
+            return $this->public_form->showError($ex, false, $data);
         }
     }
 
