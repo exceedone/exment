@@ -458,7 +458,7 @@ trait ItemTrait
     {
         list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q, $options);
 
-        $query = $this->custom_table->getValueModel()->query();
+        $query = $this->custom_table->getValueQuery();
         
         $query->whereOrIn($this->custom_column->getIndexColumnName(), $mark, $pureValue)->select('id');
         

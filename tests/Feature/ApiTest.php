@@ -1528,7 +1528,7 @@ class ApiTest extends ApiTestBase
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
 
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
-            ->getValueModel()->query()
+            ->getValueQuery()
             ->whereNull('value->file_multiple')
             ->first();
 
@@ -1560,7 +1560,7 @@ class ApiTest extends ApiTestBase
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
 
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
-            ->getValueModel()->query()
+            ->getValueQuery()
             ->whereNull('value->file_multiple')
             ->first();
 

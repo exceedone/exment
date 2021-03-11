@@ -1556,7 +1556,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // check not getted values.
         $custom_table = CustomTable::getEloquent($options['target_table_name']);
-        $notMatchedValues = $custom_table->getValueModel()->query()->whereNotIn('id', $collection->pluck('id')->toArray())->get();
+        $notMatchedValues = $custom_table->getValueQuery()->whereNotIn('id', $collection->pluck('id')->toArray())->get();
         
         foreach ($notMatchedValues as $data) {
             $matchResult = $testCallback($data, $filter_settings);

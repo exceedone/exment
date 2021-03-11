@@ -402,7 +402,7 @@ class SelectTableTest extends UnitTestBase
 
         $target_table = $custom_column->select_target_table;
 
-        $query = $target_table->getValueModel()->query();
+        $query = $target_table->getValueQuery();
 
         //TODO:filtering options
 

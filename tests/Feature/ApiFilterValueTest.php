@@ -746,7 +746,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
     protected function _testConditionValueColumnUser(string $filterOption, bool $hasHtml, bool $multiple = false)
     {
-        $options = CustomTable::getEloquent('user')->getValueModel()->query()->get()->pluck('label', 'id')->toArray();
+        $options = CustomTable::getEloquent('user')->getValueQuery()->get()->pluck('label', 'id')->toArray();
         $this->__testConditionValueApiColumn(ColumnType::USER, $filterOption, $hasHtml, new ExactSelectOption('select', $options), $multiple);
     }
 
@@ -772,7 +772,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
     protected function _testConditionValueColumnOrganization(string $filterOption, bool $hasHtml, bool $multiple = false)
     {
-        $options = CustomTable::getEloquent('organization')->getValueModel()->query()->get()->pluck('label', 'id')->toArray();
+        $options = CustomTable::getEloquent('organization')->getValueQuery()->get()->pluck('label', 'id')->toArray();
         $this->__testConditionValueApiColumn(ColumnType::ORGANIZATION, $filterOption, $hasHtml, new ExactSelectOption('select', $options), $multiple);
     }
 

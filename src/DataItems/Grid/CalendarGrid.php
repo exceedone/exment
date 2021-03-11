@@ -17,7 +17,7 @@ class CalendarGrid extends GridBase
     public function grid()
     {
         $table_name = $this->custom_table->table_name;
-        $model = $this->custom_table->getValueModel()->query();
+        $model = $this->custom_table->getValueQuery();
         $this->custom_view->filterSortModel($model);
 
         $tools = [];

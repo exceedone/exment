@@ -650,7 +650,7 @@ class DefaultGrid extends GridBase
         $target_column_multiple = request()->get('target_column_multiple') ?? (isset($custom_column) ? boolval($custom_column->getOption('multiple_enabled')) : false);
         $widgetmodal_uuid = request()->get('widgetmodal_uuid');
 
-        $items = $this->custom_table->getValueModel()->query()->whereOrIn('id', stringToArray(request()->get('selected_items')))->get();
+        $items = $this->custom_table->getValueQuery()->whereOrIn('id', stringToArray(request()->get('selected_items')))->get();
 
         $url = request()->fullUrl() . '&modal=1';
         return getAjaxResponse([

@@ -228,7 +228,7 @@ class TestDataSeeder extends Seeder
                         return;
                     }
 
-                    $parent_custom_value = $parent_table->getValueModel()->query()
+                    $parent_custom_value = $parent_table->getValueQuery()
                         ->where('value->text', "test_$i")
                         ->first();
                     if (!isset($parent_custom_value)) {
@@ -248,7 +248,7 @@ class TestDataSeeder extends Seeder
                         return;
                     }
 
-                    $parent_custom_value_ids = $parent_table->getValueModel()->query()
+                    $parent_custom_value_ids = $parent_table->getValueQuery()
                         ->where('value->text', "test_$i")
                         ->get()
                         ->pluck('id');

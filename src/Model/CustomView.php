@@ -280,7 +280,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         ], $options);
 
         if ($this->view_kind_type == ViewKindType::AGGREGATE) {
-            $query = $options['query'] ?? $this->custom_table->getValueModel()->query();
+            $query = $options['query'] ?? $this->custom_table->getValueQuery();
             return $this->getQuery($query, $options)->paginate($options['maxCount']);
         }
 

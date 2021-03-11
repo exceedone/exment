@@ -940,7 +940,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return [];
         }
         // re-get updated_at value
-        $data_updated_at = $this->getValueModel()->query()->select(['updated_at'])->find($custom_value->id)->updated_at ?? null;
+        $data_updated_at = $this->getValueQuery()->select(['updated_at'])->find($custom_value->id)->updated_at ?? null;
         if (!isset($data_updated_at)) {
             return [];
         }
@@ -1273,7 +1273,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         $dbTableName = getDBTableName($this);
 
-        $mainQuery = $this->getValueModel()->query()
+        $mainQuery = $this->getValueQuery()
             ->joinSub($subQuery, 'sub', function ($join) use ($dbTableName) {
                 $join->on('sub.id', '=', $dbTableName . '.id');
             });
@@ -1400,7 +1400,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             
             // one_to_many
             case SearchType::ONE_TO_MANY:
-                $query = $child_table->getValueModel()->query();
+                $query = $child_table->getValueQuery();
                 RelationTable::setQueryOneMany($query, $this, $parent_value_id);
 
                 // set query info
@@ -1421,7 +1421,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return $paginate ? $query->paginate($maxCount) : $query->get();
             // many_to_many
             case SearchType::MANY_TO_MANY:
-                $query = $child_table->getValueModel()->query();
+                $query = $child_table->getValueQuery();
                 RelationTable::setQueryManyMany($query, $this, $child_table, $parent_value_id);
 
                 ///// if has display table, filter display table
@@ -1617,7 +1617,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getValueModel()->query()->whereIn('id', array_unique($finds))->chunk(1000, function ($target_values) {
+        $this->getValueQuery()->whereIn('id', array_unique($finds))->chunk(1000, function ($target_values) {
             $target_values->each(function ($target_value) {
                 // set request settion
                 $target_value->setValueModel();
@@ -1640,7 +1640,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $values = array_filter($values);
 
         foreach (collect($values)->chunk(100) as $chunk) {
-            $query = $this->getValueModel()->query();
+            $query = $this->getValueQuery();
 
             if (preg_match("/value\.([a-zA-Z0-9_-]+)/i", $keyName, $matches)) {
                 // get custom_column
@@ -1824,7 +1824,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return System::requestSession($key, function () use ($target_table) {
             // $target_table : user or org
             $table = CustomTable::getEloquent($target_table);
-            $query = $table->getValueModel()->query();
+            $query = $table->getValueQuery();
             $table->filterDisplayTable($query, $this);
 
             return $query->select(['id'])->pluck('id');
@@ -2054,7 +2054,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // get query.
-        $query = $this->getValueModel()->query();
+        $query = $this->getValueQuery();
         
         ///// filter display table
         $this->filterDisplayTable($query, $display_table, $options);

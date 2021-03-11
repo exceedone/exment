@@ -550,7 +550,7 @@ class SelectTable extends CustomItem
             return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
         }
 
-        $query = $this->custom_table->getValueModel()->query();
+        $query = $this->custom_table->getValueQuery();
         $this->getAdminFilterWhereQuery($query, $value);
 
         $query->take($takeCount)->select('id');

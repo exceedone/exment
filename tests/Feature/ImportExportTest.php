@@ -264,11 +264,11 @@ class ImportExportTest extends TestCase
         $custom_view = null;
         if (isset($params['--action']) && $params['--action'] == 'view') {
             $custom_view = CustomView::getEloquent($params['--view']);
-            $model = $custom_table->getValueModel()->query();
+            $model = $custom_table->getValueQuery();
             $custom_view->filterSortModel($model);
             $pager_count = $custom_view->pager_count;
         } else {
-            $model = $custom_table->getValueModel()->query()->orderby('id');
+            $model = $custom_table->getValueQuery()->orderby('id');
         }
 
         if ($chunk_no > 0) {

@@ -71,7 +71,7 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         // get paginate
-        $model = $this->custom_table->getValueModel()->query();
+        $model = $this->custom_table->getValueQuery();
 
         // filterd by id
         if ($request->has('id')) {
@@ -151,7 +151,7 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         // get query
-        $model = $this->custom_table->getValueModel()->query();
+        $model = $this->custom_table->getValueQuery();
 
         // filtered query
         $params = explode(',', $request->get('q'));
@@ -802,7 +802,7 @@ class ApiDataController extends AdminControllerTableBase
 
         $table_name = $this->custom_table->table_name;
         // get paginate
-        $model = $this->custom_table->getValueModel()->query();
+        $model = $this->custom_table->getValueQuery();
         // filter model
         $custom_view->filterSortModel($model);
 

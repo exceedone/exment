@@ -372,7 +372,7 @@ class File extends CustomItem
             return [];
         }
         
-        $query = $this->custom_table->getValueModel()->query();
+        $query = $this->custom_table->getValueQuery();
         $query->whereOrIn('id', $ids)->select('id');
         
         $query->take($takeCount);

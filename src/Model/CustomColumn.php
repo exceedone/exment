@@ -282,7 +282,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         // deleted event
         static::deleted(function ($model) {
-            $model->custom_table_cache->getValueModel()->query()->
+            $model->custom_table_cache->getValueQuery()->
                 updateRemovingJsonKey("value->{$model->column_name}");
         });
     }

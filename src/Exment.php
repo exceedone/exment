@@ -472,7 +472,7 @@ class Exment
     public function getSearchDocumentQuery(CustomTable $target_custom_table, ?string $q, $query = null)
     {
         if (empty($query)) {
-            $query = $target_custom_table->getValueModel()->query();
+            $query = $target_custom_table->getValueQuery();
         }
         return $query->whereExists(function ($query) use ($target_custom_table, $q) {
             $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);

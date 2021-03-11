@@ -358,7 +358,7 @@ class Notify extends ModelBase
         if (isset($custom_view_id)) {
             $custom_view = CustomView::getEloquent($custom_view_id);
             if (isset($custom_view)) {
-                $query = $custom_value->custom_table->getValueModel()->query();
+                $query = $custom_value->custom_table->getValueQuery();
                 return $custom_view->setValueFilters($query)->where('id', $custom_value->id)->exists();
             }
         }
@@ -467,7 +467,7 @@ class Notify extends ModelBase
 
         // find data. where equal target_date
         if (isset($this->custom_view_id)) {
-            $datalist = $this->custom_view->setValueFilters($table->getValueModel()->query())
+            $datalist = $this->custom_view->setValueFilters($table->getValueQuery())
                 ->whereRaw("$raw = ?", [$target_date_str])->get();
         } else {
             $datalist = getModelName($table)::whereRaw("$raw = ?", [$target_date_str])->get();

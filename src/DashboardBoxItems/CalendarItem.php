@@ -72,7 +72,7 @@ class CalendarItem implements ItemInterface
         }
 
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel()->query();
+        $model = $this->custom_table->getValueQuery();
         // filter model
         $this->custom_view->filterSortModel($model);
 

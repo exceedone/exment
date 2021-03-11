@@ -162,7 +162,7 @@ class SomeTest extends UnitTestBase
         $this->assertTrue($custom_column->index_enabled == $index_enabled, "expects enabled is $index_enabled, but result is {$custom_column->index_enabled}.");
 
         // get search query
-        $query = $custom_table->getValueModel()->query();
+        $query = $custom_table->getValueQuery();
         $query->where($custom_column->getQueryKey(), $search_value);
 
         // get result
@@ -176,7 +176,7 @@ class SomeTest extends UnitTestBase
 
         // get ids, and filter id
         $ids = $result->pluck('id');
-        $query = $custom_table->getValueModel()->query();
+        $query = $custom_table->getValueQuery();
         $query->whereNotIn('id', $ids->toArray());
         $notResult = $query->get();
         $this->assertTrue($notResult->count() > 0, "search query is 0");
