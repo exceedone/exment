@@ -1557,6 +1557,7 @@ return [
         'plugin_css' => 'プラグイン(CSS)',
         'custom_js' => 'カスタムJavascript',
         'plugin_js' => 'プラグイン(Javascript)',
+        'create_template' => 'テンプレートから作成',
 
         'help'=> [
             'custom_form_id' => '公開フォームを設定する、フォームを選択してください。',
@@ -1602,6 +1603,7 @@ return [
             'plugin_css' => 'インストールされているプラグイン(CSS)を、公開フォームにも反映させる場合、反映させるCSSを指定してください。',
             'custom_js' => '独自のJavascriptを使用する場合は、記入してください。※&lt;script&gt;タグは不要です。',
             'plugin_js' => 'インストールされているプラグイン(Javascript)を、公開フォームにも反映させる場合、反映させるJavascriptを指定してください。',
+            'upload_template' => 'エクスポートしたテンプレートzipファイルをアップロードして、公開フォーム設定をインポートします。',
         ],
 
         'message' => [
@@ -1615,6 +1617,7 @@ return [
             'cannot_set_master_table' => 'このテーブルでは、公開フォームを設定できません。',
             'activate' => 'この公開フォームを有効にします。よろしいでしょうか？',
             'deactivate' => 'この公開フォームを無効にします。よろしいでしょうか？',
+            'template_import_caution' => '※以下の項目は、テンプレートからインポートされません。保存後、手動で設定を行ってください。<ul>:list</ul>',
         ],
 
         'body_content_type_options' => [

@@ -47,7 +47,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         'parent' => 'custom_form_block_id',
         'uniqueKeys' => [
             'export' => ['form_column_type', 'form_column_target_name'],
-            'import' => ['custom_form_block_id', 'form_column_target_id', 'form_column_type'],
+            'import' => ['suuid'],
         ],
         'uniqueKeyReplaces' => [
             [

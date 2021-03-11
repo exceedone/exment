@@ -21,9 +21,11 @@ use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Enums\TemplateExportTarget;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Exceptions\PublicFormNotFoundException;
 use Illuminate\Http\Request;
 
@@ -55,6 +57,32 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @return Form
      */
     protected function form($id = null)
+    {
+        if (!isset($id) && request()->has('template')) {
+            return $this->importForm();
+        }
+        return $this->basicForm($id);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @return mixed
+     */
+    public function store()
+    {
+        if(request()->has('template')) {
+            return $this->importFormStore();
+        }
+        return $this->form()->store();
+    }
+
+    /**
+     * Make a form builder.
+     *
+     * @return Form
+     */
+    protected function basicForm($id = null)
     {
         if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
             return;
@@ -401,7 +429,68 @@ class CustomFormPublicController extends AdminControllerTableBase
         })
         ;
 
+        $this->setFormInfo($form, $id, $public_form);
 
+        return $form;
+    }
+
+
+    
+    /**
+     * Make a form builder, for import.
+     *
+     * @return Form
+     */
+    protected function importForm()
+    {
+        if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
+            return;
+        }
+
+        $form = new Form(new PublicForm);
+        $custom_table = $this->custom_table;
+
+        $transes = ['header_logo', 'analytics_tag', 'use_recaptcha'];
+        $message = collect($transes)->map(function($trans){
+            return "<li>" . exmtrans("custom_form_public.$trans") . "</li>";
+        })->implode('');
+        $form->description('<div class="red">' . exmtrans('custom_form_public.message.template_import_caution', ['list' => $message]) . '</div>')
+            ->escape(false);
+
+        $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
+            ->requiredRule()
+            ->help(exmtrans("custom_form_public.help.custom_form_id"))
+            ->options(function ($value) use ($custom_table) {
+                return $custom_table->custom_forms->mapWithKeys(function ($item) {
+                    return [$item['id'] => $item['form_view_name']];
+                });
+            });
+    
+        $form->text('public_form_view_name', exmtrans("custom_form_public.public_form_view_name"))
+            ->requiredRule()
+            ->rules("max:40")
+            ->help(exmtrans('common.help.view_name'));
+        
+        $form->file('upload_template', exmtrans('template.upload_template'))
+            ->rules('mimes:zip')
+            ->attribute(['accept' => ".zip"])
+            ->help(exmtrans('custom_form_public.help.upload_template'))
+            ->removable()
+            ->required()
+            ->options(Define::FILE_OPTION());
+
+        $this->setFormInfo($form, null, null, false);
+        
+        $form->hidden('template')->default(1);
+        $form->ignore('template');
+
+        return $form;
+    }
+
+
+    protected function setFormInfo($form, $id, $public_form, $preview = true)
+    {
+        $custom_table = $this->custom_table;
         $form->editing(function($form, $arr){
             $form->model()->append([
                 'basic_setting', 
@@ -419,26 +508,36 @@ class CustomFormPublicController extends AdminControllerTableBase
                 'notify_mail_template_complete_admin',
             ]);
         });
-        $form->saving(function($form){
-            if(!isset($form->model()->proxy_user_id)){
-                $form->model()->proxy_user_id = \Exment::getUserId();
-            }
-        });
         $form->disableEditingCheck(false);
             
-        $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $public_form) {
-            $tools->prepend(view('exment::tools.button', [
-                'href' => 'javascript:void(0);',
-                'label' => exmtrans('common.preview'),
-                'icon' => 'fa-check-circle',
-                'btn_class' => 'btn-warning',
-                'attributes' => [
-                    'data-preview' => true,
-                    'data-preview-url' => admin_urls('formpublic', $custom_table->table_name, $id, 'preview'),
-                    'data-preview-error-title' => '',
-                    'data-preview-error-text' => '',
-                ],
-            ])->render());
+        $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $public_form, $preview) {
+            if($preview){
+                $tools->prepend(view('exment::tools.button', [
+                    'href' => 'javascript:void(0);',
+                    'label' => exmtrans('common.preview'),
+                    'icon' => 'fa-check-circle',
+                    'btn_class' => 'btn-warning',
+                    'attributes' => [
+                        'data-preview' => true,
+                        'data-preview-url' => admin_urls('formpublic', $custom_table->table_name, $id, 'preview'),
+                        'data-preview-error-title' => '',
+                        'data-preview-error-text' => '',
+                    ],
+                ])->render());
+                
+                if(isset($id)){
+                    $tools->prepend(view('exment::tools.button', [
+                        'href' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "export"),
+                        'label' => exmtrans('template.header_export'),
+                        'icon' => 'fa-clone',
+                        'btn_class' => 'btn-warning',
+                        'attributes' => [
+                            'target' => '_blank',
+                        ],
+                    ])->render());
+                }
+            }
+
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
 
@@ -493,8 +592,6 @@ class CustomFormPublicController extends AdminControllerTableBase
             }
             return redirect(admin_url("form/$table_name"));
         });
-
-        return $form;
     }
 
 
@@ -513,6 +610,44 @@ class CustomFormPublicController extends AdminControllerTableBase
             ->default($notify_mail ? $notify_mail->id : null);
     }
     
+
+    /**
+     * Store form for import
+     *
+     * @return void
+     */
+    protected function importFormStore()
+    {
+        $request = request();
+        $form = $this->importForm();
+        if (($response = $form->validateRedirect($request->all())) instanceof \Illuminate\Http\RedirectResponse) {
+            return $response;
+        }
+
+        // get json from zip
+        $importer = new TemplateImportExport\TemplateImporter;
+        $file = $request->file('upload_template');
+        $json = $importer->getJsonFromZip($file);
+
+        $public_form = null;
+        \DB::transaction(function() use(&$public_form, $json, $form, $request){
+            // new json ignored notify
+            $json_ignored = array_get($json, 'public_form');
+            array_forget($json_ignored, ['notify_complete_admin', 'notify_complete_user', 'notify_error']);
+            $public_form = new PublicForm($json_ignored);
+            $public_form->fill($request->all([
+                'custom_form_id',
+                'public_form_view_name',
+            ]));
+            $public_form->save();
+
+            // create notify after saved
+            $public_form->createNotifyImported(array_get($json, 'public_form'));            
+        });
+
+        return $form->setModel($public_form)->redirectAfterStore();
+    }
+
 
     /**
      * Showing preview
@@ -651,6 +786,33 @@ class CustomFormPublicController extends AdminControllerTableBase
         return $this->toggleActivate($request, $id, false);
     }
 
+
+    /**
+     * export
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return void
+     */
+    public function export(Request $request, $tableKey, $id)
+    {
+        $public_form = PublicForm::find($id);
+        
+        // execute export
+        return TemplateImportExport\TemplateExporter::exportTemplate(
+            make_uuid(),
+            $public_form->public_form_view_name,
+            null,
+            null,
+            [
+                'export_target' => [TemplateExportTarget::PUBLIC_FORM],
+                'public_form_uuid' => $public_form->uuid,
+                'zip_name' => $public_form->public_form_view_name,
+            ]
+        );
+    }
+
+
     /**
      * Toggle activate and deactivate
      *
@@ -659,10 +821,15 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @param boolean $active_flg
      * @return void
      */
-    protected function toggleActivate(Request $request, $id, bool $active_flg){
-        $login_setting = PublicForm::find($id);
-        $login_setting->active_flg = $active_flg;
-        $login_setting->save();
+    protected function toggleActivate(Request $request, $id, bool $active_flg)
+    {
+        if (!$this->validateTable($this->custom_table, Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
+            return;
+        }
+
+        $public_form = PublicForm::find($id);
+        $public_form->active_flg = $active_flg;
+        $public_form->save();
         
         return getAjaxResponse([
             'result'  => true,

@@ -105,6 +105,32 @@ class TemplateImporter
         }
     }
  
+    
+    /**
+     * Get json from zip
+     */
+    public function getJsonFromZip($uploadFile)
+    {
+        try {
+            list($json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path) = $this->extractZip($uploadFile);
+            return $json;
+        } catch (\Exception $ex) {
+            throw $ex;
+        } finally {
+            // delete zip
+            if (isset($tmpfolderpath)) {
+                File::deleteDirectory($tmpfolderpath);
+            }
+
+            if (isset($fullpath)) {
+                File::delete($fullpath);
+                //unlink($fullpath);
+            }
+            
+            $this->diskService->deleteTmpDirectory();
+        }
+    }
+
     /**
      * Delete template (from display. select item)
      */
@@ -239,45 +265,9 @@ class TemplateImporter
     public function uploadTemplate($uploadFile)
     {
         try {
-            $tmpDiskItem = $this->diskService->tmpDiskItem();
-            $tmpDisk = $tmpDiskItem->disk();
+            list($json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path) = $this->extractZip($uploadFile);
 
-            // store uploaded file
-            $tmpfolderpath = $tmpDiskItem->dirFullPath();
-            $filename = $tmpDisk->put($tmpDiskItem->dirName(), $uploadFile);
-            $fullpath = $tmpDisk->path($filename);
-
-            // zip
-            $zip = new ZipArchive;
-            $res = $zip->open($fullpath);
-            if ($res !== true) {
-                //TODO:error
-            }
-
-            //Check existed file config (config.json)
-            $config_path = null;
-            $thumbnail_path = null;
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $stat = $zip->statIndex($i);
-                $fileInfo = $zip->getNameIndex($i);
-                if ($fileInfo === 'config.json') {
-                    $zip->extractTo($tmpfolderpath);
-                    $config_path = array_get($stat, 'name');
-                } elseif (pathinfo($fileInfo)['filename'] === 'thumbnail') {
-                    $thumbnail_path = array_get($stat, 'name');
-                }
-            }
-            $zip->close();
-            
-            //
             if (isset($config_path)) {
-                // get config.json
-                $json = json_decode(File::get(path_join($tmpfolderpath, $config_path)), true);
-                if (!isset($json)) {
-                    // TODO:Error
-                    return;
-                }
-
                 // get template name
                 $template_name = array_get($json, 'template_name');
                 if (!isset($template_name)) {
@@ -314,6 +304,58 @@ class TemplateImporter
             $this->diskService->deleteTmpDirectory();
         }
     }
+
+
+    /**
+     * Extract zip and get json etc
+     *
+     * @param [type] $uploadFile
+     * @return array offset 0: json, 1: tmpfolderpath, 2: fullpath. 3: config_path, 4: thumbnail_path
+     */
+    protected function extractZip($uploadFile) : array
+    {
+        $tmpDiskItem = $this->diskService->tmpDiskItem();
+        $tmpDisk = $tmpDiskItem->disk();
+
+        // store uploaded file
+        $tmpfolderpath = $tmpDiskItem->dirFullPath();
+        $filename = $tmpDisk->put($tmpDiskItem->dirName(), $uploadFile);
+        $fullpath = $tmpDisk->path($filename);
+
+        // zip
+        $zip = new ZipArchive;
+        $res = $zip->open($fullpath);
+        if ($res !== true) {
+            return [null, null, null, null, null];
+        }
+
+        //Check existed file config (config.json)
+        $config_path = null;
+        $thumbnail_path = null;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            $fileInfo = $zip->getNameIndex($i);
+            if ($fileInfo === 'config.json') {
+                $zip->extractTo($tmpfolderpath);
+                $config_path = array_get($stat, 'name');
+            } elseif (pathinfo($fileInfo)['filename'] === 'thumbnail') {
+                $thumbnail_path = array_get($stat, 'name');
+            }
+        }
+        $zip->close();
+        
+        //
+        if (isset($config_path)) {
+            // get config.json
+            $json = json_decode(File::get(path_join($tmpfolderpath, $config_path)), true);
+            if (!isset($json)) {
+                return [null, null, null, null, null];
+            }
+            return [$json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path];
+        }
+        return [null, null, null, null, null];
+    }
+
 
     /**
      * Upload Template with plugin

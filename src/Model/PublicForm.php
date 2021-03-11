@@ -22,8 +22,17 @@ class PublicForm extends ModelBase
     use Traits\AutoUuidTrait;
     use Traits\DatabaseJsonOptionTrait;
     use Traits\PublicFormInputTrait;
+    use Traits\TemplateTrait;
+    use Traits\UniqueKeyCustomColumnTrait;
 
     protected $casts = ['options' => 'json'];
+
+    public static $templateItems = [
+        'excepts' => [
+            'custom_form_id', 'proxy_user_id', 'uuid', 'public_form_view_name', 'options.analytics_tag', 'options.use_recaptcha',
+        ],
+    ];
+
 
     public function custom_form()
     {
@@ -74,6 +83,10 @@ class PublicForm extends ModelBase
         
         static::deleting(function ($model) {
             $model->deletingChildren();
+        });
+
+        static::creating(function ($model) {
+            $model->proxy_user_id = \Exment::getUserId();
         });
 
         static::saved(function ($model) {

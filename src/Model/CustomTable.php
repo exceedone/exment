@@ -2589,6 +2589,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->getValueModel()->query();
     }
     
+    /**
+     * Find CustomValue, using only one key.
+     *
+     * @param string|CustomColumn $column 
+     * @param mixed $value filtering value
+     * @return CustomValue|null
+     */
+    public function findValue($column, $value) : ?CustomValue
+    {
+        if(is_string($column)){
+            $column = CustomColumn::getEloquent($column, $this);
+        }
+
+        return $this->getValueQuery()->where($column->getQueryKey(), $value)->first();
+    }
+    
 
     /**
      * get array for "makeHidden" function

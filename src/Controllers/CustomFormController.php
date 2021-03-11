@@ -156,6 +156,13 @@ class CustomFormController extends AdminControllerTableBase
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
             });
+
+            $tools->append(view('exment::tools.button', [
+                'href' => admin_urls_query('formpublic', $this->custom_table->table_name, 'create', ['template' => 1]),
+                'icon' => 'fa-plus',
+                'btn_class' => 'btn-success',
+                'label' => exmtrans('custom_form_public.create_template'),
+            ]));
         });
         
         $grid->disableExport();
@@ -442,9 +449,7 @@ class CustomFormController extends AdminControllerTableBase
                 $form = new CustomForm;
             }
         }
-        else{
-            $form->append(['show_grid_type', 'form_label_type']);
-        }
+        $form->append(['show_grid_type', 'form_label_type']);
 
         // get form block list
         $custom_form_block_items = $this->getFormBlocks($form);

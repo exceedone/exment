@@ -10,7 +10,10 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
 use Exceedone\Exment\DataItems\Form\PublicFormForm;
@@ -240,4 +243,109 @@ trait PublicFormInputTrait
             }
         }
     }
+    
+
+    /**
+     * Export template replace json 
+     *
+     * @param array $json
+     * @return void
+     */
+    protected function exportReplaceJson(&$json)
+    {
+        // Append notify_complete_admin, notify_complete_user, notify_error
+        foreach(['notify_complete_admin', 'notify_complete_user', 'notify_error'] as $key)
+        {
+            $notify = $this->{$key};
+            if(!$notify){
+                $json[$key] = null; 
+                continue;
+            }
+
+            // get action_settings and replace notify_action_target
+            $action_settings = $notify->action_settings;
+            foreach($action_settings as &$action_setting){
+                if(!isset($action_setting['notify_action_target'])){
+                    continue;
+                }
+                $notify_action_target_result = [];
+                foreach($action_setting['notify_action_target'] as $notify_action_target){
+                    // if numeric, this is customcolumn.
+                    if(is_numeric($notify_action_target)){
+                        $notify_action_target_result[] = $this->getUniqueKeyValues($notify_action_target);
+                    }
+                    else{
+                        $notify_action_target_result[]['key'] = $notify_action_target;
+                    }
+                }
+
+                $action_setting['notify_action_target'] = $notify_action_target_result;
+            }
+
+            // Get mail template ----------------------------------------------------
+            $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)->getValueModel($notify->mail_template_id);
+
+            $json[$key] = [
+                'notify_trigger' => $notify->notify_trigger,
+                'action_settings' => $action_settings,
+                'mail_template_key_name' => $mail_template->getValue('mail_key_name'),
+            ];
+        }
+    }
+
+    /**
+     * Callback template import event
+     *
+     * @param array $json
+     */
+    public function createNotifyImported(array $json)
+    {
+        // Append notify_complete_admin, notify_complete_user, notify_error
+        foreach(['notify_complete_admin', 'notify_complete_user', 'notify_error'] as $key)
+        {
+            $notify_json = array_get($json, $key);
+            if(!$notify_json){
+                array_forget($json, $key);
+                continue;
+            }
+
+            $notify = new Notify([
+                'target_id' => $this->id,
+                'notify_view_name' => make_uuid(),
+                'active_flg' => 1,
+                'notify_trigger' => $notify_json['notify_trigger'],
+            ]);
+
+            // get action_settings and replace notify_action_target
+            $action_settings = [];
+            foreach(array_get($notify_json, 'action_settings') as $action_setting){
+                if(isset($action_setting['notify_action_target'])){
+                    $notify_action_targets = [];
+                    foreach($action_setting['notify_action_target'] as $notify_action_target){
+                        // if contains "key", set 
+                        if(array_has($notify_action_target, 'key')){
+                            $notify_action_targets[] = array_get($notify_action_target, 'key');
+                        }
+                        else{
+                            $custom_column = CustomColumn::getEloquent(array_get($notify_action_target, 'column_name'), array_get($notify_action_target, 'table_name'));
+                            $notify_action_targets[] = $custom_column ? $custom_column->id : null;
+                        }
+                    }
+
+                    $action_setting['notify_action_target'] = $notify_action_targets;
+                }
+
+                $action_settings[] = $action_setting;
+            }
+
+            $notify->action_settings = $action_settings;
+
+            // get mail template ----------------------------------------------------
+            $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)->findValue('mail_key_name', $notify_json['mail_template_key_name']);
+            $notify->mail_template_id = $mail_template ? $mail_template->id : 0;
+
+            $notify->save();
+        }
+    }
+
 }

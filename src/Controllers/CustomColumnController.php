@@ -176,11 +176,18 @@ class CustomColumnController extends AdminControllerTableBase
         
         // get custom_item for option
         $custom_column = CustomColumn::getEloquent($id);
+
         if(isset($custom_column)){
+            $column_type = $custom_column->column_type;
             $column_item = $custom_column->column_item;
         }elseif(!is_nullorempty($request->get('column_type'))){
-            $column_item = $this->getCustomItem(request(), $id, $request->get('column_type'));
+            $column_type = $request->get('column_type');
+            $column_item = $this->getCustomItem(request(), $id, $column_type);
+        }elseif(!is_nullorempty($request->old('column_type'))){
+            $column_type = $request->old('column_type');
+            $column_item = $this->getCustomItem(request(), $id, $column_type);
         }else{
+            $column_type = null;
             $column_item = null;
         }
 
@@ -289,14 +296,14 @@ class CustomColumnController extends AdminControllerTableBase
         $form->html('</div>')->plain(); 
 
 
-            // setting for each settings of column_type. --------------------------------------------------
-            // Form options area -- start
-            $form->html('<div class="form_dynamic_options">')->plain(); 
-            if(isset($column_item)){
-                $column_item->setCustomColumnOptionForm($form);
-            }
-            // Form options area -- End
-            $form->html('</div>')->plain(); 
+        // setting for each settings of column_type. --------------------------------------------------
+        // Form options area -- start
+        $form->html('<div class="form_dynamic_options">')->plain(); 
+        if(isset($column_item)){
+            $column_item->setCustomColumnOptionForm($form);
+        }
+        // Form options area -- End
+        $form->html('</div>')->plain(); 
 
 
         })->disableHeader();

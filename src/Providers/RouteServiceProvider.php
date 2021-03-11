@@ -209,6 +209,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('formpublic/{tableKey}/{id}/deactivate', 'CustomFormPublicController@deactivate');
             $router->put('formpublic/{tableKey}/filedelete', 'CustomFormPublicController@filedelete');
             $router->put('formpublic/{tableKey}/{id}/filedelete', 'CustomFormPublicController@filedelete');
+            $router->get('formpublic/{tableKey}/{id}/export', 'CustomFormPublicController@export');
             
             $router->get('files/{uuid}', 'FileController@download');
             $router->get('files/{tableKey}/{uuid}', 'FileController@downloadTable');
