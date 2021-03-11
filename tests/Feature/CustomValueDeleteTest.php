@@ -40,7 +40,7 @@ class CustomValueDeleteTest extends TestCase
     /**
      * Initialize test data
      *
-     * @return void
+     * @return CustomValue
      */
     protected function initTestData(CustomTable $custom_table, CustomColumn $custom_column, \Closure $setValueCallback = null)
     {
@@ -73,7 +73,7 @@ class CustomValueDeleteTest extends TestCase
     /**
      * Initialize test data
      *
-     * @return void
+     * @return CustomValue
      */
     protected function initTestDataDefault()
     {
@@ -87,7 +87,7 @@ class CustomValueDeleteTest extends TestCase
     /**
      * Initialize test data
      *
-     * @return void
+     * @return array
      */
     protected function initTestDataRelation1n()
     {
@@ -285,7 +285,7 @@ class CustomValueDeleteTest extends TestCase
      *
      * @param CustomTable $custom_table
      * @param string $custom_value_id
-     * @return void
+     * @return array
      */
     protected function getCustomValueInfo(CustomTable $custom_table, $custom_value_id)
     {

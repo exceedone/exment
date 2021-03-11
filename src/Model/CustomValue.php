@@ -1361,7 +1361,7 @@ abstract class CustomValue extends ModelBase
             return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
         }
 
-        return colelct();
+        return collect();
     }
 
     /**
