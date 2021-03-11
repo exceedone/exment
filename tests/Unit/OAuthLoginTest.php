@@ -73,7 +73,7 @@ class OAuthLoginTest extends UnitTestBase
             $result = LoginService::executeLogin(request(), $custom_login_user);
         } catch (\Exception $ex) {
             $this->assertTrue($ex instanceof SsoLoginErrorException);
-            $this->assertMatchesRegularExpression('/ユーザーが存在しません/', $ex->getMessage());
+            $this->assertMatchRegex('/ユーザーが存在しません/', $ex->getMessage());
         }
     }
 
@@ -93,7 +93,7 @@ class OAuthLoginTest extends UnitTestBase
             $result = LoginService::executeLogin(request(), $custom_login_user);
         } catch (\Exception $ex) {
             $this->assertTrue($ex instanceof SsoLoginErrorException);
-            $this->assertMatchesRegularExpression('/ユーザーが存在しません/', $ex->getMessage());
+            $this->assertMatchRegex('/ユーザーが存在しません/', $ex->getMessage());
         }
     }
 
@@ -157,7 +157,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/正しい形式のメールアドレスを指定してください/', $validator->errors()->first());
+        $this->assertMatchRegex('/正しい形式のメールアドレスを指定してください/', $validator->errors()->first());
     }
 
     /**
@@ -176,7 +176,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/正しい形式のuser codeを指定してください/', $validator->errors()->first());
+        $this->assertMatchRegex('/正しい形式のuser codeを指定してください/', $validator->errors()->first());
     }
 
     /**
@@ -297,7 +297,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchRegex('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -342,7 +342,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchRegex('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -390,7 +390,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchRegex('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -439,7 +439,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchRegex('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -488,7 +488,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
+        $this->assertMatchRegex('/列user codeの値は、.+から変更できません。/', $validator->errors()->first());
     }
 
     /**
@@ -638,7 +638,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/正しい形式のメールアドレスを指定してください/', $validator->errors()->first());
+        $this->assertMatchRegex('/正しい形式のメールアドレスを指定してください/', $validator->errors()->first());
     }
 
     /**
@@ -688,7 +688,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/そのemailはすでに使われています/', $validator->errors()->first());
+        $this->assertMatchRegex('/そのemailはすでに使われています/', $validator->errors()->first());
     }
 
     /**
@@ -739,7 +739,7 @@ class OAuthLoginTest extends UnitTestBase
 
         $result = $validator->passes();
         $this->assertFalse($result);
-        $this->assertMatchesRegularExpression('/そのemailはすでに使われています/', $validator->errors()->first());
+        $this->assertMatchRegex('/そのemailはすでに使われています/', $validator->errors()->first());
     }
 
     /**
