@@ -623,8 +623,9 @@ class Notify extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
-            if (is_null($model->custom_table_id)) {
-                $model->custom_table_id = 0;
+            // set custom_table_id because cannot null.
+            if (is_null(array_get($model->attributes, 'custom_table_id'))) {
+                $model->attributes['custom_table_id'] = 0;
             }
         });
     }

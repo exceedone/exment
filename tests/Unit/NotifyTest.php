@@ -330,7 +330,7 @@ class NotifyTest extends UnitTestBase
         $user = \Exment::user()->base_user;
 
         $notify = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)->first();
-        $custom_table = CustomTable::find($notify->custom_table_id);
+        $custom_table = CustomTable::find($notify->target_id);
         $custom_value = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user->id)->first();
         $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);

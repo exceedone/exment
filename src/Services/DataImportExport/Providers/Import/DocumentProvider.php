@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\FileType;
 
 class DocumentProvider extends FileColumnProvider
 {
@@ -55,7 +56,7 @@ class DocumentProvider extends FileColumnProvider
         $file = \File::get($fileFullPath);
 
         // save file info
-        $exmentfile = ExmentFile::storeAs($file, $this->custom_table->table_name, $displayFileName)
+        $exmentfile = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $file, $this->custom_table->table_name, $displayFileName)
             ->saveCustomValue($model->id, null, $this->custom_table);
         
         // save document model

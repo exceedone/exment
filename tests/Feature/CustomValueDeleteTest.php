@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\PluginTestTrait;
@@ -46,7 +47,7 @@ class CustomValueDeleteTest extends TestCase
     {
         $custom_value = $custom_table->getValueModel();
         
-        $file = Model\File::storeAs(TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt');
+        $file = Model\File::storeAs(FileType::CUSTOM_VALUE_COLUMN, TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt');
 
         $custom_value->setValue('file', $file->path)
             ->setValue('text', make_uuid());
@@ -61,7 +62,7 @@ class CustomValueDeleteTest extends TestCase
         // set 2 documents
         foreach([0, 1] as $i){
             $fileName = "test{$i}.txt";
-            Model\File::storeAs(TestDefine::FILE_TESTSTRING, $custom_table->table_name, $fileName)
+            Model\File::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, TestDefine::FILE_TESTSTRING, $custom_table->table_name, $fileName)
                 ->saveCustomValue($custom_value->id, null, $custom_table)
                 ->saveDocumentModel($custom_value, $fileName);
         }

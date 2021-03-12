@@ -178,7 +178,7 @@ class NotifyTest extends TestCase
         $notify->save();
 
         // change target data's date value
-        $custom_table = CustomTable::find($notify->custom_table_id);
+        $custom_table = CustomTable::find($notify->target_id);
         $model = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
         $model->update([
@@ -207,7 +207,7 @@ class NotifyTest extends TestCase
         $user_id = \Exment::user()->base_user_id;
 
         $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
-        $custom_table = CustomTable::find($notify->custom_table_id);
+        $custom_table = CustomTable::find($notify->target_id);
         $custom_value = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
 

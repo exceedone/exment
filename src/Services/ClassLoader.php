@@ -8,7 +8,12 @@ namespace Exceedone\Exment\Services;
  */
 class ClassLoader
 {
-    protected $dir;
+    /**
+     * Check target dirs
+     *
+     * @var array
+     */
+    protected $dirs = [];
 
     /**
      * Always called

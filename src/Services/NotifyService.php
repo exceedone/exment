@@ -510,7 +510,7 @@ class NotifyService
         $prms = $params['prms'];
         $user = $params['user'];
         $custom_value = $params['custom_value'];
-        $custom_table = isset($params['custom_table']) ? $params['custom_table'] : $custom_value->custom_table;
+        $custom_table = isset($params['custom_table']) ? $params['custom_table'] : ($custom_value ? $custom_value->custom_table : null);
         $subject = $params['subject'];
         $body = $params['body'];
         $replaceOptions = $params['replaceOptions'];
