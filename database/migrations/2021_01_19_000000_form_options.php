@@ -38,7 +38,7 @@ class FormOptions extends Migration
                 $table->integer('row_no')->after('form_column_target_id')->default(1);
             }
             if (!Schema::hasColumn('custom_form_columns', 'width')) {
-                $table->integer('width')->after('column_no')->default(1);
+                $table->integer('width')->after('column_no')->nullable();
             }
         });
 
