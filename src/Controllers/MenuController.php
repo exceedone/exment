@@ -424,6 +424,8 @@ class MenuController extends AdminControllerBase
             return System::permission_available();
         } elseif ($k == 'api_setting') {
             return System::api_available();
+        } elseif ($k == 'notify') {
+            return false;
         }
         
         return true;

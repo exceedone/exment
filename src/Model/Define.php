@@ -254,6 +254,10 @@ class Define
             'uri' => 'plugin',
             'icon' => 'fa-plug',
         ],
+        'notify' => [
+            'uri' => 'notify',
+            'icon' => 'fa-bell',
+        ],
         'loginuser' => [
             'uri' => 'loginuser',
             'icon' => 'fa-user-plus',
