@@ -265,7 +265,7 @@ class TemplateImporter
     public function uploadTemplate($uploadFile)
     {
         try {
-            list($json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path) = $this->extractZip($uploadFile);
+            list($json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path, $tmpDiskItem) = $this->extractZip($uploadFile);
 
             if (isset($config_path)) {
                 // get template name
@@ -310,10 +310,11 @@ class TemplateImporter
      * Extract zip and get json etc
      *
      * @param [type] $uploadFile
-     * @return array offset 0: json, 1: tmpfolderpath, 2: fullpath. 3: config_path, 4: thumbnail_path
+     * @return array offset 0: json, 1: tmpfolderpath, 2: fullpath. 3: config_path, 4: thumbnail_path, 5:tmpDiskItem
      */
     protected function extractZip($uploadFile) : array
     {
+        $emptyResult = [null, null, null, null, null, null];
         $tmpDiskItem = $this->diskService->tmpDiskItem();
         $tmpDisk = $tmpDiskItem->disk();
 
@@ -326,7 +327,7 @@ class TemplateImporter
         $zip = new ZipArchive;
         $res = $zip->open($fullpath);
         if ($res !== true) {
-            return [null, null, null, null, null];
+            return $emptyResult;
         }
 
         //Check existed file config (config.json)
@@ -349,11 +350,11 @@ class TemplateImporter
             // get config.json
             $json = json_decode(File::get(path_join($tmpfolderpath, $config_path)), true);
             if (!isset($json)) {
-                return [null, null, null, null, null];
+                return $emptyResult;
             }
-            return [$json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path];
+            return [$json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path, $tmpDiskItem];
         }
-        return [null, null, null, null, null];
+        return $emptyResult;
     }
 
 
