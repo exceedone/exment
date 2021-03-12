@@ -32,6 +32,7 @@ class AuthenticatePluginApi extends \Encore\Admin\Middleware\Authenticate
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }
 
+        $user = \Exment::user();
         if (!$user->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }

@@ -18,6 +18,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
+use Exceedone\Exment\Services\ClassLoader;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Support\Renderable;
@@ -33,11 +34,34 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 class Exment
 {
     /**
+     * Class loader for plugin class.Dynamic require_once
+     *
+     * @var ClassLoader
+     */
+    protected $classLoader;
+
+    /**
      * guard name.
      *
      * @var string
      */
     protected $guard;
+
+
+    public function __construct(){
+        $this->classLoader = new ClassLoader;
+        $this->classLoader->register();
+    }
+
+
+    /**
+     * Get class loader.
+     *
+     * @return ClassLoader
+     */
+    public function classLoader(){
+        return $this->classLoader;
+    }
 
     /**
      * Left sider-bar menu.

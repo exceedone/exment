@@ -3530,7 +3530,7 @@
   transform-origin: 50% 0%;
 }
 
-.copyScript {
+[copyScript] {
   cursor: pointer;
 }
 

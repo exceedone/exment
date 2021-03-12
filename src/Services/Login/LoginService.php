@@ -308,7 +308,7 @@ class LoginService
 
         $form->url('login_test_redirect', exmtrans('login.login_test_redirect'))
         ->readonly()
-        ->setElementClass(['copyScript'])
+        ->attribute(['copyScript' => 1])
         ->default($login_setting->exment_callback_url_test)
         ->help(exmtrans('login.help.login_test_sso', ['login_type' => LoginType::getEnum($login_setting->login_type)->transKey('login.login_type_options')]));
 

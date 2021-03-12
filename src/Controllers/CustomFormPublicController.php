@@ -102,7 +102,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             if(isset($public_form)){
                 if($public_form->active_flg){
                     $form->url('share_url', exmtrans('custom_form_public.share_url'))
-                        ->setElementClass(['copyScript'])
+                        ->attribute(['copyScript' => 1])
                         ->help(exmtrans('custom_form_public.help.share_url'))
                         ->default($public_form->getUrl())
                         ->readonly();

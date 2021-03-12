@@ -463,6 +463,7 @@ class Initialize
             'ajaxButton'        => Field\AjaxButton::class,
             'text'          => Field\Text::class,
             'text'          => Field\Text::class,
+            'password'          => Field\Password::class,
             'encpassword'          => Field\EncPassword::class,
             'bcrpassword'          => Field\BcrPassword::class,
             'number'        => Field\Number::class,

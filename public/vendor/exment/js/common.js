@@ -27,7 +27,7 @@ var Exment;
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
             $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
-            $(document).off('click', '.copyScript').on('click', '.copyScript', {}, CommonEvent.copyScriptEvent);
+            $(document).off('click', '[copyScript]').on('click', '[copyScript]', {}, CommonEvent.copyScriptEvent);
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });

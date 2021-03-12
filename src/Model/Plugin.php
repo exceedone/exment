@@ -383,20 +383,9 @@ class Plugin extends ModelBase
         list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk(null, $diskService, ['sync' => true]);
 
         // call plugin
-        $fullPathDir = $diskService->localSyncDiskItem()->dirFullPath();
-        $plugin_paths = \File::allFiles($fullPathDir);
-        
-        foreach ($plugin_paths as $plugin_path) {
-            $pathinfo = pathinfo($plugin_path);
-            if ($pathinfo['extension'] != 'php') {
-                continue;
-            }
-            // if blade, not require
-            if (strpos($pathinfo['basename'], 'blade.php') !== false) {
-                continue;
-            }
-            require_once($plugin_path);
-        }
+        $fullPathDir = \Exment::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
+
+        \Exment::classLoader()->registerDir($fullPathDir, $this->getNameSpace());
     }
     
     /**

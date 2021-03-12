@@ -484,6 +484,7 @@ if (!function_exists('path_ltrim')) {
             $path = mb_substr($path, mb_strlen($ltrim));
 
             $path = ltrim($path, '/');
+            $path = ltrim($path, '\\');
         }
 
         return $path;
