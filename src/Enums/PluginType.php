@@ -41,7 +41,7 @@ class PluginType extends EnumBase
     public const VIEW = '13';
     
     /**
-     *
+     * Plugin type. Can call from endpoint.
      * @return array
      */
     public static function PLUGIN_TYPE_PUBLIC_CLASS()
@@ -57,7 +57,7 @@ class PluginType extends EnumBase
     }
 
     /**
-     *
+     * plugin page types. Needs Page's endpoint.
      * @return array
      */
     public static function PLUGIN_TYPE_PLUGIN_PAGE()
@@ -71,7 +71,7 @@ class PluginType extends EnumBase
     }
 
     /**
-     *
+     * Get plugin scripts and styles. Needs script and css endpoint, and read public file.
      * @return array
      */
     public static function PLUGIN_TYPE_SCRIPT_STYLE()
@@ -86,7 +86,7 @@ class PluginType extends EnumBase
     }
 
     /**
-     *
+     * plugin types. Can read resource view.
      * @return array
      */
     public static function PLUGIN_TYPE_PLUGIN_USE_VIEW()

@@ -102,15 +102,9 @@ class Bootstrap
         ], false);
 
         // set scripts
-        $pluginPublics = Plugin::getPluginPublics();
+        $pluginPublics = Plugin::getPluginScriptStyles();
         foreach ($pluginPublics as $pluginPublic) {
             static::appendStyleScript($pluginPublic);
-        }
-
-        // set Plugin resource
-        $pluginPages = Plugin::getPluginPages();
-        foreach ($pluginPages as $pluginPage) {
-            static::appendStyleScript($pluginPage);
         }
 
         // get exment version

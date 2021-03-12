@@ -7,8 +7,10 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Exceedone\Exment\Validator\PluginTypeRule;
+use Exceedone\Exment\Validator\PluginNamespaceRule;
 use Exceedone\Exment\Validator\PluginRequirementRule;
 use Exceedone\Exment\Services\TemplateImportExport;
+use Exceedone\Exment\Storage\Disk\DiskServiceItem;
 use ZipArchive;
 use File;
 use Validator;
@@ -169,8 +171,8 @@ class PluginInstaller
     {
         if (!$diskService) {
             $diskService = new PluginDiskService();
-            $tmpDiskItem = $diskService->tmpDiskItem();
         }
+        $tmpDiskItem = $diskService->tmpDiskItem();
 
         // get config.json
         $json = json_decode(File::get($config_path), true);
@@ -180,7 +182,7 @@ class PluginInstaller
             return back()->with('errorMess', exmtrans('common.message.wrongconfig'));
         } else {
             //Validate json file with fields require
-            $checkRuleConfig = static::checkRuleConfigFile($json);
+            $checkRuleConfig = static::checkRuleConfigFile($json, $tmpDiskItem, $pluginFileBasePath);
             if ($checkRuleConfig === true) {
                 $templateInstall = static::templateInstall($pluginFileBasePath, $diskService, $json);
                 if ($templateInstall === false) {
@@ -237,12 +239,13 @@ class PluginInstaller
      * Function validate config.json file with field required
      *
      * @param array $json
+     * @param DiskServiceItem $tmpDiskItem
      * @return bool|string
      */
-    protected static function checkRuleConfigFile($json)
+    protected static function checkRuleConfigFile($json, DiskServiceItem $tmpDiskItem, string $pluginFileBasePath)
     {
         $rules = [
-            'plugin_name' => 'required',
+            'plugin_name' => ['required', new PluginNamespaceRule($tmpDiskItem, $pluginFileBasePath)],
             'plugin_type' => new PluginTypeRule(),
             'plugin_view_name' => 'required',
             'uuid' => 'required',

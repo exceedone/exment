@@ -462,11 +462,20 @@ if (!function_exists('app_paths')) {
 if (!function_exists('path_ltrim')) {
     /**
      * ltrim FilePath.
+     *
+     * @param string $path target file path.
+     * @param string $ltrim removing path. 
+     * If contains ex. "20210312123244/Plugins/Plugin.php" and want to get "Plugins/Plugin.php", set "20210312123244".
+     * @return void
      */
     function path_ltrim($path, $ltrim)
     {
         foreach (['/', '\\'] as $split) {
             $l = str_replace($split, '/', $ltrim);
+            
+            if(is_nullorempty($l)){
+                $l = $split;
+            }
 
             if (mb_strpos($path, $l) !== 0) {
                 continue;

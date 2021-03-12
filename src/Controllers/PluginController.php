@@ -133,18 +133,20 @@ class PluginController extends AdminControllerBase
     //Delete record from database (one or multi records)
     protected function destroy($id)
     {
-        $this->deleteFolder($id);
-        if ($this->form($id, true)->destroy($id)) {
-            return response()->json([
-                'status' => true,
-                'message' => trans('admin.delete_succeeded'),
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => trans('admin.delete_failed'),
-            ]);
+        foreach(stringToArray($id) as $i){
+            if ($this->form($i, true)->destroy($i)) {
+                $this->deleteFolder($i);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => trans('admin.delete_failed'),
+                ]);
+            }
         }
+        return response()->json([
+            'status' => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
     }
 
     //Delete one or multi folder corresponds to the plugins

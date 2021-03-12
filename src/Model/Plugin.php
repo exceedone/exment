@@ -385,6 +385,7 @@ class Plugin extends ModelBase
         // call plugin
         $fullPathDir = $diskService->localSyncDiskItem()->dirFullPath();
         $plugin_paths = \File::allFiles($fullPathDir);
+        
         foreach ($plugin_paths as $plugin_path) {
             $pathinfo = pathinfo($plugin_path);
             if ($pathinfo['extension'] != 'php') {
@@ -623,27 +624,17 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin page object model
+     * Get plugin page object model. Needs Page's endpoint.
      *
      * @return Collection
      */
     public static function getPluginPages()
     {
-        return static::getPluginPublicSessions([PluginType::PAGE], true);
+        return static::getPluginPublicSessions(PluginType::PLUGIN_TYPE_PLUGIN_PAGE(), true);
     }
 
     /**
-     * Get plugin scripts and styles
-     *
-     * @return Collection
-     */
-    public static function getPluginPublics()
-    {
-        return static::getPluginPublicSessions([PluginType::SCRIPT, PluginType::STYLE], true);
-    }
-
-    /**
-     * Get plugin scripts and styles
+     * Get plugin scripts and styles. Needs script and css endpoint, and read public file.
      *
      * @return Collection
      */

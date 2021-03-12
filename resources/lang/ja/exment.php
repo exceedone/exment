@@ -637,6 +637,7 @@ return [
             'wrongname_plugin' => 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。',
             'cannot_read' => 'プラグイン :plugin_view_name が正常に読み込めませんでした。プラグインファイル本体を一度ご確認いただくか、システム管理者にお問い合わせください。',
             'class_requirement' => '必須ライブラリがインストールされていませんでした。以下のライブラリを、composerでインストールしてください。 :composer',
+            'class_wrongnamespace' => '以下のクラスのnamespaceが誤っている可能性があります。namespace記述を見直してください。 :classes',
         ],
     
         'plugin_type_options' => [
