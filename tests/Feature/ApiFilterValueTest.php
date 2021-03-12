@@ -223,7 +223,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
     protected function _testConditionValueColumnInteger(string $filterOption, bool $hasHtml)
     {
-        $this->__testConditionValueApiColumn(ColumnType::INTEGER, $filterOption, $hasHtml, 'input[type="text"]');
+        $this->__testConditionValueApiColumn(ColumnType::INTEGER, $filterOption, $hasHtml, 'input[type="integer"]');
     }
 
     

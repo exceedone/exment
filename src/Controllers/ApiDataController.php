@@ -135,7 +135,6 @@ class ApiDataController extends AdminControllerTableBase
 
         // get model filtered using role
         $model = getModelName($this->custom_table)::query();
-        \Exment::user()->filterSortModel($model);
 
         $validator = Validator::make($request->all(), [
             'q' => 'required',

@@ -125,7 +125,7 @@ class PublicForm extends ModelBase
      */
     public function getApiUrl() : string
     {
-        return asset_urls('publicformapi', $this->uuid);
+        return asset_urls(config('exment.publicformapi_route_prefix', 'publicformapi'), $this->uuid);
     }
 
 

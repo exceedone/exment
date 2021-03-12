@@ -376,9 +376,10 @@ class ApiTest extends ApiTestBase
     public function testGetColumn(){
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
+        $column = CustomColumn::getEloquent('user', 'mail_send_log');
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'column', 42))
+        ])->get(admin_urls('api', 'column', $column->id))
             ->assertStatus(200)
             ->assertJsonFragment([
                 'column_name' => 'user',
