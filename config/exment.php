@@ -111,6 +111,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | exment debug mode schedule
+    |--------------------------------------------------------------------------
+    |
+    | if true, log schedule in laravel.log
+    |
+    */
+    'debugmode_schedule' => env('EXMENT_DEBUG_MODE_SCHEDULE', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | driver
     |--------------------------------------------------------------------------
     |
@@ -821,6 +831,15 @@ return [
     | 
     */
     'file_download_inline_extensions' => env('EXMENT_FILE_DOWNLOAD_INLINE_EXTENSIONS', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delete force custom value
+    |--------------------------------------------------------------------------
+    | 
+    | Custom value delete always force
+    */
+    'delete_force_custom_value' => env('EXMENT_DELETE_FORCE_CUSTOM_VALUE', false),
 
     /*
     |--------------------------------------------------------------------------

@@ -45,6 +45,7 @@ class ScheduleCommand extends Command
      */
     public function handle()
     {
+        $this->debugLog('Exment schedule command called.');
         $this->notify();
         $this->backup();
         $this->pluginBatch();
@@ -94,5 +95,15 @@ class ScheduleCommand extends Command
         foreach ($pluginBatches as $pluginBatch) {
             \Artisan::call("exment:batch", ['--uuid' => $pluginBatch->uuid]);
         }
+    }
+
+
+    protected function debugLog(string $log)
+    {
+        if (!boolval(config('exment.debugmode_schedule', false))) {
+            return;
+        }
+
+        \Log::debug($log);
     }
 }

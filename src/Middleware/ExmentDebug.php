@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\EnumBase;
+use Illuminate\Console\Scheduling\Schedule;
 
 class ExmentDebug
 {
@@ -100,5 +101,27 @@ class ExmentDebug
             $i++;
         }
         return implode(" < ", $functions);
+    }
+
+
+    /**
+     * Debug log schedule
+     *
+     * @return void
+     */
+    public static function logSchedule(Schedule $schedule)
+    {
+        if (!boolval(config('exment.debugmode_schedule', false))) {
+            return;
+        }
+
+        $schedule->call(function () {
+            \Log::debug('Exment schedule debug everyMinute called.');
+        })->everyMinute();
+
+        $schedule->call(function () {
+            \Log::debug('Exment schedule debug hourly called.');
+        })->hourly();
+        \Log::debug('Exment schedule debug defined.');
     }
 }

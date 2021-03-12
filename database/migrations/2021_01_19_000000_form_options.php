@@ -42,6 +42,7 @@ class FormOptions extends Migration
             }
         });
 
+        \Artisan::call('exment:patchdata', ['action' => 'publicform_mail_template']);
         \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
     }
 

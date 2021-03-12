@@ -2645,7 +2645,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // check system permission
             if (RoleType::SYSTEM == $role_type
-                && array_key_exists('system', $permission_details)) {
+                && array_key_exists(Permission::SYSTEM, $permission_details)) {
+                return true;
+            }
+            
+            // check custom table permission(system and table)
+            elseif (array_key_exists(Permission::CUSTOM_TABLE, $permission_details)) {
                 return true;
             }
 

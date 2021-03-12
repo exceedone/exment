@@ -77,7 +77,8 @@ class DefaultShow extends ShowBase
     {
         return new static::$showClassName($this->custom_value, function ($show) {
             if (!$this->modal) {
-                $field = (new ShowField(null, null))->system_values()->setWidth(12, 0);
+                $trashed = boolval(request()->get('trashed'));
+                $field = (new ShowField(null, null))->system_values(['withTrashed' => $trashed])->setWidth(12, 0);
                 $show->addFieldAndOption($field, [
                     'row' => $this->rowCount++,
                     'column' => 1,
@@ -321,6 +322,8 @@ class DefaultShow extends ShowBase
             return;
         }
 
+        $trashed = boolval(request()->get('trashed'));
+
         // loop for custom form blocks
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             // if available is false, continue
@@ -351,8 +354,11 @@ class DefaultShow extends ShowBase
                 if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
                     // append filter
                     $grid->model()->where('parent_id', $this->custom_value->id)->where('parent_type', $this->custom_table->table_name);
+                    if ($trashed) {
+                        $grid->model()->withTrashed();
+                    }
                 }
-                // one to many
+                // many to many
                 elseif ($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY) {
                     // first, getting children ids
                     $children_ids = $this->custom_value->{$relation_name}()->get()->pluck('id');

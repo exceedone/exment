@@ -30,6 +30,16 @@ trait TestTrait
         return $this->_assertMatch($value1, $value2, true);
     }
 
+
+    protected function assertMatchRegex(string $pattern, string $string, string $message = ''): void
+    {
+        if(method_exists($this, 'assertMatchesRegularExpression')){
+            $this->assertMatchesRegularExpression($pattern, $string, $message);
+            return;
+        }
+        $this->assertRegExp($pattern, $string, $message);
+    }
+
     protected function assertNotMatch($value1, $value2){
         return $this->_assertMatch($value1, $value2, false);
     }

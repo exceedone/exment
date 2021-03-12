@@ -294,12 +294,7 @@ class FileController extends AdminControllerBase
 
         // if has document, remove document info
         if (boolval($options['removeDocumentInfo'])) {
-            $column_name = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getIndexColumnName('file_uuid');
-        
-            // delete document info
-            getModelName(SystemTableName::DOCUMENT)
-                ::where($column_name, $uuid)
-                ->delete();
+            File::deleteDocumentModel($uuid, false);
         }
         
         // delete file info

@@ -1124,13 +1124,51 @@ class ApiTest extends ApiTestBase
     }
 
 
-
     public function testDeleteValue(){
+        $this->_testDeleteValue(false, true);
+    }
+
+    /**
+     * Force deleting
+     *
+     * @return void
+     */
+    public function testDeleteValueForce(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        $this->_testDeleteValue(true, false);
+    }
+
+    /**
+     * Force deleting
+     *
+     * @return void
+     */
+    public function testDeleteValueForceAlreadyTrashed(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        $this->_testDeleteValue(true, false, true);
+    }
+
+    /**
+     * Force deleting
+     *
+     * @return void
+     */
+    public function testDeleteValueForceConfig(){
+        \Config::set('exment.delete_force_custom_value', true);
+        $this->_testDeleteValue(false, false);
+    }
+
+    protected function _testDeleteValue(bool $appendForceQuery, bool $isGetTrashed, bool $isAlreadyTrashed = false)
+    {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
 
         $id = 80;
         for($i = 0; $i < 100; $i++){
-            $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find($id + $i);
+            $query = CustomTable::getEloquent('custom_value_edit')->getValueModel()->query();
+            if($isAlreadyTrashed){
+                $query->onlyTrashed();
+            }
+            $data = $query->find($id + $i);
             if(isset($data)){
                 $id += $i;
                 break;
@@ -1138,14 +1176,21 @@ class ApiTest extends ApiTestBase
         }
         $this->assertTrue(isset($data));
 
+        $url = $appendForceQuery ? admin_urls_query('api', 'data', 'custom_value_edit', $id, ['force' => 1]) : admin_urls('api', 'data', 'custom_value_edit', $id);
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->delete(admin_urls('api', 'data', 'custom_value_edit', $id))
+        ])->delete($url)
             ->assertStatus(204);
 
+        // check not exists (and contains trashed data)
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find($id);
         $this->assertTrue(!isset($data));
+        
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->query()->onlyTrashed()->find($id);
+        $this->assertTrue($isGetTrashed ? isset($data) : !isset($data));
     }
+
 
     public function testDeleteValueNotFound(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
@@ -1160,6 +1205,7 @@ class ApiTest extends ApiTestBase
                 'code' => ErrorCode::DATA_NOT_FOUND
             ]);
     }
+
 
     public function testDeleteValueNoPermissionData(){
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
@@ -1176,6 +1222,8 @@ class ApiTest extends ApiTestBase
                 'code' => ErrorCode::PERMISSION_DENY
             ]);
     }
+
+
 
     public function testDataQuery(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);

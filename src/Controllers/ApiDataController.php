@@ -288,6 +288,7 @@ class ApiDataController extends AdminControllerTableBase
         return $this->saveData($request, $custom_value);
     }
 
+    
     /**
      * delete data
      * @return mixed
@@ -304,9 +305,11 @@ class ApiDataController extends AdminControllerTableBase
             return abortJson(400, exmtrans('api.errors.over_deletelength', $max_delete_count), ErrorCode::OVER_LENGTH());
         }
 
+        $forceDelete = boolval($request->get('force'));
+
         $custom_values = [];
         foreach ((array)$ids as $i) {
-            if (($custom_value = $this->getCustomValue($this->custom_table, $i)) instanceof Response) {
+            if (($custom_value = $this->getCustomValue($this->custom_table, $i, $forceDelete)) instanceof Response) {
                 return $custom_value;
             }
             if (($code = $custom_value->enableDelete()) !== true) {
@@ -316,9 +319,14 @@ class ApiDataController extends AdminControllerTableBase
             $custom_values[] = $custom_value;
         }
         
-        \DB::transaction(function () use ($custom_values) {
+        \DB::transaction(function () use ($custom_values, $forceDelete) {
             foreach ($custom_values as $custom_value) {
-                $custom_value->delete();
+                if($forceDelete){
+                    $custom_value->forceDelete();
+                }
+                else{
+                    $custom_value->delete();
+                }
             }
         });
 
