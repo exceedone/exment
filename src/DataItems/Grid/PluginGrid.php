@@ -24,7 +24,7 @@ class PluginGrid extends GridBase
 
         $this->plugin = Plugin::getEloquent($plugin_id);
 
-        $this->pluginClass = $this->plugin->getClass(PluginType::GRID, [
+        $this->pluginClass = $this->plugin->getClass(PluginType::VIEW, [
             'custom_table' => $this->custom_table,
             'custom_view' => $this->custom_view,
         ]);
@@ -96,7 +96,7 @@ class PluginGrid extends GridBase
             return;
         }
 
-        $pluginClass = $plugin->getClass(PluginType::GRID, ['custom_table' => $custom_table]);
+        $pluginClass = $plugin->getClass(PluginType::VIEW, ['custom_table' => $custom_table]);
         if(is_nullorempty($pluginClass)){
             return;
         }

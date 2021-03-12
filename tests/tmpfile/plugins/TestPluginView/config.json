@@ -1,0 +1,18 @@
+{
+    "plugin_name": "TestPluginView",
+    "plugin_view_name" : "Gridテスト",
+    "explain": "Viewのテストを行うためのプラグインです。",
+    "uuid":  "648c8d9e-dd0d-4926-9bde-968f6c748ff1",
+    "author":  "Kajitori",
+    "version": "0.0.1",
+    "plugin_type": "view",
+    "route": [
+        {
+            "uri": "update",
+            "method": [
+                "post"
+            ],
+            "function": "update"
+        }
+    ]
+}

@@ -11,7 +11,7 @@ use Exceedone\Exment\DataItems\Grid\PluginGrid;
 /**
  * Plugin view base class
  */
-abstract class PluginGridBase extends PluginPublicBase
+abstract class PluginViewBase extends PluginPublicBase
 {
     use PluginBase, PluginPageTrait;
 

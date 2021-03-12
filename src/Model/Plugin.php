@@ -760,13 +760,23 @@ class Plugin extends ModelBase
     }
 
     /**
+     * Get full url for page
+     *
+     * @return string
+     */
+    public function getFullUrl(...$pass_array)
+    {
+        return admin_urls($this->getRouteUri(...$pass_array));
+    }
+
+    /**
      * Get route uri for page
      *
      * @return string
      */
-    public function getRouteUri($endpoint = null)
+    public function getRouteUri(...$pass_array)
     {
-        return url_join('plugins', $this->getOptionUri(), $endpoint);
+        return url_join('plugins', $this->getOptionUri(), ...$pass_array);
     }
 
     /**

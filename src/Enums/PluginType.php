@@ -38,7 +38,7 @@ class PluginType extends EnumBase
     public const EXPORT = '10';
     public const BUTTON = '11';
     public const EVENT = '12';
-    public const GRID = '13';
+    public const VIEW = '13';
     
     /**
      *
@@ -52,7 +52,7 @@ class PluginType extends EnumBase
             static::SCRIPT,
             static::STYLE,
             static::API,
-            static::GRID,
+            static::VIEW,
         ];
     }
 
@@ -66,7 +66,7 @@ class PluginType extends EnumBase
             static::PAGE,
             static::DASHBOARD,
             static::API,
-            static::GRID,
+            static::VIEW,
         ];
     }
 
@@ -81,7 +81,7 @@ class PluginType extends EnumBase
             static::DASHBOARD,
             static::SCRIPT,
             static::STYLE,
-            static::GRID,
+            static::VIEW,
         ];
     }
 
@@ -95,7 +95,7 @@ class PluginType extends EnumBase
             static::PAGE,
             static::DASHBOARD,
             static::BUTTON,
-            static::GRID,
+            static::VIEW,
         ];
     }
 
@@ -113,7 +113,7 @@ class PluginType extends EnumBase
             static::VALIDATOR,
             static::EVENT,
             static::BUTTON,
-            static::GRID,
+            static::VIEW,
         ];
     }
 
@@ -237,7 +237,7 @@ class PluginType extends EnumBase
                 case PluginType::VALIDATOR:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, $options);
-                case PluginType::GRID:
+                case PluginType::VIEW:
                     return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'custom_view'));
             }
         }
