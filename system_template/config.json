@@ -894,26 +894,6 @@
                             "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "order"
-                        },
-                        {
-                            "form_column_type": "1",
-                            "options": [],
-                            "form_column_target_name": "created_at"
-                        },
-                        {
-                            "form_column_type": "1",
-                            "options": [],
-                            "form_column_target_name": "updated_at"
-                        },
-                        {
-                            "form_column_type": "1",
-                            "options": [],
-                            "form_column_target_name": "created_user"
-                        },
-                        {
-                            "form_column_type": "1",
-                            "options": [],
-                            "form_column_target_name": "updated_user"
                         }
                     ],
                     "form_block_target_table_name": "information"

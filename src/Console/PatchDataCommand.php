@@ -185,6 +185,7 @@ class PatchDataCommand extends Command
                 return;
             case 'form_column_row_no':
                 $this->patchFormColumnRowNo();
+                return;
             case 'patch_condition':
                 $this->updateCondition();
                 return;
