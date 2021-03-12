@@ -776,6 +776,7 @@ class TemplateImporter
 
         // patch use_label_flg
         \Artisan::call('exment:patchdata', ['action' => 'use_label_flg']);
+        \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
 
         System::clearCache();
     }
