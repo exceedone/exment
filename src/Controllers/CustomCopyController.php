@@ -160,7 +160,7 @@ class CustomCopyController extends AdminControllerTableBase
     protected function form($id = null)
     {
         $form = new Form(new CustomCopy);
-        $form->hidden('from_custom_table_id')->default($this->custom_table->id);
+        $form->internal('from_custom_table_id')->default($this->custom_table->id);
         $form->display('from_custom_table.table_view_name', exmtrans("custom_copy.from_custom_table_view_name"))->default($this->custom_table->table_view_name);
 
         // get to item

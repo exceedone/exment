@@ -122,7 +122,7 @@ class FNotifyTest extends ExmentKitTestCase
 
     protected function getNotify(CustomTable $custom_table, string $suffix){
         // get notify info
-        return Model\Notify::where('custom_table_id', $custom_table->id)
+        return Model\Notify::where('target_id', $custom_table->id)
             ->where('notify_trigger', Enums\NotifyTrigger::BUTTON)
             ->where('notify_view_name', $custom_table->table_name . $suffix)
             ->first()

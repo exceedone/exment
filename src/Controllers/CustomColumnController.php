@@ -191,7 +191,7 @@ class CustomColumnController extends AdminControllerTableBase
             $column_item = null;
         }
 
-        $form->hidden('custom_table_id')->default($this->custom_table->id);
+        $form->internal('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
         
         if (!isset($id)) {

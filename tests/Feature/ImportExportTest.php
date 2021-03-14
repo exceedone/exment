@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -308,7 +309,7 @@ class ImportExportTest extends TestCase
         if (isset($custom_view)) {
             $this->_compareViewData($custom_view, $file_array, $db_array);
         } else {
-            $this->_compareAllData($file_array, $db_array);
+            $this->_compareAllData($file_array, $db_array, $custom_table);
         }
         return true;
     }
@@ -325,7 +326,7 @@ class ImportExportTest extends TestCase
         }
     }
 
-    protected function _compareAllData(array $file_array, Collection $db_array)
+    protected function _compareAllData(array $file_array, Collection $db_array, CustomTable $custom_table)
     {
         $header_array = [];
         foreach ($file_array as $index => $file_data) {
@@ -343,26 +344,26 @@ class ImportExportTest extends TestCase
                     if ($colvalue instanceof CustomValue) {
                         $colvalue = array_get($colvalue, 'id');
                     }
-                    if ($colvalue instanceof Collection) {
-                        $colvalue = $colvalue->map(function ($item) {
+                    if (is_list($colvalue)) {
+                        $colvalue = collect($colvalue)->map(function ($item) use($header, $custom_table) {
                             if ($item instanceof CustomValue) {
                                 return array_get($item, 'id');
                             }
+                            // if file column, get url
+                            elseif(!is_null($file = $this->getFileColumnValue($header, $item, $custom_table))){
+                                return $file;
+                            }
                             return $item;
-                        })->toArray();
+                        })->implode(',') ?? null;
                     }
-                    if (is_array($colvalue)) {
-                        if (count($colvalue) > 0) {
-                            $colvalue = implode(',', $colvalue);
-                        } else {
-                            $colvalue = null;
-                        }
+                    // if file column, get url
+                    elseif(!is_null($file = $this->getFileColumnValue($header, $colvalue, $custom_table))){
+                        return $file;
                     }
                     $this->assertEquals($colvalue, $file_data[$colno]);
                 }
             }
         }
-
     }
     protected function getCsvArray($file)
     {
@@ -448,5 +449,26 @@ class ImportExportTest extends TestCase
         ]);
 
         $this->assertEquals($result, $isSuccess ? 0 : -1);
+    }
+
+
+    /**
+     * Get file value.
+     *
+     * @param string $header
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function getFileColumnValue($header, $value, CustomTable $custom_table)
+    {
+        if(is_nullorempty($value)){
+            return null;
+        }
+        $column_name = str_replace('value.', '', $header);
+        $custom_column = Model\CustomColumn::getEloquent($column_name, $custom_table);
+        if(!ColumnType::isAttachment($custom_column)){
+            return null;
+        }
+        return Model\File::getUrl($value);
     }
 }

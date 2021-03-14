@@ -126,7 +126,7 @@ class CustomRelationController extends AdminControllerTableBase
     protected function form($id = null)
     {
         $form = new Form(new CustomRelation);
-        $form->hidden('parent_custom_table_id')->default($this->custom_table->id);
+        $form->internal('parent_custom_table_id')->default($this->custom_table->id);
 
         $form->descriptionHtml(sprintf(exmtrans('custom_relation.help.relation_caution'), getManualUrl('relation')));
 

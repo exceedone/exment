@@ -151,7 +151,7 @@ class CustomOperationController extends AdminControllerTableBase
             $suuid = null;
         }
         
-        $form->hidden('custom_table_id')->default($this->custom_table->id);
+        $form->internal('custom_table_id')->default($this->custom_table->id);
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);

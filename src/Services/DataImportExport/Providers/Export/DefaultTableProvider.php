@@ -168,7 +168,7 @@ class DefaultTableProvider extends ProviderBase
                 $key = (isset($array_header_key) ? $array_header_key : "").$column;
             }
             
-            $value = $this->getBodyValue(array_get($record, $key), $column, $view_column_type);
+            $value = $this->getBodyValue(array_get($record, $key), $column, $view_column_type, $record);
             $body_items[] = $value;
         }
         return $body_items;
@@ -180,13 +180,13 @@ class DefaultTableProvider extends ProviderBase
      * @param mixed $value
      * @return string|null
      */
-    protected function getBodyValue($values, $column, $view_column_type)
+    protected function getBodyValue($values, $column, $view_column_type, $record)
     {
         if(is_nullorempty($values)){
             return null;
         }
 
-        $convertValueFunc = function($value, $column, $view_column_type){
+        $convertValueFunc = function($value, $column, $view_column_type) use($record){
             // if $view_column_type is column, get customcolumn
             if ($view_column_type == ConditionType::COLUMN) {
                 // if attachment, set url
