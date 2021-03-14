@@ -392,16 +392,27 @@ class CustomColumnController extends AdminControllerTableBase
             if (!$exists) {
                 // get order
                 $order = $form_block->custom_form_columns()
+                    ->where('row_no', 1)
                     ->where('column_no', 1)
                     ->where('form_column_type', FormColumnType::COLUMN)
                     ->max('order') ?? 0;
                 $order++;
 
+                // get width
+                $width = $form_block->custom_form_columns()
+                    ->where('row_no', 1)
+                    ->where('column_no', 1)
+                    ->select('width')
+                    ->pluck('width')
+                    ->first() ?? 2;  
+
                 $custom_form_column = new CustomFormColumn;
                 $custom_form_column->custom_form_block_id = $form_block->id;
                 $custom_form_column->form_column_type = FormColumnType::COLUMN;
                 $custom_form_column->form_column_target_id = $model->id;
+                $custom_form_column->row_no = 1;
                 $custom_form_column->column_no = 1;
+                $custom_form_column->width = $width;
                 $custom_form_column->order = $order;
                 $custom_form_column->save();
             }

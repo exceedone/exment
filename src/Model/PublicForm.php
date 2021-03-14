@@ -505,6 +505,9 @@ class PublicForm extends ModelBase
                         if ($column_item->disableDisplayWhenShow()) {
                             continue;
                         }
+                        if(!($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem)){
+                            continue;
+                        }
         
                         $column_item->setCustomValue($custom_value);
         
@@ -629,7 +632,7 @@ class PublicForm extends ModelBase
         if(!\Exment::isAvailableGoogleRecaptcha()){
             $message = exmtrans('login.message.not_install_library', [
                 'name' => 'Google reCaptcha',
-                'url' => getManualUrl('public_form#recaptcha'),
+                'url' => getManualUrl('publicform#recaptcha'),
             ]);
         }
         // check system setting

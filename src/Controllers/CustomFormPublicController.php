@@ -554,31 +554,32 @@ class CustomFormPublicController extends AdminControllerTableBase
                         'redirectUrl' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "edit"),
                     ]));
                 }
-                if($preview){
+            }
+            
+            if($preview){
+                $tools->append(view('exment::tools.button', [
+                    'href' => 'javascript:void(0);',
+                    'label' => exmtrans('common.preview'),
+                    'icon' => 'fa-check-circle',
+                    'btn_class' => 'btn-warning',
+                    'attributes' => [
+                        'data-preview' => true,
+                        'data-preview-url' => admin_urls('formpublic', $custom_table->table_name, $id, 'preview'),
+                        'data-preview-error-title' => '',
+                        'data-preview-error-text' => '',
+                    ],
+                ])->render());
+                
+                if(isset($id)){
                     $tools->append(view('exment::tools.button', [
-                        'href' => 'javascript:void(0);',
-                        'label' => exmtrans('common.preview'),
-                        'icon' => 'fa-check-circle',
+                        'href' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "export"),
+                        'label' => exmtrans('template.header_export'),
+                        'icon' => 'fa-clone',
                         'btn_class' => 'btn-warning',
                         'attributes' => [
-                            'data-preview' => true,
-                            'data-preview-url' => admin_urls('formpublic', $custom_table->table_name, $id, 'preview'),
-                            'data-preview-error-title' => '',
-                            'data-preview-error-text' => '',
+                            'target' => '_blank',
                         ],
                     ])->render());
-                    
-                    if(isset($id)){
-                        $tools->append(view('exment::tools.button', [
-                            'href' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "export"),
-                            'label' => exmtrans('template.header_export'),
-                            'icon' => 'fa-clone',
-                            'btn_class' => 'btn-warning',
-                            'attributes' => [
-                                'target' => '_blank',
-                            ],
-                        ])->render());
-                    }
                 }
             }
         });

@@ -79,7 +79,7 @@ class Text extends CustomItem
         if (boolval(config('exment.expart_mode', false)) && array_key_value_exists('regex_validate', $options)) {
             $regex_validate = array_get($options, 'regex_validate');
             $validates[] = 'regex:/'.$regex_validate.'/u';
-            $regex = implode("", $regex_validate);
+            $regex = $regex_validate;
         } elseif (array_key_value_exists('available_characters', $options)) {
             $difinitions = CustomColumn::getAvailableCharacters();
 

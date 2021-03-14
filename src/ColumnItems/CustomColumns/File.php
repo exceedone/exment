@@ -35,6 +35,9 @@ class File extends CustomItem
      */
     protected function _text($v)
     {
+        if(!is_null($name = $this->getPublicFileName($v))){
+            return $name;
+        }
         // get image url
         return ExmentFile::getUrl($this->fileValue($v), boolval(array_get($this->options, 'asApi')));
     }
@@ -44,9 +47,8 @@ class File extends CustomItem
      */
     protected function _html($v)
     {
-        // If public form tmp file, return Only file name.
-        if(is_string($v) && strpos($v, Field\File::TMP_FILE_PREFIX) === 0){
-            return esc_html(array_get($this->getTmpFileInfo($v), 'originalFileName'));
+        if(!is_null($name = $this->getPublicFileName($v))){
+            return $name;
         }
 
         // get image url
@@ -545,5 +547,21 @@ class File extends CustomItem
         }
 
         System::clearRequestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES);
+    }
+
+
+    /**
+     * Get public file name ex exists.
+     *
+     * @param string $v
+     * @return string|null
+     */
+    protected function getPublicFileName($v) : ?string
+    {
+        // If public form tmp file, return Only file name.
+        if(is_string($v) && strpos($v, Field\File::TMP_FILE_PREFIX) === 0){
+            return esc_html(array_get($this->getTmpFileInfo($v), 'originalFileName'));
+        }
+        return null;
     }
 }

@@ -184,7 +184,7 @@ abstract class ColumnBase
             $result[$key] = exmtrans("custom_column.options.default") . ':' . exmtrans('custom_form.setting_available');
         }
 
-        $result['relation_filter_id'] = exmtrans('custom_form.relation_filter') . ':' . exmtrans('custom_form.setting_available');
+        $result['relation_filter_target_column_id'] = exmtrans('custom_form.relation_filter') . ':' . exmtrans('custom_form.setting_available');
         $result['changedata_column_id'] = exmtrans('custom_form.changedata') . ':' . exmtrans('custom_form.setting_available');
 
         return $result;
