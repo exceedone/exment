@@ -494,7 +494,10 @@ if (!function_exists('path_ltrim')) {
 if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
-        $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
+        if(is_string($disk)){
+            $disk = Storage::disk($disk);
+        }
+        $path = $disk->getDriver()->getAdapter()->applyPathPrefix($filename);
 
         if ($mkdir) {
             $dirPath = pathinfo($path)['dirname'];
