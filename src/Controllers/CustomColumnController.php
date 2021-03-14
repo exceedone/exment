@@ -237,12 +237,6 @@ class CustomColumnController extends AdminControllerTableBase
                     'data-changehtml' => json_encode([
                         [
                             'url' => admin_urls('column', $this->custom_table->table_name, $id, 'columnTypeHtml'),
-                            'target' => '.form_dynamic_default',
-                            'response' => '.form_dynamic_default_response',
-                            'form_type' => 'default',
-                        ],
-                        [
-                            'url' => admin_urls('column', $this->custom_table->table_name, $id, 'columnTypeHtml'),
                             'target' => '.form_dynamic_options',
                             'response' => '.form_dynamic_options_response',
                             'form_type' => 'option',
@@ -287,20 +281,11 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.min_max_width"))
                 ;
 
-        // get default form
-        $form->html('<div class="form_dynamic_default">')->plain(); 
-        if(isset($column_item)){
-            $column_item->setCustomColumnDefaultValueForm($form);
-        }
-        // Form options area -- End
-        $form->html('</div>')->plain(); 
-
-
         // setting for each settings of column_type. --------------------------------------------------
         // Form options area -- start
         $form->html('<div class="form_dynamic_options">')->plain(); 
         if(isset($column_item)){
-            $column_item->setCustomColumnOptionForm($form);
+            $column_item->setCustomColumnForm($form);
         }
         // Form options area -- End
         $form->html('</div>')->plain(); 
@@ -488,22 +473,12 @@ class CustomColumnController extends AdminControllerTableBase
 
         $form = new Form(new CustomColumn);
         $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("custom_column.options.header"), function ($form) use($form_type, $column_item) {
-            if($form_type == 'option'){
-                // Form options area -- start
-                $form->html('<div class="form_dynamic_options_response">')->plain();
-                if (isset($column_item)) {
-                    $column_item->setCustomColumnOptionForm($form);
-                }
-                $form->html('</div>')->plain();
-            }
-            else{
-                // Form default area -- start
-                $form->html('<div class="form_dynamic_default_response">')->plain();
-                if (isset($column_item)) {
-                    $column_item->setCustomColumnDefaultValueForm($form);
-                }
-                $form->html('</div>')->plain();
-            }
+           // Form options area -- start
+           $form->html('<div class="form_dynamic_options_response">')->plain();
+           if (isset($column_item)) {
+               $column_item->setCustomColumnForm($form);
+           }
+           $form->html('</div>')->plain();
         });
 
         $body = $form->render();

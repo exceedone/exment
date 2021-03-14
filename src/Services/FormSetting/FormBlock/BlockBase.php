@@ -251,20 +251,20 @@ abstract class BlockBase
         // grouping row_no and column_no;
         $groupRows = $this->custom_form_column_items->groupBy(function($custom_form_column_item){
             $custom_form_column = $custom_form_column_item->getCustomFormColumn();
-            return $custom_form_column->row_no;
+            return $custom_form_column->row_no ?? 1;
         });
 
         $groupRowColumns = $groupRows->map(function($groupRow){
             $groupColumns = $groupRow->groupBy(function($group){
                 $group = $group->getCustomFormColumn();
-                return $group->column_no;
+                return $group->column_no ?? 1;
             });
 
             $columns = $groupColumns->map(function($column){
                 return [
                     'column_no' => $column->first()->getCustomFormColumn()->column_no,
-                    'width' => $column->first()->getCustomFormColumn()->width,
-                    'gridWidth' => $column->first()->getCustomFormColumn()->width * 3,
+                    'width' => $column->first()->getCustomFormColumn()->width ?? 2,
+                    'gridWidth' => ($column->first()->getCustomFormColumn()->width ?? 2) * 3,
                     'custom_form_columns' => $column->map(function($c){
                         return $c->getItemsForDisplay();
                     })->toArray(),

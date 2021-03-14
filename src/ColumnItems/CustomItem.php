@@ -832,6 +832,19 @@ abstract class CustomItem implements ItemInterface
 
     
     /**
+     * Set Custom Column Form(defalut and form). Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnForm(&$form)
+    {
+        $this->setCustomColumnDefaultValueForm($form);
+        $this->setCustomColumnOptionForm($form);
+    }
+    
+    /**
      * Set Custom Column Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
      *
