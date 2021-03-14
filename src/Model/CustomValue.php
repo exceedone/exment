@@ -703,16 +703,18 @@ abstract class CustomValue extends ModelBase
             ->filter(function($custom_column){
                 return ColumnType::isAttachment($custom_column);
             })->each(function($custom_column){
-                $value = array_get($this->value, $custom_column->column_name);
-                if(!$value){
+                $values = array_get($this->value, $custom_column->column_name);
+                if(!$values){
                     return;
                 }
 
-                $file = File::getData($value);
-                if(!$file){
-                    return;
+                foreach(toArray($values) as $value){
+                    $file = File::getData($value);
+                    if(!$file){
+                        continue;
+                    }
+                    File::deleteFileInfo($file);
                 }
-                File::deleteFileInfo($file);
             });
 
 
