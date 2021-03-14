@@ -114,9 +114,19 @@ class Yesno extends CustomItem
      */
     public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
+        if($asCustomForm){
+            $form->radio('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ->options([
+                '0' => 'NO',
+                '1' => 'YES',
+            ])->addEmpty(true);
+            return;
+        }
         $form->switchbool('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ;
+        
     }
 
     /**

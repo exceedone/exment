@@ -472,6 +472,7 @@ class Initialize
             'image'        => Field\Image::class,
             'link'           => Field\Link::class,
             'exmheader'           => Field\Header::class,
+            'radio'           => Field\RadioButton::class,
             'description'           => Field\Description::class,
             'descriptionHtml'           => Field\DescriptionHtml::class,
             'internal'           => Field\Internal::class,
