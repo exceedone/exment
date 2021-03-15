@@ -574,7 +574,7 @@ class ExmentServiceProvider extends ServiceProvider
         return new RequestGuard(function ($request) use ($config) {
             return (new PublicFormGuard(
                 Auth::createUserProvider($config['provider']),
-                $this->app['request'],
+                $this->app['request']
             ))->user($request);
         }, $this->app['request']);
     }
