@@ -1541,7 +1541,7 @@ return [
         'notify_complete_admin' => '完了通知(管理者)',
         'use_notify_complete_admin' => '完了通知を管理者に行う',
         'error_setting'=> 'エラー設定',
-        'error_title' => 'エラーテキスト',
+        'error_title' => 'エラータイトル',
         'error_text' => 'エラーテキスト',
         'error_link_text' => 'エラーリンク先テキスト',
         'error_link_url' => 'エラーリンク先URL',
@@ -2446,6 +2446,7 @@ return [
             'create' => 'データ新規作成画面',
             'edit' => 'データ編集画面',
         ],
+
         'condition_join_options' => [
             'and' => 'すべての条件に一致',
             'or' => 'いずれかの条件に一致',
