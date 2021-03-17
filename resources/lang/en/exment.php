@@ -471,7 +471,7 @@ return [
             ],
             'timeout_time' => [
                 'label' => 'Timeout time',
-                'explain' => 'The number of seconds before the process waits and the time expires. If this time is short, it may exceed this time for time-consuming processes such as backup and import.(推奨値:180秒以上)',
+                'explain' => 'The number of seconds before the process waits and the time expires. If this time is short, it may exceed this time for time-consuming processes such as backup and import.(recommended value: 180 seconds or more)',
                 'warning' => 'The timeout time is below the recommended setting. Time-consuming processes such as backup and import may time out in the middle.',
             ],
             'file_permission' => [
