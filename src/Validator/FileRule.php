@@ -40,7 +40,7 @@ class FileRule implements Rule
             }
             
             foreach($value as $v){
-                if(!$this->validateExntion($attribute, $v)){
+                if(!$this->validateExtension($attribute, $v)){
                     return false;
                 }
             }

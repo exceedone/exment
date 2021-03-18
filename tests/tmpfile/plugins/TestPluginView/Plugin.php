@@ -15,7 +15,7 @@ class Plugin extends PluginViewBase
     public function grid()
     {
         $values = $this->values();
-        return $this->pluginView('sample', ['values' => $values]);
+        return $this->pluginView('kanban', ['values' => $values]);
     }
 
     /**
