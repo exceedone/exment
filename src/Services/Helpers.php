@@ -639,6 +639,22 @@ if (!function_exists('hasDuplicateDate')) {
 }
 
 // array --------------------------------------------------
+if (!function_exists('array_boolval')) {
+    /**
+     * array_boolval
+     * get array_get and return boolval
+     * @return bool
+     */
+    function array_boolval($array, $key, $default = false) : bool
+    {
+        if (is_string($array)) {
+            $array = [$array];
+        }
+        $value = array_get($array, $key, $default);
+        return boolval($value);
+    }
+}
+
 if (!function_exists('array_keys_exists')) {
     /**
      * array_keys_exists

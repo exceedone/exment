@@ -1275,6 +1275,7 @@ return [
             'checkbox_enabled' => 'Display in check box format',
             'free_input' => 'Make it freely input',
             'accept_extensions' => 'Extensions that allow uploading',
+            'required_yes' => 'Required YES',
         ],
         'column_type_options' => [
             "text" => "One-Line Text",
@@ -1347,6 +1348,7 @@ return [
             'check_radio_enabled' => 'If set to YES, it will be displayed in radio button format or check box format. (If multiple selections are allowed, it will be displayed in checkbox format, usually in radio button format)',
             'checkbox_enabled' => 'If set to YES, it will be displayed in a check box format.',
             'free_input' => 'By setting to YES, you can freely enter options that are not registered.',
+            'required_yes' => 'By setting this setting to YES, it is mandatory to set it to YES on the input screen. * In the case of check box format, it is essential that it is checked.',
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 

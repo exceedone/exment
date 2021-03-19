@@ -1275,6 +1275,7 @@ return [
             'checkbox_enabled' => 'チェックボックス形式で表示',
             'free_input' => '自由に入力可能にする',
             'accept_extensions' => 'アップロード許可する拡張子',
+            'required_yes' => 'YES必須',
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -1347,6 +1348,7 @@ return [
             'check_radio_enabled' => 'YESにすることで、ラジオボタン形式またはチェックボックス形式で表示されます。（複数選択を許可している場合はチェックボックス形式で、通常はラジオボタン形式で表示されます）',
             'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
             'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
+            'required_yes' => 'この設定をYESにすることで、入力画面でYESに設定することが必須となります。※チェックボックス形式の場合、チェックされていることが必須となります。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 

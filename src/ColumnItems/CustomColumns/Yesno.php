@@ -53,6 +53,10 @@ class Yesno extends CustomItem
                 1 => ''
             ]);
         }
+
+        if(array_boolval($this->custom_column->options, 'required_yes')){
+            $field->requiredRule();
+        }
     }
     
     protected function getAdminFilterClass()
@@ -140,6 +144,8 @@ class Yesno extends CustomItem
     {
         $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
             ->help(exmtrans("custom_column.help.checkbox_enabled"));
+        $form->switchbool('required_yes', exmtrans("custom_column.options.required_yes"))
+            ->help(exmtrans("custom_column.help.required_yes"));
     }
     
     public function getFalseValue()
