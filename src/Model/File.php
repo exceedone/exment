@@ -210,14 +210,13 @@ class File extends ModelBase
      */
     public static function deleteDocumentModel($file, bool $isDeleteFile = true)
     {
-        if($isDeleteFile){
+        if ($isDeleteFile) {
             $file = static::deleteFileInfo($file);
-        }
-        else{
+        } else {
             $file = static::getData($file);
         }
 
-        if(!$file){
+        if (!$file) {
             return;
         }
         

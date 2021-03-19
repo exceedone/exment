@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Validator\ImageRule;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;

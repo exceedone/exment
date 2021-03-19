@@ -276,10 +276,10 @@ class AuthUserOrgHelper
     
     /**
      * get organization ids for query.
-     * 
+     *
      * IMPORTANT: Please look this topic.
      * https://exment.net/docs/#/ja/developing_memo
-     * 
+     *
      * @return array
      */
     public static function getOrganizationIdsForQuery($filterType = JoinedOrgFilterType::ALL, $targetUserId = null)

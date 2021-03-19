@@ -34,8 +34,7 @@ abstract class WorkflowStatusBase extends ViewFilterBase
         // if start, $workflow_status set as null
         if (isMatchString($workflow_status, Define::WORKFLOW_START_KEYNAME)) {
             $workflow_status = null;
-        }
-        elseif($workflow_status instanceof WorkflowStatus){
+        } elseif ($workflow_status instanceof WorkflowStatus) {
             $workflow_status = $workflow_status->id;
         }
 

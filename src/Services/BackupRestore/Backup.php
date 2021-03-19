@@ -122,7 +122,7 @@ class Backup
                 $files = $disk->allFiles('');
                 foreach ($files as $file) {
                     // Check file exists
-                    if(!$disk->exists($file)){
+                    if (!$disk->exists($file)) {
                         continue;
                     }
                     // copy from crowd to local
