@@ -252,7 +252,7 @@ class CustomColumnController extends AdminControllerTableBase
             $form->internal('column_type')->default($column_type);
         }
 
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $column_item, $id) {
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item, $id) {
             $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules([
@@ -471,7 +471,7 @@ class CustomColumnController extends AdminControllerTableBase
         $column_item = $this->getCustomItem($request, $id, $val);
 
         $form = new Form(new CustomColumn);
-        $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($form_type, $column_item) {
+        $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item) {
             // Form options area -- start
             $form->html('<div class="form_dynamic_options_response">')->plain();
             if (isset($column_item)) {

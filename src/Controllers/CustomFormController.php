@@ -375,7 +375,7 @@ class CustomFormController extends AdminControllerTableBase
         }
         
         $custom_table = $this->custom_table;
-        $grid->tools(function (Grid\Tools $tools) use ($custom_table) {
+        $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\CustomTableMenuButton('form', $this->custom_table));
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
@@ -474,7 +474,7 @@ class CustomFormController extends AdminControllerTableBase
      * Get header box ex. view name, label, default flg....
      *
      * @param CustomForm|null $custom_form
-     * @return void
+     * @return Box
      */
     protected function getHeaderBox(?CustomForm $custom_form, string $formroot)
     {

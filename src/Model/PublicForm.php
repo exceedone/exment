@@ -247,7 +247,7 @@ class PublicForm extends ModelBase
      * @param Request $request
      * @param CustomValue|null $custom_value input custom value
      * @param boolean $setRecaptcha if true, set Recaptcha. If confirm→submit, set false
-     * @return void
+     * @return Form
      */
     public function getForm(Request $request, ?CustomValue $custom_value = null, array $options = [])
     {
@@ -410,7 +410,7 @@ class PublicForm extends ModelBase
     /**
      * Show error page and notify
      *
-     * @return void
+     * @return PublicContent
      */
     public function showError($ex, $asInner = false, ?array $data = null)
     {
@@ -442,7 +442,7 @@ class PublicForm extends ModelBase
             $content->row($view);
 
             return $content;
-        } catch (\Excedption $ex) {
+        } catch (\Exception $ex) {
             throw $ex;
         } catch (\Throwable $ex) {
             throw $ex;
@@ -462,7 +462,7 @@ class PublicForm extends ModelBase
     /**
      * Get input values text. Contains label and input text.
      *
-     * @return void
+     * @return string
      */
     protected function getInputValueText(?CustomValue $custom_value = null, array $relationInputs = null, ?array $data = null)
     {

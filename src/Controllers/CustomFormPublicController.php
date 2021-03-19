@@ -91,7 +91,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
 
         // Basic setting ----------------------------------------------------
-        $form->tab(exmtrans("common.basic_setting"), function ($form) use ($public_form, $id, $custom_table) {
+        $form->tab(exmtrans("common.basic_setting"), function ($form) use ($public_form, $custom_table) {
             $form->exmheader(exmtrans("common.basic_setting"))->hr();
                 
             $form->descriptionHtml(exmtrans('common.help.more_help'));
@@ -131,7 +131,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ->rules("max:40")
                 ->help(exmtrans('common.help.view_name'));
             
-            $form->embeds("basic_setting", exmtrans("common.basic_setting"), function ($form) use ($custom_table) {
+            $form->embeds("basic_setting", exmtrans("common.basic_setting"), function ($form) {
                 $form->dateTimeRange('validity_period_start', 'validity_period_end', exmtrans("custom_form_public.validity_period"))
                     ->help(exmtrans("custom_form_public.help.validity_period"))
                     ->default(true);
@@ -212,7 +212,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ;
             })->disableHeader();
         })->tab(exmtrans("custom_form_public.confirm_complete_setting"), function ($form) use ($custom_table) {
-            $form->embeds("confirm_complete_setting", exmtrans("common.confirm_complete_setting"), function ($form) use ($custom_table) {
+            $form->embeds("confirm_complete_setting", exmtrans("common.confirm_complete_setting"), function ($form) {
                 $form->exmheader(exmtrans("custom_form_public.confirm_setting"))->hr();
 
                 $form->switchbool('use_confirm', exmtrans("custom_form_public.use_confirm"))
@@ -261,12 +261,12 @@ class CustomFormPublicController extends AdminControllerTableBase
 
             // get notify mail template
             $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_user', MailKeyName::PUBLICFORM_COMPLETE_USER, 'confirm_complete_setting_use_notify_complete_user');
-            $form->embeds("notify_actions_complete_user", exmtrans("common.confirm_complete_setting"), function ($form) use ($custom_table) {
+            $form->embeds("notify_actions_complete_user", exmtrans("common.confirm_complete_setting"), function ($form) {
                 $form->internal('notify_action')
                     ->default(NotifyAction::EMAIL);
                 
                 $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-                ->options(function ($val, $field, $notify) use ($custom_table) {
+                ->options(function ($val, $field, $notify) {
                     $options = [
                         'as_default' => false,
                         'get_email' => true,
@@ -280,7 +280,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             })->disableHeader();
 
             
-            $form->embeds("confirm_complete_setting2", exmtrans("common.confirm_complete_setting"), function ($form) use ($custom_table) {
+            $form->embeds("confirm_complete_setting2", exmtrans("common.confirm_complete_setting"), function ($form) {
                 $form->exmheader(exmtrans("custom_form_public.notify_complete_admin"))->hr();
                 $form->description(exmtrans("custom_form_public.help.notify_complete_admin"));
                 
@@ -368,10 +368,10 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ]);
             })->disableHeader();
         })
-        ->tab(exmtrans("custom_form_public.css_js_setting"), function ($form) use ($public_form, $id, $custom_table) {
+        ->tab(exmtrans("custom_form_public.css_js_setting"), function ($form) {
             $form->exmheader(exmtrans("custom_form_public.css_js_setting"))->hr();
              
-            $form->embeds("css_js_setting", exmtrans("common.css_js_setting"), function ($form) use ($custom_table) {
+            $form->embeds("css_js_setting", exmtrans("common.css_js_setting"), function ($form) {
                 $form->textarea('custom_css', exmtrans("custom_form_public.custom_css"))
                     ->help(exmtrans("custom_form_public.help.custom_css"))
                 ;
@@ -392,10 +392,10 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ;
             })->disableHeader();
         })
-        ->tab(exmtrans("custom_form_public.option_setting"), function ($form) use ($public_form, $id, $custom_table) {
+        ->tab(exmtrans("custom_form_public.option_setting"), function ($form) {
             $form->exmheader(exmtrans("custom_form_public.option_setting"))->hr();
              
-            $form->embeds("option_setting", exmtrans("common.option_setting"), function ($form) use ($custom_table) {
+            $form->embeds("option_setting", exmtrans("common.option_setting"), function ($form) {
                 $form->switchbool('use_default_query', exmtrans("custom_form_public.use_default_query"))
                     ->help(exmtrans("custom_form_public.help.use_default_query") . \Exment::getMoreTag('publicform'))
                     ->default(false);
@@ -604,7 +604,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     /**
      * Store form for import
      *
-     * @return void
+     * @return \Illuminate\Http\RedirectResponse
      */
     protected function importFormStore()
     {
@@ -620,7 +620,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $json = $importer->getJsonFromZip($file);
 
         $public_form = null;
-        \DB::transaction(function () use (&$public_form, $json, $form, $request) {
+        \DB::transaction(function () use (&$public_form, $json, $request) {
             // new json ignored notify
             $json_ignored = array_get($json, 'public_form');
             array_forget($json_ignored, ['notify_complete_admin', 'notify_complete_user', 'notify_error']);
@@ -757,7 +757,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      *
      * @param Request $request
      * @param string|int|null $id
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function activate(Request $request, $tableKey, $id)
     {
@@ -769,7 +769,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      *
      * @param Request $request
      * @param string|int|null $id
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function deactivate(Request $request, $tableKey, $id)
     {
@@ -809,7 +809,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      * @param Request $request
      * @param string $id
      * @param boolean $active_flg
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function toggleActivate(Request $request, $id, bool $active_flg)
     {

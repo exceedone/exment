@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Validator\EmailMultiline;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -22,20 +21,6 @@ use Illuminate\Http\Request;
 
 trait NotifyTrait
 {
-    /**
-     * Create interface.
-     *
-     * @return Content
-     */
-    public function create(Request $request, Content $content)
-    {
-        if (!is_null($copy_id = $request->get('copy_id'))) {
-            return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['notify_view_name']));
-        }
-
-        return parent::create($request, $content);
-    }
-
     /**
      * Make a grid builder.
      *

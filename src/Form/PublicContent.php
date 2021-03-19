@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Form;
 use Closure;
 use Illuminate\Contracts\Support\Renderable;
 use Encore\Admin\Layout\Row;
+use Encore\Admin\Layout\Content;
 
 /**
  * For public form content

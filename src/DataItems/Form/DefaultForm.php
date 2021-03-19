@@ -12,6 +12,8 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -234,7 +236,7 @@ EOT;
             $target_custom_value = $this->custom_table->getValueModel($target_custom_value);
         }
 
-        return function ($form) use ($custom_form_block, $target_custom_value, $relation) {
+        return function ($form) use ($custom_form_block, $target_custom_value) {
             // setting fields.
             foreach ($custom_form_block->custom_form_columns as $form_column) {
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
@@ -794,9 +796,6 @@ EOT;
     protected function setColumnItemOption(ItemInterface $column_item)
     {
         $column_item->setCustomForm($this->custom_form);
-        if ($this->isPublicForm()) {
-            $column_item->options(['public_form' => $this->public_form]);
-        }
         if ($this->enableDefaultQuery) {
             $column_item->options(['enable_default_query' => true]);
         }

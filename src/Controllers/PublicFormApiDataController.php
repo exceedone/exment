@@ -106,7 +106,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      * Check custom form columns in custom table
      *
      * @param Request $request
-     * @return void
+     * @return true|\Symfony\Component\HttpFoundation\Response
      */
     protected function checkContainsCustomTableInForm(Request $request)
     {

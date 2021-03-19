@@ -70,6 +70,7 @@ use Cache;
 * @method static bool|void publicform_available($arg = null)
 * @method static string|void recaptcha_site_key($arg = null)
 * @method static string|void recaptcha_secret_key($arg = null)
+* @method static string|void recaptcha_type($arg = null)
  */
 class System extends ModelBase
 {

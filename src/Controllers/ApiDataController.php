@@ -1043,7 +1043,7 @@ class ApiDataController extends AdminControllerTableBase
             }
 
             // set custom value
-            if (!$custom_column->isMultipleEnabled()) {
+            if (!isset($custom_column) || !$custom_column->isMultipleEnabled()) {
                 $value[$column_name] = count($result) > 0 ? $result[0] : null;
             } else {
                 // If multiple, merge original array

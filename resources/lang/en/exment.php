@@ -1341,8 +1341,6 @@ return [
             'multiple_enabled_file' => 'If set to YES, multiple files can be uploaded.',
             'accept_extensions' => 'When specifying the extension of the file that is allowed to be uploaded, enter the extension without dots. If you specify more than one, enter them separated by commas. Ex:docx,pdf,xlsx',
             'check_radio_enabled' => 'If set to YES, it will be displayed in radio button format or check box format. (If multiple selections are allowed, it will be displayed in checkbox format, usually in radio button format)',
-            'multiple_enabled_file' => 'If set to YES, multiple files can be uploaded.',
-            'accept_extensions' => 'When specifying the extension of the file that is allowed to be uploaded, enter the extension without dots. If you specify more than one, enter them separated by commas. Ex:docx,pdf,xlsx',
             'checkbox_enabled' => 'If set to YES, it will be displayed in a check box format.',
             'free_input' => 'By setting to YES, you can freely enter options that are not registered.',
         ],

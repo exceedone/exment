@@ -24,6 +24,7 @@ namespace Exceedone\Exment\Enums;
  * @method static ErrorCode WORKFLOW_END()
  * @method static ErrorCode WORKFLOW_ACTION_DISABLED()
  * @method static ErrorCode DISAPPROVAL_IP()
+ * @method static ErrorCode NOT_CONTAINS_CUSTOM_FORM()
  */
 class ErrorCode extends EnumBase
 {

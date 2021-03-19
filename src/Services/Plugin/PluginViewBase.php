@@ -92,7 +92,7 @@ abstract class PluginViewBase extends PluginPublicBase
      */
     public function setColumnFields(Form &$form)
     {
-        return PluginGrid::setColumnFields($form, $this->custom_table, [
+        PluginGrid::setColumnFields($form, $this->custom_table, [
             'include_workflow' => false,
             'include_parent' => true,
             'include_child' => true,
@@ -108,7 +108,7 @@ abstract class PluginViewBase extends PluginPublicBase
      */
     public function setFilterFields(Form &$form)
     {
-        return PluginGrid::setFilterFields($form, $this->custom_table);
+        PluginGrid::setFilterFields($form, $this->custom_table);
     }
 
 
@@ -120,7 +120,7 @@ abstract class PluginViewBase extends PluginPublicBase
      */
     public function setSortFields(Form &$form)
     {
-        return PluginGrid::setSortFields($form, $this->custom_table);
+        PluginGrid::setSortFields($form, $this->custom_table);
     }
 
     abstract public function grid();

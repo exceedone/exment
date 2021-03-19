@@ -36,7 +36,7 @@ class ProgressTracker implements Renderable
             } elseif (isset($option['complete']) && $option['complete']) {
                 $class = 'complete';
             };
-            $this->options[] = [
+            $this->steps[] = [
                 'title' => isset($option['title'])? $option['title'] : 'Step '.($index + 1),
                 'class' => $class,
                 'url' => isset($option['url'])? $option['url'] : '#',
@@ -49,7 +49,7 @@ class ProgressTracker implements Renderable
     public function render()
     {
         return view('exment::widgets.progresstracker')->with([
-            'steps' => $this->options,
+            'steps' => $this->steps,
         ]);
     }
 }

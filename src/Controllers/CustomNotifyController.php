@@ -243,7 +243,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $this->setFooterForm($form, $notify);
 
         $form->disableEditingCheck(false);
-        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('notify', $custom_table));
         });
 

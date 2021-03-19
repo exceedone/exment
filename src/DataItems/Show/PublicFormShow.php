@@ -12,6 +12,11 @@ use Illuminate\Database\Eloquent\Relations;
 class PublicFormShow extends DefaultShow
 {
     protected static $showClassName = PublicShow\PublicShow::class;
+
+    /**
+     * @var PublicForm
+     */
+    protected $public_form;
     
     /**
      * Set public Form
@@ -68,7 +73,7 @@ class PublicFormShow extends DefaultShow
      * Get relation models
      *
      * @param array $relationInputs
-     * @return voidarray
+     * @return array
      */
     protected function getRelationModels(array $relationInputs)
     {
@@ -122,6 +127,6 @@ class PublicFormShow extends DefaultShow
         $column_item->options(['public_form' => $this->public_form]);
         $column_item->options(['as_confirm' => true]);
 
-        return parent::setColumnItemOption($column_item, $form_column);
+        parent::setColumnItemOption($column_item, $form_column);
     }
 }

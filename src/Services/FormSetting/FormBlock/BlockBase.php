@@ -217,7 +217,7 @@ abstract class BlockBase
     /**
      * Get html header name
      *
-     * @return void
+     * @return string
      */
     protected function getHtmlHeaderName()
     {

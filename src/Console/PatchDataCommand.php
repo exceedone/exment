@@ -1523,8 +1523,8 @@ class PatchDataCommand extends Command
         $columnGroups = $columns->groupBy('custom_form_block_id');
         $columnGroups->each(function ($columnGroup) {
             $columnGroupInners = $columnGroup->groupBy('column_no');
-            $columnGroupInners->each(function ($columns) use ($columnGroupInners) {
-                $columns->sortBy('order')->each(function ($column, $index) use ($columnGroupInners) {
+            $columnGroupInners->each(function ($columns) {
+                $columns->sortBy('order')->each(function ($column, $index) {
                     if (!is_null($column->width)) {
                         return;
                     }

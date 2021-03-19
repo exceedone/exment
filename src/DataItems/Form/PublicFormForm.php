@@ -5,6 +5,7 @@ namespace Exceedone\Exment\DataItems\Form;
 use Encore\Admin\Form;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
+use Exceedone\Exment\ColumnItems\ItemInterface;
 
 /**
  * Public form's form
@@ -51,5 +52,16 @@ class PublicFormForm extends DefaultForm
         $this->public_form = $public_form;
 
         return $this;
+    }
+    /**
+     * Set ColumnItem's option to column item
+     *
+     * @param ItemInterface $column_item
+     * @return void
+     */
+    protected function setColumnItemOption(ItemInterface $column_item)
+    {
+        $column_item->options(['public_form' => $this->public_form]);
+        parent::setColumnItemOption($column_item);
     }
 }

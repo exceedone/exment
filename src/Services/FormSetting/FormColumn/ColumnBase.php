@@ -122,7 +122,7 @@ abstract class ColumnBase
     /**
      * Get html header name
      *
-     * @return void
+     * @return string
      */
     protected function getHtmlHeaderName()
     {

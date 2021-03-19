@@ -853,7 +853,7 @@ class Exment
     /**
      * save file info to database
      *
-     * @param UploadField $field
+     * @param mixed $field
      * @param string|UploadedFile $file
      * @param string $file_type
      * @param CustomTable $custom_table

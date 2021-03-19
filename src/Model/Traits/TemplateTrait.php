@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\TemplateImportResult;
  * Template logics
  *
  * @method static string|null|void importReplaceJson(&$json, $options = [])
- * @method static string|null|void exportReplaceJson(&$json)
+ * @method static void exportReplaceJson(&$json)
  * @property array templateItems
  */
 trait TemplateTrait
@@ -201,7 +201,7 @@ trait TemplateTrait
 
         // replace json if method exists
         if (method_exists(get_called_class(), 'exportReplaceJson')) {
-            $result = static::exportReplaceJson($array);
+            static::exportReplaceJson($array);
         }
 
         // return array

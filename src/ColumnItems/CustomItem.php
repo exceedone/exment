@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
@@ -286,7 +287,7 @@ abstract class CustomItem implements ItemInterface
     /**
      * Get default type and value
      *
-     * @return offset 0: type, 1: value
+     * @return array offset 0: type, 1: value
      */
     protected function getDefaultSetting()
     {

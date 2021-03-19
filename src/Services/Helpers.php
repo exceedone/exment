@@ -466,7 +466,7 @@ if (!function_exists('path_ltrim')) {
      * @param string $path target file path.
      * @param string $ltrim removing path.
      * If contains ex. "20210312123244/Plugins/Plugin.php" and want to get "Plugins/Plugin.php", set "20210312123244".
-     * @return void
+     * @return string
      */
     function path_ltrim($path, $ltrim)
     {

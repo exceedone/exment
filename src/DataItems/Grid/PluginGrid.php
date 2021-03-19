@@ -43,7 +43,7 @@ class PluginGrid extends GridBase
         }
 
         $box = new Box($this->custom_view->view_view_name, \Exment::getRender($grid));
-        foreach ($this->getBoxTools($box) as $tool) {
+        foreach ($this->getBoxTools() as $tool) {
             $box->tools($tool);
         }
 

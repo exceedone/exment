@@ -84,7 +84,7 @@ class PublicFormController extends Controller
      * Get input content (Contains form)
      *
      * @param Request $request
-     * @return void
+     * @return mixed
      */
     protected function getInputContent(Request $request)
     {
@@ -161,7 +161,7 @@ class PublicFormController extends Controller
             $public_form = $this->public_form;
             $custom_table = $this->custom_table;
 
-            $form->saving(function ($form) use ($request, $public_form) {
+            $form->saving(function ($form) {
                 // Disable default saved notify
                 $form->model()->saved_notify(false);
             });

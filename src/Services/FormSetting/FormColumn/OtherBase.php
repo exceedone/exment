@@ -27,7 +27,7 @@ abstract class OtherBase extends ColumnBase
                 return new Hr($custom_form_column);
         }
         
-        return new OtherBase($custom_form_column);
+        return null;
     }
 
 

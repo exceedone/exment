@@ -518,7 +518,7 @@ class LoginSettingController extends AdminControllerBase
      *
      * @param Request $request
      * @param string|int|null $id
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function activate(Request $request, $id)
     {
@@ -530,7 +530,7 @@ class LoginSettingController extends AdminControllerBase
      *
      * @param Request $request
      * @param string|int|null $id
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function deactivate(Request $request, $id)
     {
@@ -543,7 +543,7 @@ class LoginSettingController extends AdminControllerBase
      * @param Request $request
      * @param string $id
      * @param boolean $active_flg
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function toggleActivate(Request $request, $id, bool $active_flg)
     {

@@ -10,6 +10,7 @@ use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Show;
 use Encore\Admin\Show\Field as ShowField;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
@@ -23,6 +24,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -860,10 +862,6 @@ EOT;
      */
     protected function setColumnItemOption(ItemInterface $column_item, ?CustomFormColumn $form_column = null)
     {
-        if ($this->isPublicForm()) {
-            $column_item->options(['public_form' => $this->public_form]);
-        }
-
         if ($form_column) {
             $column_item->setFormColumnOptions($form_column->options);
         }

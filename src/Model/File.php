@@ -134,7 +134,7 @@ class File extends ModelBase
      * Save custom value's on custom column's file-image. This function calls after save custom value.
      *
      * @param string|int $custom_value_id
-     * @param CustomColum|int|string|null $custom_column
+     * @param CustomColumn|int|string|null $custom_column
      * @param CustomTable|int|string|null $custom_table
      * @return $this
      */

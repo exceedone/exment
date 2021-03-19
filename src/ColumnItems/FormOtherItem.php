@@ -148,7 +148,7 @@ abstract class FormOtherItem implements ItemInterface
         // get form field
         $formField = $this->getAdminField($this->form_column_options);
 
-        $field->as(function ($v) use ($item, $formField) {
+        $field->as(function ($v) use ($formField) {
             if (is_null($this)) {
                 return '';
             }

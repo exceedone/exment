@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
+use Exceedone\Exment\Services\FormSetting\FormBlock\RelationBase;
 use Illuminate\Support\Collection;
 
 /**

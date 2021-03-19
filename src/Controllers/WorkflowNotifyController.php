@@ -81,8 +81,8 @@ class WorkflowNotifyController extends Controller
                 ->render();
         });
 
-        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val) {
-            $workflow = Workflow::getEloquent($this->target_id);
+        $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val, $column, $model) {
+            $workflow = Workflow::getEloquent($model->target_id);
             if (isset($workflow)) {
                 return $workflow->workflow_view_name ?? null;
             }
