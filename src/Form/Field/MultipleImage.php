@@ -24,8 +24,8 @@ class MultipleImage extends \Encore\Admin\Form\Field\MultipleImage
 
     protected function getRules()
     {
-       $rules = parent::getRules();
-       $rules[] = new \Exceedone\Exment\Validator\ImageRule;
-       return $rules;
+        $rules = parent::getRules();
+        $rules[] = new \Exceedone\Exment\Validator\ImageRule;
+        return $rules;
     }
 }

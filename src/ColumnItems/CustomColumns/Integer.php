@@ -57,7 +57,7 @@ class Integer extends CustomItem
         }
 
         $field->attribute(['type' => 'number']);
-        $field->callbackValue(function($value){
+        $field->callbackValue(function ($value) {
             return rmcomma($value);
         });
     }

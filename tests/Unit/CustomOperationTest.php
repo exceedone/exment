@@ -235,9 +235,8 @@ class CustomOperationTest extends UnitTestBase
         $ids = stringToArray($ids);
         $custom_values = $custom_table->getValueModel()->find($ids);
 
-        foreach($custom_values as $custom_value) {
-            foreach ($settings['update_columns'] as $update_column)
-            {
+        foreach ($custom_values as $custom_value) {
+            foreach ($settings['update_columns'] as $update_column) {
                 $value = $custom_value->getValue($update_column['column_name']);
                 if (isset($update_column['update_type']) && $update_column['update_type'] == 'system') {
                     switch ($update_column['update_value_text']) {
@@ -284,7 +283,7 @@ class CustomOperationTest extends UnitTestBase
                 ],
                 'update_columns' => [],
                 'conditions' => [],
-            ], 
+            ],
             $settings
         );
         $login_user_id = $settings['login_user_id'];
@@ -307,8 +306,7 @@ class CustomOperationTest extends UnitTestBase
             'options' => $options,
         ]);
 
-        foreach ($update_columns as $update_column)
-        {
+        foreach ($update_columns as $update_column) {
             $target_column = CustomColumn::where('custom_table_id', $custom_table->id)
                 ->where('column_name', $update_column['column_name'])->first();
 
@@ -323,8 +321,7 @@ class CustomOperationTest extends UnitTestBase
             ]);
         }
 
-        foreach ($conditions as $condition)
-        {
+        foreach ($conditions as $condition) {
             $target_column = CustomColumn::where('custom_table_id', $custom_table->id)
                 ->where('column_name', $condition['column_name'])->first();
 

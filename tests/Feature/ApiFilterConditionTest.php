@@ -212,7 +212,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
      */
     protected function __testConditionApiColumn(string $column_name, string $filterType, ?string $table_name = null)
     {
-        if(!$table_name){
+        if (!$table_name) {
             $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         }
 
@@ -239,7 +239,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
      */
     protected function __testConditionApiSystem(string $system_column_name, string $filterType, ?string $table_name = null)
     {
-        if(!$table_name){
+        if (!$table_name) {
             $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         }
 
@@ -265,7 +265,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
      */
     protected function __testConditionApiConditionDetail(string $condition_type_detail, string $filterType, ?string $table_name = null)
     {
-        if(!$table_name){
+        if (!$table_name) {
             $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         }
 
@@ -290,7 +290,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
      */
     protected function __testConditionApiWorkflow(string $type, string $filterType, ?string $table_name = null)
     {
-        if(!$table_name){
+        if (!$table_name) {
             $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
         }
         $custom_table = CustomTable::getEloquent($table_name);
@@ -314,7 +314,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
         $json = collect(json_decode($response, true))->pluck('text', 'id')->toArray();
 
         $expectOptions = array_get(FilterOption::FILTER_OPTIONS(), $filterType, []);
-        $expectOptions = collect($expectOptions)->map(function($arr){
+        $expectOptions = collect($expectOptions)->map(function ($arr) {
             $arr['name'] = exmtrans("custom_view.filter_condition_options.{$arr['name']}");
             return $arr;
         })->pluck('name', 'id')->toArray();

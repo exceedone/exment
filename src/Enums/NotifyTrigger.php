@@ -12,7 +12,8 @@ class NotifyTrigger extends EnumBase
     const PUBLIC_FORM_COMPLETE_ADMIN = "6";
     const PUBLIC_FORM_ERROR = "7";
 
-    public static function CUSTOM_TABLES(){
+    public static function CUSTOM_TABLES()
+    {
         return [
             static::TIME,
             static::CREATE_UPDATE_DATA,

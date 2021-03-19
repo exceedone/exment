@@ -7,9 +7,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\PublicForm;
-use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class RoutePublicFormServiceProvider extends ServiceProvider
@@ -37,7 +35,7 @@ class RoutePublicFormServiceProvider extends ServiceProvider
 
     protected function mapExmentPublicFormWebRotes()
     {
-        if(!canConnection() || !hasTable(SystemTableName::SYSTEM) || !System::publicform_available()){
+        if (!canConnection() || !hasTable(SystemTableName::SYSTEM) || !System::publicform_available()) {
             return;
         }
 
@@ -61,11 +59,11 @@ class RoutePublicFormServiceProvider extends ServiceProvider
         
         // Append Plugin public ----------------------------------------------------
         $public_form = PublicForm::getPublicFormByRequest();
-        if(!$public_form){
+        if (!$public_form) {
             return;
         }
         
-        foreach($public_form->getCssJsPlugins() as $plugin){
+        foreach ($public_form->getCssJsPlugins() as $plugin) {
             $this->pluginScriptStyleRoute($plugin, $public_form->getBasePath(), 'publicform_plugin_public');
         }
     }

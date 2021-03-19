@@ -33,5 +33,4 @@ class Internal extends Field
     {
         return null;
     }
-
 }

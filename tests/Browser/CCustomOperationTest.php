@@ -100,10 +100,14 @@ class CCustomOperationTest extends ExmentKitTestCase
         
         foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
             $row_id = $custom_operation_column->id;
-            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
-                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
-            $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", 
-                $custom_operation_column->getOption('operation_update_type'));
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][view_column_target]",
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id
+            );
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][operation_update_type]",
+                $custom_operation_column->getOption('operation_update_type')
+            );
             if ($index == 0) {
                 $this->seeIsSelected("custom_operation_columns[$row_id][update_value_text]", OperationValueType::LOGIN_USER);
             } else {
@@ -172,10 +176,14 @@ class CCustomOperationTest extends ExmentKitTestCase
         
         foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
             $row_id = $custom_operation_column->id;
-            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
-                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
-            $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", 
-                $custom_operation_column->getOption('operation_update_type'));
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][view_column_target]",
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id
+            );
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][operation_update_type]",
+                $custom_operation_column->getOption('operation_update_type')
+            );
             if ($index == 0) {
                 $this->seeOuterElement("input.update_value_text.rowno-$row_id", '1');
             } else {
@@ -185,18 +193,26 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         foreach ($operation->custom_operation_conditions as $index => $custom_operation_condition) {
             $row_id = $custom_operation_condition->id;
-            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_key]", 
-                $custom_operation_condition->condition_key);
+            $this->seeIsSelected(
+                "custom_operation_conditions[$row_id][condition_key]",
+                $custom_operation_condition->condition_key
+            );
             if ($index == 0) {
                 $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", 'USER');
-                $this->seeIsSelected("custom_operation_conditions[$row_id][condition_value][]", 
-                    TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+                $this->seeIsSelected(
+                    "custom_operation_conditions[$row_id][condition_value][]",
+                    TestDefine::TESTDATA_USER_LOGINID_DEV_USERB
+                );
                 $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::CONDITION));
-                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value][]']", 
-                    $this->getUserSelectOptions());
+                $this->exactSelectOptions(
+                    "select[name='custom_operation_conditions[$row_id][condition_value][]']",
+                    $this->getUserSelectOptions()
+                );
             } else {
-                $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", 
-                    $custom_operation_condition->target_column_id);
+                $this->seeIsSelected(
+                    "custom_operation_conditions[$row_id][condition_target]",
+                    $custom_operation_condition->target_column_id
+                );
                 $this->seeOuterElement("input.condition_value.rowno-$row_id", 30000);
                 $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::NUMBER));
             }
@@ -208,13 +224,15 @@ class CCustomOperationTest extends ExmentKitTestCase
         }
         $add_options = getTransArrayValue($add_options, 'condition.condition_type_options');
 
-        $this->exactSelectOptions('select.condition_target', 
+        $this->exactSelectOptions(
+            'select.condition_target',
             $this->getColumnSelectOptions($target_table_name, [
                 'is_index' => false,
                 'append_tableid' => false,
                 'add_options' => $add_options,
                 'ignore_attachment' => true,
-            ]));
+            ])
+        );
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         Model\System::clearCache();
@@ -233,7 +251,7 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         $custom_values = $target_table->getValueModel()->find($ids);
 
-        foreach($custom_values as $custom_value) {
+        foreach ($custom_values as $custom_value) {
             $organization = $custom_value->getValue('organization');
             $this->assertEquals($custom_value->getValue('organization')->id, \Exment::user()->belong_organizations->first()->id);
             $this->assertEquals($custom_value->getValue('yesno'), '1');
@@ -294,22 +312,30 @@ class CCustomOperationTest extends ExmentKitTestCase
         
         foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
             $row_id = $custom_operation_column->id;
-            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
-                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][view_column_target]",
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id
+            );
             $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", OperationUpdateType::DEFAULT);
             $this->seeOuterElement("input.update_value_text.rowno-$row_id", $custom_operation_column->update_value_text);
         }
 
         foreach ($operation->custom_operation_conditions as $index => $custom_operation_condition) {
             $row_id = $custom_operation_condition->id;
-            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_key]", 
-                $custom_operation_condition->condition_key);
+            $this->seeIsSelected(
+                "custom_operation_conditions[$row_id][condition_key]",
+                $custom_operation_condition->condition_key
+            );
             $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", 'ROLE');
-            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_value][]", 
-                TestDefine::TESTDATA_ROLEGROUP_GENERAL);
+            $this->seeIsSelected(
+                "custom_operation_conditions[$row_id][condition_value][]",
+                TestDefine::TESTDATA_ROLEGROUP_GENERAL
+            );
             $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::CONDITION));
-            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value][]']", 
-                $this->getRoleSelectOptions());
+            $this->exactSelectOptions(
+                "select[name='custom_operation_conditions[$row_id][condition_value][]']",
+                $this->getRoleSelectOptions()
+            );
         }
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
@@ -391,13 +417,19 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
             $row_id = $custom_operation_column->id;
-            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
-                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
-            $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", 
-                $custom_operation_column->getOption('operation_update_type'));
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][view_column_target]",
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id
+            );
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][operation_update_type]",
+                $custom_operation_column->getOption('operation_update_type')
+            );
             if ($index == 0) {
-                $this->seeIsSelected("custom_operation_columns[$row_id][update_value_text]", 
-                    OperationValueType::EXECUTE_DATETIME);
+                $this->seeIsSelected(
+                    "custom_operation_columns[$row_id][update_value_text]",
+                    OperationValueType::EXECUTE_DATETIME
+                );
             } else {
                 $this->seeOuterElement("input.update_value_text.rowno-$row_id", $custom_operation_column->update_value_text);
             }
@@ -405,8 +437,10 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         foreach ($operation->custom_operation_conditions as $index => $custom_operation_condition) {
             $row_id = $custom_operation_condition->id;
-            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_key]", 
-                $custom_operation_condition->condition_key);
+            $this->seeIsSelected(
+                "custom_operation_conditions[$row_id][condition_key]",
+                $custom_operation_condition->condition_key
+            );
             $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", $filter_1->id);
             $this->seeOuterElement("input.condition_value.rowno-$row_id", $custom_operation_condition->condition_value);
             $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::YESNO));
@@ -479,17 +513,23 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
             $row_id = $custom_operation_column->id;
-            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
-                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][view_column_target]",
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id
+            );
             $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", OperationUpdateType::SYSTEM);
-            $this->seeIsSelected("custom_operation_columns[$row_id][update_value_text]", 
-                OperationValueType::LOGIN_USER);
+            $this->seeIsSelected(
+                "custom_operation_columns[$row_id][update_value_text]",
+                OperationValueType::LOGIN_USER
+            );
         }
 
         foreach ($operation->custom_operation_conditions as $index => $custom_operation_condition) {
             $row_id = $custom_operation_condition->id;
-            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_key]", 
-                $custom_operation_condition->condition_key);
+            $this->seeIsSelected(
+                "custom_operation_conditions[$row_id][condition_key]",
+                $custom_operation_condition->condition_key
+            );
             $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", $filter_1->id);
             $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::DAY));
         }
@@ -560,13 +600,15 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->visit(admin_url("operation/$target_table_name"))
             ->seePageIs(admin_url("operation/$target_table_name"))
             ->seeInElement('td', $data['operation_name'])
-            ->seeInElement('td', collect($data['operation_type'])->map(function($val) {
+            ->seeInElement('td', collect($data['operation_type'])->map(function ($val) {
                 return exmtrans("custom_operation.operation_type_options_short.$val");
             })->implode('、'))
             ->assertEquals($pre_cnt + 1, CustomOperation::count());
 
-        $this->assertEquals($pre_child_cnt + count($data['custom_operation_columns']), 
-            CustomOperationColumn::count())
+        $this->assertEquals(
+            $pre_child_cnt + count($data['custom_operation_columns']),
+            CustomOperationColumn::count()
+        )
             ;
 
         $raw = CustomOperation::orderBy('created_at', 'desc')->first();
@@ -616,9 +658,8 @@ class CCustomOperationTest extends ExmentKitTestCase
     protected function getRoleSelectOptions() : array
     {
         return Model\RoleGroup::all()
-            ->mapWithKeys(function($value) {
+            ->mapWithKeys(function ($value) {
                 return [$value->id => $value->role_group_view_name];
             })->toArray();
-
     }
 }

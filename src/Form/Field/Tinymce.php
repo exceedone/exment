@@ -43,7 +43,7 @@ class Tinymce extends Textarea
      * Set disableImage
      *
      * @return  self
-     */ 
+     */
     public function disableImage()
     {
         $this->disableImage = true;
@@ -75,10 +75,10 @@ class Tinymce extends Textarea
      * Get pOST url. If null, return adminurl, else, return this value
      *
      * @return  string
-     */ 
+     */
     public function getPostImageUri()
     {
-        if($this->postImageUri){
+        if ($this->postImageUri) {
             return $this->postImageUri;
         }
         return admin_url();
@@ -90,7 +90,7 @@ class Tinymce extends Textarea
      * @param  string  $postUrl  POST url. If null, return adminurl, else, return this value
      *
      * @return  self
-     */ 
+     */
     public function setPostImageUri(string $postImageUri)
     {
         $this->postImageUri = $postImageUri;
@@ -218,5 +218,4 @@ class Tinymce extends Textarea
 EOT;
         return parent::render();
     }
-
 }

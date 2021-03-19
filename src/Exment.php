@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\ExportImportLibrary;
-use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\System;
@@ -48,7 +47,8 @@ class Exment
     protected $guard;
 
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->classLoader = new ClassLoader;
         $this->classLoader->register();
     }
@@ -59,7 +59,8 @@ class Exment
      *
      * @return ClassLoader
      */
-    public function classLoader(){
+    public function classLoader()
+    {
         return $this->classLoader;
     }
 
@@ -76,8 +77,8 @@ class Exment
 
     /**
      * Error handling.
-     * Now we created \Exceedone\Exment\Exceptions\Handler, 
-     * so we want to write logic on that class, 
+     * Now we created \Exceedone\Exment\Exceptions\Handler,
+     * so we want to write logic on that class,
      * But we wrote manual calling this function..
      *
      * @param \Illuminate\Http\Request $request
@@ -93,13 +94,12 @@ class Exment
                 return $callback($request, $exception);
             }
 
-            if($exception instanceof \Illuminate\Session\TokenMismatchException){
+            if ($exception instanceof \Illuminate\Session\TokenMismatchException) {
                 admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
                 if ($this->isPublicFormEndpoint()) {
                     $public_form = PublicForm::getPublicFormByRequest();
                     return $public_form ? redirect($public_form->getUrl()) : back();
-                }
-                else{
+                } else {
                     back();
                 }
             }
@@ -844,7 +844,8 @@ class Exment
      *
      * @return boolean
      */
-    public function isAvailableGoogleRecaptcha(){
+    public function isAvailableGoogleRecaptcha()
+    {
         return class_exists(\Arcanedev\NoCaptcha\NoCaptchaManager::class);
     }
 
@@ -863,10 +864,9 @@ class Exment
     {
         $dirname = $field->getDirectory();
 
-        if($file instanceof UploadedFile){
+        if ($file instanceof UploadedFile) {
             $filename = $file->getClientOriginalName();
-        }
-        else{
+        } else {
             $filename = $file;
         }
 

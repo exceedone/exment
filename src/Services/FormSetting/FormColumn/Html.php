@@ -9,7 +9,7 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 class Html extends OtherBase
 {
     /**
-     * Get setting modal form 
+     * Get setting modal form
      *
      * @return WidgetForm
      */
@@ -33,7 +33,7 @@ class Html extends OtherBase
      */
     public function prepareSavingOptions(array $options) : array
     {
-        return array_filter($options, function($option, $key){
+        return array_filter($options, function ($option, $key) {
             return in_array($key, [
                 'html',
             ]);
@@ -50,7 +50,8 @@ class Html extends OtherBase
         return ['html' => 'required'];
     }
 
-    public function getFontAwesomeClass() : ?string{
+    public function getFontAwesomeClass() : ?string
+    {
         return 'fa-code';
     }
 }

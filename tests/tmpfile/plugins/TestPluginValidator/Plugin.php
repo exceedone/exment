@@ -3,8 +3,8 @@ namespace App\Plugins\TestPluginValidator;
 
 use Exceedone\Exment\Services\Plugin\PluginValidatorBase;
 
-class Plugin extends PluginValidatorBase {
-
+class Plugin extends PluginValidatorBase
+{
     public function validate()
     {
         $result = true;
@@ -26,7 +26,7 @@ class Plugin extends PluginValidatorBase {
                 $this->messages['currency'] = '以前より大きな値を入力してください。';
                 $result = false;
             }
-        } else if (isset($integer) || isset($currency)) {
+        } elseif (isset($integer) || isset($currency)) {
             $this->messages['integer'] = '整数と通貨は同時に入力してください。';
             $result = false;
         }

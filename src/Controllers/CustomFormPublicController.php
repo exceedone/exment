@@ -9,8 +9,6 @@ use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
@@ -19,7 +17,6 @@ use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\NotifyAction;
-use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use Exceedone\Exment\Form\PublicContent;
@@ -71,7 +68,7 @@ class CustomFormPublicController extends AdminControllerTableBase
      */
     public function store()
     {
-        if(request()->has('template')) {
+        if (request()->has('template')) {
             return $this->importFormStore();
         }
         return $this->form()->store();
@@ -99,8 +96,8 @@ class CustomFormPublicController extends AdminControllerTableBase
                 
             $form->descriptionHtml(exmtrans('common.help.more_help'));
             
-            if(isset($public_form)){
-                if($public_form->active_flg){
+            if (isset($public_form)) {
+                if ($public_form->active_flg) {
                     $form->url('share_url', exmtrans('custom_form_public.share_url'))
                         ->attribute(['copyScript' => 1])
                         ->help(exmtrans('custom_form_public.help.share_url'))
@@ -134,16 +131,14 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ->rules("max:40")
                 ->help(exmtrans('common.help.view_name'));
             
-            $form->embeds("basic_setting", exmtrans("common.basic_setting"), function($form) use ($custom_table){
-                
+            $form->embeds("basic_setting", exmtrans("common.basic_setting"), function ($form) use ($custom_table) {
                 $form->dateTimeRange('validity_period_start', 'validity_period_end', exmtrans("custom_form_public.validity_period"))
                     ->help(exmtrans("custom_form_public.help.validity_period"))
                     ->default(true);
-
             })->disableHeader();
-        })->tab(exmtrans("custom_form_public.design_setting"), function ($form) use($id, $custom_table) {
-            $form->embeds("design_setting", exmtrans("common.design_setting"), function($form) use($id, $custom_table){
-                $form->exmheader(exmtrans("custom_form_public.header_setting"))->hr();            
+        })->tab(exmtrans("custom_form_public.design_setting"), function ($form) use ($id, $custom_table) {
+            $form->embeds("design_setting", exmtrans("common.design_setting"), function ($form) use ($id, $custom_table) {
+                $form->exmheader(exmtrans("custom_form_public.header_setting"))->hr();
                 
                 $form->switchbool('use_header', exmtrans("custom_form_public.use_header"))
                     ->help(exmtrans("custom_form_public.help.use_header"))
@@ -216,8 +211,8 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->default('#FFFFFF')
                     ;
             })->disableHeader();
-        })->tab(exmtrans("custom_form_public.confirm_complete_setting"), function ($form)  use($custom_table) {
-            $form->embeds("confirm_complete_setting", exmtrans("common.confirm_complete_setting"), function($form) use($custom_table){
+        })->tab(exmtrans("custom_form_public.confirm_complete_setting"), function ($form) use ($custom_table) {
+            $form->embeds("confirm_complete_setting", exmtrans("common.confirm_complete_setting"), function ($form) use ($custom_table) {
                 $form->exmheader(exmtrans("custom_form_public.confirm_setting"))->hr();
 
                 $form->switchbool('use_confirm', exmtrans("custom_form_public.use_confirm"))
@@ -241,7 +236,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 $form->text('complete_title', exmtrans("custom_form_public.complete_title"))
                     ->help(exmtrans("custom_form_public.help.complete_title"))
                     ->default(exmtrans("custom_form_public.message.complete_title"));
-                ;   
+                ;
                 $form->textarea('complete_text', exmtrans("custom_form_public.complete_text"))
                     ->help((exmtrans("custom_form_public.help.complete_text", ['url' => \Exment::getManualUrl('params')])))
                     ->default(exmtrans("custom_form_public.message.complete_text"))
@@ -266,8 +261,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
             // get notify mail template
             $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_user', MailKeyName::PUBLICFORM_COMPLETE_USER, 'confirm_complete_setting_use_notify_complete_user');
-            $form->embeds("notify_actions_complete_user", exmtrans("common.confirm_complete_setting"), function($form) use($custom_table){
-                
+            $form->embeds("notify_actions_complete_user", exmtrans("common.confirm_complete_setting"), function ($form) use ($custom_table) {
                 $form->internal('notify_action')
                     ->default(NotifyAction::EMAIL);
                 
@@ -286,7 +280,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             })->disableHeader();
 
             
-            $form->embeds("confirm_complete_setting2", exmtrans("common.confirm_complete_setting"), function($form) use($custom_table){
+            $form->embeds("confirm_complete_setting2", exmtrans("common.confirm_complete_setting"), function ($form) use ($custom_table) {
                 $form->exmheader(exmtrans("custom_form_public.notify_complete_admin"))->hr();
                 $form->description(exmtrans("custom_form_public.help.notify_complete_admin"));
                 
@@ -300,7 +294,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_admin', MailKeyName::PUBLICFORM_COMPLETE_ADMIN, 'use_notify_complete_admin');
 
             $form->exmheader(exmtrans("notify.notify_action_target"))->no(5);
-            $form->hasManyJson('notify_actions_complete_admin', exmtrans("custom_form_public.notify_target"), function ($form) use($custom_table) {
+            $form->hasManyJson('notify_actions_complete_admin', exmtrans("custom_form_public.notify_target"), function ($form) use ($custom_table) {
                 $form->select('notify_action', exmtrans("notify.notify_action"))
                     ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
                     ->required()
@@ -321,14 +315,13 @@ class CustomFormPublicController extends AdminControllerTableBase
                     'as_has_roles' => true, // Only use "as_default" is false
                 ]);
             })->disableHeader();
-
-        })->tab(exmtrans("custom_form_public.error_setting"), function ($form) use($custom_table) {
-            $form->embeds("error_setting", exmtrans("common.confirm_complete_setting"), function($form){
+        })->tab(exmtrans("custom_form_public.error_setting"), function ($form) use ($custom_table) {
+            $form->embeds("error_setting", exmtrans("common.confirm_complete_setting"), function ($form) {
                 $form->exmheader(exmtrans("custom_form_public.error_setting"))->hr();
                 $form->text('error_title', exmtrans("custom_form_public.error_title"))
                     ->help(exmtrans("custom_form_public.help.error_title"))
                     ->default(exmtrans("custom_form_public.message.error_title"));
-                ;  
+                ;
                 $form->textarea('error_text', exmtrans("custom_form_public.error_text"))
                     ->help(exmtrans("custom_form_public.help.error_text"))
                     ->default(exmtrans("custom_form_public.message.error_text"))
@@ -353,7 +346,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             $this->setNotifyMailTemplate($form, 'notify_mail_template_error', MailKeyName::PUBLICFORM_ERROR, 'error_setting_use_notify_error');
 
             $form->exmheader(exmtrans("notify.notify_action_target"))->no(5);
-            $form->hasManyJson('notify_actions_error', exmtrans("custom_form_public.notify_target"), function ($form) use($custom_table) {
+            $form->hasManyJson('notify_actions_error', exmtrans("custom_form_public.notify_target"), function ($form) use ($custom_table) {
                 $form->select('notify_action', exmtrans("notify.notify_action"))
                     ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
                     ->required()
@@ -378,13 +371,13 @@ class CustomFormPublicController extends AdminControllerTableBase
         ->tab(exmtrans("custom_form_public.css_js_setting"), function ($form) use ($public_form, $id, $custom_table) {
             $form->exmheader(exmtrans("custom_form_public.css_js_setting"))->hr();
              
-            $form->embeds("css_js_setting", exmtrans("common.css_js_setting"), function($form) use ($custom_table){
+            $form->embeds("css_js_setting", exmtrans("common.css_js_setting"), function ($form) use ($custom_table) {
                 $form->textarea('custom_css', exmtrans("custom_form_public.custom_css"))
                     ->help(exmtrans("custom_form_public.help.custom_css"))
                 ;
                 $form->multipleSelect('plugin_css', exmtrans("custom_form_public.plugin_css"))
                     ->help(exmtrans("custom_form_public.help.plugin_css"))
-                    ->options(function(){
+                    ->options(function () {
                         return Plugin::getByPluginTypes(PluginType::STYLE)->pluck('plugin_view_name', 'id')->toArray();
                     })
                 ;
@@ -393,7 +386,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ;
                 $form->multipleSelect('plugin_js', exmtrans("custom_form_public.plugin_js"))
                     ->help(exmtrans("custom_form_public.help.plugin_js"))
-                    ->options(function(){
+                    ->options(function () {
                         return Plugin::getByPluginTypes(PluginType::SCRIPT)->pluck('plugin_view_name', 'id')->toArray();
                     })
                 ;
@@ -402,7 +395,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         ->tab(exmtrans("custom_form_public.option_setting"), function ($form) use ($public_form, $id, $custom_table) {
             $form->exmheader(exmtrans("custom_form_public.option_setting"))->hr();
              
-            $form->embeds("option_setting", exmtrans("common.option_setting"), function($form) use ($custom_table){
+            $form->embeds("option_setting", exmtrans("common.option_setting"), function ($form) use ($custom_table) {
                 $form->switchbool('use_default_query', exmtrans("custom_form_public.use_default_query"))
                     ->help(exmtrans("custom_form_public.help.use_default_query") . \Exment::getMoreTag('publicform'))
                     ->default(false);
@@ -413,18 +406,16 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->help(exmtrans("custom_form_public.help.analytics_tag"));
                 ;
                 
-                if(($message = PublicForm::isEnableRecaptcha()) === true){
+                if (($message = PublicForm::isEnableRecaptcha()) === true) {
                     $form->switchbool('use_recaptcha', exmtrans("custom_form_public.use_recaptcha"))
                         ->help(exmtrans("custom_form_public.help.use_recaptcha"))
                         ->default(false);
                     ;
-                }
-                else{
+                } else {
                     $form->display('use_recaptcha_display', exmtrans("custom_form_public.use_recaptcha"))
                         ->displayText($message)
                         ->escape(false);
                 }
-                
             })->disableHeader();
         })
         ;
@@ -451,7 +442,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
 
         $transes = ['header_logo', 'analytics_tag', 'use_recaptcha'];
-        $message = collect($transes)->map(function($trans){
+        $message = collect($transes)->map(function ($trans) {
             return "<li>" . exmtrans("custom_form_public.$trans") . "</li>";
         })->implode('');
         $form->description('<div class="red">' . exmtrans('custom_form_public.message.template_import_caution', ['list' => $message]) . '</div>')
@@ -491,15 +482,15 @@ class CustomFormPublicController extends AdminControllerTableBase
     protected function setFormInfo($form, $id, $public_form, $preview = true)
     {
         $custom_table = $this->custom_table;
-        $form->editing(function($form, $arr){
+        $form->editing(function ($form, $arr) {
             $form->model()->append([
-                'basic_setting', 
-                'design_setting', 
-                'confirm_complete_setting', 
-                'confirm_complete_setting2', 
-                'error_setting', 
+                'basic_setting',
+                'design_setting',
+                'confirm_complete_setting',
+                'confirm_complete_setting2',
+                'error_setting',
                 'css_js_setting',
-                'option_setting', 
+                'option_setting',
                 'notify_actions_error',
                 'notify_mail_template_error',
                 'notify_actions_complete_user',
@@ -511,14 +502,13 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->disableEditingCheck(false);
             
         $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $public_form, $preview) {
-            
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
 
-            if(isset($public_form)){
+            if (isset($public_form)) {
                 if (!$public_form->active_flg) {
                     // check relation table's count. if has select_table etc, showing modal.
-                    if($public_form->getListOfTablesUsed()->count() > 0){
+                    if ($public_form->getListOfTablesUsed()->count() > 0) {
                         $tools->append(new Tools\ModalMenuButton(
                             admin_urls("formpublic", $custom_table->table_name, $public_form->id, "activeModal"),
                             [
@@ -529,7 +519,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                         ));
                     }
                     // default, only message.
-                    else{
+                    else {
                         $tools->append(new Tools\SwalInputButton([
                             'url' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "activate"),
                             'label' => exmtrans('common.activate'),
@@ -541,8 +531,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                             'redirectUrl' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "edit"),
                         ]));
                     }
-                } 
-                else {
+                } else {
                     $tools->append(new Tools\SwalInputButton([
                         'url' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "deactivate"),
                         'label' => exmtrans('common.deactivate'),
@@ -556,7 +545,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 }
             }
             
-            if($preview){
+            if ($preview) {
                 $tools->append(view('exment::tools.button', [
                     'href' => 'javascript:void(0);',
                     'label' => exmtrans('common.preview'),
@@ -570,7 +559,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ],
                 ])->render());
                 
-                if(isset($id)){
+                if (isset($id)) {
                     $tools->append(view('exment::tools.button', [
                         'href' => admin_urls("formpublic", $custom_table->table_name, $public_form->id, "export"),
                         'label' => exmtrans('template.header_export'),
@@ -588,7 +577,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         $form->saved(function ($form) use ($table_name) {
             admin_toastr(trans('admin.update_succeeded'));
-            if(!is_nullorempty(request()->get('after-save'))){
+            if (!is_nullorempty(request()->get('after-save'))) {
                 return;
             }
             return redirect(admin_url("form/$table_name"));
@@ -598,7 +587,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
     protected function setNotifyMailTemplate($form, string $field_name, ?string $notify_mail_template, string $filter_key_name)
     {
-        if(\is_nullorempty($this->mailTemplates)){
+        if (\is_nullorempty($this->mailTemplates)) {
             $this->mailTemplates = getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
         }
 
@@ -631,7 +620,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $json = $importer->getJsonFromZip($file);
 
         $public_form = null;
-        \DB::transaction(function() use(&$public_form, $json, $form, $request){
+        \DB::transaction(function () use (&$public_form, $json, $form, $request) {
             // new json ignored notify
             $json_ignored = array_get($json, 'public_form');
             array_forget($json_ignored, ['notify_complete_admin', 'notify_complete_user', 'notify_error']);
@@ -643,7 +632,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             $public_form->save();
 
             // create notify after saved
-            $public_form->createNotifyImported(array_get($json, 'public_form'));            
+            $public_form->createNotifyImported(array_get($json, 'public_form'));
         });
 
         return $form->setModel($public_form)->redirectAfterStore();
@@ -665,13 +654,13 @@ class CustomFormPublicController extends AdminControllerTableBase
         $model = $form->getModelByInputs(null, $original_public_form);
 
         // Now, cannot set header logo by getModelByInputs.
-        if($original_public_form){
+        if ($original_public_form) {
             $model->setOption('header_logo', $original_public_form->getOption('header_logo'));
         }
         
         // get public form
         $preview_form = $model->getForm($request);
-        if(!$preview_form){
+        if (!$preview_form) {
             throw new PublicFormNotFoundException;
         }
         $preview_form->disableSubmit();
@@ -697,17 +686,17 @@ class CustomFormPublicController extends AdminControllerTableBase
             'result'  => true,
             'message' => trans('admin.delete_succeeded'),
         ]);
-        if(!$id){
+        if (!$id) {
             return $trueResult;
         }
         
         $original_public_form = PublicForm::find($id);
-        if(!$original_public_form){
+        if (!$original_public_form) {
             return $trueResult;
         }
 
         $uri = $original_public_form->getOption('header_logo');
-        if(!$uri){
+        if (!$uri) {
             return $trueResult;
         }
 
@@ -745,7 +734,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             ->escape(false);
         
         $tableUseds = $public_form->getListOfTablesUsed();
-        $html = "<ul>" . $tableUseds->map(function($tableUsed){
+        $html = "<ul>" . $tableUseds->map(function ($tableUsed) {
             return "<li>" . esc_html($tableUsed->table_view_name) . "</li>";
         })->implode("") . "</ul>";
         $form->descriptionHtml($html);
@@ -876,11 +865,11 @@ class CustomFormPublicController extends AdminControllerTableBase
     protected function validateTable($table, $role_name)
     {
         $table = CustomTable::getEloquent($table);
-        if(boolval($table->getOption('one_record_flg'))){
+        if (boolval($table->getOption('one_record_flg'))) {
             Checker::error(exmtrans("custom_form_public.message.cannot_set_master_table"));
             return false;
         }
-        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+        if (in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
             Checker::error(exmtrans("custom_form_public.message.cannot_set_master_table"));
             return false;
         }

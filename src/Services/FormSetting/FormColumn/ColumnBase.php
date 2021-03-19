@@ -17,8 +17,8 @@ abstract class ColumnBase
 
 
     /**
-     * Whether is selected column. 
-     * 
+     * Whether is selected column.
+     *
      * If suggest and already selected as column, set true.
      * Otherwise, set false.
      *
@@ -58,7 +58,7 @@ abstract class ColumnBase
 
         // get form_column_id from request
         preg_match("/\[custom_form_columns\]\[(?<id>\d+)\]/iu", $header_column_name, $match);
-        if($match){
+        if ($match) {
             $form_column->id = $match['id'];
         }
 
@@ -70,7 +70,7 @@ abstract class ColumnBase
      * Get the value of custom_form_column
      *
      * @return  CustomFormColumn
-     */ 
+     */
     public function getCustomFormColumn()
     {
         return $this->custom_form_column;
@@ -112,7 +112,8 @@ abstract class ColumnBase
 
 
 
-    public function isSelected(bool $isSelected){
+    public function isSelected(bool $isSelected)
+    {
         $this->isSelected = $isSelected;
         return $this;
     }
@@ -147,15 +148,15 @@ abstract class ColumnBase
         $difinitions = $this->getOptionLabelsDefinitions();
 
         $result = [];
-        foreach($difinitions as $key => $difinition){
-            if(!array_key_value_exists($key, $options)){
+        foreach ($difinitions as $key => $difinition) {
+            if (!array_key_value_exists($key, $options)) {
                 continue;
             }
 
             // hard coding
             $value = $options[$key];
-            if($key == 'required'){
-                if(!boolval($value)){
+            if ($key == 'required') {
+                if (!boolval($value)) {
                     continue;
                 }
             }
@@ -176,11 +177,11 @@ abstract class ColumnBase
         $result['required'] = exmtrans('common.required');
 
         // get field display type
-        foreach(['read_only', 'view_only', 'hidden', 'internal'] as $key){
+        foreach (['read_only', 'view_only', 'hidden', 'internal'] as $key) {
             $result[$key] = exmtrans("custom_form.$key");
         }
         
-        foreach(['default_type', 'default'] as $key){
+        foreach (['default_type', 'default'] as $key) {
             $result[$key] = exmtrans("custom_column.options.default") . ':' . exmtrans('custom_form.setting_available');
         }
 
@@ -229,7 +230,7 @@ abstract class ColumnBase
     abstract public function isRequired() : bool;
 
     /**
-     * Get setting modal form 
+     * Get setting modal form
      *
      * @return WidgetForm
      */
@@ -241,5 +242,4 @@ abstract class ColumnBase
      * @return array
      */
     abstract public function prepareSavingOptions(array $options) : array;
-
 }

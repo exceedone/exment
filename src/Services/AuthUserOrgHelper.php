@@ -154,7 +154,7 @@ class AuthUserOrgHelper
      */
     public static function getRoleUserAndOrganizations($custom_value, $tablePermission = null, ?CustomTable $custom_table = null)
     {
-        if(!$custom_table){
+        if (!$custom_table) {
             $custom_table = $custom_value->custom_table;
         }
 

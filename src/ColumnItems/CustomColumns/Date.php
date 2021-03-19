@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ColumnDefaultType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Grid\Filter;
-use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Model\CustomColumnMulti;
 
 class Date extends CustomItem

@@ -310,7 +310,7 @@ class Permission
                 }
                 return array_keys_exists(PermissionEnum::EDIT_CUSTOM_FORM, $this->permission_details);
             case "formpublic":
-                if(!System::publicform_available()){
+                if (!System::publicform_available()) {
                     return false;
                 }
                 if ($this->role_type == RoleType::SYSTEM) {

@@ -9,7 +9,8 @@ class FormLabelType extends EnumBase
     const VERTICAL = "vertical";
     const HIDDEN = "hidden";
 
-    public static function getFormLabelTypes(){
+    public static function getFormLabelTypes()
+    {
         return [
             static::HORIZONTAL,
             static::VERTICAL,
@@ -17,7 +18,8 @@ class FormLabelType extends EnumBase
         ];
     }
 
-    public static function getFieldLabelTypes(){
+    public static function getFieldLabelTypes()
+    {
         return [
             static::FORM_DEFAULT,
             static::HORIZONTAL,

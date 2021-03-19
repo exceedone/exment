@@ -11,7 +11,7 @@ trait AutoUuidTraitBase
 {
     /**
      * find by string uuid
-     * 
+     *
      * @deprecated version
      */
     public static function findBySuuid($uuid)

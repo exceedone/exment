@@ -241,7 +241,7 @@ EOT;
                     continue;
                 }
     
-                $column_item = $form_column->column_item;             
+                $column_item = $form_column->column_item;
                 if (is_null($column_item)) {
                     continue;
                 }
@@ -404,7 +404,7 @@ EOT;
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
         });
         
-        if(!$this->disableDefaultSavedRedirect){
+        if (!$this->disableDefaultSavedRedirect) {
             $form->saved(function ($form) use ($select_parent) {
                 // if $one_record_flg, redirect
                 $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
@@ -432,8 +432,8 @@ EOT;
      */
     protected function manageFormToolButton($form, $custom_table, $custom_form)
     {
-        if(!$this->disableSavingButton){
-            if(!$this->disableSavedRedirectCheck){
+        if (!$this->disableSavingButton) {
+            if (!$this->disableSavedRedirectCheck) {
                 $checkboxes = collect([
                     [
                         'key' => 'continue_editing',
@@ -461,8 +461,7 @@ EOT;
                     $form->submitRedirect($checkbox);
                 });
             }
-        }
-        else{
+        } else {
             $form->disableSubmit();
         }
 
@@ -503,7 +502,7 @@ EOT;
             }
 
             // if all disable tools button
-            if($disableToolsButton){
+            if ($disableToolsButton) {
                 $tools->disableListButton();
                 $tools->disableDelete();
                 $tools->disableView();
@@ -516,7 +515,7 @@ EOT;
                 }
             }
 
-            if(!$disableToolsButton){
+            if (!$disableToolsButton) {
                 PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             }
 
@@ -769,7 +768,7 @@ EOT;
         $select->ajax($parent_custom_table->getOptionAjaxUrl());
 
         // set buttons
-        if(!$this->isPublicForm()){
+        if (!$this->isPublicForm()) {
             $select->buttons([
                 [
                     'label' => trans('admin.search'),
@@ -795,14 +794,13 @@ EOT;
     protected function setColumnItemOption(ItemInterface $column_item)
     {
         $column_item->setCustomForm($this->custom_form);
-        if($this->isPublicForm()){
+        if ($this->isPublicForm()) {
             $column_item->options(['public_form' => $this->public_form]);
         }
-        if($this->enableDefaultQuery)
-        {
+        if ($this->enableDefaultQuery) {
             $column_item->options(['enable_default_query' => true]);
         }
-        if($this->asConfirm){
+        if ($this->asConfirm) {
             $column_item->options(['as_confirm' => true]);
         }
     }

@@ -410,7 +410,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      *
      * @return string|null
      */
-    public function getFontAwesomeClass() : ?string{
+    public function getFontAwesomeClass() : ?string
+    {
         return ColumnType::getFontAwesomeClass($this);
     }
 

@@ -22,9 +22,9 @@ class Image extends FormOtherItem
     {
         // Whether check image url(If preview, set)
         $url = array_get($this->form_column_options, 'image_url');
-        if(!$url){
+        if (!$url) {
             $file = ExmentFile::getFileFromFormColumn(array_get($this->form_column, 'id'));
-            if(!$file){
+            if (!$file) {
                 return null;
             }
     
@@ -36,7 +36,7 @@ class Image extends FormOtherItem
         }
 
         $imageTag = '<img src="'.$url.'" class="mw-100 image_html" />';
-        if(!boolval(array_get($this->form_column, 'options.image_aslink', false))){
+        if (!boolval(array_get($this->form_column, 'options.image_aslink', false))) {
             return $imageTag;
         }
 

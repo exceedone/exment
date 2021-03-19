@@ -20,7 +20,8 @@ class PublicFormGuard extends \Illuminate\Auth\TokenGuard
      */
     public function __construct(
         UserProvider $provider,
-        Request $request)
+        Request $request
+    )
     {
         $this->request = $request;
         $this->provider = $provider;

@@ -17,7 +17,8 @@ class File extends CustomItem
 {
     use SelectTrait;
 
-    public function saved(){
+    public function saved()
+    {
         $this->refreshTmpFile();
     }
 
@@ -35,7 +36,7 @@ class File extends CustomItem
      */
     protected function _text($v)
     {
-        if(!is_null($name = $this->getPublicFileName($v))){
+        if (!is_null($name = $this->getPublicFileName($v))) {
             return $name;
         }
         // get image url
@@ -47,7 +48,7 @@ class File extends CustomItem
      */
     protected function _html($v)
     {
-        if(!is_null($name = $this->getPublicFileName($v))){
+        if (!is_null($name = $this->getPublicFileName($v))) {
             return $name;
         }
 
@@ -103,7 +104,7 @@ class File extends CustomItem
 
     protected function getAdminFieldClass()
     {
-        if($this->isMultipleEnabled()){
+        if ($this->isMultipleEnabled()) {
             return Field\MultipleFile::class;
         }
         return Field\File::class;
@@ -135,15 +136,15 @@ class File extends CustomItem
             return $file->filename ?? basename($caption);
         })
         // get tmp file from request
-        ->getTmp(function($files){
-            if(!is_array($files)){
-                $files = [$files]; 
+        ->getTmp(function ($files) {
+            if (!is_array($files)) {
+                $files = [$files];
             }
 
             $result = [];
-            foreach($files as $file){
+            foreach ($files as $file) {
                 // If public form tmp file
-                if(!is_string($file) || strpos($file, Field\File::TMP_FILE_PREFIX) !== 0){
+                if (!is_string($file) || strpos($file, Field\File::TMP_FILE_PREFIX) !== 0) {
                     continue;
                 }
                 $result[] = $this->getTmpFile($file);
@@ -154,10 +155,10 @@ class File extends CustomItem
         });
 
         // if this field as confirm, set tmp function
-        if(boolval(array_get($this->options, 'as_confirm'))){
-            $field->setPrepareConfirm(function($files){
-                if(!is_array($files)){
-                    $files = [$files]; 
+        if (boolval(array_get($this->options, 'as_confirm'))) {
+            $field->setPrepareConfirm(function ($files) {
+                if (!is_array($files)) {
+                    $files = [$files];
                 }
     
                 $result = [];
@@ -189,10 +190,9 @@ class File extends CustomItem
             });
         }
         
-        if(!is_null($accept_extensions = array_get($this->custom_column->options, 'accept_extensions')))
-        {
+        if (!is_null($accept_extensions = array_get($this->custom_column->options, 'accept_extensions'))) {
             // append accept rule. And add dot.
-            $accept_extensions = collect(stringToArray($accept_extensions))->map(function($accept_extension){
+            $accept_extensions = collect(stringToArray($accept_extensions))->map(function ($accept_extension) {
                 return ".{$accept_extension}";
             })->implode(",");
             $field->attribute(['accept' => $accept_extensions]);
@@ -220,10 +220,9 @@ class File extends CustomItem
         ExmentFile::deleteFileInfo($del_key); // delete file table
         
         // updated value
-        if(!$this->isMultipleEnabled()){
+        if (!$this->isMultipleEnabled()) {
             $updatedValue = null;
-        }
-        else{
+        } else {
             array_forget($fileValue, $del_key);
             $updatedValue = array_values($fileValue);
         }
@@ -244,25 +243,25 @@ class File extends CustomItem
         $value = $this->custom_value->value;
         $fileValue = array_get($value, $del_column_name);
         
-        if(is_nullorempty($fileValue)){
+        if (is_nullorempty($fileValue)) {
             return null;
         }
 
         // if multiple, return uuid and file mapping
-        if(!$this->isMultipleEnabled()){
+        if (!$this->isMultipleEnabled()) {
             return $value;
         }
 
-        if(!is_array($fileValue)){
+        if (!is_array($fileValue)) {
             $fileValue = array_filter([$fileValue]);
         }
 
         $value[$del_column_name] = collect($fileValue)
-            ->mapWithKeys(function($v){
+            ->mapWithKeys(function ($v) {
                 $filedata = ExmentFile::getData($v);
                 $uuid = $filedata->uuid ?? null;
                 return [$uuid  => $v];
-        })->toArray();
+            })->toArray();
         return $value;
     }
     
@@ -309,8 +308,7 @@ class File extends CustomItem
             $validates[] = new Validator\FileRequredRule($this->custom_column, $this->custom_value);
         }
 
-        if(!is_null($accept_extensions = array_get($options, 'accept_extensions')))
-        {
+        if (!is_null($accept_extensions = array_get($options, 'accept_extensions'))) {
             $validates[] = new Validator\FileRule(stringToArray($accept_extensions));
         }
     }
@@ -451,7 +449,7 @@ class File extends CustomItem
             ->help(exmtrans("custom_column.help.multiple_enabled_file"));
 
         // Accept extension
-        if(isMatchString(get_class($this), \Exceedone\Exment\ColumnItems\CustomColumns\File::class)){
+        if (isMatchString(get_class($this), \Exceedone\Exment\ColumnItems\CustomColumns\File::class)) {
             $form->text('accept_extensions', exmtrans("custom_column.options.accept_extensions"))
                 ->help(exmtrans("custom_column.help.accept_extensions"));
         }
@@ -464,7 +462,7 @@ class File extends CustomItem
      */
     protected function getSeparateWord() : ?string
     {
-        if(boolval(array_get($this->options, 'asApi'))){
+        if (boolval(array_get($this->options, 'asApi'))) {
             return ",";
         }
         return exmtrans('common.separate_word');
@@ -479,8 +477,8 @@ class File extends CustomItem
     protected function getTmpFileInfo(string $name)
     {
         $files = session()->get(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, []);
-        foreach($files as $file){
-            if(isMatchString($name, array_get($file, 'fileName'))){
+        foreach ($files as $file) {
+            if (isMatchString($name, array_get($file, 'fileName'))) {
                 return $file;
             }
         }
@@ -502,7 +500,7 @@ class File extends CustomItem
         $fileInfo = $this->getTmpFileInfo($name);
 
         $disk = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP);
-        if(!$disk->exists($localFileName)){
+        if (!$disk->exists($localFileName)) {
             return null;
         }
         $content = $disk->get($localFileName);
@@ -559,7 +557,7 @@ class File extends CustomItem
     protected function getPublicFileName($v) : ?string
     {
         // If public form tmp file, return Only file name.
-        if(is_string($v) && strpos($v, Field\File::TMP_FILE_PREFIX) === 0){
+        if (is_string($v) && strpos($v, Field\File::TMP_FILE_PREFIX) === 0) {
             return esc_html(array_get($this->getTmpFileInfo($v), 'originalFileName'));
         }
         return null;

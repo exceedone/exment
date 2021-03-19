@@ -311,32 +311,32 @@ class RouteServiceProvider extends ServiceProvider
         // define adminapi(for webapi), api(for web)
         $routes = [
             [
-                'type' => 'webapi', 
-                'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 
-                'middleware' => ['adminweb', 'adminwebapi'], 
-                'addScope' => false, 
+                'type' => 'webapi',
+                'prefix' => url_join(config('admin.route.prefix'), 'webapi'),
+                'middleware' => ['adminweb', 'adminwebapi'],
+                'addScope' => false,
                 'private' => true,
                 'className' => 'ApiDataController',
             ],
         ];
         
         if (canConnection() && hasTable(SystemTableName::SYSTEM)) {
-            if(System::api_available()){
+            if (System::api_available()) {
                 $routes[] = [
-                    'type' => 'api', 
-                    'prefix' => url_join(config('admin.route.prefix'), 'api'), 
-                    'middleware' => ['api', 'adminapi'], 
-                    'addScope' => true, 
+                    'type' => 'api',
+                    'prefix' => url_join(config('admin.route.prefix'), 'api'),
+                    'middleware' => ['api', 'adminapi'],
+                    'addScope' => true,
                     'private' => true,
                     'className' => 'ApiDataController',
                 ];
             }
             if (System::publicform_available()) {
                 $routes[] = [
-                    'type' => 'publicformapi', 
-                    'prefix' => url_join(config('exment.publicformapi_route_prefix', 'publicformapi'), '{form_key}'), 
-                    'middleware' => ['api', 'publicformapi'], 
-                    'addScope' => false, 
+                    'type' => 'publicformapi',
+                    'prefix' => url_join(config('exment.publicformapi_route_prefix', 'publicformapi'), '{form_key}'),
+                    'middleware' => ['api', 'publicformapi'],
+                    'addScope' => false,
                     'private' => false,
                     'className' => 'PublicFormApiDataController',
                 ];
@@ -367,7 +367,7 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get("data/{tableKey}/{id}", "$className@dataFind")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 
                 // only private
-                if($route['private']){
+                if ($route['private']) {
                     // value --------------------------------------------------
                     $router->post("data/{tableKey}/{id}", 'ApiDataController@dataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->post("data/{tableKey}", 'ApiDataController@dataCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));

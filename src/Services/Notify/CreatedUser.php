@@ -30,7 +30,7 @@ class CreatedUser extends NotifyTargetBase
 
     protected function _getModel(?CustomValue $custom_value)
     {
-        if(!$custom_value){
+        if (!$custom_value) {
             return collect();
         }
         $item = NotifyTarget::getModelAsUser($custom_value->created_user_value);

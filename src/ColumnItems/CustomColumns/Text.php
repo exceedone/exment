@@ -33,7 +33,7 @@ class Text extends CustomItem
 
         // regex
         $regex = $this->getAvailableCharactersInfo();
-        if(isset($regex['regex']) && !is_nullorempty($regex['regex'])){
+        if (isset($regex['regex']) && !is_nullorempty($regex['regex'])) {
             $field->attribute(['pattern' => $regex['regex']]);
         }
     }
@@ -141,7 +141,5 @@ class Text extends CustomItem
                 ->rules('regularExpression')
                 ->help(sprintf(exmtrans("custom_column.help.regex_validate"), $manual_url));
         }
-
     }
-
 }

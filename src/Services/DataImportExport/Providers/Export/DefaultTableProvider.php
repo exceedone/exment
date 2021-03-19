@@ -182,11 +182,11 @@ class DefaultTableProvider extends ProviderBase
      */
     protected function getBodyValue($values, $column, $view_column_type, $record)
     {
-        if(is_nullorempty($values)){
+        if (is_nullorempty($values)) {
             return null;
         }
 
-        $convertValueFunc = function($value, $column, $view_column_type) use($record){
+        $convertValueFunc = function ($value, $column, $view_column_type) use ($record) {
             // if $view_column_type is column, get customcolumn
             if ($view_column_type == ConditionType::COLUMN) {
                 // if attachment, set url
@@ -213,7 +213,7 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // if array convert value and append comma
-        return collect($values)->map(function($value) use($convertValueFunc, $column, $view_column_type){
+        return collect($values)->map(function ($value) use ($convertValueFunc, $column, $view_column_type) {
             return $convertValueFunc($value, $column, $view_column_type);
         })->filter()->implode(",");
     }

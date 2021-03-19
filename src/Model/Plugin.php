@@ -112,7 +112,7 @@ class Plugin extends ModelBase
 
     public static function getPluginByUUID($uuid)
     {
-        if($uuid instanceof Plugin){
+        if ($uuid instanceof Plugin) {
             return $uuid;
         }
         return static::getPluginsCache()->first(function ($plugin) use ($uuid) {
@@ -703,7 +703,7 @@ class Plugin extends ModelBase
             
             // get target plugin
             $plugin = static::getPluginsCache()->first(function ($plugin) use ($pluginName) {
-                if(!$plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())){
+                if (!$plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())) {
                     return false;
                 }
 

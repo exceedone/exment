@@ -171,5 +171,4 @@ class Decimal extends CustomItem
             ->min(0)
             ->max(8);
     }
-
 }

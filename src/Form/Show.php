@@ -40,7 +40,7 @@ class Show extends AdminShow
 
     /**
      * Set as gridShows
-     * 
+     *
      * @return $this
      */
     public function gridShows()
@@ -71,7 +71,7 @@ class Show extends AdminShow
 
     protected function renderView($data)
     {
-        if(!$this->gridShows){
+        if (!$this->gridShows) {
             return parent::renderView($data);
         }
 

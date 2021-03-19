@@ -114,7 +114,7 @@ class Yesno extends CustomItem
      */
     public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
-        if($asCustomForm){
+        if ($asCustomForm) {
             $form->radio('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->options([
@@ -126,7 +126,6 @@ class Yesno extends CustomItem
         $form->switchbool('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ;
-        
     }
 
     /**

@@ -715,24 +715,23 @@ class NotifyService
         //     return [];
         // }
 
-        if($options['as_default']){
+        if ($options['as_default']) {
             $array = getTransArray(($options['as_workflow'] ? NotifyActionTarget::ACTION_TARGET_WORKFLOW() :  NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE()), 'notify.notify_action_target_options');
-        }
-        else{
+        } else {
             $array = [];
-            if($options['as_administrator']){
+            if ($options['as_administrator']) {
                 $array[NotifyActionTarget::ADMINISTRATOR] = exmtrans('notify.notify_action_target_options.administrator');
             }
-            if($options['as_has_roles']){
+            if ($options['as_has_roles']) {
                 $array[NotifyActionTarget::HAS_ROLES] = exmtrans('notify.notify_action_target_options.has_roles');
             }
-            if($options['as_created_user']){
+            if ($options['as_created_user']) {
                 $array[NotifyActionTarget::CREATED_USER] = exmtrans('notify.notify_action_target_options.created_user');
             }
         }
 
         // if $notify_action is email, set fixed email
-        if($options['as_fixed_email'] && isMatchString($notify_action, NotifyAction::EMAIL)){
+        if ($options['as_fixed_email'] && isMatchString($notify_action, NotifyAction::EMAIL)) {
             $array[NotifyActionTarget::FIXED_EMAIL] = exmtrans('notify.notify_action_target_options.fixed_email');
         }
 
@@ -750,7 +749,7 @@ class NotifyService
             return [];
         }
 
-        if($options['get_custom_columns']){
+        if ($options['get_custom_columns']) {
             $custom_columns = $custom_table->custom_columns_cache;
 
             $column_items = [];

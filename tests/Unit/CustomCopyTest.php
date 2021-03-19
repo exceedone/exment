@@ -16,7 +16,8 @@ class CustomCopyTest extends UnitTestBase
 {
     use DatabaseTransactions, CustomTableTrait;
 
-    protected function init(){
+    protected function init()
+    {
         System::clearCache();
     }
 
@@ -147,10 +148,10 @@ class CustomCopyTest extends UnitTestBase
 
         $new_value = getModelName($table_name)::find($new_id);
 
-        foreach($custom_value->getValues() as $key => $value) {
+        foreach ($custom_value->getValues() as $key => $value) {
             if (isset($settings['input_columns']) && array_key_exists($key, $settings['input_columns'])) {
                 $this->assertEquals($new_value->getValue($key), $settings['input_columns'][$key]);
-            } else if (!isset($settings['copy_columns']) || in_array($key, $settings['copy_columns'])) {
+            } elseif (!isset($settings['copy_columns']) || in_array($key, $settings['copy_columns'])) {
                 $this->assertEquals($value, $new_value->getValue($key));
             } else {
                 $this->assertTrue(empty($new_value->getValue($key)));
@@ -167,7 +168,7 @@ class CustomCopyTest extends UnitTestBase
                 'to_table_name' => null,
                 'copy_columns' => [],
                 'input_columns' => [],
-            ], 
+            ],
             $options
         );
         $login_user_id = $options['login_user_id'];
@@ -190,17 +191,19 @@ class CustomCopyTest extends UnitTestBase
             'to_custom_table_id' => isset($custom_table_to)? $custom_table_to->id: $custom_table->id,
         ]);
 
-        foreach ($custom_table->custom_columns as $custom_column)
-        {
+        foreach ($custom_table->custom_columns as $custom_column) {
             if (empty($copy_columns) && empty($input_columns)) {
                 $custom_copy_column = CustomCopyColumn::create(
-                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column));
-            } else if (empty($copy_columns) || \in_array($custom_column->column_name, $copy_columns)) {
+                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column)
+                );
+            } elseif (empty($copy_columns) || \in_array($custom_column->column_name, $copy_columns)) {
                 $custom_copy_column = CustomCopyColumn::create(
-                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column));
-            } else if (array_key_exists($custom_column->column_name, $input_columns)) {
+                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column)
+                );
+            } elseif (array_key_exists($custom_column->column_name, $input_columns)) {
                 $custom_copy_column = CustomCopyColumn::create(
-                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column, CopyColumnType::INPUT));
+                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column, CopyColumnType::INPUT)
+                );
             }
         }
 

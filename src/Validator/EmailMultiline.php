@@ -23,12 +23,12 @@ class EmailMultiline implements Rule
 
         $array = explodeBreak($value);
 
-        foreach($array as $a){
-            if(is_nullorempty($a)){
+        foreach ($array as $a) {
+            if (is_nullorempty($a)) {
                 continue;
             }
             
-            if(filter_var($a, FILTER_VALIDATE_EMAIL) === false){
+            if (filter_var($a, FILTER_VALIDATE_EMAIL) === false) {
                 return false;
             }
         }

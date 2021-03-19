@@ -79,7 +79,7 @@ class MailInfo
     public function getFromName() : ?string
     {
         $fromName = !is_nullorempty($this->fromName) ? $this->fromName : config('mail.from.name');
-        if(isMatchString($fromName, $this->getFrom())){
+        if (isMatchString($fromName, $this->getFrom())) {
             return null;
         }
         return $fromName;

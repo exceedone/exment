@@ -14,7 +14,7 @@ use Webpatser\Uuid\Uuid;
  * file_type : File type, Uses FileType.
  * path: local file path. it often sets "folder"/"uuid".
  * filename: for download or display name
- * 
+ *
  * This class uses ↓
  *     *Append attachment info.
  *     *Save attachment server(or ftp, s3, ...).
@@ -59,9 +59,9 @@ class File extends ModelBase
      */
     public static function getUrl($path, $options = []) : ?string
     {
-        if($options === true){
+        if ($options === true) {
             $options = ['asApi' => true];
-        }elseif($options === false){
+        } elseif ($options === false) {
             $options = ['asApi' => false];
         }
         $options = array_merge(
@@ -84,7 +84,7 @@ class File extends ModelBase
         // append prefix
         if ($options['asApi']) {
             $name = url_join('api', $name);
-        }elseif($options['asPublicForm']){
+        } elseif ($options['asPublicForm']) {
             $name = url_join(public_form_base_path(), $options['publicFormKey'], $name);
             // If public form, return name
             return asset($name);
@@ -102,7 +102,7 @@ class File extends ModelBase
      */
     public static function getFileFromFormColumn(?string $form_column) : ?File
     {
-        if(!$form_column){
+        if (!$form_column) {
             return null;
         }
 
@@ -164,7 +164,7 @@ class File extends ModelBase
      */
     public function saveCustomValueAndColumn($custom_value_id, $custom_column, $custom_table = null, ?bool $replace = true)
     {
-        if(is_null($replace)){
+        if (is_null($replace)) {
             $replace = true;
         }
         
@@ -178,7 +178,7 @@ class File extends ModelBase
         $this->custom_column_id = $custom_column ? $custom_column->id : null;
         
         // get old file if replace
-        if($replace){
+        if ($replace) {
             $oldFiles = static::where('parent_id', $this->parent_id)
             ->where('parent_type', $this->parent_type)
             ->where('custom_column_id', $this->custom_column_id)
@@ -325,13 +325,13 @@ class File extends ModelBase
         // get from model
         $value = $custom_value->toArray();
         $fileValues = array_get($value, 'value.' . array_get($uuidObj, 'column_name'));
-        if(!is_array($fileValues)){
+        if (!is_array($fileValues)) {
             $fileValues = [$fileValues];
         }
 
         $uuids = collect($custom_value->file_uuids());
 
-        foreach($fileValues as $fileValue){
+        foreach ($fileValues as $fileValue) {
             // if match path, return this model's id
             if (isMatchString($fileValue, $path)) {
                 return $value;
@@ -361,7 +361,7 @@ class File extends ModelBase
     {
         $file = static::saveFileInfo($file_type, $path, $options);
 
-        if($content instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+        if ($content instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
             $content = \Illuminate\Http\UploadedFile::createFromBase($content);
         }
 
@@ -387,14 +387,13 @@ class File extends ModelBase
         ], $options);
         $file = static::saveFileInfo($file_type, $dirname, $options);
         
-        if($content instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+        if ($content instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
             $content = \Illuminate\Http\UploadedFile::createFromBase($content);
         }
 
-        if($content instanceof \Illuminate\Http\UploadedFile) {
+        if ($content instanceof \Illuminate\Http\UploadedFile) {
             $content->storeAs($dirname, $file->local_filename, config('admin.upload.disk'));
-        }
-        else{
+        } else {
             \Storage::disk(config('admin.upload.disk'))->put(path_join($dirname, $file->local_filename), $content);
         }
         return $file;
@@ -476,7 +475,7 @@ class File extends ModelBase
     protected static function getDirAndFileName($path)
     {
         $pathinfo = pathinfo($path);
-        if(isMatchString(array_get($pathinfo, 'dirname'), '.')){
+        if (isMatchString(array_get($pathinfo, 'dirname'), '.')) {
             return [$path, make_uuid()];
         }
 

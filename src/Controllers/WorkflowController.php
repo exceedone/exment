@@ -95,7 +95,7 @@ class WorkflowController extends AdminControllerBase
                 ->tooltip(exmtrans('workflow.action'));
             $actions->prepend($linker);
             
-            if($actions->row->setting_completed_flg){
+            if ($actions->row->setting_completed_flg) {
                 $linker = (new Linker)
                     ->url(admin_urls('workflow', $actions->getKey(), 'notify'))
                     ->icon('fa-bell')

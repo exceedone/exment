@@ -6,24 +6,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\PublicForm;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Linkage;
-use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Enums\FileType;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\SearchType;
-use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\ValueType;
-use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
-use Exceedone\Exment\Enums\ValidateCalledType;
-use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
-use Carbon\Carbon;
-use Validator;
 
 /**
  * Public form Api about target table's data
@@ -37,7 +21,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
     public function __construct(?CustomTable $custom_table, ?PublicForm $public_form, Request $request)
     {
         $this->public_form = $public_form;
-        if($public_form){
+        if ($public_form) {
             $this->custom_form = $public_form->custom_form;
         }
         parent::__construct($custom_table, $request);
@@ -66,7 +50,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      */
     public function dataFind(Request $request, $uuid, $tableKey, $id)
     {
-        if(($response = $this->checkContainsCustomTableInForm($request)) !== true){
+        if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
         }
         return $this->_dataFind($request, $id);
@@ -79,7 +63,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      */
     public function dataSelect(Request $request)
     {
-        if(($response = $this->checkContainsCustomTableInForm($request)) !== true){
+        if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
         }
         return $this->_dataSelect($request);
@@ -95,7 +79,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      */
     public function columnData(Request $request, $uuid, $tableKey, $column_name)
     {
-        if(($response = $this->checkContainsCustomTableInForm($request)) !== true){
+        if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
         }
         return $this->_columnData($request, $column_name);
@@ -111,7 +95,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
      */
     public function relatedLinkage(Request $request)
     {
-        if(($response = $this->checkContainsCustomTableInForm($request)) !== true){
+        if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
         }
         return $this->_relatedLinkage($request);
@@ -127,8 +111,8 @@ class PublicFormApiDataController extends AdminControllerTableBase
     protected function checkContainsCustomTableInForm(Request $request)
     {
         $tablesUseds = $this->public_form->getListOfTablesUsed();
-        foreach($tablesUseds as $table){
-            if($this->custom_table->id == $table->id){
+        foreach ($tablesUseds as $table) {
+            if ($this->custom_table->id == $table->id) {
                 return true;
             }
         }

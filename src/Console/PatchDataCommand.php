@@ -252,7 +252,7 @@ class PatchDataCommand extends Command
         $template = new TemplateImporter;
         $json = $template->getMergeJson();
 
-        try{
+        try {
             \DB::transaction(function () use ($json, $target_column_name, $target_table_name) {
                 // re-loop columns. because we have to get other column id --------------------------------------------------
                 foreach (array_get($json, "custom_tables", []) as $table) {
@@ -262,7 +262,7 @@ class PatchDataCommand extends Command
                         continue;
                     }
                     $obj_table = CustomTable::getEloquent($table_name);
-                    if(!$obj_table){
+                    if (!$obj_table) {
                         continue;
                     }
     
@@ -293,11 +293,11 @@ class PatchDataCommand extends Command
                             // Append custom folumn column
                             // get custom form
                             $custom_form = CustomForm::where('custom_table_id', $obj_table->id)->first();
-                            if(!$custom_form){
+                            if (!$custom_form) {
                                 continue;
                             }
                             $custom_form_block = CustomFormBlock::where('custom_form_id', $custom_form->id)->first();
-                            if(!$custom_form_block){
+                            if (!$custom_form_block) {
                                 continue;
                             }
 
@@ -317,11 +317,9 @@ class PatchDataCommand extends Command
                     }
                 }
             });
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             \Log::error($ex);
         }
-
     }
     
 
@@ -1527,7 +1525,7 @@ class PatchDataCommand extends Command
             $columnGroupInners = $columnGroup->groupBy('column_no');
             $columnGroupInners->each(function ($columns) use ($columnGroupInners) {
                 $columns->sortBy('order')->each(function ($column, $index) use ($columnGroupInners) {
-                    if(!is_null($column->width)){
+                    if (!is_null($column->width)) {
                         return;
                     }
                     $column->row_no = 1;
@@ -1731,14 +1729,15 @@ class PatchDataCommand extends Command
     }
     
 
-    public function notifyTargetId(){
+    public function notifyTargetId()
+    {
         Model\Notify::get()
-            ->each(function($notify){
+            ->each(function ($notify) {
                 $target_id = $notify->custom_table_id;
-                if(is_null($target_id) || isMatchString($target_id, 0)){
+                if (is_null($target_id) || isMatchString($target_id, 0)) {
                     $target_id = $notify->workflow_id;
                 }
-                if(is_null($target_id) || isMatchString($target_id, 0)){
+                if (is_null($target_id) || isMatchString($target_id, 0)) {
                     return;
                 }
                 

@@ -473,7 +473,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[number_max]', 999999)
             ->seeInField('options[decimal_digit]', 0)
 ;
-}
+    }
 
     // Create custom column --Currency--
     public function testAddCurrencyColumnSuccess()

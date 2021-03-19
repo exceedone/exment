@@ -4,16 +4,18 @@ namespace App\Plugins\TestPluginBatch;
 use Exceedone\Exment\Services\Plugin\PluginBatchBase;
 use Exceedone\Exment\Model\CustomTable;
 
-class Plugin extends PluginBatchBase{
+class Plugin extends PluginBatchBase
+{
     /**
      * execute
      */
-    public function execute() {
+    public function execute()
+    {
         $tables = CustomTable::all();
 
-        foreach($tables as $table){
+        foreach ($tables as $table) {
             $modelname = getModelName($table);
-            if(!isset($modelname)){
+            if (!isset($modelname)) {
                 continue;
             }
 
@@ -21,5 +23,4 @@ class Plugin extends PluginBatchBase{
                 ->forceDelete();
         }
     }
-    
 }

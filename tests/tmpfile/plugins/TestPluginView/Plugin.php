@@ -21,7 +21,8 @@ class Plugin extends PluginViewBase
     /**
      * (2) このプラグイン独自のエンドポイント
      */
-    public function update(){
+    public function update()
+    {
         $value = request()->get('value');
 
         $custom_table = CustomTable::getEloquent(request()->get('table_name'));
@@ -43,7 +44,7 @@ class Plugin extends PluginViewBase
     public function setViewOptionForm($form)
     {
         //　独自設定を追加する場合
-        $form->embeds('custom_options', '詳細設定', function($form){
+        $form->embeds('custom_options', '詳細設定', function ($form) {
             $form->select('category', 'カテゴリ列')
                 ->options($this->custom_table->getFilteredTypeColumns([ColumnType::SELECT, ColumnType::SELECT_VALTEXT])->pluck('column_view_name', 'id'))
                 ->required()
@@ -58,7 +59,8 @@ class Plugin extends PluginViewBase
     }
     
 
-    protected function values(){
+    protected function values()
+    {
         $query = $this->custom_table->getValueQuery();
 
         // データのフィルタを実施
@@ -69,7 +71,7 @@ class Plugin extends PluginViewBase
 
         // 値を取得
         $items = collect();
-        $query->chunk(1000, function($values) use(&$items){
+        $query->chunk(1000, function ($values) use (&$items) {
             $items = $items->merge($values);
         });
 
@@ -79,18 +81,19 @@ class Plugin extends PluginViewBase
     }
 
 
-    protected function getBoardItems($items){
+    protected function getBoardItems($items)
+    {
         $category = CustomColumn::getEloquent($this->custom_view->getCustomOption('category'));
         $options = $category->createSelectOptions();
 
         $update_url = $this->plugin->getFullUrl('update');
 
         // set boards
-        $boards_dragTo = collect($options)->map(function($option, $key){
+        $boards_dragTo = collect($options)->map(function ($option, $key) {
             return "board-id-$key";
         })->toArray();
 
-        $boards = collect($options)->map(function($option, $key) use($category, $boards_dragTo){
+        $boards = collect($options)->map(function ($option, $key) use ($category, $boards_dragTo) {
             return [
                 'id' => "board-id-$key",
                 'column_name' => $category->column_name,
@@ -101,11 +104,11 @@ class Plugin extends PluginViewBase
             ];
         })->values()->toArray();
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $c = array_get($item, 'value.' . $category->column_name);
             
-            foreach($boards as &$board){
-                if(!isMatchString($c, $board['key'])){
+            foreach ($boards as &$board) {
+                if (!isMatchString($c, $board['key'])) {
                     continue;
                 }
 

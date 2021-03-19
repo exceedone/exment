@@ -587,9 +587,8 @@ class SelectTable extends CustomItem
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
         // define select-target table
         
-        if(!$isUserOrg)
-        {
-            if(!isset($id)){
+        if (!$isUserOrg) {
+            if (!isset($id)) {
                 $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
                 ->help(exmtrans("custom_column.help.select_target_table"))
                 ->required()
@@ -613,16 +612,15 @@ class SelectTable extends CustomItem
                         ]
                     ]),
                 ]);
-            }
-            else{
+            } else {
                 // if already set, display only
                 $form->display('select_target_table', exmtrans("custom_column.options.select_target_table"))
                     ->displayText(function ($val) {
-                        if(!isset($val)){
+                        if (!isset($val)) {
                             return $val;
                         }
                         $custom_table = CustomTable::getEloquent($val);
-                        if(!isset($custom_table)){
+                        if (!isset($custom_table)) {
                             return null;
                         }
                         return $custom_table->table_view_name;
@@ -728,5 +726,4 @@ class SelectTable extends CustomItem
             'include_system' => false,
         ]) ?? [];
     }
-
 }

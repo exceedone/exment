@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Enums\PluginType;
 
 /**
  * Middleware as Bootstrap.

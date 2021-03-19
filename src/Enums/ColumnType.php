@@ -247,7 +247,7 @@ class ColumnType extends EnumBase
             $column_type = $column_type->column_type;
         }
 
-        switch($column_type){
+        switch ($column_type) {
             case static::TEXT:
                 return 'fa-font';
             case static::TEXTAREA:
@@ -272,22 +272,22 @@ class ColumnType extends EnumBase
             case static::SELECT:
             case static::SELECT_VALTEXT:
             case static::DATETIME:
-                return 'fa-list';   
+                return 'fa-list';
             case static::SELECT_TABLE:
             case static::SELECT_VALTEXT:
             case static::DATETIME:
-                return 'fa-table';  
+                return 'fa-table';
             case static::YESNO:
             case static::BOOLEAN:
-                return 'fa-toggle-on';  
+                return 'fa-toggle-on';
             case static::IMAGE:
-                return 'fa-picture-o';  
+                return 'fa-picture-o';
             case static::FILE:
-                return 'fa-file';  
+                return 'fa-file';
             case static::USER:
-                return 'fa-user';  
+                return 'fa-user';
             case static::ORGANIZATION:
-                return 'fa-users'; 
+                return 'fa-users';
         }
         
         return null;

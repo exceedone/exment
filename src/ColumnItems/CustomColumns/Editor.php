@@ -75,7 +75,7 @@ class Editor extends CustomItem
             return $item->replaceImgUrl($value);
         });
 
-        if($this->isPublicForm()){
+        if ($this->isPublicForm()) {
             $field->setPostImageUri($this->options['public_form']->getUrl());
         }
     }
@@ -142,14 +142,14 @@ class Editor extends CustomItem
             $filename = pathinfo($src, PATHINFO_FILENAME);
 
             $exists = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($filename);
-             // check url
+            // check url
             $tmpUrl = strpos($src, admin_urls('tmpfiles')); // check url
             // consider public form
-            if($tmpUrl === false){
+            if ($tmpUrl === false) {
                 $patturn_uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
                 $patturn = public_form_url() . "/(?<public_form_uuid>{$patturn_uuid})/tmpfiles/(?<file_uuid>{$patturn_uuid})";
                 preg_match("/" . str_replace("/", "\/", $patturn) . "/", $src, $preg_match);
-                if($preg_match){
+                if ($preg_match) {
                     $tmpUrl = true;
                 }
             }

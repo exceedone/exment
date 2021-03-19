@@ -19,7 +19,6 @@ use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\PluginTestTrait;
 use Exceedone\Exment\Revisionable\Revision;
 
-
 /**
  * Custom value delete test.
  * Soft delete, hard delete, always hard delete.
@@ -52,7 +51,7 @@ class CustomValueDeleteTest extends TestCase
         $custom_value->setValue('file', $file->path)
             ->setValue('text', make_uuid());
 
-        if($setValueCallback){
+        if ($setValueCallback) {
             \call_user_func($setValueCallback, $custom_value);
         }
         $custom_value->save();
@@ -60,7 +59,7 @@ class CustomValueDeleteTest extends TestCase
         $file->saveCustomValue($custom_value->id, $custom_column, $custom_table);
     
         // set 2 documents
-        foreach([0, 1] as $i){
+        foreach ([0, 1] as $i) {
             $fileName = "test{$i}.txt";
             Model\File::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, TestDefine::FILE_TESTSTRING, $custom_table->table_name, $fileName)
                 ->saveCustomValue($custom_value->id, null, $custom_table)
@@ -99,11 +98,11 @@ class CustomValueDeleteTest extends TestCase
 
         // init children
         $children = [];
-        foreach(range(1, 10) as $index){
+        foreach (range(1, 10) as $index) {
             $custom_table_child = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
             $custom_column_child = CustomColumn::getEloquent('file', $custom_table_child);
         
-            $children[] = $this->initTestData($custom_table_child, $custom_column_child, function($child_custom_value) use($custom_table_parent, $custom_value){
+            $children[] = $this->initTestData($custom_table_child, $custom_column_child, function ($child_custom_value) use ($custom_table_parent, $custom_value) {
                 $child_custom_value->parent_id = $custom_value->id;
                 $child_custom_value->parent_type = $custom_table_parent->table_name;
             });
@@ -113,7 +112,8 @@ class CustomValueDeleteTest extends TestCase
     }
 
 
-    public function testSoftDelete(){
+    public function testSoftDelete()
+    {
         $this->init(false);
         $custom_value = $this->initTestDataDefault();
 
@@ -130,7 +130,7 @@ class CustomValueDeleteTest extends TestCase
         $this->assertMatch(count($infoDeleted['files']), 3); // not deleted
         $this->assertMatch(count($infoDeleted['documents']), 2); // not deleted
         $this->assertMatch(count($infoDeleted['storages']), count($infoDeleted['storages'])); // not deleted
-        $this->assertMatch(count($infoDeleted['revisions']), 3); 
+        $this->assertMatch(count($infoDeleted['revisions']), 3);
 
         // Force delete ----------------------------------------------------
         $custom_value->forceDelete();
@@ -139,11 +139,12 @@ class CustomValueDeleteTest extends TestCase
         $this->assertMatch(count($infoDeleted['files']), 0); // Deleted
         $this->assertMatch(count($infoDeleted['documents']), 0); // Deleted
         $this->assertMatch(count($infoDeleted['storages']), count($info['storages']) - 3); // deleted
-        $this->assertMatch(count($infoDeleted['revisions']), 0); 
+        $this->assertMatch(count($infoDeleted['revisions']), 0);
     }
 
 
-    public function testForceDelete(){
+    public function testForceDelete()
+    {
         $this->init(true);
         $custom_value = $this->initTestDataDefault();
 
@@ -160,12 +161,13 @@ class CustomValueDeleteTest extends TestCase
         $this->assertMatch(count($infoDeleted['files']), 0); // Deleted
         $this->assertMatch(count($infoDeleted['documents']), 0); // Deleted
         $this->assertMatch(count($infoDeleted['storages']), count($info['storages']) - 3); // deleted
-        $this->assertMatch(count($infoDeleted['revisions']), 0); 
+        $this->assertMatch(count($infoDeleted['revisions']), 0);
     }
 
 
     
-    public function testSoftDeleteRelation(){
+    public function testSoftDeleteRelation()
+    {
         $this->init(false);
         list($custom_value, $children) = $this->initTestDataRelation1n();
 
@@ -177,7 +179,7 @@ class CustomValueDeleteTest extends TestCase
         
         // children
         $storagesCount = 0;
-        foreach($children as $child){
+        foreach ($children as $child) {
             $infoChild = $this->getCustomValueInfo($child->custom_table, $child->id);
             $this->assertMatch(count($infoChild['files']), 3);
             $this->assertMatch(count($infoChild['documents']), 2);
@@ -194,10 +196,10 @@ class CustomValueDeleteTest extends TestCase
         $this->assertMatch(count($infoDeleted['files']), 3); // not deleted
         $this->assertMatch(count($infoDeleted['documents']), 2); // not deleted
         $this->assertMatch(count($infoDeleted['storages']), count($infoDeleted['storages'])); // not deleted
-        $this->assertMatch(count($infoDeleted['revisions']), 2); 
+        $this->assertMatch(count($infoDeleted['revisions']), 2);
         
         $storagesCountChild = 0;
-        foreach($children as $child){
+        foreach ($children as $child) {
             $infoChildDeleted = $this->getCustomValueInfo($child->custom_table, $child->id);
             $this->assertMatch(count($infoChildDeleted['files']), 3);
             $this->assertMatch(count($infoChildDeleted['documents']), 2);
@@ -215,10 +217,10 @@ class CustomValueDeleteTest extends TestCase
         $this->assertMatch(count($infoDeleted['files']), 0); // Deleted
         $this->assertMatch(count($infoDeleted['documents']), 0); // Deleted
         $this->assertMatch(count($infoDeleted['storages']), count($info['storages']) - 3); // deleted
-        $this->assertMatch(count($infoDeleted['revisions']), 0); 
+        $this->assertMatch(count($infoDeleted['revisions']), 0);
         
         $storagesCountChild = 0;
-        foreach($children as $child){
+        foreach ($children as $child) {
             $infoChildDeleted = $this->getCustomValueInfo($child->custom_table, $child->id);
             $this->assertMatch(count($infoChildDeleted['files']), 0);
             $this->assertMatch(count($infoChildDeleted['documents']), 0);
@@ -231,7 +233,8 @@ class CustomValueDeleteTest extends TestCase
     }
 
     
-    public function testForceDeleteRelation(){
+    public function testForceDeleteRelation()
+    {
         $this->init(true);
         list($custom_value, $children) = $this->initTestDataRelation1n();
 
@@ -243,7 +246,7 @@ class CustomValueDeleteTest extends TestCase
         
         // children
         $storagesCount = 0;
-        foreach($children as $child){
+        foreach ($children as $child) {
             $infoChild = $this->getCustomValueInfo($child->custom_table, $child->id);
             $this->assertMatch(count($infoChild['files']), 3);
             $this->assertMatch(count($infoChild['documents']), 2);
@@ -261,10 +264,10 @@ class CustomValueDeleteTest extends TestCase
         $this->assertMatch(count($infoDeleted['files']), 0); // Deleted
         $this->assertMatch(count($infoDeleted['documents']), 0); // Deleted
         $this->assertMatch(count($infoDeleted['storages']), count($info['storages']) - 3); // deleted
-        $this->assertMatch(count($infoDeleted['revisions']), 0); 
+        $this->assertMatch(count($infoDeleted['revisions']), 0);
         
         $storagesCountChild = 0;
-        foreach($children as $child){
+        foreach ($children as $child) {
             $infoChildDeleted = $this->getCustomValueInfo($child->custom_table, $child->id);
             $this->assertMatch(count($infoChildDeleted['files']), 0);
             $this->assertMatch(count($infoChildDeleted['documents']), 0);
@@ -339,10 +342,10 @@ class CustomValueDeleteTest extends TestCase
                 ->withTrashed()
                 ->get();
         
-            $dataCountResult = $children->filter(function($child){
+            $dataCountResult = $children->filter(function ($child) {
                 return !$child->trashed();
             })->count();
-            $deleteCountResult = $children->filter(function($child){
+            $deleteCountResult = $children->filter(function ($child) {
                 return $child->trashed();
             })->count();
 

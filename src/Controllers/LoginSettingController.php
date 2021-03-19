@@ -545,7 +545,8 @@ class LoginSettingController extends AdminControllerBase
      * @param boolean $active_flg
      * @return void
      */
-    protected function toggleActivate(Request $request, $id, bool $active_flg){
+    protected function toggleActivate(Request $request, $id, bool $active_flg)
+    {
         $login_setting = LoginSetting::getEloquent($id);
         $login_setting->active_flg = $active_flg;
         $login_setting->save();

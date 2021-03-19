@@ -820,13 +820,13 @@ class TemplateImporter
         $basePath = $options['basePath'];
 
         // if not $jsonString, get from system template
-        if(!$jsonString){
+        if (!$jsonString) {
             $templates_path = exment_package_path('system_template');
             $paths = File::glob("$templates_path/config.json");
             $jsonString = File::get($paths[0]);
         }
 
-        if(!$basePath){
+        if (!$basePath) {
             $basePath = exment_package_path('system_template');
         }
 

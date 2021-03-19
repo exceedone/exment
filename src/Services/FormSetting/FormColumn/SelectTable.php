@@ -31,7 +31,7 @@ class SelectTable extends Column
     }
 
     /**
-     * Get setting modal form 
+     * Get setting modal form
      *
      * @return WidgetForm
      */
@@ -40,12 +40,12 @@ class SelectTable extends Column
         $form = parent::getSettingModalForm($block_item, $parameters);
         
         $relationColumns = $this->getRelationFileterColumns();
-        if($relationColumns->count() > 0){
+        if ($relationColumns->count() > 0) {
             $form->exmheader(exmtrans('custom_form.relation_filter'))->hr();
             $form->description(exmtrans('custom_form.help.relation_filter') . '<br/>' . exmtrans('common.help.more_help_here', getManualUrl('form#relation_filter_manual')))->escape(false);
 
             $form->select('relation_filter_target_column_id', exmtrans('custom_form.relation_filter'))
-                ->options($relationColumns->mapWithKeys(function($column){
+                ->options($relationColumns->mapWithKeys(function ($column) {
                     return [$column->parent_column->id => $column->parent_column->column_view_name];
                 })->toArray())
                 ;
@@ -60,7 +60,7 @@ class SelectTable extends Column
      * @return Collection
      */
     public function getRelationFileterColumns() : Collection
-    {        
+    {
         // get relation columns.
         $relationColumns = Linkage::getLinkages(null, $this->custom_column);
 

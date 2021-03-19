@@ -15,7 +15,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportExportTest extends TestCase
 {
@@ -30,7 +29,7 @@ class ImportExportTest extends TestCase
 
     protected function init(bool $export, $target_name = null)
     {
-        try{
+        try {
             $this->initAllTest();
             $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
             if ($export) {
@@ -49,7 +48,8 @@ class ImportExportTest extends TestCase
                 \File::copyDirectory($source_path, $import_path);
                 $this->dirpath = 'unittest';
             }
-        }catch(\Exception $ex){}
+        } catch (\Exception $ex) {
+        }
     }
 
     public function testExportCsv()
@@ -224,7 +224,7 @@ class ImportExportTest extends TestCase
             [
                 '--dirpath' => $this->dirpath,
                 '--format' => 'csv',
-            ], 
+            ],
             $params
         );
 
@@ -250,7 +250,7 @@ class ImportExportTest extends TestCase
                 $this->assertTrue(array_key_exists(Model\Define::SETTING_SHEET_NAME, $file_array));
             }
             if (isset($params['--add_relation']) && $params['--add_relation'] == '1') {
-                CustomRelation::getRelationsByParent($custom_table)->each(function ($item) use($file_array) {
+                CustomRelation::getRelationsByParent($custom_table)->each(function ($item) use ($file_array) {
                     $this->assertTrue(array_key_exists($item->child_custom_table->table_name, $file_array));
                 });
             }
@@ -296,7 +296,7 @@ class ImportExportTest extends TestCase
     {
         $custom_table = CustomTable::getEloquent($params['table_name']);
 
-        list($custom_view, $db_array) = $this->_getTableData($custom_table , $params, $chunk_no);
+        list($custom_view, $db_array) = $this->_getTableData($custom_table, $params, $chunk_no);
 
         if ($chunk_no > 0 && count($db_array) == 0) {
             return false;
@@ -345,19 +345,19 @@ class ImportExportTest extends TestCase
                         $colvalue = array_get($colvalue, 'id');
                     }
                     if (is_list($colvalue)) {
-                        $colvalue = collect($colvalue)->map(function ($item) use($header, $custom_table) {
+                        $colvalue = collect($colvalue)->map(function ($item) use ($header, $custom_table) {
                             if ($item instanceof CustomValue) {
                                 return array_get($item, 'id');
                             }
                             // if file column, get url
-                            elseif(!is_null($file = $this->getFileColumnValue($header, $item, $custom_table))){
+                            elseif (!is_null($file = $this->getFileColumnValue($header, $item, $custom_table))) {
                                 return $file;
                             }
                             return $item;
                         })->implode(',') ?? null;
                     }
                     // if file column, get url
-                    elseif(!is_null($file = $this->getFileColumnValue($header, $colvalue, $custom_table))){
+                    elseif (!is_null($file = $this->getFileColumnValue($header, $colvalue, $custom_table))) {
                         return $file;
                     }
                     $this->assertEquals($colvalue, $file_data[$colno]);
@@ -374,7 +374,7 @@ class ImportExportTest extends TestCase
             [
                 '--dirpath' => $this->dirpath,
                 '--format' => 'csv',
-            ], 
+            ],
             $params
         );
 
@@ -420,12 +420,12 @@ class ImportExportTest extends TestCase
      */
     protected function getFileColumnValue($header, $value, CustomTable $custom_table)
     {
-        if(is_nullorempty($value)){
+        if (is_nullorempty($value)) {
             return null;
         }
         $column_name = str_replace('value.', '', $header);
         $custom_column = Model\CustomColumn::getEloquent($column_name, $custom_table);
-        if(!ColumnType::isAttachment($custom_column)){
+        if (!ColumnType::isAttachment($custom_column)) {
             return null;
         }
         return Model\File::getUrl($value);

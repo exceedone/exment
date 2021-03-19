@@ -16,7 +16,7 @@ trait BootstrapTrait
         }
         
         $func = ($isCss ? 'css' : 'js');
-        if($isLast){
+        if ($isLast) {
             $func .= 'last';
         }
         foreach ($list as $l) {
@@ -42,21 +42,19 @@ trait BootstrapTrait
     protected static function appendStyleScript($pl, bool $asPublicForm = false)
     {
         // get each scripts
-        foreach(['css', 'js'] as $p)
-        {
+        foreach (['css', 'js'] as $p) {
             $pluginType = ($p == 'css' ? PluginType::STYLE : PluginType::SCRIPT);
-            if($pl instanceof Plugin){
+            if ($pl instanceof Plugin) {
                 $plugin = $pl;
                 $pluginClass = $plugin->getClass($pluginType, [
                     'throw_ex' => false,
                 ]);
-            }
-            else{
+            } else {
                 $pluginClass = $pl;
                 $plugin = $pluginClass->_plugin();
             }
 
-            if(!$pluginClass){
+            if (!$pluginClass) {
                 continue;
             }
 
@@ -65,7 +63,9 @@ trait BootstrapTrait
             foreach ($cdns as $cdn) {
                 $ext = pathinfo($cdn, PATHINFO_EXTENSION);
                 $p = isMatchString($ext, 'js') ? 'js' : (isMatchString($ext, 'css') ? 'css' : null);
-                if(!$p){continue;}
+                if (!$p) {
+                    continue;
+                }
                 Ad::{$p.'last'}($cdn);
             }
 

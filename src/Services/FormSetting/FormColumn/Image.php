@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\File as ExmentFile;
 class Image extends OtherBase
 {
     /**
-     * Get setting modal form 
+     * Get setting modal form
      *
      * @return WidgetForm
      */
@@ -19,13 +19,12 @@ class Image extends OtherBase
         $form = new WidgetForm($parameters);
 
         $imageurl = $this->getImageUrl();
-        if(!isset($imageurl)){
+        if (!isset($imageurl)) {
             $form->image('image', exmtrans('custom_form.image'))
                 ->required()
                 ->help(exmtrans("common.message.cannot_preview", ['name' => exmtrans("custom_form.image")]))
                 ->attribute(['accept' => "image/*"]);
-        }
-        else{
+        } else {
             $form->description(exmtrans('custom_form.message.image_need_delete'));
 
             $imagetag = '<img src="'.$imageurl.'" class="mw-100 image_html" style="max-height:200px;" />';
@@ -63,7 +62,7 @@ class Image extends OtherBase
     protected function getImageUrl() : ?string
     {
         $file = ExmentFile::getFileFromFormColumn(array_get($this->custom_form_column, 'id'));
-        if(!$file){
+        if (!$file) {
             return null;
         }
         return ExmentFile::getUrl($file);
@@ -78,7 +77,7 @@ class Image extends OtherBase
      */
     public function prepareSavingOptions(array $options) : array
     {
-        return array_filter($options, function($option, $key){
+        return array_filter($options, function ($option, $key) {
             return in_array($key, [
                 'image_aslink',
             ]);
@@ -95,7 +94,8 @@ class Image extends OtherBase
         return ['image' => 'required_image'];
     }
 
-    public function getFontAwesomeClass() : ?string{
+    public function getFontAwesomeClass() : ?string
+    {
         return 'fa-picture-o';
     }
 
@@ -108,7 +108,7 @@ class Image extends OtherBase
     {
         $result = parent::getOptionLabels();
 
-        if(!is_nullorempty($this->getImageUrl())){
+        if (!is_nullorempty($this->getImageUrl())) {
             $result['image'] = exmtrans('custom_form.setting_available');
         }
         

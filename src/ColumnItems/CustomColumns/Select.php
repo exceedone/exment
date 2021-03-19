@@ -205,5 +205,4 @@ class Select extends CustomItem
             ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_check_radio_enabled', 'value' => '0'])])
             ->help(exmtrans("custom_column.help.free_input"));
     }
-
 }

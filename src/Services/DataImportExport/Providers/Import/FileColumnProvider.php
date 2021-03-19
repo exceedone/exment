@@ -232,12 +232,11 @@ class FileColumnProvider extends ProviderBase
         $path = path_join($this->custom_table->table_name, $exmentfile->local_filename);
         
         // set custom value
-        if(!$custom_column->isMultipleEnabled()){
+        if (!$custom_column->isMultipleEnabled()) {
             $model->setValue($column_name, $path);
-        }
-        else{
-            // If multiple, merge original array 
-            $value = array_get($model, 'value.' . $custom_column->column_name) ?? [];   
+        } else {
+            // If multiple, merge original array
+            $value = array_get($model, 'value.' . $custom_column->column_name) ?? [];
             $value = array_merge($value, [$path]);
             $model->setValue($column_name, $value);
         }

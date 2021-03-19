@@ -83,7 +83,7 @@ abstract class BlockBase
      * Get the value of custom_form_block
      *
      * @return  CustomFormBlock
-     */ 
+     */
     public function getCustomFormBlock()
     {
         return $this->custom_form_block;
@@ -94,7 +94,7 @@ abstract class BlockBase
      * Get the value of custom_form_block type
      *
      * @return  string
-     */ 
+     */
     public function getCustomFormBlockType()
     {
         return array_get($this->custom_form_block, 'form_block_type');
@@ -105,7 +105,7 @@ abstract class BlockBase
      * Get based table
      *
      * @return  CustomTable
-     */ 
+     */
     public function getCustomTable()
     {
         return $this->custom_table;
@@ -151,7 +151,7 @@ abstract class BlockBase
         // loop each column
         foreach ($custom_columns as $custom_column) {
             $has_custom_forms = $this->hasCustomForms(
-                FormColumnType::COLUMN, 
+                FormColumnType::COLUMN,
                 array_get($custom_column, 'id')
             );
             $column_item = FormColumn\Column::makeBySuggest($custom_column)->isSelected($has_custom_forms);
@@ -203,7 +203,7 @@ abstract class BlockBase
         $custom_form_columns = $req_custom_form_blocks[$this->custom_form_block->request_key]['custom_form_columns'];
         return collect($custom_form_columns)->map(function ($req_custom_form_column, $key) {
             // convert option to array
-            if(isset($req_custom_form_column['options']) && is_string($req_custom_form_column['options']) && is_json($req_custom_form_column['options'])){
+            if (isset($req_custom_form_column['options']) && is_string($req_custom_form_column['options']) && is_json($req_custom_form_column['options'])) {
                 $req_custom_form_column['options'] = json_decode($req_custom_form_column['options'], true);
             }
             $custom_form_column = new CustomFormColumn($req_custom_form_column);
@@ -232,7 +232,7 @@ abstract class BlockBase
      * @param  Collection  $custom_form_column_items    FormColumn list
      *
      * @return  self
-     */ 
+     */
     public function setCustomFormColumnItems(Collection $custom_form_column_items)
     {
         $this->custom_form_column_items = $custom_form_column_items;
@@ -245,34 +245,34 @@ abstract class BlockBase
      * get Custom Form Boxes using custom_form_column_items. Contains row_no, column_no, width.
      *
      * @return  array
-     */ 
+     */
     public function getCustomFormRows()
     {
         // grouping row_no and column_no;
-        $groupRows = $this->custom_form_column_items->groupBy(function($custom_form_column_item){
+        $groupRows = $this->custom_form_column_items->groupBy(function ($custom_form_column_item) {
             $custom_form_column = $custom_form_column_item->getCustomFormColumn();
             return $custom_form_column->row_no ?? 1;
         });
 
-        $groupRowColumns = $groupRows->map(function($groupRow){
-            $groupColumns = $groupRow->groupBy(function($group){
+        $groupRowColumns = $groupRows->map(function ($groupRow) {
+            $groupColumns = $groupRow->groupBy(function ($group) {
                 $group = $group->getCustomFormColumn();
                 return $group->column_no ?? 1;
             });
 
-            $columns = $groupColumns->map(function($column){
+            $columns = $groupColumns->map(function ($column) {
                 return [
                     'column_no' => $column->first()->getCustomFormColumn()->column_no,
                     'width' => $column->first()->getCustomFormColumn()->width ?? 2,
                     'gridWidth' => ($column->first()->getCustomFormColumn()->width ?? 2) * 3,
-                    'custom_form_columns' => $column->map(function($c){
+                    'custom_form_columns' => $column->map(function ($c) {
                         return $c->getItemsForDisplay();
                     })->toArray(),
                 ];
             });
 
             // cacl row's grid width.
-            $gridColumn = $columns->sum(function($column){
+            $gridColumn = $columns->sum(function ($column) {
                 return $column['width'];
             });
 
@@ -284,7 +284,7 @@ abstract class BlockBase
         });
 
         // if empty row column, append init form items
-        if($groupRowColumns->count() == 0){
+        if ($groupRowColumns->count() == 0) {
             $groupRowColumns->push([
                 'row_no' => 1,
                 'columns' => collect([[
@@ -304,7 +304,7 @@ abstract class BlockBase
     /**
      * Check whether column has items. if true, already setted.
      *
-     * @return boolean 
+     * @return boolean
      */
     protected function hasCustomForms($suggest_form_column_type, $suggest_form_column_target_id)
     {
@@ -313,14 +313,13 @@ abstract class BlockBase
         // if has_custom_forms is true, not show display default.
         return collect(array_get($this->custom_form_block, 'custom_form_columns', []))
             ->contains(function ($custom_form_column) use ($suggest_form_column_target_id, $suggest_form_column_type) {
-            if (boolval(array_get($custom_form_column, 'delete_flg'))) {
-                return false;
-            }
-            return array_get($custom_form_column, 'form_column_type') == $suggest_form_column_type && 
+                if (boolval(array_get($custom_form_column, 'delete_flg'))) {
+                    return false;
+                }
+                return array_get($custom_form_column, 'form_column_type') == $suggest_form_column_type &&
                 array_get($custom_form_column, 'form_column_target_id') == $suggest_form_column_target_id;
-        });
+            });
     }
 
     abstract public static function getBlockLabelHeader(CustomTable $custom_table);
-
 }

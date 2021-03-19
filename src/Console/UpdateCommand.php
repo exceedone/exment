@@ -63,12 +63,11 @@ class UpdateCommand extends Command
      */
     public function initDatabase()
     {
-        foreach(['cache:clear', 'config:clear', 'route:clear', 'view:clear'] as $command){
-            try
-            {
+        foreach (['cache:clear', 'config:clear', 'route:clear', 'view:clear'] as $command) {
+            try {
                 $this->call($command);
+            } catch (\Exception $ex) {
             }
-            catch(\Exception $ex){}
         }
 
         $this->call('migrate');

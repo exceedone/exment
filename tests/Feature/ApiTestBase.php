@@ -17,11 +17,12 @@ abstract class ApiTestBase extends TestCase
     use TestTrait;
     
     /**
-     * Get Client Id and Secret 
+     * Get Client Id and Secret
      *
      * @return array [client_id, client_secret]
      */
-    protected function getClientIdAndSecret(){
+    protected function getClientIdAndSecret()
+    {
         // get client id and secret token
         $client = ApiClient::withoutGlobalScope('only_self')->where('name', Define::API_FEATURE_TEST)->first();
 
@@ -33,7 +34,8 @@ abstract class ApiTestBase extends TestCase
      *
      * @return array [client_id, client_secret, api_key]
      */
-    protected function getClientIdAndSecretAndKey(){
+    protected function getClientIdAndSecretAndKey()
+    {
         // get client id and secret token
         $client = ApiClient::withoutGlobalScope('only_self')->where('name', Define::API_FEATURE_TEST_APIKEY)->first();
 
@@ -44,11 +46,12 @@ abstract class ApiTestBase extends TestCase
      *
      * @return \Illuminate\Foundation\Testing\TestResponse
      */
-    protected function getPasswordToken($user_code, $password, $scope = []){
+    protected function getPasswordToken($user_code, $password, $scope = [])
+    {
         $this->initAllTest();
         list($client_id, $client_secret) = $this->getClientIdAndSecret();
         
-        if(\is_nullorempty($scope)){
+        if (\is_nullorempty($scope)) {
             $scope = ApiScope::arrays();
         }
 
@@ -63,15 +66,16 @@ abstract class ApiTestBase extends TestCase
     }
 
     /**
-     * Get API Key 
+     * Get API Key
      *
      * @return \Illuminate\Foundation\Testing\TestResponse
      */
-    protected function getApiKey($scope = []){
+    protected function getApiKey($scope = [])
+    {
         $this->initAllTest();
         list($client_id, $client_secret, $api_key) = $this->getClientIdAndSecretAndKey();
         
-        if(\is_nullorempty($scope)){
+        if (\is_nullorempty($scope)) {
             $scope = ApiScope::arrays();
         }
 
@@ -90,7 +94,8 @@ abstract class ApiTestBase extends TestCase
      *
      * @return string
      */
-    protected function getAdminAccessToken($scope = []){
+    protected function getAdminAccessToken($scope = [])
+    {
         $response = $this->getPasswordToken('admin', 'adminadmin', $scope);
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
@@ -101,7 +106,8 @@ abstract class ApiTestBase extends TestCase
      *
      * @return string
      */
-    protected function getAdminAccessTokenAsApiKey($scope = []){
+    protected function getAdminAccessTokenAsApiKey($scope = [])
+    {
         $response = $this->getApiKey($scope);
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
@@ -112,7 +118,8 @@ abstract class ApiTestBase extends TestCase
      *
      * @return string
      */
-    protected function getUser1AccessToken($scope = []){
+    protected function getUser1AccessToken($scope = [])
+    {
         $response = $this->getPasswordToken('user1', 'user1user1', $scope);
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
@@ -123,7 +130,8 @@ abstract class ApiTestBase extends TestCase
      *
      * @return string
      */
-    protected function getUser2AccessToken($scope = []){
+    protected function getUser2AccessToken($scope = [])
+    {
         $response = $this->getPasswordToken('user2', 'user2user2', $scope);
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
@@ -134,7 +142,8 @@ abstract class ApiTestBase extends TestCase
      *
      * @return string
      */
-    protected function getUserAccessToken($userid, $password, $scope = []){
+    protected function getUserAccessToken($userid, $password, $scope = [])
+    {
         $response = $this->getPasswordToken($userid, $password, $scope);
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
@@ -162,19 +171,20 @@ abstract class ApiTestBase extends TestCase
      *
      * @return void
      */
-    protected function assertJsonTrue($response, $arrays){
+    protected function assertJsonTrue($response, $arrays)
+    {
         $json = json_decode($response->baseResponse->getContent(), true);
         $this->assertJsonTrueFunc([], $arrays, $json);
     }
 
-    protected function assertJsonTrueFunc($keys, $arrays, $json){
-        foreach($arrays as $k => $v){
+    protected function assertJsonTrueFunc($keys, $arrays, $json)
+    {
+        foreach ($arrays as $k => $v) {
             $copykeys = $keys;
             $copykeys[] = $k;
-            if(is_array($v)){
+            if (is_array($v)) {
                 $this->assertJsonTrueFunc($copykeys, $v, $json);
-            }
-            else{
+            } else {
                 $checkKey = implode('.', $copykeys);
                 $checkValue = array_get($json, $checkKey);
                 $jsonString = json_encode($json);
@@ -182,5 +192,4 @@ abstract class ApiTestBase extends TestCase
             }
         }
     }
-
 }

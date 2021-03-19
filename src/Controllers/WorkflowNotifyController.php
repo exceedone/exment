@@ -9,20 +9,12 @@ use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Form\Widgets\ProgressTracker;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Workflow;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
-use Exceedone\Exment\Enums\NotifyBeforeAfter;
-use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
-use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Http\Request;
@@ -83,7 +75,7 @@ class WorkflowNotifyController extends Controller
     {
         $grid = new Grid(new Notify);
         
-        $grid->header(function($grid){
+        $grid->header(function ($grid) {
             $process = new ProgressTracker();
             return $process->options($this->getProgressInfo($this->workflow, 3))
                 ->render();
@@ -118,7 +110,7 @@ class WorkflowNotifyController extends Controller
             ->where('notify_trigger', NotifyTrigger::WORKFLOW);
 
         $workflow = $this->workflow;
-        $grid->actions(function (Grid\Displayers\Actions $actions) use($workflow) {
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($workflow) {
             $actions->disableView();
             
             $linker = (new Linker)
@@ -150,7 +142,7 @@ class WorkflowNotifyController extends Controller
         $form->progressTracker()->options($this->getProgressInfo($this->workflow, 3));
 
         $notify = Notify::find($id);
-        if($notify && $notify->notify_trigger != NotifyTrigger::WORKFLOW){
+        if ($notify && $notify->notify_trigger != NotifyTrigger::WORKFLOW) {
             Checker::error(exmtrans('common.message.wrongdata'));
             return false;
         }
@@ -177,7 +169,7 @@ class WorkflowNotifyController extends Controller
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();
 
-        $form->hasManyJson('action_settings', exmtrans("notify.action_settings"), function ($form) use($notify) {
+        $form->hasManyJson('action_settings', exmtrans("notify.action_settings"), function ($form) use ($notify) {
             $form->select('notify_action', exmtrans("notify.notify_action"))
                 ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
                 ->required()
@@ -203,7 +195,7 @@ class WorkflowNotifyController extends Controller
         
         $this->setFooterForm($form, $notify);
 
-        $form->tools(function (Form\Tools $tools) use($workflow) {
+        $form->tools(function (Form\Tools $tools) use ($workflow) {
             $tools->disableList();
             
             $tools->append(new Tools\SystemChangePageMenu());

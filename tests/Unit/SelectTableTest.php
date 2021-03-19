@@ -231,14 +231,15 @@ class SelectTableTest extends UnitTestBase
      * @param array $options
      * @return void
      */
-    protected function executeSelectTableTest($column_type, array $options){
+    protected function executeSelectTableTest($column_type, array $options)
+    {
         $options = array_merge(
             [
                 'login_user_admin' => false, // if true, login as admin. else normal user. if normal user, options has only items user has permission.
                 'relation_filter' => null, // if set relation_filter, execute relation filter.
                 'target_view' => false, // if set target view, filter view
                 'select_load_ajax' => false, // if true, select_load_ajax
-            ], 
+            ],
             $options
         );
 
@@ -249,7 +250,7 @@ class SelectTableTest extends UnitTestBase
 
         // get target column.
         $custom_column = $this->getTargetColumn($column_type, $options);
-        if(is_nullorempty($custom_column)){
+        if (is_nullorempty($custom_column)) {
             $this->assertTrue(false, 'target column is not found. Please check.');
             return;
         }
@@ -279,21 +280,21 @@ class SelectTableTest extends UnitTestBase
      */
     protected function getTargetColumn($column_type, array $options)
     {
-        if($column_type == ColumnType::USER){
-            if(isset($options['relation_filter'])){
+        if ($column_type == ColumnType::USER) {
+            if (isset($options['relation_filter'])) {
                 return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['user_relation_filter'], $options);
             }
     
             return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['user'], $options);
         }
         
-        if($column_type == ColumnType::ORGANIZATION){
+        if ($column_type == ColumnType::ORGANIZATION) {
             return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['organization'], $options);
         }
 
-        if(isset($options['relation_filter'])){
+        if (isset($options['relation_filter'])) {
             $table_name = null;
-            switch($options['relation_filter']){
+            switch ($options['relation_filter']) {
                 case SearchType::ONE_TO_MANY:
                     $table_name = TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE;
                     break;
@@ -312,9 +313,10 @@ class SelectTableTest extends UnitTestBase
     }
 
 
-    protected function getTargetColumnTable(string $custom_table_name, array $columns, array $options){
+    protected function getTargetColumnTable(string $custom_table_name, array $columns, array $options)
+    {
         if (boolval($options['select_load_ajax'])) {
-            if(boolval($options['target_view'])){
+            if (boolval($options['target_view'])) {
                 return CustomColumn::getEloquent($columns['ajax_view'], $custom_table_name);
             }
             return CustomColumn::getEloquent($columns['ajax'], $custom_table_name);
@@ -323,7 +325,7 @@ class SelectTableTest extends UnitTestBase
         if (boolval($options['target_view'])) {
             return CustomColumn::getEloquent($columns['view'], $custom_table_name);
         }
-        return CustomColumn::getEloquent($columns['default'], $custom_table_name);   
+        return CustomColumn::getEloquent($columns['default'], $custom_table_name);
     }
 
     /**
@@ -335,15 +337,16 @@ class SelectTableTest extends UnitTestBase
      * @param array $options
      * @return array
      */
-    protected function getSelectFieldOptions($custom_column, $linkage, $parentValue, array $options){
-        if (!isset($options['relation_filter'])) {  
+    protected function getSelectFieldOptions($custom_column, $linkage, $parentValue, array $options)
+    {
+        if (!isset($options['relation_filter'])) {
             return [];
         }
         $column_item = $custom_column->column_item;
 
         // get callback
         $callback = function (&$query) use ($linkage, $parentValue) {
-            if(!$linkage){
+            if (!$linkage) {
                 return;
             }
             
@@ -362,8 +365,9 @@ class SelectTableTest extends UnitTestBase
      * @param array $options
      * @return array
      */
-    protected function getParentValueAndLinkage($custom_column, array &$options){
-        if (!isset($options['relation_filter'])) {  
+    protected function getParentValueAndLinkage($custom_column, array &$options)
+    {
+        if (!isset($options['relation_filter'])) {
             return [null, null];
         }
 
@@ -372,7 +376,7 @@ class SelectTableTest extends UnitTestBase
         $custom_column->column_item->setFormColumnOptions($custom_form_column);
         // copy and paste from SelectTable.php
         $linkage = $this->callProtectedMethod($custom_column->column_item, 'getLinkage', ['relation_filter_target_column_id' => $custom_form_column ? $custom_form_column->id : null]);
-        if(!isset($linkage)){
+        if (!isset($linkage)) {
             return [null, null];
         }
 
@@ -381,7 +385,7 @@ class SelectTableTest extends UnitTestBase
         $options['child_table'] = $linkage->child_column->select_target_table;
 
         $select_target_table = $linkage->parent_column->select_target_table;
-        if(!isset($select_target_table)){
+        if (!isset($select_target_table)) {
             return [null, $linkage];
         }
 
@@ -394,8 +398,9 @@ class SelectTableTest extends UnitTestBase
      *
      * @return Collection
      */
-    protected function searchCustomValueDirectly($custom_column, $value, array $options){
-        // if select ajax is true, return empty ids, 
+    protected function searchCustomValueDirectly($custom_column, $value, array $options)
+    {
+        // if select ajax is true, return empty ids,
         if (boolval($options['select_load_ajax'])) {
             return collect([]);
         }
@@ -409,24 +414,23 @@ class SelectTableTest extends UnitTestBase
         // user permission does not need filter.
 
         // target_view
-        if(boolval($options['target_view'])){
+        if (boolval($options['target_view'])) {
             $target_view = $custom_column->select_target_view;
-            if(isset($target_view)){
+            if (isset($target_view)) {
                 $target_view->filterSortModel($query);
             }
         }
 
         // if column_type is or user, filter
-        if($custom_column->column_type == ColumnType::USER){
+        if ($custom_column->column_type == ColumnType::USER) {
             AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($custom_column->custom_table_cache, null, $query);
-        }
-        elseif($custom_column->column_type == ColumnType::ORGANIZATION){
+        } elseif ($custom_column->column_type == ColumnType::ORGANIZATION) {
             AuthUserOrgHelper::getRoleOrganizationQueryTable($custom_column->custom_table_cache, null, $query);
         }
 
 
         // relation filter
-        switch($options['relation_filter']){
+        switch ($options['relation_filter']) {
             case SearchType::ONE_TO_MANY:
                 RelationTable::setQueryOneMany($query, array_get($options, 'parent_table'), $value);
                 break;
@@ -451,7 +455,8 @@ class SelectTableTest extends UnitTestBase
      * @param Collection $correct2
      * @return boolean
      */
-    protected function isMatchIds($correct1, $correct2){
+    protected function isMatchIds($correct1, $correct2)
+    {
         return $correct1->diff($correct2)->count() === 0 && $correct2->diff($correct1)->count() === 0;
     }
 }

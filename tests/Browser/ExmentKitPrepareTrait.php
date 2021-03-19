@@ -34,7 +34,7 @@ trait ExmentKitPrepareTrait
 
         $custom_table = CustomTable::getEloquent($table_name);
 
-        if(isset($custom_table)){
+        if (isset($custom_table)) {
             $this->assertTrue(true);
             return;
         }
@@ -60,7 +60,7 @@ trait ExmentKitPrepareTrait
     /**
      * Prepare custom column all columntype.
      */
-    protected function createCustomColumns($table_name, $targets = null) 
+    protected function createCustomColumns($table_name, $targets = null)
     {
         $col_data[] = [
             'column_name' => 'integer',
@@ -226,8 +226,8 @@ trait ExmentKitPrepareTrait
             ],
         ];
 
-        foreach($col_data as $data){
-            if (is_null($targets) || in_array(array_get($data, 'column_type'), $targets) || in_array(array_get($data, 'column_name'), $targets)){
+        foreach ($col_data as $data) {
+            if (is_null($targets) || in_array(array_get($data, 'column_type'), $targets) || in_array(array_get($data, 'column_name'), $targets)) {
                 // Create custom column
                 $this->post(admin_url("column/$table_name"), $data);
                 $this->visit(admin_url("column/$table_name"))

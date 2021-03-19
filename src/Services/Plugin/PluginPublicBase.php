@@ -68,15 +68,14 @@ class PluginPublicBase
      */
     public function getCssJsUrl($fileName, bool $asPublicForm = false)
     {
-        if($asPublicForm){
+        if ($asPublicForm) {
             $public_form = PublicForm::getPublicFormByRequest();
-            if(!$public_form){
+            if (!$public_form) {
                 return null;
             }
 
             $url = $public_form->getUrl();
-        }
-        else{
+        } else {
             $url = admin_urls();
         }
 

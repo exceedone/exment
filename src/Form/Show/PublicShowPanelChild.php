@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Form\Show;
 use Encore\Admin\Show;
 
 /**
- * Public show panel for child. 
+ * Public show panel for child.
  */
 class PublicShowPanelChild extends \Encore\Admin\Show\Panel
 {

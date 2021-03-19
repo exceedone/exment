@@ -177,16 +177,16 @@ class CustomColumnController extends AdminControllerTableBase
         // get custom_item for option
         $custom_column = CustomColumn::getEloquent($id);
 
-        if(isset($custom_column)){
+        if (isset($custom_column)) {
             $column_type = $custom_column->column_type;
             $column_item = $custom_column->column_item;
-        }elseif(!is_nullorempty($request->get('column_type'))){
+        } elseif (!is_nullorempty($request->get('column_type'))) {
             $column_type = $request->get('column_type');
             $column_item = $this->getCustomItem(request(), $id, $column_type);
-        }elseif(!is_nullorempty($request->old('column_type'))){
+        } elseif (!is_nullorempty($request->old('column_type'))) {
             $column_type = $request->old('column_type');
             $column_item = $this->getCustomItem(request(), $id, $column_type);
-        }else{
+        } else {
             $column_type = null;
             $column_item = null;
         }
@@ -228,7 +228,7 @@ class CustomColumnController extends AdminControllerTableBase
                         } else {
                             return false;
                         }
-                    })->mapWithKeys(function($column_type){
+                    })->mapWithKeys(function ($column_type) {
                         return [$column_type => ColumnType::getHtml($column_type)];
                     })->toArray();
                 })
@@ -281,16 +281,14 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.min_max_width"))
                 ;
 
-        // setting for each settings of column_type. --------------------------------------------------
-        // Form options area -- start
-        $form->html('<div class="form_dynamic_options">')->plain(); 
-        if(isset($column_item)){
-            $column_item->setCustomColumnForm($form);
-        }
-        // Form options area -- End
-        $form->html('</div>')->plain(); 
-
-
+            // setting for each settings of column_type. --------------------------------------------------
+            // Form options area -- start
+            $form->html('<div class="form_dynamic_options">')->plain();
+            if (isset($column_item)) {
+                $column_item->setCustomColumnForm($form);
+            }
+            // Form options area -- End
+            $form->html('</div>')->plain();
         })->disableHeader();
 
         $form->number('order', exmtrans("custom_column.order"))->rules("integer")
@@ -389,7 +387,7 @@ class CustomColumnController extends AdminControllerTableBase
                     ->where('column_no', 1)
                     ->select('width')
                     ->pluck('width')
-                    ->first() ?? 2;  
+                    ->first() ?? 2;
 
                 $custom_form_column = new CustomFormColumn;
                 $custom_form_column->custom_form_block_id = $form_block->id;
@@ -462,7 +460,8 @@ class CustomColumnController extends AdminControllerTableBase
      * @param Request $request
      * @return array
      */
-    public function columnTypeHtml(Request $request){
+    public function columnTypeHtml(Request $request)
+    {
         $val = $request->get('val');
         $form_type = $request->get('form_type');
         $form_uniqueName = $request->get('form_uniqueName');
@@ -472,13 +471,13 @@ class CustomColumnController extends AdminControllerTableBase
         $column_item = $this->getCustomItem($request, $id, $val);
 
         $form = new Form(new CustomColumn);
-        $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("custom_column.options.header"), function ($form) use($form_type, $column_item) {
-           // Form options area -- start
-           $form->html('<div class="form_dynamic_options_response">')->plain();
-           if (isset($column_item)) {
-               $column_item->setCustomColumnForm($form);
-           }
-           $form->html('</div>')->plain();
+        $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($form_type, $column_item) {
+            // Form options area -- start
+            $form->html('<div class="form_dynamic_options_response">')->plain();
+            if (isset($column_item)) {
+                $column_item->setCustomColumnForm($form);
+            }
+            $form->html('</div>')->plain();
         });
 
         $body = $form->render();
@@ -490,7 +489,8 @@ class CustomColumnController extends AdminControllerTableBase
     }
 
 
-    protected function getCustomItem(Request $request, $id, $column_type){
+    protected function getCustomItem(Request $request, $id, $column_type)
+    {
         return CustomItem::getItem(new CustomColumn([
             'custom_table_id' => $this->custom_table->id,
             'id' => $id,

@@ -89,10 +89,10 @@ class Column extends ColumnBase
     public function prepareSavingOptions(array $options) : array
     {
         // convert field_showing_type
-        if(!is_null($key = $this->convertFieldDisplayType($options))){
+        if (!is_null($key = $this->convertFieldDisplayType($options))) {
             $options[$key] = 1;
         }
-        return array_filter($options, function($option, $key){
+        return array_filter($options, function ($option, $key) {
             return in_array($key, $this->prepareSavingOptionsKeys());
         }, ARRAY_FILTER_USE_BOTH);
     }
@@ -103,7 +103,8 @@ class Column extends ColumnBase
      *
      * @return array
      */
-    protected function prepareSavingOptionsKeys(){
+    protected function prepareSavingOptionsKeys()
+    {
         return [
             'form_column_view_name',
             'field_label_type',
@@ -129,9 +130,8 @@ class Column extends ColumnBase
      */
     protected function convertFieldDisplayType(array $options) : ?string
     {
-        foreach(['view_only','read_only','hidden','internal'] as $key)
-        {
-            if(isMatchString($key, array_get($options, 'field_showing_type'))){
+        foreach (['view_only','read_only','hidden','internal'] as $key) {
+            if (isMatchString($key, array_get($options, 'field_showing_type'))) {
                 return $key;
             }
         }
@@ -141,7 +141,7 @@ class Column extends ColumnBase
 
 
     /**
-     * Get setting modal form 
+     * Get setting modal form
      *
      * @return WidgetForm
      */
@@ -157,7 +157,7 @@ class Column extends ColumnBase
         $form->radio('field_label_type', exmtrans('custom_form.form_label_type'))
             ->options(FormLabelType::transArrayFilter('custom_form.form_label_type_options', FormLabelType::getFieldLabelTypes()))
             ->help(exmtrans('custom_form.help.field_label_type'))
-            ->default(function() use($parameters){
+            ->default(function () use ($parameters) {
                 return array_get($parameters, 'field_label_type', FormLabelType::FORM_DEFAULT);
             });
     
@@ -168,19 +168,19 @@ class Column extends ColumnBase
             'hidden' => exmtrans('custom_form.hidden'),
             'internal' => exmtrans('custom_form.internal'),
         ])->help(exmtrans('custom_form.help.field_showing_type') . \Exment::getMoreTag('form', 'custom_form.items_detail'))
-        ->default(function() use($parameters){
-            foreach(['read_only', 'view_only', 'hidden', 'internal'] as $key){
-                if(boolval(array_get($parameters, $key, false))){
+        ->default(function () use ($parameters) {
+            foreach (['read_only', 'view_only', 'hidden', 'internal'] as $key) {
+                if (boolval(array_get($parameters, $key, false))) {
                     return $key;
                 }
             }
             return 'default';
         });
 
-        if($this->custom_column->required){
+        if ($this->custom_column->required) {
             $form->display('required', exmtrans('custom_form.required'))
                 ->displayText(exmtrans('custom_form.message.required_as_column'));
-        }else{
+        } else {
             $form->switchbool('required', exmtrans('custom_form.required'))
                 ->help(exmtrans('custom_form.help.required'));
         }
@@ -189,11 +189,11 @@ class Column extends ColumnBase
 
         $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             
-        $selectColumns = $this->getSelectTableColumns($block_item)->filter(function($selectColumn, $key){
+        $selectColumns = $this->getSelectTableColumns($block_item)->filter(function ($selectColumn, $key) {
             return !isMatchString($key, $this->custom_column->id);
         });
 
-        if($selectColumns->count() > 0){
+        if ($selectColumns->count() > 0) {
             $form->exmheader(exmtrans('custom_form.changedata'))->hr();
             $form->description(sprintf(exmtrans('custom_form.help.changedata'), getManualUrl('form#'.exmtrans('custom_form.changedata'))))->escape(false);
 
@@ -203,8 +203,8 @@ class Column extends ColumnBase
 
             $form->select('changedata_column_id', exmtrans('custom_form.changedata_column'))
                 ->help(exmtrans('custom_form.changedata_column_then'))
-                ->options(function() use($parameters){
-                    if(is_null($changedata_target_column_id = array_get($parameters, 'changedata_target_column_id'))){
+                ->options(function () use ($parameters) {
+                    if (is_null($changedata_target_column_id = array_get($parameters, 'changedata_target_column_id'))) {
                         return [];
                     }
 
@@ -279,7 +279,8 @@ class Column extends ColumnBase
     }
 
     
-    public function getFontAwesomeClass() : ?string{
+    public function getFontAwesomeClass() : ?string
+    {
         return $this->custom_column->getFontAwesomeClass();
     }
 }

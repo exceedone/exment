@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form;
 
-use Encore\Admin\Admin;
 use Encore\Admin\Form\Footer as FooterBase;
 
 class PublicFormFooter extends FooterBase
@@ -33,9 +32,10 @@ class PublicFormFooter extends FooterBase
      *
      * @return $this
      */
-    public function useRecaptchaV2(){
+    public function useRecaptchaV2()
+    {
         // if no exixts class, return $this
-        if(!\Exment::isAvailableGoogleRecaptcha()){
+        if (!\Exment::isAvailableGoogleRecaptcha()) {
             return $this;
         }
 
@@ -48,9 +48,10 @@ class PublicFormFooter extends FooterBase
      *
      * @return $this
      */
-    public function useRecaptchaV3(){
+    public function useRecaptchaV3()
+    {
         // if no exixts class, return $this
-        if(!\Exment::isAvailableGoogleRecaptcha()){
+        if (!\Exment::isAvailableGoogleRecaptcha()) {
             return $this;
         }
 

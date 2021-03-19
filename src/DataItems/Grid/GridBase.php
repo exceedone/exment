@@ -190,7 +190,8 @@ abstract class GridBase
      * @param CustomTable $custom_table
      * @return void
      */
-    public static function setColumnFields(&$form, $custom_table, array $column_options = []){
+    public static function setColumnFields(&$form, $custom_table, array $column_options = [])
+    {
         // columns setting
         $column_options = array_merge([
             'append_table' => true,
@@ -243,7 +244,8 @@ abstract class GridBase
      *
      * @return void
      */
-    protected function setTableMenuButton(&$tools){
+    protected function setTableMenuButton(&$tools)
+    {
         if ($this->custom_table->enableTableMenuButton()) {
             $tools[] = \Exment::getRender(new Tools\CustomTableMenuButton('data', $this->custom_table));
         }
@@ -254,7 +256,8 @@ abstract class GridBase
      *
      * @return void
      */
-    protected function setViewMenuButton(&$tools){
+    protected function setViewMenuButton(&$tools)
+    {
         if ($this->custom_table->enableViewMenuButton()) {
             $tools[] = \Exment::getRender(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
         }
@@ -265,7 +268,8 @@ abstract class GridBase
      *
      * @return void
      */
-    protected function setNewButton(&$tools){
+    protected function setNewButton(&$tools)
+    {
         if ($this->custom_table->enableCreate(true) === true) {
             $tools[] = \Exment::getRender(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
         }

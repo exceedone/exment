@@ -88,7 +88,7 @@ class DefaultShow extends ShowBase
                 $field->border = false;
             }
 
-            if($this->gridShows()){
+            if ($this->gridShows()) {
                 $show->gridShows();
             }
 
@@ -788,7 +788,7 @@ EOT;
         // get custom column and item
         $custom_column = CustomColumn::getEloquent($del_column_name, $this->custom_table);
         $custom_item = $custom_column ? $custom_column->column_item : null;
-        if($custom_item && method_exists($custom_item, 'deleteFile')){
+        if ($custom_item && method_exists($custom_item, 'deleteFile')) {
             $custom_item->setCustomValue($this->custom_value)->deleteFile($del_key);
         }
 
@@ -860,11 +860,11 @@ EOT;
      */
     protected function setColumnItemOption(ItemInterface $column_item, ?CustomFormColumn $form_column = null)
     {
-        if($this->isPublicForm()){
+        if ($this->isPublicForm()) {
             $column_item->options(['public_form' => $this->public_form]);
         }
 
-        if($form_column){
+        if ($form_column) {
             $column_item->setFormColumnOptions($form_column->options);
         }
         $column_item->setCustomForm($this->custom_form);
@@ -885,8 +885,9 @@ EOT;
      *
      * @return bool
      */
-    protected function gridShows(){
-        if($this->modal){
+    protected function gridShows()
+    {
+        if ($this->modal) {
             return false;
         }
 

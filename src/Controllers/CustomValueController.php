@@ -197,7 +197,7 @@ class CustomValueController extends AdminControllerTableBase
             }
 
             // Append ----------------------------------------------------
-            if(boolval($this->custom_view->use_view_infobox)){
+            if (boolval($this->custom_view->use_view_infobox)) {
                 $box = new Box($this->custom_view->view_infobox_title, html_clean($this->custom_view->view_infobox));
                 $content->row($box);
             }

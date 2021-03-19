@@ -47,7 +47,7 @@ class PublicContent implements Renderable
      * Set the value of background_color
      *
      * @return  self
-     */ 
+     */
     public function setBackgroundColor($background_color)
     {
         $this->background_color = $background_color;
@@ -59,7 +59,7 @@ class PublicContent implements Renderable
      * Set the value of background_color_outer
      *
      * @return  self
-     */ 
+     */
     public function setBackgroundColorOuter($background_color_outer)
     {
         $this->background_color_outer = $background_color_outer;
@@ -71,7 +71,7 @@ class PublicContent implements Renderable
      * Set the value of header_background_color
      *
      * @return  self
-     */ 
+     */
     public function setHeaderBackgroundColor($header_background_color)
     {
         $this->header_background_color = $header_background_color;
@@ -83,7 +83,7 @@ class PublicContent implements Renderable
      * Set the value of footer_background_color
      *
      * @return  self
-     */ 
+     */
     public function setFooterBackgroundColor($footer_background_color)
     {
         $this->footer_background_color = $footer_background_color;
@@ -95,7 +95,7 @@ class PublicContent implements Renderable
      * Set the value of use_header
      *
      * @return  self
-     */ 
+     */
     public function setUseHeader($use_header)
     {
         $this->use_header = $use_header;
@@ -107,7 +107,7 @@ class PublicContent implements Renderable
      * Set the value of use_footer
      *
      * @return  self
-     */ 
+     */
     public function setUseFooter($use_footer)
     {
         $this->use_footer = $use_footer;
@@ -119,7 +119,7 @@ class PublicContent implements Renderable
      * Set the value of footer_text_color
      *
      * @return  self
-     */ 
+     */
     public function setFooterTextColor($footer_text_color)
     {
         $this->footer_text_color = $footer_text_color;
@@ -131,7 +131,7 @@ class PublicContent implements Renderable
      * Set the value of container_fluid
      *
      * @return  self
-     */ 
+     */
     public function setIsContainer(bool $container)
     {
         $this->container = $container;
@@ -143,7 +143,7 @@ class PublicContent implements Renderable
      * Set the value of header_label
      *
      * @return  self
-     */ 
+     */
     public function setHeaderLabel($header_label)
     {
         $this->header_label = $header_label;
@@ -156,7 +156,7 @@ class PublicContent implements Renderable
      * Set the value of header_logo_url
      *
      * @return  self
-     */ 
+     */
     public function setHeaderLogoUrl($header_logo_url)
     {
         $this->header_logo_url = $header_logo_url;
@@ -168,7 +168,7 @@ class PublicContent implements Renderable
      * Set analytics
      *
      * @return  self
-     */ 
+     */
     public function setAnalytics($analytics)
     {
         $this->analytics = $analytics;
@@ -203,11 +203,9 @@ class PublicContent implements Renderable
             $row = new Row();
             call_user_func($content, $row);
             $this->addRow($row);
-        }
-        elseif ($content instanceof Row) {
+        } elseif ($content instanceof Row) {
             $this->addRow($content);
-        }
-        else {
+        } else {
             $this->addRow(new Row($content));
         }
 
@@ -288,5 +286,4 @@ class PublicContent implements Renderable
 
         return view('exment::public-form.content', $items)->render();
     }
-
 }

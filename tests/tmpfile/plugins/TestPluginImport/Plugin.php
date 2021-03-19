@@ -5,11 +5,13 @@ use Exceedone\Exment\Services\Plugin\PluginImportBase;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Exceedone\Exment\Enums\SystemTableName;
 
-class Plugin extends PluginImportBase{
+class Plugin extends PluginImportBase
+{
     /**
      * execute
      */
-    public function execute() {
+    public function execute()
+    {
         $path = $this->file->getRealPath();
 
         $reader = $this->createReader();
@@ -62,5 +64,4 @@ class Plugin extends PluginImportBase{
     {
         return IOFactory::createReader('Xlsx');
     }
-    
 }

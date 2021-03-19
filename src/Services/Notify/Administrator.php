@@ -33,7 +33,7 @@ class Administrator extends NotifyTargetBase
     protected function _getModel()
     {
         $admins = System::system_admin_users();
-        return collect($admins)->map(function($admin){
+        return collect($admins)->map(function ($admin) {
             return NotifyTarget::getModelAsUser(CustomTable::getEloquent(SystemTableName::USER)->getValueModel($admin));
         });
     }

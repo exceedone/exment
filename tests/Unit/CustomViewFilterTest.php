@@ -23,9 +23,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::EQ,
             'filter_value_text' => 'text_2'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.text') == $filter_settings[0]['filter_value_text'];
-        }); 
+        });
     }
 
     /**
@@ -40,7 +40,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NE,
             'filter_value_text' => 1
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.yesno') != $filter_settings[0]['filter_value_text'];
         });
     }
@@ -56,7 +56,7 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'text',
             'filter_condition' => FilterOption::NOT_NULL,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.text') !== null;
         });
     }
@@ -72,7 +72,7 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'text',
             'filter_condition' => FilterOption::NULL,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.text') === null;
         });
     }
@@ -89,7 +89,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::LIKE,
             'filter_value_text' => 'text_1'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return strpos(array_get($data, 'value.text'), $filter_settings[0]['filter_value_text']) === 0;
         });
     }
@@ -106,7 +106,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NOT_LIKE,
             'filter_value_text' => 'text_1'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return !is_null(array_get($data, 'value.text')) && strpos(array_get($data, 'value.text'), $filter_settings[0]['filter_value_text']) !== 0;
         });
     }
@@ -123,7 +123,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_ON,
             'filter_value_text' => '2021-01-01'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.date') == $filter_settings[0]['filter_value_text'];
         });
     }
@@ -142,9 +142,9 @@ class CustomViewFilterTest extends UnitTestBase
         ]];
 
         $base_date = \Carbon\Carbon::parse($filter_settings[0]['filter_value_text']);
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($base_date){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($base_date) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -166,9 +166,9 @@ class CustomViewFilterTest extends UnitTestBase
         ]];
         
         $base_date = \Carbon\Carbon::parse($filter_settings[0]['filter_value_text']);
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($base_date){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($base_date) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -187,7 +187,7 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_NOT_NULL,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.date') !== null;
         });
     }
@@ -204,7 +204,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_NULL,
         ]];
 
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.date') === null;
         });
     }
@@ -221,9 +221,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_TODAY,
         ]];
 
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $target_value = \Carbon\Carbon::now()->format('Y-m-d');
@@ -243,9 +243,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_TODAY_OR_AFTER,
         ]];
 
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $target_value = \Carbon\Carbon::now()->format('Y-m-d');
@@ -265,9 +265,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_TODAY_OR_BEFORE,
         ]];
 
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $target_value = \Carbon\Carbon::now()->format('Y-m-d');
@@ -286,9 +286,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_YESTERDAY,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $target_value = \Carbon\Carbon::yesterday()->format('Y-m-d');
@@ -307,9 +307,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_TOMORROW,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $target_value = \Carbon\Carbon::tomorrow()->format('Y-m-d');
@@ -328,9 +328,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_THIS_MONTH,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -350,9 +350,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_LAST_MONTH,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -372,9 +372,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_NEXT_MONTH,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -394,9 +394,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_THIS_YEAR,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -416,9 +416,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_LAST_YEAR,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -438,9 +438,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'date',
             'filter_condition' => FilterOption::DAY_NEXT_YEAR,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -461,9 +461,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_LAST_X_DAY_OR_AFTER,
             'filter_value_text' => 3
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -484,9 +484,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_LAST_X_DAY_OR_BEFORE,
             'filter_value_text' => 3
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -507,9 +507,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_NEXT_X_DAY_OR_AFTER,
             'filter_value_text' => 3
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -530,9 +530,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_NEXT_X_DAY_OR_BEFORE,
             'filter_value_text' => 3
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.date');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -553,9 +553,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::EQ,
             'filter_value_text' => '02:02:02'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $time = array_get($data, 'value.time');
-            if(is_null($time)){
+            if (is_null($time)) {
                 return false;
             }
             return $time == $filter_settings[0]['filter_value_text'];
@@ -574,9 +574,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NE,
             'filter_value_text' => '02:02:02'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $time = array_get($data, 'value.time');
-            if(is_null($time)){
+            if (is_null($time)) {
                 return false;
             }
             return $time !== $filter_settings[0]['filter_value_text'];
@@ -595,7 +595,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_ON,
             'filter_value_text' => \Carbon\Carbon::today()->format('Y-m-d')
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = \Carbon\Carbon::parse(array_get($data, 'value.datetime'));
             return $date->format('Y-m-d') == $filter_settings[0]['filter_value_text'];
         });
@@ -613,9 +613,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_ON_OR_AFTER,
             'filter_value_text' => \Carbon\Carbon::today()->format('Y-m-d')
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.datetime');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -638,9 +638,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_ON_OR_BEFORE,
             'filter_value_text' => \Carbon\Carbon::today()->format('Y-m-d')
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = array_get($data, 'value.datetime');
-            if(is_null($date)){
+            if (is_null($date)) {
                 return false;
             }
             $date = \Carbon\Carbon::parse($date);
@@ -662,8 +662,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::USER_EQ,
             'filter_value_text' => $user_id
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($user_id){$user = array_get($data, 'value.user');
-            if(is_null($user)){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($user_id) {
+            $user = array_get($data, 'value.user');
+            if (is_null($user)) {
                 return false;
             }
             return isMatchString($user, $user_id);
@@ -683,9 +684,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::USER_NE,
             'filter_value_text' => $user_id
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($user_id){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($user_id) {
             $user = array_get($data, 'value.user');
-            if(is_null($user)){
+            if (is_null($user)) {
                 return false;
             }
             return !isMatchString($user, $user_id);
@@ -703,7 +704,7 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'user',
             'filter_condition' => FilterOption::USER_NOT_NULL,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.user') !== null;
         });
     }
@@ -719,7 +720,7 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'user',
             'filter_condition' => FilterOption::USER_NULL,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.user') === null;
         });
     }
@@ -735,7 +736,7 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'user',
             'filter_condition' => FilterOption::USER_EQ_USER,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $user_id = \Exment::getUserId();
             return array_get($data, 'value.user') == $user_id;
         }, ['login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC]);
@@ -753,9 +754,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::USER_NE_USER,
         ]];
 
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $user = array_get($data, 'value.user');
-            if(is_null($user)){
+            if (is_null($user)) {
                 return false;
             }
 
@@ -777,7 +778,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => $target_value
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.user_multiple'));
         });
     }
@@ -795,7 +796,7 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'user_multiple',
             'filter_condition' => FilterOption::NOT_NULL,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return !empty(array_get($data, 'value.user_multiple'));
         });
     }
@@ -813,7 +814,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => $target_value
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($target_value){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($target_value) {
             return array_get($data, 'value.organization') == $target_value;
         });
     }
@@ -831,7 +832,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
             'filter_value_text' => $target_value
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return !in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.organization_multiple'));
         });
     }
@@ -849,10 +850,9 @@ class CustomViewFilterTest extends UnitTestBase
             'column_name' => 'organization_multiple',
             'filter_condition' => FilterOption::NULL,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return empty(array_get($data, 'value.organization_multiple'));
         });
-
     }
 
     /**
@@ -867,7 +867,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NUMBER_GT,
             'filter_value_text' => 1000
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.integer') > $filter_settings[0]['filter_value_text'];
         });
     }
@@ -884,7 +884,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NUMBER_LT,
             'filter_value_text' => 1000
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.integer') < $filter_settings[0]['filter_value_text'];
         });
     }
@@ -902,7 +902,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NUMBER_GTE,
             'filter_value_text' => 1000
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.integer') >= $filter_settings[0]['filter_value_text'];
         });
     }
@@ -919,7 +919,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NUMBER_LTE,
             'filter_value_text' => 1000
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.integer') <= $filter_settings[0]['filter_value_text'];
         });
     }
@@ -937,7 +937,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NUMBER_GT,
             'filter_value_text' => "$target_value"
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($target_value){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($target_value) {
             return array_get($data, 'value.decimal') > $target_value;
         });
     }
@@ -955,7 +955,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NUMBER_LT,
             'filter_value_text' => "$target_value"
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($target_value){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($target_value) {
             return array_get($data, 'value.decimal') < $target_value;
         });
     }
@@ -974,7 +974,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NUMBER_GTE,
             'filter_value_text' => "$target_value"
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($target_value){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($target_value) {
             return array_get($data, 'value.decimal') >= $target_value;
         });
     }
@@ -992,7 +992,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NUMBER_LTE,
             'filter_value_text' => "$target_value"
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings) use($target_value){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($target_value) {
             return array_get($data, 'value.decimal') <= $target_value;
         });
     }
@@ -1009,7 +1009,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => 'bar'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.select') === $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1026,7 +1026,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
             'filter_value_text' => 'bar'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.select') !== $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1043,7 +1043,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => 'bar'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.select_valtext') === $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1060,7 +1060,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
             'filter_value_text' => 'bar'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.select_valtext') !== $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1077,7 +1077,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => 2
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.select_table') === $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1094,7 +1094,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
             'filter_value_text' => 2
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'value.select_table') !== $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1111,7 +1111,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => 'bar'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_multiple'));
         });
     }
@@ -1128,7 +1128,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
             'filter_value_text' => 'foo'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return !in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_multiple'));
         });
     }
@@ -1145,7 +1145,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => 'bar'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_valtext_multiple'));
         });
     }
@@ -1162,7 +1162,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
             'filter_value_text' => 'baz'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return !in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_valtext_multiple'));
         });
     }
@@ -1179,7 +1179,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => 2
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_table_multiple'));
         });
     }
@@ -1196,7 +1196,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
             'filter_value_text' => 4
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return !in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_table_multiple'));
         });
     }
@@ -1214,7 +1214,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::LIKE,
             'filter_value_text' => 8
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return strpos(strval(array_get($data, 'id')), strval($filter_settings[0]['filter_value_text'])) === 0;
         });
     }
@@ -1232,7 +1232,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_ON,
             'filter_value_text' => \Carbon\Carbon::now()->format('Y-m-d')
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = \Carbon\Carbon::parse(array_get($data, 'created_at'));
             return $date->isSameDay(\Carbon\Carbon::today());
         });
@@ -1250,7 +1250,7 @@ class CustomViewFilterTest extends UnitTestBase
             'condition_type' => ConditionType::SYSTEM,
             'filter_condition' => FilterOption::DAY_TODAY,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $date = \Carbon\Carbon::parse(array_get($data, 'updated_at'));
             return $date->isSameDay(\Carbon\Carbon::today());
         });
@@ -1268,11 +1268,10 @@ class CustomViewFilterTest extends UnitTestBase
             'condition_type' => ConditionType::SYSTEM,
             'filter_condition' => FilterOption::USER_EQ_USER,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $user_id = \Exment::getUserId();
             return array_get($data, 'created_user_id') == $user_id;
         });
-
     }
 
     /**
@@ -1288,7 +1287,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NE,
             'filter_value_text' => TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             return array_get($data, 'updated_user_id') !== TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC;
         });
     }
@@ -1306,7 +1305,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::EQ,
             'filter_value_text' => '2'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $parent_value = $data->getParentValue();
             return isset($parent_value) && $parent_value->id == $filter_settings[0]['filter_value_text'];
         }, ['target_table_name' => 'child_table']);
@@ -1325,7 +1324,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::NE,
             'filter_value_text' => '2'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $parent_value = $data->getParentValue();
             return isset($parent_value) && $parent_value->id != $filter_settings[0]['filter_value_text'];
         }, ['target_table_name' => 'child_table']);
@@ -1344,9 +1343,9 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::EQ,
             'filter_value_text' => '7'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $workflow_status = array_get($data, 'workflow_status');
-            if(!$workflow_status){
+            if (!$workflow_status) {
                 return false;
             }
             return $workflow_status->id == $filter_settings[0]['filter_value_text'];
@@ -1366,7 +1365,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::WORKFLOW_NE_STATUS,
             'filter_value_text' => 'start'
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $workflow_status = array_get($data, 'workflow_status');
             return !is_null($workflow_status);
         }, ['target_table_name' => 'custom_value_edit']);
@@ -1384,19 +1383,19 @@ class CustomViewFilterTest extends UnitTestBase
             'condition_type' => ConditionType::WORKFLOW,
             'filter_condition' => FilterOption::USER_EQ_USER,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $workflow_work_users = array_get($data, 'workflow_work_users');
 
             foreach ($workflow_work_users as $workflow_work_user) {
                 $users = array_get($workflow_work_user, 'users');
                 if (isset($users)) {
                     foreach ($users as $user) {
-                        if($user->id != TestDefine::TESTDATA_USER_LOGINID_DEV_USERB){
+                        if ($user->id != TestDefine::TESTDATA_USER_LOGINID_DEV_USERB) {
                             return false;
                         }
                     }
                 } else {
-                    if($workflow_work_user->id != TestDefine::TESTDATA_USER_LOGINID_DEV_USERB){
+                    if ($workflow_work_user->id != TestDefine::TESTDATA_USER_LOGINID_DEV_USERB) {
                         return false;
                     }
                 }
@@ -1421,18 +1420,18 @@ class CustomViewFilterTest extends UnitTestBase
             'condition_type' => ConditionType::WORKFLOW,
             'filter_condition' => FilterOption::USER_EQ_USER,
         ]];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $workflow_work_users = array_get($data, 'workflow_work_users');
             foreach ($workflow_work_users as $workflow_work_user) {
                 $users = array_get($workflow_work_user, 'users');
                 if (isset($users)) {
                     foreach ($users as $user) {
-                        if($user->id != TestDefine::TESTDATA_USER_LOGINID_DEV_USERB){
+                        if ($user->id != TestDefine::TESTDATA_USER_LOGINID_DEV_USERB) {
                             return false;
                         }
                     }
                 } else {
-                    if($workflow_work_user->id != TestDefine::TESTDATA_USER_LOGINID_DEV_USERB){
+                    if ($workflow_work_user->id != TestDefine::TESTDATA_USER_LOGINID_DEV_USERB) {
                         return false;
                     }
                 }
@@ -1442,7 +1441,6 @@ class CustomViewFilterTest extends UnitTestBase
             'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV_USERB,
             'target_table_name' => 'custom_value_edit'
         ]);
-
     }
 
     /**
@@ -1467,8 +1465,8 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::SELECT_EXISTS,
             'filter_value_text' => 'foo'
         ];
-        $array = $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
-            return array_get($data, 'value.date') >= \Carbon\Carbon::now()->format('Y-m-d') && 
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            return array_get($data, 'value.date') >= \Carbon\Carbon::now()->format('Y-m-d') &&
                 array_get($data, 'value.integer') > 100 &&
                 in_array('foo', array_get($data, 'value.select_valtext_multiple'));
         });
@@ -1497,7 +1495,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 70000
         ];
 
-        $this->getColumnFilterData($filter_settings, function($data, $filter_settings){
+        $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $cnt = 0;
 
             $datetime = \Carbon\Carbon::parse(array_get($data, 'value.datetime'));
@@ -1517,7 +1515,8 @@ class CustomViewFilterTest extends UnitTestBase
 
 
 
-    protected function init(){
+    protected function init()
+    {
         $this->initAllTest();
     }
 
@@ -1527,7 +1526,7 @@ class CustomViewFilterTest extends UnitTestBase
             [
                 'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
                 'filter_settings' => $filter_settings,
-            ], 
+            ],
             $options
         );
 
@@ -1543,7 +1542,7 @@ class CustomViewFilterTest extends UnitTestBase
         $options = array_merge(
             [
                 'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
-            ], 
+            ],
             $options
         );
 
@@ -1563,6 +1562,5 @@ class CustomViewFilterTest extends UnitTestBase
             
             $this->assertTrue(!$matchResult, 'Expect matchResult is false, but matched. Target id is ' . $data->id);
         }
-        
     }
 }
