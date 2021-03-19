@@ -236,7 +236,7 @@ class NotifyTarget
      */
     public static function getModelsAsRole(?CustomValue $custom_value, ?CustomTable $custom_table = null) : Collection
     {
-        $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, $custom_table);
+        $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ALL_CUSTOM_VALUE, $custom_table);
         
         $list = collect();
         foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $key) {
