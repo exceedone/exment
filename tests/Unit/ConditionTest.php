@@ -1315,41 +1315,64 @@ class ConditionTest extends UnitTestBase
 
 
     // workflow ----------------------------------------------------
-    public function testWorkflowStatusEqTrue()
+    public function testWorkflowStatusEqTrue1()
     {
         $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, null, FilterOption::WORKFLOW_EQ_STATUS, true);
+    }
+    public function testWorkflowStatusEqTrue2()
+    {
         $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_EQ_STATUS, true);
-
-        $this->__testWorkflowStatus('waiting', 'waiting', FilterOption::WORKFLOW_EQ_STATUS, true);
     }
-
-    public function testWorkflowStatusEqFalse()
+    public function testWorkflowStatusEqTrue3()
     {
-        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, 'waiting', FilterOption::WORKFLOW_EQ_STATUS, false);
-        $this->__testWorkflowStatus('waiting', Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_EQ_STATUS, false);
-
-        $this->__testWorkflowStatus('waiting', null, FilterOption::WORKFLOW_EQ_STATUS, false);
+        $this->__testWorkflowStatus('status1', 'status1', FilterOption::WORKFLOW_EQ_STATUS, true);
     }
 
-    public function testWorkflowStatusNeTrue()
+    public function testWorkflowStatusEqFalse1()
     {
-        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, 'waiting', FilterOption::WORKFLOW_NE_STATUS, true);
-        $this->__testWorkflowStatus('waiting', Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_NE_STATUS, true);
-
-        $this->__testWorkflowStatus('waiting', null, FilterOption::WORKFLOW_NE_STATUS, true);
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, 'status1', FilterOption::WORKFLOW_EQ_STATUS, false);
+    }
+    public function testWorkflowStatusEqFalse2()
+    {
+        $this->__testWorkflowStatus('status1', Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_EQ_STATUS, false);
+    }
+    public function testWorkflowStatusEqFalse3()
+    {
+        $this->__testWorkflowStatus('status1', null, FilterOption::WORKFLOW_EQ_STATUS, false);
     }
 
-    public function testWorkflowStatusNeFalse()
+    public function testWorkflowStatusNeTrue1()
+    {
+        $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, 'status1', FilterOption::WORKFLOW_NE_STATUS, true);
+    }
+    public function testWorkflowStatusNeTrue2()
+    {
+        $this->__testWorkflowStatus('status1', Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_NE_STATUS, true);
+    }
+    public function testWorkflowStatusNeTrue3()
+    {
+        $this->__testWorkflowStatus('status1', null, FilterOption::WORKFLOW_NE_STATUS, true);
+    }
+
+    public function testWorkflowStatusNeFalse1()
     {
         $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, null, FilterOption::WORKFLOW_NE_STATUS, false);
+    }
+    public function testWorkflowStatusNeFalse2()
+    {
         $this->__testWorkflowStatus(Model\Define::WORKFLOW_START_KEYNAME, Model\Define::WORKFLOW_START_KEYNAME, FilterOption::WORKFLOW_NE_STATUS, false);
-
-        $this->__testWorkflowStatus('waiting', 'waiting', FilterOption::WORKFLOW_NE_STATUS, false);
+    }
+    public function testWorkflowStatusNeFalse3()
+    {
+        $this->__testWorkflowStatus('status1', 'status1', FilterOption::WORKFLOW_NE_STATUS, false);
     }
 
-    public function testWorkflowWorkUser()
+    public function testWorkflowWorkUser1()
     {
         $this->__testWorkflowWorkUser(true, FilterOption::WORKFLOW_EQ_WORK_USER, true);
+    }
+    public function testWorkflowWorkUser2()
+    {
         $this->__testWorkflowWorkUser(false, FilterOption::WORKFLOW_EQ_WORK_USER, false);
     }
 

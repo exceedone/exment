@@ -30,10 +30,13 @@ abstract class WorkflowStatusBase extends ViewFilterBase
      */
     protected function _compareValue($value, $conditionValue) : bool
     {
-        $workflow_status = array_get($value, 'condition_value');
+        $workflow_status = array_get($value, 'workflow_status');
         // if start, $workflow_status set as null
         if (isMatchString($workflow_status, Define::WORKFLOW_START_KEYNAME)) {
             $workflow_status = null;
+        }
+        elseif($workflow_status instanceof WorkflowStatus){
+            $workflow_status = $workflow_status->id;
         }
 
         // if $conditionValue is WorkflowStatus, convert id
