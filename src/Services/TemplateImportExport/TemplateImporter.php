@@ -651,6 +651,10 @@ class TemplateImporter
                 // Create role. --------------------------------------------------
                 RoleGroup::importTemplate($role, $is_update);
             }
+            foreach (array_get($json, "role_groups", []) as $role) {
+                // Create role. --------------------------------------------------
+                RoleGroup::importTemplate($role, $is_update);
+            }
 
             // loop for dashboard
             foreach (array_get($json, "dashboards", []) as $dashboard) {

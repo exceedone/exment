@@ -115,7 +115,7 @@ trait ApiTrait
     protected function getCustomValue(CustomTable $custom_table, $id, bool $withTrashed = false)
     {
         $query = getModelName($custom_table->table_name)::query();
-        if($withTrashed){
+        if ($withTrashed) {
             $query->withTrashed();
         }
         $custom_value = $query->find($id);

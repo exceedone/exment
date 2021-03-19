@@ -305,7 +305,7 @@ trait HasPermissions
 
     /**
      * get organizations that this_user joins.
-     * 
+     *
      * IMPORTANT: Please look this topic.
      * https://exment.net/docs/#/ja/developing_memo
      * @return array

@@ -110,7 +110,7 @@ trait OrganizationTrait
      *
      * IMPORTANT: Please look this topic.
      * https://exment.net/docs/#/ja/developing_memo
-     * 
+     *
      * @param string $joinedOrgFilterType
      * @return array
      */
