@@ -77,17 +77,17 @@ class NotifyTest extends TestCase
             $notifiable,
             Jobs\MailSendJob::class,
             function ($notification, $channels, $notifiable) use ($mail_template, $user, $password) {
-            if (!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)) {
-                return false;
-            }
+                if (!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)) {
+                    return false;
+                }
 
-            // contains token in body
-            if (strpos($notifiable->getBody(), $password) === false) {
-                return false;
-            }
+                // contains token in body
+                if (strpos($notifiable->getBody(), $password) === false) {
+                    return false;
+                }
 
-            return true;
-        }
+                return true;
+            }
         );
     }
 
@@ -111,17 +111,17 @@ class NotifyTest extends TestCase
             $notifiable,
             Jobs\MailSendJob::class,
             function ($notification, $channels, $notifiable) use ($mail_template, $user, $token) {
-            if (!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)) {
-                return false;
-            }
+                if (!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)) {
+                    return false;
+                }
 
-            // contains token in body
-            if (strpos($notifiable->getBody(), $token) === false) {
-                return false;
-            }
+                // contains token in body
+                if (strpos($notifiable->getBody(), $token) === false) {
+                    return false;
+                }
 
-            return true;
-        }
+                return true;
+            }
         );
     }
 

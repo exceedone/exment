@@ -252,8 +252,8 @@ class ApiTest extends ApiTestBase
         $this->assertTrue(!\is_nullorempty($data));
         $this->assertTrue(
             collect($data)->contains(function ($d) {
-                    return array_get($d, 'table_name') == 'custom_value_edit';
-                })
+                return array_get($d, 'table_name') == 'custom_value_edit';
+            })
         );
         $this->assertTrue(
             !collect($data)->contains(function ($d) {

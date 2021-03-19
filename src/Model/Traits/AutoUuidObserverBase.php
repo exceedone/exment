@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Model\Traits;
 
 /**
- * 
+ *
  * @method void setUuid($model)
  */
 class AutoUuidObserverBase

@@ -21,8 +21,7 @@ class PublicFormGuard extends \Illuminate\Auth\TokenGuard
     public function __construct(
         UserProvider $provider,
         Request $request
-    )
-    {
+    ) {
         $this->request = $request;
         $this->provider = $provider;
         $this->storageKey = 'uuid';
