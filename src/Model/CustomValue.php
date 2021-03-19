@@ -417,17 +417,17 @@ abstract class CustomValue extends ModelBase
         static::deleting(function ($model) {
             $deleteForce = boolval(config('exment.delete_force_custom_value', false));
 
-            if($deleteForce){
+            if ($deleteForce) {
                 $model->forceDeleting = true;
             }
 
             // delete hard
-            if($model->isForceDeleting()){
+            if ($model->isForceDeleting()) {
                 $model->deleteFile();
                 $model->deleteRelationValues();
             }
             // Execute only not force deleting
-            else{
+            else {
                 // Delete only children.
                 $model->deleteChildrenValues();
 
@@ -445,7 +445,7 @@ abstract class CustomValue extends ModelBase
             // Delete file hard delete
             if ($model->isForceDeleting()) {
                 // Execute notify if delete_force_custom_value is true
-                if($model->saved_notify && boolval(config('exment.delete_force_custom_value', false))){
+                if ($model->saved_notify && boolval(config('exment.delete_force_custom_value', false))) {
                     $model->notify(NotifySavedType::DELETE);
                 }
                 $model->postForceDelete();
@@ -455,7 +455,7 @@ abstract class CustomValue extends ModelBase
             $model->preSave();
             $model->postDelete();
 
-            if($model->saved_notify){
+            if ($model->saved_notify) {
                 $model->notify(NotifySavedType::DELETE);
             }
         });
@@ -700,7 +700,7 @@ abstract class CustomValue extends ModelBase
         ///// delete file column
         $this->custom_table
             ->custom_columns_cache
-            ->filter(function($custom_column){
+            ->filter(function ($custom_column) {
                 return ColumnType::isAttachment($custom_column);
             })->each(function($custom_column){
                 $values = array_get($this->value, $custom_column->column_name);
@@ -720,14 +720,14 @@ abstract class CustomValue extends ModelBase
 
         // Delete Attachment ----------------------------------------------------
         $this->getDocuments()
-            ->each(function($document){
+            ->each(function ($document) {
                 $value = array_get($document->value, 'file_uuid');
-                if(!$value){
+                if (!$value) {
                     return;
                 }
 
                 $file = File::getData($value);
-                if(!$file){
+                if (!$file) {
                     return;
                 }
                 File::deleteDocumentModel($file);
@@ -799,7 +799,7 @@ abstract class CustomValue extends ModelBase
         $this->revisionHistory()->delete();
 
         // Delete all workflow values
-        $this->workflow_values->each(function($workflow_value){
+        $this->workflow_values->each(function ($workflow_value) {
             $workflow_value->delete();
         });
     }
@@ -820,13 +820,12 @@ abstract class CustomValue extends ModelBase
             $this->getChildrenValues($relation, true)
                 ->withTrashed()
                 ->get()
-                ->each(function($child) use($deleteForce){
+                ->each(function ($child) use ($deleteForce) {
                     // disable notify
                     $child->saved_notify(false);
-                    if($deleteForce){
+                    if ($deleteForce) {
                         $child->forceDelete();
-                    }
-                    else{
+                    } else {
                         $child->delete();
                     }
                 });
@@ -1351,10 +1350,9 @@ abstract class CustomValue extends ModelBase
         }
 
         // get custom column as array
-        if($relation instanceof CustomRelation){
+        if ($relation instanceof CustomRelation) {
             $pivot_table_name = $relation->getRelationName();
-        }
-        else{
+        } else {
             $child_table = CustomTable::getEloquent($relation);
             $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
         }

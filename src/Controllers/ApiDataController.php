@@ -320,10 +320,9 @@ class ApiDataController extends AdminControllerTableBase
         
         \DB::transaction(function () use ($custom_values, $forceDelete) {
             foreach ($custom_values as $custom_value) {
-                if($forceDelete){
+                if ($forceDelete) {
                     $custom_value->forceDelete();
-                }
-                else{
+                } else {
                     $custom_value->delete();
                 }
             }

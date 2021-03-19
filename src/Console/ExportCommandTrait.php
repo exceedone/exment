@@ -58,8 +58,7 @@ trait ExportCommandTrait
         if (isset($options['dirpath'])) {
             if (!\File::exists($options['dirpath'])) {
                 \File::makeDirectory($options['dirpath'], 0755, true);
-            }
-            elseif (!\File::isDirectory($options['dirpath'])) {
+            } elseif (!\File::isDirectory($options['dirpath'])) {
                 throw new \Exception('optional parameter dirpath error : ' . $options['dirpath']);
             }
         } else {

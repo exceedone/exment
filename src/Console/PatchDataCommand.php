@@ -1657,13 +1657,13 @@ class PatchDataCommand extends Command
     protected function deleteJunkFile()
     {
         $table_name = $this->argument('options1');
-        if(!$table_name){
+        if (!$table_name) {
             $this->error('Please input argument Table name.');
             return;
         }
         
         $custom_table = CustomTable::getEloquent($table_name);
-        if(!$custom_table){
+        if (!$custom_table) {
             $this->error("Table name {$table_name} is not found.");
             return;
         }
@@ -1672,14 +1672,14 @@ class PatchDataCommand extends Command
         
         // Remove file eloquent, If not contains custom value data.
         Model\File::where('parent_type', $custom_table->table_name)
-            ->chunk(1000, function($files) use($custom_table){
-                foreach($files as $file){
+            ->chunk(1000, function ($files) use ($custom_table) {
+                foreach ($files as $file) {
                     $exists = $custom_table->getValueModel()->query()
                         ->where('id', $file->parent_id)
                         ->withoutGlobalScopes()
                         ->withTrashed()
                         ->exists();
-                    if($exists){
+                    if ($exists) {
                         continue;
                     }
         
@@ -1691,17 +1691,17 @@ class PatchDataCommand extends Command
         // get file list, and remove if not exists file model
         $storageFiles = $disk->files($custom_table->table_name);
 
-        foreach($storageFiles as $storageFile){
+        foreach ($storageFiles as $storageFile) {
             $file = Model\File::getData($storageFile);
             // Exists file model, continue
-            if($file){
+            if ($file) {
                 continue;
             }
 
-            try{
+            try {
                 $disk->delete($storageFile);
+            } catch (\Exception $ex) {
             }
-            catch(\Exception $ex){}
         }
     }
 
