@@ -601,6 +601,8 @@ return [
             'all_user_enabled' => 'All user can use',
             'export_types' => 'Export Type',
             'export_description' => 'Description',
+            'grid_menu_title' => 'Title in Menu',
+            'grid_menu_description' => 'Description in Menu',
 
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
@@ -630,6 +632,8 @@ return [
             'export_types' => 'Select the type of export that can be selected on the list page.',
             'export_description' => 'This is the explanation displayed on the menu page of data import / export.',
             'endpoint' => 'The endpoint for accessing this plugin.',
+            'grid_menu_title' => 'Set the title of the view that is displayed when you set the view.',
+            'grid_menu_description' => 'Set the description of the view that is displayed when you set the view.',
         ],
 
         'error' => [

@@ -601,6 +601,8 @@ return [
             'all_user_enabled' => 'すべてのユーザーが利用可能',
             'export_types' => 'エクスポートの種類',
             'export_description' => '説明文',
+            'grid_menu_title' => 'メニューでのタイトル',
+            'grid_menu_description' => 'メニューでの説明文',
 
             'event_trigger_options' => [
                 'saving' => '保存直前',
@@ -630,6 +632,8 @@ return [
             'export_types' => '一覧画面で選択できる、エクスポートの種類を選択してください。',
             'export_description' => 'データのインポート・エクスポートのメニュー画面に表示する説明文です。',
             'endpoint' => 'このプラグインにアクセスするためのエンドポイントです。',
+            'grid_menu_title' => 'ビューの設定時にダイアログで表示される、ビューのタイトルを設定してください。',
+            'grid_menu_description' => 'ビューの設定時にダイアログで表示される、ビューの説明文を設定してください。',
         ],
 
         'error' => [

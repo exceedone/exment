@@ -446,7 +446,7 @@ abstract class CustomItem implements ItemInterface
         // get help
         $help = $this->getHelp();
         if (isset($help)) {
-            $field->help(esc_html($help));
+            $field->help(html_clean($help));
         }
         // append help
         $this->appendHelp($field);
