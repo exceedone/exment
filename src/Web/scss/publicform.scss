@@ -23,7 +23,16 @@ body#body-publicform{
         line-height: 50px;
         font-weight: 300;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     }
+
+    .header_logo{
+        max-width: 200px;
+        max-height: 40px;
+    }
+
     .main-footer{
         height: 50px;
         min-height: 50px;
@@ -55,6 +64,10 @@ body#body-publicform{
     body#body-publicform{
         &.body-container #container-inner{
             margin: 5px;
+        }
+        .main-header{
+            justify-content: center;
+            padding-left: 0;
         }
     }
 }

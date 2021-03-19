@@ -24,6 +24,14 @@ body#body-publicform .main-header {
   line-height: 50px;
   font-weight: 300;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+body#body-publicform .header_logo {
+  max-width: 200px;
+  max-height: 40px;
 }
 
 body#body-publicform .main-footer {
@@ -54,6 +62,10 @@ body#body-publicform .complete_text, body#body-publicform .error_text {
 @media (max-width: 767px) {
   body#body-publicform.body-container #container-inner {
     margin: 5px;
+  }
+  body#body-publicform .main-header {
+    justify-content: center;
+    padding-left: 0;
   }
 }
 

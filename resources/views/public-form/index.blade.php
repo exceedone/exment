@@ -29,11 +29,7 @@
     @if($use_header)
     <header class="main-header">
         @if(!is_nullorempty($header_logo_url))
-            <div class="logo">
-                <span class="logo-lg">
-                    <img src="{{$header_logo_url}}" alt="header logo">
-                </span>
-            </div>
+            <img src="{{$header_logo_url}}" alt="header logo" class="header_logo">
         @else
             {{$header_label}}
         @endif

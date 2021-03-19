@@ -29,7 +29,7 @@ class PublicForm extends ModelBase
 
     public static $templateItems = [
         'excepts' => [
-            'custom_form_id', 'proxy_user_id', 'uuid', 'public_form_view_name', 'options.analytics_tag', 'options.use_recaptcha', 'options.header_logo',
+            'custom_form_id', 'proxy_user_id', 'uuid', 'active_flg', 'public_form_view_name', 'options.analytics_tag', 'options.use_recaptcha', 'options.header_logo',
         ],
     ];
 

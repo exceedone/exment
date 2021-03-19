@@ -19,14 +19,23 @@
     color: #f1f117;
 }
 
-.main-header .logo .logo-lg img{
-    max-width: 200px;
-    max-height: 50px;
-}
-
-.main-header .logo .logo-mini img{
-    max-width: 50px;
-    max-height: 50px;
+.main-header .logo{
+    .logo-lg {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        height: 50px;
+        line-height: 50px;
+        
+        img{
+            max-width: 200px;
+            max-height: 40px;
+        }
+    }
+    .logo-mini img{
+        max-width: 50px;
+        max-height: 40px;
+    }
 }
 
 
