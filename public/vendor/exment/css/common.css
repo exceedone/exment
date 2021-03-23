@@ -3653,7 +3653,7 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   margin-bottom: 0;
 }
 
-label.checkboxone-label {
+.checkbox label.checkboxone-label {
   padding-left: 0;
 }
 
