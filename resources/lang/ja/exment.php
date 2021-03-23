@@ -2287,6 +2287,7 @@ return [
     
     'operation_log' => [
         'description' => '操作ログを一覧表示します。',
+        'user_id' => 'ユーザーID',
         'user_name' => 'ユーザー名',
         'method' => 'メソッド',
         'path' => 'パス',

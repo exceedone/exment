@@ -2287,6 +2287,7 @@ return [
     
     'operation_log' => [
         'description' => 'View operation log list.',
+        'user_id' => 'User ID',
         'user_name' => 'User name',
         'method' => 'Method',
         'path' => 'Path',

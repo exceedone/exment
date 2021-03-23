@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\OperationLog;
+use Exceedone\Exment\Services\DataImportExport;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use Illuminate\Support\Arr;
@@ -47,6 +49,14 @@ class LogController extends AdminControllerBase
             $filter->equal('method', exmtrans('operation_log.method'))->select(array_combine(OperationLog::$methods, OperationLog::$methods));
             $filter->like('path', exmtrans('operation_log.path'));
             $filter->equal('ip', exmtrans('operation_log.ip'));
+        });
+        
+        // create exporter
+        $service = $this->getImportExportService($grid);
+        $grid->exporter($service);
+        
+        $grid->tools(function (Grid\Tools $tools) use ($grid) {
+            $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true, false));
         });
 
         return $grid;
@@ -107,5 +117,16 @@ class LogController extends AdminControllerBase
         }
 
         return response()->json($data);
+    }
+    
+    protected function getImportExportService($grid = null)
+    {
+        // create exporter
+        return (new DataImportExport\DataImportExportService())
+            ->exportAction(new DataImportExport\Actions\Export\OperationLogAction(
+                [
+                    'grid' => $grid,
+                ]
+            ));
     }
 }
