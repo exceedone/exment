@@ -216,6 +216,10 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
 }
 
 // checkbox table
+label.checkboxone-label{
+    padding-left: 0;
+}
+
 .checkboxtable{
     .checkboxtable-header{
         height:50px;
