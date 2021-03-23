@@ -182,10 +182,13 @@ class CustomColumnTest extends UnitTestBase
 
     // DECIMAL ----------------------------------------------------
     const DECIMAL_VALUE = 1000.25;
-    public function _testDecimal($value_type, $matchedValue, $options = [])
+    const DECIMAL_VALUE2 = 1000;
+    const DECIMAL_VALUE3 = 1000.2;
+    public function _testDecimal($value_type, $matchedValue, $options = [], $originalValue = null)
     {
+        $originalValue = $originalValue?? static::CURRENCY_VALUE;
         $custom_column = $this->getCustomColumnModel(ColumnType::DECIMAL, $options);
-        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, static::DECIMAL_VALUE);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, $originalValue);
 
         $v = $column_item->{$value_type}();
         $this->assertMatch($v, $matchedValue);
@@ -228,16 +231,35 @@ class CustomColumnTest extends UnitTestBase
     {
         return $this->_testDecimal(ValueType::HTML, '100025%', ['percent_format' => 1, 'decimal_digit' => 2]);
     }
+    public function testDecimalText2()
+    {
+        return $this->_testDecimal(ValueType::TEXT, '1000', ['decimal_digit' => 2], STATIC::DECIMAL_VALUE2);
+    }
+    public function testDecimalTextComma2()
+    {
+        return $this->_testDecimal(ValueType::TEXT, '1,000', ['number_format' => 1, 'decimal_digit' => 2], STATIC::DECIMAL_VALUE2);
+    }
+    public function testDecimalText3()
+    {
+        return $this->_testDecimal(ValueType::TEXT, '1000.2', ['decimal_digit' => 2], STATIC::DECIMAL_VALUE3);
+    }
+    public function testDecimalTextComma3()
+    {
+        return $this->_testDecimal(ValueType::TEXT, '1,000.2', ['number_format' => 1, 'decimal_digit' => 2], STATIC::DECIMAL_VALUE3);
+    }
 
 
 
     
     // CURRENCY ----------------------------------------------------
     const CURRENCY_VALUE = 1000.25;
-    public function _testCurrency($value_type, $matchedValue, $options = [])
+    const CURRENCY_VALUE2 = 1000;
+    const CURRENCY_VALUE3 = 1000.2;
+    public function _testCurrency($value_type, $matchedValue, $options = [], $originalValue = null)
     {
+        $originalValue = $originalValue?? static::CURRENCY_VALUE;
         $custom_column = $this->getCustomColumnModel(ColumnType::CURRENCY, $options);
-        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, static::CURRENCY_VALUE);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, $originalValue);
 
         $v = $column_item->{$value_type}();
         $this->assertMatch($v, $matchedValue);
@@ -266,6 +288,32 @@ class CustomColumnTest extends UnitTestBase
     public function testCurrencyHtmlComma()
     {
         return $this->_testCurrency(ValueType::HTML, '&yen;1,000.25', ['currency_symbol' => CurrencySymbol::JPY1, 'number_format' => 1, 'decimal_digit' => 2]);
+    }
+    public function testCurrencyText2()
+    {
+        return $this->_testCurrency(ValueType::TEXT, '1000.00円', 
+            ['currency_symbol' => CurrencySymbol::JPY2,
+             'decimal_digit' => 2], static::CURRENCY_VALUE2);
+    }
+    public function testCurrencyTextComma2()
+    {
+        return $this->_testCurrency(ValueType::TEXT, '1,000.00円', 
+            ['currency_symbol' => CurrencySymbol::JPY2,
+             'number_format' => 1,
+             'decimal_digit' => 2], static::CURRENCY_VALUE2);
+    }
+    public function testCurrencyText3()
+    {
+        return $this->_testCurrency(ValueType::TEXT, '$1000.20', 
+            ['currency_symbol' => CurrencySymbol::USD,
+             'decimal_digit' => 2], static::CURRENCY_VALUE3);
+    }
+    public function testCurrencyTextComma3()
+    {
+        return $this->_testCurrency(ValueType::TEXT, '$1,000.20', 
+            ['currency_symbol' => CurrencySymbol::USD,
+             'number_format' => 1,
+             'decimal_digit' => 2], static::CURRENCY_VALUE3);
     }
 
 

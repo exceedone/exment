@@ -45,6 +45,12 @@ class Currency extends Decimal
             }
         } else {
             $value = $v;
+            if (array_has($this->custom_column, 'options.decimal_digit')) {
+                $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+                if ($digit > 0) {
+                    $value = sprintf('%.' . $digit . 'f', $v);
+                }
+            }
         }
 
         if (boolval(array_get($this->options, 'disable_currency_symbol'))) {
