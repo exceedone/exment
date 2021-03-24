@@ -252,7 +252,7 @@ class ExportImportButton extends ModalTileMenuButton
                     [
                         'icon' => 'fa-upload',
                         'header' => exmtrans('common.import'),
-                        'description' => exmtrans('custom_value.help.import'),
+                        'description' => exmtrans("$base_key.help.import"),
                         'buttons' => [
                             [
                                 'label' => exmtrans('common.import'),

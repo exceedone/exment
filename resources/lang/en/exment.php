@@ -118,6 +118,7 @@ return [
             'order' => 'This is the display order when %s is listed.',
             'max_file_size_link' => 'File upload upper limit size change.',
             'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.',
+            'import' => 'Displays a dialog for executing import.',
             'import_max_row_count' => 'Up to :count data items can be imported at one time. For data with more than that number, split and upload.',
             'init_flg' => 'Cannot edit after save.',
             'more_help' => '<span class="red">For a detailed explanation, click the "?" Icon at the top right of the page and check the manual.</span>',
