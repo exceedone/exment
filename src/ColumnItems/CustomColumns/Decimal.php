@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Model\Define;
@@ -171,5 +172,4 @@ class Decimal extends CustomItem
             ->min(0)
             ->max(8);
     }
-
 }

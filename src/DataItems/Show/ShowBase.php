@@ -42,7 +42,8 @@ abstract class ShowBase
      *
      * @return bool
      */
-    protected function gridShows(){
+    protected function gridShows()
+    {
         return false;
     }
 }

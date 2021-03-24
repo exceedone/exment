@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Form\Show;
 use Illuminate\Contracts\Support\Renderable;
 
 /**
- * Public show for relation. 
+ * Public show for relation.
  * This class manages hasmany items.
  * And contains this block's name.
  */
@@ -31,7 +31,7 @@ class PublicShowRelation implements Renderable
 
     /**
      * Get the value of title
-     */ 
+     */
     public function getTitle()
     {
         return $this->title;
@@ -41,7 +41,7 @@ class PublicShowRelation implements Renderable
      * Set the value of title
      *
      * @return  self
-     */ 
+     */
     public function setTitle($title)
     {
         $this->title = $title;
@@ -51,7 +51,7 @@ class PublicShowRelation implements Renderable
 
     /**
      * Get the value of children
-     */ 
+     */
     public function getChildren()
     {
         return $this->children;
@@ -61,7 +61,7 @@ class PublicShowRelation implements Renderable
      * Add the value of children
      *
      * @return  self
-     */ 
+     */
     public function addChildren($children)
     {
         $this->children[] = $children;

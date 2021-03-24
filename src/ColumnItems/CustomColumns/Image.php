@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Encore\Admin\Form\Field as AdminField;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\UrlTagType;
@@ -15,7 +16,7 @@ class Image extends File
     protected function _html($v)
     {
         // If public form tmp file, return Only file name.
-        if(is_string($v) && strpos($v, AdminField\File::TMP_FILE_PREFIX) === 0){
+        if (is_string($v) && strpos($v, AdminField\File::TMP_FILE_PREFIX) === 0) {
             return esc_html(array_get($this->getTmpFileInfo($v), 'originalFileName'));
         }
 
@@ -32,7 +33,7 @@ class Image extends File
 
     protected function getAdminFieldClass()
     {
-        if($this->isMultipleEnabled()){
+        if ($this->isMultipleEnabled()) {
             return Field\MultipleImage::class;
         }
         return Field\Image::class;
@@ -59,7 +60,7 @@ class Image extends File
      */
     protected function getSeparateWord() : ?string
     {
-        if(boolval(array_get($this->options, 'as_confirm'))){
+        if (boolval(array_get($this->options, 'as_confirm'))) {
             return parent::getSeparateWord();
         }
         return '';

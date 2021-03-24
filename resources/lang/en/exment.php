@@ -605,6 +605,8 @@ return [
             'all_user_enabled' => 'All user can use',
             'export_types' => 'Export Type',
             'export_description' => 'Description',
+            'grid_menu_title' => 'Title in Menu',
+            'grid_menu_description' => 'Description in Menu',
 
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
@@ -634,6 +636,8 @@ return [
             'export_types' => 'Select the type of export that can be selected on the list page.',
             'export_description' => 'This is the explanation displayed on the menu page of data import / export.',
             'endpoint' => 'The endpoint for accessing this plugin.',
+            'grid_menu_title' => 'Set the title of the view that is displayed when you set the view.',
+            'grid_menu_description' => 'Set the description of the view that is displayed when you set the view.',
         ],
 
         'error' => [
@@ -1275,6 +1279,7 @@ return [
             'checkbox_enabled' => 'Display in check box format',
             'free_input' => 'Make it freely input',
             'accept_extensions' => 'Extensions that allow uploading',
+            'required_yes' => 'Required YES',
         ],
         'column_type_options' => [
             "text" => "One-Line Text",
@@ -1345,10 +1350,9 @@ return [
             'multiple_enabled_file' => 'If set to YES, multiple files can be uploaded.',
             'accept_extensions' => 'When specifying the extension of the file that is allowed to be uploaded, enter the extension without dots. If you specify more than one, enter them separated by commas. Ex:docx,pdf,xlsx',
             'check_radio_enabled' => 'If set to YES, it will be displayed in radio button format or check box format. (If multiple selections are allowed, it will be displayed in checkbox format, usually in radio button format)',
-            'multiple_enabled_file' => 'If set to YES, multiple files can be uploaded.',
-            'accept_extensions' => 'When specifying the extension of the file that is allowed to be uploaded, enter the extension without dots. If you specify more than one, enter them separated by commas. Ex:docx,pdf,xlsx',
             'checkbox_enabled' => 'If set to YES, it will be displayed in a check box format.',
             'free_input' => 'By setting to YES, you can freely enter options that are not registered.',
+            'required_yes' => 'By setting this setting to YES, it is mandatory to set it to YES on the input screen. * In the case of check box format, it is essential that it is checked.',
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 

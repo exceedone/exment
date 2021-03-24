@@ -21,7 +21,7 @@ class FNotifyTest extends ExmentKitTestCase
     }
 
     /**
-     * test notify button html 
+     * test notify button html
      */
     public function testNotifyButtonHtml()
     {
@@ -36,7 +36,7 @@ class FNotifyTest extends ExmentKitTestCase
         // check config update
         $domDocument = $this->getDomDocument($url);
 
-        $result = $this->hasContainsHtml($domDocument, 'form', function($attribute) use($custom_table, $custom_value){
+        $result = $this->hasContainsHtml($domDocument, 'form', function ($attribute) use ($custom_table, $custom_value) {
             return $attribute->name == 'action' && $attribute->value == admin_urls('data', $custom_table->table_name, $custom_value->id, 'sendMail');
         });
 
@@ -64,11 +64,12 @@ class FNotifyTest extends ExmentKitTestCase
         // check config update
         $domDocument = $this->getDomDocument($url);
 
-        $result = $this->hasContainsHtml($domDocument, 'select', function($attribute){
+        $result = $this->hasContainsHtml($domDocument, 'select', function ($attribute) {
             return $attribute->name == 'name' && $attribute->value == "mail_attachment[]";
         });
 
-        $this->assertTrue($result, 'Not has notify form, select select items');;
+        $this->assertTrue($result, 'Not has notify form, select select items');
+        ;
     }
 
 
@@ -110,7 +111,7 @@ class FNotifyTest extends ExmentKitTestCase
         ]);
 
         $content = $response->response->getContent();
-        if(is_json($content)){
+        if (is_json($content)) {
             $json = json_decode($content, true);
 
             ///// Cannot test checking whether submitting mail.
@@ -120,14 +121,15 @@ class FNotifyTest extends ExmentKitTestCase
     
 
 
-    protected function getNotify(CustomTable $custom_table, string $suffix){
+    protected function getNotify(CustomTable $custom_table, string $suffix)
+    {
         // get notify info
         return Model\Notify::where('target_id', $custom_table->id)
             ->where('notify_trigger', Enums\NotifyTrigger::BUTTON)
             ->where('notify_view_name', $custom_table->table_name . $suffix)
             ->first()
             ;
-    } 
+    }
 
     protected function getNotifyUrl(CustomTable $custom_table, CustomValue $custom_value, Notify $notify)
     {
@@ -135,7 +137,7 @@ class FNotifyTest extends ExmentKitTestCase
             'targetid' => $notify->suuid,
             'widgetmodal_uuid' => short_uuid(),
         ]);
-    } 
+    }
 
 
     protected function getDomDocument(string $url) : \DOMDocument
@@ -144,20 +146,19 @@ class FNotifyTest extends ExmentKitTestCase
         $response = $this->get($url);
 
         $content = $response->response->getContent();
-        if(is_json($content)){
+        if (is_json($content)) {
             $json = json_decode($content, true);
-            if(array_get($json, 'result') === false){
+            if (array_get($json, 'result') === false) {
                 throw new \Exception(json_encode($json['errors']));
             }
 
             $html = array_get($json, 'body');
-        }
-        else{
+        } else {
             $html = $content;
         }
         
         $domDocument = new \DOMDocument();
-        libxml_use_internal_errors( true );  
+        libxml_use_internal_errors(true);
         $domDocument->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
         libxml_clear_errors();
 
@@ -168,14 +169,14 @@ class FNotifyTest extends ExmentKitTestCase
     protected function hasContainsHtml(\DOMDocument $domDocument, string $tagName, \Closure $callback) : bool
     {
         $selects = $domDocument->getElementsByTagName($tagName);
-        if($selects->length == 0){
+        if ($selects->length == 0) {
             return false;
         }
 
-        foreach($selects as $select){
+        foreach ($selects as $select) {
             $attributes = $select->attributes;
-            foreach($attributes as $attribute){
-                if($callback($attribute)){
+            foreach ($attributes as $attribute) {
+                if ($callback($attribute)) {
                     return true;
                 }
             }

@@ -6,9 +6,7 @@ use Encore\Admin\Form;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
@@ -70,7 +68,7 @@ class PublicForm extends ModelBase
     public function getCustomTableCacheAttribute()
     {
         $custom_form = $this->custom_form_cache;
-        if(!$custom_form){
+        if (!$custom_form) {
             return null;
         }
         return $custom_form->custom_table_cache;
@@ -86,7 +84,7 @@ class PublicForm extends ModelBase
         });
 
         static::creating(function ($model) {
-            if(is_null($model->proxy_user_id)){
+            if (is_null($model->proxy_user_id)) {
                 $model->proxy_user_id = \Exment::getUserId();
             }
         });
@@ -137,12 +135,12 @@ class PublicForm extends ModelBase
     public static function getUuidByRequest() : ?string
     {
         $segments = request()->segments();
-        if(count($segments) < 2){
+        if (count($segments) < 2) {
             return null;
         }
 
-        if($segments[0] !== public_form_base_path()
-            && $segments[0] !== config('exment.publicformapi_route_prefix', 'publicformapi')){
+        if ($segments[0] !== public_form_base_path()
+            && $segments[0] !== config('exment.publicformapi_route_prefix', 'publicformapi')) {
             return null;
         }
 
@@ -156,28 +154,28 @@ class PublicForm extends ModelBase
      */
     public static function getPublicFormByUuid($uuid) : ?PublicForm
     {
-        if(!$uuid){
+        if (!$uuid) {
             return null;
         }
 
         $model = PublicForm::findByUuid($uuid);
-        if(!$model){
+        if (!$model) {
             return null;
         }
 
-        if(!boolval($model->active_flg)){
+        if (!boolval($model->active_flg)) {
             return null;
         }
 
         // check daterange
         $now = Carbon::now();
         $start = $model->getOption('validity_period_start');
-        if(!is_nullorempty($start) && Carbon::parse($start)->gt($now)){
+        if (!is_nullorempty($start) && Carbon::parse($start)->gt($now)) {
             return null;
         }
         
         $end = $model->getOption('validity_period_end');
-        if(!is_nullorempty($end) && Carbon::parse($end)->lt($now)){
+        if (!is_nullorempty($end) && Carbon::parse($end)->lt($now)) {
             return null;
         }
 
@@ -199,7 +197,7 @@ class PublicForm extends ModelBase
 
     /**
      * Get list of tables used.
-     * Ex: 
+     * Ex:
      *     "Contact" form contains "select_table" column "client" and "product", return these custom table.
      *
      * @return Collection
@@ -207,25 +205,25 @@ class PublicForm extends ModelBase
     public function getListOfTablesUsed() : Collection
     {
         $result = collect();
-        foreach($this->custom_form->custom_form_blocks as $custom_form_block){
-            if(!$custom_form_block->available){
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            if (!$custom_form_block->available) {
                 continue;
             }
 
             // if  FormBlockType is n:n, set target table
-            if($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY){
+            if ($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY) {
                 $result->push($custom_form_block->target_table_cache);
                 continue;
             }
 
-            foreach($custom_form_block->custom_form_columns as $custom_form_column){
+            foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
                 $custom_column = $custom_form_column->custom_column_cache;
-                if(!$custom_column){
+                if (!$custom_column) {
                     continue;
                 }
 
-                $select_target_table = $custom_column->select_target_table;   
-                if(!$select_target_table){
+                $select_target_table = $custom_column->select_target_table;
+                if (!$select_target_table) {
                     continue;
                 }
 
@@ -235,7 +233,7 @@ class PublicForm extends ModelBase
 
         // check parent relation
         $parent_relation = CustomRelation::getRelationByChild($this->custom_table_cache);
-        if($parent_relation){
+        if ($parent_relation) {
             $result->push($parent_relation->parent_custom_table_cache);
         }
 
@@ -249,7 +247,7 @@ class PublicForm extends ModelBase
      * @param Request $request
      * @param CustomValue|null $custom_value input custom value
      * @param boolean $setRecaptcha if true, set Recaptcha. If confirm→submit, set false
-     * @return void
+     * @return Form
      */
     public function getForm(Request $request, ?CustomValue $custom_value = null, array $options = [])
     {
@@ -264,7 +262,7 @@ class PublicForm extends ModelBase
         \Encore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
 
         $custom_form = $this->custom_form;
-        if(!$custom_form){
+        if (!$custom_form) {
             return null;
         }
         $public_form = PublicFormForm::getItem($this->custom_table_cache, $this->custom_form_cache)
@@ -273,7 +271,7 @@ class PublicForm extends ModelBase
         ->setEnableDefaultQuery(boolval($this->getOption('use_default_query')));
     
         $form = $public_form->form()
-            ->renderException(function($ex){
+            ->renderException(function ($ex) {
                 return $this->showError($ex, true);
             })
             ->disablePjax()
@@ -282,20 +280,19 @@ class PublicForm extends ModelBase
             ->setClass('block_custom_value_form')
             ;
 
-        if($custom_value){
+        if ($custom_value) {
             $form->replicate($custom_value);
         }
 
         // get footer
         $footer = $form->builder()->getFooter();
         // Google recaptcha
-        if($setRecaptcha && static::isEnableRecaptcha() && boolval($this->getOption('use_recaptcha', false))){
+        if ($setRecaptcha && static::isEnableRecaptcha() && boolval($this->getOption('use_recaptcha', false))) {
             $version = static::recaptchaVersion();
-            if($version == 'v2'){
+            if ($version == 'v2') {
                 $footer->useRecaptchaV2();
                 $form->pushField(new ReCaptcha);
-            }
-            elseif($version == 'v3'){
+            } elseif ($version == 'v3') {
                 $footer->useRecaptchaV3();
                 $form->pushField(new ReCaptcha);
             }
@@ -326,7 +323,7 @@ class PublicForm extends ModelBase
     public function getShow(Request $request, CustomValue $custom_value, array $inputs = [])
     {
         $custom_form = $this->custom_form;
-        if(!$custom_form){
+        if (!$custom_form) {
             return null;
         }
 
@@ -337,15 +334,15 @@ class PublicForm extends ModelBase
 
         $show = $show_item
             ->createShowForm()
-            ->renderException(function($ex){
+            ->renderException(function ($ex) {
                 return $this->showError($ex, true);
             })
-            ->setAction(url_join($this->getUrl(),  'create'))
+            ->setAction(url_join($this->getUrl(), 'create'))
             ->setBackAction($this->getUrl())
             ->setConfirmTitle(replaceTextFromFormat($this->getOption('confirm_title'), $custom_value))
             ->setConfirmText(replaceTextFromFormat($this->getOption('confirm_text'), $custom_value))
             ->setChildRelationShows($child_items);
-            ;
+        ;
 
         // Set custom css and js
         \Exceedone\Exment\Middleware\BootstrapPublicForm::setPublicFormCssJs($this);
@@ -364,7 +361,7 @@ class PublicForm extends ModelBase
     {
         // create link
         $text = $this->getOption('complete_link_text');
-        if(($url = $this->getOption('complete_link_url'))){
+        if (($url = $this->getOption('complete_link_url'))) {
             $link = view('exment::tools.link', [
                 'href' => $url,
                 'label' => $text ?? $url,
@@ -392,7 +389,7 @@ class PublicForm extends ModelBase
     {
         // create link
         $text = $this->getOption('error_link_text');
-        if(($url = $this->getOption('error_link_url'))){
+        if (($url = $this->getOption('error_link_url'))) {
             $link = view('exment::tools.link', [
                 'href' => $url,
                 'label' => $text ?? $url,
@@ -413,14 +410,15 @@ class PublicForm extends ModelBase
     /**
      * Show error page and notify
      *
-     * @return void
+     * @return PublicContent
      */
-    public function showError($ex, $asInner = false, ?array $data = null){
-        try{
+    public function showError($ex, $asInner = false, ?array $data = null)
+    {
+        try {
             \Log::error($ex);
 
-            try{
-                if(!is_null($notify = $this->notify_error)){
+            try {
+                if (!is_null($notify = $this->notify_error)) {
                     $prms = array_merge([
                         'error:message' => $ex->getMessage(),
                         'error:stacktrace' => $ex->getTraceAsString(),
@@ -431,13 +429,12 @@ class PublicForm extends ModelBase
                         'prms' => $prms,
                     ]);
                 }
-            }
-            catch(\Exception $ex){
+            } catch (\Exception $ex) {
                 \Log::error($ex);
             }
 
             $view = $this->getErrorView(request());
-            if($asInner){
+            if ($asInner) {
                 return $view;
             }
             $content = new PublicContent;
@@ -445,8 +442,7 @@ class PublicForm extends ModelBase
             $content->row($view);
 
             return $content;
-        }
-        catch(\Excedption $ex){
+        } catch (\Exception $ex) {
             throw $ex;
         } catch (\Throwable $ex) {
             throw $ex;
@@ -466,20 +462,20 @@ class PublicForm extends ModelBase
     /**
      * Get input values text. Contains label and input text.
      *
-     * @return void
+     * @return string
      */
     protected function getInputValueText(?CustomValue $custom_value = null, array $relationInputs = null, ?array $data = null)
     {
-        try{
+        try {
             $form = null;
             // get input values
-            if(!$custom_value){
+            if (!$custom_value) {
                 $form = $this->getForm(request(), null, [
                     'asConfirm' => true,
                 ]);
                 $custom_value = $form->getModelByInputs($data ?? null);
             }
-            if(is_null($relationInputs)){
+            if (is_null($relationInputs)) {
                 $form = !is_null($form) ? $form : $this->getForm(request(), null, [
                     'asConfirm' => true,
                 ]);
@@ -488,16 +484,16 @@ class PublicForm extends ModelBase
 
             // set label and text function
             $result = [];
-            $setLabelTextFunc = function($relationName, $custom_value, $index) use(&$result){
-                foreach($this->custom_form->custom_form_blocks_cache as $custom_form_block){
+            $setLabelTextFunc = function ($relationName, $custom_value, $index) use (&$result) {
+                foreach ($this->custom_form->custom_form_blocks_cache as $custom_form_block) {
                     $relationInfo = $custom_form_block->getRelationInfo();
-                    if(!isMatchString($relationName, $relationInfo[1])){
+                    if (!isMatchString($relationName, $relationInfo[1])) {
                         continue;
                     }
 
-                    foreach($custom_form_block->custom_form_columns_cache as $custom_form_column){
+                    foreach ($custom_form_block->custom_form_columns_cache as $custom_form_column) {
                         $column_item = $custom_form_column->column_item;
-                        if(!$column_item){
+                        if (!$column_item) {
                             continue;
                         }
 
@@ -505,7 +501,7 @@ class PublicForm extends ModelBase
                         if ($column_item->disableDisplayWhenShow()) {
                             continue;
                         }
-                        if(!($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem)){
+                        if (!($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem)) {
                             continue;
                         }
         
@@ -515,7 +511,7 @@ class PublicForm extends ModelBase
                         $text = $column_item->text();
         
                         // if relation, set relation label
-                        if(!is_null($relationInfo[0]) && !is_null($relationInfo[2])){
+                        if (!is_null($relationInfo[0]) && !is_null($relationInfo[2])) {
                             $label = $relationInfo[2] . " - " . ($index + 1) . " - " . $label;
                         }
 
@@ -529,18 +525,16 @@ class PublicForm extends ModelBase
    
             $setLabelTextFunc(null, $custom_value, null);
 
-            foreach($relationInputs as $key => $relations){
-                foreach($relations as $index => $custom_value){
+            foreach ($relationInputs as $key => $relations) {
+                foreach ($relations as $index => $custom_value) {
                     $setLabelTextFunc($key, $custom_value, $index);
                 }
             }
 
-            return collect($result)->map(function($result){
-                return exmtrans('common.format_keyvalue', $result['label'],  $result['text']);
+            return collect($result)->map(function ($result) {
+                return exmtrans('common.format_keyvalue', $result['label'], $result['text']);
             })->implode("\r\n");
-        }
-        catch(\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return exmtrans('custom_value.message.cannot_get_input_value');
         } catch (\Throwable $ex) {
             return exmtrans('custom_value.message.cannot_get_input_value');
@@ -557,7 +551,8 @@ class PublicForm extends ModelBase
     public function setContentOption(PublicContent $content, array $options = [])
     {
         \Admin::css(asset('vendor/exment/css/publicform.css'));
-        $options = array_merge([
+        $options = array_merge(
+            [
                 'add_analytics' => true,
                 'isContainer' => false,
             ],
@@ -565,7 +560,7 @@ class PublicForm extends ModelBase
         );
 
         $header_logo = $this->getOption('header_logo');
-        if(isset($header_logo)){
+        if (isset($header_logo)) {
             $data = File::getData($header_logo);
             $header_logo = $data ? File::getUrl($data, ['asPublicForm' => true, 'publicFormKey' => $this->uuid]) : null;
         }
@@ -582,7 +577,7 @@ class PublicForm extends ModelBase
             ;
 
         // set analytics
-        if($options['add_analytics']){
+        if ($options['add_analytics']) {
             $content->setAnalytics($this->getOption('analytics_tag'));
         }
 
@@ -629,23 +624,23 @@ class PublicForm extends ModelBase
     {
         $message = null;
         // checking NoCaptcha
-        if(!\Exment::isAvailableGoogleRecaptcha()){
+        if (!\Exment::isAvailableGoogleRecaptcha()) {
             $message = exmtrans('login.message.not_install_library', [
                 'name' => 'Google reCaptcha',
                 'url' => getManualUrl('publicform#recaptcha'),
             ]);
         }
         // check system setting
-        else{
+        else {
             $type = System::recaptcha_type();
             $site_key = static::recaptchaSiteKey();
             $secret = static::recaptchaSecretKey();
-            if(is_nullorempty($type) || is_nullorempty($site_key) || is_nullorempty($secret)){
+            if (is_nullorempty($type) || is_nullorempty($site_key) || is_nullorempty($secret)) {
                 $message = exmtrans('custom_form_public.message.recaptcha_not_setting');
             }
         }
 
-        if($message){
+        if ($message) {
             return '<span class="red">' . $message . '</span>';
         }
         return true;
@@ -660,9 +655,9 @@ class PublicForm extends ModelBase
     public function getCssJsPlugins()
     {
         $result = collect();
-        foreach(['css', 'js'] as $p){
+        foreach (['css', 'js'] as $p) {
             $pluginIds = $this->getOption("plugin_{$p}") ?? [];
-            foreach($pluginIds as $pluginId){
+            foreach ($pluginIds as $pluginId) {
                 $plugin = Plugin::getEloquent($pluginId);
                 $result->push($plugin);
             }
@@ -670,5 +665,4 @@ class PublicForm extends ModelBase
 
         return $result;
     }
-
 }

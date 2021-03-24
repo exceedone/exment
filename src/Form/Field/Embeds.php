@@ -38,7 +38,7 @@ class Embeds extends AdminField\Embeds
 
     /**
      * Set as gridEmbeds
-     * 
+     *
      * @return $this
      */
     public function gridEmbeds()
@@ -95,10 +95,10 @@ class Embeds extends AdminField\Embeds
         $form = $this->buildEmbeddedForm();
 
         // default
-        if(!$this->gridEmbeds){
+        if (!$this->gridEmbeds) {
             return parent::render()->with([
-                'form' => $form, 
-                'enableHeader' => $this->enableHeader, 
+                'form' => $form,
+                'enableHeader' => $this->enableHeader,
                 'footer_hr' => $this->footer_hr,
             ]);
         }
@@ -110,8 +110,8 @@ class Embeds extends AdminField\Embeds
 
         $this->view = 'exment::form.field.gridembeds';
         return parent::render()->with([
-            'form' => $form, 
-            'enableHeader' => $this->enableHeader, 
+            'form' => $form,
+            'enableHeader' => $this->enableHeader,
             'footer_hr' => $this->footer_hr,
             'fieldGroups' => $fieldGroups,
         ]);

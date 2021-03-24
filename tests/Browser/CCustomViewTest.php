@@ -24,14 +24,16 @@ class CCustomViewTest extends ExmentKitTestCase
     /**
      * prepare test table.
      */
-    public function testPrepareTestTable() {
+    public function testPrepareTestTable()
+    {
         $this->createCustomTable('exmenttest_view');
     }
 
     /**
      * prepare test columns.
      */
-    public function testPrepareTestColumn() {
+    public function testPrepareTestColumn()
+    {
         $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image', 'user_single'];
         $this->createCustomColumns('exmenttest_view', $targets);
     }
@@ -175,12 +177,12 @@ class CCustomViewTest extends ExmentKitTestCase
         // Whether saving columns.
         $params = [
             'custom_view_columns' => ['classname' => Model\CustomViewColumn::class],
-            'custom_view_filters' => ['classname' => Model\CustomViewFilter::class, 'callback' => function($query, $v){
+            'custom_view_filters' => ['classname' => Model\CustomViewFilter::class, 'callback' => function ($query, $v) {
                 $query->where('view_filter_condition', $v['view_filter_condition'])
                     ->whereOrIn('view_filter_condition_value_text', $v['view_filter_condition_value_query'])
                     ;
             }],
-            'custom_view_sorts' => ['classname' => Model\CustomViewSort::class, 'callback' => function($query, $v){
+            'custom_view_sorts' => ['classname' => Model\CustomViewSort::class, 'callback' => function ($query, $v) {
                 $query->where('sort', $v['sort'])
                     ->where('priority', $v['priority'])
                     ;
@@ -188,11 +190,11 @@ class CCustomViewTest extends ExmentKitTestCase
         ];
 
 
-        foreach($params as $key => $value){
+        foreach ($params as $key => $value) {
             $classname = $value['classname'];
             $columns = array_get($data, $key, []);
 
-            foreach($columns as $k => $v){
+            foreach ($columns as $k => $v) {
                 // get column info from view_column_target
                 list($column_type, $column_table_id, $column_type_target, $view_pivot_column_id, $view_pivot_table_id) = $this->getViewColumnTargetItems($v['view_column_target']);
 
@@ -204,7 +206,7 @@ class CCustomViewTest extends ExmentKitTestCase
                     ->withoutGlobalScopes();
 
                 // if has query callback, execute, and filtering
-                if(array_has($value, 'callback')){
+                if (array_has($value, 'callback')) {
                     $callback = $value['callback'];
                     $callback($query, $v);
                 }

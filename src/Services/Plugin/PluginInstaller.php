@@ -106,7 +106,7 @@ class PluginInstaller
     public static function templateInstall($pluginFileBasePath, PluginDiskService $diskService, array $json)
     {
         // If temlates not install, return true
-        if(!boolval(array_get($json, "templates"))){
+        if (!boolval(array_get($json, "templates"))) {
             return true;
         }
 
@@ -143,9 +143,9 @@ class PluginInstaller
     protected static function getTemplateDirectories(string $pluginFileBasePath, PluginDiskService $diskService, $tmpDiskItem) : array
     {
         $result = [];
-        $checkFunc = function($directory, &$result) use($tmpDiskItem){
+        $checkFunc = function ($directory, &$result) use ($tmpDiskItem) {
             $config_path = path_join($directory, "config.json");
-            if($tmpDiskItem->disk()->exists($config_path)){
+            if ($tmpDiskItem->disk()->exists($config_path)) {
                 $result[] = $directory;
             }
         };
@@ -154,7 +154,7 @@ class PluginInstaller
         $checkFunc("$pluginFileBasePath/templates", $result);
 
         $directories = $tmpDiskItem->disk()->directories("$pluginFileBasePath/templates");
-        foreach($directories as $directory){
+        foreach ($directories as $directory) {
             $checkFunc($directory, $result);
 
             // // get sub directory

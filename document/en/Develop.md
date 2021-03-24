@@ -184,6 +184,7 @@ composer global require friendsofphp/php-cs-fixer
 php-cs-fixer fix ./vendor/exceedone/exment --rules=no_unused_imports
 #Fix all source
 php-cs-fixer fix ./vendor/exceedone/exment/src 
+php-cs-fixer fix ./vendor/exceedone/exment/tests
 ```
 
 

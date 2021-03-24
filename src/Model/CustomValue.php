@@ -702,15 +702,15 @@ abstract class CustomValue extends ModelBase
             ->custom_columns_cache
             ->filter(function ($custom_column) {
                 return ColumnType::isAttachment($custom_column);
-            })->each(function($custom_column){
+            })->each(function ($custom_column) {
                 $values = array_get($this->value, $custom_column->column_name);
-                if(!$values){
+                if (!$values) {
                     return;
                 }
 
-                foreach(toArray($values) as $value){
+                foreach (toArray($values) as $value) {
                     $file = File::getData($value);
-                    if(!$file){
+                    if (!$file) {
                         continue;
                     }
                     File::deleteFileInfo($file);

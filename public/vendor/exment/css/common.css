@@ -3653,6 +3653,10 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   margin-bottom: 0;
 }
 
+.checkbox label.checkboxone-label {
+  padding-left: 0;
+}
+
 .checkboxtable .checkboxtable-header {
   height: 50px;
   vertical-align: bottom;

@@ -41,13 +41,13 @@ class PluginNamespaceRule implements Rule
         // get all files
         $disk = $this->tmpDiskItem->disk();
         $files = $disk->allFiles($this->basePath);
-        foreach($files as $file){
+        foreach ($files as $file) {
             $pathinfo = pathinfo($file);
             // check php(not contains blade.php)
-            if(!isMatchString(array_get($pathinfo, 'extension'), 'php')){
+            if (!isMatchString(array_get($pathinfo, 'extension'), 'php')) {
                 continue;
             }
-            if(strpos(array_get($pathinfo, 'basename'), 'blade.php') !== false){
+            if (strpos(array_get($pathinfo, 'basename'), 'blade.php') !== false) {
                 continue;
             }
 
@@ -65,7 +65,7 @@ class PluginNamespaceRule implements Rule
             $phpFile = $disk->get($file);
 
             // find namespace. and not match, set errors file name.
-            if(!preg_match('/' . $namespace . '/u', $phpFile)){
+            if (!preg_match('/' . $namespace . '/u', $phpFile)) {
                 $this->errors[] = $basePath;
             }
         }

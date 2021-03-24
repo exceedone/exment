@@ -1119,7 +1119,7 @@ class TestDataSeeder extends Seeder
 
         // Custom form public ----------------------------------------------------
         // user type 2
-        foreach([1, 2] as $user_id){
+        foreach ([1, 2] as $user_id) {
             Model\PublicForm::create([
                 'custom_form_id' => $custom_form->id,
                 'public_form_view_name' => "Public Form User : {$user_id}",
@@ -1131,27 +1131,26 @@ class TestDataSeeder extends Seeder
                     'use_header' => '1',
                     'use_confirm' => '0',
                     'confirm_text' => exmtrans('custom_form_public.confirm_text'),
-                    'header_label' => NULL,
-                    'analytics_tag' => NULL,
+                    'header_label' => null,
+                    'analytics_tag' => null,
                     'complete_text' => exmtrans('custom_form_public.complete_text'),
                     'confirm_title' => exmtrans('custom_form_public.confirm_title'),
                     'complete_title' => exmtrans('custom_form_public.complete_title'),
-                    'error_link_url' => NULL,
-                    'error_link_text' => NULL,
+                    'error_link_url' => null,
+                    'error_link_text' => null,
                     'background_color' => '#ffffff',
                     'use_notify_error' => '0',
-                    'complete_link_url' => NULL,
+                    'complete_link_url' => null,
                     'footer_text_color' => '#ffffff',
                     'header_text_color' => '#ffffff',
-                    'complete_link_text' => NULL,
-                    'validity_period_end' => NULL,
-                    'validity_period_start' => NULL,
+                    'complete_link_text' => null,
+                    'validity_period_end' => null,
+                    'validity_period_start' => null,
                     'footer_background_color' => '#000000',
                     'header_background_color' => '#3c8dbc',
                 ],
             ]);
         }
-
     }
 
 

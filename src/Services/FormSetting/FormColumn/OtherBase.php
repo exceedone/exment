@@ -13,7 +13,7 @@ abstract class OtherBase extends ColumnBase
     public static function make(CustomFormColumn $custom_form_column) : ColumnBase
     {
         $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
-        switch($column_form_column_name){
+        switch ($column_form_column_name) {
             case 'header':
                 return new Header($custom_form_column);
             case 'explain':
@@ -27,7 +27,7 @@ abstract class OtherBase extends ColumnBase
                 return new Hr($custom_form_column);
         }
         
-        return new OtherBase($custom_form_column);
+        return null;
     }
 
 
@@ -70,7 +70,7 @@ abstract class OtherBase extends ColumnBase
 
     
     /**
-     * Get setting modal form 
+     * Get setting modal form
      *
      * @return WidgetForm
      */
@@ -103,8 +103,8 @@ abstract class OtherBase extends ColumnBase
         $difinitions = $this->getOptionLabelsDefinitions();
 
         $result = [];
-        foreach($difinitions as $key => $difinition){
-            if(!array_key_value_exists($key, $options)){
+        foreach ($difinitions as $key => $difinition) {
+            if (!array_key_value_exists($key, $options)) {
                 continue;
             }
 
@@ -125,7 +125,7 @@ abstract class OtherBase extends ColumnBase
         $result['required'] = exmtrans('common.required');
 
         // get field display type
-        foreach(['image', 'text', 'html'] as $key){
+        foreach (['image', 'text', 'html'] as $key) {
             $result[$key] = exmtrans('custom_form.setting_available');
         }
         

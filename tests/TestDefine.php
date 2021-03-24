@@ -90,5 +90,4 @@ class TestDefine
             'ajax_view' => self::TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX_VIEW,
         ],
     ];
-    
 }

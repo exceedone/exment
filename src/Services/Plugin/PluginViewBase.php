@@ -56,7 +56,8 @@ abstract class PluginViewBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function useBox() : bool{
+    public function useBox() : bool
+    {
         return $this->useBox ?? true;
     }
 
@@ -65,7 +66,8 @@ abstract class PluginViewBase extends PluginPublicBase
      *
      * @return array
      */
-    public function useBoxButtons() : array{
+    public function useBoxButtons() : array
+    {
         return $this->useBoxButtons ?? [];
     }
 
@@ -88,8 +90,9 @@ abstract class PluginViewBase extends PluginPublicBase
      * @param Form $form
      * @return void
      */
-    public function setColumnFields(Form &$form){
-        return PluginGrid::setColumnFields($form, $this->custom_table, [
+    public function setColumnFields(Form &$form)
+    {
+        PluginGrid::setColumnFields($form, $this->custom_table, [
             'include_workflow' => false,
             'include_parent' => true,
             'include_child' => true,
@@ -103,8 +106,9 @@ abstract class PluginViewBase extends PluginPublicBase
      * @param Form $form
      * @return void
      */
-    public function setFilterFields(Form &$form){
-        return PluginGrid::setFilterFields($form, $this->custom_table);
+    public function setFilterFields(Form &$form)
+    {
+        PluginGrid::setFilterFields($form, $this->custom_table);
     }
 
 
@@ -114,11 +118,10 @@ abstract class PluginViewBase extends PluginPublicBase
      * @param Form $form
      * @return void
      */
-    public function setSortFields(Form &$form){
-        return PluginGrid::setSortFields($form, $this->custom_table);
+    public function setSortFields(Form &$form)
+    {
+        PluginGrid::setSortFields($form, $this->custom_table);
     }
 
     abstract public function grid();
-    
-
 }

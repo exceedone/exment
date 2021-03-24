@@ -232,8 +232,7 @@ class CustomViewController extends AdminControllerTableBase
         $plugin = null;
         if ($request->has('plugin')) {
             $plugin = $request->get('plugin');
-        }
-        elseif(isset($model) && $view_kind_type == ViewKindType::PLUGIN){
+        } elseif (isset($model) && $view_kind_type == ViewKindType::PLUGIN) {
             $plugin = Plugin::find($model->getOption('plugin_id'))->uuid;
         }
 
@@ -307,9 +306,9 @@ class CustomViewController extends AdminControllerTableBase
                 }
             }
 
-            if(request()->has('plugin') && !is_null($plugin = request()->get('plugin'))){
+            if (request()->has('plugin') && !is_null($plugin = request()->get('plugin'))) {
                 $plugin = Plugin::getPluginByUUID($plugin);
-                if(isset($plugin)){
+                if (isset($plugin)) {
                     $form->model()->setOption('plugin_id', $plugin->id);
                 }
             }

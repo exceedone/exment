@@ -9,7 +9,7 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 class Explain extends Header
 {
     /**
-     * Get setting modal form 
+     * Get setting modal form
      *
      * @return WidgetForm
      */
@@ -24,7 +24,8 @@ class Explain extends Header
         return $form;
     }
     
-    public function getFontAwesomeClass() : ?string{
+    public function getFontAwesomeClass() : ?string
+    {
         return 'fa-align-justify';
     }
 }

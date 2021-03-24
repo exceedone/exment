@@ -114,13 +114,12 @@ abstract class FormOtherItem implements ItemInterface
 
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
-        if(is_array($form_column)){
-            $form_column_options = $form_column;    
-        }
-        else{
+        if (is_array($form_column)) {
+            $form_column_options = $form_column;
+        } else {
             $form_column_options = $form_column->options ?? null;
         }
-        if(!is_nullorempty($form_column_options)){
+        if (!is_nullorempty($form_column_options)) {
             $this->form_column_options = $form_column_options;
         }
 
@@ -149,7 +148,7 @@ abstract class FormOtherItem implements ItemInterface
         // get form field
         $formField = $this->getAdminField($this->form_column_options);
 
-        $field->as(function ($v) use ($item, $formField) {
+        $field->as(function ($v) use ($formField) {
             if (is_null($this)) {
                 return '';
             }

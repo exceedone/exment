@@ -40,7 +40,8 @@ class CheckboxTable extends Checkbox
     }
 
 
-    public function headerEsacape(bool $escape){
+    public function headerEsacape(bool $escape)
+    {
         $this->headerEsacape = $escape;
         return $this;
     }

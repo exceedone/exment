@@ -8,11 +8,8 @@ use Encore\Admin\Grid\Linker;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -109,7 +106,7 @@ class CustomNotifyController extends AdminControllerTableBase
             $actions->prepend($linker);
         });
         
-        $this->setFilterGrid($grid, function($filter){
+        $this->setFilterGrid($grid, function ($filter) {
             $filter->equal('notify_trigger', exmtrans("notify.notify_trigger"))->select(function ($val) {
                 return NotifyTrigger::transKeyArray("notify.notify_trigger_options");
             });
@@ -136,7 +133,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $form = new Form(new Notify);
         $notify = Notify::find($id);
-        if($notify && !in_array($notify->notify_trigger, NotifyTrigger::CUSTOM_TABLES())){
+        if ($notify && !in_array($notify->notify_trigger, NotifyTrigger::CUSTOM_TABLES())) {
             Checker::error(exmtrans('common.message.wrongdata'));
             return false;
         }
@@ -165,7 +162,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $form->select('custom_view_id', exmtrans("notify.custom_view_id"))
             ->help(exmtrans("notify.help.custom_view_id"))
-            ->options(function ($value, $field) use($custom_table) {
+            ->options(function ($value, $field) use ($custom_table) {
                 return $custom_table->custom_views
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
@@ -224,7 +221,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();
 
-        $form->hasManyJson('action_settings', exmtrans("notify.action_settings"), function ($form) use($notify, $custom_table) {
+        $form->hasManyJson('action_settings', exmtrans("notify.action_settings"), function ($form) use ($notify, $custom_table) {
             $form->select('notify_action', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
             ->required()
@@ -246,7 +243,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $this->setFooterForm($form, $notify);
 
         $form->disableEditingCheck(false);
-        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('notify', $custom_table));
         });
 

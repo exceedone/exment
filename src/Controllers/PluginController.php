@@ -133,7 +133,7 @@ class PluginController extends AdminControllerBase
     //Delete record from database (one or multi records)
     protected function destroy($id)
     {
-        foreach(stringToArray($id) as $i){
+        foreach (stringToArray($id) as $i) {
             if ($this->form($i, true)->destroy($i)) {
                 $this->deleteFolder($i);
             } else {
@@ -266,8 +266,7 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
-            if($plugin->matchPluginType(PluginType::VIEW))
-            {
+            if ($plugin->matchPluginType(PluginType::VIEW)) {
                 $form->text('grid_menu_title', exmtrans("plugin.options.grid_menu_title"))
                     ->help(exmtrans("plugin.help.grid_menu_title"))
                     ->rules('max:50');

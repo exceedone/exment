@@ -4,47 +4,23 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Grid\Linker;
 use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Validator\EmailMultiline;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Workflow;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyActionTarget;
-use Exceedone\Exment\Enums\NotifyBeforeAfter;
-use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
-use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Http\Request;
 
 trait NotifyTrait
 {
-    /**
-     * Create interface.
-     *
-     * @return Content
-     */
-    public function create(Request $request, Content $content)
-    {
-        if (!is_null($copy_id = $request->get('copy_id'))) {
-            return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['notify_view_name']));
-        }
-
-        return parent::create($request, $content);
-    }
-
     /**
      * Make a grid builder.
      *
@@ -68,12 +44,12 @@ trait NotifyTrait
     protected function setFilterGrid($grid, ?\Closure $callback = null)
     {
         $grid->disableExport();
-        $grid->filter(function ($filter) use($callback) {
+        $grid->filter(function ($filter) use ($callback) {
             $filter->disableIdFilter();
             $filter->like('notify_name', exmtrans("notify.notify_name"));
             $filter->like('notify_view_name', exmtrans("notify.notify_view_name"));
 
-            if($callback){
+            if ($callback) {
                 $callback($filter);
             }
 
@@ -119,7 +95,7 @@ trait NotifyTrait
         $system_slack_user_column = CustomColumn::getEloquent(System::system_slack_user_column());
         $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE];
         $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-            ->options(function ($val, $field, $notify) use($custom_table, $workflow_id, $options) {
+            ->options(function ($val, $field, $notify) use ($custom_table, $workflow_id, $options) {
                 $options = array_merge([
                     'as_workflow' => !is_nullorempty($workflow_id),
                 ], $options);

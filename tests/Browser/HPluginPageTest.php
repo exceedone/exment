@@ -70,7 +70,6 @@ class HPluginPageTest extends ExmentKitTestCase
                 ->seePageIs(admin_url(''))
                 ->seeInElement('button', 'unit test')
                 ->assertEquals($pre_cnt_box + 1, DashboardBox::count());
-
     }
 
     /**
@@ -88,11 +87,11 @@ class HPluginPageTest extends ExmentKitTestCase
 
         $response = $this->get(admin_url('dashboardbox/html/' . $box->suuid));
         $content = $response->response->getContent();
-        if(is_json($content)){
+        if (is_json($content)) {
             $json = json_decode($content, true);
             $body = array_get($json, 'body');
 
-            $this->assertTrue(strpos($body,"<h4>$integer</h4>") !== false);
+            $this->assertTrue(strpos($body, "<h4>$integer</h4>") !== false);
         }
     }
 
@@ -120,8 +119,8 @@ class HPluginPageTest extends ExmentKitTestCase
         $response = $this->get(admin_url('data/base_info'));
         $content = $response->response->getContent();
         $this->assertTrue(is_string($content));
-        $this->assertTrue(strpos($content,'plugins/test_plugin_script/public/ajaxzip3-source.js') !== false);
-        $this->assertTrue(strpos($content,'plugins/test_plugin_script/public/script.js') !== false);
+        $this->assertTrue(strpos($content, 'plugins/test_plugin_script/public/ajaxzip3-source.js') !== false);
+        $this->assertTrue(strpos($content, 'plugins/test_plugin_script/public/script.js') !== false);
     }
 
     /**
@@ -134,6 +133,6 @@ class HPluginPageTest extends ExmentKitTestCase
         $response = $this->get(admin_url('data/base_info'));
         $content = $response->response->getContent();
         $this->assertTrue(is_string($content));
-        $this->assertTrue(strpos($content,'plugins/test_plugin_style/public/style.css') !== false);
+        $this->assertTrue(strpos($content, 'plugins/test_plugin_style/public/style.css') !== false);
     }
 }

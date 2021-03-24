@@ -63,7 +63,7 @@ trait NumberTrait
      * Set Custom Column Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
      *
-     * @param Form $form
+     * @param mixed $form
      * @return void
      */
     public function setCustomColumnOptionFormNumber(&$form)

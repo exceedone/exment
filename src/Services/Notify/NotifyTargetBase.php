@@ -41,11 +41,11 @@ abstract class NotifyTargetBase
      */
     public static function make($notify_action_target, Notify $notify, array $action_setting) : ?NotifyTargetBase
     {
-        if($notify_action_target instanceof CustomColumn){
-            return new Column($notify, $action_setting, $notify_action_target);  
+        if ($notify_action_target instanceof CustomColumn) {
+            return new Column($notify, $action_setting, $notify_action_target);
         }
         
-        switch($notify_action_target){
+        switch ($notify_action_target) {
             case NotifyActionTarget::ADMINISTRATOR:
                 return new Administrator($notify, $action_setting);
             case NotifyActionTarget::CREATED_USER:
@@ -55,12 +55,12 @@ abstract class NotifyTargetBase
             case NotifyActionTarget::WORK_USER:
                 return new WorkUser($notify, $action_setting);
             case NotifyActionTarget::FIXED_EMAIL:
-                return new FixedEmail($notify, $action_setting);  
+                return new FixedEmail($notify, $action_setting);
             case NotifyActionTarget::CUSTOM_COLUMN:
-                return new Column($notify, $action_setting, $notify_action_target);  
+                return new Column($notify, $action_setting, $notify_action_target);
         }
 
-        return new Column($notify, $action_setting, $notify_action_target);  
+        return new Column($notify, $action_setting, $notify_action_target);
     }
 
     

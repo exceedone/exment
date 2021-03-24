@@ -33,11 +33,11 @@ class ExactSelectOption extends PageConstraint
 
     /**
      * Error type
-     * 
+     *
      * 1: object not found.
      * 2: Not contains "select".
      * 3: Not match options.
-     * 
+     *
      * @var int|null
      */
     protected $errorType;
@@ -64,21 +64,21 @@ class ExactSelectOption extends PageConstraint
     public function matches($crawler): bool
     {
         $elements = $this->crawler($crawler)->filter($this->element);
-        if($elements->count() == 0){
+        if ($elements->count() == 0) {
             $this->errorType = 1;
             return false;
         }
 
         foreach ($elements as $element) {
             $element = new Crawler($element);
-            if($element->nodeName() != 'select'){
+            if ($element->nodeName() != 'select') {
                 $this->errorType = 2;
                 return false;
             }
 
             $this->realOptions = $this->getOptionsItemFromSelect($element);
 
-            if(!$this->test2Array()){
+            if (!$this->test2Array()) {
                 $this->errorType = 3;
                 return false;
             }
@@ -131,7 +131,7 @@ class ExactSelectOption extends PageConstraint
             }
         }
 
-        $options = collect($options)->filter(function($s, $v){
+        $options = collect($options)->filter(function ($s, $v) {
             return !is_nullorempty($v);
         })->toArray();
 
@@ -146,10 +146,10 @@ class ExactSelectOption extends PageConstraint
      */
     protected function getFailureDescription()
     {
-        if($this->errorType == 1){
+        if ($this->errorType == 1) {
             return sprintf('[%s] not found', $this->element);
         }
-        if($this->errorType == 2){
+        if ($this->errorType == 2) {
             return sprintf('[%s] is not select', $this->element);
         }
         return sprintf('[%s] exacts options %s, real option is %s', $this->element, json_encode($this->options), json_encode($this->realOptions));

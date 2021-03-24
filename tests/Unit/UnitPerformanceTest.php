@@ -121,10 +121,11 @@ class UnitPerformanceTest extends TestCase
         //     });
         // }
 
-         $this->assertTrue(true);
+        $this->assertTrue(true);
     }
 
-    protected function showMicrotimeLog($funcName, $callback){
+    protected function showMicrotimeLog($funcName, $callback)
+    {
         $time_start = microtime(true);
         
         $callback();

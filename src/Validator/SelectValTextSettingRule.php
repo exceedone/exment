@@ -30,33 +30,31 @@ class SelectValTextSettingRule implements Rule
         $values = explodeBreak($value);
 
         $errors = [];
-        foreach($values as $index => $value)
-        {
+        foreach ($values as $index => $value) {
             // If empty
-            if(is_nullorempty($value)){
+            if (is_nullorempty($value)) {
                 continue;
             }
 
             // not has comma
             $keyvalues = explode(",", $value);
-            if(count($keyvalues) < 2){
+            if (count($keyvalues) < 2) {
                 $errors[] = exmtrans('custom_column.error.select_valtext_notkeyvalue', $index + 1);
                 continue;
             }
 
-            if(count($keyvalues) > 2){
+            if (count($keyvalues) > 2) {
                 $errors[] = exmtrans('custom_column.error.select_valtext_toocomma', $index + 1);
                 continue;
             }
 
             // if $key is not value
-            if(is_nullorempty($keyvalues[0]))
-            {
+            if (is_nullorempty($keyvalues[0])) {
                 $errors[] = exmtrans('custom_column.error.select_valtext_notkey', $index + 1);
             }
         }
 
-        if(count($errors) > 0){
+        if (count($errors) > 0) {
             $this->errors = $errors;
             return false;
         }

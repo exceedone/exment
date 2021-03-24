@@ -19,7 +19,8 @@ class Column extends NotifyTargetBase
      */
     protected $column;
 
-    public function __construct(Notify $notify, array $action_setting, $column){
+    public function __construct(Notify $notify, array $action_setting, $column)
+    {
         parent::__construct($notify, $action_setting);
         
         $this->column = $column;

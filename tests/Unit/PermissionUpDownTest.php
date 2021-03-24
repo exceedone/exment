@@ -9,7 +9,8 @@ use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 class PermissionUpDownTest extends UnitTestBase
 {
-    protected function init(){
+    protected function init()
+    {
         System::clearCache();
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
     }
@@ -314,7 +315,8 @@ class PermissionUpDownTest extends UnitTestBase
         $this->executeTestCustomValue(10, JoinedOrgFilterType::ALL, false);
     }
 
-    protected function executeTestOrganizationUser($loginId, $joinedOrgFilterType, $antiOrganizations, bool $antiResult){
+    protected function executeTestOrganizationUser($loginId, $joinedOrgFilterType, $antiOrganizations, bool $antiResult)
+    {
         $this->init();
 
         $user = CustomTable::getEloquent('user')->getValueModel($loginId);
@@ -324,13 +326,11 @@ class PermissionUpDownTest extends UnitTestBase
         sort($antiOrganizations);
         
         $result = true;
-        if(count($organizations) != count($antiOrganizations)){
+        if (count($organizations) != count($antiOrganizations)) {
             $result = false;
-        }
-        else{
-
-            for($i = 0; $i < count($organizations); $i++){
-                if($organizations[$i] != $antiOrganizations[$i]){
+        } else {
+            for ($i = 0; $i < count($organizations); $i++) {
+                if ($organizations[$i] != $antiOrganizations[$i]) {
                     $result = false;
                     break;
                 }
@@ -343,7 +343,8 @@ class PermissionUpDownTest extends UnitTestBase
         );
     }
 
-    protected function executeTestOrganizationOrg($id, $joinedOrgFilterType, $antiOrganizations, bool $antiResult){
+    protected function executeTestOrganizationOrg($id, $joinedOrgFilterType, $antiOrganizations, bool $antiResult)
+    {
         $this->init();
 
         $organization = CustomTable::getEloquent('organization')->getValueModel($id);
@@ -353,12 +354,11 @@ class PermissionUpDownTest extends UnitTestBase
         sort($antiOrganizations);
         
         $result = true;
-        if(count($organizations) != count($antiOrganizations)){
+        if (count($organizations) != count($antiOrganizations)) {
             $result = false;
-        }
-        else{
-            for($i = 0; $i < count($organizations); $i++){
-                if($organizations[$i] != $antiOrganizations[$i]){
+        } else {
+            for ($i = 0; $i < count($organizations); $i++) {
+                if ($organizations[$i] != $antiOrganizations[$i]) {
                     $result = false;
                     break;
                 }
@@ -371,7 +371,8 @@ class PermissionUpDownTest extends UnitTestBase
         );
     }
 
-    protected function executeTestRoleGroup($loginId, $joinedOrgFilterType, bool $result){
+    protected function executeTestRoleGroup($loginId, $joinedOrgFilterType, bool $result)
+    {
         $this->init();
         $this->be(LoginUser::find($loginId));
         System::org_joined_type_role_group($joinedOrgFilterType);
@@ -380,7 +381,8 @@ class PermissionUpDownTest extends UnitTestBase
         $this->{$func}(CustomTable::getEloquent('custom_value_edit')->hasPermission());
     }
 
-    protected function executeTestCustomValue($loginId, $joinedOrgFilterType, bool $result){
+    protected function executeTestCustomValue($loginId, $joinedOrgFilterType, bool $result)
+    {
         $this->init();
         $this->be(LoginUser::find($loginId));
         System::org_joined_type_role_group($joinedOrgFilterType);

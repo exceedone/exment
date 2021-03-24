@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Validator;
@@ -51,6 +52,10 @@ class Yesno extends CustomItem
             $field->option([
                 1 => ''
             ]);
+        }
+
+        if(array_boolval($this->custom_column->options, 'required_yes')){
+            $field->requiredRule();
         }
     }
     
@@ -114,7 +119,7 @@ class Yesno extends CustomItem
      */
     public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
-        if($asCustomForm){
+        if ($asCustomForm) {
             $form->radio('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->options([
@@ -126,7 +131,6 @@ class Yesno extends CustomItem
         $form->switchbool('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ;
-        
     }
 
     /**
@@ -140,6 +144,8 @@ class Yesno extends CustomItem
     {
         $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
             ->help(exmtrans("custom_column.help.checkbox_enabled"));
+        $form->switchbool('required_yes', exmtrans("custom_column.options.required_yes"))
+            ->help(exmtrans("custom_column.help.required_yes"));
     }
     
     public function getFalseValue()

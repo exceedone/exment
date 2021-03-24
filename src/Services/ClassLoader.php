@@ -40,7 +40,7 @@ class ClassLoader
     public function loadClass($class)
     {
         // if already has called, exit,
-        if(in_array($class, $this->called)){
+        if (in_array($class, $this->called)) {
             return;
         }
 
@@ -49,7 +49,7 @@ class ClassLoader
         foreach ($this->dirs as $dir) {
             // get filepath
             $file = $this->getFilePath($dir['dir'], $dir['baseNamespace'], $class);
-            if(!$file){
+            if (!$file) {
                 continue;
             }
             
@@ -59,7 +59,7 @@ class ClassLoader
 
 
     /**
-     * Get file path for require. 
+     * Get file path for require.
      *
      * @param string $dir
      * @param string $baseNamespace
@@ -74,8 +74,7 @@ class ClassLoader
         // removing base namespace class
         $removingClassPath = path_ltrim(str_replace($baseNamespace, '', $class), '')  . '.php';
 
-        foreach([$defaultClassPath, $removingClassPath] as $path)
-        {
+        foreach ([$defaultClassPath, $removingClassPath] as $path) {
             $file = path_join($dir, $path);
             if (!is_readable($file)) {
                 continue;

@@ -11,12 +11,14 @@ class CodeEditor extends Textarea
     protected $mode = 'txt';
     protected $height;
 
-    public function mode($mode){
+    public function mode($mode)
+    {
         $this->mode = $mode;
         return $this;
     }
 
-    public function height(int $height){
+    public function height(int $height)
+    {
         $this->height = $height;
         return $this;
     }
@@ -35,7 +37,7 @@ class CodeEditor extends Textarea
             indentUnit: 4,
         });
 EOT;
-        if(!is_nullorempty($height)){
+        if (!is_nullorempty($height)) {
             $this->script .= <<<EOT
         myCodeMirror.setSize(null, $height);
 EOT;

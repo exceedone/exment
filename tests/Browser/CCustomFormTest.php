@@ -20,7 +20,8 @@ class CCustomFormTest extends ExmentKitTestCase
     /**
      * prepare test table.
      */
-    public function testPrepareTestTable() {
+    public function testPrepareTestTable()
+    {
         $this->createCustomTable('exmenttest_form');
         $this->createCustomTable('exmenttest_form_relation');
     }
@@ -28,7 +29,8 @@ class CCustomFormTest extends ExmentKitTestCase
     /**
      * prepare test columns.
      */
-    public function testPrepareTestColumn() {
+    public function testPrepareTestColumn()
+    {
         $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
         $this->createCustomColumns('exmenttest_form', $targets);
     }
@@ -36,7 +38,8 @@ class CCustomFormTest extends ExmentKitTestCase
     /**
      * prepare test columns and relation.
      */
-    public function testPrepareTestColumnAndRelation() {
+    public function testPrepareTestColumnAndRelation()
+    {
         $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
         $this->createCustomColumns('exmenttest_form_relation', $targets);
         $this->createCustomRelation('exmenttest_form', 'exmenttest_form_relation');

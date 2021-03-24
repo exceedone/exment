@@ -75,7 +75,8 @@ abstract class FormBase
      *
      * @return $this
      */
-    public function disableToolsButton(){
+    public function disableToolsButton()
+    {
         $this->disableToolsButton = true;
 
         return $this;
@@ -86,7 +87,8 @@ abstract class FormBase
      *
      * @return $this
      */
-    public function disableSavingButton(){
+    public function disableSavingButton()
+    {
         $this->disableSavingButton = true;
 
         return $this;
@@ -98,7 +100,8 @@ abstract class FormBase
      *
      * @return $this
      */
-    public function disableSavedRedirectCheck(){
+    public function disableSavedRedirectCheck()
+    {
         $this->disableSavedRedirectCheck = true;
 
         return $this;
@@ -110,7 +113,8 @@ abstract class FormBase
      *
      * @return $this
      */
-    public function disableDefaultSavedRedirect(){
+    public function disableDefaultSavedRedirect()
+    {
         $this->disableDefaultSavedRedirect = true;
 
         return $this;
@@ -123,7 +127,7 @@ abstract class FormBase
      * @param  boolean  $asConfirm  If true, This form is as confirm.
      *
      * @return  self
-     */ 
+     */
     public function setAsConfirm(bool $asConfirm)
     {
         $this->asConfirm = $asConfirm;
@@ -139,12 +143,11 @@ abstract class FormBase
      * @param  boolean  $enableDefaultQuery  If true, enable set default value by query
      *
      * @return  self
-     */ 
+     */
     public function setEnableDefaultQuery(bool $enableDefaultQuery)
     {
         $this->enableDefaultQuery = $enableDefaultQuery;
 
         return $this;
     }
-
 }

@@ -42,7 +42,7 @@ trait ItemTrait
     
     /**
      * Form items option
-     * 
+     *
      * [
      *     'public_form': If this form is public_form, set publcform model
      *     'as_confirm' : If this form is before confirm, set true.
@@ -128,7 +128,9 @@ trait ItemTrait
             $items[] = $singleValueCallback($value);
         }
         
-        $items = collect($items)->filter(function($item){ return !is_nullorempty($item); });
+        $items = collect($items)->filter(function ($item) {
+            return !is_nullorempty($item);
+        });
  
         if ($isList) {
             return $items;
@@ -337,7 +339,7 @@ trait ItemTrait
         })->setEscape(false);
 
         // If grid shows, set label style
-        if($options['gridShows'] && method_exists($this, 'setLabelType')){
+        if ($options['gridShows'] && method_exists($this, 'setLabelType')) {
             $this->setLabelType($field);
         }
     }
@@ -348,13 +350,13 @@ trait ItemTrait
      * @param  array  $form_column_options  Custom form column options
      *
      * @return  self
-     */ 
+     */
     public function setFormColumnOptions($form_column_options)
     {
-        if(is_null($form_column_options)){
+        if (is_null($form_column_options)) {
             return;
         }
-        if($form_column_options instanceof CustomFormColumn){
+        if ($form_column_options instanceof CustomFormColumn) {
             $form_column_options = $form_column_options->options;
         }
         $this->form_column_options = $form_column_options;
@@ -543,7 +545,7 @@ trait ItemTrait
      * @param  CustomForm  $custom_form  CustomForm
      *
      * @return  self
-     */ 
+     */
     public function setCustomForm(CustomForm $custom_form)
     {
         $this->custom_form = $custom_form;
@@ -558,7 +560,7 @@ trait ItemTrait
      */
     public function isDefferentFormTable() : bool
     {
-        if(!$this->custom_form){
+        if (!$this->custom_form) {
             return false;
         }
 
@@ -581,7 +583,8 @@ trait ItemTrait
      *
      * @return string|null
      */
-    public function getFontAwesomeClass() : ?string{
+    public function getFontAwesomeClass() : ?string
+    {
         return null;
     }
 }

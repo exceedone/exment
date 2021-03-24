@@ -30,7 +30,7 @@ class ALoginOutTest extends ExmentKitTestCase
             ->visit(admin_url('data/information/1'))
             ->seePageIs(admin_url('auth/login'))
             ->seeOuterElement('p[class="login-box-msg"]', 'ログイン');
-     }
+    }
 
     
     /**

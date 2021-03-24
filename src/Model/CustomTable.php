@@ -223,12 +223,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getFilteredTypeColumns($column_types)
     {
-        return $this->custom_columns_cache->filter(function(CustomColumn $custom_column) use($column_types){
-            if(is_string($column_types)){
+        return $this->custom_columns_cache->filter(function (CustomColumn $custom_column) use ($column_types) {
+            if (is_string($column_types)) {
                 $column_types = [$column_types];
             }
-            foreach($column_types as $column_type){
-                if(isMatchString($column_type, $custom_column->column_type)){
+            foreach ($column_types as $column_type) {
+                if (isMatchString($column_type, $custom_column->column_type)) {
                     return true;
                 }
             }
@@ -1961,7 +1961,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function getOptionAjaxUrl($options = [])
     {
         $path = $this->getOptionAjaxPath($options);
-        if(!$path){
+        if (!$path) {
             return null;
         }
         return admin_urls('webapi', $path);
@@ -2592,13 +2592,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Find CustomValue, using only one key.
      *
-     * @param string|CustomColumn $column 
+     * @param string|CustomColumn $column
      * @param mixed $value filtering value
      * @return CustomValue|null
      */
     public function findValue($column, $value) : ?CustomValue
     {
-        if(is_string($column)){
+        if (is_string($column)) {
             $column = CustomColumn::getEloquent($column, $this);
         }
 

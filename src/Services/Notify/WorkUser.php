@@ -37,7 +37,7 @@ class WorkUser extends NotifyTargetBase
                 });
         }
 
-        return $users->map(function($user){
+        return $users->map(function ($user) {
             return NotifyTarget::getModelAsUser($user);
         });
     }

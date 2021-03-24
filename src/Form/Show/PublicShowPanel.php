@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Form\Show;
 use Encore\Admin\Show;
 
 /**
- * Public show panel. 
+ * Public show panel.
  * *Contains create form*
  */
 class PublicShowPanel extends \Encore\Admin\Show\Panel
@@ -43,7 +43,7 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
      * Set the value of confirm_title
      *
      * @return  self
-     */ 
+     */
     public function setConfirmTitle($confirm_title)
     {
         $this->confirm_title = $confirm_title;
@@ -55,7 +55,7 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
      * Set the value of confirm_text
      *
      * @return  self
-     */ 
+     */
     public function setConfirmText($confirm_text)
     {
         $this->confirm_text = $confirm_text;
@@ -68,7 +68,7 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
      * Set the value of relations
      *
      * @return  self
-     */ 
+     */
     public function setChildRelationShows($relations)
     {
         $this->relations = $relations;

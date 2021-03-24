@@ -3,7 +3,6 @@ namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Validation\Concerns\ValidatesAttributes;
-use Exceedone\Exment\Model\Define;
 
 /**
  * FileRule.
@@ -39,20 +38,20 @@ class FileRule implements Rule
                 return true;
             }
             
-            foreach($value as $v){
-                if(!$this->validateExtension($attribute, $v)){
+            foreach ($value as $v) {
+                if (!$this->validateExtension($attribute, $v)) {
                     return false;
                 }
             }
 
             return true;
-        }
-        else{
+        } else {
             return $this->validateExtension($attribute, $value);
         }
     }
 
-    protected function validateExtension($attribute, $value){
+    protected function validateExtension($attribute, $value)
+    {
         if (is_string($value)) {
             $ext = pathinfo($value, PATHINFO_EXTENSION);
             return in_array($ext, $this->extensions);

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Validator;
@@ -33,7 +34,7 @@ class Text extends CustomItem
 
         // regex
         $regex = $this->getAvailableCharactersInfo();
-        if(isset($regex['regex']) && !is_nullorempty($regex['regex'])){
+        if (isset($regex['regex']) && !is_nullorempty($regex['regex'])) {
             $field->attribute(['pattern' => $regex['regex']]);
         }
     }
@@ -141,7 +142,5 @@ class Text extends CustomItem
                 ->rules('regularExpression')
                 ->help(sprintf(exmtrans("custom_column.help.regex_validate"), $manual_url));
         }
-
     }
-
 }

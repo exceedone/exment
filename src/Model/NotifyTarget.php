@@ -30,7 +30,7 @@ class NotifyTarget
      * target custom column notify
      *
      * @var CustomColumn|null
-     */ 
+     */
     protected $customColumn;
 
     /**
@@ -126,7 +126,8 @@ class NotifyTarget
      *
      * @return string|null
      */
-    public function getUserId(){
+    public function getUserId()
+    {
         return $this->id;
     }
 
@@ -142,7 +143,7 @@ class NotifyTarget
     public static function getModels(Notify $notify, ?CustomValue $custom_value, $notify_action_target, array $action_setting, ?CustomTable $custom_table = null)
     {
         $notifyTarget = NotifyTargetBase::make($notify_action_target, $notify, $action_setting);
-        if(!$notifyTarget){
+        if (!$notifyTarget) {
             return collect();
         }
 
@@ -235,7 +236,7 @@ class NotifyTarget
      */
     public static function getModelsAsRole(?CustomValue $custom_value, ?CustomTable $custom_table = null) : Collection
     {
-        $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, $custom_table);
+        $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ALL_CUSTOM_VALUE, $custom_table);
         
         $list = collect();
         foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $key) {

@@ -24,7 +24,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         $now = \Carbon\Carbon::now();
 
-        foreach($dateStrings as $key => $value){
+        foreach ($dateStrings as $key => $value) {
             $text = ReplaceFormatService::replaceTextFromFormat('${' . $key . '}');
             $this->assertMatch($text, $now->format($value));
         }
@@ -50,7 +50,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         $now = \Carbon\Carbon::now();
 
-        foreach($dateValues as $key => $value){
+        foreach ($dateValues as $key => $value) {
             $text = ReplaceFormatService::replaceTextFromFormat('${' . $key . '}');
             $this->assertMatch($text, $now->{$value});
         }
@@ -71,7 +71,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         $now = \Carbon\Carbon::now();
 
-        foreach($dateFormats as $format){
+        foreach ($dateFormats as $format) {
             $text = ReplaceFormatService::replaceTextFromFormat('${now:'  . $format . '}');
             $this->assertMatch($text, $now->format($format));
         }
@@ -92,7 +92,7 @@ class ReplaceFormatTest extends UnitTestBase
         $custom_value_edit = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $date = \Carbon\Carbon::parse($custom_value_edit->getValue('date'));
         
-        foreach($dateFormats as $format){
+        foreach ($dateFormats as $format) {
             $text = ReplaceFormatService::replaceTextFromFormat('${value:date/format="'  . $format . '"}', $custom_value_edit);
             $this->assertMatch($text, $date->format($format));
         }
@@ -111,7 +111,7 @@ class ReplaceFormatTest extends UnitTestBase
         
         $systemValues = collect(SystemColumn::getOptions())->pluck('name')->toArray();
 
-        foreach($systemValues as $systemValue){
+        foreach ($systemValues as $systemValue) {
             $text = ReplaceFormatService::replaceTextFromFormat('${' . $systemValue . '}', $info);
             $this->assertMatch($info->{$systemValue}, $text);
         }
@@ -123,7 +123,7 @@ class ReplaceFormatTest extends UnitTestBase
         
         $custom_columns = CustomTable::getEloquent('information')->custom_columns;
 
-        foreach($custom_columns as $custom_column){
+        foreach ($custom_columns as $custom_column) {
             $text = ReplaceFormatService::replaceTextFromFormat('${value:' . $custom_column->column_name . '}', $info);
             $this->assertMatch($info->getValue($custom_column->column_name, true), $text);
         }
@@ -132,7 +132,7 @@ class ReplaceFormatTest extends UnitTestBase
     public function testReplaceUuid()
     {
         $keys = ['uuid'];
-        foreach($keys as $key){
+        foreach ($keys as $key) {
             $text = ReplaceFormatService::replaceTextFromFormat('${' . $key . '}');
             $this->assertTrue(!\is_nullorempty($text));
         }
@@ -141,13 +141,13 @@ class ReplaceFormatTest extends UnitTestBase
     public function testReplaceSystem()
     {
         $keys = [
-            'site_name' => System::site_name(), 
+            'site_name' => System::site_name(),
             'site_name_short' => System::site_name_short(),
             'system_mail_from' => System::system_mail_from(),
             'system_url' => admin_url(),
             'login_url' => admin_url('auth/login'),
         ];
-        foreach($keys as $key => $value){
+        foreach ($keys as $key => $value) {
             $text = ReplaceFormatService::replaceTextFromFormat('${system:' . $key . '}');
             $this->assertMatch($text, $value);
         }
@@ -157,7 +157,7 @@ class ReplaceFormatTest extends UnitTestBase
     {
         // get workflow last value
         $workflow_value = WorkflowValue::orderBy('id', 'desc')->first();
-        if(!isset($workflow_value)){
+        if (!isset($workflow_value)) {
             return;
         }
 
@@ -168,13 +168,13 @@ class ReplaceFormatTest extends UnitTestBase
         $statusTo = $workflow_action->getStatusToId($custom_value);
 
         $keys = [
-            'action_user' => $workflow_value->created_user, 
+            'action_user' => $workflow_value->created_user,
             'action_name' => $workflow_action->action_name,
             'status_name' => WorkflowStatus::getWorkflowStatusName($statusTo, $workflow),
             'status_from_name' => WorkflowStatus::getWorkflowStatusName($workflow_action->status_from, $workflow),
             'comment' => $workflow_value->comment,
         ];
-        foreach($keys as $key => $value){
+        foreach ($keys as $key => $value) {
             $text = ReplaceFormatService::replaceTextFromFormat('${workflow:' . $key . '}', $custom_value, [
                 'workflow_action' => $workflow_action,
                 'workflow_value' => $workflow_value,

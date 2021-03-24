@@ -9,7 +9,8 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class PermissionValueTest extends UnitTestBase
 {
-    protected function init($loginId){
+    protected function init($loginId)
+    {
         System::clearCache();
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
         $this->be(LoginUser::find($loginId));

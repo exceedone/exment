@@ -326,7 +326,7 @@ class SystemController extends AdminControllerBase
 
         if ($updateButton) {
             //if disable update button, showing only update link
-            if(boolval(config('exment.system_update_display_disabled', false))){
+            if (boolval(config('exment.system_update_display_disabled', false))) {
                 $manualUrl = exmtrans('common.message.label_link', [
                         'label' => exmtrans('system.call_update_howto'),
                         'link' => \Exment::getManualUrl('update'),
@@ -334,8 +334,7 @@ class SystemController extends AdminControllerBase
                 $form->display(exmtrans('system.call_update_howto'))
                         ->displayText($manualUrl)
                         ->escape(false);
-            }
-            else{
+            } else {
                 $this->setUpdatePartialForm($form, $latest);
             }
         }
@@ -358,20 +357,20 @@ class SystemController extends AdminControllerBase
         // check require. If conatains not OK, showing error message.
         $checkObjs = [new SystemRequire\Composer, new SystemRequire\FilePermissionInstaller, new SystemRequire\TimeoutTime];
         $errorObjs = [];
-        foreach($checkObjs as $checkObj){
+        foreach ($checkObjs as $checkObj) {
             $checkObj->systemRequireCalledType(SystemRequireCalledType::WEB);
 
             $checkResult = $checkObj->checkResult();
-            if(!isMatchString($checkResult, SystemRequireResult::OK)){
+            if (!isMatchString($checkResult, SystemRequireResult::OK)) {
                 $errorObjs[] = $checkObj;
             }
         }
 
         // if has error, set button and return
-        if(!is_nullorempty($errorObjs)){
+        if (!is_nullorempty($errorObjs)) {
             $form->display(exmtrans('system.call_update_cannot'))->displayText(exmtrans('system.call_update_cannot_description'));
             
-            $buttons = collect($errorObjs)->map(function($errorObj){
+            $buttons = collect($errorObjs)->map(function ($errorObj) {
                 return view('exment::tools.button-simple', [
                     'href' => $errorObj->getSettingUrl(),
                     'label' => $errorObj->getLabel(),
@@ -503,7 +502,7 @@ class SystemController extends AdminControllerBase
 
     
     /**
-     * call update 
+     * call update
      *
      * @return void
      */

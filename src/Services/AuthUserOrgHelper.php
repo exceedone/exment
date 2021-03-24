@@ -77,14 +77,14 @@ class AuthUserOrgHelper
         $target_table = CustomTable::getEloquent($target_table);
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS_ORGS, $target_table->id);
         
-        return static::_getRoleUserOrOrgQueryTable(SystemTableName::USER, $key, $target_table, $tablePermission, $builder, function ($target_ids, $target_table) {
+        return static::_getRoleUserOrOrgQueryTable(SystemTableName::USER, $key, $target_table, $tablePermission, $builder, function ($target_ids, $target_table) use($tablePermission) {
             // joined organization belongs user ----------------------------------------------------
             if (!System::organization_available()) {
                 return $target_ids;
             }
 
             // and get authoritiable organization
-            $orgQuery = $organizations = static::getRoleOrganizationQueryTable($target_table);
+            $orgQuery = $organizations = static::getRoleOrganizationQueryTable($target_table, $tablePermission);
             $organizations = $orgQuery ? $orgQuery->get() : [];
             foreach ($organizations as $organization) {
                 // get JoinedOrgFilterType. this method is for org_joined_type_role_group. get users for has role groups.
@@ -154,7 +154,7 @@ class AuthUserOrgHelper
      */
     public static function getRoleUserAndOrganizations($custom_value, $tablePermission = null, ?CustomTable $custom_table = null)
     {
-        if(!$custom_table){
+        if (!$custom_table) {
             $custom_table = $custom_value->custom_table;
         }
 
@@ -177,7 +177,7 @@ class AuthUserOrgHelper
             // get custom_value's organizations
             if (System::organization_available()) {
                 // get ids contains value_authoritable table
-                $ids[SystemTableName::ORGANIZATION]= $custom_value ? $custom_value->value_authoritable_organizations()->pluck('authoritable_target_id')->toArray() : [];
+                $ids[SystemTableName::ORGANIZATION] = $custom_value ? $custom_value->value_authoritable_organizations()->pluck('authoritable_target_id')->toArray() : [];
             }
 
             foreach ($ids as $idkey => $idvalue) {

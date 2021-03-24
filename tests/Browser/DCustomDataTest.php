@@ -16,13 +16,13 @@ class DCustomDataTest extends ExmentKitTestCase
     {
         parent::setUp();
         $this->login();
-
     }
 
     /**
      * prepare test table.
      */
-    public function testPrepareTestTable() {
+    public function testPrepareTestTable()
+    {
         $this->createCustomTable('exmenttest_data');
         deleteDirectory(Storage::disk(config('admin.upload.disk')), 'exmenttest_data');
     }
@@ -30,14 +30,16 @@ class DCustomDataTest extends ExmentKitTestCase
     /**
      * prepare test columns.
      */
-    public function testPrepareTestColumn() {
+    public function testPrepareTestColumn()
+    {
         $this->createCustomColumns('exmenttest_data');
     }
 
     /**
      * prepare test user.
      */
-    public function testPrepareUser() {
+    public function testPrepareUser()
+    {
         $row = CustomTable::where('table_name', 'user')->first();
         $table_name = 'exm__' . array_get($row, 'suuid');
 
@@ -61,7 +63,8 @@ class DCustomDataTest extends ExmentKitTestCase
     /**
      * prepare test organization.
      */
-    public function testPrepareOrganization() {
+    public function testPrepareOrganization()
+    {
         $row = CustomTable::where('table_name', 'organization')->first();
         $table_name = 'exm__' . array_get($row, 'suuid');
 
@@ -235,5 +238,4 @@ class DCustomDataTest extends ExmentKitTestCase
     {
         $this->createCustomRelation('exmenttest_data', 'organization', 2);
     }
-
 }

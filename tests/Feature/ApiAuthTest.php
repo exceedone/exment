@@ -15,7 +15,8 @@ class ApiAuthTest extends ApiTestBase
 {
     use DatabaseTransactions;
 
-    public function testApiAuthReadTrue(){
+    public function testApiAuthReadTrue()
+    {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_READ]);
 
         $this->withHeaders([
@@ -33,7 +34,8 @@ class ApiAuthTest extends ApiTestBase
             ]);
     }
 
-    public function testApiAuthWriteTrue(){
+    public function testApiAuthWriteTrue()
+    {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
@@ -53,9 +55,10 @@ class ApiAuthTest extends ApiTestBase
             ],
             'created_user_id' => "2" //user1
         ]);
-    }    
+    }
 
-    public function testApiAuthReadFalse(){
+    public function testApiAuthReadFalse()
+    {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         $this->get(admin_urls('api', 'data', 'custom_value_edit'))
@@ -71,7 +74,8 @@ class ApiAuthTest extends ApiTestBase
             ->assertStatus(404);
     }
 
-    public function testApiAuthWriteFalse(){
+    public function testApiAuthWriteFalse()
+    {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         $text = 'test' . date('YmdHis');
@@ -91,9 +95,10 @@ class ApiAuthTest extends ApiTestBase
             ]
         ])
         ->assertStatus(404);
-    }    
+    }
 
-    public function testWebApiAuthTrue(){
+    public function testWebApiAuthTrue()
+    {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
         $this->get(admin_urls('webapi', 'data', 'custom_value_edit'))
@@ -124,7 +129,8 @@ class ApiAuthTest extends ApiTestBase
         ]);
     }
 
-    public function testWebApiAuthReadFalse(){
+    public function testWebApiAuthReadFalse()
+    {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_READ]);
 
         $this->withHeaders([
@@ -148,7 +154,8 @@ class ApiAuthTest extends ApiTestBase
             ->assertStatus(404);
     }
 
-    public function testWebApiAuthWriteFalse(){
+    public function testWebApiAuthWriteFalse()
+    {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
 
         $text = 'test' . date('YmdHis');
@@ -174,7 +181,8 @@ class ApiAuthTest extends ApiTestBase
 
 
     // public form api ----------------------------------------------------
-    public function testPublicFormApiAuthTrue(){
+    public function testPublicFormApiAuthTrue()
+    {
         $uri = $this->getPublicFormApiUri(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         $this->get(url_join($uri, 'data', 'custom_value_edit', 'select?q=index_1_2'))
@@ -188,7 +196,8 @@ class ApiAuthTest extends ApiTestBase
             ]);
     }
 
-    public function testPublicFormApiAuthReadFalse(){
+    public function testPublicFormApiAuthReadFalse()
+    {
         // dummy uri
         $uri = asset_urls('publicformapi', 'naofenofwnefielk');
 
@@ -213,7 +222,8 @@ class ApiAuthTest extends ApiTestBase
             ->assertStatus(404);
     }
 
-    public function testPublicFormApiAuthWriteFalse(){
+    public function testPublicFormApiAuthWriteFalse()
+    {
         // dummy uri
         $uri = asset_urls('publicformapi', 'naofenofwnefielk');
 

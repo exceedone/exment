@@ -10,7 +10,8 @@ class Plugin extends PluginExportExcel
     /**
      * execute
      */
-    public function execute() {
+    public function execute()
+    {
         // テンプレートファイルを読み込み、PhpSpreadsheetを初期化
         $spreadsheet = $this->initializeExcel('template.xlsx');
         // ※テンプレートファイルを使用せず、新規にファイルを作成する場合
@@ -29,7 +30,7 @@ class Plugin extends PluginExportExcel
         ///// データの独自の出力処理---ここから
         $sheet = $spreadsheet->getActiveSheet();
         $column = 3;
-        foreach($data as $record){
+        foreach ($data as $record) {
 
             // データをループしてセット
             $sheet->setCellValue("A{$column}", $record->id); // ID
@@ -68,7 +69,8 @@ class Plugin extends PluginExportExcel
      *
      * @return string
      */
-    public function getFileName() : string {
+    public function getFileName() : string
+    {
         return "test.xlsx";
     }
 }

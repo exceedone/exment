@@ -35,7 +35,7 @@ class Plugin extends PluginDashboardBase
         $now = \Carbon\Carbon::now();
 
         $integer = $data->getValue('integer');
-        switch(request()->get('action')){
+        switch (request()->get('action')) {
             case 'add':
                 $data->setValue('integer', $integer + 1);
                 break;
@@ -54,7 +54,8 @@ class Plugin extends PluginDashboardBase
      *
      * @return void
      */
-    protected function getData($id = null){
+    protected function getData($id = null)
+    {
         if (isset($id)) {
             return CustomTable::getEloquent('custom_value_edit_all')
                 ->getValueModel($id);
@@ -64,19 +65,20 @@ class Plugin extends PluginDashboardBase
         }
     }
 
-    protected function getParams($data){
-        return  
+    protected function getParams($data)
+    {
+        return
         [
             'integer' => $data->getValue('integer'),
             'buttons' => [
                 [
                     'button_text' => '加算',
                     'action_name' => 'add',
-                ], 
+                ],
                 [
                     'button_text' => '減算',
                     'action_name' => 'minus',
-                ], 
+                ],
             ]
         ];
     }

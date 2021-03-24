@@ -11,7 +11,8 @@ use Exceedone\Exment\Tests\TestDefine;
  */
 class SomeTest extends UnitTestBase
 {
-    public function testFloatDigit(){
+    public function testFloatDigit()
+    {
         $this->assertMatch(floorDigit(37, 0), 37);
         $this->assertMatch(floorDigit(37, 1), 37);
         $this->assertMatch(floorDigit(37, 2), 37);
@@ -39,7 +40,8 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(36.29, 3), 36.29);
     }
     
-    public function testFloatDigitMinus(){
+    public function testFloatDigitMinus()
+    {
         $this->assertMatch(floorDigit(-37, 0), -37);
         $this->assertMatch(floorDigit(-37, 1), -37);
         $this->assertMatch(floorDigit(-37, 2), -37);
@@ -67,7 +69,8 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(-36.29, 3), -36.29);
     }
     
-    public function testFloatDigitZero(){
+    public function testFloatDigitZero()
+    {
         $this->assertMatch(floorDigit(37, 0, true), '37');
         $this->assertMatch(floorDigit(37, 1, true), '37.0');
         $this->assertMatch(floorDigit(37, 2, true), '37.00');
@@ -95,7 +98,8 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(36.29, 3, true), '36.290');
     }
     
-    public function testFloatDigitZeroMinus(){
+    public function testFloatDigitZeroMinus()
+    {
         $this->assertMatch(floorDigit(-37, 0, true), '-37');
         $this->assertMatch(floorDigit(-37, 1, true), '-37.0');
         $this->assertMatch(floorDigit(-37, 2, true), '-37.00');
@@ -169,7 +173,7 @@ class SomeTest extends UnitTestBase
         $result = $query->get();
         $this->assertTrue($result->count() > 0, "search query is 0");
         // check value match
-        foreach($result as $row){
+        foreach ($result as $row) {
             $this->assertMatch($row->getValue($custom_column), $search_value);
         }
 
@@ -182,7 +186,7 @@ class SomeTest extends UnitTestBase
         $this->assertTrue($notResult->count() > 0, "search query is 0");
 
         // check value match
-        foreach($notResult as $row){
+        foreach ($notResult as $row) {
             $this->assertNotMatch($row->getValue($custom_column), $search_value);
         }
     }

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
@@ -231,8 +232,7 @@ abstract class CustomItem implements ItemInterface
         $help = null;
         if (array_key_value_exists('help', $this->form_column_options)) {
             $help = array_get($this->form_column_options, 'help');
-        }
-        elseif (array_key_value_exists('help', $this->custom_column->options)) {
+        } elseif (array_key_value_exists('help', $this->custom_column->options)) {
             $help = array_get($this->custom_column->options, 'help');
         }
         
@@ -259,18 +259,18 @@ abstract class CustomItem implements ItemInterface
 
         // get request query
         $default = $this->getDefaultValueByQuery();
-        if(!is_nullorempty($default)){
+        if (!is_nullorempty($default)) {
             return $default;
         }
         
         // If initonly, not set default
-        if ($this->initonly()){
+        if ($this->initonly()) {
             return null;
         }
 
         // get each default value definition
         $default = $this->_getDefaultValue();
-        if(!is_nullorempty($default)){
+        if (!is_nullorempty($default)) {
             return $default;
         }
 
@@ -287,7 +287,7 @@ abstract class CustomItem implements ItemInterface
     /**
      * Get default type and value
      *
-     * @return offset 0: type, 1: value
+     * @return array offset 0: type, 1: value
      */
     protected function getDefaultSetting()
     {
@@ -304,21 +304,21 @@ abstract class CustomItem implements ItemInterface
      */
     protected function getDefaultValueByQuery()
     {
-        if(!is_nullorempty($this->id)){
+        if (!is_nullorempty($this->id)) {
             return null;
         }
 
-        if($this->isDefferentFormTable()){
+        if ($this->isDefferentFormTable()) {
             return null;
         }
 
-        if(!boolval(array_get($this->options, 'enable_default_query'))){
+        if (!boolval(array_get($this->options, 'enable_default_query'))) {
             return null;
         }
 
         // get request query
         $default = request()->query("value_" . $this->name());
-        if(is_nullorempty($default)){
+        if (is_nullorempty($default)) {
             return null;
         }
         return $this->getPureValue($default) ?? $default;
@@ -446,7 +446,7 @@ abstract class CustomItem implements ItemInterface
         // get help
         $help = $this->getHelp();
         if (isset($help)) {
-            $field->help(esc_html($help));
+            $field->help(html_clean($help));
         }
         // append help
         $this->appendHelp($field);
@@ -561,11 +561,11 @@ abstract class CustomItem implements ItemInterface
         $field_label_type = array_get($this->form_column_options, 'field_label_type', FormLabelType::FORM_DEFAULT);
         
         // get form info
-        if($field_label_type == FormLabelType::FORM_DEFAULT && isset($this->custom_form)){
+        if ($field_label_type == FormLabelType::FORM_DEFAULT && isset($this->custom_form)) {
             $field_label_type = $this->custom_form->getOption('form_label_type') ?? FormLabelType::HORIZONTAL;
         }
 
-        switch($field_label_type){
+        switch ($field_label_type) {
             case FormLabelType::HORIZONTAL:
                 return;
             case FormLabelType::VERTICAL:
@@ -691,7 +691,8 @@ abstract class CustomItem implements ItemInterface
      *
      * @return string|null
      */
-    public function getFontAwesomeClass() : ?string{
+    public function getFontAwesomeClass() : ?string
+    {
         return $this->custom_column->getFontAwesomeClass();
     }
 
@@ -802,7 +803,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function disableDisplayWhenShow() : bool
     {
-        if($this->internal() || $this->hidden()){
+        if ($this->internal() || $this->hidden()) {
             return true;
         }
 
@@ -824,8 +825,8 @@ abstract class CustomItem implements ItemInterface
 
     protected function isSetAdminOptions() : bool
     {
-        return !$this->hidden() && 
-            !$this->initonly() && 
+        return !$this->hidden() &&
+            !$this->initonly() &&
             !$this->viewonly() &&
             !$this->internal();
     }

@@ -464,16 +464,16 @@ if (!function_exists('path_ltrim')) {
      * ltrim FilePath.
      *
      * @param string $path target file path.
-     * @param string $ltrim removing path. 
+     * @param string $ltrim removing path.
      * If contains ex. "20210312123244/Plugins/Plugin.php" and want to get "Plugins/Plugin.php", set "20210312123244".
-     * @return void
+     * @return string
      */
     function path_ltrim($path, $ltrim)
     {
         foreach (['/', '\\'] as $split) {
             $l = str_replace($split, '/', $ltrim);
             
-            if(is_nullorempty($l)){
+            if (is_nullorempty($l)) {
                 $l = $split;
             }
 
@@ -494,7 +494,7 @@ if (!function_exists('path_ltrim')) {
 if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
-        if(is_string($disk)){
+        if (is_string($disk)) {
             $disk = Storage::disk($disk);
         }
         $path = $disk->getDriver()->getAdapter()->applyPathPrefix($filename);
@@ -594,7 +594,7 @@ if (!function_exists('deleteDirectory')) {
         if (is_nullorempty($path)) {
             return;
         }
-        if(is_string($disk)){
+        if (is_string($disk)) {
             $disk = \Storage::disk($disk);
         }
         
@@ -639,6 +639,22 @@ if (!function_exists('hasDuplicateDate')) {
 }
 
 // array --------------------------------------------------
+if (!function_exists('array_boolval')) {
+    /**
+     * array_boolval
+     * get array_get and return boolval
+     * @return bool
+     */
+    function array_boolval($array, $key, $default = false) : bool
+    {
+        if (is_string($array)) {
+            $array = [$array];
+        }
+        $value = array_get($array, $key, $default);
+        return boolval($value);
+    }
+}
+
 if (!function_exists('array_keys_exists')) {
     /**
      * array_keys_exists

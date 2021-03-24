@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin as Ad;
-use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\PublicForm;
 
 /**
@@ -94,15 +93,15 @@ class BootstrapPublicForm
 
     public static function setPublicFormCssJs(?PublicForm $public_form)
     {
-        if($public_form){
-            foreach($public_form->getCssJsPlugins() as $plugin){
+        if ($public_form) {
+            foreach ($public_form->getCssJsPlugins() as $plugin) {
                 static::appendStyleScript($plugin, true);
             }
 
-            if(!is_null($css = $public_form->getOption("custom_css"))){
+            if (!is_null($css = $public_form->getOption("custom_css"))) {
                 Ad::style($css);
             }
-            if(!is_null($js = $public_form->getOption("custom_js"))){
+            if (!is_null($js = $public_form->getOption("custom_js"))) {
                 Ad::script($js);
             }
         }

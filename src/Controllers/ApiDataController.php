@@ -7,12 +7,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ValueType;
@@ -980,13 +978,13 @@ class ApiDataController extends AdminControllerTableBase
     protected function getFileValue(CustomColumn $file_column, $file_value) : array
     {
         // whether is_vector, set as array
-        if(!is_vector($file_value)){
+        if (!is_vector($file_value)) {
             $file_value = [$file_value];
         }
 
         $names = [];
         $result = [];
-        foreach($file_value as $file_v){
+        foreach ($file_value as $file_v) {
             if (!array_has($file_v, 'name') && !array_has($file_v, 'base64')) {
                 continue;
             }
@@ -1003,7 +1001,7 @@ class ApiDataController extends AdminControllerTableBase
             ];
         }
 
-        if(!$file_column->isMultipleEnabled()){
+        if (!$file_column->isMultipleEnabled()) {
             return count($result) > 0 ? [$names[0], $result[0]] : null;
         }
 
@@ -1025,31 +1023,30 @@ class ApiDataController extends AdminControllerTableBase
         foreach ($files as $column_name => $fileInfos) {
             $result = [];
 
-            if(!is_vector($fileInfos)){
+            if (!is_vector($fileInfos)) {
                 $fileInfos = [$fileInfos];
             }
 
-            foreach($fileInfos as $fileInfo){
+            foreach ($fileInfos as $fileInfo) {
                 $custom_column = array_get($fileInfo, 'custom_column');
                 // save filename
                 $file = File::storeAs(FileType::CUSTOM_VALUE_COLUMN, array_get($fileInfo, 'data'), $custom_table->table_name, array_get($fileInfo, 'name'));
 
                 // save file info
                 \Exment::setFileRequestSession(
-                    $file, 
-                    $custom_column->column_name, 
-                    $custom_table, 
+                    $file,
+                    $custom_column->column_name,
+                    $custom_table,
                     !$custom_column->isMultipleEnabled()
                 );
                 $result[] = path_join($file->local_dirname, $file->local_filename);
             }
 
             // set custom value
-            if(!$custom_column->isMultipleEnabled()){
+            if (!isset($custom_column) || !$custom_column->isMultipleEnabled()) {
                 $value[$column_name] = count($result) > 0 ? $result[0] : null;
-            }
-            else{
-                // If multiple, merge original array 
+            } else {
+                // If multiple, merge original array
                 $value[$column_name] = array_merge(array_get($originalValue, $column_name) ?? [], $result);
             }
         }

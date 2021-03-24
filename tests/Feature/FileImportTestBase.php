@@ -3,19 +3,10 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Collection;
 use Exceedone\Exment\Model;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 
 abstract class FileImportTestBase extends TestCase
 {
@@ -35,7 +26,7 @@ abstract class FileImportTestBase extends TestCase
 
     protected function init()
     {
-        try{
+        try {
             $this->initAllTest();
             $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
             $import_path = $this->getImportPath();
@@ -45,18 +36,19 @@ abstract class FileImportTestBase extends TestCase
 
             $sourceDir = $this->getSourceFilePath();
             $dirs = scandir($sourceDir);
-            foreach($dirs as $dir){
-                if($dir == '.' ||$dir == '..'){
+            foreach ($dirs as $dir) {
+                if ($dir == '.' ||$dir == '..') {
                     continue;
                 }
                 $sourceFullDir = path_join_os($sourceDir, $dir);
                 $importFullDir = path_join_os($import_path, $dir);
-                if(\File::exists($importFullDir)){
+                if (\File::exists($importFullDir)) {
                     continue;
                 }
                 \File::copyDirectory($sourceFullDir, $importFullDir);
             }
-        }catch(\Exception $ex){}
+        } catch (\Exception $ex) {
+        }
     }
 
     /**
@@ -100,7 +92,7 @@ abstract class FileImportTestBase extends TestCase
         $console->assertExitCode($isSuccess ? 0 : -1);
         $console->run();
 
-        if($isSuccess){
+        if ($isSuccess) {
             $file_path = path_join_os($this->getImportPath(), $target_name);
             $this->assertFileTest($file_path, $isCsv);
         }
@@ -109,10 +101,9 @@ abstract class FileImportTestBase extends TestCase
 
     protected function getMatchedPath($fileColumns, $array)
     {
-        foreach (toArray($fileColumns) as $fileColumn) 
-        {
+        foreach (toArray($fileColumns) as $fileColumn) {
             $fileInfo = Model\File::getData($fileColumn);
-            if(isMatchString($array[3], $fileInfo->filename)){
+            if (isMatchString($array[3], $fileInfo->filename)) {
                 return $fileInfo;
             }
         }

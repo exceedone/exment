@@ -378,7 +378,7 @@ class FileController extends AdminControllerBase
         $rules = [
             'file' => ['required']
         ];
-        if($isImage){
+        if ($isImage) {
             $rules['file'][] = new ImageRule;
         }
 
@@ -399,11 +399,9 @@ class FileController extends AdminControllerBase
         }
 
         // If this request is as public_form, return as url
-        if($public_form)
-        {
+        if ($public_form) {
             $localtion = $public_form->getUrl('tmpfiles', basename($filename));
-        }
-        else{
+        } else {
             $localtion = admin_urls('tmpfiles', basename($filename));
         }
         return json_encode(['location' => $localtion]);

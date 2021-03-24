@@ -62,12 +62,12 @@ class CustomFormController extends AdminControllerTableBase
         $content->body($this->grid());
 
         // form priorities
-        if($this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)){
+        if ($this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
             $content->row($this->setFormPriorities());
         }
         
         // public form
-        if($this->enablePublicForm()){
+        if ($this->enablePublicForm()) {
             $content->row($this->setFormPublics());
         }
 
@@ -133,13 +133,13 @@ class CustomFormController extends AdminControllerTableBase
             return \Exment::getTrueMark($val);
         })->escape(false);
         $grid->column('validity_period', exmtrans("custom_form_public.validity_period"))
-            ->display(function($value, $column, $model){
-                if(!$model){
+            ->display(function ($value, $column, $model) {
+                if (!$model) {
                     return null;
                 }
                 $start = $model->getOption('validity_period_start');
                 $end = $model->getOption('validity_period_end');
-                if(!$start && !$end){
+                if (!$start && !$end) {
                     return null;
                 }
                 return sprintf("%s ～ %s", $start, $end);
@@ -239,13 +239,13 @@ class CustomFormController extends AdminControllerTableBase
         $custom_form = $requestItem['custom_form'];
 
         // loop form block and column
-        foreach($requestItem['custom_form_blocks'] ?? [] as $block){
+        foreach ($requestItem['custom_form_blocks'] ?? [] as $block) {
             $custom_form_block = $block['custom_form_block'] ?? null;
-            if(!$custom_form_block){
+            if (!$custom_form_block) {
                 continue;
             }
 
-            foreach($block['custom_form_columns'] ?? [] as $custom_form_column){
+            foreach ($block['custom_form_columns'] ?? [] as $custom_form_column) {
                 $custom_form_block->custom_form_columns->add($custom_form_column);
             }
             $custom_form->custom_form_blocks->add($custom_form_block);
@@ -318,10 +318,10 @@ class CustomFormController extends AdminControllerTableBase
             return back()->withInput()->withErrors($validator);
         }
 
-        if (!is_null($custom_form = $this->saveform($request, $id))){
+        if (!is_null($custom_form = $this->saveform($request, $id))) {
             admin_toastr(trans('admin.save_succeeded'));
 
-            if($request->get('after-save') == 1){
+            if ($request->get('after-save') == 1) {
                 return redirect(admin_url("form/{$this->custom_table->table_name}/{$id}/edit?after-save=1"));
             }
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
@@ -344,7 +344,7 @@ class CustomFormController extends AdminControllerTableBase
         if (!is_null($custom_form = $this->saveform($request))) {
             admin_toastr(trans('admin.save_succeeded'));
 
-            if($request->get('after-save') == 1){
+            if ($request->get('after-save') == 1) {
                 return redirect(admin_url("form/{$this->custom_table->table_name}/{$custom_form->id}/edit?after-save=1"));
             }
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
@@ -375,7 +375,7 @@ class CustomFormController extends AdminControllerTableBase
         }
         
         $custom_table = $this->custom_table;
-        $grid->tools(function (Grid\Tools $tools) use ($custom_table) {
+        $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\CustomTableMenuButton('form', $this->custom_table));
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
@@ -386,8 +386,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->disableRowSelector();
         
         if ($custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
-        }
-        else{
+        } else {
             $grid->disableCreateButton();
         }
 
@@ -400,17 +399,16 @@ class CustomFormController extends AdminControllerTableBase
                     ->icon('fa-check-circle')
                     ->linkattributes(['target' => '_blank'])
                     ->tooltip(exmtrans('common.preview'));
-                $actions->prepend($linker);
+            $actions->prepend($linker);
 
             // checking edit permission
-            if($custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)){
+            if ($custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
                 $linker = (new Linker)
                     ->url(admin_urls('form', $custom_table->table_name, "create?copy_id={$actions->row->id}"))
                     ->icon('fa-copy')
                     ->tooltip(exmtrans('common.copy_item', exmtrans('custom_form.default_form_name')));
                 $actions->prepend($linker);
-            }
-            else{
+            } else {
                 $actions->disableDelete();
                 $actions->disableEdit();
             }
@@ -453,7 +451,7 @@ class CustomFormController extends AdminControllerTableBase
 
         // get form block list
         $custom_form_block_items = $this->getFormBlocks($form);
-        $custom_form_blocks = collect($custom_form_block_items)->map(function($custom_form_block_item){
+        $custom_form_blocks = collect($custom_form_block_items)->map(function ($custom_form_block_item) {
             return $custom_form_block_item->getItemsForDisplay();
         });
 
@@ -476,7 +474,7 @@ class CustomFormController extends AdminControllerTableBase
      * Get header box ex. view name, label, default flg....
      *
      * @param CustomForm|null $custom_form
-     * @return void
+     * @return Box
      */
     protected function getHeaderBox(?CustomForm $custom_form, string $formroot)
     {
@@ -521,14 +519,14 @@ class CustomFormController extends AdminControllerTableBase
 
 
     protected function getFormBlocks($form)
-    {    
+    {
         // Loop using CustomFormBlocks
         $custom_form_block_items = [];
         foreach ($this->getFormBlockItems($form) as $custom_form_block) {
             $block_item = FormSetting\FormBlock\BlockBase::make($custom_form_block, $this->custom_table);
 
             // get form column items
-            $custom_form_column_items = collect($block_item->getFormColumns())->map(function($custom_form_column){
+            $custom_form_column_items = collect($block_item->getFormColumns())->map(function ($custom_form_column) {
                 return FormSetting\FormColumn\ColumnBase::make($custom_form_column);
             });
             $block_item->setCustomFormColumnItems($custom_form_column_items);
@@ -653,12 +651,12 @@ class CustomFormController extends AdminControllerTableBase
                 $custom_form_block->saveOrFail();
 
                 // create columns --------------------------------------------------
-                foreach($block['custom_form_columns'] ?? [] as $custom_form_column){
+                foreach ($block['custom_form_columns'] ?? [] as $custom_form_column) {
                     $custom_form_column->custom_form_block_id = $custom_form_block->id;
                     $custom_form_column->saveOrFail();
                 }
                 // delete columns --------------------------------------------------
-                foreach($block['delete_custom_form_columns'] ?? [] as $custom_form_column){
+                foreach ($block['delete_custom_form_columns'] ?? [] as $custom_form_column) {
                     $custom_form_column->delete();
                 }
             }
@@ -774,18 +772,18 @@ class CustomFormController extends AdminControllerTableBase
                 $column->width = array_get($column_value, 'width', 1);
 
                 $form_options = jsonToArray(array_get($column_value, 'options', "[]"));
-                if($isPrepareOptions){
+                if ($isPrepareOptions) {
                     $column->options = $column_item->prepareSavingOptions($form_options);
                 }
                 // if preview, options set directrly.
-                else{
+                else {
                     $column->options = $form_options;
                 }
                 $column->order = $order++;
 
                 $result_block['custom_form_columns'][] = $column;
 
-                if($new_column){
+                if ($new_column) {
                     // set new column info, after gertting id.
                     $new_columns[$column_key] = $column;
                 }
@@ -820,13 +818,13 @@ class CustomFormController extends AdminControllerTableBase
     public function settingModal(Request $request)
     {
         $column_item = FormSetting\FormColumn\ColumnBase::makeByParams(
-            $request->get('form_column_type'), 
+            $request->get('form_column_type'),
             $request->get('form_column_target_id'),
             $request->get('header_column_name')
         );
 
         $block_item = FormSetting\FormBlock\BlockBase::makeByParams(
-            $request->get('form_block_type'), 
+            $request->get('form_block_type'),
             $request->get('form_block_target_table_id')
         );
 
@@ -856,15 +854,15 @@ class CustomFormController extends AdminControllerTableBase
     protected function saveAndStoreImage(array $new_columns)
     {
         $files = request()->files->all();
-        foreach(array_get($files, 'custom_form_blocks', []) as $block_id => $file_blocks){
-            foreach(array_get($file_blocks, 'custom_form_columns', []) as $column_id => $file_options){
+        foreach (array_get($files, 'custom_form_blocks', []) as $block_id => $file_blocks) {
+            foreach (array_get($file_blocks, 'custom_form_columns', []) as $column_id => $file_options) {
                 $image = array_get($file_options, 'options.image');
-                if(!$image){
+                if (!$image) {
                     continue;
                 }
 
-                // get custom form column's id 
-                if(array_key_exists($column_id, $new_columns)){
+                // get custom form column's id
+                if (array_key_exists($column_id, $new_columns)) {
                     $column_id = $new_columns[$column_id]->id ?? null;
                 }
                 $file = ExmentFile::storeAs(FileType::CUSTOM_FORM_COLUMN, $image, 'custom_form', $image->getClientOriginalName());
@@ -882,9 +880,9 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function deleteImage($deletes)
     {
-        collect($deletes)->map(function($delete){
+        collect($deletes)->map(function ($delete) {
             return ExmentFile::getFileFromFormColumn($delete);
-        })->filter()->each(function($file){
+        })->filter()->each(function ($file) {
             ExmentFile::deleteFileInfo($file);
         });
     }
@@ -892,16 +890,16 @@ class CustomFormController extends AdminControllerTableBase
 
     protected function enablePublicForm() : bool
     {
-        if(!System::publicform_available()){
+        if (!System::publicform_available()) {
             return false;
         }
-        if(!$this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)){
+        if (!$this->custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM_PUBLIC)) {
             return false;
         }
-        if(boolval($this->custom_table->getOption('one_record_flg'))){
+        if (boolval($this->custom_table->getOption('one_record_flg'))) {
             return false;
         }
-        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+        if (in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
             return false;
         }
         return true;

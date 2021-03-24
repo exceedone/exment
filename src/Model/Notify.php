@@ -15,7 +15,7 @@ use Carbon\Carbon;
 
 /**
  * Notify user.
- * 
+ *
  * *Now disable these params.
  * - custom_table_id to target_id
  * - workflow_id to target_id
@@ -33,7 +33,7 @@ class Notify extends ModelBase
     
     public function custom_table()
     {
-        if(!in_array($this->notify_trigger, NotifyTrigger::CUSTOM_TABLES())){
+        if (!in_array($this->notify_trigger, NotifyTrigger::CUSTOM_TABLES())) {
             return null;
         }
         return $this->belongsTo(CustomTable::class, 'target_id')
@@ -521,7 +521,7 @@ class Notify extends ModelBase
         $values = collect();
         foreach (stringToArray($notify_action_target) as $notify_act) {
             $notifyTarget = NotifyTargetBase::make($notify_act, $this, $action_setting);
-            if(!$notifyTarget){
+            if (!$notifyTarget) {
                 continue;
             }
 

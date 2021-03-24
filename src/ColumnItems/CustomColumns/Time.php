@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
+use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
-use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ColumnDefaultType;

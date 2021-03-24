@@ -63,14 +63,13 @@ class NotifyCommand extends Command
             $notify = Notify::where('notify_name', $key)->first();
         } elseif (!is_null($key = $this->option("suuid"))) {
             $query->where('suuid', $key);
-        }
-        else{
+        } else {
             $this->error('Please input id, name, or suuid.');
             return null;
         }
 
         $result = $query->first();
-        if(!$result){
+        if (!$result) {
             $this->error('Notify time not found.');
         }
 

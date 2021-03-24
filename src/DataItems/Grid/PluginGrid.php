@@ -38,12 +38,12 @@ class PluginGrid extends GridBase
     {
         $grid = $this->pluginClass->grid();
 
-        if(!$this->pluginClass->useBox()){
+        if (!$this->pluginClass->useBox()) {
             return \Exment::getRender($grid);
         }
 
         $box = new Box($this->custom_view->view_view_name, \Exment::getRender($grid));
-        foreach($this->getBoxTools($box) as $tool){
+        foreach ($this->getBoxTools() as $tool) {
             $box->tools($tool);
         }
 
@@ -61,8 +61,8 @@ class PluginGrid extends GridBase
     {
         $tools = [];
 
-        foreach($this->pluginClass->useBoxButtons() as $buttonName){
-            switch($buttonName){
+        foreach ($this->pluginClass->useBoxButtons() as $buttonName) {
+            switch ($buttonName) {
                 case 'newButton':
                     $this->setNewButton($tools);
                     break;
@@ -92,12 +92,12 @@ class PluginGrid extends GridBase
     {
         $plugin_uuid = array_get($options, 'plugin');
         $plugin = Plugin::getPluginByUUID($plugin_uuid);
-        if(is_nullorempty($plugin)){
+        if (is_nullorempty($plugin)) {
             return;
         }
 
         $pluginClass = $plugin->getClass(PluginType::VIEW, ['custom_table' => $custom_table]);
-        if(is_nullorempty($pluginClass)){
+        if (is_nullorempty($pluginClass)) {
             return;
         }
         $pluginClass->setViewOptionForm($form);

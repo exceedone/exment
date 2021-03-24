@@ -49,7 +49,7 @@ class RoleGroupType extends EnumBase
             case self::TABLE()->lowerKey():
                 $permissions = Permission::TABLE_ROLE_PERMISSION;
                 if (!boolval(System::publicform_available())) {
-                    $permissions = collect($permissions)->filter(function($permission){
+                    $permissions = collect($permissions)->filter(function ($permission) {
                         return !in_array($permission, [Permission::CUSTOM_FORM_PUBLIC]);
                     })->toArray();
                 }

@@ -388,13 +388,13 @@ class Initialize
             }
             
             // Google reCAPTCHA ----------------------------------------------------
-            if(!is_null($val = Model\PublicForm::recaptchaSiteKey())){
+            if (!is_null($val = Model\PublicForm::recaptchaSiteKey())) {
                 Config::set('no-captcha.sitekey', $val);
             }
-            if(!is_null($val = Model\PublicForm::recaptchaSecretKey())){
+            if (!is_null($val = Model\PublicForm::recaptchaSecretKey())) {
                 Config::set('no-captcha.secret', $val);
             }
-            if(!is_null($val = Model\PublicForm::recaptchaVersion())){
+            if (!is_null($val = Model\PublicForm::recaptchaVersion())) {
                 Config::set('no-captcha.version', $val);
             }
         }
@@ -461,7 +461,6 @@ class Initialize
 
         $map = [
             'ajaxButton'        => Field\AjaxButton::class,
-            'text'          => Field\Text::class,
             'text'          => Field\Text::class,
             'password'          => Field\Password::class,
             'encpassword'          => Field\EncPassword::class,

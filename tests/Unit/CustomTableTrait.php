@@ -1,5 +1,6 @@
 <?php
 namespace Exceedone\Exment\Tests\Unit;
+
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;

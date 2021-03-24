@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form;
 use Encore\Admin\Form\Field\Hidden;
 
 /**

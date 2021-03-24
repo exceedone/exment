@@ -15,7 +15,8 @@ class CompareValueTest extends UnitTestBase
 {
 
     // TEXT Equal ----------------------------------------------------
-    public function testMatchTextMatch(){
+    public function testMatchTextMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => 'abc', 'text2' => 'abc' ]]);
@@ -23,7 +24,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchTextNulls(){
+    public function testMatchTextNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => null, 'text2' => null ]]);
@@ -31,7 +33,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchTextNotMatch(){
+    public function testMatchTextNotMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => 'abc', 'text2' => 'def' ]]);
@@ -39,7 +42,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchTextNull1(){
+    public function testMatchTextNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => null, 'text2' => 'def' ]]);
@@ -47,7 +51,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchTextNull2(){
+    public function testMatchTextNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => 'abc', 'text2' => null ]]);
@@ -57,7 +62,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // TEXT Not Equal ----------------------------------------------------
-    public function testNotMatchTextMatch(){
+    public function testNotMatchTextMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => 'abc', 'text2' => 'abc' ]]);
@@ -65,7 +71,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchTextNulls(){
+    public function testNotMatchTextNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => null, 'text2' => null ]]);
@@ -73,7 +80,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchTextNotMatch(){
+    public function testNotMatchTextNotMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => 'abc', 'text2' => 'def' ]]);
@@ -81,7 +89,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchTextNull1(){
+    public function testNotMatchTextNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => null, 'text2' => 'def' ]]);
@@ -89,7 +98,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchTextNull2(){
+    public function testNotMatchTextNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TEXT, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['text1' => 'abc', 'text2' => null ]]);
@@ -101,7 +111,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // INT Equal ----------------------------------------------------
-    public function testMatchIntegerMatch(){
+    public function testMatchIntegerMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 100 ]]);
@@ -109,7 +120,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchIntegerNulls(){
+    public function testMatchIntegerNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => null ]]);
@@ -117,7 +129,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchIntegerNotMatch1(){
+    public function testMatchIntegerNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 200 ]]);
@@ -125,7 +138,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchIntegerNotMatch2(){
+    public function testMatchIntegerNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 200, 'integer2' => 100 ]]);
@@ -133,7 +147,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchIntegerNull1(){
+    public function testMatchIntegerNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => 200 ]]);
@@ -141,7 +156,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchIntegerNull2(){
+    public function testMatchIntegerNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => null ]]);
@@ -153,7 +169,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // INT Not Equal ----------------------------------------------------
-    public function testNotMatchIntegerMatch(){
+    public function testNotMatchIntegerMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 100 ]]);
@@ -161,7 +178,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchIntegerNulls(){
+    public function testNotMatchIntegerNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => null ]]);
@@ -169,7 +187,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchIntegerNotMatch1(){
+    public function testNotMatchIntegerNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 200 ]]);
@@ -177,7 +196,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchIntegerNotMatch2(){
+    public function testNotMatchIntegerNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 200, 'integer2' => 100 ]]);
@@ -185,7 +205,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchIntegerNull1(){
+    public function testNotMatchIntegerNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => 200 ]]);
@@ -193,7 +214,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchIntegerNull2(){
+    public function testNotMatchIntegerNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => null ]]);
@@ -205,7 +227,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // INT GT ----------------------------------------------------
-    public function testGtIntegerMatch(){
+    public function testGtIntegerMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 100 ]]);
@@ -213,7 +236,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtIntegerNulls(){
+    public function testGtIntegerNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => null ]]);
@@ -221,7 +245,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtIntegerNotMatch1(){
+    public function testGtIntegerNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 200 ]]);
@@ -229,7 +254,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtIntegerNotMatch2(){
+    public function testGtIntegerNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 200, 'integer2' => 100 ]]);
@@ -237,7 +263,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtIntegerNull1(){
+    public function testGtIntegerNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => 200 ]]);
@@ -245,7 +272,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtIntegerNull2(){
+    public function testGtIntegerNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => null ]]);
@@ -257,7 +285,8 @@ class CompareValueTest extends UnitTestBase
 
     
     // INT GTE ----------------------------------------------------
-    public function testGteIntegerMatch(){
+    public function testGteIntegerMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 100 ]]);
@@ -265,7 +294,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteIntegerNulls(){
+    public function testGteIntegerNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => null ]]);
@@ -273,7 +303,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteIntegerNotMatch1(){
+    public function testGteIntegerNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 200 ]]);
@@ -281,7 +312,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGteIntegerNotMatch2(){
+    public function testGteIntegerNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 200, 'integer2' => 100 ]]);
@@ -289,7 +321,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteIntegerNull1(){
+    public function testGteIntegerNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => 200 ]]);
@@ -297,7 +330,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteIntegerNull2(){
+    public function testGteIntegerNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => null ]]);
@@ -309,7 +343,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // INT LT ----------------------------------------------------
-    public function testLtIntegerMatch(){
+    public function testLtIntegerMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 100 ]]);
@@ -317,7 +352,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtIntegerNulls(){
+    public function testLtIntegerNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => null ]]);
@@ -325,7 +361,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtIntegerNotMatch1(){
+    public function testLtIntegerNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 200 ]]);
@@ -333,7 +370,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtIntegerNotMatch2(){
+    public function testLtIntegerNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 200, 'integer2' => 100 ]]);
@@ -341,7 +379,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtIntegerNull1(){
+    public function testLtIntegerNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => 200 ]]);
@@ -349,7 +388,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtIntegerNull2(){
+    public function testLtIntegerNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => null ]]);
@@ -361,7 +401,8 @@ class CompareValueTest extends UnitTestBase
 
     
     // INT LTE ----------------------------------------------------
-    public function testLteIntegerMatch(){
+    public function testLteIntegerMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 100 ]]);
@@ -369,7 +410,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteIntegerNulls(){
+    public function testLteIntegerNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => null ]]);
@@ -377,7 +419,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteIntegerNotMatch1(){
+    public function testLteIntegerNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => 200 ]]);
@@ -385,7 +428,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteIntegerNotMatch2(){
+    public function testLteIntegerNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 200, 'integer2' => 100 ]]);
@@ -393,7 +437,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLteIntegerNull1(){
+    public function testLteIntegerNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => null, 'integer2' => 200 ]]);
@@ -401,7 +446,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteIntegerNull2(){
+    public function testLteIntegerNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::INTEGER, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['integer1' => 100, 'integer2' => null ]]);
@@ -416,7 +462,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DECIMAL Equal ----------------------------------------------------
-    public function testMatchDecimalMatch(){
+    public function testMatchDecimalMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 20.25 ]]);
@@ -424,7 +471,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchDecimalNulls(){
+    public function testMatchDecimalNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => null ]]);
@@ -432,7 +480,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchDecimalNotMatch1(){
+    public function testMatchDecimalNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 50.72 ]]);
@@ -440,7 +489,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDecimalNotMatch2(){
+    public function testMatchDecimalNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 50.72, 'decimal2' => 20.25 ]]);
@@ -448,7 +498,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDecimalNull1(){
+    public function testMatchDecimalNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => 50.72 ]]);
@@ -456,7 +507,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDecimalNull2(){
+    public function testMatchDecimalNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => null ]]);
@@ -468,7 +520,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DECIMAL Not Equal ----------------------------------------------------
-    public function testNotMatchDecimalMatch(){
+    public function testNotMatchDecimalMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 20.25 ]]);
@@ -476,7 +529,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchDecimalNulls(){
+    public function testNotMatchDecimalNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => null ]]);
@@ -484,7 +538,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchDecimalNotMatch1(){
+    public function testNotMatchDecimalNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 50.72 ]]);
@@ -492,7 +547,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDecimalNotMatch2(){
+    public function testNotMatchDecimalNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 50.72, 'decimal2' => 20.25 ]]);
@@ -500,7 +556,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDecimalNull1(){
+    public function testNotMatchDecimalNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => 50.72 ]]);
@@ -508,7 +565,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDecimalNull2(){
+    public function testNotMatchDecimalNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => null ]]);
@@ -520,7 +578,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DECIMAL GT ----------------------------------------------------
-    public function testGtDecimalMatch(){
+    public function testGtDecimalMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 20.25 ]]);
@@ -528,7 +587,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtDecimalNulls(){
+    public function testGtDecimalNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => null ]]);
@@ -536,7 +596,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDecimalNotMatch1(){
+    public function testGtDecimalNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 50.72 ]]);
@@ -544,7 +605,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtDecimalNotMatch2(){
+    public function testGtDecimalNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 50.72, 'decimal2' => 20.25 ]]);
@@ -552,7 +614,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDecimalNull1(){
+    public function testGtDecimalNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => 50.72 ]]);
@@ -560,7 +623,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDecimalNull2(){
+    public function testGtDecimalNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => null ]]);
@@ -572,7 +636,8 @@ class CompareValueTest extends UnitTestBase
 
     
     // DECIMAL GTE ----------------------------------------------------
-    public function testGteDecimalMatch(){
+    public function testGteDecimalMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 20.25 ]]);
@@ -580,7 +645,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDecimalNulls(){
+    public function testGteDecimalNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => null ]]);
@@ -588,7 +654,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDecimalNotMatch1(){
+    public function testGteDecimalNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 50.72 ]]);
@@ -596,7 +663,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGteDecimalNotMatch2(){
+    public function testGteDecimalNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 50.72, 'decimal2' => 20.25 ]]);
@@ -604,7 +672,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDecimalNull1(){
+    public function testGteDecimalNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => 50.72 ]]);
@@ -612,7 +681,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDecimalNull2(){
+    public function testGteDecimalNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => null ]]);
@@ -624,7 +694,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DECIMAL LT ----------------------------------------------------
-    public function testLtDecimalMatch(){
+    public function testLtDecimalMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 20.25 ]]);
@@ -632,7 +703,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtDecimalNulls(){
+    public function testLtDecimalNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => null ]]);
@@ -640,7 +712,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDecimalNotMatch1(){
+    public function testLtDecimalNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 50.72 ]]);
@@ -648,7 +721,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDecimalNotMatch2(){
+    public function testLtDecimalNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 50.72, 'decimal2' => 20.25 ]]);
@@ -656,7 +730,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtDecimalNull1(){
+    public function testLtDecimalNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => 50.72 ]]);
@@ -664,7 +739,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDecimalNull2(){
+    public function testLtDecimalNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => null ]]);
@@ -676,7 +752,8 @@ class CompareValueTest extends UnitTestBase
 
     
     // DECIMAL LTE ----------------------------------------------------
-    public function testLteDecimalMatch(){
+    public function testLteDecimalMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 20.25 ]]);
@@ -684,7 +761,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDecimalNulls(){
+    public function testLteDecimalNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => null ]]);
@@ -692,7 +770,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDecimalNotMatch1(){
+    public function testLteDecimalNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => 50.72 ]]);
@@ -700,7 +779,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDecimalNotMatch2(){
+    public function testLteDecimalNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 50.72, 'decimal2' => 20.25 ]]);
@@ -708,7 +788,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLteDecimalNull1(){
+    public function testLteDecimalNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => null, 'decimal2' => 50.72 ]]);
@@ -716,7 +797,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDecimalNull2(){
+    public function testLteDecimalNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DECIMAL, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['decimal1' => 20.25, 'decimal2' => null ]]);
@@ -733,7 +815,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Date Equal ----------------------------------------------------
-    public function testMatchDateMatch(){
+    public function testMatchDateMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-05-01' ]]);
@@ -741,7 +824,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchDateNulls(){
+    public function testMatchDateNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => null ]]);
@@ -749,7 +833,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchDateNotMatch1(){
+    public function testMatchDateNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-09-01' ]]);
@@ -757,7 +842,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDateNotMatch2(){
+    public function testMatchDateNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-09-01', 'date2' => '2020-05-01' ]]);
@@ -765,7 +851,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDateNull1(){
+    public function testMatchDateNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => '2020-09-01' ]]);
@@ -773,7 +860,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDateNull2(){
+    public function testMatchDateNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => null ]]);
@@ -784,7 +872,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Date Not Equal ----------------------------------------------------
-    public function testNotMatchDateMatch(){
+    public function testNotMatchDateMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-05-01' ]]);
@@ -792,7 +881,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchDateNulls(){
+    public function testNotMatchDateNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => null ]]);
@@ -800,7 +890,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchDateNotMatch1(){
+    public function testNotMatchDateNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-09-01' ]]);
@@ -808,7 +899,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDateNotMatch2(){
+    public function testNotMatchDateNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-09-01', 'date2' => '2020-05-01' ]]);
@@ -816,7 +908,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDateNull1(){
+    public function testNotMatchDateNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => '2020-09-01' ]]);
@@ -824,7 +917,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDateNull2(){
+    public function testNotMatchDateNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => null ]]);
@@ -835,7 +929,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Date GT ----------------------------------------------------
-    public function testGtDateMatch(){
+    public function testGtDateMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-05-01' ]]);
@@ -843,7 +938,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtDateNulls(){
+    public function testGtDateNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => null ]]);
@@ -851,7 +947,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDateNotMatch1(){
+    public function testGtDateNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-09-01' ]]);
@@ -859,7 +956,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtDateNotMatch2(){
+    public function testGtDateNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-09-01', 'date2' => '2020-05-01' ]]);
@@ -867,7 +965,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDateNull1(){
+    public function testGtDateNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => '2020-09-01' ]]);
@@ -875,7 +974,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDateNull2(){
+    public function testGtDateNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => null ]]);
@@ -886,7 +986,8 @@ class CompareValueTest extends UnitTestBase
 
     
     // Date GTE ----------------------------------------------------
-    public function testGteDateMatch(){
+    public function testGteDateMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-05-01' ]]);
@@ -894,7 +995,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDateNulls(){
+    public function testGteDateNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => null ]]);
@@ -902,7 +1004,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDateNotMatch1(){
+    public function testGteDateNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-09-01' ]]);
@@ -910,7 +1013,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGteDateNotMatch2(){
+    public function testGteDateNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-09-01', 'date2' => '2020-05-01' ]]);
@@ -918,7 +1022,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDateNull1(){
+    public function testGteDateNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => '2020-09-01' ]]);
@@ -926,7 +1031,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDateNull2(){
+    public function testGteDateNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => null ]]);
@@ -937,7 +1043,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Date LT ----------------------------------------------------
-    public function testLtDateMatch(){
+    public function testLtDateMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-05-01' ]]);
@@ -945,7 +1052,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtDateNulls(){
+    public function testLtDateNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => null ]]);
@@ -953,7 +1061,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDateNotMatch1(){
+    public function testLtDateNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-09-01' ]]);
@@ -961,7 +1070,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDateNotMatch2(){
+    public function testLtDateNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-09-01', 'date2' => '2020-05-01' ]]);
@@ -969,7 +1079,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtDateNull1(){
+    public function testLtDateNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => '2020-09-01' ]]);
@@ -977,7 +1088,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDateNull2(){
+    public function testLtDateNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => null ]]);
@@ -988,7 +1100,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Date LTE ----------------------------------------------------
-    public function testLteDateMatch(){
+    public function testLteDateMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-05-01' ]]);
@@ -996,7 +1109,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDateNulls(){
+    public function testLteDateNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => null ]]);
@@ -1004,7 +1118,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDateNotMatch1(){
+    public function testLteDateNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => '2020-09-01' ]]);
@@ -1012,7 +1127,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDateNotMatch2(){
+    public function testLteDateNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-09-01', 'date2' => '2020-05-01' ]]);
@@ -1020,7 +1136,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLteDateNull1(){
+    public function testLteDateNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => null, 'date2' => '2020-09-01' ]]);
@@ -1028,7 +1145,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDateNull2(){
+    public function testLteDateNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATE, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['date1' => '2020-05-01', 'date2' => null ]]);
@@ -1042,7 +1160,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Time Equal ----------------------------------------------------
-    public function testMatchTimeMatch(){
+    public function testMatchTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '08:00' ]]);
@@ -1050,7 +1169,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchTimeNulls(){
+    public function testMatchTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => null ]]);
@@ -1058,7 +1178,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchTimeNotMatch1(){
+    public function testMatchTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '12:00' ]]);
@@ -1066,7 +1187,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchTimeNotMatch2(){
+    public function testMatchTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '12:00', 'time2' => '08:00' ]]);
@@ -1074,7 +1196,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchTimeNull1(){
+    public function testMatchTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => '12:00' ]]);
@@ -1082,7 +1205,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchTimeNull2(){
+    public function testMatchTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => null ]]);
@@ -1093,7 +1217,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Time Not Equal ----------------------------------------------------
-    public function testNotMatchTimeMatch(){
+    public function testNotMatchTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '08:00' ]]);
@@ -1101,7 +1226,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchTimeNulls(){
+    public function testNotMatchTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => null ]]);
@@ -1109,7 +1235,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchTimeNotMatch1(){
+    public function testNotMatchTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '12:00' ]]);
@@ -1117,7 +1244,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchTimeNotMatch2(){
+    public function testNotMatchTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '12:00', 'time2' => '08:00' ]]);
@@ -1125,7 +1253,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchTimeNull1(){
+    public function testNotMatchTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => '12:00' ]]);
@@ -1133,7 +1262,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchTimeNull2(){
+    public function testNotMatchTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => null ]]);
@@ -1144,7 +1274,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Time GT ----------------------------------------------------
-    public function testGtTimeMatch(){
+    public function testGtTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '08:00' ]]);
@@ -1152,7 +1283,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtTimeNulls(){
+    public function testGtTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => null ]]);
@@ -1160,7 +1292,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtTimeNotMatch1(){
+    public function testGtTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '12:00' ]]);
@@ -1168,7 +1301,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtTimeNotMatch2(){
+    public function testGtTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '12:00', 'time2' => '08:00' ]]);
@@ -1176,7 +1310,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtTimeNull1(){
+    public function testGtTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => '12:00' ]]);
@@ -1184,7 +1319,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtTimeNull2(){
+    public function testGtTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => null ]]);
@@ -1195,7 +1331,8 @@ class CompareValueTest extends UnitTestBase
 
     
     // Time GTE ----------------------------------------------------
-    public function testGteTimeMatch(){
+    public function testGteTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '08:00' ]]);
@@ -1203,7 +1340,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteTimeNulls(){
+    public function testGteTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => null ]]);
@@ -1211,7 +1349,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteTimeNotMatch1(){
+    public function testGteTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '12:00' ]]);
@@ -1219,7 +1358,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGteTimeNotMatch2(){
+    public function testGteTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '12:00', 'time2' => '08:00' ]]);
@@ -1227,7 +1367,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteTimeNull1(){
+    public function testGteTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => '12:00' ]]);
@@ -1235,7 +1376,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteTimeNull2(){
+    public function testGteTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => null ]]);
@@ -1246,7 +1388,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Time LT ----------------------------------------------------
-    public function testLtTimeMatch(){
+    public function testLtTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '08:00' ]]);
@@ -1254,7 +1397,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtTimeNulls(){
+    public function testLtTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => null ]]);
@@ -1262,7 +1406,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtTimeNotMatch1(){
+    public function testLtTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '12:00' ]]);
@@ -1270,7 +1415,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtTimeNotMatch2(){
+    public function testLtTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '12:00', 'time2' => '08:00' ]]);
@@ -1278,7 +1424,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtTimeNull1(){
+    public function testLtTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => '12:00' ]]);
@@ -1286,7 +1433,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtTimeNull2(){
+    public function testLtTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => null ]]);
@@ -1297,7 +1445,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // Time LTE ----------------------------------------------------
-    public function testLteTimeMatch(){
+    public function testLteTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '08:00' ]]);
@@ -1305,7 +1454,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteTimeNulls(){
+    public function testLteTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => null ]]);
@@ -1313,7 +1463,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteTimeNotMatch1(){
+    public function testLteTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => '12:00' ]]);
@@ -1321,7 +1472,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteTimeNotMatch2(){
+    public function testLteTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '12:00', 'time2' => '08:00' ]]);
@@ -1329,7 +1481,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLteTimeNull1(){
+    public function testLteTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => null, 'time2' => '12:00' ]]);
@@ -1337,7 +1490,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteTimeNull2(){
+    public function testLteTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::TIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['time1' => '08:00', 'time2' => null ]]);
@@ -1350,7 +1504,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DateTime Equal ----------------------------------------------------
-    public function testMatchDateTimeMatch(){
+    public function testMatchDateTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1358,7 +1513,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchDateTimeNulls(){
+    public function testMatchDateTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => null ]]);
@@ -1366,7 +1522,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testMatchDateTimeNotMatch1(){
+    public function testMatchDateTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1374,7 +1531,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDateTimeNotMatch2(){
+    public function testMatchDateTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-09-01 12:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1382,7 +1540,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDateTimeNull1(){
+    public function testMatchDateTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1390,7 +1549,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testMatchDateTimeNull2(){
+    public function testMatchDateTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::EQ);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => null ]]);
@@ -1401,7 +1561,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DateTime Not Equal ----------------------------------------------------
-    public function testNotMatchDateTimeMatch(){
+    public function testNotMatchDateTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1409,7 +1570,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchDateTimeNulls(){
+    public function testNotMatchDateTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => null ]]);
@@ -1417,7 +1579,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testNotMatchDateTimeNotMatch1(){
+    public function testNotMatchDateTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1425,7 +1588,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDateTimeNotMatch2(){
+    public function testNotMatchDateTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-09-01 12:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1433,7 +1597,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDateTimeNull1(){
+    public function testNotMatchDateTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1441,7 +1606,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testNotMatchDateTimeNull2(){
+    public function testNotMatchDateTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::NE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => null ]]);
@@ -1452,7 +1618,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DateTime GT ----------------------------------------------------
-    public function testGtDateTimeMatch(){
+    public function testGtDateTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1460,7 +1627,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtDateTimeNulls(){
+    public function testGtDateTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => null ]]);
@@ -1468,7 +1636,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDateTimeNotMatch1(){
+    public function testGtDateTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1476,7 +1645,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGtDateTimeNotMatch2(){
+    public function testGtDateTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-09-01 12:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1484,7 +1654,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDateTimeNull1(){
+    public function testGtDateTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1492,7 +1663,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGtDateTimeNull2(){
+    public function testGtDateTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => null ]]);
@@ -1503,7 +1675,8 @@ class CompareValueTest extends UnitTestBase
 
     
     // DateTime GTE ----------------------------------------------------
-    public function testGteDateTimeMatch(){
+    public function testGteDateTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1511,7 +1684,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDateTimeNulls(){
+    public function testGteDateTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => null ]]);
@@ -1519,7 +1693,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDateTimeNotMatch1(){
+    public function testGteDateTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1527,7 +1702,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testGteDateTimeNotMatch2(){
+    public function testGteDateTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-09-01 12:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1535,7 +1711,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDateTimeNull1(){
+    public function testGteDateTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1543,7 +1720,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testGteDateTimeNull2(){
+    public function testGteDateTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_GTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => null ]]);
@@ -1554,7 +1732,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DateTime LT ----------------------------------------------------
-    public function testLtDateTimeMatch(){
+    public function testLtDateTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1562,7 +1741,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtDateTimeNulls(){
+    public function testLtDateTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => null ]]);
@@ -1570,7 +1750,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDateTimeNotMatch1(){
+    public function testLtDateTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1578,7 +1759,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDateTimeNotMatch2(){
+    public function testLtDateTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-09-01 12:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1586,7 +1768,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLtDateTimeNull1(){
+    public function testLtDateTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1594,7 +1777,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLtDateTimeNull2(){
+    public function testLtDateTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LT);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => null ]]);
@@ -1605,7 +1789,8 @@ class CompareValueTest extends UnitTestBase
 
 
     // DateTime LTE ----------------------------------------------------
-    public function testLteDateTimeMatch(){
+    public function testLteDateTimeMatch()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1613,7 +1798,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDateTimeNulls(){
+    public function testLteDateTimeNulls()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => null ]]);
@@ -1621,7 +1807,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDateTimeNotMatch1(){
+    public function testLteDateTimeNotMatch1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1629,7 +1816,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDateTimeNotMatch2(){
+    public function testLteDateTimeNotMatch2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-09-01 12:00', 'datetime2' => '2020-05-01 08:00' ]]);
@@ -1637,7 +1825,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) > 0);
     }
 
-    public function testLteDateTimeNull1(){
+    public function testLteDateTimeNull1()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => null, 'datetime2' => '2020-09-01 12:00' ]]);
@@ -1645,7 +1834,8 @@ class CompareValueTest extends UnitTestBase
         $this->assertTrue(count($result) == 0);
     }
 
-    public function testLteDateTimeNull2(){
+    public function testLteDateTimeNull2()
+    {
         $custom_table = $this->initCompareValueTest(ColumnType::DATETIME, FilterOption::COMPARE_LTE);
 
         $result = $custom_table->validatorCompareColumns(['value' => ['datetime1' => '2020-05-01 08:00', 'datetime2' => null ]]);
@@ -1705,7 +1895,7 @@ class CompareValueTest extends UnitTestBase
         $custom_column_id1 = null;
         $custom_column_id2 = null;
         
-        foreach($column_blocks as $index => $column){
+        foreach ($column_blocks as $index => $column) {
             $custom_column = new CustomColumn;
             $custom_column->custom_table_id = $custom_table->id;
             $custom_column->column_name = $column['column_name'];
@@ -1715,10 +1905,9 @@ class CompareValueTest extends UnitTestBase
 
             $custom_columns[] = $custom_column;
 
-            if($index == 0){
+            if ($index == 0) {
                 $custom_column_id1 = $custom_column->id;
-            }
-            else{
+            } else {
                 $custom_column_id2 = $custom_column->id;
             }
         }

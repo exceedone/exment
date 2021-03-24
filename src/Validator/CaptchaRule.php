@@ -7,7 +7,7 @@ use Illuminate\Support\Arr;
 
 /**
  * Class     CaptchaRule. Copied from \Arcanedev\NoCaptcha\Rules\CaptchaRule
- * Because we want to set trans for exment 
+ * Because we want to set trans for exment
  *
  * @package  Arcanedev\NoCaptcha\Rules
  * @author   ARCANEDEV <arcanedev.maroc@gmail.com>
@@ -93,8 +93,9 @@ class CaptchaRule implements Rule
     {
         $ip = request()->ip();
 
-        if (in_array($ip, $this->skipIps))
+        if (in_array($ip, $this->skipIps)) {
             return true;
+        }
 
         return no_captcha($this->version)
             ->verify($value, $ip)
@@ -111,4 +112,3 @@ class CaptchaRule implements Rule
         return (string) exmtrans('error.captcha');
     }
 }
-

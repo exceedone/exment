@@ -172,8 +172,7 @@ class IMenuTest extends ExmentKitTestCase
         // Check database
         $model = $this->getMenuTestModel($menu_name);
 
-        foreach($data as $key => $value)
-        {
+        foreach ($data as $key => $value) {
             $this->assertMatch($model->{$key}, $value);
         }
     }
@@ -194,13 +193,13 @@ class IMenuTest extends ExmentKitTestCase
 
         $data = [];
 
-        foreach(['parent_id', 'menu_type', 'menu_target_view', 'uri', 'menu_name', 'title', 'icon'] as $checkKey){
+        foreach (['parent_id', 'menu_type', 'menu_target_view', 'uri', 'menu_name', 'title', 'icon'] as $checkKey) {
             // if has editData in editData, set post value
-            if(array_has($editData, $checkKey)){
+            if (array_has($editData, $checkKey)) {
                 $data[$checkKey] = array_get($editData, $checkKey);
             }
             // if not has, get model
-            else{
+            else {
                 $data[$checkKey] = array_get($menu, $checkKey);
             }
         }
@@ -209,8 +208,7 @@ class IMenuTest extends ExmentKitTestCase
         $this->assertPostResponse($this->response, admin_url('auth/menu'));
         
         $model = Menu::find($menu->id);
-        foreach($data as $key => $value)
-        {
+        foreach ($data as $key => $value) {
             $this->assertMatch($model->{$key}, $value);
         }
     }

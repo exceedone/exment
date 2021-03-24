@@ -73,7 +73,7 @@ class EnumBase extends Enum
     {
         $array = [];
         foreach (static::toArray() as $key => $value) {
-            if(!in_array($value, $targetEnums)){
+            if (!in_array($value, $targetEnums)) {
                 continue;
             }
             $array[$value] = strtolower($key);

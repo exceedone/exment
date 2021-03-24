@@ -9,13 +9,13 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 class Hr extends OtherBase
 {
     /**
-     * Get setting modal form 
+     * Get setting modal form
      *
      * @return WidgetForm
      */
     public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
     {
-       return null;
+        return null;
     }
 
 
@@ -39,7 +39,8 @@ class Hr extends OtherBase
         return false;
     }
 
-    public function getFontAwesomeClass() : ?string{
+    public function getFontAwesomeClass() : ?string
+    {
         return 'fa-window-minimize';
     }
 }

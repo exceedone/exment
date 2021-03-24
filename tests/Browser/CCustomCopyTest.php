@@ -73,10 +73,14 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         foreach ($custom_copy->custom_copy_columns as $custom_copy_column) {
             $row_id = $custom_copy_column->id;
-            $this->seeIsSelected("custom_copy_columns[$row_id][from_column_target]", 
-                $custom_copy_column->from_column_target_id . '?table_id=' . $custom_copy_column->from_column_table_id);
-            $this->seeIsSelected("custom_copy_columns[$row_id][to_column_target]", 
-                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id);
+            $this->seeIsSelected(
+                "custom_copy_columns[$row_id][from_column_target]",
+                $custom_copy_column->from_column_target_id . '?table_id=' . $custom_copy_column->from_column_table_id
+            );
+            $this->seeIsSelected(
+                "custom_copy_columns[$row_id][to_column_target]",
+                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id
+            );
         }
 
         $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL));
@@ -102,16 +106,22 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         foreach ($custom_copy->custom_copy_columns as $custom_copy_column) {
             $row_id = $custom_copy_column->id;
-            $this->seeIsSelected("custom_copy_columns[$row_id][from_column_target]", 
-                $custom_copy_column->from_column_target_id . '?table_id=' . $custom_copy_column->from_column_table_id);
-            $this->seeIsSelected("custom_copy_columns[$row_id][to_column_target]", 
-                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id);
+            $this->seeIsSelected(
+                "custom_copy_columns[$row_id][from_column_target]",
+                $custom_copy_column->from_column_target_id . '?table_id=' . $custom_copy_column->from_column_table_id
+            );
+            $this->seeIsSelected(
+                "custom_copy_columns[$row_id][to_column_target]",
+                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id
+            );
         }
 
         foreach ($custom_copy->custom_copy_input_columns as $custom_copy_column) {
             $row_id = $custom_copy_column->id;
-            $this->seeIsSelected("custom_copy_input_columns[$row_id][to_column_target]", 
-                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id);
+            $this->seeIsSelected(
+                "custom_copy_input_columns[$row_id][to_column_target]",
+                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id
+            );
         }
             
         $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL));
@@ -185,8 +195,10 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         foreach ($custom_copy_columns as $custom_copy_column) {
             if ($custom_copy_column->copy_column_type == CopyColumnType::DEFAULT) {
-                $this->seeInElement('div.box-body', 
-                    $custom_value->getValue($custom_copy_column->to_custom_column->column_name, true));
+                $this->seeInElement(
+                    'div.box-body',
+                    $custom_value->getValue($custom_copy_column->to_custom_column->column_name, true)
+                );
             } else {
                 $input = array_get($data, $custom_copy_column->to_custom_column->column_name);
                 if (isset($input)) {
@@ -244,11 +256,14 @@ class CCustomCopyTest extends ExmentKitTestCase
         $this->put(admin_url("copy/custom_value_edit_all/$id"), $data);
         $this->assertPostResponse($this->response, admin_url("copy/custom_value_edit_all"));
         
-        $this->assertEquals($pre_default_cnt - $new_idx, 
-            CustomCopyColumn::where('copy_column_type', CopyColumnType::DEFAULT)->count());
-        $this->assertEquals($pre_input_cnt + $new_idx, 
-            CustomCopyColumn::where('copy_column_type', CopyColumnType::INPUT)->count());
-
+        $this->assertEquals(
+            $pre_default_cnt - $new_idx,
+            CustomCopyColumn::where('copy_column_type', CopyColumnType::DEFAULT)->count()
+        );
+        $this->assertEquals(
+            $pre_input_cnt + $new_idx,
+            CustomCopyColumn::where('copy_column_type', CopyColumnType::INPUT)->count()
+        );
     }
 
     /**
@@ -310,5 +325,4 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         return $raw;
     }
-
 }

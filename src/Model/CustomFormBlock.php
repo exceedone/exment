@@ -113,7 +113,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     
     /**
      * get relation name etc for form block
-     * 
+     *
      * @return array offset 0 : CustomRelation, 1:relation name, 2:block label.
      */
     public function getRelationInfo(?CustomTable $custom_form_table = null)
@@ -134,7 +134,9 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         // get form columns count
         $form_block_options = array_get($this, 'options', []);
         $relation = CustomRelation::getRelationByParentChild(
-            $custom_form_table ?? $this->custom_form->custom_table, $target_table);
+            $custom_form_table ?? $this->custom_form->custom_table,
+            $target_table
+        );
         $relation_name = $relation ? $relation->getRelationName() : null;
         
         return [$relation, $relation_name, $block_label];

@@ -605,6 +605,8 @@ return [
             'all_user_enabled' => 'すべてのユーザーが利用可能',
             'export_types' => 'エクスポートの種類',
             'export_description' => '説明文',
+            'grid_menu_title' => 'メニューでのタイトル',
+            'grid_menu_description' => 'メニューでの説明文',
 
             'event_trigger_options' => [
                 'saving' => '保存直前',
@@ -634,6 +636,8 @@ return [
             'export_types' => '一覧画面で選択できる、エクスポートの種類を選択してください。',
             'export_description' => 'データのインポート・エクスポートのメニュー画面に表示する説明文です。',
             'endpoint' => 'このプラグインにアクセスするためのエンドポイントです。',
+            'grid_menu_title' => 'ビューの設定時にダイアログで表示される、ビューのタイトルを設定してください。',
+            'grid_menu_description' => 'ビューの設定時にダイアログで表示される、ビューの説明文を設定してください。',
         ],
 
         'error' => [
@@ -1275,6 +1279,7 @@ return [
             'checkbox_enabled' => 'チェックボックス形式で表示',
             'free_input' => '自由に入力可能にする',
             'accept_extensions' => 'アップロード許可する拡張子',
+            'required_yes' => 'YES必須',
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -1345,10 +1350,9 @@ return [
             'multiple_enabled_file' => 'YESにすることで、複数のファイルをアップロードすることができます。',
             'accept_extensions' => 'アップロードを許可するファイルの拡張子を指定する場合、ドットを含まずに、拡張子を入力してください。複数指定する場合は、カンマ区切りで入力してください。例：docx,pdf,xlsx',
             'check_radio_enabled' => 'YESにすることで、ラジオボタン形式またはチェックボックス形式で表示されます。（複数選択を許可している場合はチェックボックス形式で、通常はラジオボタン形式で表示されます）',
-            'multiple_enabled_file' => 'YESにすることで、複数のファイルをアップロードすることができます。',
-            'accept_extensions' => 'アップロードを許可するファイルの拡張子を指定する場合、ドットを含まずに、拡張子を入力してください。複数指定する場合は、カンマ区切りで入力してください。例：docx,pdf,xlsx',
             'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
             'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
+            'required_yes' => 'この設定をYESにすることで、入力画面でYESに設定することが必須となります。※チェックボックス形式の場合、チェックされていることが必須となります。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 

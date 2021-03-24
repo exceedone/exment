@@ -9,7 +9,8 @@ use Exceedone\Exment\Services\SystemRequire\Composer;
  */
 class SystemRequireTestComposerMin extends Composer
 {
-    protected function getComposerVersion(){
+    protected function getComposerVersion()
+    {
         return "1.9.2";
     }
 }
