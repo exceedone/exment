@@ -52,10 +52,10 @@ class Plugin extends PluginViewBase
         });
 
         //　フィルタ(絞り込み)の設定を行う場合
-        static::setFilterFields($form, $this->custom_table);
+        static::setFilterFields($form);
 
         // 並べ替えの設定を行う場合
-        static::setSortFields($form, $this->custom_table);
+        static::setSortFields($form);
     }
     
 

@@ -266,14 +266,14 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->default(NotifyAction::EMAIL);
                 
                 $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-                ->options(function ($val, $field, $notify) {
+                ->options(function ($val, $field, $notify) use ($custom_table) {
                     $options = [
                         'as_default' => false,
                         'get_email' => true,
                         'get_select_table_email' => false,
                         'as_fixed_email' => false,
                     ];
-                    return collect(NotifyService::getNotifyTargetColumns($custom_table ?? null, array_get($field->data(), 'notify_action'), $options))
+                    return collect(NotifyService::getNotifyTargetColumns($custom_table, array_get($field->data(), 'notify_action'), $options))
                         ->pluck('text', 'id');
                 })
                 ->help(exmtrans("custom_form_public.help.notify_action_target_complete_user"));
