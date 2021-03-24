@@ -261,7 +261,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
             // get notify mail template
             $this->setNotifyMailTemplate($form, 'notify_mail_template_complete_user', MailKeyName::PUBLICFORM_COMPLETE_USER, 'confirm_complete_setting_use_notify_complete_user');
-            $form->embeds("notify_actions_complete_user", exmtrans("common.confirm_complete_setting"), function ($form) {
+            $form->embeds("notify_actions_complete_user", exmtrans("common.confirm_complete_setting"), function ($form) use ($custom_table) {
                 $form->internal('notify_action')
                     ->default(NotifyAction::EMAIL);
                 
