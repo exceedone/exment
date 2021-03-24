@@ -82,6 +82,7 @@ return [
         'preview' => 'プレビュー',
         'no_selected' => '未選択',
         'no_use' => '使用しない',
+        'default_export' => 'エクスポート',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -121,6 +122,8 @@ return [
             'init_flg' => '保存後、変更はできません。',
             'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
             'more_help_here' => '詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'export_all' => 'すべてのデータをエクスポートします。',
+            'export_page' => '現在のページのデータをエクスポートします。',
         ],
 
         'weekday' => [

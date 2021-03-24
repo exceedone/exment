@@ -82,6 +82,7 @@ return [
         'preview' => 'preview',
         'no_selected' => 'unselected',
         'no_use' => 'do not use',
+        'default_export' => 'Export',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -121,6 +122,8 @@ return [
             'init_flg' => 'Cannot edit after save.',
             'more_help' => '<span class="red">For a detailed explanation, click the "?" Icon at the top right of the page and check the manual.</span>',
             'more_help_here' => 'Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
+            'export_all' => 'Export all data.',
+            'export_page' => 'Exports the current page data.',
         ],
 
         'weekday' => [
