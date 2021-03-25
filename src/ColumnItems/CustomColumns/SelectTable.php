@@ -302,7 +302,7 @@ class SelectTable extends CustomItem
         if ($this->isPublicForm()) {
             return false;
         }
-        if ($this->disableEdit($form_column_options)) {
+        if ($this->disableEdit()) {
             return false;
         }
         if (boolval(config('exment.select_table_modal_search_disabled', false))) {
