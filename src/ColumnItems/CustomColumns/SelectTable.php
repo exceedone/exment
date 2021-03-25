@@ -206,7 +206,7 @@ class SelectTable extends CustomItem
 
         // set buttons
         $buttons = [];
-        if ($this->isShowSearchButton($form_column_options)) {
+        if ($this->isShowSearchButton($this->form_column_options)) {
             $buttons[] = [
                 'label' => trans('admin.search'),
                 'btn_class' => 'btn-info',
