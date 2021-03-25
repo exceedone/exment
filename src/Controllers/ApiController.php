@@ -508,10 +508,15 @@ class ApiController extends AdminControllerBase
                 return $count;
             }
 
-            $result = $custom_table->searchValue($q, [
+            $options = [
                 'makeHidden' => true,
                 'maxCount' => $count,
-            ]);
+            ];
+            if (!is_null($display_table_id = $request->get('display_table_id'))) {
+                $options['display_table'] = $display_table_id;
+            }
+
+            $result = $custom_table->searchValue($q, $options);
 
             // if call as select ajax, return id and text array
             $results = $results->merge(

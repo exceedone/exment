@@ -186,6 +186,9 @@ class PatchDataCommand extends Command
             case 'delete_junk_file':
                 $this->deleteJunkFile();
                 return;
+            case 'select_table_user_org':
+                $this->patchSelectTableUserOrg();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1580,5 +1583,44 @@ class PatchDataCommand extends Command
             } catch (\Exception $ex) {
             }
         }
+    }
+
+    
+
+    /**
+     * Convert select table and user-organization, convert type to USER and ORGANIZATION
+     *
+     * @return void
+     */
+    protected function patchSelectTableUserOrg()
+    {
+        // get user and ORG table's id
+        $custom_table_user = CustomTable::getEloquent(SystemTableName::USER);
+        $custom_table_organization = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+
+        \DB::transaction(function () use ($custom_table_user, $custom_table_organization) {
+            CustomColumn::get()
+            ->each(function ($custom_column) use ($custom_table_user, $custom_table_organization) {
+                if ($custom_column->column_type != Enums\ColumnType::SELECT_TABLE) {
+                    return;
+                }
+                $select_target_table = $custom_column->getOption('select_target_table');
+                if (is_nullorempty($select_target_table)) {
+                    return;
+                }
+                if (!in_array($select_target_table, [$custom_table_user->id, $custom_table_organization->id])) {
+                    return;
+                }
+
+                // set new column_type
+                if ($select_target_table == $custom_table_user->id) {
+                    $custom_column->column_type = Enums\ColumnType::USER;
+                } elseif ($select_target_table == $custom_table_organization->id) {
+                    $custom_column->column_type = Enums\ColumnType::ORGANIZATION;
+                }
+                $custom_column->forgetOption('select_target_table');
+                $custom_column->save();
+            });
+        });
     }
 }
