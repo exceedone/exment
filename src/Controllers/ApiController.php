@@ -512,7 +512,7 @@ class ApiController extends AdminControllerBase
                 'makeHidden' => true,
                 'maxCount' => $count,
             ];
-            if(!is_null($display_table_id = $request->get('display_table_id'))){
+            if (!is_null($display_table_id = $request->get('display_table_id'))) {
                 $options['display_table'] = $display_table_id;
             }
 
