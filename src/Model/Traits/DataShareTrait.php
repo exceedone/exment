@@ -48,7 +48,7 @@ trait DataShareTrait
          
             // add ajax
             if (isset($ajaxItem)) {
-                $ajax = admin_url('webapi/user_organization/select');
+                $ajax = admin_urls_query('webapi/user_organization/select', ['display_table_id' => ($custom_table ? $custom_table->id : null)]);
             }
         }
 

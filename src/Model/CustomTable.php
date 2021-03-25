@@ -1926,7 +1926,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'target_id' => null,
                 'target_view' => null,
                 'permission' => null,
-                'notAjax' => false,
+                'notAjax' => false, // If not ajax(For getting all value), set true.
                 'custom_column' => null,
             ],
             $options
