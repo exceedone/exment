@@ -80,6 +80,11 @@ class Select extends CustomItem
     protected function setAdminOptions(&$field, $form_column_options)
     {
         $field->options($this->custom_column->createSelectOptions());
+        
+        if(boolval(array_get($this->options, 'as_modal')))
+        {
+            $field->asModal();
+        }
     }
     
     protected function setValidates(&$validates, $form_column_options)
