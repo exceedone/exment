@@ -200,8 +200,7 @@ class SelectTable extends CustomItem
         ] : null;
 
         // If modal, set config as modal
-        if(boolval(array_get($this->options, 'as_modal')))
-        {
+        if (boolval(array_get($this->options, 'as_modal'))) {
             $field->asModal();
         }
 
@@ -293,24 +292,23 @@ class SelectTable extends CustomItem
     }
 
     /**
-     * Whether showing Search modal button 
+     * Whether showing Search modal button
      *
      * @param mixed $form_column_options
      * @return boolean
      */
     protected function isShowSearchButton($form_column_options) : bool
     {
-        if ($this->isPublicForm()){
+        if ($this->isPublicForm()) {
             return false;
         }
-        if ($this->disableEdit($form_column_options)){
+        if ($this->disableEdit($form_column_options)) {
             return false;
         }
-        if(boolval(config('exment.select_table_modal_search_disabled', false))){
+        if (boolval(config('exment.select_table_modal_search_disabled', false))) {
             return false;
         }
-        if(boolval(array_get($this->options, 'as_modal')))
-        {
+        if (boolval(array_get($this->options, 'as_modal'))) {
             return false;
         }
 

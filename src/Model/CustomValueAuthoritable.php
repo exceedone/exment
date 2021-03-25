@@ -275,9 +275,8 @@ class CustomValueAuthoritable extends ModelBase
 
         $form->multipleSelect('custom_value_edit', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
             ->options($options)
-            ->validationOptions(function($value) use(&$validationOptions, $custom_value)
-            {
-                if(!is_null($validationOptions)){
+            ->validationOptions(function ($value) use (&$validationOptions, $custom_value) {
+                if (!is_null($validationOptions)) {
                     return $validationOptions;
                 }
                 list($validationOptions, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, null, true);
@@ -292,9 +291,8 @@ class CustomValueAuthoritable extends ModelBase
         list($options, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, $default);
         $form->multipleSelect('custom_value_view', exmtrans('role_group.role_type_option_value.custom_value_view.label'))
             ->options($options)
-            ->validationOptions(function($value) use(&$validationOptions, $custom_value)
-            {
-                if(!is_null($validationOptions)){
+            ->validationOptions(function ($value) use (&$validationOptions, $custom_value) {
+                if (!is_null($validationOptions)) {
                     return $validationOptions;
                 }
                 list($validationOptions, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, null, true);

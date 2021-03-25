@@ -91,8 +91,7 @@ class Select extends CustomItem
     {
         $options = $this->custom_column->createSelectOptions();
 
-        if(boolval(array_get($this->options, 'as_modal')))
-        {
+        if (boolval(array_get($this->options, 'as_modal'))) {
             $field->asModal();
         }
         

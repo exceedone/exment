@@ -99,9 +99,8 @@ class DataShareAuthoritable extends ModelBase
 
         $form->multipleSelect(Permission::DATA_SHARE_EDIT, exmtrans("role_group.role_type_option_value.data_share_edit.label"))
             ->options($options)
-            ->validationOptions(function($value) use(&$validationOptions, $target_data)
-            {
-                if(!is_null($validationOptions)){
+            ->validationOptions(function ($value) use (&$validationOptions, $target_data) {
+                if (!is_null($validationOptions)) {
                     return $validationOptions;
                 }
                 list($validationOptions, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, null, true);
@@ -117,9 +116,8 @@ class DataShareAuthoritable extends ModelBase
         
         $form->multipleSelect(Permission::DATA_SHARE_VIEW, exmtrans("role_group.role_type_option_value.data_share_view.label"))
             ->options($options)
-            ->validationOptions(function($value) use(&$validationOptions, $target_data)
-            {
-                if(!is_null($validationOptions)){
+            ->validationOptions(function ($value) use (&$validationOptions, $target_data) {
+                if (!is_null($validationOptions)) {
                     return $validationOptions;
                 }
                 list($validationOptions, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, null, true);

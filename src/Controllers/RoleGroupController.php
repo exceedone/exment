@@ -373,7 +373,7 @@ class RoleGroupController extends AdminControllerBase
             $form->multipleSelect('role_group_item', exmtrans('role_group.user_organization_setting'))
                 ->options($options)
                 ->ajax($ajax)
-                ->validationOptions(function($value){
+                ->validationOptions(function ($value) {
                     list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions(null, null, false, null, true);
                     return $options;
                 })

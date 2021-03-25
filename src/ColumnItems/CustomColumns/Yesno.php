@@ -54,7 +54,7 @@ class Yesno extends CustomItem
             ]);
         }
 
-        if(array_boolval($this->custom_column->options, 'required_yes')){
+        if (array_boolval($this->custom_column->options, 'required_yes')) {
             $field->requiredRule();
         }
     }
