@@ -410,7 +410,7 @@ class CustomValueAuthoritable extends ModelBase
      * @param boolean $ignoreLoginUser Whether ignore login user
      * @param array|null $default
      * @param boolean $all if true, get all items. For checking value
-     * @return void
+     * @return array
      */
     public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null, $all = false)
     {

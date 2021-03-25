@@ -24,9 +24,9 @@ class PublicFormSession extends \Encore\Admin\Middleware\Session
         }
         
         $public_form = PublicForm::getPublicFormByRequest();
-        if($public_form){
+        if ($public_form) {
             $path .= '/' . trim($public_form->getBasePath(), '/');
-        }else{
+        } else {
             $path .= '/' . url_join(public_form_base_path(), make_uuid());
         }
 
