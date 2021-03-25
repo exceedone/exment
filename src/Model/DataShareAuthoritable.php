@@ -93,8 +93,20 @@ class DataShareAuthoritable extends ModelBase
         // select target users
         $default = static::getUserOrgSelectDefault($target_type->toString(), $id, Permission::DATA_SHARE_EDIT);
         list($options, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, $default);
+
+        // for validation options
+        $validationOptions = null;
+
         $form->multipleSelect(Permission::DATA_SHARE_EDIT, exmtrans("role_group.role_type_option_value.data_share_edit.label"))
             ->options($options)
+            ->validationOptions(function($value) use(&$validationOptions, $target_data)
+            {
+                if(!is_null($validationOptions)){
+                    return $validationOptions;
+                }
+                list($validationOptions, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, null, true);
+                return $validationOptions;
+            })
             ->ajax($ajax)
             ->default($default)
             ->help(exmtrans("role_group.role_type_option_value.data_share_edit.help", $target_name))
@@ -102,8 +114,17 @@ class DataShareAuthoritable extends ModelBase
 
         $default = static::getUserOrgSelectDefault($target_type->toString(), $id, Permission::DATA_SHARE_VIEW);
         list($options, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, $default);
+        
         $form->multipleSelect(Permission::DATA_SHARE_VIEW, exmtrans("role_group.role_type_option_value.data_share_view.label"))
             ->options($options)
+            ->validationOptions(function($value) use(&$validationOptions, $target_data)
+            {
+                if(!is_null($validationOptions)){
+                    return $validationOptions;
+                }
+                list($validationOptions, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, null, true);
+                return $validationOptions;
+            })
             ->ajax($ajax)
             ->default($default)
             ->help(exmtrans("role_group.role_type_option_value.data_share_view.help", $target_name))
