@@ -1018,7 +1018,10 @@ namespace Exment {
                 let $elem = $(elem);
                 let allowClear = hasValue($elem.data('add-select2-allow-clear')) ? $elem.data('add-select2-allow-clear') : true;
                 let options = {
-                    "allowClear": allowClear, "placeholder": $elem.data('add-select2'), width: '100%'
+                    "allowClear": allowClear, 
+                    "placeholder": $elem.data('add-select2'), 
+                    width: '100%',
+                    dropdownParent: pBool($elem.data('add-select2-as-modal')) ? $("#modal-showmodal .modal-dialog") : null,
                 };
                 if (hasValue($elem.data('add-select2-ajax'))) {
                     options['ajax'] = {
