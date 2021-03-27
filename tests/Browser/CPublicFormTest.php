@@ -14,12 +14,11 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
 
 /**
- * custom column test.
- * v4.1.0, custom column option dynamic change. So cannot test seein.
  */
 class CPublicFormTest extends ExmentKitTestCase
 {
-    use DatabaseTransactions;
+    // Not use DatabaseTransactions, set for manual.
+    // use DatabaseTransactions;
 
     /**
      * pre-excecute process before test.
@@ -40,6 +39,7 @@ class CPublicFormTest extends ExmentKitTestCase
      */
     public function testDisplayPublicForm()
     {
+        \DB::beginTransaction();
         // Check public form list and setting
         $this->visit(admin_url('form/custom_value_edit_all'))
                 ->seePageIs(admin_url('form/custom_value_edit_all'))
@@ -114,10 +114,12 @@ class CPublicFormTest extends ExmentKitTestCase
                 ->seeInElement('label', '公開有効期限')
                 ->seeInElement('label', '公開有効期限')
             ;
+        \DB::rollback();
     }
     // Create public form
     public function testAddPublicFormSuccess()
     {
+        \DB::beginTransaction();
         $pre_cnt = PublicForm::count();
 
         $table = CustomTable::where('table_name', 'custom_value_edit_all')->first();
@@ -173,7 +175,7 @@ class CPublicFormTest extends ExmentKitTestCase
                 'new_1' => [
                     'notify_action' => '1',
                     'notify_action_target' => ['administrator', 'fixed_email'],
-                    'target_emails' => 'unittest@mail.co.jp',
+                    'target_emails' => 'unittest@foobar.co.jp.test',
                     '_remove_' => 0,
                 ]
             ],
@@ -302,7 +304,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->type('987.65', 'value[decimal]')
             ->type('11111.2', 'value[currency]')
             ->type('unit test init text', 'value[init_text]')
-            ->type('yisaka@exceedone.co.jp', 'value[email]')
+            ->type('unittest@foobar.co.jp.test', 'value[email]')
             ->press('admin-submit')
             ->seePageIs($share_url . '/confirm')
             ->seeOuterElement('div.box-body', 'unit test text')
@@ -315,7 +317,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeOuterElement('div.box-body', '987.65')
             ->seeOuterElement('div.box-body', '¥11111.2')
             ->seeOuterElement('div.box-body', 'unit test init text')
-            ->seeOuterElement('div.box-body', 'yisaka@exceedone.co.jp')
+            ->seeOuterElement('div.box-body', 'unittest@foobar.co.jp.test')
             ->press('admin-submit')
             ->seePageIs($share_url . '/create')
             ->seeOuterElement('h2', 'テスト完了タイトル')
@@ -337,7 +339,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeInField('value[decimal]', '987.65')
             ->seeInField('value[currency]', '11111.2')
             ->seeInField('value[init_text]', 'unit test init text')
-            ->seeInField('value[email]', 'yisaka@exceedone.co.jp')
+            ->seeInField('value[email]', 'unittest@foobar.co.jp.test')
         ;
 
         // Delete public form 
@@ -350,11 +352,14 @@ class CPublicFormTest extends ExmentKitTestCase
             ->matchStatusCode(200)
             ->dontSeeInElement('td', 'Public Form Unit Test')
         ;
+
+        \DB::rollback();
     }
 
     // Update public form
     public function testUpdatePublicFormSuccess()
     {
+        \DB::beginTransaction();
         $pre_cnt = PublicForm::count();
 
         $table = CustomTable::where('table_name', 'custom_value_edit_all')->first();
@@ -553,6 +558,7 @@ class CPublicFormTest extends ExmentKitTestCase
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
         ;
+        \DB::rollback();
     }
 
     // Create Public Form Fail --Nothing Input--
@@ -569,6 +575,7 @@ class CPublicFormTest extends ExmentKitTestCase
     // View Public Form Fail --Out of term--
     public function testAddFailOutOfTerm()
     {
+        \DB::beginTransaction();
         $table = CustomTable::where('table_name', 'custom_value_edit_all')->first();
         $target_form = $table->custom_forms->first();
 
@@ -596,11 +603,14 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeOuterElement('body', exmtrans('error.public_form_not_found'))
         ;
 
+        \DB::rollback();
     }
 
     // View Public Form Fail --Out of term--
-    public function testAddFailDeactivate()
+    public function testAddFailDeactivate1()
     {
+        // Not call database transaction and rollback.
+
         $table = CustomTable::where('table_name', 'custom_value_edit_all')->first();
         $target_form = $table->custom_forms->first();
 
@@ -626,13 +636,21 @@ class CPublicFormTest extends ExmentKitTestCase
         $this->post(admin_url('formpublic/custom_value_edit_all/'. $pform->id . '/deactivate'))
             ->matchStatusCode(200)
         ;
+    }
 
+    // View Public Form Fail --Out of term--
+    public function testAddFailDeactivate2()
+    {
+        // Not call database transaction and rollback.
+
+        $pform = $this->getNewestForm();
+        $share_url = $pform->getUrl();
+        
         // Check public form view out of term
         $this->visit($share_url)
             ->seePageIs($share_url)
             ->seeOuterElement('body', exmtrans('error.public_form_not_found'))
         ;
-
     }
 
     protected function getNewestForm()
