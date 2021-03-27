@@ -633,6 +633,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
             // create notify after saved
             $public_form->createNotifyImported(array_get($json, 'public_form'));
+            $public_form->setPluginImported(array_get($json, 'public_form'));
         });
 
         return $form->setModel($public_form)->redirectAfterStore();

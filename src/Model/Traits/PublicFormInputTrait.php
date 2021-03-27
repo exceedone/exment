@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Plugin;
 
 /**
  * Public from, for setting input logic.
@@ -277,6 +278,13 @@ trait PublicFormInputTrait
                 'mail_template_key_name' => $mail_template->getValue('mail_key_name'),
             ];
         }
+
+        // Get plugins ----------------------------------------------------
+        $plugin_css = Plugin::whereOrIn('id', $this->getOption('plugin_css'))->pluck('plugin_name')->toArray();
+        $plugin_js = Plugin::whereOrIn('id', $this->getOption('plugin_js'))->pluck('plugin_name')->toArray();
+
+        $json['options']['plugin_css'] = $plugin_css;
+        $json['options']['plugin_js'] = $plugin_js;
     }
 
     /**
@@ -329,6 +337,28 @@ trait PublicFormInputTrait
             $notify->mail_template_id = $mail_template ? $mail_template->id : 0;
 
             $notify->save();
+        }        
+    }
+
+    
+
+    /**
+     * Callback template import event
+     *
+     * @param array $json
+     */
+    public function setPluginImported(array $json)
+    {
+        // set plugins ----------------------------------------------------
+        $plugin_css = Plugin::whereOrIn('plugin_name', array_get($json, 'options.plugin_css', []))->pluck('id')->filter();
+        $plugin_js = Plugin::whereOrIn('plugin_name', array_get($json, 'options.plugin_js', []))->pluck('id')->filter();
+
+        if(is_nullorempty($plugin_css) && is_nullorempty($plugin_js)){
+            return;
         }
+
+        $this->setOption('plugin_css', $plugin_css);
+        $this->setOption('plugin_js', $plugin_js);
+        $this->save();
     }
 }
