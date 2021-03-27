@@ -24,6 +24,7 @@ namespace Exment {
 
             $(document).on('change.exment_custom_form', '#modal-showmodal .modal-customform .changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
             $(document).on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
+            $(document).on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-reset', {}, CustomFromEvent.resetModalSetting);
             $(document).on('click.exment_custom_form', '.preview-custom_form', {}, CustomFromEvent.previewCustomForm);
 
             $(document).on('pjax:complete', function (event) {
@@ -763,6 +764,24 @@ namespace Exment {
             $modal.modal('hide');
         }
 
+        /**
+         * Reset modal Setting
+         */
+         private static resetModalSetting = (ev) => {
+            ev.preventDefault();
+
+            let $modal = $('#modal-showmodal');
+            // get target_header_column_name for updating.
+            let widgetmodal_uuid = $modal.find('.widgetmodal_uuid').val();
+            let $target_li = $('[data-widgetmodal_uuid="' + widgetmodal_uuid + '"]').closest('.custom_form_column_item');
+            
+            // data setting and show message
+            $target_li.find('.options').val('{}');
+
+            $target_li.find('.item-label-bottom').html(null);
+            $target_li.find('.image').remove();
+            $modal.modal('hide');
+        }
 
         /**
          * Get option label 

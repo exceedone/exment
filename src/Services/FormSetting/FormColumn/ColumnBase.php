@@ -175,6 +175,7 @@ abstract class ColumnBase
     {
         $result = [];
         $result['required'] = exmtrans('common.required');
+        $result['field_label_type'] = exmtrans('custom_form.form_label_type') . ':' . exmtrans('custom_form.setting_available');;
 
         // get field display type
         foreach (['read_only', 'view_only', 'hidden', 'internal'] as $key) {

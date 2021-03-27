@@ -842,6 +842,7 @@ class CustomFormController extends AdminControllerTableBase
             'submitlabel' => trans('admin.setting'),
             'modalClass' => 'modal-customform',
             'preventSubmit' => true,
+            'showReset' => true,
         ]);
     }
 
