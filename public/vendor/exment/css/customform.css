@@ -77,6 +77,10 @@
   margin: 0;
 }
 
+#custom_form_form .draggables .item-label-inner {
+  word-break: break-all;
+}
+
 #custom_form_form .draggables .item-label-bottom {
   margin-left: 1em;
 }

@@ -113,6 +113,7 @@ var Exment;
          * Set event after dragged erea.
          */
         static setMovedEvent($elem) {
+            toastr.clear();
             CustomFromEvent.toggleConfigIcon($elem, true);
             // add hidden form
             let header_name = CustomFromEvent.getHeaderName($elem);
@@ -185,7 +186,11 @@ var Exment;
          */
         static updateAreaRowNo($elem) {
             // update data row and column no
-            let row = $elem.closest('.custom_form_column_items').children('.row:visible').index($elem.closest('.row')) + 1;
+            let row = $elem.closest('.custom_form_column_items').children('.row')
+                // Filter showing row.
+                .filter(function (index, elem) {
+                return CustomFromEvent.isShowRow($(elem));
+            }).index($elem.closest('.row')) + 1;
             $elem.find('.draggables').data('row_no', row);
             // update items row no
             $elem.find('.row_no').val(row);
@@ -212,6 +217,24 @@ var Exment;
             $custom_form_area.find('.draggables').data('width', width);
             // update items column no
             $elem.find('.width').val(width);
+        }
+        /**
+         * Update all row and column no. area and each items
+         * @param $elem
+         */
+        static updateAllRowColumnNo($elem) {
+            let $custom_form_column_items = $elem.closest('.custom_form_column_items');
+            $custom_form_column_items.find('.custom_form_area').each(function (index, element) {
+                CustomFromEvent.updateAreaRowNo($(element));
+                CustomFromEvent.updateAreaColumnNo($(element));
+            });
+        }
+        /**
+         * Whether this row is showing.
+         * @param $elem
+         */
+        static isShowRow($row) {
+            return $row.height() > 0;
         }
         static appendRow($copy) {
             if ($copy.find('[data-column_no]').data('column_no') != 1) {
@@ -285,7 +308,9 @@ var Exment;
          * revert deleting box.
          */
         static revertDeleteBox($custom_form_area) {
-            $custom_form_area.fadeIn().find('.custom_form_column_item').each(function (index, element) {
+            $custom_form_area.fadeIn(400, function () {
+                CustomFromEvent.updateAllRowColumnNo($custom_form_area);
+            }).find('.custom_form_column_item').each(function (index, element) {
                 let $item = $(element);
                 if (!$item.hasClass('deleteAsBox')) {
                     return;
@@ -369,8 +394,8 @@ var Exment;
          */
         static replaceCloneColumnName($li) {
             let replaceHeaderName = $li.data('header_column_name');
-            let $replaceLi = $li.parents('.custom_form_block')
-                .find('.custom_form_column_suggests')
+            let $replaceLi = $li.closest('.custom_form_block')
+                .find('.template_item_block')
                 .find('.custom_form_column_item[data-header_column_name="' + replaceHeaderName + '"]');
             if ($replaceLi.length == 0) {
                 return;
@@ -586,6 +611,7 @@ var Exment;
             // toggle button show
             let $button = $(ev.target).closest('.row').find('.addbutton_button');
             CustomFromEvent.togglePlusButton($button);
+            CustomFromEvent.updateAllRowColumnNo($custom_form_area);
         });
         $custom_form_area.find('.custom_form_column_item').each(function (index, element) {
             CustomFromEvent.deleteColumn($(element), false, true);
