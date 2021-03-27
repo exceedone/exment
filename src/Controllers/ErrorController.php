@@ -45,4 +45,11 @@ class ErrorController extends Controller
             $content->row(new Box(exmtrans("error.header"), $form));
         }));
     }
+
+
+    public function maintenance(){
+        return response(view('exment::exception.maintenance', [
+            'manual_url' => \Exment::getManualUrl('troubleshooting') . '#' .exmtrans('error.maintenance_id'),
+        ])->render(), 503);
+    }
 }

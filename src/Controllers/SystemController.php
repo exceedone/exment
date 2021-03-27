@@ -383,7 +383,7 @@ class SystemController extends AdminControllerBase
             return;
         }
 
-        $form->description(exmtrans('system.call_update_description', $latest));
+        $form->description(exmtrans('system.call_update_description', $latest))->escape(false);;
         
         $manualUrl = exmtrans('common.message.label_link', [
             'label' => exmtrans('system.release_note'),
