@@ -280,8 +280,8 @@ trait PublicFormInputTrait
         }
 
         // Get plugins ----------------------------------------------------
-        $plugin_css = Plugin::whereOrIn('id', $this->getOption('plugin_css'))->pluck('plugin_name')->toArray();
-        $plugin_js = Plugin::whereOrIn('id', $this->getOption('plugin_js'))->pluck('plugin_name')->toArray();
+        $plugin_css = Plugin::query()->whereOrIn('id', $this->getOption('plugin_css'))->pluck('plugin_name')->toArray();
+        $plugin_js = Plugin::query()->whereOrIn('id', $this->getOption('plugin_js'))->pluck('plugin_name')->toArray();
 
         $json['options']['plugin_css'] = $plugin_css;
         $json['options']['plugin_js'] = $plugin_js;
@@ -337,7 +337,7 @@ trait PublicFormInputTrait
             $notify->mail_template_id = $mail_template ? $mail_template->id : 0;
 
             $notify->save();
-        }        
+        }
     }
 
     
@@ -353,7 +353,7 @@ trait PublicFormInputTrait
         $plugin_css = Plugin::whereOrIn('plugin_name', array_get($json, 'options.plugin_css', []))->pluck('id')->filter();
         $plugin_js = Plugin::whereOrIn('plugin_name', array_get($json, 'options.plugin_js', []))->pluck('id')->filter();
 
-        if(is_nullorempty($plugin_css) && is_nullorempty($plugin_js)){
+        if (is_nullorempty($plugin_css) && is_nullorempty($plugin_js)) {
             return;
         }
 
