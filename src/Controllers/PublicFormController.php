@@ -52,6 +52,22 @@ class PublicFormController extends Controller
     }
 
     /**
+     * Execute an action on the controller.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function callAction($method, $parameters)
+    {
+        // if public_form is null or not active, throw new \Exceedone\Exment\Exceptions\PublicFormNotFoundException();
+        if(!$this->public_form || !$this->public_form->active_flg){
+            throw new \Exceedone\Exment\Exceptions\PublicFormNotFoundException();
+        }
+        return parent::callAction($method, $parameters);
+    }
+
+    /**
      * Index interface.
      *
      * @return Content
