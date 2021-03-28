@@ -71,7 +71,7 @@ class MailInfo
      */
     public function getFrom() : string
     {
-        return !is_nullorempty($this->from) ? $this->from : config('mail.from.address', System::system_mail_from());
+        return !is_nullorempty($this->from) ? $this->from : config('mail.from.address') ?? System::system_mail_from();
     }
 
     /**
