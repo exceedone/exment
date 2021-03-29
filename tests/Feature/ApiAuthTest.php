@@ -203,7 +203,7 @@ class ApiAuthTest extends ApiTestBase
 
         $this->withHeaders([
         ])->get(url_join($uri, 'data', 'custom_value_edit', 5))
-            ->assertStatus(404);
+            ->assertStatus(401);
 
         $this->withHeaders([
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit'))
