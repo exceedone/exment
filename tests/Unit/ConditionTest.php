@@ -386,10 +386,16 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnDateDayLastMonthTrue()
     {
-        $this->_testColumnDate(Carbon::today()->subMonths(1)->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, true);
-        $this->_testColumnDate(Carbon::today()->subMonths(1)->lastOfMonth()->format('Y/m/d'), [null], FilterOption::DAY_LAST_MONTH, true);
-        $this->_testColumnDate(Carbon::today()->subMonths(1)->format('Ymd'), [null], FilterOption::DAY_LAST_MONTH, true);
-        $this->_testColumnDate(Carbon::now()->subMonths(1)->format('Y-m-d H:i:s.u'), [null], FilterOption::DAY_LAST_MONTH, true);
+        $this->_testColumnDate(Carbon::today()->firstOfMonth()->subMonths(1)->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, true);
+    }
+    public function testColumnDateDayLastMonthTrue2()
+    {
+        // Change now
+        Carbon::setTestNow(new Carbon('2021-01-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2020-12-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, true);
+
+        Carbon::setTestNow(new Carbon('2020-12-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2020-11-05 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, true);
     }
     public function testColumnDateDayLastMonthFalse()
     {
@@ -397,18 +403,43 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnDate(Carbon::today()->format('Y/m/d'), [null], FilterOption::DAY_LAST_MONTH, false);
         $this->_testColumnDate(null, [null], FilterOption::DAY_LAST_MONTH, false);
     }
+    public function testColumnDateDayLastMonthFalse2()
+    {
+        // Change now
+        Carbon::setTestNow(new Carbon('2021-01-02 09:59:59'));
+        // Wrong year
+        $this->_testColumnDate((new Carbon('2021-12-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, false);
+
+        Carbon::setTestNow(new Carbon('2020-12-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2021-11-05 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, false);
+    }
     public function testColumnDateDayNextMonthTrue()
     {
-        $this->_testColumnDate(Carbon::today()->addMonths(1)->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, true);
-        $this->_testColumnDate(Carbon::today()->addMonths(1)->lastOfMonth()->format('Y/m/d'), [null], FilterOption::DAY_NEXT_MONTH, true);
-        $this->_testColumnDate(Carbon::today()->addMonths(1)->format('Ymd'), [null], FilterOption::DAY_NEXT_MONTH, true);
-        $this->_testColumnDate(Carbon::now()->addMonths(1)->format('Y-m-d H:i:s.u'), [null], FilterOption::DAY_NEXT_MONTH, true);
+        $this->_testColumnDate(Carbon::today()->firstOfMonth()->addMonths(1)->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, true);
+    }
+    public function testColumnDateDayNextMonthTrue2()
+    {
+        // Change now
+        Carbon::setTestNow(new Carbon('2021-12-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2022-01-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, true);
+
+        Carbon::setTestNow(new Carbon('2020-10-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2020-11-05 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, true);
     }
     public function testColumnDateDayNextMonthFalse()
     {
         $this->_testColumnDate(Carbon::today()->subMonths(1)->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, false);
         $this->_testColumnDate(Carbon::today()->format('Y/m/d'), [null], FilterOption::DAY_NEXT_MONTH, false);
         $this->_testColumnDate(null, [null], FilterOption::DAY_NEXT_MONTH, false);
+    }
+    public function testColumnDateDayNextMonthFalse2()
+{        // Change now
+        Carbon::setTestNow(new Carbon('2021-12-02 09:59:59'));
+        // Wrong year
+        $this->_testColumnDate((new Carbon('2021-01-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, false);
+
+        Carbon::setTestNow(new Carbon('2020-01-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2021-02-05 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, false);
     }
     public function testColumnDateDayThisYearTrue()
     {

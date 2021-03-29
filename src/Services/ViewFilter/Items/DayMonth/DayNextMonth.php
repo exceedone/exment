@@ -25,7 +25,8 @@ class DayNextMonth extends DayMonthBase
      */
     protected function _compareValue($value, $conditionValue) : bool
     {
-        $target_day = \Carbon\Carbon::parse($value);
-        return $target_day->isCurrentYear() && $target_day->isNextMonth();
+        list($target_day, $today) = $this->getTargetAndTodayFirstDay($value);
+        $today = $today->addMonth(1);
+        return $target_day->format('Y-m') == $today->format('Y-m');
     }
 }
