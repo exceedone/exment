@@ -26,7 +26,7 @@ class DayLastMonth extends DayMonthBase
     protected function _compareValue($value, $conditionValue) : bool
     {
         list($target_day, $today) = $this->getTargetAndTodayFirstDay($value);
-        $today = $today->firstOfMonth()->subMonth(1);
+        $today = $today->subMonth(1);
         return $target_day->format('Y-m') == $today->format('Y-m');
     }
 }
