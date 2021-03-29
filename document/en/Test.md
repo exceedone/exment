@@ -55,17 +55,16 @@ Execute Lint (PHPStan / Laratisan) and perform syntax check etc.
 
 ```
 # for lint
-composer require --dev nunomaduro/larastan=^0.4.*
+composer require --dev nunomaduro/larastan=^0.5
 
 # for Exment related libraries
 composer require pragmarx/google2fa
 composer require simplesoftwareio/simple-qrcode=^2.0.0
-composer require laravel/socialite=~3.3.0
+composer require laravel/socialite=~5.1
 composer require aacotroneo/laravel-saml2
-composer require adldap2/adldap2-laravel
-composer require league/flysystem-sftp ~1.0
-composer require league/flysystem-aws-s3-v3 ~1.0
-composer require league/flysystem-azure-blob-storage ~0.1.6
+composer require league/flysystem-sftp=~1.0
+composer require league/flysystem-aws-s3-v3=~1.0
+composer require league/flysystem-azure-blob-storage=~0.1.6
 ```
 
 - Copy setting file.
