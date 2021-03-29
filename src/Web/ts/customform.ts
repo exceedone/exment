@@ -655,7 +655,7 @@ namespace Exment {
         private static replaceCloneColumnName($li){
             let replaceHeaderName = $li.data('header_column_name');
             let $replaceLi = $li.closest('.custom_form_block')
-                .find('.template_item_block')
+                .find('.template_item_block,.custom_form_column_suggests')
                 .find('.custom_form_column_item[data-header_column_name="' + replaceHeaderName + '"]');
 
             if($replaceLi.length == 0){
