@@ -321,6 +321,9 @@ var Exment;
                 $item.removeClass('deleteAsBox');
                 CustomFromEvent.toggleColumnSuggest(false, $item);
             });
+            // toggle append button
+            let $button = $custom_form_area.closest('.row').find('.addbutton_button');
+            CustomFromEvent.togglePlusButton($button);
         }
         static getHeaderName($li) {
             var header_name = $li.closest('.box-custom_form_block').find('.header_name').val();

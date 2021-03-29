@@ -294,8 +294,8 @@ namespace Exment {
             let $custom_form_column_items = $elem.closest('.custom_form_column_items');
 
             $custom_form_column_items.find('.custom_form_area').each(function(index, element){
-            CustomFromEvent.updateAreaRowNo($(element));
-            CustomFromEvent.updateAreaColumnNo($(element));
+                CustomFromEvent.updateAreaRowNo($(element));
+                CustomFromEvent.updateAreaColumnNo($(element));
             });
         }
 
@@ -498,6 +498,10 @@ namespace Exment {
 
                 CustomFromEvent.toggleColumnSuggest(false, $item);
             });
+
+            // toggle append button
+            let $button = $custom_form_area.closest('.row').find('.addbutton_button');
+            CustomFromEvent.togglePlusButton($button);
         }
 
 
