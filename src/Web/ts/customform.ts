@@ -805,6 +805,9 @@ namespace Exment {
                 else if(key == 'required'){
                     isMatch = pBool(value);
                 }
+                else if(key == 'field_label_type'){
+                    isMatch = value != 'form_default';
+                }
                 else if(key == 'image'){
                     isMatch = hasValue($modal.find('.image')) ? $modal.find('.image').get(0).files.length > 0 : false;
                 }

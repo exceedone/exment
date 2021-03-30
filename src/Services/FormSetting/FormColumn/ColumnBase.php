@@ -160,6 +160,11 @@ abstract class ColumnBase
                     continue;
                 }
             }
+            if ($key == 'field_label_type') {
+                if ($value == 'form_default') {
+                    continue;
+                }
+            }
             $result[] = $difinition;
         }
 

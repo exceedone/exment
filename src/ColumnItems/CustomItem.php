@@ -778,22 +778,22 @@ abstract class CustomItem implements ItemInterface
 
     public function readonly()
     {
-        return boolval(array_get($this->form_column_options, 'read_only'));
+        return array_boolval($this->form_column_options, 'read_only') || array_get($this->form_column_options, 'field_showing_type') == 'read_only';
     }
 
     public function viewonly()
     {
-        return boolval(array_get($this->form_column_options, 'view_only'));
+        return array_boolval($this->form_column_options, 'view_only') || array_get($this->form_column_options, 'field_showing_type') == 'view_only';
     }
 
     public function hidden()
     {
-        return boolval(array_get($this->form_column_options, 'hidden'));
+        return array_boolval($this->form_column_options, 'hidden') || array_get($this->form_column_options, 'field_showing_type') == 'hidden';
     }
 
     public function internal()
     {
-        return boolval(array_get($this->form_column_options, 'internal'));
+        return array_boolval($this->form_column_options, 'internal') || array_get($this->form_column_options, 'field_showing_type') == 'internal';
     }
 
     /**

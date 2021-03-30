@@ -705,7 +705,7 @@ class DefaultGrid extends GridBase
                 'label' => exmtrans('common.append_to_selectitem'),
                 'target_selectitem' => 'select',
             ])->render();
-        });
+        })->escape(false);
     }
 
     /**
