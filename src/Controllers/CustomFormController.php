@@ -743,6 +743,8 @@ class CustomFormController extends AdminControllerTableBase
             // set and calc row_no and column_no
             $before_row_no = 0;
             $before_column_no = 0;
+            $real_before_row_no = 0;
+            $real_before_column_no = 0;
             foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
                 if (!isset($column_value['form_column_type'])) {
                     continue;
@@ -772,13 +774,17 @@ class CustomFormController extends AdminControllerTableBase
                 $column_item = FormSetting\FormColumn\ColumnBase::make($column);
 
                 // if change row_no and calc_no, increment no's.
-                if($before_row_no != array_get($column_value, 'row_no', 1)){
+                if($real_before_row_no != array_get($column_value, 'row_no', 1)){
                     $before_row_no++;
                     $before_column_no = 0;
                 }
-                if($before_column_no != array_get($column_value, 'column_no', 1)){
+                if($real_before_column_no != array_get($column_value, 'column_no', 1)){
                     $before_column_no++;
                 }
+
+                // set real before row and column no
+                $real_before_row_no = array_get($column_value, 'row_no', 1);
+                $real_before_column_no = array_get($column_value, 'column_no', 1);
 
                 $column->row_no = $before_row_no;
                 $column->column_no = $before_column_no;
