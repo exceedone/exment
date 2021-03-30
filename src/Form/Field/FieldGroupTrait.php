@@ -61,9 +61,12 @@ trait FieldGroupTrait
     protected function convertRowColumnGroups(array $fieldOptions)
     {
         $fieldGroups = collect($fieldOptions)->sortBy(function ($fieldOption, $index) {
-            $row = array_get($fieldOption, 'options.row', 1);
-            $column = array_get($fieldOption, 'options.column', 1);
-            $index = str_pad($index, 3, 0, STR_PAD_LEFT);
+            $strpads = function($val){
+                return str_pad($val, 3, 0, STR_PAD_LEFT);
+            };
+            $row = $strpads(array_get($fieldOption, 'options.row', 1));
+            $column = $strpads(array_get($fieldOption, 'options.column', 1));
+            $index = $strpads($index);
             return "{$row}-{$column}-{$index}";
         })
         // grid form, group row
