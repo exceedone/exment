@@ -558,13 +558,7 @@ abstract class CustomItem implements ItemInterface
      */
     protected function setLabelType(&$field)
     {
-        $field_label_type = array_get($this->form_column_options, 'field_label_type', FormLabelType::FORM_DEFAULT);
-        
-        // get form info
-        if ($field_label_type == FormLabelType::FORM_DEFAULT && isset($this->custom_form)) {
-            $field_label_type = $this->custom_form->getOption('form_label_type') ?? FormLabelType::HORIZONTAL;
-        }
-
+        $field_label_type = $this->getLabelType();
         switch ($field_label_type) {
             case FormLabelType::HORIZONTAL:
                 return;
