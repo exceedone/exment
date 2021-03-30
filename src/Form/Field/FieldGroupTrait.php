@@ -119,19 +119,26 @@ trait FieldGroupTrait
         
         // Set col_md width using total width. ----------------------------------------------------
         $fieldGroups = $fieldGroups->map(function ($fieldGroups) use ($totalWidth) {
-            $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($totalWidth) {
+            $columnCount = count($fieldGroups['columns']);
+            $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($columnCount, $totalWidth) {
                 // if $totalWidth is 1 and vertical then col_md is 8 and offset is 2.
                 $fieldOption['col_md'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));
 
                 // set field's col sm and offset
-                $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use ($totalWidth) {
-                    if ($totalWidth <= 2 && !$field['field']->getHorizontal()) {
+                $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use ($columnCount) {
+                    if ($columnCount == 1 && !$field['field']->getHorizontal()) {
                         $field['field_sm'] = 8;
                         $field['field_offset'] = 2;
                     } else {
                         $field['field_sm'] = 12;
                         $field['field_offset'] = 0;
                     }
+
+                    // if $columnCount >= 2, set column width 10
+                    if($columnCount >= 2){
+                        $field['field']->setWidth(10, 2);
+                    }
+
                     return $field;
                 })->toArray();
                 return $fieldOption;

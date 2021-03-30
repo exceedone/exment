@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems\FormOthers;
 
-use Encore\Admin\Form\Field;
+use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\ColumnItems\FormOtherItem;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\UrlTagType;
@@ -43,9 +43,5 @@ class Image extends FormOtherItem
         return \Exment::getUrlTag($url, $imageTag, UrlTagType::BLANK, [], [
             'notEscape' => true,
         ]);
-    }
-    
-    protected function setAdminOptions(&$field)
-    {
     }
 }

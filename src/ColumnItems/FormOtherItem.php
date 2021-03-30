@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\FormLabelType;
 use Encore\Admin\Show\Field as ShowField;
 
 abstract class FormOtherItem implements ItemInterface
@@ -134,6 +135,19 @@ abstract class FormOtherItem implements ItemInterface
 
     protected function setAdminOptions(&$field)
     {
+        $field_label_type = $this->getLabelType();
+        // get form info
+        switch ($field_label_type) {
+            case FormLabelType::HORIZONTAL:
+                break;
+            case FormLabelType::VERTICAL:
+                $field->disableHorizontal();
+                break;
+            case FormLabelType::HIDDEN:
+                $field->disableHorizontal();
+                $field->disableLabel();
+                break;
+        }
     }
 
     /**
