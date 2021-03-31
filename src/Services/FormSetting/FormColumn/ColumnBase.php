@@ -152,6 +152,9 @@ abstract class ColumnBase
             if (!array_key_value_exists($key, $options)) {
                 continue;
             }
+            if (array_value_exists($difinition, $result)) {
+                continue;
+            }
 
             // hard coding
             $value = $options[$key];
