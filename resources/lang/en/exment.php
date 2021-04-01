@@ -1410,7 +1410,7 @@ return [
         'read_only' => 'Read Only',
         'view_only' => 'View Only',
         'hidden' => 'Hidden Field',
-        'internal' => 'Hide',
+        'internal' => 'Internal',
         'required' => 'Required',
         'text' => 'Text',
         'html' => 'HTML',

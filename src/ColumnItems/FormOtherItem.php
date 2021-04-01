@@ -14,6 +14,8 @@ abstract class FormOtherItem implements ItemInterface
     
     protected $form_column;
 
+    protected $custom_value;
+
     /**
      * Available fields.
      *
@@ -100,6 +102,7 @@ abstract class FormOtherItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
+        $this->custom_value = $custom_value;
         return $this;
     }
 
@@ -159,14 +162,12 @@ abstract class FormOtherItem implements ItemInterface
     public function setShowFieldOptions(ShowField $field, array $options = [])
     {
         $item = $this;
-        // get form field
-        $formField = $this->getAdminField($this->form_column_options);
 
-        $field->as(function ($v) use ($formField) {
+        $field->as(function ($v) use ($item) {
             if (is_null($this)) {
                 return '';
             }
-            return $formField->render();
+            return $item->setCustomValue($this)->html();
         })->setEscape(false);
 
         $field->setWidth(12, 0);
