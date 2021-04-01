@@ -288,7 +288,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         $form_item = $custom_form->form_item;
         $form = $form_item->disableToolsButton()->disableSavingButton()->form();
-        
+
         $content = new Content;
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
         $this->AdminContent($content);
