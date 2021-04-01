@@ -736,16 +736,13 @@ class CustomFormController extends AdminControllerTableBase
             
             // create columns --------------------------------------------------
             $order = 1;
-            if (!is_array(array_get($value, 'custom_form_columns'))) {
-                continue;
-            }
 
             // set and calc row_no and column_no
             $before_row_no = 0;
             $before_column_no = 0;
             $real_before_row_no = 0;
             $real_before_column_no = 0;
-            foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
+            foreach (array_get($value, 'custom_form_columns', []) as $column_key => $column_value) {
                 if (!isset($column_value['form_column_type'])) {
                     continue;
                 }
