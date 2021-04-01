@@ -104,7 +104,8 @@ return [
             'modal_confirm' => 'If you want to do it, enter "%s".',
             'label_link' => 'For :label, please check <a href=":link" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'preview' => 'This page is a preview. If you want to refresh the content, click the preview button again in the original window.',
-            'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.'
+            'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
+            'preview_error' => 'The preview has expired. Please close this screen and preview again.',
         ],
 
         'help' =>[

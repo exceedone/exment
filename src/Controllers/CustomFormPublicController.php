@@ -652,6 +652,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $original_public_form = PublicForm::find($id);
         // get this form's info
         $form = $this->form();
+        
         $model = $form->getModelByInputs(null, $original_public_form);
 
         // Now, cannot set header logo by getModelByInputs.
@@ -665,6 +666,12 @@ class CustomFormPublicController extends AdminControllerTableBase
             throw new PublicFormNotFoundException;
         }
         $preview_form->disableSubmit();
+        
+        // add admin url etc
+        foreach(\Exceedone\Exment\Form\Navbar\Hidden::getHiddenItemsCommon() as $key => $value){
+            $preview_form->hidden($key)->default($value)
+                ->attribute('id', $key);
+        }
 
         // set content
         $content = new PublicContent;

@@ -559,7 +559,10 @@ var Exment;
     CustomFromEvent.addAllItems = (ev) => {
         let $block = $(ev.target).closest('.custom_form_column_block_inner');
         let $items = $block.find('.custom_form_column_item:visible'); // ignore template item
-        let $target_ul = $block.closest('.box-body').find('.custom_form_column_items .draggables').first();
+        let $target_ul = $block.closest('.box-body').find('.custom_form_column_items .draggables:visible').first();
+        if (!hasValue($target_ul)) {
+            return;
+        }
         $items.each(function (index, elem) {
             $(elem).appendTo($target_ul);
             // show item options, 

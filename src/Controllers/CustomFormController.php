@@ -253,6 +253,22 @@ class CustomFormController extends AdminControllerTableBase
 
         return $this->getPreviewContent($request, $custom_form);
     }
+
+    
+
+    /**
+     * Preview error. (If called as GET request)
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function previewError(Request $request)
+    {
+        $content = new Content;
+        $content->withError(exmtrans('common.error'), exmtrans('common.message.preview_error'));
+        return $content;
+    }
+
     
     /**
      * Showing preview by id
@@ -272,7 +288,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         $form_item = $custom_form->form_item;
         $form = $form_item->disableToolsButton()->disableSavingButton()->form();
-        
+
         $content = new Content;
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
         $this->AdminContent($content);

@@ -6,7 +6,8 @@ namespace Exment {
         /**
          * Get object model
          */
-        public static make() : GetBox{
+        public static make() : GetBox
+        {
             if(Exment.GetBoxAdmin !== undefined){
                 return new GetBoxAdmin();
             }
