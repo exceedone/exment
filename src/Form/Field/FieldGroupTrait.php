@@ -56,9 +56,10 @@ trait FieldGroupTrait
      * ]
      *
      * @param array $fieldOptions
+     * @param bool $isSetWidth Whether is set width if column count >= 2, almost use form.
      * @return \Illuminate\Support\Collection
      */
-    protected function convertRowColumnGroups(array $fieldOptions)
+    protected function convertRowColumnGroups(array $fieldOptions, bool $isSetWidth)
     {
         $fieldGroups = collect($fieldOptions)->sortBy(function ($fieldOption, $index) {
             $strpads = function($val){
@@ -118,14 +119,14 @@ trait FieldGroupTrait
 
         
         // Set col_md width using total width. ----------------------------------------------------
-        $fieldGroups = $fieldGroups->map(function ($fieldGroups) use ($totalWidth) {
+        $fieldGroups = $fieldGroups->map(function ($fieldGroups) use ($isSetWidth, $totalWidth) {
             $columnCount = count($fieldGroups['columns']);
-            $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($columnCount, $totalWidth) {
+            $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($isSetWidth, $columnCount, $totalWidth) {
                 // if $totalWidth is 1 and vertical then col_md is 8 and offset is 2.
                 $fieldOption['col_md'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));
 
                 // set field's col sm and offset
-                $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use ($columnCount) {
+                $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use ($isSetWidth, $columnCount) {
                     if ($columnCount == 1 && !$field['field']->getHorizontal()) {
                         $field['field_sm'] = 8;
                         $field['field_offset'] = 2;
@@ -135,7 +136,7 @@ trait FieldGroupTrait
                     }
 
                     // if $columnCount >= 2, set column width 10
-                    if($columnCount >= 2){
+                    if($isSetWidth && $columnCount >= 2){
                         $field['field']->setWidth(10, 2);
                     }
 

@@ -106,7 +106,7 @@ class Embeds extends AdminField\Embeds
 
         ////// for grid column
         // sort by option row and column
-        $fieldGroups = $this->convertRowColumnGroups($form->getFieldAndOptions());
+        $fieldGroups = $this->convertRowColumnGroups($form->getFieldAndOptions(), true);
 
         $this->view = 'exment::form.field.gridembeds';
         return parent::render()->with([

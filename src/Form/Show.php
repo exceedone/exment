@@ -77,7 +77,7 @@ class Show extends AdminShow
 
         ////// for grid column
         // sort by option row and column
-        $fieldGroups = $this->convertRowColumnGroups($this->fieldAndOptions);
+        $fieldGroups = $this->convertRowColumnGroups($this->fieldAndOptions, false);
         $this->panel->setData('fieldGroups', $fieldGroups)
             ->setData('gridShows', true);
         return parent::renderView($data);

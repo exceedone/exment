@@ -28,9 +28,11 @@ class Html extends \Encore\Admin\Form\Field\Html
         $viewClass = $this->getViewElementClasses();
 
         return <<<EOT
-    <label  class="{$viewClass['label']} control-label">{$this->label}</label>
-    <div class="{$viewClass['field']}">
-        {$this->html}
+    <div class="form-group-showhtml">
+        <label  class="{$viewClass['label']} control-label">{$this->label}</label>
+        <div class="{$viewClass['field']}">
+            {$this->html}
+        </div>
     </div>
 EOT;
     }
