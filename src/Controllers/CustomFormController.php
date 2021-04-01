@@ -253,6 +253,22 @@ class CustomFormController extends AdminControllerTableBase
 
         return $this->getPreviewContent($request, $custom_form);
     }
+
+    
+
+    /**
+     * Preview error. (If called as GET request)
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function previewError(Request $request)
+    {
+        $content = new Content;
+        $content->withError(exmtrans('common.error'), exmtrans('common.message.preview_error'));
+        return $content;
+    }
+
     
     /**
      * Showing preview by id
