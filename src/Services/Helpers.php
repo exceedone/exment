@@ -138,7 +138,7 @@ if (!function_exists('is_nullorempty')) {
         if (is_array($obj) && count($obj) == 0) {
             return true;
         }
-        if ($obj instanceof \Illuminate\Database\Eloquent\Collection && $obj->count() == 0) {
+        if ($obj instanceof \Illuminate\Support\Collection && $obj->count() == 0) {
             return true;
         }
         return false;
