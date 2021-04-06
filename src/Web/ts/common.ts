@@ -939,7 +939,10 @@ namespace Exment {
             
             // If editor, call tinymce event
             if (column_type == 'editor') {
-                tinyMCE.get($target.attr('id')).setContent(value);
+                let t = tinyMCE.get($target.attr('id'));
+                if(hasValue(t)){
+                    t.setContent(value);
+                }
             }
             // default 
             else {
