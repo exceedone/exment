@@ -170,6 +170,11 @@ abstract class FormOtherItem implements ItemInterface
             return $item->setCustomValue($this)->html();
         })->setEscape(false);
 
+        // If grid shows, set label style
+        if ($options['gridShows']) {
+            $this->setAdminOptions($field);
+        }
+
         $field->setWidth(12, 0);
     }
 
