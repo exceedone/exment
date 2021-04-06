@@ -650,7 +650,7 @@ namespace Exment {
                 var link = linkages[key];
                 var uri = link.uri;
                 var expand = link.expand;
-                var $target = $parent.find(CommonEvent.getClassKey(link.to));
+                var $target = $parent.find(CommonEvent.getClassKey(link.to)).filter('select');
 
                 // if has 'widgetmodal_expand' on button, append linkage_value_id
                 CommonEvent.setLinkgaeExpandToSearchButton(expand, $target, $base.val());

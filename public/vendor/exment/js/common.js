@@ -795,7 +795,7 @@ var Exment;
             var link = linkages[key];
             var uri = link.uri;
             var expand = link.expand;
-            var $target = $parent.find(CommonEvent.getClassKey(link.to));
+            var $target = $parent.find(CommonEvent.getClassKey(link.to)).filter('select');
             // if has 'widgetmodal_expand' on button, append linkage_value_id
             CommonEvent.setLinkgaeExpandToSearchButton(expand, $target, $base.val());
             // if target has 'data-add-select2-ajax'(Call as ajax), set data to $target, and not call linkage
