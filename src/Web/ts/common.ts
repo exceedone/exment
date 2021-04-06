@@ -936,7 +936,19 @@ namespace Exment {
             
             // set value and trigger next
             let isChange = !isMatchString(value, $target.val());
-            $target.val(value);
+            
+            // If editor, call tinymce event
+            if (column_type == 'editor') {
+                let t = tinyMCE.get($target.attr('id'));
+                if(hasValue(t)){
+                    t.setContent(value);
+                }
+            }
+            // default 
+            else {
+                $target.val(value);
+            }
+
             if(isChange){
                 $target.trigger('change');
             }
