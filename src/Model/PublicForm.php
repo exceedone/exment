@@ -12,6 +12,7 @@ use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
 use Exceedone\Exment\DataItems\Form\PublicFormForm;
 use Exceedone\Exment\Form\Field\ReCaptcha;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class PublicForm extends ModelBase
 {
@@ -164,6 +165,15 @@ class PublicForm extends ModelBase
         }
 
         if (!boolval($model->active_flg)) {
+            return null;
+        }
+
+        if (is_nullorempty($model->proxy_user_id)) {
+            return null;
+        }
+
+        $user = getModelName(SystemTableName::USER)::find($model->proxy_user_id);
+        if (!$user) {
             return null;
         }
 
