@@ -244,7 +244,7 @@ class DefaultGrid extends GridBase
         $grid->quickSearch(function ($model, $input) {
             $eloquent = $model->eloquent();
             // Only call setSearchQueryOrWhere if exists. (If export, sometimes $eloquent is not Model.)
-            if(method_exists($eloquent, 'setSearchQueryOrWhere')){
+            if (method_exists($eloquent, 'setSearchQueryOrWhere')) {
                 $eloquent->setSearchQueryOrWhere($model, $input, ['searchDocument' => true,]);
             }
         }, 'left');
