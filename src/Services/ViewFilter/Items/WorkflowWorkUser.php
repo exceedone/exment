@@ -32,6 +32,9 @@ class WorkflowWorkUser extends ViewFilterBase
      */
     protected function _compareValue($value, $conditionValue) : bool
     {
+        if (is_nullorempty($value)) {
+            return false;
+        }
         return $value->getWorkflowActions(true, true)->count() > 0;
     }
 }
