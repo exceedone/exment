@@ -139,6 +139,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
+        'error_datetime' => 'エラー発生日時',
         'failure_import_file' => 'インポートファイルの形式が正しくありません。ファイルを確認してください。',
         'delete_failed' => '削除に失敗しました。詳細はエラーログをご確認ください。',
         'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。分割してアップロードをいただくか、大量データ投入を行ってください。',
@@ -155,6 +156,7 @@ return [
         'support_browser' => '対応ブラウザ',
         'ip_address_filtered' => '許可されていないIPアドレスです。',
         'not_contains_column' => 'カスタム列に設定されていない項目が含まれています。',
+        'check_error_log' => 'エラー詳細はログファイルに出力されています。管理者にお問い合わせください。',
     ],
 
     'install' => [

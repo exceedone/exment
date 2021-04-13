@@ -139,6 +139,7 @@ return [
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
+        'error_datetime' => 'Error DateTime',
         'delete_failed' => 'Delete failed. Please check the error log file.',
         'failure_import_file' => 'The format of the uploaded file is incorrect. Please check the file.',
         'import_max_row_count' => 'Up to :count data items can be imported at one time. Please divide and upload.',
@@ -155,6 +156,7 @@ return [
         'support_browser' => 'Support Browser',
         'ip_address_filtered' => 'Unauthorized IP address.',
         'not_contains_column' => 'Some items are not set in the custom column.',
+        'check_error_log' => 'The error details are output to the log file. Please contact the administrator.',
     ],
 
     'install' => [
