@@ -178,10 +178,12 @@ return [
 
         'installing' => [
             'header' => 'Initial Data Installation',
+            'debug' => 'Install as Debug Mode',
             'installing' => 'Execute Install',
         ],
 
         'help' => [
+            'debug' => 'Install Exment in debug mode. In debug mode, the error details are displayed on the screen.',
             'installing' => 'Install initial data. This process takes time.',
             'install_success' => 'Installation completed!',
         ],

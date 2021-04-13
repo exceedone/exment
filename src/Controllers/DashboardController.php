@@ -53,7 +53,6 @@ class DashboardController extends AdminControllerBase
      */
     public function edit(Request $request, Content $content, $id)
     {
-        1/0;
         $this->setDashboardInfo($request);
         
         // check has system permission
