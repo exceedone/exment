@@ -311,6 +311,9 @@ class SelectTable extends CustomItem
         if (boolval(array_get($this->options, 'as_modal'))) {
             return false;
         }
+        if (isset($this->target_table) && $this->target_table->isOneRecord()) {
+            return false;
+        }
 
         return true;
     }
