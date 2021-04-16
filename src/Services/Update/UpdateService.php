@@ -5,7 +5,6 @@ use Composer\Composer;
 use Composer\Config;
 use Composer\IO\NullIO;
 use Composer\Script\Event as ScriptEvent;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\BackupRestore\Backup;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\BackupRestoreNotSupportedException;
@@ -90,12 +89,7 @@ class UpdateService
 
         $helper = new UpdateHelper($event);
 
-        $upgrades = array(
-            Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN => '*',
-            Define::COMPOSER_PACKAGE_NAME => '*',
-        );
-
-        $helper->setDependencyVersions($upgrades)->require($upgrades);
+        $helper->update();
     }
 
 
