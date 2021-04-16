@@ -17,6 +17,18 @@ class InstallingForm
 
     public function post()
     {
+        try {
+            $inputs = [
+                'APP_DEBUG' => boolval(request()->get('APP_DEBUG')) ? 'true' : 'false'
+            ];
+            $this->setEnv($inputs);
+            InstallService::forgetInputParams();
+        } catch (\Exception $ex) {
+            return back()->withInput()->withErrors([
+                'install_error' => exmtrans('install.error.cannot_write_env'),
+            ]);
+        }
+
         \Artisan::call('key:generate');
         \Artisan::call('passport:keys');
         \Artisan::call('exment:install');

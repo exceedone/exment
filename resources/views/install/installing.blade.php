@@ -10,7 +10,21 @@
                 @endforeach @endif
             </div>
 
+
             <div class="row">
+                <!-- /.col -->
+                <div class="col-xs-12 col-sm-10 col-sm-offset-1" style="margin-bottom:2em;">
+                    @if($errors->has('APP_DEBUG')) @foreach($errors->get('APP_DEBUG') as $message)
+                    <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
+                    @endforeach @endif
+
+                    <label>{{exmtrans('install.installing.debug')}}:</label>
+                    <input type="checkbox" class="form-control" name="APP_DEBUG" value="1" {{ boolval(old('APP_DEBUG')) ? 'checked'  : '' }} />
+                    <p class="small">
+                        <i class="fa fa-info-circle"></i>&nbsp;{{exmtrans('install.help.debug')}}
+                    </p>
+                </div>
+
                 <!-- /.col -->
                 <p class="col-xs-12 col-sm-10 col-sm-offset-1">{{ exmtrans('install.help.installing') }}</p>
             </div>

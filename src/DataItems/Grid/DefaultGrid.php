@@ -242,7 +242,11 @@ class DefaultGrid extends GridBase
     protected function setCustomGridFilters($grid, $search_enabled_columns, $ajax = false)
     {
         $grid->quickSearch(function ($model, $input) {
-            $model->eloquent()->setSearchQueryOrWhere($model, $input, ['searchDocument' => true,]);
+            $eloquent = $model->eloquent();
+            // Only call setSearchQueryOrWhere if exists. (If export, sometimes $eloquent is not Model.)
+            if (method_exists($eloquent, 'setSearchQueryOrWhere')) {
+                $eloquent->setSearchQueryOrWhere($model, $input, ['searchDocument' => true,]);
+            }
         }, 'left');
 
         $grid->filter(function ($filter) use ($search_enabled_columns, $ajax) {
