@@ -18,7 +18,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\FileType;
-use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -122,13 +121,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ->requiredRule()
                 ->help(exmtrans("custom_form_public.help.custom_form_id"))
                 ->options(function ($value) use ($custom_table) {
-                    return $custom_table->custom_forms->filter(function ($item) {
-                        return !($item->custom_form_blocks->contains(function ($block) {
-                            $available = array_get($block, 'available');
-                            $form_block_type = array_get($block, 'form_block_type');
-                            return $available && isMatchString($form_block_type, FormBlockType::MANY_TO_MANY);
-                        }));
-                    })->mapWithKeys(function ($item) {
+                    return $custom_table->custom_forms->mapWithKeys(function ($item) {
                         return [$item['id'] => $item['form_view_name']];
                     });
                 });

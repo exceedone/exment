@@ -340,11 +340,13 @@ class PublicForm extends ModelBase
         $show_item = PublicFormShow::getItem($custom_value->custom_table, $custom_form)
             ->custom_value($custom_value)
             ->setPublicForm($this);
-        $child_items = $show_item->getChildRelationShows($inputs);
-
+            
         $show = $show_item
-            ->createShowForm()
-            ->renderException(function ($ex) {
+            ->createShowForm();
+
+        $child_items = $show_item->getChildRelationShows($inputs, $show);
+
+        $show->renderException(function ($ex) {
                 return $this->showError($ex, true);
             })
             ->setAction(url_join($this->getUrl(), 'create'))

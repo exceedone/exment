@@ -123,6 +123,9 @@ trait FieldGroupTrait
             $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($columnCount, $totalWidth) {
                 // if $totalWidth is 1 and vertical then col_md is 8 and offset is 2.
                 $fieldOption['col_md'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));
+                if($fieldOption['col_md'] > 12){
+                    $fieldOption['col_md'] = 12;
+                }
 
                 // set field's col sm and offset
                 $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use ($columnCount) {
