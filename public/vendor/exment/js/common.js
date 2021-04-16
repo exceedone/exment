@@ -661,6 +661,9 @@ var Exment;
                 if (hasValue(t)) {
                     t.setContent(value);
                 }
+                else {
+                    t.setContent('');
+                }
             }
             // default 
             else {
