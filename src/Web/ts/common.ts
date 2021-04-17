@@ -941,10 +941,7 @@ namespace Exment {
             if (column_type == 'editor') {
                 let t = tinyMCE.get($target.attr('id'));
                 if(hasValue(t)){
-                    t.setContent(value);
-                }
-                else{
-                    t.setContent('');
+                    t.setContent(hasValue(value) ? value : '');
                 }
             }
             // default 
