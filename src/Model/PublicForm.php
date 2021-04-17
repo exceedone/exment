@@ -515,7 +515,7 @@ class PublicForm extends ModelBase
                         ];
                     }
                     else{
-                        $custom_values = is_list($custom_value) ? $custom_value : collect($custom_value);
+                        $custom_values = is_list($custom_value) ? $custom_value : [$custom_value];
                         foreach ($custom_values as $index => $value) {
                             foreach ($custom_form_block->custom_form_columns_cache as $custom_form_column) {
                                 $column_item = $custom_form_column->column_item;
