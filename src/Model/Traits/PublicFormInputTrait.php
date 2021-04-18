@@ -350,8 +350,8 @@ trait PublicFormInputTrait
     public function setPluginImported(array $json)
     {
         // set plugins ----------------------------------------------------
-        $plugin_css = Plugin::whereOrIn('plugin_name', array_get($json, 'options.plugin_css', []))->pluck('id')->filter();
-        $plugin_js = Plugin::whereOrIn('plugin_name', array_get($json, 'options.plugin_js', []))->pluck('id')->filter();
+        $plugin_css = Plugin::query()->whereOrIn('plugin_name', array_get($json, 'options.plugin_css', []))->pluck('id')->filter();
+        $plugin_js = Plugin::query()->whereOrIn('plugin_name', array_get($json, 'options.plugin_js', []))->pluck('id')->filter();
 
         if (is_nullorempty($plugin_css) && is_nullorempty($plugin_js)) {
             return;

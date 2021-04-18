@@ -4,6 +4,7 @@ namespace App\Plugins\TestPluginDashboard;
 
 use Exceedone\Exment\Services\Plugin\PluginDashboardBase;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 
 class Plugin extends PluginDashboardBase
 {
@@ -52,7 +53,7 @@ class Plugin extends PluginDashboardBase
     /**
      * 現在のデータを取得
      *
-     * @return void
+     * @return CustomValue|null
      */
     protected function getData($id = null)
     {
