@@ -201,6 +201,12 @@ class PatchDataCommand extends Command
             case 'notify_target_id':
                 $this->notifyTargetId();
                 return;
+            case 'select_table_user_org':
+                $this->patchSelectTableUserOrg();
+                return;
+            case 'set_file_type':
+                $this->setFileType();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1744,5 +1750,76 @@ class PatchDataCommand extends Command
                 $notify->target_id = $target_id;
                 $notify->save();
             });
+    }
+    
+    /**
+     * Convert select table and user-organization, convert type to USER and ORGANIZATION
+     *
+     * @return void
+     */
+    protected function patchSelectTableUserOrg()
+    {
+        // get user and ORG table's id
+        $custom_table_user = CustomTable::getEloquent(SystemTableName::USER);
+        $custom_table_organization = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+
+        \DB::transaction(function () use ($custom_table_user, $custom_table_organization) {
+            CustomColumn::get()
+            ->each(function ($custom_column) use ($custom_table_user, $custom_table_organization) {
+                if ($custom_column->column_type != Enums\ColumnType::SELECT_TABLE) {
+                    return;
+                }
+                $select_target_table = $custom_column->getOption('select_target_table');
+                if (is_nullorempty($select_target_table)) {
+                    return;
+                }
+                if (!in_array($select_target_table, [$custom_table_user->id, $custom_table_organization->id])) {
+                    return;
+                }
+
+                // set new column_type
+                if ($select_target_table == $custom_table_user->id) {
+                    $custom_column->column_type = Enums\ColumnType::USER;
+                } elseif ($select_target_table == $custom_table_organization->id) {
+                    $custom_column->column_type = Enums\ColumnType::ORGANIZATION;
+                }
+                $custom_column->forgetOption('select_target_table');
+                $custom_column->save();
+            });
+        });
+    }
+    
+    /**
+     * Set file type for update.
+     *
+     * @return void
+     */
+    protected function setFileType()
+    {
+        \DB::transaction(function () {
+            // get file_type is null
+            Model\File::whereNull('file_type')->get()
+            ->each(function ($file) {
+                $file_type = null;
+                // if set custom_column_id, set file_type is COLUMN
+                if(isset($file->custom_column_id)){
+                    $file_type = Enums\FileType::CUSTOM_VALUE_COLUMN;
+                }
+                // if local_dirname is 'system' and parent_type is null, set SYSTEM
+                elseif(isMatchString($file->local_dirname, 'system') && !isset($file->parent_type)){
+                    $file_type = Enums\FileType::SYSTEM;
+                }
+                // if local_dirname is 'avatar' and parent_type is null, set AVATAR
+                elseif(isMatchString($file->local_dirname, 'avatar') && !isset($file->parent_type)){
+                    $file_type = Enums\FileType::AVATAR;
+                }
+                // else, set as document
+                else{
+                    $file_type = Enums\FileType::CUSTOM_VALUE_DOCUMENT;
+                }
+                $file->file_type = $file_type;
+                $file->save();
+            });
+        });
     }
 }

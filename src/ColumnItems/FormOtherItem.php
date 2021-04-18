@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\FormLabelType;
 use Encore\Admin\Show\Field as ShowField;
 
 abstract class FormOtherItem implements ItemInterface
@@ -12,6 +13,8 @@ abstract class FormOtherItem implements ItemInterface
     use ItemTrait;
     
     protected $form_column;
+
+    protected $custom_value;
 
     /**
      * Available fields.
@@ -99,6 +102,7 @@ abstract class FormOtherItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
+        $this->custom_value = $custom_value;
         return $this;
     }
 
@@ -134,6 +138,19 @@ abstract class FormOtherItem implements ItemInterface
 
     protected function setAdminOptions(&$field)
     {
+        $field_label_type = $this->getLabelType();
+        // get form info
+        switch ($field_label_type) {
+            case FormLabelType::HORIZONTAL:
+                break;
+            case FormLabelType::VERTICAL:
+                $field->disableHorizontal();
+                break;
+            case FormLabelType::HIDDEN:
+                $field->disableHorizontal();
+                $field->disableLabel();
+                break;
+        }
     }
 
     /**
@@ -145,15 +162,18 @@ abstract class FormOtherItem implements ItemInterface
     public function setShowFieldOptions(ShowField $field, array $options = [])
     {
         $item = $this;
-        // get form field
-        $formField = $this->getAdminField($this->form_column_options);
 
-        $field->as(function ($v) use ($formField) {
+        $field->as(function ($v) use ($item) {
             if (is_null($this)) {
                 return '';
             }
-            return $formField->render();
+            return $item->setCustomValue($this)->html();
         })->setEscape(false);
+
+        // If grid shows, set label style
+        if ($options['gridShows']) {
+            $this->setAdminOptions($field);
+        }
 
         $field->setWidth(12, 0);
     }

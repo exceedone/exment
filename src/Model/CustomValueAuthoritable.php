@@ -269,8 +269,19 @@ class CustomValueAuthoritable extends ModelBase
         // select target users
         $default = static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_EDIT);
         list($options, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, $default);
+        
+        // for validation options
+        $validationOptions = null;
+
         $form->multipleSelect('custom_value_edit', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
             ->options($options)
+            ->validationOptions(function ($value) use (&$validationOptions, $custom_value) {
+                if (!is_null($validationOptions)) {
+                    return $validationOptions;
+                }
+                list($validationOptions, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, null, true);
+                return $validationOptions;
+            })
             ->ajax($ajax)
             ->default($default)
             ->help(exmtrans('role_group.role_type_option_value.custom_value_edit.help'))
@@ -280,6 +291,13 @@ class CustomValueAuthoritable extends ModelBase
         list($options, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, $default);
         $form->multipleSelect('custom_value_view', exmtrans('role_group.role_type_option_value.custom_value_view.label'))
             ->options($options)
+            ->validationOptions(function ($value) use (&$validationOptions, $custom_value) {
+                if (!is_null($validationOptions)) {
+                    return $validationOptions;
+                }
+                list($validationOptions, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, null, true);
+                return $validationOptions;
+            })
             ->ajax($ajax)
             ->default($default)
             ->help(exmtrans('role_group.role_type_option_value.custom_value_view.help'))
@@ -383,13 +401,18 @@ class CustomValueAuthoritable extends ModelBase
         }
     }
 
+
     /**
-     * get listbox options contains user and org
+     * Get listbox options contains user and org
      *
-     * @param CustomTable $custom_table
+     * @param CustomTable|null $custom_table Target display table
+     * @param array|null $permission
+     * @param boolean $ignoreLoginUser Whether ignore login user
+     * @param array|null $default
+     * @param boolean $all if true, get all items. For checking value
      * @return array
      */
-    public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null)
+    public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null, $all = false)
     {
         $options = collect();
         $ajax = null;
@@ -404,6 +427,7 @@ class CustomValueAuthoritable extends ModelBase
                 'display_table' => $custom_table,
                 'selected_value' => str_replace("{$key}_", "", $default),
                 'permission' => $permission,
+                'notAjax' => $all,
             ]);
 
             if ($ignoreLoginUser && $key == SystemTableName::USER) {
@@ -419,7 +443,7 @@ class CustomValueAuthoritable extends ModelBase
          
             // add ajax
             if (isset($ajaxItem)) {
-                $ajax = admin_url('webapi/user_organization/select');
+                $ajax = admin_urls_query('webapi/user_organization/select', ['display_table_id' => ($custom_table ? $custom_table->id : null)]);
             }
         }
 

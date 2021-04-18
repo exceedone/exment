@@ -253,6 +253,22 @@ class CustomFormController extends AdminControllerTableBase
 
         return $this->getPreviewContent($request, $custom_form);
     }
+
+    
+
+    /**
+     * Preview error. (If called as GET request)
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function previewError(Request $request)
+    {
+        $content = new Content;
+        $content->withError(exmtrans('common.error'), exmtrans('common.message.preview_error'));
+        return $content;
+    }
+
     
     /**
      * Showing preview by id
@@ -272,7 +288,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         $form_item = $custom_form->form_item;
         $form = $form_item->disableToolsButton()->disableSavingButton()->form();
-        
+
         $content = new Content;
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
         $this->AdminContent($content);
@@ -736,10 +752,13 @@ class CustomFormController extends AdminControllerTableBase
             
             // create columns --------------------------------------------------
             $order = 1;
-            if (!is_array(array_get($value, 'custom_form_columns'))) {
-                continue;
-            }
-            foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
+
+            // set and calc row_no and column_no
+            $before_row_no = 0;
+            $before_column_no = 0;
+            $real_before_row_no = 0;
+            $real_before_column_no = 0;
+            foreach (array_get($value, 'custom_form_columns', []) as $column_key => $column_value) {
                 if (!isset($column_value['form_column_type'])) {
                     continue;
                 }
@@ -767,8 +786,21 @@ class CustomFormController extends AdminControllerTableBase
 
                 $column_item = FormSetting\FormColumn\ColumnBase::make($column);
 
-                $column->row_no = array_get($column_value, 'row_no', 1);
-                $column->column_no = array_get($column_value, 'column_no', 1);
+                // if change row_no and calc_no, increment no's.
+                if ($real_before_row_no != array_get($column_value, 'row_no', 1)) {
+                    $before_row_no++;
+                    $before_column_no = 0;
+                }
+                if ($real_before_column_no != array_get($column_value, 'column_no', 1)) {
+                    $before_column_no++;
+                }
+
+                // set real before row and column no
+                $real_before_row_no = array_get($column_value, 'row_no', 1);
+                $real_before_column_no = array_get($column_value, 'column_no', 1);
+
+                $column->row_no = $before_row_no;
+                $column->column_no = $before_column_no;
                 $column->width = array_get($column_value, 'width', 1);
 
                 $form_options = jsonToArray(array_get($column_value, 'options', "[]"));
@@ -842,6 +874,7 @@ class CustomFormController extends AdminControllerTableBase
             'submitlabel' => trans('admin.setting'),
             'modalClass' => 'modal-customform',
             'preventSubmit' => true,
+            'showReset' => true,
         ]);
     }
 

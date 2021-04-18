@@ -199,6 +199,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('form/{tableKey}/preview/{suuid}', 'CustomFormController@previewBySuuid');
             $router->post('form/{tableKey}/preview', 'CustomFormController@preview');
             $router->put('form/{tableKey}/preview', 'CustomFormController@preview');
+            $router->get('form/{tableKey}/preview', 'CustomFormController@previewError');
             $router->get('formpublic/{tableKey}/notify_action_target', 'CustomFormPublicController@notify_action_target');
             $router->post('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
             $router->put('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');

@@ -325,24 +325,26 @@ class SystemController extends AdminControllerBase
             ->default($message);
 
         if ($updateButton) {
+            //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
             //if disable update button, showing only update link
-            if (boolval(config('exment.system_update_display_disabled', false))) {
-                $manualUrl = exmtrans('common.message.label_link', [
+            //if(boolval(config('exment.system_update_display_disabled', false))){
+            $manualUrl = exmtrans('common.message.label_link', [
                         'label' => exmtrans('system.call_update_howto'),
                         'link' => \Exment::getManualUrl('update'),
                     ]);
-                $form->display(exmtrans('system.call_update_howto'))
+            $form->display(exmtrans('system.call_update_howto'))
                         ->displayText($manualUrl)
                         ->escape(false);
-            } else {
-                $this->setUpdatePartialForm($form, $latest);
-            }
+            // } else {
+            //     $this->setUpdatePartialForm($form, $latest);
+            // }
         }
 
         return $form;
     }
 
 
+    //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
     /**
      * Set UpdatePartialForm
      *
@@ -350,56 +352,56 @@ class SystemController extends AdminControllerBase
      * @param string $latest
      * @return void
      */
-    protected function setUpdatePartialForm(WidgetForm $form, $latest)
-    {
-        $form->exmheader(exmtrans('system.call_update_header'))->hr();
+    // protected function setUpdatePartialForm(WidgetForm $form, $latest)
+    // {
+    //     $form->exmheader(exmtrans('system.call_update_header'))->hr();
 
-        // check require. If conatains not OK, showing error message.
-        $checkObjs = [new SystemRequire\Composer, new SystemRequire\FilePermissionInstaller, new SystemRequire\TimeoutTime];
-        $errorObjs = [];
-        foreach ($checkObjs as $checkObj) {
-            $checkObj->systemRequireCalledType(SystemRequireCalledType::WEB);
+    //     // check require. If conatains not OK, showing error message.
+    //     $checkObjs = [new SystemRequire\Composer, new SystemRequire\FilePermissionInstaller, new SystemRequire\TimeoutTime];
+    //     $errorObjs = [];
+    //     foreach ($checkObjs as $checkObj) {
+    //         $checkObj->systemRequireCalledType(SystemRequireCalledType::WEB);
 
-            $checkResult = $checkObj->checkResult();
-            if (!isMatchString($checkResult, SystemRequireResult::OK)) {
-                $errorObjs[] = $checkObj;
-            }
-        }
+    //         $checkResult = $checkObj->checkResult();
+    //         if (!isMatchString($checkResult, SystemRequireResult::OK)) {
+    //             $errorObjs[] = $checkObj;
+    //         }
+    //     }
 
-        // if has error, set button and return
-        if (!is_nullorempty($errorObjs)) {
-            $form->display(exmtrans('system.call_update_cannot'))->displayText(exmtrans('system.call_update_cannot_description'));
+    //     // if has error, set button and return
+    //     if (!is_nullorempty($errorObjs)) {
+    //         $form->display(exmtrans('system.call_update_cannot'))->displayText(exmtrans('system.call_update_cannot_description'));
             
-            $buttons = collect($errorObjs)->map(function ($errorObj) {
-                return view('exment::tools.button-simple', [
-                    'href' => $errorObj->getSettingUrl(),
-                    'label' => $errorObj->getLabel(),
-                    'target' => '_blank',
-                    'btn_class' => 'btn-primary',
-                ])->render();
-            });
-            $form->description($buttons->implode(''))->escape(false);
+    //         $buttons = collect($errorObjs)->map(function ($errorObj) {
+    //             return view('exment::tools.button-simple', [
+    //                 'href' => $errorObj->getSettingUrl(),
+    //                 'label' => $errorObj->getLabel(),
+    //                 'target' => '_blank',
+    //                 'btn_class' => 'btn-primary',
+    //             ])->render();
+    //         });
+    //         $form->description($buttons->implode(''))->escape(false);
 
-            return;
-        }
+    //         return;
+    //     }
 
-        $form->description(exmtrans('system.call_update_description', $latest));
+    //     $form->description(exmtrans('system.call_update_description', $latest))->escape(false);;
         
-        $manualUrl = exmtrans('common.message.label_link', [
-            'label' => exmtrans('system.release_note'),
-            'link' => \Exment::getManualUrl('release_note'),
-        ]);
-        $form->description($manualUrl)->escape(false);
+    //     $manualUrl = exmtrans('common.message.label_link', [
+    //         'label' => exmtrans('system.release_note'),
+    //         'link' => \Exment::getManualUrl('release_note'),
+    //     ]);
+    //     $form->description($manualUrl)->escape(false);
 
-        $form->ajaxButton('call_update', exmtrans("system.call_update"))
-            ->url(admin_urls('system', 'call_update'))
-            ->button_class('btn-sm btn-info')
-            ->button_label(exmtrans('system.call_update'))
-            ->confirm(true)
-            ->confirm_title(trans('admin.confirm'))
-            ->confirm_text(exmtrans('system.call_update_modal_confirm', $latest) . exmtrans('common.message.modal_confirm', 'yes'))
-            ->confirm_error(exmtrans('custom_table.help.delete_confirm_error'));
-    }
+    //     $form->ajaxButton('call_update', exmtrans("system.call_update"))
+    //         ->url(admin_urls('system', 'call_update'))
+    //         ->button_class('btn-sm btn-info')
+    //         ->button_label(exmtrans('system.call_update'))
+    //         ->confirm(true)
+    //         ->confirm_title(trans('admin.confirm'))
+    //         ->confirm_text(exmtrans('system.call_update_modal_confirm', $latest) . exmtrans('common.message.modal_confirm', 'yes'))
+    //         ->confirm_error(exmtrans('custom_table.help.delete_confirm_error'));
+    // }
 
 
     /**

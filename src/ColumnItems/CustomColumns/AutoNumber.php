@@ -107,4 +107,15 @@ class AutoNumber extends CustomItem
     public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
     {
     }
+
+
+    /**
+     * Get default value.
+     *
+     * @return mixed
+     */
+    public function getDefaultValue()
+    {
+        return null;
+    }
 }

@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Enums\FormLabelType;
 use Encore\Admin\Show\Field as ShowField;
 
 /**
@@ -316,6 +317,19 @@ trait ItemTrait
         return implode('; ', collect($array)->map(function ($value, $key) {
             return "$key:$value";
         })->toArray());
+    }
+
+
+    protected function getLabelType() : string
+    {
+        $field_label_type = array_get($this->form_column_options, 'field_label_type') ?? FormLabelType::FORM_DEFAULT;
+        
+        // get form info
+        if ($field_label_type == FormLabelType::FORM_DEFAULT && isset($this->custom_form)) {
+            $field_label_type = $this->custom_form->getOption('form_label_type') ?? FormLabelType::HORIZONTAL;
+        }
+
+        return $field_label_type;
     }
 
     /**

@@ -23,6 +23,7 @@ class Header extends FormOtherItem
     
     protected function setAdminOptions(&$field)
     {
+        parent::setAdminOptions($field);
         // not escape because always calls escape in "_html" function
         $field->escape(false);
 

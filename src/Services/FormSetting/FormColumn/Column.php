@@ -252,7 +252,7 @@ class Column extends ColumnBase
         // if form block type is 1:n or n:n, get parent tables columns too.
         if ($block_item instanceof RelationBase) {
             $custom_columns = $custom_columns->merge(
-                $block_item->getCustomTable()->custom_columns_cache,
+                $block_item->getCustomTable()->custom_columns_cache
             );
         }
 
@@ -260,7 +260,7 @@ class Column extends ColumnBase
         foreach ($custom_columns as $custom_column) {
             $target_table = $custom_column->select_target_table;
             if (!isset($target_table)) {
-                return $result;
+                return collect($result);
             }
 
             // get custom table

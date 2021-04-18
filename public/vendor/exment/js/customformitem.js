@@ -28,6 +28,11 @@ var Exment;
             $.each($modal.find('form').serializeArray(), function () {
                 options[this.name] = this.value;
             });
+            // Hard coding. Get tinymce content if default value is editor.
+            let defaultTinyMCE = tinyMCE.get('default');
+            if (hasValue(defaultTinyMCE) && $modal.find('[data-default_timymce]').length > 0) {
+                options['default'] = defaultTinyMCE.getContent();
+            }
             result.options = options;
             return result;
         }

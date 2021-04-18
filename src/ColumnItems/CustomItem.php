@@ -5,9 +5,9 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Encore\Admin\Form;
+use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
-use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
@@ -291,10 +291,12 @@ abstract class CustomItem implements ItemInterface
      */
     protected function getDefaultSetting()
     {
-        return [
-            array_get($this->form_column_options, 'default_type') ?? array_get($this->custom_column->options, 'default_type') ?? null,
-            array_get($this->form_column_options, 'default') ?? array_get($this->custom_column->options, 'default') ?? null,
-        ];
+        $default_type = array_get($this->form_column_options, 'default_type');
+        $default = array_get($this->form_column_options, 'default');
+        $default_type = is_nullorempty($default_type)? array_get($this->custom_column->options, 'default_type'):$default_type;
+        $default = is_nullorempty($default)? array_get($this->custom_column->options, 'default'):$default;
+
+        return [$default_type, $default];
     }
 
     /**
@@ -409,10 +411,10 @@ abstract class CustomItem implements ItemInterface
             } elseif ($this->viewonly() && !isset($this->value)) {
                 // if view only and create, set default value
                 $this->value = $this->getDefaultValue();
-                $field->displayText($this->html())->escape(false)->prepareDefault();
+                $field->displayText($this->html())->escape(false);
                 $this->value = null;
             } elseif ($this->viewonly()) {
-                $field->displayText($this->html())->escape(false)->prepareDefault();
+                $field->displayText($this->html())->escape(false);
             }
         }
 
@@ -558,13 +560,7 @@ abstract class CustomItem implements ItemInterface
      */
     protected function setLabelType(&$field)
     {
-        $field_label_type = array_get($this->form_column_options, 'field_label_type', FormLabelType::FORM_DEFAULT);
-        
-        // get form info
-        if ($field_label_type == FormLabelType::FORM_DEFAULT && isset($this->custom_form)) {
-            $field_label_type = $this->custom_form->getOption('form_label_type') ?? FormLabelType::HORIZONTAL;
-        }
-
+        $field_label_type = $this->getLabelType();
         switch ($field_label_type) {
             case FormLabelType::HORIZONTAL:
                 return;
@@ -778,22 +774,22 @@ abstract class CustomItem implements ItemInterface
 
     public function readonly()
     {
-        return boolval(array_get($this->form_column_options, 'read_only'));
+        return array_boolval($this->form_column_options, 'read_only') || array_get($this->form_column_options, 'field_showing_type') == 'read_only';
     }
 
     public function viewonly()
     {
-        return boolval(array_get($this->form_column_options, 'view_only'));
+        return array_boolval($this->form_column_options, 'view_only') || array_get($this->form_column_options, 'field_showing_type') == 'view_only';
     }
 
     public function hidden()
     {
-        return boolval(array_get($this->form_column_options, 'hidden'));
+        return array_boolval($this->form_column_options, 'hidden') || array_get($this->form_column_options, 'field_showing_type') == 'hidden';
     }
 
     public function internal()
     {
-        return boolval(array_get($this->form_column_options, 'internal'));
+        return array_boolval($this->form_column_options, 'internal') || array_get($this->form_column_options, 'field_showing_type') == 'internal';
     }
 
     /**

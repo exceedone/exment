@@ -655,7 +655,17 @@ var Exment;
             }
             // set value and trigger next
             let isChange = !isMatchString(value, $target.val());
-            $target.val(value);
+            // If editor, call tinymce event
+            if (column_type == 'editor') {
+                let t = tinyMCE.get($target.attr('id'));
+                if (hasValue(t)) {
+                    t.setContent(hasValue(value) ? value : '');
+                }
+            }
+            // default 
+            else {
+                $target.val(value);
+            }
             if (isChange) {
                 $target.trigger('change');
             }
@@ -668,7 +678,10 @@ var Exment;
                 let $elem = $(elem);
                 let allowClear = hasValue($elem.data('add-select2-allow-clear')) ? $elem.data('add-select2-allow-clear') : true;
                 let options = {
-                    "allowClear": allowClear, "placeholder": $elem.data('add-select2'), width: '100%'
+                    "allowClear": allowClear,
+                    "placeholder": $elem.data('add-select2'),
+                    width: '100%',
+                    dropdownParent: pBool($elem.data('add-select2-as-modal')) ? $("#modal-showmodal .modal-dialog") : null,
                 };
                 if (hasValue($elem.data('add-select2-ajax'))) {
                     // get ue
@@ -782,7 +795,7 @@ var Exment;
             var link = linkages[key];
             var uri = link.uri;
             var expand = link.expand;
-            var $target = $parent.find(CommonEvent.getClassKey(link.to));
+            var $target = $parent.find(CommonEvent.getClassKey(link.to)).filter('select');
             // if has 'widgetmodal_expand' on button, append linkage_value_id
             CommonEvent.setLinkgaeExpandToSearchButton(expand, $target, $base.val());
             // if target has 'data-add-select2-ajax'(Call as ajax), set data to $target, and not call linkage

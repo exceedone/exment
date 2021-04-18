@@ -65,6 +65,7 @@ class Header extends Field\Display
             'no' => $this->no,
             'hr' => $this->hr,
             'escape' => $this->escape,
+            'headerLabel' => $this->label(),
         ]);
     }
 }

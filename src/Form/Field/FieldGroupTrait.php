@@ -61,9 +61,12 @@ trait FieldGroupTrait
     protected function convertRowColumnGroups(array $fieldOptions)
     {
         $fieldGroups = collect($fieldOptions)->sortBy(function ($fieldOption, $index) {
-            $row = array_get($fieldOption, 'options.row', 1);
-            $column = array_get($fieldOption, 'options.column', 1);
-            $index = str_pad($index, 3, 0, STR_PAD_LEFT);
+            $strpads = function ($val) {
+                return str_pad($val, 3, 0, STR_PAD_LEFT);
+            };
+            $row = $strpads(array_get($fieldOption, 'options.row', 1));
+            $column = $strpads(array_get($fieldOption, 'options.column', 1));
+            $index = $strpads($index);
             return "{$row}-{$column}-{$index}";
         })
         // grid form, group row
@@ -116,19 +119,29 @@ trait FieldGroupTrait
         
         // Set col_md width using total width. ----------------------------------------------------
         $fieldGroups = $fieldGroups->map(function ($fieldGroups) use ($totalWidth) {
-            $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($totalWidth) {
+            $columnCount = count($fieldGroups['columns']);
+            $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($columnCount, $totalWidth) {
                 // if $totalWidth is 1 and vertical then col_md is 8 and offset is 2.
                 $fieldOption['col_md'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));
+                if ($fieldOption['col_md'] > 12) {
+                    $fieldOption['col_md'] = 12;
+                }
 
                 // set field's col sm and offset
-                $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use ($totalWidth) {
-                    if ($totalWidth <= 2 && !$field['field']->getHorizontal()) {
+                $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use ($columnCount) {
+                    if ($columnCount == 1 && !$field['field']->getHorizontal()) {
                         $field['field_sm'] = 8;
                         $field['field_offset'] = 2;
                     } else {
                         $field['field_sm'] = 12;
                         $field['field_offset'] = 0;
                     }
+
+                    // if $columnCount >= 2, set column width 10
+                    if ($columnCount >= 2) {
+                        $field['field']->setWidth(10, 2);
+                    }
+
                     return $field;
                 })->toArray();
                 return $fieldOption;

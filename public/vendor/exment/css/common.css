@@ -3891,6 +3891,11 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   margin-bottom: 10px;
 }
 
+.form-group-showhtml {
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
 table img.image_html {
   max-width: 200px;
   max-height: 200px;

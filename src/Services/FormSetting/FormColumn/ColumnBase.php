@@ -152,11 +152,19 @@ abstract class ColumnBase
             if (!array_key_value_exists($key, $options)) {
                 continue;
             }
+            if (array_value_exists($difinition, $result)) {
+                continue;
+            }
 
             // hard coding
             $value = $options[$key];
             if ($key == 'required') {
                 if (!boolval($value)) {
+                    continue;
+                }
+            }
+            if ($key == 'field_label_type') {
+                if ($value == 'form_default') {
                     continue;
                 }
             }
@@ -175,6 +183,8 @@ abstract class ColumnBase
     {
         $result = [];
         $result['required'] = exmtrans('common.required');
+        $result['field_label_type'] = exmtrans('custom_form.form_label_type') . ':' . exmtrans('custom_form.setting_available');
+        ;
 
         // get field display type
         foreach (['read_only', 'view_only', 'hidden', 'internal'] as $key) {

@@ -16,9 +16,10 @@ trait DataShareTrait
      * @param ?array $permission
      * @param bool $ignoreLoginUser if true, ignore login user id from options
      * @param ?string $default default setting
+     * @param bool $all if true, get value for all
      * @return array $options : Select Options, $ajax : ajax url
      */
-    public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null)
+    public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null, $all = false)
     {
         $options = collect();
         $ajax = null;
@@ -33,6 +34,7 @@ trait DataShareTrait
                 'display_table' => $custom_table,
                 'selected_value' => str_replace("{$key}_", "", $default),
                 'permission' => $permission,
+                'notAjax' => $all,
             ]);
 
             if ($ignoreLoginUser && $key == SystemTableName::USER) {
@@ -48,7 +50,7 @@ trait DataShareTrait
          
             // add ajax
             if (isset($ajaxItem)) {
-                $ajax = admin_url('webapi/user_organization/select');
+                $ajax = admin_urls_query('webapi/user_organization/select', ['display_table_id' => ($custom_table ? $custom_table->id : null)]);
             }
         }
 

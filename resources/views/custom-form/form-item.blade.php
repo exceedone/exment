@@ -12,7 +12,9 @@
                 @if(isset($custom_form_column['font_awesome']))
                 <i class="text-center fa {{$custom_form_column['font_awesome']}}" aria-hidden="true" style="width:16px;"></i>
                 @endif
+                <span class="item-label-inner">
                 {{ $custom_form_column['column_view_name'] }}
+                </span>
             </span>
 
             <a href="javascript:void(0);" class="config-icon pull-right delete" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};" data-toggle="tooltip" title="{{exmtrans('common.deleted')}}">

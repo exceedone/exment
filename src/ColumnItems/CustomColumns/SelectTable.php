@@ -199,9 +199,14 @@ class SelectTable extends CustomItem
             'linkage_value_id' => $linkage->getParentValueId($this->custom_value),
         ] : null;
 
+        // If modal, set config as modal
+        if (boolval(array_get($this->options, 'as_modal'))) {
+            $field->asModal();
+        }
+
         // set buttons
         $buttons = [];
-        if (!$this->isPublicForm() && !$this->disableEdit() && !boolval(config('exment.select_table_modal_search_disabled', false))) {
+        if ($this->isShowSearchButton($this->form_column_options)) {
             $buttons[] = [
                 'label' => trans('admin.search'),
                 'btn_class' => 'btn-info',
@@ -232,6 +237,7 @@ class SelectTable extends CustomItem
             'linkage' => $linkage, // linkage \Closure|null info
             'target_view' => $this->target_view,
             'select_option' => $selectOption, // select option's option
+            'as_modal' => array_get($this->options, 'as_modal'),
         ]);
     }
 
@@ -283,6 +289,33 @@ class SelectTable extends CustomItem
         }
 
         return Linkage::getLinkage($relation_filter_target_column_id, $this->custom_column);
+    }
+
+    /**
+     * Whether showing Search modal button
+     *
+     * @param mixed $form_column_options
+     * @return boolean
+     */
+    protected function isShowSearchButton($form_column_options) : bool
+    {
+        if ($this->isPublicForm()) {
+            return false;
+        }
+        if ($this->disableEdit()) {
+            return false;
+        }
+        if (boolval(config('exment.select_table_modal_search_disabled', false))) {
+            return false;
+        }
+        if (boolval(array_get($this->options, 'as_modal'))) {
+            return false;
+        }
+        if (isset($this->target_table) && $this->target_table->isOneRecord()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

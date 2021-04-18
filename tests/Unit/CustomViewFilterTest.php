@@ -357,7 +357,7 @@ class CustomViewFilterTest extends UnitTestBase
             }
             $date = \Carbon\Carbon::parse($date);
             $today = \Carbon\Carbon::today();
-            return $today->addMonths(-1)->format('Y-m') == $date->format('Y-m');
+            return $today->firstOfMonth()->addMonths(-1)->format('Y-m') == $date->format('Y-m');
         });
     }
 

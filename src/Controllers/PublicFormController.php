@@ -13,6 +13,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Exceedone\Exment\Exceptions\PublicFormNotFoundException;
+use Exceedone\Exment\Enums\Permission;
 
 /**
  * Custom Form Controller
@@ -52,12 +54,33 @@ class PublicFormController extends Controller
     }
 
     /**
+     * Execute an action on the controller.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function callAction($method, $parameters)
+    {
+        // if public_form is null or not active, throw new \Exceedone\Exment\Exceptions\PublicFormNotFoundException();
+        if (!$this->public_form || !$this->public_form->active_flg) {
+            throw new \Exceedone\Exment\Exceptions\PublicFormNotFoundException();
+        }
+        return parent::callAction($method, $parameters);
+    }
+
+    /**
      * Index interface.
      *
      * @return Content
      */
     public function index(Request $request)
     {
+        // check user authority
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            throw new PublicFormNotFoundException;
+            ;
+        }
         return $this->getInputContent($request);
     }
 
@@ -114,6 +137,12 @@ class PublicFormController extends Controller
      */
     public function confirm(Request $request)
     {
+        // check user authority
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            throw new PublicFormNotFoundException;
+            ;
+        }
+
         try {
             $form = $this->public_form->getForm($request, null, [
                 'asConfirm' => true,
@@ -154,6 +183,11 @@ class PublicFormController extends Controller
      */
     public function create(Request $request)
     {
+        // check user authority
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            throw new PublicFormNotFoundException;
+            ;
+        }
         // get data by session or result
         $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();
         try {

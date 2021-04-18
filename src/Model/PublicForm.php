@@ -8,10 +8,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\DataItems\Show\PublicFormShow;
 use Exceedone\Exment\DataItems\Form\PublicFormForm;
 use Exceedone\Exment\Form\Field\ReCaptcha;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class PublicForm extends ModelBase
 {
@@ -27,7 +29,7 @@ class PublicForm extends ModelBase
 
     public static $templateItems = [
         'excepts' => [
-            'custom_form_id', 'proxy_user_id', 'uuid', 'active_flg', 'public_form_view_name', 'options.analytics_tag', 'options.use_recaptcha', 'options.header_logo',
+            'custom_form_id', 'proxy_user_id', 'uuid', 'active_flg', 'public_form_view_name', 'options.analytics_tag', 'options.use_recaptcha', 'options.header_logo','options.plugin_css','options.plugin_js',
         ],
     ];
 
@@ -164,6 +166,15 @@ class PublicForm extends ModelBase
         }
 
         if (!boolval($model->active_flg)) {
+            return null;
+        }
+
+        if (is_nullorempty($model->proxy_user_id)) {
+            return null;
+        }
+
+        $user = getModelName(SystemTableName::USER)::find($model->proxy_user_id);
+        if (!$user) {
             return null;
         }
 
@@ -330,13 +341,15 @@ class PublicForm extends ModelBase
         $show_item = PublicFormShow::getItem($custom_value->custom_table, $custom_form)
             ->custom_value($custom_value)
             ->setPublicForm($this);
-        $child_items = $show_item->getChildRelationShows($inputs);
-
+            
         $show = $show_item
-            ->createShowForm()
-            ->renderException(function ($ex) {
-                return $this->showError($ex, true);
-            })
+            ->createShowForm();
+
+        $child_items = $show_item->getChildRelationShows($inputs, $show);
+
+        $show->renderException(function ($ex) {
+            return $this->showError($ex, true);
+        })
             ->setAction(url_join($this->getUrl(), 'create'))
             ->setBackAction($this->getUrl())
             ->setConfirmTitle(replaceTextFromFormat($this->getOption('confirm_title'), $custom_value))
@@ -484,51 +497,62 @@ class PublicForm extends ModelBase
 
             // set label and text function
             $result = [];
-            $setLabelTextFunc = function ($relationName, $custom_value, $index) use (&$result) {
+            $setLabelTextFunc = function ($relationName, $custom_value) use (&$result) {
                 foreach ($this->custom_form->custom_form_blocks_cache as $custom_form_block) {
                     $relationInfo = $custom_form_block->getRelationInfo();
                     if (!isMatchString($relationName, $relationInfo[1])) {
                         continue;
                     }
 
-                    foreach ($custom_form_block->custom_form_columns_cache as $custom_form_column) {
-                        $column_item = $custom_form_column->column_item;
-                        if (!$column_item) {
-                            continue;
-                        }
-
-                        // if hidden field, continue
-                        if ($column_item->disableDisplayWhenShow()) {
-                            continue;
-                        }
-                        if (!($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem)) {
-                            continue;
-                        }
-        
-                        $column_item->setCustomValue($custom_value);
-        
-                        $label = $column_item->label();
-                        $text = $column_item->text();
-        
-                        // if relation, set relation label
-                        if (!is_null($relationInfo[0]) && !is_null($relationInfo[2])) {
-                            $label = $relationInfo[2] . " - " . ($index + 1) . " - " . $label;
-                        }
-
+                    // if many to many relation, set as many-many value
+                    if (isset($relationInfo[0]) && $relationInfo[0]->relation_type == RelationType::MANY_TO_MANY) {
                         $result[] = [
-                            'label' => $label,
-                            'text' => $text,
+                            'label' => $relationInfo[2],
+                            'text' => $custom_value->filter()->map(function ($custom_value) {
+                                return $custom_value->getLabel();
+                            })->implode(exmtrans('common.separate_word')),
                         ];
+                    } else {
+                        $custom_values = is_list($custom_value) ? $custom_value : [$custom_value];
+                        foreach ($custom_values as $index => $value) {
+                            foreach ($custom_form_block->custom_form_columns_cache as $custom_form_column) {
+                                $column_item = $custom_form_column->column_item;
+                                if (!$column_item) {
+                                    continue;
+                                }
+        
+                                // if hidden field, continue
+                                if ($column_item->disableDisplayWhenShow()) {
+                                    continue;
+                                }
+                                if (!($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem)) {
+                                    continue;
+                                }
+                
+                                $column_item->setCustomValue($value);
+                
+                                $label = $column_item->label();
+                                $text = $column_item->text();
+                
+                                // if relation, set relation label
+                                if (!is_null($relationInfo[0]) && !is_null($relationInfo[2])) {
+                                    $label = $relationInfo[2] . " - " . ($index + 1) . " - " . $label;
+                                }
+        
+                                $result[] = [
+                                    'label' => $label,
+                                    'text' => $text,
+                                ];
+                            }
+                        }
                     }
                 }
             };
    
-            $setLabelTextFunc(null, $custom_value, null);
+            $setLabelTextFunc(null, $custom_value);
 
             foreach ($relationInputs as $key => $relations) {
-                foreach ($relations as $index => $custom_value) {
-                    $setLabelTextFunc($key, $custom_value, $index);
-                }
+                $setLabelTextFunc($key, $relations);
             }
 
             return collect($result)->map(function ($result) {

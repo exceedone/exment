@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\FormOthers;
 
 use Exceedone\Exment\ColumnItems\FormOtherItem;
-use Encore\Admin\Form\Field;
+use Exceedone\Exment\Form\Field;
 
 class Hr extends FormOtherItem
 {

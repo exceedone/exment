@@ -105,7 +105,8 @@ return [
             'modal_confirm' => 'If you want to do it, enter "%s".',
             'label_link' => 'For :label, please check <a href=":link" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'preview' => 'This page is a preview. If you want to refresh the content, click the preview button again in the original window.',
-            'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.'
+            'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
+            'preview_error' => 'The preview has expired. Please close this screen and preview again.',
         ],
 
         'help' =>[
@@ -150,6 +151,7 @@ return [
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
+        'error_datetime' => 'Error DateTime',
         'delete_failed' => 'Delete failed. Please check the error log file.',
         'failure_import_file' => 'The format of the uploaded file is incorrect. Please check the file.',
         'import_max_row_count' => 'Up to :count data items can be imported at one time. Please divide and upload.',
@@ -170,6 +172,9 @@ return [
         'captcha' => 'Failed to implement Google reCAPTCHA. Please reload and enter again.',
         'expired_error' => 'The page has expired. Please update the screen.',
         'expired_error_reinput' => 'The page has expired. Sorry to trouble you, but please re-enter.',
+        'maintenance' => 'The site is currently under maintenance. This screen is mainly displayed during the Exment update.<br />* If this screen is displayed forever, follow the procedure at the URL below to cancel the maintenance.',
+        'maintenance_id' => 'Release maintenance mode',
+        'check_error_log' => 'The error details are output to the log file. Please contact the administrator.',
     ],
 
     'install' => [
@@ -191,10 +196,12 @@ return [
 
         'installing' => [
             'header' => 'Initial Data Installation',
+            'debug' => 'Install as Debug Mode',
             'installing' => 'Execute Install',
         ],
 
         'help' => [
+            'debug' => 'Install Exment in debug mode. In debug mode, the error details are displayed on the screen.',
             'installing' => 'Install initial data. This process takes time.',
             'install_success' => 'Installation completed!',
         ],
@@ -1411,7 +1418,7 @@ return [
         'read_only' => 'Read Only',
         'view_only' => 'View Only',
         'hidden' => 'Hidden Field',
-        'internal' => 'Hide',
+        'internal' => 'Internal',
         'required' => 'Required',
         'text' => 'Text',
         'html' => 'HTML',

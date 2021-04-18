@@ -1387,9 +1387,8 @@ abstract class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
         $searchColumns = $options['searchColumns'];
 
-
         // if search and not has searchColumns, return null;
-        if ($options['executeSearch'] && empty($searchColumns)) {
+        if ($options['executeSearch'] && is_nullorempty($searchColumns)) {
             // return no value if searchColumns is not has
             return static::query()->whereNotMatch();
         }
@@ -1484,6 +1483,10 @@ abstract class CustomValue extends ModelBase
 
         $query->where(function ($query) use ($options, $q) {
             $searchColumns = collect($options['searchColumns']);
+            if (is_nullorempty($searchColumns)) {
+                $query->whereNotMatch();
+            }
+
             for ($i = 0; $i < count($searchColumns); $i++) {
                 $searchColumn = $searchColumns->values()->get($i);
 

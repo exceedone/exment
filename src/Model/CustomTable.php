@@ -1849,6 +1849,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'linkage' => null, // linkage \Closure|null info
             'target_view' => null, // target view for filter
             'select_option' => [], // select option's option
+            'as_modal' => false, // If true, this select is as modal.
         ], $options);
         $selectOption = $options['select_option'];
         $thisObj = $this;
@@ -1877,6 +1878,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             $field->attribute([
                 'data-add-select2' => $options['label'],
+                'data-add-select2-as-modal' => boolval($options['as_modal']),
                 'data-add-select2-ajax' => $ajax,
                 'data-add-select2-ajax-webapi' => url_join('data', $thisObj->table_name), // called by changedata
                 'data-add-select2-expand' => json_encode($select2_expand),
@@ -1909,7 +1911,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'target_id' => null,
                 'target_view' => null,
                 'permission' => null,
-                'notAjax' => false,
+                'notAjax' => false, // If not ajax(For getting all value), set true.
                 'custom_column' => null,
             ],
             $options
