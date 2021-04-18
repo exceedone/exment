@@ -72,6 +72,7 @@ class PublicFormAndOptions extends Migration
         \Artisan::call('exment:patchdata', ['action' => 'append_column_mail_from_view_name']);
         \Artisan::call('exment:patchdata', ['action' => 'publicform_mail_template']);
         \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
+        \Artisan::call('exment:patchdata', ['action' => 'set_file_type']);
 
         // Remove resouce laravel-admin show
         $path = base_path('resources/views/vendor/admin/show/panel.blade.php');
