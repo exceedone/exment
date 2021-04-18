@@ -133,13 +133,11 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         
         // get relation
         // if has args $custom_form_table, use $custom_form_table. Almost use preview
-        if($custom_form_table){
+        if ($custom_form_table) {
             $relation_custom_table = $custom_form_table;
-        }
-        elseif($this->custom_form){
+        } elseif ($this->custom_form) {
             $relation_custom_table = $this->custom_form->custom_table;
-        }
-        else{
+        } else {
             return [null, null, $block_label];
         }
 

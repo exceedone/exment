@@ -13,7 +13,7 @@ class Html extends \Encore\Admin\Form\Field\Html
      */
     public function render()
     {
-        if($this->horizontal){
+        if ($this->horizontal) {
             return parent::render();
         }
 

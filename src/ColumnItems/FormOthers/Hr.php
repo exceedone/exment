@@ -21,4 +21,3 @@ class Hr extends FormOtherItem
         return Field\Html::class;
     }
 }
-

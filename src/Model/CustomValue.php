@@ -1483,7 +1483,7 @@ abstract class CustomValue extends ModelBase
 
         $query->where(function ($query) use ($options, $q) {
             $searchColumns = collect($options['searchColumns']);
-            if(is_nullorempty($searchColumns)){
+            if (is_nullorempty($searchColumns)) {
                 $query->whereNotMatch();
             }
 

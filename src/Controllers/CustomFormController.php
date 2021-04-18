@@ -787,11 +787,11 @@ class CustomFormController extends AdminControllerTableBase
                 $column_item = FormSetting\FormColumn\ColumnBase::make($column);
 
                 // if change row_no and calc_no, increment no's.
-                if($real_before_row_no != array_get($column_value, 'row_no', 1)){
+                if ($real_before_row_no != array_get($column_value, 'row_no', 1)) {
                     $before_row_no++;
                     $before_column_no = 0;
                 }
-                if($real_before_column_no != array_get($column_value, 'column_no', 1)){
+                if ($real_before_column_no != array_get($column_value, 'column_no', 1)) {
                     $before_column_no++;
                 }
 

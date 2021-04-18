@@ -33,7 +33,7 @@ class Explain extends FormOtherItem
         if ($this->getLabelType() != FormLabelType::HORIZONTAL) {
             $field->attribute('style', 'margin-left: 15px;');
         }
-        if($this->getLabelType() == FormLabelType::HIDDEN){
+        if ($this->getLabelType() == FormLabelType::HIDDEN) {
             $field->enableLabel();
         }
     }

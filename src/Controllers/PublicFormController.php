@@ -78,7 +78,8 @@ class PublicFormController extends Controller
     {
         // check user authority
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            throw new PublicFormNotFoundException;;
+            throw new PublicFormNotFoundException;
+            ;
         }
         return $this->getInputContent($request);
     }
@@ -138,7 +139,8 @@ class PublicFormController extends Controller
     {
         // check user authority
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            throw new PublicFormNotFoundException;;
+            throw new PublicFormNotFoundException;
+            ;
         }
 
         try {
@@ -183,7 +185,8 @@ class PublicFormController extends Controller
     {
         // check user authority
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            throw new PublicFormNotFoundException;;
+            throw new PublicFormNotFoundException;
+            ;
         }
         // get data by session or result
         $data = $request->session()->has(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) ? $request->session()->pull(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT) : $request->all();

@@ -61,7 +61,7 @@ trait FieldGroupTrait
     protected function convertRowColumnGroups(array $fieldOptions)
     {
         $fieldGroups = collect($fieldOptions)->sortBy(function ($fieldOption, $index) {
-            $strpads = function($val){
+            $strpads = function ($val) {
                 return str_pad($val, 3, 0, STR_PAD_LEFT);
             };
             $row = $strpads(array_get($fieldOption, 'options.row', 1));
@@ -123,7 +123,7 @@ trait FieldGroupTrait
             $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($columnCount, $totalWidth) {
                 // if $totalWidth is 1 and vertical then col_md is 8 and offset is 2.
                 $fieldOption['col_md'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));
-                if($fieldOption['col_md'] > 12){
+                if ($fieldOption['col_md'] > 12) {
                     $fieldOption['col_md'] = 12;
                 }
 
@@ -138,7 +138,7 @@ trait FieldGroupTrait
                     }
 
                     // if $columnCount >= 2, set column width 10
-                    if($columnCount >= 2){
+                    if ($columnCount >= 2) {
                         $field['field']->setWidth(10, 2);
                     }
 

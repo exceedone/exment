@@ -61,12 +61,11 @@ class PublicFormShow extends DefaultShow
                 $custom_value = $info['custom_value'];
                 
                 // add field if n:n
-                if($info['relation_type'] == RelationType::MANY_TO_MANY)
-                {
+                if ($info['relation_type'] == RelationType::MANY_TO_MANY) {
                     $field = new ShowField($relationInfo[1], $relationInfo[2]);
-                    $field->as(function($v) use($custom_value){
+                    $field->as(function ($v) use ($custom_value) {
                         // $custom_value is collection
-                        return $custom_value->filter()->map(function($custom_value){
+                        return $custom_value->filter()->map(function ($custom_value) {
                             return $custom_value->getLabel();
                         })->implode(exmtrans('common.separate_word'));
                     });
@@ -77,8 +76,7 @@ class PublicFormShow extends DefaultShow
                         'width' => 4,
                         'calcWidth' => false,
                     ]);
-                }
-                else{
+                } else {
                     $relationShowPanel = new PublicShow\PublicShowRelation();
                     $relationShowPanel->setTitle($relationInfo[2]);
                     // Create child panel if 1:n
@@ -122,14 +120,13 @@ class PublicFormShow extends DefaultShow
                 }
 
                 // set as N:N relation
-                if($relation instanceof \Illuminate\Database\Eloquent\Relations\BelongsToMany){
+                if ($relation instanceof \Illuminate\Database\Eloquent\Relations\BelongsToMany) {
                     $relations[$column][] = [
                         'custom_form_block' => $custom_form_block,
                         'custom_value' => (clone $relation->getRelated())->query()->findMany($value),
                         'relation_type' => RelationType::MANY_TO_MANY,
                     ];
-                }
-                else{
+                } else {
                     // create child model
                     foreach ($value as $v) {
                         if (array_get($v, Form::REMOVE_FLAG_NAME) == 1) {

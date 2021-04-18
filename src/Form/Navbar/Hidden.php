@@ -31,7 +31,8 @@ HTML;
     }
 
 
-    public static function getHiddenItemsCommon(){
+    public static function getHiddenItemsCommon()
+    {
         return [
             'admin_prefix' => config('admin.route.prefix') ?? '',
             'admin_base_uri' => trim(app('request')->getBaseUrl(), '/') ?? '',

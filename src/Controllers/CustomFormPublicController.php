@@ -668,7 +668,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $preview_form->disableSubmit();
         
         // add admin url etc
-        foreach(\Exceedone\Exment\Form\Navbar\Hidden::getHiddenItemsCommon() as $key => $value){
+        foreach (\Exceedone\Exment\Form\Navbar\Hidden::getHiddenItemsCommon() as $key => $value) {
             $preview_form->hidden($key)->default($value)
                 ->attribute('id', $key);
         }

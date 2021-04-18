@@ -348,8 +348,8 @@ class PublicForm extends ModelBase
         $child_items = $show_item->getChildRelationShows($inputs, $show);
 
         $show->renderException(function ($ex) {
-                return $this->showError($ex, true);
-            })
+            return $this->showError($ex, true);
+        })
             ->setAction(url_join($this->getUrl(), 'create'))
             ->setBackAction($this->getUrl())
             ->setConfirmTitle(replaceTextFromFormat($this->getOption('confirm_title'), $custom_value))
@@ -505,16 +505,14 @@ class PublicForm extends ModelBase
                     }
 
                     // if many to many relation, set as many-many value
-                    if(isset($relationInfo[0]) && $relationInfo[0]->relation_type == RelationType::MANY_TO_MANY)
-                    {
+                    if (isset($relationInfo[0]) && $relationInfo[0]->relation_type == RelationType::MANY_TO_MANY) {
                         $result[] = [
                             'label' => $relationInfo[2],
-                            'text' => $custom_value->filter()->map(function($custom_value){
+                            'text' => $custom_value->filter()->map(function ($custom_value) {
                                 return $custom_value->getLabel();
                             })->implode(exmtrans('common.separate_word')),
                         ];
-                    }
-                    else{
+                    } else {
                         $custom_values = is_list($custom_value) ? $custom_value : [$custom_value];
                         foreach ($custom_values as $index => $value) {
                             foreach ($custom_form_block->custom_form_columns_cache as $custom_form_column) {
@@ -548,7 +546,6 @@ class PublicForm extends ModelBase
                             }
                         }
                     }
-
                 }
             };
    
