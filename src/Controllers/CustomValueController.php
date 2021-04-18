@@ -7,6 +7,7 @@ use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
+use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -193,6 +194,12 @@ class CustomValueController extends AdminControllerTableBase
             
             if ($request->has('filter_ajax')) {
                 return $grid_item->getFilterHtml();
+            }
+
+            // Append ----------------------------------------------------
+            if (boolval($this->custom_view->use_view_infobox)) {
+                $box = new Box($this->custom_view->view_infobox_title, html_clean($this->custom_view->view_infobox));
+                $content->row($box);
             }
 
             $grid = $grid_item->grid($callback);

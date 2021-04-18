@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Notifications\Mail;
 
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Model\System;
 
 class MailInfo
 {
@@ -10,6 +11,12 @@ class MailInfo
      * @var string
      */
     protected $from;
+    
+    /**
+     * from name
+     * @var string
+     */
+    protected $fromName;
     
     /**
      * @var array
@@ -64,7 +71,19 @@ class MailInfo
      */
     public function getFrom() : string
     {
-        return !is_nullorempty($this->from) ? $this->from : config('mail.from.address');
+        return !is_nullorempty($this->from) ? $this->from : config('mail.from.address') ?? System::system_mail_from();
+    }
+
+    /**
+     * @return string
+     */
+    public function getFromName() : ?string
+    {
+        $fromName = !is_nullorempty($this->fromName) ? $this->fromName : config('mail.from.name', System::system_mail_from_view_name());
+        if (isMatchString($fromName, $this->getFrom())) {
+            return null;
+        }
+        return $fromName;
     }
 
     /**
@@ -145,6 +164,12 @@ class MailInfo
     public function setFrom($from)
     {
         $this->from = $from;
+        return $this;
+    }
+
+    public function setFromName($fromName)
+    {
+        $this->fromName = $fromName;
         return $this;
     }
 

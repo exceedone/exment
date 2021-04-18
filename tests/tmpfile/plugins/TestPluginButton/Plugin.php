@@ -28,11 +28,14 @@ class Plugin extends PluginButtonBase
 
     /**
     * (v3.4.3対応)画面にボタンを表示するかどうかの判定。デフォルトはtrue
-    * 
+    *
     * @return bool true: 描写する false 描写しない
     */
-    public function enableRender(){
-        if (is_null($this->custom_value)) return false;
+    public function enableRender()
+    {
+        if (is_null($this->custom_value)) {
+            return false;
+        }
         // 例1：選択しているデータのidが2の場合ボタンを表示する
         return $this->custom_value->id % 2 === 0;
     }

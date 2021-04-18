@@ -5,6 +5,8 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Encore\Admin\Form;
+use Exceedone\Exment\Form\Field\RadioButton;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Encore\Admin\Form\Field;
 
@@ -53,10 +55,18 @@ class Select extends CustomItem
     
     protected function getAdminFieldClass()
     {
-        if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
-            return Field\MultipleSelect::class;
+        if ($this->isMultipleEnabled()) {
+            if (boolval($this->custom_column->getOption('check_radio_enabled', false))) {
+                return Field\Checkbox::class;
+            } else {
+                return Field\MultipleSelect::class;
+            }
         } else {
-            return Field\Select::class;
+            if (boolval($this->custom_column->getOption('check_radio_enabled', false))) {
+                return RadioButton::class;
+            } else {
+                return Field\Select::class;
+            }
         }
     }
     
@@ -77,19 +87,43 @@ class Select extends CustomItem
         return [$type, false, []];
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
-        $field->options($this->custom_column->createSelectOptions());
-        
+        $options = $this->custom_column->createSelectOptions();
+
         if (boolval(array_get($this->options, 'as_modal'))) {
             $field->asModal();
         }
+        
+        if ($this->isFreeInput()) {
+            $field->freeInput(true);
+
+            if (isset($this->value)) {
+                $array = $this->value;
+                if (!is_array($array)) {
+                    $array = [$array];
+                }
+                foreach ($array as $value) {
+                    if (!in_array($value, $options)) {
+                        $options[$value] = $value;
+                    }
+                }
+            }
+        }
+
+        $field->options($options);
+
+        if ($field instanceof RadioButton && !$this->required()) {
+            $field->addEmpty(true);
+        }
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
-        $select_options = $this->custom_column->createSelectOptions();
-        $validates[] = new SelectRule(array_keys($select_options));
+        if (!$this->isFreeInput()) {
+            $select_options = $this->custom_column->createSelectOptions();
+            $validates[] = new SelectRule(array_keys($select_options));
+        }
     }
 
     protected function getRemoveValidates()
@@ -133,8 +167,47 @@ class Select extends CustomItem
     {
         return $this->isMultipleEnabledTrait();
     }
+
+    public function isFreeInput()
+    {
+        if (boolval($this->custom_column->getOption('check_radio_enabled', false))) {
+            return false;
+        }
+        if (boolval(array_get($this->options, 'changefield', false))) {
+            return false;
+        }
+
+        return boolval($this->custom_column->getOption('free_input', false));
+    }
     protected function getFilterFieldClass()
     {
         return Field\Select::class;
+    }
+
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $form->textarea('select_item', exmtrans("custom_column.options.select_item"))
+            ->required()
+            ->help(exmtrans("custom_column.help.select_item"));
+            
+        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
+            ->attribute(['data-filtertrigger' =>true])
+            ->help(exmtrans("custom_column.help.multiple_enabled"));
+
+        $form->switchbool('check_radio_enabled', exmtrans("custom_column.options.check_radio_enabled"))
+            ->attribute(['data-filtertrigger' =>true])
+            ->help(exmtrans("custom_column.help.check_radio_enabled"));
+
+        $form->switchbool('free_input', exmtrans("custom_column.options.free_input"))
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_check_radio_enabled', 'value' => '0'])])
+            ->help(exmtrans("custom_column.help.free_input"));
     }
 }

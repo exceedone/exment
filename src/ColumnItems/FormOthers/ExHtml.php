@@ -9,7 +9,7 @@ class ExHtml extends Html
      */
     protected function _text($v)
     {
-        $format = array_get($this->form_column, 'options.html');
+        $format = array_get($this->form_column_options, 'html');
         return replaceTextFromFormat($format, $v);
     }
 

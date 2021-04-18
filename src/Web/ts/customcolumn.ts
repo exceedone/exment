@@ -58,7 +58,7 @@ namespace Exment {
         }
 
         public static GetSettingValText(){
-            let formula = $('#calc_formula_input').val();
+            let formula = $('#calc_formula_input').val() as string;
         
             // replace ${XXX} string as column name
             formula = formula.replace(/\$\{.+?\}/g, function (match) {
@@ -89,7 +89,7 @@ namespace Exment {
 
         private static validateFormula(){
             let result = true;
-            let formula = $('#calc_formula_input').val();
+            let formula = $('#calc_formula_input').val() as string;
             if(!hasValue(formula)){
                 result = false;
             }else{

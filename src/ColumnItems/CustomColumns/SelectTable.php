@@ -12,8 +12,11 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\DatabaseDataType;
-use Exceedone\Exment\Form\Field as ExmentField;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
+use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
@@ -150,7 +153,7 @@ class SelectTable extends CustomItem
         if ($text === false) {
             return $model;
         // get text column
-        } elseif ($html) {
+        } elseif ($html && !$this->isPublicForm()) {
             return $model->getUrl(true);
         } else {
             return $model->getLabel();
@@ -174,12 +177,12 @@ class SelectTable extends CustomItem
         return ExmFilter\EqualOrIn::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         if (!isset($this->target_table)) {
             return;
         }
-        if ($field instanceof ExmentField\Display) {
+        if ($field instanceof Field\Display) {
             return;
         }
 
@@ -188,7 +191,7 @@ class SelectTable extends CustomItem
             return;
         }
 
-        $linkage = $this->getLinkage($form_column_options);
+        $linkage = $this->getLinkage();
         $linkage_expand = !is_null($linkage) ? [
             'parent_select_table_id' => $linkage->parent_column->select_target_table->id,
             'child_select_table_id' => $linkage->child_column->select_target_table->id,
@@ -203,7 +206,7 @@ class SelectTable extends CustomItem
 
         // set buttons
         $buttons = [];
-        if ($this->isShowSearchButton($form_column_options)) {
+        if ($this->isShowSearchButton($this->form_column_options)) {
             $buttons[] = [
                 'label' => trans('admin.search'),
                 'btn_class' => 'btn-info',
@@ -271,17 +274,16 @@ class SelectTable extends CustomItem
     /**
      * Get relation filter object
      *
-     * @param ?array $form_column_options
      * @return Linkage|null
      */
-    protected function getLinkage($form_column_options)
+    protected function getLinkage()
     {
         // if config "select_relation_linkage_disabled" is true, not callback
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
             return;
         }
 
-        $relation_filter_target_column_id = array_get($form_column_options, 'relation_filter_target_column_id');
+        $relation_filter_target_column_id = array_get($this->form_column_options, 'relation_filter_target_column_id');
         if (!isset($relation_filter_target_column_id)) {
             return;
         }
@@ -297,13 +299,19 @@ class SelectTable extends CustomItem
      */
     protected function isShowSearchButton($form_column_options) : bool
     {
-        if ($this->disableEdit($form_column_options)) {
+        if ($this->isPublicForm()) {
+            return false;
+        }
+        if ($this->disableEdit()) {
             return false;
         }
         if (boolval(config('exment.select_table_modal_search_disabled', false))) {
             return false;
         }
         if (boolval(array_get($this->options, 'as_modal'))) {
+            return false;
+        }
+        if (isset($this->target_table) && $this->target_table->isOneRecord()) {
             return false;
         }
 
@@ -351,7 +359,7 @@ class SelectTable extends CustomItem
         })->ajax($ajax);
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $validates[] = new Validator\SelectTableNumericRule();
         $validates[] = new Validator\CustomValueRule($this->target_table, $this->custom_column->getOption('select_target_view'));
@@ -576,7 +584,7 @@ class SelectTable extends CustomItem
             return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
         }
 
-        $query = $this->custom_table->getValueModel()->query();
+        $query = $this->custom_table->getValueQuery();
         $this->getAdminFilterWhereQuery($query, $value);
 
         $query->take($takeCount)->select('id');
@@ -591,5 +599,165 @@ class SelectTable extends CustomItem
     protected function getFilterFieldClass()
     {
         return Field\Select::class;
+    }
+
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $this->setCustomColumnOptionFormSelectTable($form);
+    }
+
+
+    protected function setCustomColumnOptionFormSelectTable(&$form, bool $isUserOrg = false)
+    {
+        $id = request()->route('id');
+        $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
+        // define select-target table
+        
+        if (!$isUserOrg) {
+            if (!isset($id)) {
+                $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
+                ->help(exmtrans("custom_column.help.select_target_table"))
+                ->required()
+                ->options(function ($select_table) {
+                    $options = CustomTable::filterList()->whereNotIn('table_name', [SystemTableName::USER, SystemTableName::ORGANIZATION])->pluck('table_view_name', 'id')->toArray();
+                    return $options;
+                })
+                ->attribute([
+                    'data-linkage' => json_encode([
+                        'options_select_import_column_id' => [
+                            'url' => admin_url('webapi/table/indexcolumns'),
+                            'text' => 'column_view_name',
+                        ],
+                        'options_select_export_column_id' => [
+                            'url' => admin_url('webapi/table/columns'),
+                            'text' => 'column_view_name',
+                        ],
+                        'options_select_target_view' => [
+                            'url' => admin_url('webapi/table/filterviews'),
+                            'text' => 'view_view_name',
+                        ]
+                    ]),
+                ]);
+            } else {
+                // if already set, display only
+                $form->display('select_target_table', exmtrans("custom_column.options.select_target_table"))
+                    ->displayText(function ($val) {
+                        if (!isset($val)) {
+                            return $val;
+                        }
+                        $custom_table = CustomTable::getEloquent($val);
+                        if (!isset($custom_table)) {
+                            return null;
+                        }
+                        return $custom_table->table_view_name;
+                    });
+                $form->hidden('select_target_table');
+            }
+        }
+
+        // define select-target table view
+        $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
+            ->help(exmtrans("custom_column.help.select_target_view"))
+            ->options(function ($value, $field) use ($column_type) {
+                if (is_nullorempty($field)) {
+                    return [];
+                }
+        
+                // check $value or $field->data()
+                $custom_table = null;
+                if (isset($value)) {
+                    $custom_view = CustomView::getEloquent($value);
+                    $custom_table = $custom_view ? $custom_view->custom_table : null;
+                } elseif (!is_nullorempty($field->data())) {
+                    $custom_table = CustomTable::getEloquent(array_get($field->data(), 'select_target_table'));
+                }
+                
+                if (!isset($custom_table)) {
+                    if (!ColumnType::isUserOrganization($column_type)) {
+                        return [];
+                    }
+                    $custom_table = CustomTable::getEloquent($column_type);
+                }
+        
+                if (!isset($custom_table)) {
+                    return [];
+                }
+
+                return CustomTable::getEloquent($custom_table)->custom_views
+                    ->filter(function ($value) {
+                        return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
+                    })->pluck('view_view_name', 'id');
+            });
+        
+        $custom_table = $this->custom_table;
+        $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
+        $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
+            ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
+            ->options(function ($select_table, $field) use ($id, $custom_table) {
+                return SelectTable::getImportExportColumnSelect($custom_table, $select_table, $field, $id);
+            });
+
+        $form->select('select_export_column_id', exmtrans("custom_column.options.select_export_column_id"))
+            ->help(exmtrans("custom_column.help.select_export_column_id"))
+            ->options(function ($select_table, $field) use ($id, $custom_table) {
+                return SelectTable::getImportExportColumnSelect($custom_table, $select_table, $field, $id, false);
+            });
+
+        $form->switchbool('select_load_ajax', exmtrans("custom_column.options.select_load_ajax"))
+            ->help(exmtrans("custom_column.help.select_load_ajax", config('exment.select_table_limit_count', 100)))
+            ->default("0");
+
+        // enable multiple
+        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"));
+    }
+
+
+    /**
+     * Get import export select list
+     *
+     * @return array
+     */
+    protected static function getImportExportColumnSelect($custom_table, $value, $field, $id, $isImport = true)
+    {
+        if (is_nullorempty($field)) {
+            return [];
+        }
+
+        // whether column_type is user or org
+        if (!is_null(old('column_type'))) {
+            $model = CustomColumn::getEloquent(old('column_type'), $custom_table);
+        } elseif (isset($id) || old('column_type')) {
+            $model = CustomColumn::getEloquent($id);
+        }
+        if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
+            return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions([
+                'index_enabled_only' => $isImport,
+                'include_system' => false,
+            ]) ?? [];
+        }
+
+        // get seletct target table
+        if (isset($value)) {
+            $custom_column = CustomColumn::getEloquent($value);
+            $custom_table = $custom_column ? CustomTable::getEloquent($custom_column) : null;
+        } elseif (!is_nullorempty($field->data())) {
+            $custom_table = CustomTable::getEloquent(array_get($field->data(), 'select_target_table'));
+        }
+        if (!isset($custom_table)) {
+            return [];
+        }
+
+        return $custom_table->getColumnsSelectOptions([
+            'index_enabled_only' => $isImport,
+            'include_system' => false,
+        ]) ?? [];
     }
 }

@@ -37,6 +37,10 @@ class InitOnlyRule implements Rule
         // if has custom_value, checking value
         $v = $this->getOriginalValue();
 
+        if (is_json($value)) {
+            $value = json_decode($value);
+        }
+
         if ($v != $value) {
             return false;
         }

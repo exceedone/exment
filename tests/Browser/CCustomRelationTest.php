@@ -6,7 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 
 class CCustomRelationTest extends ExmentKitTestCase
-{   
+{
     use ExmentKitPrepareTrait;
 
     /**
@@ -21,7 +21,8 @@ class CCustomRelationTest extends ExmentKitTestCase
     /**
      * prepare test table.
      */
-    public function testPrepareTestTable() {
+    public function testPrepareTestTable()
+    {
         $this->createCustomTable('exmenttest_contract', 1, 1);
         $this->createCustomTable('exmenttest_contract_relation', 1, 1);
     }

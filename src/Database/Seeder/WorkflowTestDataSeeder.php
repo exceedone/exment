@@ -582,7 +582,7 @@ class WorkflowTestDataSeeder extends Seeder
         }
         $notify = new Notify;
         $notify->notify_view_name = $workflow->workflow_view_name;
-        $notify->workflow_id = $workflow->id;
+        $notify->target_id = $workflow->id;
         $notify->notify_trigger = Enums\NotifyTrigger::WORKFLOW;
         $notify->mail_template_id = $this->getMailTemplateFromKey(Enums\MailKeyName::WORKFLOW_NOTIFY)->id;
         $notify->action_settings = [[

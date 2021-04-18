@@ -24,6 +24,7 @@ namespace Exceedone\Exment\Enums;
  * @method static ErrorCode WORKFLOW_END()
  * @method static ErrorCode WORKFLOW_ACTION_DISABLED()
  * @method static ErrorCode DISAPPROVAL_IP()
+ * @method static ErrorCode NOT_CONTAINS_CUSTOM_FORM()
  */
 class ErrorCode extends EnumBase
 {
@@ -46,6 +47,7 @@ class ErrorCode extends EnumBase
     const WORKFLOW_END = '203';
     const WORKFLOW_ACTION_DISABLED = '204';
     const DISAPPROVAL_IP = '301';
+    const NOT_CONTAINS_CUSTOM_FORM = '401';
 
     public function getMessage()
     {

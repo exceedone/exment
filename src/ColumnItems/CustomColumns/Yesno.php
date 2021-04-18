@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Validator;
@@ -38,7 +39,24 @@ class Yesno extends CustomItem
 
     protected function getAdminFieldClass()
     {
-        return Field\SwitchBoolField::class;
+        if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
+            return Field\Checkboxone::class;
+        } else {
+            return Field\SwitchBoolField::class;
+        }
+    }
+
+    protected function setAdminOptions(&$field)
+    {
+        if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
+            $field->option([
+                1 => ''
+            ]);
+        }
+
+        if (array_boolval($this->custom_column->options, 'required_yes')) {
+            $field->requiredRule();
+        }
     }
     
     protected function getAdminFilterClass()
@@ -51,7 +69,7 @@ class Yesno extends CustomItem
         $filter->radio(Define::YESNO_RADIO);
     }
         
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $validates[] = new Validator\YesNoRule();
     }
@@ -92,6 +110,44 @@ class Yesno extends CustomItem
         return null;
     }
 
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
+        if ($asCustomForm) {
+            $form->radio('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ->options([
+                '0' => 'NO',
+                '1' => 'YES',
+            ])->addEmpty(true);
+            return;
+        }
+        $form->switchbool('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ;
+    }
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
+            ->help(exmtrans("custom_column.help.checkbox_enabled"));
+        $form->switchbool('required_yes', exmtrans("custom_column.options.required_yes"))
+            ->help(exmtrans("custom_column.help.required_yes"));
+    }
+    
     public function getFalseValue()
     {
         return 0;

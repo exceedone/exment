@@ -5,10 +5,10 @@ namespace Exceedone\Exment\Model;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifyTargetType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 
 /**
  * get and set notify target.
@@ -34,7 +34,7 @@ class NotifyTarget
     protected $customColumn;
 
     /**
-     * NotifyTargetType
+     * Notify Target Type
      *
      * @var string
      */
@@ -122,78 +122,32 @@ class NotifyTarget
 
 
     /**
+     * return user id
+     *
+     * @return string|null
+     */
+    public function getUserId()
+    {
+        return $this->id;
+    }
+
+
+    /**
      * Get notify target models
      *
      * @param Notify $notify
-     * @param CustomValue $custom_value
-     * @param string $column NotifyActionTarget or custom column id.
+     * @param CustomValue|null $custom_value
+     * @param string|CustomColumn $notify_action_target NotifyActionTarget or custom column id or CustomColumn.
      * @return array Notify targets
      */
-    public static function getModels(Notify $notify, CustomValue $custom_value, $column)
+    public static function getModels(Notify $notify, ?CustomValue $custom_value, $notify_action_target, array $action_setting, ?CustomTable $custom_table = null)
     {
-        $result = [];
-        // if role users, getModelsAsRole
-        if ($column == NotifyActionTarget::CREATED_USER) {
-            $result[] = static::getModelAsUser(CustomTable::getEloquent(SystemTableName::USER)->getValueModel($custom_value->created_user_id));
-        } elseif ($column == NotifyActionTarget::HAS_ROLES) {
-            $roleUsers = static::getModelsAsRole($custom_value);
-            foreach ($roleUsers as $roleUser) {
-                $result[] = $roleUser;
-            }
-        } else {
-            $custom_table = $custom_value->custom_table;
-            $custom_column = CustomColumn::getEloquent($column, $custom_table);
-            
-            if (!isset($custom_column)) {
-                return [];
-            }
-    
-            // get target's value
-            $target_value = $custom_value->getValue($custom_column);
-    
-            if (!isset($target_value)) {
-                return [];
-            }
-    
-            if (!is_list($target_value)) {
-                $target_value = [$target_value];
-            }
-    
-            foreach ($target_value as $v) {
-                if (!isset($v)) {
-                    continue;
-                }
-
-                // if email, return as only email
-                if ($custom_column->column_type == ColumnType::EMAIL) {
-                    $result[] = static::getModelAsEmail($v);
-                }
-
-                // if select table is organization
-                elseif ($custom_column->column_type == ColumnType::ORGANIZATION) {
-                    collect(static::getModelsAsOrganization($v, $custom_column))->each(function ($item) use (&$result) {
-                        $result[] = $item;
-                    });
-                }
-
-                // if select table is user
-                elseif ($custom_column->column_type == ColumnType::USER) {
-                    $result[] = static::getModelAsUser($v);
-                }
-                
-                // if select table(cotains user)
-                elseif (ColumnType::isSelectTable($custom_column->column_type)) {
-                    // get email column
-                    $select_target_table = $custom_column->select_target_table;
-                    $email_column = $select_target_table ? $select_target_table->custom_columns->first(function ($custom_column) {
-                        return $custom_column->column_type == ColumnType::EMAIL;
-                    }) : null;
-                    $result[] = static::getModelAsSelectTable($v, NotifyTargetType::EMAIL_COLUMN, $email_column);
-                }
-            }
+        $notifyTarget = NotifyTargetBase::make($notify_action_target, $notify, $action_setting);
+        if (!$notifyTarget) {
+            return collect();
         }
 
-        return array_filter($result);
+        return $notifyTarget->getModels($custom_value, $custom_table);
     }
 
     /**
@@ -202,7 +156,7 @@ class NotifyTarget
      * @param string $email
      * @return NotifyTarget
      */
-    protected static function getModelAsEmail($email)
+    public static function getModelAsEmail($email)
     {
         $notifyTarget = new self;
 
@@ -218,11 +172,11 @@ class NotifyTarget
     /**
      * get model as SelectTable(user, organization, select table)
      *
-     * @param CustomValue $target_value
+     * @param CustomValue|null $target_value
      * @param string $notify_target
      * @return NotifyTarget|null
      */
-    public static function getModelAsSelectTable(CustomValue $target_value, string $notify_target, ?CustomColumn $custom_column = null) : ?NotifyTarget
+    public static function getModelAsSelectTable(?CustomValue $target_value, string $notify_target, ?CustomColumn $custom_column = null) : ?NotifyTarget
     {
         if (is_nullorempty($target_value)) {
             return null;
@@ -251,21 +205,21 @@ class NotifyTarget
         return $notifyTarget;
     }
 
-    public static function getModelAsUser(CustomValue $target_value, ?CustomColumn $custom_column = null) : ?NotifyTarget
+    public static function getModelAsUser(?CustomValue $target_value, ?CustomColumn $custom_column = null) : ?NotifyTarget
     {
         if (is_null($custom_column)) {
             $custom_column = CustomColumn::getEloquent('email', SystemTableName::USER);
         }
-        return static::getModelAsSelectTable($target_value, NotifyTargetType::USER, $custom_column);
+        return NotifyTarget::getModelAsSelectTable($target_value, NotifyTargetType::USER, $custom_column);
     }
     
-    public static function getModelsAsOrganization(CustomValue $target_value, ?CustomColumn $custom_column = null) : Collection
+    public static function getModelsAsOrganization(?CustomValue $target_value, ?CustomColumn $custom_column = null) : Collection
     {
         // get organization user
         $result = collect();
         foreach ($target_value->users as $user) {
             // get email address
-            $item = static::getModelAsUser($user);
+            $item = NotifyTarget::getModelAsUser($user);
             if (!is_nullorempty($item)) {
                 $result->push($item);
             }
@@ -280,9 +234,9 @@ class NotifyTarget
      * @param CustomValue $custom_value
      * @return Collection
      */
-    protected static function getModelsAsRole(CustomValue $custom_value) : Collection
+    public static function getModelsAsRole(?CustomValue $custom_value, ?CustomTable $custom_table = null) : Collection
     {
-        $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ALL_CUSTOM_VALUE, $custom_table);
         
         $list = collect();
         foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $key) {
@@ -297,7 +251,7 @@ class NotifyTarget
         return $list->filter()->unique();
     }
 
-    public static function getSelectedNotifyTarget($select_target, Notify $notify, CustomValue $custom_value)
+    public static function getSelectedNotifyTarget($select_target, Notify $notify, ?CustomValue $custom_value)
     {
         // all target users
         $allUsers = collect();
@@ -310,7 +264,7 @@ class NotifyTarget
         return $user;
     }
 
-    public static function getSelectedNotifyTargets($select_targets, Notify $notify, CustomValue $custom_value)
+    public static function getSelectedNotifyTargets($select_targets, Notify $notify, ?CustomValue $custom_value)
     {
         // all target users
         $allUsers = collect();

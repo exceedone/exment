@@ -8,6 +8,18 @@ class NotifyTrigger extends EnumBase
     const CREATE_UPDATE_DATA = "2";
     const BUTTON = "3";
     const WORKFLOW = "4";
+    const PUBLIC_FORM_COMPLETE_USER = "5";
+    const PUBLIC_FORM_COMPLETE_ADMIN = "6";
+    const PUBLIC_FORM_ERROR = "7";
+
+    public static function CUSTOM_TABLES()
+    {
+        return [
+            static::TIME,
+            static::CREATE_UPDATE_DATA,
+            static::BUTTON,
+        ];
+    }
 
     public function getDefaultMailKeyName()
     {

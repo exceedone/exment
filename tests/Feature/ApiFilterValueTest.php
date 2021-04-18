@@ -223,7 +223,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
     protected function _testConditionValueColumnInteger(string $filterOption, bool $hasHtml)
     {
-        $this->__testConditionValueApiColumn(ColumnType::INTEGER, $filterOption, $hasHtml, 'input[type="text"]');
+        $this->__testConditionValueApiColumn(ColumnType::INTEGER, $filterOption, $hasHtml, 'input[type="number"]');
     }
 
     
@@ -746,7 +746,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
     protected function _testConditionValueColumnUser(string $filterOption, bool $hasHtml, bool $multiple = false)
     {
-        $options = CustomTable::getEloquent('user')->getValueModel()->query()->get()->pluck('label', 'id')->toArray();
+        $options = CustomTable::getEloquent('user')->getValueQuery()->get()->pluck('label', 'id')->toArray();
         $this->__testConditionValueApiColumn(ColumnType::USER, $filterOption, $hasHtml, new ExactSelectOption('select', $options), $multiple);
     }
 
@@ -772,7 +772,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
     protected function _testConditionValueColumnOrganization(string $filterOption, bool $hasHtml, bool $multiple = false)
     {
-        $options = CustomTable::getEloquent('organization')->getValueModel()->query()->get()->pluck('label', 'id')->toArray();
+        $options = CustomTable::getEloquent('organization')->getValueQuery()->get()->pluck('label', 'id')->toArray();
         $this->__testConditionValueApiColumn(ColumnType::ORGANIZATION, $filterOption, $hasHtml, new ExactSelectOption('select', $options), $multiple);
     }
 
@@ -1048,7 +1048,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
     protected function _testConditionValueApiSystemCreatedUser(string $filterOption, bool $hasHtml, bool $multiple = false)
     {
-       $this->__testConditionValueApiSystem(SystemColumn::UPDATED_USER, $filterOption, $hasHtml, 'select', $multiple);
+        $this->__testConditionValueApiSystem(SystemColumn::UPDATED_USER, $filterOption, $hasHtml, 'select', $multiple);
     }
 
 
@@ -1302,21 +1302,20 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $html = array_get($json, 'html');
 
         // check element result
-        if($selector instanceof PageConstraint){
+        if ($selector instanceof PageConstraint) {
             $hasElement = $selector;
-        }
-        else{
+        } else {
             $hasElement = new HasElement($selector);
         }
 
-        if(!$hasHtml){
+        if (!$hasHtml) {
             $hasElement = new ReversePageConstraint($hasElement);
         }
         $this->assertThat($html, $hasElement);
 
         // check name
         $hasElement = new HasElement('[name="custom_view_filters[1][view_filter_condition_value]' . ($multiple ? '[]' : '') . '"]');
-        if(!$hasHtml){
+        if (!$hasHtml) {
             $hasElement = new ReversePageConstraint($hasElement);
         }
         $this->assertThat($html, $hasElement);

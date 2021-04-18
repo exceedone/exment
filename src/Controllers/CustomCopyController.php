@@ -87,7 +87,7 @@ class CustomCopyController extends AdminControllerTableBase
         $grid = new Grid(new CustomCopy);
         $grid->column('from_custom_table.table_view_name', exmtrans("custom_copy.from_custom_table_view_name"))->sortable();
         $grid->column('to_custom_table.table_view_name', exmtrans("custom_copy.to_custom_table_view_name"))->sortable();
-        $grid->column('label', exmtrans("plugin.options.label"))->sortable()->displayEscape(function ($value) {
+        $grid->column('label', exmtrans("plugin.options.label"))->sortable()->display(function ($value) {
             return array_get($this, 'options.label');
         });
         
@@ -160,7 +160,7 @@ class CustomCopyController extends AdminControllerTableBase
     protected function form($id = null)
     {
         $form = new Form(new CustomCopy);
-        $form->hidden('from_custom_table_id')->default($this->custom_table->id);
+        $form->internal('from_custom_table_id')->default($this->custom_table->id);
         $form->display('from_custom_table.table_view_name', exmtrans("custom_copy.from_custom_table_view_name"))->default($this->custom_table->table_view_name);
 
         // get to item

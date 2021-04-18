@@ -158,26 +158,26 @@ class SystemController extends AdminControllerBase
 
         $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
         ->options(getPagerOptions())
-        ->config('allowClear', false)
+        ->disableClear()
         ->default(20)
         ->help(exmtrans("system.help.grid_pager_count"));
             
         $form->select('datalist_pager_count', exmtrans("system.datalist_pager_count"))
             ->options(getPagerOptions(false, Define::PAGER_DATALIST_COUNTS))
-            ->config('allowClear', false)
+            ->disableClear()
             ->default(5)
             ->help(exmtrans("system.help.datalist_pager_count"));
         
         $form->select('default_date_format', exmtrans("system.default_date_format"))
             ->options(getTransArray(Define::SYSTEM_DATE_FORMAT, "system.date_format_options"))
-            ->config('allowClear', false)
+            ->disableClear()
             ->default('format_default')
             ->help(exmtrans("system.help.default_date_format"));
 
         $form->select('filter_search_type', exmtrans("system.filter_search_type"))
             ->default(FilterSearchType::FORWARD)
             ->options(FilterSearchType::transArray("system.filter_search_type_options"))
-            ->config('allowClear', false)
+            ->disableClear()
             ->required()
             ->help(exmtrans("system.help.filter_search_type"));
 
@@ -193,6 +193,43 @@ class SystemController extends AdminControllerBase
             ->options(Enums\DataSubmitRedirect::transKeyArray("admin", false))
             ->help(exmtrans("system.help.data_submit_redirect"));
 
+  
+        $form->exmheader(exmtrans('system.publicform'))->hr();
+        $form->switchbool('publicform_available', exmtrans("system.publicform_available"))
+            ->default(0)
+            ->attribute(['data-filtertrigger' => true])
+            ->help(exmtrans("system.help.publicform_available"));
+
+        $form->radio('recaptcha_type', exmtrans('system.recaptcha_type'))
+            ->attribute(['data-filter' => json_encode(['key' => 'publicform_available', 'value' => '1'])])
+            ->help(exmtrans("system.help.recaptcha_type"))
+            ->options([
+                '' => exmtrans('common.no_use'),
+                'v2' => 'V2',
+                'v3' => 'V3',
+            ]);
+
+        $form->password('recaptcha_site_key', exmtrans('system.recaptcha_site_key'))
+            ->attribute([
+                'data-filter' => json_encode([
+                    ['key' => 'publicform_available', 'value' => "1"],
+                    ['key' => 'recaptcha_type', 'hasValue' => "1"],
+                ]),
+            ])
+            ->help(exmtrans("system.help.recaptcha_site_key"));
+
+        $form->password('recaptcha_secret_key', exmtrans('system.recaptcha_secret_key'))
+        ->attribute([
+            'data-filter' => json_encode([
+                ['key' => 'publicform_available', 'value' => "1"],
+                ['key' => 'recaptcha_type', 'hasValue' => "1"],
+            ]),
+        ])
+            ->help(exmtrans("system.help.recaptcha_secret_key"));
+
+
+
+
         if (boolval(System::organization_available())) {
             $form->exmheader(exmtrans('system.organization_header'))->hr();
 
@@ -200,21 +237,21 @@ class SystemController extends AdminControllerBase
             $form->select('org_joined_type_role_group', exmtrans("system.org_joined_type_role_group"))
                 ->help(exmtrans("system.help.org_joined_type_role_group") . exmtrans("common.help.more_help_here", $manualUrl))
                 ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_role_group_options'))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->default(JoinedOrgFilterType::ALL)
                 ;
 
             $form->select('org_joined_type_custom_value', exmtrans("system.org_joined_type_custom_value"))
                 ->help(exmtrans("system.help.org_joined_type_custom_value") . exmtrans("common.help.more_help_here", $manualUrl))
                 ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_custom_value_options'))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->default(JoinedOrgFilterType::ONLY_JOIN)
                 ;
 
             $form->select('custom_value_save_autoshare', exmtrans("system.custom_value_save_autoshare"))
                 ->help(exmtrans("system.help.custom_value_save_autoshare") . exmtrans("common.help.more_help_here", $manualUrl))
                 ->options(CustomValueAutoShare::transKeyArray('system.custom_value_save_autoshare_options'))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->default(CustomValueAutoShare::USER_ONLY)
                 ;
         }
@@ -223,7 +260,7 @@ class SystemController extends AdminControllerBase
         $form->select('filter_multi_user', exmtrans(boolval(System::organization_available()) ? "system.filter_multi_orguser" : "system.filter_multi_user"))
             ->help(exmtrans("system.help.filter_multi_orguser") . exmtrans("common.help.more_help_here", $manualUrl))
             ->options(JoinedMultiUserFilterType::getOptions())
-            ->config('allowClear', false)
+            ->disableClear()
             ->default(JoinedMultiUserFilterType::NOT_FILTER)
         ;
 
@@ -292,14 +329,13 @@ class SystemController extends AdminControllerBase
             //if disable update button, showing only update link
             //if(boolval(config('exment.system_update_display_disabled', false))){
             $manualUrl = exmtrans('common.message.label_link', [
-                    'label' => exmtrans('system.call_update_howto'),
-                    'link' => \Exment::getManualUrl('update'),
-                ]);
+                        'label' => exmtrans('system.call_update_howto'),
+                        'link' => \Exment::getManualUrl('update'),
+                    ]);
             $form->display(exmtrans('system.call_update_howto'))
-                    ->displayText($manualUrl)
-                    ->escape(false);
-            // }
-            // else{
+                        ->displayText($manualUrl)
+                        ->escape(false);
+            // } else {
             //     $this->setUpdatePartialForm($form, $latest);
             // }
         }
@@ -309,13 +345,13 @@ class SystemController extends AdminControllerBase
 
 
     //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
-    // /**
-    //  * Set UpdatePartialForm
-    //  *
-    //  * @param WidgetForm $form
-    //  * @param string $latest
-    //  * @return void
-    //  */
+    /**
+     * Set UpdatePartialForm
+     *
+     * @param WidgetForm $form
+     * @param string $latest
+     * @return void
+     */
     // protected function setUpdatePartialForm(WidgetForm $form, $latest)
     // {
     //     $form->exmheader(exmtrans('system.call_update_header'))->hr();
@@ -323,20 +359,20 @@ class SystemController extends AdminControllerBase
     //     // check require. If conatains not OK, showing error message.
     //     $checkObjs = [new SystemRequire\Composer, new SystemRequire\FilePermissionInstaller, new SystemRequire\TimeoutTime];
     //     $errorObjs = [];
-    //     foreach($checkObjs as $checkObj){
+    //     foreach ($checkObjs as $checkObj) {
     //         $checkObj->systemRequireCalledType(SystemRequireCalledType::WEB);
 
     //         $checkResult = $checkObj->checkResult();
-    //         if(!isMatchString($checkResult, SystemRequireResult::OK)){
+    //         if (!isMatchString($checkResult, SystemRequireResult::OK)) {
     //             $errorObjs[] = $checkObj;
     //         }
     //     }
 
     //     // if has error, set button and return
-    //     if(!is_nullorempty($errorObjs)){
+    //     if (!is_nullorempty($errorObjs)) {
     //         $form->display(exmtrans('system.call_update_cannot'))->displayText(exmtrans('system.call_update_cannot_description'));
             
-    //         $buttons = collect($errorObjs)->map(function($errorObj){
+    //         $buttons = collect($errorObjs)->map(function ($errorObj) {
     //             return view('exment::tools.button-simple', [
     //                 'href' => $errorObj->getSettingUrl(),
     //                 'label' => $errorObj->getLabel(),
@@ -349,7 +385,7 @@ class SystemController extends AdminControllerBase
     //         return;
     //     }
 
-    //     $form->description(exmtrans('system.call_update_description', $latest));
+    //     $form->description(exmtrans('system.call_update_description', $latest))->escape(false);;
         
     //     $manualUrl = exmtrans('common.message.label_link', [
     //         'label' => exmtrans('system.release_note'),
@@ -467,23 +503,22 @@ class SystemController extends AdminControllerBase
     }
 
     
-    //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
     /**
-     * send test mail
+     * call update
      *
      * @return void
      */
-    // public function callUpdate(Request $request)
-    // {
-    //     UpdateService::update([
-    //         'backup' => false,
-    //     ]);
+    public function callUpdate(Request $request)
+    {
+        UpdateService::update([
+            'backup' => false,
+        ]);
 
-    //     return getAjaxResponse([
-    //         'result'  => true,
-    //         'logoutAsync' => true,
-    //         'swal' => exmtrans('system.call_update_success'),
-    //         'swaltext' => exmtrans('system.call_update_success_text'),
-    //     ]);
-    // }
+        return getAjaxResponse([
+            'result'  => true,
+            'logoutAsync' => true,
+            'swal' => exmtrans('system.call_update_success'),
+            'swaltext' => exmtrans('system.call_update_success_text'),
+        ]);
+    }
 }

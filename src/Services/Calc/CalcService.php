@@ -51,7 +51,7 @@ class CalcService
         $calc_formulas = [];
         $calc_counts = [];
         
-        $relationInfo = $custom_form_block ? $custom_form_block->getRelationInfo() : null;
+        $relationInfo = $custom_form_block ? $custom_form_block->getRelationInfo($custom_table) : null;
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             if ($form_column->form_column_type != FormColumnType::COLUMN) {
                 continue;

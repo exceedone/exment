@@ -12,6 +12,8 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -22,6 +24,7 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\Calc\CalcService;
+use Exceedone\Exment\ColumnItems\ItemInterface;
 
 class DefaultForm extends FormBase
 {
@@ -43,6 +46,8 @@ class DefaultForm extends FormBase
         
         $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
+
+        $form->setHorizontal(boolval($this->custom_form->getOption('form_label_type') ?? true));
 
         if (isset($this->id)) {
             $form->systemValues()->setWidth(12, 0);
@@ -74,11 +79,12 @@ class DefaultForm extends FormBase
             // when default block, set as normal form columns.
             if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
                 $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block, $this->custom_value))
-                    ->disableHeader();
+                    ->disableHeader()
+                    ->gridEmbeds();
             }
             // one_to_many or manytomany
             else {
-                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
+                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo($this->custom_table);
                 $target_table = $custom_form_block->target_table;
                 // if user doesn't have edit permission, hide child block
                 if ($target_table->enableEdit() !== true) {
@@ -107,7 +113,9 @@ class DefaultForm extends FormBase
                             $block_label,
                             function ($form, $model = null) use ($custom_form_block, $relation, $relation_name) {
                                 $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
-                                ->disableHeader()->setRelationName($relation_name);
+                                    ->disableHeader()
+                                    ->setRelationName($relation_name)
+                                    ->gridEmbeds();
                             }
                         );
                     }
@@ -207,6 +215,8 @@ EOT;
             if (isset($this->id)) {
                 $item->id($this->id);
             }
+            $this->setColumnItemOption($item);
+
             $form->pushField($item->getAdminField($form_column));
         }
     }
@@ -222,43 +232,41 @@ EOT;
      */
     protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null, ?CustomRelation $relation = null)
     {
-        $closures = [];
         if (is_numeric($target_custom_value)) {
             $target_custom_value = $this->custom_table->getValueModel($target_custom_value);
         }
-        // setting fields.
-        foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
-                continue;
-            }
 
-            if (is_null($form_column->column_item)) {
-                continue;
-            }
-
-            $field = $form_column->column_item->setCustomValue($target_custom_value)->getAdminField($form_column);
-
-            // set $closures using $form_column->column_no
-            if (isset($field)) {
-                $column_no = array_get($form_column, 'column_no');
-                $closures[$column_no][] = $field;
-            }
-        }
-
-        $is_grid = array_key_exists(1, $closures) && array_key_exists(2, $closures);
-        return collect($closures)->map(function ($closure, $key) use ($is_grid) {
-            return function ($form) use ($closure, $key, $is_grid) {
-                foreach ($closure as $field) {
-                    if ($is_grid && in_array($key, [1, 2])) {
-                        $field->setWidth(8, 3);
-                    } else {
-                        $field->setWidth(8, 2);
-                    }
-                    // push field to form
-                    $form->pushField($field);
+        return function ($form) use ($custom_form_block, $target_custom_value) {
+            // setting fields.
+            foreach ($custom_form_block->custom_form_columns as $form_column) {
+                if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+                    continue;
                 }
-            };
-        })->toArray();
+    
+                $column_item = $form_column->column_item;
+                if (is_null($column_item)) {
+                    continue;
+                }
+                $this->setColumnItemOption($column_item);
+    
+                $field = $column_item
+                    ->setCustomValue($target_custom_value)
+                    ->getAdminField($form_column);
+    
+                // set $closures using $form_column->column_no
+                if (!isset($field)) {
+                    continue;
+                }
+    
+                $field->setWidth(8, 2);
+                // push field to form
+                $form->pushFieldAndOption($field, [
+                    'row' => $form_column->row_no,
+                    'column' => $form_column->column_no,
+                    'width' => $form_column->width ?? 4,
+                ]);
+            }
+        };
     }
 
     /**
@@ -268,7 +276,7 @@ EOT;
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             // set calc rule for javascript
-            $relation = $custom_form_block->getRelationInfo()[0];
+            $relation = $custom_form_block->getRelationInfo($this->custom_table)[0];
             $calc_formula_key = $relation ? $relation->getRelationName() : '';
             $calc_formula_array[$calc_formula_key] = CalcService::getCalcFormArray($this->custom_table, $custom_form_block);
 
@@ -398,53 +406,71 @@ EOT;
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
         });
         
-        $form->saved(function ($form) use ($select_parent) {
-            // if $one_record_flg, redirect
-            $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
-            if ($one_record_flg) {
-                admin_toastr(trans('admin.save_succeeded'));
-                return redirect(admin_urls('data', $this->custom_table->table_name));
-            } elseif (!empty($select_parent)) {
-                admin_toastr(trans('admin.save_succeeded'));
-                return redirect(admin_url('data/'.$form->model()->parent_type.'/'. $form->model()->parent_id));
-            } elseif (empty(request('after-save'))) {
-                admin_toastr(trans('admin.save_succeeded'));
-                return redirect($this->custom_table->getGridUrl(true));
-            }
-        });
+        if (!$this->disableDefaultSavedRedirect) {
+            $form->saved(function ($form) use ($select_parent) {
+                // if $one_record_flg, redirect
+                $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
+                if ($one_record_flg) {
+                    admin_toastr(trans('admin.save_succeeded'));
+                    return redirect(admin_urls('data', $this->custom_table->table_name));
+                } elseif (!empty($select_parent)) {
+                    admin_toastr(trans('admin.save_succeeded'));
+                    return redirect(admin_url('data/'.$form->model()->parent_type.'/'. $form->model()->parent_id));
+                } elseif (empty(request('after-save'))) {
+                    admin_toastr(trans('admin.save_succeeded'));
+                    return redirect($this->custom_table->getGridUrl(true));
+                }
+            });
+        }
     }
 
+    /**
+     * Manage form tools button
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @param CustomForm $custom_form
+     * @return void
+     */
     protected function manageFormToolButton($form, $custom_table, $custom_form)
     {
-        $checkboxes = collect([
-            [
-                'key' => 'continue_editing',
-                'value' => 1,
-            ],
-            [
-                'key' => 'continue_creating',
-                'value' => 2,
-            ],
-            [
-                'key' => 'view',
-                'value' => 3,
-            ],
-            [
-                'key' => 'list',
-                'value' => 4,
-                'redirect' => admin_urls('data', $this->custom_table->table_name),
-            ],
-        ])->map(function ($checkbox) {
-            return array_merge([
-                'label' => trans('admin.' . $checkbox['key']),
-                'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
-            ], $checkbox);
-        })->each(function ($checkbox) use ($form) {
-            $form->submitRedirect($checkbox);
-        });
+        if (!$this->disableSavingButton) {
+            if (!$this->disableSavedRedirectCheck) {
+                $checkboxes = collect([
+                    [
+                        'key' => 'continue_editing',
+                        'value' => 1,
+                    ],
+                    [
+                        'key' => 'continue_creating',
+                        'value' => 2,
+                    ],
+                    [
+                        'key' => 'view',
+                        'value' => 3,
+                    ],
+                    [
+                        'key' => 'list',
+                        'value' => 4,
+                        'redirect' => admin_urls('data', $this->custom_table->table_name),
+                    ],
+                ])->map(function ($checkbox) {
+                    return array_merge([
+                        'label' => trans('admin.' . $checkbox['key']),
+                        'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
+                    ], $checkbox);
+                })->each(function ($checkbox) use ($form) {
+                    $form->submitRedirect($checkbox);
+                });
+            }
+        } else {
+            $form->disableSubmit();
+        }
+
 
         $id = $this->id;
-        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
+        $disableToolsButton = $this->disableToolsButton;
+        $form->tools(function (Form\Tools $tools) use ($id, $custom_table, $disableToolsButton) {
             $custom_value = $custom_table->getValueModel($id);
 
             // create
@@ -477,16 +503,25 @@ EOT;
                 $tools->disableDelete();
             }
 
+            // if all disable tools button
+            if ($disableToolsButton) {
+                $tools->disableListButton();
+                $tools->disableDelete();
+                $tools->disableView();
+            }
+
             // add plugin button
-            if ($listButtons !== null && count($listButtons) > 0) {
+            if (!$disableToolsButton && $listButtons !== null && count($listButtons) > 0) {
                 foreach ($listButtons as $listButton) {
                     $tools->append(new Tools\PluginMenuButton($listButton, $custom_table, $id));
                 }
             }
 
-            PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
-            
-            if ($custom_table->enableTableMenuButton()) {
+            if (!$disableToolsButton) {
+                PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
+            }
+
+            if (!$disableToolsButton && $custom_table->enableTableMenuButton()) {
                 $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
             }
         });
@@ -623,7 +658,7 @@ EOT;
 
             // add array. key is column name.
             $relatedlinkage_array[$parent_column_name][] = [
-                'url' => admin_urls('webapi', 'data', $parent_select_table->table_name ?? null, 'relatedLinkage'),
+                'uri' => url_join('data', $parent_select_table->table_name ?? null, 'relatedLinkage'),
                 'expand' => [
                     'child_column_id' => $child_column->id ?? null,
                     'parent_select_table_id' => $parent_select_table->id ?? null,
@@ -688,18 +723,20 @@ EOT;
                 ->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name'), 'data-parent_id' => true]);
 
             // set buttons
-            $select->buttons([
-                [
-                    'label' => trans('admin.search'),
-                    'btn_class' => 'btn-info',
-                    'icon' => 'fa-search',
-                    'attributes' => [
-                        'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
-                        'data-widgetmodal_expand' => json_encode(['target_column_class' => 'parent_id']),
-                        'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'parent_id']),
+            if (!$this->isPublicForm()) {
+                $select->buttons([
+                    [
+                        'label' => trans('admin.search'),
+                        'btn_class' => 'btn-info',
+                        'icon' => 'fa-search',
+                        'attributes' => [
+                            'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
+                            'data-widgetmodal_expand' => json_encode(['target_column_class' => 'parent_id']),
+                            'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'parent_id']),
+                        ],
                     ],
-                ],
-            ]);
+                ]);
+            }
         }
         // if edit data or has $select_parent, only display
         else {
@@ -733,17 +770,47 @@ EOT;
         $select->ajax($parent_custom_table->getOptionAjaxUrl());
 
         // set buttons
-        $select->buttons([
-            [
-                'label' => trans('admin.search'),
-                'btn_class' => 'btn-info',
-                'icon' => 'fa-search',
-                'attributes' => [
-                    'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
-                    'data-widgetmodal_expand' => json_encode(['target_column_class' => $pivot_name, 'target_column_multiple' => true]),
-                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => $pivot_name]),
+        if (!$this->isPublicForm()) {
+            $select->buttons([
+                [
+                    'label' => trans('admin.search'),
+                    'btn_class' => 'btn-info',
+                    'icon' => 'fa-search',
+                    'attributes' => [
+                        'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
+                        'data-widgetmodal_expand' => json_encode(['target_column_class' => $pivot_name, 'target_column_multiple' => true]),
+                        'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => $pivot_name]),
+                    ],
                 ],
-            ],
-        ]);
+            ]);
+        }
+    }
+
+
+    /**
+     * Set ColumnItem's option to column item
+     *
+     * @param ItemInterface $column_item
+     * @return void
+     */
+    protected function setColumnItemOption(ItemInterface $column_item)
+    {
+        $column_item->setCustomForm($this->custom_form);
+        if ($this->enableDefaultQuery) {
+            $column_item->options(['enable_default_query' => true]);
+        }
+        if ($this->asConfirm) {
+            $column_item->options(['as_confirm' => true]);
+        }
+    }
+
+    /**
+     * Whether this form is publicform
+     *
+     * @return boolean
+     */
+    protected function isPublicForm() : bool
+    {
+        return $this instanceof PublicFormForm;
     }
 }

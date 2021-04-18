@@ -58,6 +58,8 @@ class Restore
     public function execute($file = null, ?bool $tmp = null)
     {
         try {
+            \Artisan::call('down');
+
             // check backup execute
             \ExmentDB::checkBackup();
 
@@ -86,6 +88,7 @@ class Restore
         } catch (\Exception $e) {
             throw $e;
         } finally {
+            \Artisan::call('up');
             $this->diskService->deleteTmpDirectory();
         }
     }

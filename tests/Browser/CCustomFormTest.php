@@ -20,7 +20,8 @@ class CCustomFormTest extends ExmentKitTestCase
     /**
      * prepare test table.
      */
-    public function testPrepareTestTable() {
+    public function testPrepareTestTable()
+    {
         $this->createCustomTable('exmenttest_form');
         $this->createCustomTable('exmenttest_form_relation');
     }
@@ -28,7 +29,8 @@ class CCustomFormTest extends ExmentKitTestCase
     /**
      * prepare test columns.
      */
-    public function testPrepareTestColumn() {
+    public function testPrepareTestColumn()
+    {
         $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
         $this->createCustomColumns('exmenttest_form', $targets);
     }
@@ -36,7 +38,8 @@ class CCustomFormTest extends ExmentKitTestCase
     /**
      * prepare test columns and relation.
      */
-    public function testPrepareTestColumnAndRelation() {
+    public function testPrepareTestColumnAndRelation()
+    {
         $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
         $this->createCustomColumns('exmenttest_form_relation', $targets);
         $this->createCustomRelation('exmenttest_form', 'exmenttest_form_relation');
@@ -58,13 +61,11 @@ class CCustomFormTest extends ExmentKitTestCase
                 ->visit(admin_url('form/exmenttest_form/create'))
                 ->seeInElement('h1', 'カスタムフォーム設定')
                 ->seeInElement('label', 'フォーム表示名')
-                ->seeInElement('h3[class=box-title]', 'ヘッダー基本設定')
+                ->seeInElement('h3[class=box-title]', exmtrans('custom_form.header_basic_setting'))
                 ->seeInElement('h3[class=box-title]', 'テーブル - Exmenttest Form')
                 ->seeInElement('h3[class=box-title]', '子テーブル - Exmenttest Form Relation')
                 ->seeInElement('label', 'フォームブロック名')
                 ->seeInElement('h4', 'フォーム項目')
-                ->seeInElement('h5', 'フォーム項目 列1')
-                ->seeInElement('h5', 'フォーム項目 列2')
                 ->seeInElement('h5', 'フォーム項目 候補一覧')
                 ->seeInElement('h5', 'フォーム項目 候補一覧')
                 // ->seeInElement('span[class=item-label]', 'ID')

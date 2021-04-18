@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -219,18 +220,29 @@ class FileColumnProvider extends ProviderBase
         $fileFullPath = array_get($dataAndModel, 'fileFullPath');
         $displayFileName = array_get($data, 'display_file_name') ?? array_get($data, 'file_name');
 
-        $custom_column = CustomColumn::getEloquent(array_get($data, 'column_name'), $this->custom_table);
+        $column_name = array_get($data, 'column_name');
+        $custom_column = CustomColumn::getEloquent($column_name, $this->custom_table);
 
         // get file
         $file = \File::get($fileFullPath);
 
         // save file info
-        $exmentfile = ExmentFile::storeAs($file, $this->custom_table->table_name, $displayFileName)
-            ->saveCustomValueAndColumn($model->id, $custom_column, $this->custom_table);
-    
+        $exmentfile = ExmentFile::storeAs(FileType::CUSTOM_VALUE_COLUMN, $file, $this->custom_table->table_name, $displayFileName)
+            ->saveCustomValueAndColumn($model->id, $custom_column, $this->custom_table, !$custom_column->isMultipleEnabled());
+        $path = path_join($this->custom_table->table_name, $exmentfile->local_filename);
+        
+        // set custom value
+        if (!$custom_column->isMultipleEnabled()) {
+            $model->setValue($column_name, $path);
+        } else {
+            // If multiple, merge original array
+            $value = array_get($model, 'value.' . $custom_column->column_name) ?? [];
+            $value = array_merge($value, [$path]);
+            $model->setValue($column_name, $value);
+        }
+
         // return filename
-        $model->setValue(array_get($data, 'column_name'), path_join($this->custom_table->table_name, $exmentfile->local_filename))
-            ->save();
+        $model->save();
 
         return $model;
     }

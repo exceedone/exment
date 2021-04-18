@@ -3,11 +3,12 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Enums\ColumnDefaultType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Grid\Filter;
-use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Model\CustomColumnMulti;
 
 class Date extends CustomItem
@@ -16,6 +17,10 @@ class Date extends CustomItem
 
     protected function _text($v)
     {
+        if ($this->displayDate() && boolval(array_get($this->options, 'public_form')) && !isset($v)) {
+            return exmtrans('custom_value.auto_number_create');
+        }
+
         // if not empty format, using carbon
         $format = array_get($this->custom_column, 'options.format');
         if (is_nullorempty($format)) {
@@ -81,7 +86,7 @@ class Date extends CustomItem
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
-            return ExmentField\Display::class;
+            return Field\Display::class;
         }
         return Field\Date::class;
     }
@@ -91,22 +96,23 @@ class Date extends CustomItem
         return Filter\BetweenDate::class;
     }
 
-    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    protected function getCustomField($classname, $column_name_prefix = null)
     {
         $this->autoDate();
-        return parent::getCustomField($classname, $form_column_options, $column_name_prefix);
+        return parent::getCustomField($classname, $column_name_prefix);
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         if ($this->displayDate()) {
-            $field->default($this->getNowString());
+            $field->default(exmtrans('custom_value.auto_number_create'));
+            $field->setInternal(true);
         } else {
             $field->options(['useCurrent' => false]);
         }
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $validates[] = 'date';
     }
@@ -215,5 +221,62 @@ class Date extends CustomItem
         catch (\Exception $ex) {
             return true;
         }
+    }
+    
+
+    /**
+     * Get default value.
+     *
+     * @return mixed
+     */
+    protected function _getDefaultValue()
+    {
+        list($default_type, $default) = $this->getDefaultSetting();
+        if (isMatchString($default_type, ColumnDefaultType::EXECUTING_DATE)) {
+            return \Carbon\Carbon::now()->format($this->format);
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // date, time, datetime
+        $form->switchbool('datetime_now_saving', exmtrans("custom_column.options.datetime_now_saving"))
+            ->help(exmtrans("custom_column.help.datetime_now_saving"))
+            ->default("0");
+
+        $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
+            ->help(exmtrans("custom_column.help.datetime_now_creating"))
+            ->default("0");
+    }
+
+    
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
+        $form->select('default_type', exmtrans("custom_column.options.default_type"))
+            ->attribute(['data-filtertrigger' =>true])
+            ->help(exmtrans("custom_column.help.default_type"))
+            ->options(getTransArray(ColumnDefaultType::COLUMN_DEFAULT_TYPE_DATE(), 'custom_column.column_default_type_options'));
+
+        $form->date('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATE])])
+            ;
     }
 }

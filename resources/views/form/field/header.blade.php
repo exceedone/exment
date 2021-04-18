@@ -4,9 +4,9 @@
         <div class="col-sm-12" >
             <h{{$no}} class="field-header">
                 @if($escape)
-                    {{ $label }}
+                    {{ $headerLabel }}
                 @else
-                    {!! $label !!}
+                    {!! $headerLabel !!}
                 @endif
             </h{{$no}}>
         </div>

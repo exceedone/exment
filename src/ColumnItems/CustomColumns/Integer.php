@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Model\Define;
@@ -40,7 +41,7 @@ class Integer extends CustomItem
         return Field\Number::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
         
@@ -55,9 +56,14 @@ class Integer extends CustomItem
         if (!is_null(array_get($options, 'number_max'))) {
             $field->attribute(['max' => array_get($options, 'number_max')]);
         }
+
+        $field->attribute(['type' => 'number']);
+        $field->callbackValue(function ($value) {
+            return rmcomma($value);
+        });
     }
 
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
         
@@ -104,5 +110,22 @@ class Integer extends CustomItem
             return null;
         }
         return intval($value);
+    }
+
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $this->setCustomColumnOptionFormNumber($form);
+
+        $form->switchbool('updown_button', exmtrans("custom_column.options.updown_button"))
+            ->help(exmtrans("custom_column.help.updown_button"))
+            ;
     }
 }

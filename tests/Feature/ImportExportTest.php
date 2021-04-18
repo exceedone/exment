@@ -12,13 +12,13 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportExportTest extends TestCase
 {
-    use TestTrait, DatabaseTransactions;
+    use ImportTrait, TestTrait, DatabaseTransactions;
 
     /**
      * full path stored export files.
@@ -29,7 +29,7 @@ class ImportExportTest extends TestCase
 
     protected function init(bool $export, $target_name = null)
     {
-        try{
+        try {
             $this->initAllTest();
             $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
             if ($export) {
@@ -48,7 +48,8 @@ class ImportExportTest extends TestCase
                 \File::copyDirectory($source_path, $import_path);
                 $this->dirpath = 'unittest';
             }
-        }catch(\Exception $ex){}
+        } catch (\Exception $ex) {
+        }
     }
 
     public function testExportCsv()
@@ -223,7 +224,7 @@ class ImportExportTest extends TestCase
             [
                 '--dirpath' => $this->dirpath,
                 '--format' => 'csv',
-            ], 
+            ],
             $params
         );
 
@@ -242,14 +243,14 @@ class ImportExportTest extends TestCase
         $this->assertTrue(\File::size($file_path) > 0);
 
         if ($params['--format'] == 'csv') {
-            $file_array = $this->getCsvArray($file_path);
+            $file_array = $this->_getCsvArray($file_path);
         } else {
             $file_array = $this->_getXlsxArray($file_path);
             if (isset($params['--add_setting']) && $params['--add_setting'] == '1') {
                 $this->assertTrue(array_key_exists(Model\Define::SETTING_SHEET_NAME, $file_array));
             }
             if (isset($params['--add_relation']) && $params['--add_relation'] == '1') {
-                CustomRelation::getRelationsByParent($custom_table)->each(function ($item) use($file_array) {
+                CustomRelation::getRelationsByParent($custom_table)->each(function ($item) use ($file_array) {
                     $this->assertTrue(array_key_exists($item->child_custom_table->table_name, $file_array));
                 });
             }
@@ -264,11 +265,11 @@ class ImportExportTest extends TestCase
         $custom_view = null;
         if (isset($params['--action']) && $params['--action'] == 'view') {
             $custom_view = CustomView::getEloquent($params['--view']);
-            $model = $custom_table->getValueModel()->query();
-            $custom_view->filterModel($model);
+            $model = $custom_table->getValueQuery();
+            $custom_view->filterSortModel($model);
             $pager_count = $custom_view->pager_count;
         } else {
-            $model = $custom_table->getValueModel()->query()->orderby('id');
+            $model = $custom_table->getValueQuery()->orderby('id');
         }
 
         if ($chunk_no > 0) {
@@ -295,7 +296,7 @@ class ImportExportTest extends TestCase
     {
         $custom_table = CustomTable::getEloquent($params['table_name']);
 
-        list($custom_view, $db_array) = $this->_getTableData($custom_table , $params, $chunk_no);
+        list($custom_view, $db_array) = $this->_getTableData($custom_table, $params, $chunk_no);
 
         if ($chunk_no > 0 && count($db_array) == 0) {
             return false;
@@ -308,7 +309,7 @@ class ImportExportTest extends TestCase
         if (isset($custom_view)) {
             $this->_compareViewData($custom_view, $file_array, $db_array);
         } else {
-            $this->_compareAllData($file_array, $db_array);
+            $this->_compareAllData($file_array, $db_array, $custom_table);
         }
         return true;
     }
@@ -325,7 +326,7 @@ class ImportExportTest extends TestCase
         }
     }
 
-    protected function _compareAllData(array $file_array, Collection $db_array)
+    protected function _compareAllData(array $file_array, Collection $db_array, CustomTable $custom_table)
     {
         $header_array = [];
         foreach ($file_array as $index => $file_data) {
@@ -343,66 +344,25 @@ class ImportExportTest extends TestCase
                     if ($colvalue instanceof CustomValue) {
                         $colvalue = array_get($colvalue, 'id');
                     }
-                    if ($colvalue instanceof Collection) {
-                        $colvalue = $colvalue->map(function ($item) {
+                    if (is_list($colvalue)) {
+                        $colvalue = collect($colvalue)->map(function ($item) use ($header, $custom_table) {
                             if ($item instanceof CustomValue) {
                                 return array_get($item, 'id');
                             }
+                            // if file column, get url
+                            elseif (!is_null($file = $this->getFileColumnValue($header, $item, $custom_table))) {
+                                return $file;
+                            }
                             return $item;
-                        })->toArray();
+                        })->implode(',') ?? null;
                     }
-                    if (is_array($colvalue)) {
-                        if (count($colvalue) > 0) {
-                            $colvalue = implode(',', $colvalue);
-                        } else {
-                            $colvalue = null;
-                        }
+                    // if file column, get url
+                    elseif (!is_null($file = $this->getFileColumnValue($header, $colvalue, $custom_table))) {
+                        return $file;
                     }
                     $this->assertEquals($colvalue, $file_data[$colno]);
                 }
             }
-        }
-
-    }
-    protected function getCsvArray($file)
-    {
-        $original_locale = setlocale(LC_CTYPE, 0);
-
-        // set C locale
-        if (0 === strpos(PHP_OS, 'WIN')) {
-            setlocale(LC_CTYPE, 'C');
-        }
-
-        $reader = IOFactory::createReader('Csv');
-        $reader->setInputEncoding('UTF-8');
-        $reader->setDelimiter(",");
-        $spreadsheet = $reader->load($file);
-        $array = $spreadsheet->getActiveSheet()->toArray();
-
-        // revert to original locale
-        setlocale(LC_CTYPE, $original_locale);
-
-        return $array;
-    }
-
-    protected function _getXlsxArray($file_path)
-    {
-        $reader = IOFactory::createReader('Xlsx');
-        $spreadsheet = $reader->load($file_path);
-        try {
-            // get all data
-            $datalist = [];
-            foreach ($spreadsheet->getSheetNames() as $sheetName) {
-                $sheet = $spreadsheet->getSheetByName($sheetName);
-                $datalist[$sheetName] = getDataFromSheet($sheet, false, true);
-            }
-
-            return $datalist;
-        } finally {
-            // close workbook and release memory
-            $spreadsheet->disconnectWorksheets();
-            $spreadsheet->garbageCollect();
-            unset($spreadsheet, $reader);
         }
     }
 
@@ -414,7 +374,7 @@ class ImportExportTest extends TestCase
             [
                 '--dirpath' => $this->dirpath,
                 '--format' => 'csv',
-            ], 
+            ],
             $params
         );
 
@@ -448,5 +408,26 @@ class ImportExportTest extends TestCase
         ]);
 
         $this->assertEquals($result, $isSuccess ? 0 : -1);
+    }
+
+
+    /**
+     * Get file value.
+     *
+     * @param string $header
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function getFileColumnValue($header, $value, CustomTable $custom_table)
+    {
+        if (is_nullorempty($value)) {
+            return null;
+        }
+        $column_name = str_replace('value.', '', $header);
+        $custom_column = Model\CustomColumn::getEloquent($column_name, $custom_table);
+        if (!ColumnType::isAttachment($custom_column)) {
+            return null;
+        }
+        return Model\File::getUrl($value);
     }
 }

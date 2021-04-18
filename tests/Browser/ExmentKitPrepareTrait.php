@@ -34,7 +34,7 @@ trait ExmentKitPrepareTrait
 
         $custom_table = CustomTable::getEloquent($table_name);
 
-        if(isset($custom_table)){
+        if (isset($custom_table)) {
             $this->assertTrue(true);
             return;
         }
@@ -60,46 +60,57 @@ trait ExmentKitPrepareTrait
     /**
      * Prepare custom column all columntype.
      */
-    protected function createCustomColumns($table_name, $targets = null) {
+    protected function createCustomColumns($table_name, $targets = null)
+    {
         $col_data[] = [
             'column_name' => 'integer',
             'column_view_name' => 'Integer',
             'column_type' => 'integer',
-            'options[number_min]' => 10,
-            'options[number_max]' => 100,
-            'options[index_enabled]' => 1,
-            'options[number_format]' => 1,
+            'options' => [
+                'number_min' => 10,
+                'number_max' => 100,
+                'index_enabled' => 1,
+                'number_format' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'onelinetext',
             'column_view_name' => 'One Line Text',
             'column_type' => 'text',
-            'options[string_length]' => 256,
-            'options[index_enabled]' => 1,
+            'options' => [
+                'string_length' => 256,
+                'index_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'dateandtime',
             'column_view_name' => 'Date and Time',
             'column_type' => 'datetime',
-            'options[index_enabled]' => 1,
+            'options' => [
+                'index_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'selectfromstaticvalue',
             'column_view_name' => 'Select From Static Value',
             'column_type' => 'select',
-            'options[select_item]' => 'Option 1'."\n".'Option 2',
-            'options[multiple_enabled]' => 1,
-            'options[index_enabled]' => 1,
+            'options' => [
+                'select_item' => 'Option 1'."\n".'Option 2',
+                'multiple_enabled' => 1,
+                'index_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'select2value',
             'column_view_name' => 'Select 2 value',
             'column_type' => 'boolean',
-            'options[true_value]' => 'value1',
-            'options[true_label]' => 'label1',
-            'options[false_value]' => 'value2',
-            'options[false_label]' => 'label2',
-            'options[multiple_enabled]' => 1,
+            'options' => [
+                'true_value' => 'value1',
+                'true_label' => 'label1',
+                'false_value' => 'value2',
+                'false_label' => 'label2',
+                'multiple_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'yesno',
@@ -110,35 +121,45 @@ trait ExmentKitPrepareTrait
             'column_name' => 'selectsavevalueandlabel',
             'column_view_name' => 'Select Save Value and Lable',
             'column_type' => 'select_valtext',
-            'options[select_item_valtext]' => '1,Value 1'."\n".'2,Value 2',
-            'options[multiple_enabled]' => 1,
+            'options' => [
+                'select_item_valtext' => '1,Value 1'."\n".'2,Value 2',
+                'multiple_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'multiplelinetext',
             'column_view_name' => 'Multiple Line Text',
             'column_type' => 'textarea',
-            'options[string_length]' => 256,
+            'options' => [
+                'string_length' => 256,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'decimal',
             'column_view_name' => 'Decimal',
             'column_type' => 'decimal',
-            'options[number_min]' => 10,
-            'options[number_max]' => 100,
-            'options[index_enabled]' => 1,
-            'options[number_format]' => 1,
+            'options' => [
+                'number_min' => 10,
+                'number_max' => 100,
+                'index_enabled' => 1,
+                'number_format' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'url',
             'column_view_name' => 'URL',
             'column_type' => 'url',
-            'options[index_enabled]' => 1,
+            'options' => [
+                'index_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'email',
             'column_view_name' => 'Email',
             'column_type' => 'email',
-            'options[index_enabled]' => 1,
+            'options' => [
+                'index_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'date',
@@ -149,20 +170,26 @@ trait ExmentKitPrepareTrait
             'column_name' => 'time',
             'column_view_name' => 'Time',
             'column_type' => 'time',
-            'options[index_enabled]' => 1,
+            'options' => [
+                'index_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'selectfromtable',
             'column_view_name' => 'Select From Table',
             'column_type' => 'select_table',
-            'options[select_target_table]' => 6,
-            'options[multiple_enabled]' => 1,
+            'options' => [
+                'select_target_table' => 6,
+                'multiple_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'autonumber',
             'column_view_name' => 'Auto Number',
             'column_type' => 'auto_number',
-            'options[auto_number_type]' => 'random25',
+            'options' => [
+                'auto_number_type' => 'random25',
+            ],
         ];
         $col_data[] = [
             'column_name' => 'image',
@@ -178,28 +205,32 @@ trait ExmentKitPrepareTrait
             'column_name' => 'user',
             'column_view_name' => 'User',
             'column_type' => 'user',
-            'options[multiple_enabled]' => 1,
+            'options' => [
+                'multiple_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'user_single',
             'column_view_name' => 'User Single',
             'column_type' => 'user',
-            'options[index_enabled]' => 1,
+            'options' => [
+                'index_enabled' => 1,
+            ],
         ];
         $col_data[] = [
             'column_name' => 'organization',
             'column_view_name' => 'Organization',
             'column_type' => 'organization',
-            'options[multiple_enabled]' => 1,
+            'options' => [
+                'multiple_enabled' => 1,
+            ],
         ];
 
-        foreach($col_data as $data){
-            if (is_null($targets) || in_array(array_get($data, 'column_type'), $targets) || in_array(array_get($data, 'column_name'), $targets)){
+        foreach ($col_data as $data) {
+            if (is_null($targets) || in_array(array_get($data, 'column_type'), $targets) || in_array(array_get($data, 'column_name'), $targets)) {
                 // Create custom column
+                $this->post(admin_url("column/$table_name"), $data);
                 $this->visit(admin_url("column/$table_name"))
-                        ->seePageIs("/admin/column/$table_name")
-                        ->visit(admin_url("column/$table_name/create"))
-                        ->submitForm('admin-submit', $data)
                         ->seePageIs("/admin/column/$table_name")
                         ->seeInElement('td', array_get($data, 'column_view_name'));
             }

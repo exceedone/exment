@@ -133,7 +133,7 @@ class ChartItem implements ItemInterface
         }
 
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel()->query();
+        $model = $this->custom_table->getValueQuery();
 
         $this->custom_view->filterModel($model);
 
@@ -186,7 +186,7 @@ class ChartItem implements ItemInterface
         $item_y = $view_column_y->column_item;
 
         // create model for getting data --------------------------------------------------
-        $query = $this->custom_table->getValueModel()->query();
+        $query = $this->custom_table->getValueQuery();
 
         // get data
         $datalist = $this->custom_view->getQuery($query)->get();

@@ -1,0 +1,1 @@
+<a href="{{$href}}" {!! \Exment::formatAttributes($attributes ?? []) !!}>{{ $label }}</a>

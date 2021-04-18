@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
@@ -103,7 +104,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
     public function notifies()
     {
-        return $this->hasMany(Notify::class, 'custom_table_id')
+        return $this->hasMany(Notify::class, 'target_id')
+            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES())
             ->where('active_flg', 1);
     }
     
@@ -211,6 +213,30 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $this->cached_custom_columns = $this->hasManyCache(CustomColumn::class, 'custom_table_id');
         return $this->cached_custom_columns;
     }
+
+
+    /**
+     * Get Filterd type columns.
+     *
+     * @param string|array|Collection $column_types
+     * @return Collection
+     */
+    public function getFilteredTypeColumns($column_types)
+    {
+        return $this->custom_columns_cache->filter(function (CustomColumn $custom_column) use ($column_types) {
+            if (is_string($column_types)) {
+                $column_types = [$column_types];
+            }
+            foreach ($column_types as $column_type) {
+                if (isMatchString($column_type, $custom_column->column_type)) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+    }
+
 
     /**
      * Get Columns where select_target_table's id is this table.
@@ -495,9 +521,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->from_custom_copies()->delete();
             $model->to_custom_copies()->delete();
             $model->operations()->delete();
+            $model->notifies()->delete();
 
             // delete items
-            Notify::where('custom_table_id', $model->id)->delete();
             Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
             Revision::where('revisionable_type', $model->table_name)->delete();
             
@@ -914,7 +940,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return [];
         }
         // re-get updated_at value
-        $data_updated_at = $this->getValueModel()->query()->select(['updated_at'])->find($custom_value->id)->updated_at ?? null;
+        $data_updated_at = $this->getValueQuery()->select(['updated_at'])->find($custom_value->id)->updated_at ?? null;
         if (!isset($data_updated_at)) {
             return [];
         }
@@ -966,49 +992,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $value;
-    }
-
-    /**
-     * Convert base64 encode file
-     *
-     * @param array $value input value
-     * @return array Value after converting base64 encode file, and files value
-     */
-    public function convertFileData($value)
-    {
-        // get file columns
-        $file_columns = $this->custom_columns_cache->filter(function ($column) {
-            return ColumnType::isAttachment($column->column_type);
-        });
-        
-        $files = [];
-
-        foreach ($file_columns as $file_column) {
-            // if not key in value, set default value
-            if (!array_has($value, $file_column->column_name)) {
-                continue;
-            }
-            $file_value = $value[$file_column->column_name];
-            if (!array_has($file_value, 'name') && !array_has($file_value, 'base64')) {
-                continue;
-            }
-
-            $file_name = $file_value['name'];
-            $file_data = $file_value['base64'];
-            $file_data = base64_decode($file_data);
-
-            // convert file name for validation
-            $value[$file_column->column_name] = $file_name;
-
-            // append file data
-            $files[$file_column->column_name] = [
-                'name' => $file_name,
-                'data' => $file_data,
-                'custom_column' => $file_column,
-            ];
-        }
-
-        return [$value, $files];
     }
 
     /**
@@ -1290,7 +1273,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         $dbTableName = getDBTableName($this);
 
-        $mainQuery = $this->getValueModel()->query()
+        $mainQuery = $this->getValueQuery()
             ->joinSub($subQuery, 'sub', function ($join) use ($dbTableName) {
                 $join->on('sub.id', '=', $dbTableName . '.id');
             });
@@ -1417,7 +1400,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             
             // one_to_many
             case SearchType::ONE_TO_MANY:
-                $query = $child_table->getValueModel()->query();
+                $query = $child_table->getValueQuery();
                 RelationTable::setQueryOneMany($query, $this, $parent_value_id);
 
                 // set query info
@@ -1432,13 +1415,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
                 // target view
                 if (isset($target_view)) {
-                    $target_view->filterModel($query);
+                    $target_view->filterSortModel($query);
                 }
 
                 return $paginate ? $query->paginate($maxCount) : $query->get();
             // many_to_many
             case SearchType::MANY_TO_MANY:
-                $query = $child_table->getValueModel()->query();
+                $query = $child_table->getValueQuery();
                 RelationTable::setQueryManyMany($query, $this, $child_table, $parent_value_id);
 
                 ///// if has display table, filter display table
@@ -1448,7 +1431,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
                 // target view
                 if (isset($target_view)) {
-                    $target_view->filterModel($query);
+                    $target_view->filterSortModel($query);
                 }
 
                 return $paginate ? $query->paginate($maxCount) : $query->get();
@@ -1634,7 +1617,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getValueModel()->query()->whereIn('id', array_unique($finds))->chunk(1000, function ($target_values) {
+        $this->getValueQuery()->whereIn('id', array_unique($finds))->chunk(1000, function ($target_values) {
             $target_values->each(function ($target_value) {
                 // set request settion
                 $target_value->setValueModel();
@@ -1657,7 +1640,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $values = array_filter($values);
 
         foreach (collect($values)->chunk(100) as $chunk) {
-            $query = $this->getValueModel()->query();
+            $query = $this->getValueQuery();
 
             if (preg_match("/value\.([a-zA-Z0-9_-]+)/i", $keyName, $matches)) {
                 // get custom_column
@@ -1841,7 +1824,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return System::requestSession($key, function () use ($target_table) {
             // $target_table : user or org
             $table = CustomTable::getEloquent($target_table);
-            $query = $table->getValueModel()->query();
+            $query = $table->getValueQuery();
             $table->filterDisplayTable($query, $this);
 
             return $query->select(['id'])->pluck('id');
@@ -1880,7 +1863,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $thisObj->getSelectOptions($selectOption);
         });
 
-        $ajax = $this->getOptionAjaxUrl($selectOption);
+        $ajax = $this->getOptionAjaxPath($selectOption);
         if (isset($ajax)) {
             // set select2_expand data
             $select2_expand = [];
@@ -1897,7 +1880,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'data-add-select2' => $options['label'],
                 'data-add-select2-as-modal' => boolval($options['as_modal']),
                 'data-add-select2-ajax' => $ajax,
-                'data-add-select2-ajax-webapi' => admin_urls('webapi', 'data', $thisObj->table_name), // called by changedata
+                'data-add-select2-ajax-webapi' => url_join('data', $thisObj->table_name), // called by changedata
                 'data-add-select2-expand' => json_encode($select2_expand),
             ]);
         }
@@ -1954,12 +1937,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * get ajax url for options for select, multipleselect.
+     * get ajax uri for options for select, multipleselect.
      *
      * @param array $options
      * @return string|null url
      */
-    public function getOptionAjaxUrl($options = [])
+    public function getOptionAjaxPath($options = [])
     {
         // if use options, return null
         if ($this->isGetOptions($options)) {
@@ -1968,7 +1951,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $display_table = array_get($options, 'display_table');
         $custom_column = array_get($options, 'custom_column');
-        return admin_urls_query("webapi", 'data', array_get($this, 'table_name'), "select", ['column_id' => $custom_column ? $custom_column->id : null, 'display_table_id' => $display_table ? $display_table->id : null]);
+        return url_join('data', array_get($this, 'table_name'), "select") . '?' . http_build_query(['column_id' => $custom_column ? $custom_column->id : null, 'display_table_id' => $display_table ? $display_table->id : null]);
+    }
+
+    /**
+     * get ajax url for options for select, multipleselect.
+     *
+     * @param array $options
+     * @return string|null url
+     */
+    public function getOptionAjaxUrl($options = [])
+    {
+        $path = $this->getOptionAjaxPath($options);
+        if (!$path) {
+            return null;
+        }
+        return admin_urls('webapi', $path);
     }
 
     /**
@@ -2058,14 +2056,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // get query.
-        $query = $this->getValueModel()->query();
+        $query = $this->getValueQuery();
         
         ///// filter display table
         $this->filterDisplayTable($query, $display_table, $options);
 
         // filter model using view
         if (isset($target_view)) {
-            $target_view->filterModel($query);
+            $target_view->filterSortModel($query);
         }
 
         if (isset($filterCallback)) {
@@ -2580,6 +2578,35 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         return $model;
     }
+
+    /**
+     * Get CustomValue's query.
+     *
+     * @param null|int|string $id CustomValue's id
+     * @param bool $withTrashed if true, get already trashed value.
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getValueQuery() : \Illuminate\Database\Eloquent\Builder
+    {
+        return $this->getValueModel()->query();
+    }
+    
+    /**
+     * Find CustomValue, using only one key.
+     *
+     * @param string|CustomColumn $column
+     * @param mixed $value filtering value
+     * @return CustomValue|null
+     */
+    public function findValue($column, $value) : ?CustomValue
+    {
+        if (is_string($column)) {
+            $column = CustomColumn::getEloquent($column, $this);
+        }
+
+        return $this->getValueQuery()->where($column->getQueryKey(), $value)->first();
+    }
+    
 
     /**
      * get array for "makeHidden" function

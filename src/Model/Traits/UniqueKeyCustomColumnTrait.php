@@ -15,7 +15,12 @@ trait UniqueKeyCustomColumnTrait
         if (is_array($key) && count($key) > 0) {
             $key = $key[0];
         }
-        $custom_column = CustomColumn::getEloquent(array_get($this, $key));
+        if (is_numeric($key)) {
+            $custom_column = CustomColumn::getEloquent($key);
+        } else {
+            $custom_column = CustomColumn::getEloquent(array_get($this, $key));
+        }
+
         if (!isset($custom_column)) {
             return [
                 'table_name' => null,

@@ -27,9 +27,12 @@ var Exment;
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
             $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
-            $(document).off('click', '.copyScript').on('click', '.copyScript', {}, CommonEvent.copyScriptEvent);
+            $(document).off('click', '[copyScript]').on('click', '[copyScript]', {}, CommonEvent.copyScriptEvent);
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
+            });
+            $(document).on('pjax:error', function (xhr, textStatus, error, options) {
+                CommonEvent.pjaxError(xhr, textStatus, error, options);
             });
         }
         static AddEvent() {
@@ -423,9 +426,6 @@ var Exment;
                 var $parent = CommonEvent.getParentRow($target);
                 // if has data, get from data object
                 if (hasValue(data)) {
-                    // if data is not array, set as array
-                    //if(!Array.isArray(data)){data = [data];}
-                    // loop for model table
                     for (var table_name in data) {
                         var target_table_data = data[table_name];
                         if (!hasValue(target_table_data)) {
@@ -438,21 +438,13 @@ var Exment;
                             yield CommonEvent.setModelItem(null, $parent, $target, target_table_data);
                             continue;
                         }
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('[name="_token"]').val()
-                            }
-                        });
-                        $.ajax({
-                            url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                            type: 'POST',
-                            context: {
-                                data: target_table_data,
-                            }
+                        const webapi = Exment.WebApi.make();
+                        webapi.findValue(table_name, value, {
+                            data: target_table_data,
                         })
-                            .done(function (modeldata) {
+                            .done(function (modeldata, context) {
                             return __awaiter(this, void 0, void 0, function* () {
-                                yield CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
+                                yield CommonEvent.setModelItem(modeldata, $parent, $target, context.data);
                                 $d.resolve();
                             });
                         })
@@ -461,7 +453,6 @@ var Exment;
                             $d.reject();
                         });
                     }
-                    //}
                 }
                 // getItem
                 var changedata_data = $target.data('changedata');
@@ -584,35 +575,8 @@ var Exment;
                 // set relatedLinkageList array. key is getClassKey. data is data
                 CommonEvent.relatedLinkageList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
                 // set linkage event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
+                Exment.GetBox.make().getBox().on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
             }
-        }
-        static linkage($target, url, val, expand, linkage_text) {
-            var $d = $.Deferred();
-            // create querystring
-            if (!hasValue(expand)) {
-                expand = {};
-            }
-            if (!hasValue(linkage_text)) {
-                linkage_text = 'text';
-            }
-            expand['q'] = val;
-            var query = $.param(expand);
-            $.get(url + '?' + query, function (json) {
-                $target.find("option").remove();
-                var options = [];
-                options.push({ id: '', text: '' });
-                $.each(json, function (index, d) {
-                    options.push({ id: hasValue(d.id) ? d.id : '', text: d[linkage_text] });
-                });
-                $target.select2({
-                    data: options,
-                    "allowClear": true,
-                    "placeholder": $target.next().find('.select2-selection__placeholder').text(),
-                }).trigger('change');
-                $d.resolve();
-            });
-            return $d.promise();
         }
         /**
          * Set linkage expand info for modal search
@@ -637,27 +601,11 @@ var Exment;
          * @param table_name
          * @param value
          * @param context
+         *
+         * @deprecated Please use webapi model
          */
         static findModel(table_name, value, context = null) {
-            var $d = $.Deferred();
-            if (!hasValue(value)) {
-                $d.resolve(null);
-            }
-            else {
-                $.ajax({
-                    url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                    type: 'GET',
-                    context: context
-                })
-                    .done(function (modeldata) {
-                    $d.resolve(modeldata);
-                })
-                    .fail(function (errordata) {
-                    console.log(errordata);
-                    $d.reject();
-                });
-            }
-            return $d.promise();
+            return Exment.WebApi.make().findValue(table_name, value, context);
         }
         /**
          * set value. check number format, column type, etc...
@@ -695,10 +643,6 @@ var Exment;
                     value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
                 }
             }
-            // if number format, add comma
-            if (isNumber && $target.attr('number_format')) {
-                value = comma(value);
-            }
             // switch bootstrapSwitch
             if ($.inArray(column_type, ['boolean', 'yesno']) != -1) {
                 let $bootstrapSwitch = $target.filter('[type="checkbox"]');
@@ -706,21 +650,22 @@ var Exment;
             }
             // if select2 and has 'data-add-select2-ajax-webapi', call api, and select2 options
             if ($target.filter('[data-add-select2-ajax-webapi]').length > 0) {
-                let api = URLJoin($target.data('add-select2-ajax-webapi'), value);
-                $.ajax({
-                    type: 'GET',
-                    url: api,
-                    data: { 'label': 1 },
-                    async: false,
-                    success: function (repsonse) {
-                        let newOption = new Option(repsonse.label, repsonse.id, true, true);
-                        $target.append(newOption);
-                    }
-                });
+                let uri = URLJoin($target.data('add-select2-ajax-webapi'), value);
+                Exment.WebApi.make().select2Option(uri, $target);
             }
             // set value and trigger next
             let isChange = !isMatchString(value, $target.val());
-            $target.val(value);
+            // If editor, call tinymce event
+            if (column_type == 'editor') {
+                let t = tinyMCE.get($target.attr('id'));
+                if (hasValue(t)) {
+                    t.setContent(hasValue(value) ? value : '');
+                }
+            }
+            // default 
+            else {
+                $target.val(value);
+            }
             if (isChange) {
                 $target.trigger('change');
             }
@@ -739,35 +684,8 @@ var Exment;
                     dropdownParent: pBool($elem.data('add-select2-as-modal')) ? $("#modal-showmodal .modal-dialog") : null,
                 };
                 if (hasValue($elem.data('add-select2-ajax'))) {
-                    options['ajax'] = {
-                        url: $(elem).data('add-select2-ajax'),
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                q: params.term,
-                                page: params.page,
-                                expand: $elem.data('add-select2-expand'),
-                            };
-                        },
-                        processResults: function (data, params) {
-                            if (!hasValue(data) || !hasValue(data.data)) {
-                                return { results: [] };
-                            }
-                            params.page = params.page || 1;
-                            return {
-                                results: $.map(data.data, function (d) {
-                                    d.id = d.id;
-                                    d.text = hasValue(d.text) ? d.text : d.label; // label is custom value label appended.
-                                    return d;
-                                }),
-                                pagination: {
-                                    more: data.next_page_url
-                                }
-                            };
-                        },
-                        cache: true
-                    };
+                    // get ue
+                    options['ajax'] = Exment.WebApi.make().getSelect2AjaxOption($elem);
                     options['escapeMarkup'] = function (markup) {
                         return markup;
                     };
@@ -781,17 +699,18 @@ var Exment;
          * @param block_name block name
          */
         static getBlockElement(block_name) {
+            const box = Exment.GetBox.make();
             if (!hasValue(block_name) || block_name == 'default') {
                 return CommonEvent.getDefaultBox();
             }
             if (block_name == 'parent_id') {
-                return $('.box-body .parent_id').closest('.form-group');
+                return box.getBox().find('.parent_id').closest('.form-group');
             }
             // if 1:n, return children.
-            return $('.box-body .hasmanyblock-' + block_name);
+            return box.getBox().find('.hasmanyblock-' + block_name);
         }
         static getDefaultBox() {
-            return $('.box-body >.fields-group > .embed-value');
+            return Exment.GetBox.make().getBox().children('.fields-group').children('.embed-value');
         }
         /**
          * add field event (datepicker, icheck)
@@ -850,6 +769,11 @@ var Exment;
             }
             return false;
         }
+        static pjaxError(xhr, textStatus, error, options) {
+            if (textStatus.status == 419) {
+                toastr.error($('#exment_expired_error').val(), null, { timeOut: 10000 });
+            }
+        }
     }
     CommonEvent.relatedLinkageList = [];
     /**
@@ -869,9 +793,9 @@ var Exment;
         for (var key in linkages) {
             // set param from PHP
             var link = linkages[key];
-            var url = link.url;
+            var uri = link.uri;
             var expand = link.expand;
-            var $target = $parent.find(CommonEvent.getClassKey(link.to));
+            var $target = $parent.find(CommonEvent.getClassKey(link.to)).filter('select');
             // if has 'widgetmodal_expand' on button, append linkage_value_id
             CommonEvent.setLinkgaeExpandToSearchButton(expand, $target, $base.val());
             // if target has 'data-add-select2-ajax'(Call as ajax), set data to $target, and not call linkage
@@ -884,7 +808,7 @@ var Exment;
                 $target.data('add-select2-expand', select2_expand).val(null).trigger("change");
                 continue;
             }
-            CommonEvent.linkage($target, url, $base.val(), expand);
+            Exment.WebApi.make().linkage($target, uri, $base.val(), expand);
         }
     };
     /**
@@ -931,7 +855,7 @@ var Exment;
                 linkage_text = link.text;
             }
             var $target = $parent.find(CommonEvent.getClassKey(key));
-            CommonEvent.linkage($target, url, $base.val(), expand, linkage_text);
+            Exment.WebApi.make().linkage($target, url, $base.val(), expand, linkage_text);
         }
     };
     /**

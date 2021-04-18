@@ -12,6 +12,8 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
@@ -32,6 +34,7 @@ use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\EnvService;
+use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
 
@@ -180,19 +183,150 @@ class PatchDataCommand extends Command
             case 'patch_view_only':
                 $this->patchViewOnly();
                 return;
+            case 'form_column_row_no':
+                $this->patchFormColumnRowNo();
+                return;
             case 'patch_condition':
                 $this->updateCondition();
                 return;
             case 'delete_junk_file':
                 $this->deleteJunkFile();
                 return;
+            case 'publicform_mail_template':
+                $this->importPublicformTemplate();
+                return;
+            case 'append_column_mail_from_view_name':
+                $this->appendColumnMailFromViewName();
+                return;
+            case 'notify_target_id':
+                $this->notifyTargetId();
+                return;
             case 'select_table_user_org':
                 $this->patchSelectTableUserOrg();
-                return;
         }
 
         $this->error('patch name not found.');
     }
+
+    /**
+     * patch mail template
+     *
+     * @return void
+     */
+    protected function patchMailTemplate($mail_key_names = [])
+    {
+        // get vendor folder
+        $locale = \App::getLocale();
+        $templates_data_path = exment_package_path('system_template/data');
+        $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
+        // if exists, execute data copy
+        if (!\File::exists($path)) {
+            $path = path_join($templates_data_path, "mail_template.xlsx");
+            // if exists, execute data copy
+            if (!\File::exists($path)) {
+                return;
+            }
+        }
+
+        $table_name = \File::name($path);
+        $format = \File::extension($path);
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // execute import
+        $service = (new DataImportExport\DataImportExportService())
+            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
+                'custom_table' => $custom_table,
+                'filter' => ['value.mail_key_name' => $mail_key_names],
+                'primary_key' => 'value.mail_key_name',
+            ]))
+            ->format($format);
+        $service->import($path);
+    }
+    
+    /**
+     * append custom column
+     *
+     * @return void
+     */
+    protected function appendCustomColumn(string $target_table_name, string $target_column_name)
+    {
+        // get system template
+        $template = new TemplateImporter;
+        $json = $template->getMergeJson();
+
+        try {
+            \DB::transaction(function () use ($json, $target_column_name, $target_table_name) {
+                // re-loop columns. because we have to get other column id --------------------------------------------------
+                foreach (array_get($json, "custom_tables", []) as $table) {
+                    // find tables. --------------------------------------------------
+                    $table_name = array_get($table, 'table_name');
+                    if (!isMatchString($target_table_name, $table_name)) {
+                        continue;
+                    }
+                    $obj_table = CustomTable::getEloquent($table_name);
+                    if (!$obj_table) {
+                        continue;
+                    }
+    
+                    // get all custom columns
+                    $current_columns = $obj_table->custom_columns;
+    
+                    // get columns. --------------------------------------------------
+                    if (array_key_exists('custom_columns', $table)) {
+                        foreach (array_get($table, 'custom_columns') as $column) {
+                            // find tables. --------------------------------------------------
+                            $column_name = array_get($column, 'column_name');
+                            if (!isMatchString($target_column_name, $column_name)) {
+                                continue;
+                            }
+    
+                            // Check already exists, if already setted, continue
+                            $obj_column = CustomColumn::getEloquent($column_name, $obj_table);
+                            if (isset($obj_column)) {
+                                continue;
+                            }
+    
+                            // Import column
+                            $obj_column = CustomColumn::importTemplate($column, false, [
+                                'system_flg' => true,
+                                'parent' => $obj_table,
+                            ]);
+    
+                            // Append custom folumn column
+                            // get custom form
+                            $custom_form = CustomForm::where('custom_table_id', $obj_table->id)->first();
+                            if (!$custom_form) {
+                                continue;
+                            }
+                            $custom_form_block = CustomFormBlock::where('custom_form_id', $custom_form->id)->first();
+                            if (!$custom_form_block) {
+                                continue;
+                            }
+
+                            // create dummy json array
+                            $count = $custom_form_block->custom_form_columns->count();
+                            $form_column = [
+                                'form_column_type' => Enums\FormColumnType::COLUMN,
+                                'options' => null,
+                                'form_column_target_name' => $obj_column->column_name,
+                                'order' => $count + 1,
+                            ];
+                            CustomFormColumn::importTemplate($form_column, false, [
+                                'system_flg' => true,
+                                'parent' => $custom_form_block,
+                            ]);
+                        }
+                    }
+                }
+            });
+        } catch (\Exception $ex) {
+            \Log::error($ex);
+        }
+    }
+    
+
+
+
 
     /**
      * Remove decimal comma
@@ -614,41 +748,6 @@ class PatchDataCommand extends Command
     }
     
     /**
-     * patch mail template
-     *
-     * @return void
-     */
-    protected function patchMailTemplate($mail_key_names = [])
-    {
-        // get vendor folder
-        $locale = \App::getLocale();
-        $templates_data_path = exment_package_path('system_template/data');
-        $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
-        // if exists, execute data copy
-        if (!\File::exists($path)) {
-            $path = path_join($templates_data_path, "mail_template.xlsx");
-            // if exists, execute data copy
-            if (!\File::exists($path)) {
-                return;
-            }
-        }
-
-        $table_name = \File::name($path);
-        $format = \File::extension($path);
-        $custom_table = CustomTable::getEloquent($table_name);
-
-        // execute import
-        $service = (new DataImportExport\DataImportExportService())
-            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
-                'custom_table' => $custom_table,
-                'filter' => ['value.mail_key_name' => $mail_key_names],
-                'primary_key' => 'value.mail_key_name',
-            ]))
-            ->format($format);
-        $service->import($path);
-    }
-    
-    /**
      * remove deleted table notify
      *
      * @return void
@@ -876,7 +975,7 @@ class PatchDataCommand extends Command
             });
 
             foreach ($custom_columns as $custom_column) {
-                $func($custom_table->getValueModel()->query(), $custom_column->getQueryKey(), function ($item) use ($custom_column) {
+                $func($custom_table->getValueQuery(), $custom_column->getQueryKey(), function ($item) use ($custom_column) {
                     $value = array_get($item, "value.{$custom_column->column_name}");
                     $item->setValue($custom_column->column_name, str_replace('\\', '/', $value));
                     $item->disable_saved_event(true);
@@ -1418,6 +1517,27 @@ class PatchDataCommand extends Command
         });
     }
 
+    protected function patchFormColumnRowNo()
+    {
+        $columns = CustomFormColumn::all();
+
+        // group by group
+        $columnGroups = $columns->groupBy('custom_form_block_id');
+        $columnGroups->each(function ($columnGroup) {
+            $columnGroupInners = $columnGroup->groupBy('column_no');
+            $columnGroupInners->each(function ($columns) {
+                $columns->sortBy('order')->each(function ($column, $index) {
+                    if (!is_null($column->width)) {
+                        return;
+                    }
+                    $column->row_no = 1;
+                    $column->width = 2;
+                    $column->order = $index + 1;
+                    $column->save();
+                });
+            });
+        });
+    }
 
     /**
      * Update Condition
@@ -1527,7 +1647,7 @@ class PatchDataCommand extends Command
             });
         }
     }
-
+    
 
     /**
      * Delete junk file
@@ -1586,7 +1706,48 @@ class PatchDataCommand extends Command
     }
 
     
+    /**
+     * import mail template for workflow
+     *
+     * @return void
+     */
+    protected function importPublicformTemplate()
+    {
+        $this->patchMailTemplate([
+            MailKeyName::PUBLICFORM_COMPLETE_USER,
+            MailKeyName::PUBLICFORM_COMPLETE_ADMIN,
+            MailKeyName::PUBLICFORM_ERROR,
+        ]);
+    }
+    
+    /**
+     * appendColumnMailFromViewName
+     *
+     * @return void
+     */
+    protected function appendColumnMailFromViewName()
+    {
+        $this->appendCustomColumn('mail_template', 'mail_from_view_name');
+    }
+    
 
+    public function notifyTargetId()
+    {
+        Model\Notify::get()
+            ->each(function ($notify) {
+                $target_id = $notify->custom_table_id;
+                if (is_null($target_id) || isMatchString($target_id, 0)) {
+                    $target_id = $notify->workflow_id;
+                }
+                if (is_null($target_id) || isMatchString($target_id, 0)) {
+                    return;
+                }
+                
+                $notify->target_id = $target_id;
+                $notify->save();
+            });
+    }
+    
     /**
      * Convert select table and user-organization, convert type to USER and ORGANIZATION
      *

@@ -282,7 +282,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         // deleted event
         static::deleted(function ($model) {
-            $model->custom_table_cache->getValueModel()->query()->
+            $model->custom_table_cache->getValueQuery()->
                 updateRemovingJsonKey("value->{$model->column_name}");
         });
     }
@@ -406,6 +406,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
     /**
+     * Get font awesome class
+     *
+     * @return string|null
+     */
+    public function getFontAwesomeClass() : ?string
+    {
+        return ColumnType::getFontAwesomeClass($this);
+    }
+
+    /**
      * Is get all user or org. Not filtering display table.
      *
      * @return boolean
@@ -415,6 +425,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ColumnType::isUserOrganization($this->column_type) && boolval($this->getOption('showing_all_user_organizations'));
     }
 
+
+    /**
+     * Whether this column is isMultipleEnabled
+     *
+     * @return boolean
+     */
+    public function isMultipleEnabled()
+    {
+        return ColumnType::isMultipleEnabled($this) && boolval($this->getOption('multiple_enabled'));
+    }
 
     /**
      * Set customAvailableCharacters

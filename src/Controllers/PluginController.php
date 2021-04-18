@@ -89,16 +89,17 @@ class PluginController extends AdminControllerBase
 
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
         $grid->column('plugin_view_name', exmtrans("plugin.plugin_view_name"))->sortable();
-        $grid->column('plugin_types', exmtrans("plugin.plugin_type"))->displayEscape(function ($plugin_types) {
+        $grid->column('plugin_types', exmtrans("plugin.plugin_type"))->display(function ($plugin_types) {
             return implode(exmtrans('common.separate_word'), collect($plugin_types)->map(function ($plugin_type) {
-                return PluginType::getEnum($plugin_type)->transKey("plugin.plugin_type_options") ?? null;
+                $enum = PluginType::getEnum($plugin_type);
+                return $enum ? $enum->transKey("plugin.plugin_type_options") : null;
             })->toArray());
         })->sortable();
         $grid->column('author', exmtrans("plugin.author"));
         $grid->column('version', exmtrans("plugin.version"));
-        $grid->column('active_flg', exmtrans("plugin.active_flg"))->displayEscape(function ($active_flg) {
-            return boolval($active_flg) ? exmtrans("common.available_true") : exmtrans("common.available_false");
-        });
+        $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
+            return \Exment::getTrueMark($active_flg);
+        })->escape(false);
 
         $grid->disableCreateButton();
         $grid->disableExport();
@@ -132,18 +133,20 @@ class PluginController extends AdminControllerBase
     //Delete record from database (one or multi records)
     protected function destroy($id)
     {
-        $this->deleteFolder($id);
-        if ($this->form($id, true)->destroy($id)) {
-            return response()->json([
-                'status' => true,
-                'message' => trans('admin.delete_succeeded'),
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => trans('admin.delete_failed'),
-            ]);
+        foreach (stringToArray($id) as $i) {
+            if ($this->form($i, true)->destroy($i)) {
+                $this->deleteFolder($i);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => trans('admin.delete_failed'),
+                ]);
+            }
         }
+        return response()->json([
+            'status' => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
     }
 
     //Delete one or multi folder corresponds to the plugins
@@ -261,6 +264,16 @@ class PluginController extends AdminControllerBase
                 $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
                     ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
                     ->rules('max:100');
+            }
+
+            if ($plugin->matchPluginType(PluginType::VIEW)) {
+                $form->text('grid_menu_title', exmtrans("plugin.options.grid_menu_title"))
+                    ->help(exmtrans("plugin.help.grid_menu_title"))
+                    ->rules('max:50');
+                $form->text('grid_menu_description', exmtrans("plugin.options.grid_menu_description"))
+                    ->help(exmtrans("plugin.help.grid_menu_description"))
+                    ->rules('max:200');
+                $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
             }
 
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {

@@ -138,7 +138,7 @@ if (!function_exists('is_nullorempty')) {
         if (is_array($obj) && count($obj) == 0) {
             return true;
         }
-        if ($obj instanceof \Illuminate\Database\Eloquent\Collection && $obj->count() == 0) {
+        if ($obj instanceof \Illuminate\Support\Collection && $obj->count() == 0) {
             return true;
         }
         return false;
@@ -324,6 +324,58 @@ if (!function_exists('admin_urls_query')) {
         return $url . '?' . http_build_query($query);
     }
 }
+if (!function_exists('asset_urls')) {
+    /**
+     * Join admin url paths.
+     */
+    function asset_urls(...$pass_array)
+    {
+        return asset(url_join(...$pass_array));
+    }
+}
+
+if (!function_exists('assets_query')) {
+    /**
+     * Join url paths and query. Please set last arg
+     */
+    function assets_query(...$pass_array)
+    {
+        // get last arg
+        $args = func_get_args();
+        $count = count($args);
+        if (count($args) <= 1) {
+            return asset(url_join($args));
+        }
+
+        $args = collect($args);
+        $query = $args->last();
+
+        $url = asset(url_join(...$args->slice(0, $count - 1)->toArray()));
+        return $url . '?' . http_build_query($query);
+    }
+}
+
+if (!function_exists('public_form_base_path')) {
+    /**
+     * Join public form base path.
+     */
+    function public_form_base_path()
+    {
+        return config('exment.publicform_route_prefix', 'publicform');
+    }
+}
+
+if (!function_exists('public_form_url')) {
+    /**
+     * Join public form urls.
+     * "Cannot join path, because when you want to use public form, you have to set public form's uuid."
+     */
+    function public_form_url()
+    {
+        return asset(public_form_base_path());
+    }
+}
+
 if (!function_exists('namespace_join')) {
     /**
      * Join NameSpace.
@@ -410,11 +462,20 @@ if (!function_exists('app_paths')) {
 if (!function_exists('path_ltrim')) {
     /**
      * ltrim FilePath.
+     *
+     * @param string $path target file path.
+     * @param string $ltrim removing path.
+     * If contains ex. "20210312123244/Plugins/Plugin.php" and want to get "Plugins/Plugin.php", set "20210312123244".
+     * @return string
      */
     function path_ltrim($path, $ltrim)
     {
         foreach (['/', '\\'] as $split) {
             $l = str_replace($split, '/', $ltrim);
+            
+            if (is_nullorempty($l)) {
+                $l = $split;
+            }
 
             if (mb_strpos($path, $l) !== 0) {
                 continue;
@@ -423,6 +484,7 @@ if (!function_exists('path_ltrim')) {
             $path = mb_substr($path, mb_strlen($ltrim));
 
             $path = ltrim($path, '/');
+            $path = ltrim($path, '\\');
         }
 
         return $path;
@@ -432,7 +494,10 @@ if (!function_exists('path_ltrim')) {
 if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
-        $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
+        if (is_string($disk)) {
+            $disk = Storage::disk($disk);
+        }
+        $path = $disk->getDriver()->getAdapter()->applyPathPrefix($filename);
 
         if ($mkdir) {
             $dirPath = pathinfo($path)['dirname'];
@@ -529,6 +594,9 @@ if (!function_exists('deleteDirectory')) {
         if (is_nullorempty($path)) {
             return;
         }
+        if (is_string($disk)) {
+            $disk = \Storage::disk($disk);
+        }
         
         try {
             $directories = $disk->directories($path);
@@ -571,6 +639,22 @@ if (!function_exists('hasDuplicateDate')) {
 }
 
 // array --------------------------------------------------
+if (!function_exists('array_boolval')) {
+    /**
+     * array_boolval
+     * get array_get and return boolval
+     * @return bool
+     */
+    function array_boolval($array, $key, $default = false) : bool
+    {
+        if (is_string($array)) {
+            $array = [$array];
+        }
+        $value = array_get($array, $key, $default);
+        return boolval($value);
+    }
+}
+
 if (!function_exists('array_keys_exists')) {
     /**
      * array_keys_exists
@@ -1073,7 +1157,7 @@ if (!function_exists('replaceBrTag')) {
 if (!function_exists('explodeBreak')) {
     /**
      * explode new line code
-     * @return string
+     * @return array
      */
     function explodeBreak($text)
     {

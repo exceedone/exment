@@ -9,22 +9,61 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
+use Exceedone\Exment\Services\ClassLoader;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Contracts\Support\Htmlable;
 use Encore\Admin\Admin;
+use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Class Admin.
  */
 class Exment
 {
+    /**
+     * Class loader for plugin class.Dynamic require_once
+     *
+     * @var ClassLoader
+     */
+    protected $classLoader;
+
+    /**
+     * guard name.
+     *
+     * @var string
+     */
+    protected $guard;
+
+
+    public function __construct()
+    {
+        $this->classLoader = new ClassLoader;
+        $this->classLoader->register();
+    }
+
+
+    /**
+     * Get class loader.
+     *
+     * @return ClassLoader
+     */
+    public function classLoader()
+    {
+        return $this->classLoader;
+    }
+
     /**
      * Left sider-bar menu.
      *
@@ -35,25 +74,58 @@ class Exment
         return (new Menu())->toTree();
     }
 
-    public static function error($request, $exception, $callback)
+
+    /**
+     * Error handling.
+     * Now we created \Exceedone\Exment\Exceptions\Handler,
+     * so we want to write logic on that class,
+     * But we wrote manual calling this function..
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Exception $exception
+     * @param \Illuminate\Http\Response $callback
+     * @return mixed
+     */
+    public function error($request, $exception, $callback)
     {
-        if (\Exment::isApiEndpoint()) {
-            return $callback($request, $exception);
-        }
-        if (!$request->pjax() && $request->ajax()) {
-            // if memory error, throw ajax response
-            if (strpos($exception->getMessage(), 'Allowed memory size of') === 0) {
-                $manualUrl = getManualUrl('quickstart_more');
-                return getAjaxResponse([
-                    'result'  => false,
-                    'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
-                ]);
+        try {
+            // Api is default callback
+            if ($this->isApiEndpoint()) {
+                return $callback($request, $exception);
             }
 
-            return $callback($request, $exception);
-        }
+            if ($exception instanceof \Illuminate\Foundation\Http\Exceptions\MaintenanceModeException) {
+                $errorController = app(\Exceedone\Exment\Controllers\ErrorController::class);
+                return $errorController->maintenance($request, $exception);
+            }
+
+            if ($exception instanceof \Illuminate\Session\TokenMismatchException) {
+                admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
+                if ($this->isPublicFormEndpoint()) {
+                    $public_form = PublicForm::getPublicFormByRequest();
+                    return $public_form ? redirect($public_form->getUrl()) : back();
+                } else {
+                    back();
+                }
+            }
+
+            if ($this->isPublicFormEndpoint()) {
+                return $callback($request, $exception);
+            }
+
+            if (!$request->pjax() && $request->ajax()) {
+                // if memory error, throw ajax response
+                if (strpos($exception->getMessage(), 'Allowed memory size of') === 0) {
+                    $manualUrl = getManualUrl('quickstart_more');
+                    return getAjaxResponse([
+                        'result'  => false,
+                        'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
+                    ]);
+                }
+
+                return $callback($request, $exception);
+            }
         
-        try {
             // whether has User
             $user = \Exment::user();
             if (!$user) {
@@ -70,18 +142,21 @@ class Exment
     }
 
     /**
-     * get user. multi supported admin and adminapi
+     * get user. Use "Auth::shouldUse", so get only logined user.
      */
     public function user($guards = null)
     {
-        $guards = [Define::AUTHENTICATE_KEY_WEB, Define::AUTHENTICATE_KEY_API];
-        foreach ($guards as $guard) {
-            if (\Auth::guard($guard)->check()) {
-                return \Auth::guard($guard)->user();
-            }
-        }
+        return \Auth::guard($this->guard)->user();
+    }
 
-        return null;
+
+    /**
+     * set gurad info.
+     */
+    public function setGuard(string $guard)
+    {
+        $this->guard = $guard;
+        \Auth::shouldUse($guard);
     }
 
 
@@ -102,6 +177,20 @@ class Exment
         return $user->getUserId();
     }
 
+
+    public function getRender($grid) : ?string
+    {
+        if ($grid instanceof Renderable) {
+            return $grid->render();
+        }
+
+        if ($grid instanceof Htmlable) {
+            return $grid->toHtml();
+        }
+
+        return $grid;
+    }
+    
 
     /**
      * get exment version
@@ -412,7 +501,7 @@ class Exment
     public function getSearchDocumentQuery(CustomTable $target_custom_table, ?string $q, $query = null)
     {
         if (empty($query)) {
-            $query = $target_custom_table->getValueModel()->query();
+            $query = $target_custom_table->getValueQuery();
         }
         return $query->whereExists(function ($query) use ($target_custom_table, $q) {
             $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
@@ -431,6 +520,20 @@ class Exment
                 ->whereRaw("$documentDbNameWrap.parent_id = $targetDbNameWrap.id");
             ;
         });
+    }
+
+
+    /**
+     * Get select options html for select.
+     *
+     * @param string $font_awesome
+     * @param string $text
+     * @return string
+     */
+    public static function getSelectOptionHtml(?string $font_awesome, ?string $text)
+    {
+        // decode escapeMarkup, so call esc_html twice.
+        return '<i class="text-center fa ' . esc_html(esc_html($font_awesome)) . '" aria-hidden="true" style="width:16px;"></i>&nbsp;&nbsp;<span>' . esc_html(esc_html($text)) . '</span>';
     }
 
     /**
@@ -557,7 +660,17 @@ class Exment
     public function isApiEndpoint()
     {
         $basePath = ltrim(admin_base_path(), '/');
-        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
+        $route = config('exment.publicformapi_route_prefix', 'publicformapi');
+        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*') || request()->is("{$route}/*");
+    }
+
+    /**
+     * this url is Public form endpoint
+     */
+    public function isPublicFormEndpoint()
+    {
+        $route = public_form_base_path();
+        return request()->is("{$route}/*");
     }
 
     
@@ -728,5 +841,75 @@ class Exment
             };
         }
         return true;
+    }
+
+
+    /**
+     * Whether Available Google recaptcha (whether has class)
+     *
+     * @return boolean
+     */
+    public function isAvailableGoogleRecaptcha()
+    {
+        return class_exists(\Arcanedev\NoCaptcha\NoCaptchaManager::class);
+    }
+
+    
+    /**
+     * save file info to database
+     *
+     * @param mixed $field
+     * @param string|UploadedFile $file
+     * @param string $file_type
+     * @param CustomTable $custom_table
+     * @param boolean $replace
+     * @return string
+     */
+    public function setFileInfo($field, $file, $file_type, $custom_table, bool $replace = true)
+    {
+        $dirname = $field->getDirectory();
+
+        if ($file instanceof UploadedFile) {
+            $filename = $file->getClientOriginalName();
+        } else {
+            $filename = $file;
+        }
+
+        // save file info
+        $exmentfile = ExmentFile::saveFileInfo($file_type, $dirname, [
+            'filename' => $filename,
+        ]);
+
+        $this->setFileRequestSession($exmentfile, $field->column(), $custom_table, $replace);
+        
+        // return filename
+        return $exmentfile->local_filename;
+    }
+    
+    /**
+     * save file request session. for after saved custom value, set custom value's id.
+     *
+     * @param UploadField $field
+     * @param string|UploadedFile $file
+     * @param string $file_type
+     * @param CustomTable $custom_table
+     * @param boolean $replace
+     * @return string
+     */
+    public function setFileRequestSession(ExmentFile $exmentfile, string $column_name, CustomTable $custom_table, bool $replace = true)
+    {
+        // set request session to save this custom_value's id and type into files table.
+        $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
+        $file_uuids[] = [
+            'uuid' => $exmentfile->uuid,
+            'column_name' => $column_name,
+            'custom_table' => $custom_table,
+            'path' => $exmentfile->path,
+            'replace' => $replace,
+        ];
+        System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
+        
+        // return filename
+        return $exmentfile->local_filename;
     }
 }

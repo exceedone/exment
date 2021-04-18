@@ -11,6 +11,7 @@ class CheckboxTable extends Checkbox
     protected $checkWidth = 100;
     protected $items = [];
     protected $headerHelps = [];
+    protected $headerEsacape = true;
 
     public function checkWidth($checkWidth)
     {
@@ -35,6 +36,13 @@ class CheckboxTable extends Checkbox
     {
         $this->items = $items;
         
+        return $this;
+    }
+
+
+    public function headerEsacape(bool $escape)
+    {
+        $this->headerEsacape = $escape;
         return $this;
     }
 
@@ -97,6 +105,7 @@ class CheckboxTable extends Checkbox
             'items' => $this->getItems(),
             'headerHelps' => collect($this->headerHelps)->toArray(),
             'hasError' => $this->hasError(),
+            'headerEsacape' => $this->headerEsacape,
         ]);
     }
 }

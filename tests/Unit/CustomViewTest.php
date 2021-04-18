@@ -25,7 +25,7 @@ class CustomViewTest extends UnitTestBase
         foreach ($array as $data) {
             $this->assertTrue($this->orWhere($data));
         }
-        $andCount = $array->filter(function($a){
+        $andCount = $array->filter(function ($a) {
             return $this->andWhere($a);
         })->count();
         $this->assertTrue($andCount != $array->count());
@@ -171,15 +171,16 @@ class CustomViewTest extends UnitTestBase
         }
     }
 
-    protected function getData($table_name, $view_name){
+    protected function getData($table_name, $view_name)
+    {
         $this->be(LoginUser::find(1));
         $classname = getModelName($table_name);
         $grid = new Grid(new $classname);
     
         $custom_view = CustomView::where('view_view_name', $view_name)->first();
 
-        if(isset($custom_view)){
-            $custom_view->filterModel($grid->model());
+        if (isset($custom_view)) {
+            $custom_view->filterSortModel($grid->model());
             // create grid
             $custom_view->setGrid($grid);
         }
@@ -189,12 +190,14 @@ class CustomViewTest extends UnitTestBase
 
         return $result;
     }
-    protected function andWhere($data){
+    protected function andWhere($data)
+    {
         return array_get($data, 'value.odd_even') != 'odd' &&
         array_get($data, 'value.multiples_of_3') == 1 &&
         array_get($data, 'value.user') == 2;
     }
-    protected function orWhere($data){
+    protected function orWhere($data)
+    {
         return array_get($data, 'value.odd_even') != 'odd' ||
         array_get($data, 'value.multiples_of_3') == 1 ||
         array_get($data, 'value.user') == 2;

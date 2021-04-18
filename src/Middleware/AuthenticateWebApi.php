@@ -19,7 +19,7 @@ class AuthenticateWebApi extends \Encore\Admin\Middleware\Authenticate
     public function handle($request, Closure $next)
     {
         if (\Auth::guard(Define::AUTHENTICATE_KEY_WEB)->check()) {
-            \Auth::shouldUse(Define::AUTHENTICATE_KEY_WEB);
+            \Exment::setGuard(Define::AUTHENTICATE_KEY_WEB);
         } else {
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }

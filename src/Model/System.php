@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\Config;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Carbon\Carbon;
 use Storage;
@@ -31,6 +32,7 @@ use Cache;
 * @method static string|void system_mail_encryption($arg = null)
 * @method static string|void system_mail_from($arg = null)
 * @method static string|void system_mail_body_type($arg = null)
+* @method static string|void system_mail_from_view_name($arg = null)
 * @method static boolean|void userview_available($arg = null)
 * @method static boolean|void userdashboard_available($arg = null)
 * @method static string|void default_date_format($arg = null)
@@ -66,6 +68,10 @@ use Cache;
 * @method static string|void sso_accept_mail_domain($arg = null)
 * @method static array|void jit_rolegroups($arg = null)
 * @method static string|void system_slack_user_column($arg = null)
+* @method static bool|void publicform_available($arg = null)
+* @method static string|void recaptcha_site_key($arg = null)
+* @method static string|void recaptcha_secret_key($arg = null)
+* @method static string|void recaptcha_type($arg = null)
  */
 class System extends ModelBase
 {
@@ -361,7 +367,7 @@ class System extends ModelBase
             $old_value = $system->system_value;
             if (!is_null($value)) {
                 $move = array_get($setting, 'move');
-                $exmentfile = ExmentFile::storeAs($value, $move, $value->getClientOriginalName());
+                $exmentfile = ExmentFile::storeAs(FileType::SYSTEM, $value, $move, $value->getClientOriginalName());
                 $system->system_value = $exmentfile->path;
             }
 

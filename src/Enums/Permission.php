@@ -7,6 +7,7 @@ class Permission extends EnumBase
     const SYSTEM = 'system';
     const CUSTOM_TABLE = 'custom_table';
     const CUSTOM_FORM = 'custom_form';
+    const CUSTOM_FORM_PUBLIC = 'custom_form_public';
     const CUSTOM_VIEW = 'custom_view';
     const CUSTOM_VALUE_EDIT_ALL = 'custom_value_edit_all';
     const CUSTOM_VALUE_VIEW_ALL = 'custom_value_view_all';
@@ -38,7 +39,13 @@ class Permission extends EnumBase
     public const AVAILABLE_ALL_EDIT_CUSTOM_VALUE = [self::CUSTOM_TABLE, self::CUSTOM_VALUE_EDIT_ALL];
     public const AVAILABLE_ACCESS_ROLE_GROUP = [self::ROLE_GROUP_ALL, self::ROLE_GROUP_PERMISSION, self::ROLE_GROUP_USER_ORGANIZATION];
     public const AVAILABLE_API = [self::API_ALL, self::API];
-    public const AVAILABLE_CUSTOM_FORM = [self::CUSTOM_TABLE, self::CUSTOM_FORM];
+
+    // access custom form
+    public const AVAILABLE_CUSTOM_FORM = [self::CUSTOM_TABLE, self::CUSTOM_FORM, self::CUSTOM_FORM_PUBLIC];
+    // edit custom form
+    public const EDIT_CUSTOM_FORM = [self::CUSTOM_TABLE, self::CUSTOM_FORM];
+    // edit custom form public
+    public const EDIT_CUSTOM_FORM_PUBLIC = [self::CUSTOM_TABLE, self::CUSTOM_FORM_PUBLIC];
 
     public const SYSTEM_ROLE_PERMISSIONS = [
         self::CUSTOM_TABLE,
@@ -73,6 +80,8 @@ class Permission extends EnumBase
     
     public const TABLE_ROLE_PERMISSION = [
         self::CUSTOM_TABLE,
+        self::CUSTOM_FORM,
+        self::CUSTOM_FORM_PUBLIC,
         self::CUSTOM_VIEW,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::CUSTOM_VALUE_VIEW_ALL,

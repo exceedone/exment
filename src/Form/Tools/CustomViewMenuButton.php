@@ -2,8 +2,10 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\PluginType;
 
 class CustomViewMenuButton extends ModalTileMenuButton
 {
@@ -202,6 +204,23 @@ class CustomViewMenuButton extends ModalTileMenuButton
                     'header' => exmtrans('custom_view.custom_view_menulist.create_filter'),
                     'description' => exmtrans('custom_view.custom_view_menulist.help.create_filter'),
                     'icon' => 'fa-filter',
+                ];
+            }
+
+            // Append grid plugins
+            $plugins = Plugin::getPluginsByTable($this->custom_table, false)->filter(function ($plugin) {
+                return $plugin->matchPluginType(PluginType::VIEW);
+            });
+            foreach ($plugins as $plugin) {
+                $items[] = [
+                    'href' => admin_urls_query('view', $this->custom_table->table_name, 'create', [
+                        'view_kind_type' => ViewKindType::PLUGIN,
+                        'plugin' => $plugin->uuid,
+                        'from_data' => 1,
+                    ]),
+                    'header' => $plugin->getOption('grid_menu_title') ?? $plugin->plugin_view_name,
+                    'description' => $plugin->getOption('grid_menu_description'),
+                    'icon' => $plugin->getOption('icon') ?? 'fa-plug',
                 ];
             }
         }

@@ -13,7 +13,8 @@ trait CustomColumnTrait
      *
      * @return CustomColumn
      */
-    protected function getCustomColumnModel($column_type, $options = []){
+    protected function getCustomColumnModel($column_type, $options = [])
+    {
         $custom_column = new CustomColumn([
             'column_name' => $column_type,
             'column_view_name' => $column_type,
@@ -30,7 +31,8 @@ trait CustomColumnTrait
      *
      * @return CustomColumn
      */
-    protected function getCustomValueAndColumnItem(&$custom_column, $value){
+    protected function getCustomValueAndColumnItem(&$custom_column, $value)
+    {
         $classname = getModelName(CustomTable::getEloquent('information'));
         $custom_value = new $classname([
             'id' => 1, // dummy

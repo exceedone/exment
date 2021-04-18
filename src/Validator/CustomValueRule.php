@@ -90,8 +90,8 @@ class CustomValueRule implements Rule
         }
 
         // filter query
-        $query = $this->custom_table->getValueModel()->query();
-        $this->custom_view->filterModel($query, ['sort' => false]);
+        $query = $this->custom_table->getValueQuery();
+        $this->custom_view->filterModel($query); // Not sort.
 
         $query->whereIn('id', $values);
         

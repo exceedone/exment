@@ -4,7 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\DataItems\Show as ShowItem;
 use Exceedone\Exment\DataItems\Form as FormItem;
 
@@ -15,6 +17,9 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
+    use Traits\DatabaseJsonOptionTrait;
+
+    protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'form_name'],
@@ -74,6 +79,11 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->hasMany(CustomFormPriority::class, 'custom_form_id');
     }
     
+    public function public_forms()
+    {
+        return $this->hasMany(PublicForm::class, 'custom_form_id');
+    }
+    
     public function custom_form_columns()
     {
         return $this->hasManyThrough(CustomFormColumn::class, CustomFormBlock::class, 'custom_form_id', 'custom_form_block_id');
@@ -82,6 +92,11 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function getCustomTableCacheAttribute()
     {
         return CustomTable::getEloquent($this->custom_table_id);
+    }
+
+    public function getCustomFormBlocksCacheAttribute()
+    {
+        return $this->hasManyCache(CustomFormBlock::class, 'custom_form_id');
     }
 
     /**
@@ -116,6 +131,24 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->_form_item;
     }
 
+    public function getFormLabelTypeAttribute()
+    {
+        return $this->getOption('form_label_type', FormLabelType::HORIZONTAL);
+    }
+    public function setFormLabelTypeAttribute($form_label_type)
+    {
+        $this->setOption('form_label_type', $form_label_type);
+        return $this;
+    }
+    public function getShowGridTypeAttribute()
+    {
+        return $this->getOption('show_grid_type', ShowGridType::GRID);
+    }
+    public function setShowGridTypeAttribute($form_label_type)
+    {
+        $this->setOption('show_grid_type', $form_label_type);
+        return $this;
+    }
 
     /**
      * get default form using table
@@ -174,6 +207,9 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $form_column->form_column_type = FormColumnType::COLUMN;
                 $form_column->form_column_target_id = array_get($custom_column, 'id');
                 $form_column->order = $index + 1;
+                $form_column->row_no = 1;
+                $form_column->column_no = 1;
+                $form_column->width = 2;
                 $form_columns[] = $form_column;
             }
             $form_block->custom_form_columns()->saveMany($form_columns);
@@ -204,6 +240,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         $this->custom_form_blocks()->delete();
         $this->custom_form_priorities()->delete();
+        $this->public_forms()->delete();
     }
 
     protected static function boot()

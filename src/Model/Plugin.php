@@ -112,6 +112,9 @@ class Plugin extends ModelBase
 
     public static function getPluginByUUID($uuid)
     {
+        if ($uuid instanceof Plugin) {
+            return $uuid;
+        }
         return static::getPluginsCache()->first(function ($plugin) use ($uuid) {
             return strcmp($plugin->uuid, $uuid) == 0;
         });
@@ -380,19 +383,9 @@ class Plugin extends ModelBase
         list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk(null, $diskService, ['sync' => true]);
 
         // call plugin
-        $fullPathDir = $diskService->localSyncDiskItem()->dirFullPath();
-        $plugin_paths = \File::allFiles($fullPathDir);
-        foreach ($plugin_paths as $plugin_path) {
-            $pathinfo = pathinfo($plugin_path);
-            if ($pathinfo['extension'] != 'php') {
-                continue;
-            }
-            // if blade, not require
-            if (strpos($pathinfo['basename'], 'blade.php') !== false) {
-                continue;
-            }
-            require_once($plugin_path);
-        }
+        $fullPathDir = \Exment::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
+
+        \Exment::classLoader()->registerDir($fullPathDir, $this->getNameSpace());
     }
     
     /**
@@ -620,23 +613,23 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin page object model
+     * Get plugin page object model. Needs Page's endpoint.
      *
      * @return Collection
      */
     public static function getPluginPages()
     {
-        return static::getPluginPublicSessions([PluginType::PAGE], true);
+        return static::getPluginPublicSessions(PluginType::PLUGIN_TYPE_PLUGIN_PAGE(), true);
     }
 
     /**
-     * Get plugin scripts and styles
+     * Get plugin scripts and styles. Needs script and css endpoint, and read public file.
      *
      * @return Collection
      */
-    public static function getPluginPublics()
+    public static function getPluginScriptStyles()
     {
-        return static::getPluginPublicSessions([PluginType::SCRIPT, PluginType::STYLE], true);
+        return static::getPluginPublicSessions(PluginType::PLUGIN_TYPE_SCRIPT_STYLE(), true);
     }
 
     /**
@@ -710,11 +703,12 @@ class Plugin extends ModelBase
             
             // get target plugin
             $plugin = static::getPluginsCache()->first(function ($plugin) use ($pluginName) {
-                return $plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())
-                    && (
-                        pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
-                        || $plugin->getOption('uri') == $pluginName
-                    )
+                if (!$plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())) {
+                    return false;
+                }
+
+                return pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
+                    || $plugin->getOption('uri') == $pluginName
                 ;
             });
     
@@ -746,13 +740,23 @@ class Plugin extends ModelBase
     }
 
     /**
+     * Get full url for page
+     *
+     * @return string
+     */
+    public function getFullUrl(...$pass_array)
+    {
+        return admin_urls($this->getRouteUri(...$pass_array));
+    }
+
+    /**
      * Get route uri for page
      *
      * @return string
      */
-    public function getRouteUri($endpoint = null)
+    public function getRouteUri(...$pass_array)
     {
-        return url_join('plugins', $this->getOptionUri(), $endpoint);
+        return url_join('plugins', $this->getOptionUri(), ...$pass_array);
     }
 
     /**

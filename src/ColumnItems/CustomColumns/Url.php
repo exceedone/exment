@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\UrlTagType;
+use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 
 class Url extends CustomItem
@@ -25,5 +26,18 @@ class Url extends CustomItem
     protected function getAdminFieldClass()
     {
         return Field\Url::class;
+    }
+
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
+        $form->url('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"));
     }
 }

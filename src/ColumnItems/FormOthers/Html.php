@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\FormOthers;
 
 use Exceedone\Exment\ColumnItems\FormOtherItem;
-use Encore\Admin\Form\Field;
+use Exceedone\Exment\Form\Field;
 
 class Html extends FormOtherItem
 {
@@ -12,7 +12,7 @@ class Html extends FormOtherItem
      */
     protected function _text($v)
     {
-        return array_get($this->form_column, 'options.html');
+        return array_get($this->form_column_options, 'html');
     }
 
     

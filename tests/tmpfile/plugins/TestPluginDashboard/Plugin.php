@@ -4,6 +4,7 @@ namespace App\Plugins\TestPluginDashboard;
 
 use Exceedone\Exment\Services\Plugin\PluginDashboardBase;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 
 class Plugin extends PluginDashboardBase
 {
@@ -35,7 +36,7 @@ class Plugin extends PluginDashboardBase
         $now = \Carbon\Carbon::now();
 
         $integer = $data->getValue('integer');
-        switch(request()->get('action')){
+        switch (request()->get('action')) {
             case 'add':
                 $data->setValue('integer', $integer + 1);
                 break;
@@ -52,9 +53,10 @@ class Plugin extends PluginDashboardBase
     /**
      * 現在のデータを取得
      *
-     * @return void
+     * @return CustomValue|null
      */
-    protected function getData($id = null){
+    protected function getData($id = null)
+    {
         if (isset($id)) {
             return CustomTable::getEloquent('custom_value_edit_all')
                 ->getValueModel($id);
@@ -64,19 +66,20 @@ class Plugin extends PluginDashboardBase
         }
     }
 
-    protected function getParams($data){
-        return  
+    protected function getParams($data)
+    {
+        return
         [
             'integer' => $data->getValue('integer'),
             'buttons' => [
                 [
                     'button_text' => '加算',
                     'action_name' => 'add',
-                ], 
+                ],
                 [
                     'button_text' => '減算',
                     'action_name' => 'minus',
-                ], 
+                ],
             ]
         ];
     }

@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -15,6 +14,8 @@ use Exceedone\Exment\Services\Plugin\PluginPageBase;
 
 class PluginServiceProvider extends ServiceProvider
 {
+    use PluginPublicTrait;
+
     /**
      * Define the routes for the application.
      *
@@ -38,11 +39,11 @@ class PluginServiceProvider extends ServiceProvider
         }
     
         // get plugin script's and style's
-        $pluginPublics = Plugin::getPluginPublics();
+        $pluginPublics = Plugin::getPluginScriptStyles();
         
         // loop
         foreach ($pluginPublics as $pluginScriptStyle) {
-            $this->pluginScriptStyleRoute($pluginScriptStyle);
+            $this->pluginScriptStyleRoute($pluginScriptStyle->_plugin(), config('admin.route.prefix'), 'admin_plugin_public');
         }
     }
 
@@ -80,6 +81,10 @@ class PluginServiceProvider extends ServiceProvider
             case PluginType::PAGE:
                 $prefix = $pluginPage->getRouteUri();
                 $defaultFunction = 'index';
+                break;
+            case PluginType::VIEW:
+                $prefix = $plugin->getRouteUri();
+                $defaultFunction = 'grid';
                 break;
             case PluginType::API:
                 $prefix = $pluginPage->getRouteUri();
@@ -132,7 +137,7 @@ class PluginServiceProvider extends ServiceProvider
             });
         }
 
-        $this->pluginScriptStyleRoute($pluginPage);
+        $this->pluginScriptStyleRoute($plugin, config('admin.route.prefix'), 'admin_plugin_public');
     }
 
     /**
@@ -170,27 +175,5 @@ class PluginServiceProvider extends ServiceProvider
         }
 
         return false;
-    }
-    
-    /**
-     * routing plugin
-     *
-     * @param PluginPageBase $pluginScriptStyle
-     * @return void
-     */
-    protected function pluginScriptStyleRoute($pluginScriptStyle)
-    {
-        if ($this->app->routesAreCached()) {
-            return;
-        }
-
-        Route::group([
-            'prefix'        => url_join(config('admin.route.prefix'), $pluginScriptStyle->_plugin()->getRouteUri()),
-            'namespace'     => 'Exceedone\Exment\Services\Plugin',
-            'middleware'    => ['adminweb', 'admin_plugin_public'],
-        ], function (Router $router) {
-            // for public file
-            Route::get('public/{arg1?}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
-        });
     }
 }

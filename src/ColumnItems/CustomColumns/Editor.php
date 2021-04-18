@@ -3,11 +3,13 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Enums\FileType;
 use Illuminate\Support\Facades\Storage;
 
 class Editor extends CustomItem
@@ -64,7 +66,7 @@ class Editor extends CustomItem
         return Field\Tinymce::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
         $field->rows(array_get($options, 'rows', 6));
@@ -73,9 +75,13 @@ class Editor extends CustomItem
         $field->callbackValue(function ($value) use ($item) {
             return $item->replaceImgUrl($value);
         });
+
+        if ($this->isPublicForm()) {
+            $field->setPostImageUri($this->options['public_form']->getUrl());
+        }
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         // value string
         $validates[] = new Validator\StringNumericRule();
@@ -137,7 +143,18 @@ class Editor extends CustomItem
             $filename = pathinfo($src, PATHINFO_FILENAME);
 
             $exists = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($filename);
+            // check url
             $tmpUrl = strpos($src, admin_urls('tmpfiles')); // check url
+            // consider public form
+            if ($tmpUrl === false) {
+                $patturn_uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+                $patturn = public_form_url() . "/(?<public_form_uuid>{$patturn_uuid})/tmpfiles/(?<file_uuid>{$patturn_uuid})";
+                preg_match("/" . str_replace("/", "\/", $patturn) . "/", $src, $preg_match);
+                if ($preg_match) {
+                    $tmpUrl = true;
+                }
+            }
+
             $fileUrl = strpos($src, admin_urls('files')); // check url
 
             // if not exment path url, continue
@@ -153,7 +170,7 @@ class Editor extends CustomItem
                 // get original filename from session
                 $original_name = session()->get($filename);
                 // save file info
-                $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, make_uuid()), $file);
+                $exmentfile = ExmentFile::put(FileType::CUSTOM_VALUE_DOCUMENT, path_join($this->custom_table->table_name, make_uuid()), $file);
                     
                 // save document model
                 $this->tmpfiles[] = [
@@ -221,5 +238,37 @@ class Editor extends CustomItem
         }
 
         return null;
+    }
+
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $form->number('rows', exmtrans("custom_column.options.rows"))
+            ->default(6)
+            ->min(1)
+            ->max(30)
+            ->help(exmtrans("custom_column.help.rows"));
+    }
+
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
+        $form->tinymce('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ->attribute(['data-default_timymce' => 1])
+            ->rows(3);
     }
 }

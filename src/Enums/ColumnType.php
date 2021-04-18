@@ -116,6 +116,8 @@ class ColumnType extends EnumBase
             ColumnType::SELECT_TABLE,
             ColumnType::USER,
             ColumnType::ORGANIZATION,
+            ColumnType::FILE,
+            ColumnType::IMAGE,
         ];
     }
 
@@ -230,5 +232,75 @@ class ColumnType extends EnumBase
             return static::DATETIME;
         }
         return null;
+    }
+
+
+    /**
+     * Get font awesome class
+     *
+     * @param mixed $column_type
+     * @return ?string
+     */
+    public static function getFontAwesomeClass($column_type)
+    {
+        if ($column_type instanceof CustomColumn) {
+            $column_type = $column_type->column_type;
+        }
+
+        switch ($column_type) {
+            case static::TEXT:
+                return 'fa-font';
+            case static::TEXTAREA:
+            case static::EDITOR:
+                return 'fa-align-justify';
+            case static::URL:
+                return 'fa-link';
+            case static::EMAIL:
+                return 'fa-envelope-o';
+            case static::INTEGER:
+            case static::DECIMAL:
+            case static::AUTO_NUMBER:
+                return 'fa-calculator';
+            case static::CURRENCY:
+                return 'fa-jpy';
+            case static::DATE:
+                return 'fa-calendar';
+            case static::TIME:
+                return 'fa-clock-o';
+            case static::DATETIME:
+                return 'fa-calendar-o';
+            case static::SELECT:
+            case static::SELECT_VALTEXT:
+            case static::DATETIME:
+                return 'fa-list';
+            case static::SELECT_TABLE:
+            case static::SELECT_VALTEXT:
+            case static::DATETIME:
+                return 'fa-table';
+            case static::YESNO:
+            case static::BOOLEAN:
+                return 'fa-toggle-on';
+            case static::IMAGE:
+                return 'fa-picture-o';
+            case static::FILE:
+                return 'fa-file';
+            case static::USER:
+                return 'fa-user';
+            case static::ORGANIZATION:
+                return 'fa-users';
+        }
+        
+        return null;
+    }
+
+
+    public static function getHtml($column_type)
+    {
+        if ($column_type instanceof CustomColumn) {
+            $column_type = $column_type->column_type;
+        }
+
+        $icon = static::getFontAwesomeClass($column_type);
+        return \Exment::getSelectOptionHtml($icon, exmtrans("custom_column.column_type_options.{$column_type}"));
     }
 }

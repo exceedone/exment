@@ -51,7 +51,7 @@ class LoginUserController extends AdminControllerBase
         $grid->column($table->getIndexColumnName('email'), exmtrans('user.email'));
         
         $controller = $this;
-        $grid->column('login_user_id', exmtrans('user.login_user'))->displayEscape(function ($login_user_id) use ($controller) {
+        $grid->column('login_user_id', exmtrans('user.login_user'))->display(function ($login_user_id) use ($controller) {
             return !is_null($controller->getLoginUser($this)) ? 'YES' : '';
         });
 

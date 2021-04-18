@@ -3,7 +3,8 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use Exceedone\Exment\Form\Field;
+use Encore\Admin\Form;
+use Encore\Admin\Form\Field;
 
 class AutoNumber extends CustomItem
 {
@@ -14,7 +15,7 @@ class AutoNumber extends CustomItem
         return Field\Display::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         if (!isset($this->id)) {
             $field->default(exmtrans('custom_value.auto_number_create'));
@@ -62,5 +63,59 @@ class AutoNumber extends CustomItem
         $value = getModelName($this->custom_column->custom_table)::find($this->id);
         $auto_number = replaceTextFromFormat($format, $value);
         return $auto_number;
+    }
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // auto numbering
+        $form->select('auto_number_type', exmtrans("custom_column.options.auto_number_type"))
+            ->required()
+            ->options(
+                [
+                'format' => exmtrans("custom_column.options.auto_number_type_format"),
+                'random25' => exmtrans("custom_column.options.auto_number_type_random25"),
+                'random32' => exmtrans("custom_column.options.auto_number_type_random32"),
+                'other' => exmtrans("custom_column.options.auto_number_other"),
+                ]
+            )
+            ->attribute(['data-filtertrigger' =>true]);
+
+        // set manual
+        $manual_url = getManualUrl('column#'.exmtrans('custom_column.auto_number_format_rule'));
+        $form->text('auto_number_format', exmtrans("custom_column.options.auto_number_format"))
+            ->attribute(['data-filter' => json_encode([
+                ['parent' => 1, 'key' => 'options_auto_number_type', 'value' => 'format'],
+            ])])
+            ->help(sprintf(exmtrans("custom_column.help.auto_number_format"), $manual_url))
+        ;
+    }
+
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
+    }
+
+
+    /**
+     * Get default value.
+     *
+     * @return mixed
+     */
+    public function getDefaultValue()
+    {
+        return null;
     }
 }

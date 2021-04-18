@@ -386,10 +386,16 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnDateDayLastMonthTrue()
     {
-        $this->_testColumnDate(Carbon::today()->subMonths(1)->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, true);
-        $this->_testColumnDate(Carbon::today()->subMonths(1)->lastOfMonth()->format('Y/m/d'), [null], FilterOption::DAY_LAST_MONTH, true);
-        $this->_testColumnDate(Carbon::today()->subMonths(1)->format('Ymd'), [null], FilterOption::DAY_LAST_MONTH, true);
-        $this->_testColumnDate(Carbon::now()->subMonths(1)->format('Y-m-d H:i:s.u'), [null], FilterOption::DAY_LAST_MONTH, true);
+        $this->_testColumnDate(Carbon::today()->firstOfMonth()->subMonths(1)->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, true);
+    }
+    public function testColumnDateDayLastMonthTrue2()
+    {
+        // Change now
+        Carbon::setTestNow(new Carbon('2021-01-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2020-12-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, true);
+
+        Carbon::setTestNow(new Carbon('2020-12-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2020-11-05 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, true);
     }
     public function testColumnDateDayLastMonthFalse()
     {
@@ -397,18 +403,43 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnDate(Carbon::today()->format('Y/m/d'), [null], FilterOption::DAY_LAST_MONTH, false);
         $this->_testColumnDate(null, [null], FilterOption::DAY_LAST_MONTH, false);
     }
+    public function testColumnDateDayLastMonthFalse2()
+    {
+        // Change now
+        Carbon::setTestNow(new Carbon('2021-01-02 09:59:59'));
+        // Wrong year
+        $this->_testColumnDate((new Carbon('2021-12-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, false);
+
+        Carbon::setTestNow(new Carbon('2020-12-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2021-11-05 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_LAST_MONTH, false);
+    }
     public function testColumnDateDayNextMonthTrue()
     {
-        $this->_testColumnDate(Carbon::today()->addMonths(1)->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, true);
-        $this->_testColumnDate(Carbon::today()->addMonths(1)->lastOfMonth()->format('Y/m/d'), [null], FilterOption::DAY_NEXT_MONTH, true);
-        $this->_testColumnDate(Carbon::today()->addMonths(1)->format('Ymd'), [null], FilterOption::DAY_NEXT_MONTH, true);
-        $this->_testColumnDate(Carbon::now()->addMonths(1)->format('Y-m-d H:i:s.u'), [null], FilterOption::DAY_NEXT_MONTH, true);
+        $this->_testColumnDate(Carbon::today()->firstOfMonth()->addMonths(1)->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, true);
+    }
+    public function testColumnDateDayNextMonthTrue2()
+    {
+        // Change now
+        Carbon::setTestNow(new Carbon('2021-12-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2022-01-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, true);
+
+        Carbon::setTestNow(new Carbon('2020-10-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2020-11-05 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, true);
     }
     public function testColumnDateDayNextMonthFalse()
     {
         $this->_testColumnDate(Carbon::today()->subMonths(1)->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, false);
         $this->_testColumnDate(Carbon::today()->format('Y/m/d'), [null], FilterOption::DAY_NEXT_MONTH, false);
         $this->_testColumnDate(null, [null], FilterOption::DAY_NEXT_MONTH, false);
+    }
+    public function testColumnDateDayNextMonthFalse2()
+{        // Change now
+        Carbon::setTestNow(new Carbon('2021-12-02 09:59:59'));
+        // Wrong year
+        $this->_testColumnDate((new Carbon('2021-01-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, false);
+
+        Carbon::setTestNow(new Carbon('2020-01-02 09:59:59'));
+        $this->_testColumnDate((new Carbon('2021-02-05 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, false);
     }
     public function testColumnDateDayThisYearTrue()
     {
@@ -1039,26 +1070,42 @@ class ConditionTest extends UnitTestBase
     public function testColumnUserMultiEqUserTrue()
     {
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
-        $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2], 
-            [null], FilterOption::USER_EQ_USER, true);
+        $this->_testColumnUser(
+            [TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2],
+            [null],
+            FilterOption::USER_EQ_USER,
+            true
+        );
     }
     public function testColumnUserMultiEqUserFalse()
     {
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2], 
-            [null], FilterOption::USER_EQ_USER, false);
+        $this->_testColumnUser(
+            [TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_USER2],
+            [null],
+            FilterOption::USER_EQ_USER,
+            false
+        );
     }
     public function testColumnUserMultiNeUserTrue()
     {
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
-        $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN], 
-            [null], FilterOption::USER_NE_USER, true);
+        $this->_testColumnUser(
+            [TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN],
+            [null],
+            FilterOption::USER_NE_USER,
+            true
+        );
     }
     public function testColumnUserMultiNeUserFalse()
     {
         $this->be(Model\LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $this->_testColumnUser([TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN], 
-            [null], FilterOption::USER_NE_USER, false);
+        $this->_testColumnUser(
+            [TestDefine::TESTDATA_USER_LOGINID_USER1, TestDefine::TESTDATA_USER_LOGINID_ADMIN],
+            [null],
+            FilterOption::USER_NE_USER,
+            false
+        );
     }
     public function testColumnUserMultiEqTrue()
     {
@@ -1288,25 +1335,25 @@ class ConditionTest extends UnitTestBase
     // form type ----------------------------------------------------
     public function testFormTypeEqTrue()
     {
-        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::SHOW], FilterOption::EQ, true, function() {
+        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::SHOW], FilterOption::EQ, true, function () {
             Model\System::setRequestSession(Model\Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, FormDataType::SHOW);
         });
     }
     public function testFormTypeEqFalse()
     {
-        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::SHOW], FilterOption::EQ, false, function() {
+        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::SHOW], FilterOption::EQ, false, function () {
             Model\System::setRequestSession(Model\Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, FormDataType::CREATE);
         });
     }
     public function testFormTypeNeTrue()
     {
-        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::EDIT], FilterOption::NE, true, function() {
+        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::EDIT], FilterOption::NE, true, function () {
             Model\System::setRequestSession(Model\Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, FormDataType::CREATE);
         });
     }
     public function testFormTypeNeFalse()
     {
-        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::CREATE], FilterOption::NE, false, function() {
+        $this->__testConditionColumn(ConditionTypeDetail::FORM, null, [FormDataType::CREATE], FilterOption::NE, false, function () {
             Model\System::setRequestSession(Model\Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, FormDataType::CREATE);
         });
     }
@@ -1396,8 +1443,7 @@ class ConditionTest extends UnitTestBase
         $custom_table = CustomTable::getEloquent($table_name);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 
-        foreach($values as $value)
-        {
+        foreach ($values as $value) {
             $custom_value = $custom_table->getValueModel();
             $custom_value->setValue($column_name, $target_value);
 
@@ -1441,8 +1487,7 @@ class ConditionTest extends UnitTestBase
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
         $custom_table = CustomTable::getEloquent($table_name);
 
-        foreach($values as $value)
-        {
+        foreach ($values as $value) {
             $custom_value = $custom_table->getValueModel();
 
             $condition = new Model\Condition([
@@ -1507,9 +1552,9 @@ class ConditionTest extends UnitTestBase
 
         // get value all
         $custom_values = $custom_table->getValueModel()->get();
-        foreach($custom_values as $custom_value){
+        foreach ($custom_values as $custom_value) {
             $workflow_status_name = $custom_value->workflow_status_name;
-            if($workflow_status_name != $status_name){
+            if ($workflow_status_name != $status_name) {
                 continue;
             }
 
@@ -1548,10 +1593,10 @@ class ConditionTest extends UnitTestBase
 
         // get value all
         $custom_values = $custom_table->getValueModel()->get();
-        foreach($custom_values as $custom_value){
+        foreach ($custom_values as $custom_value) {
             $actions = $custom_value->getWorkflowActions(true, true);
             $hasAction = $actions->count() > 0;
-            if($hasAction !== $hasAuth){
+            if ($hasAction !== $hasAuth) {
                 continue;
             }
 

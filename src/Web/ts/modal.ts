@@ -9,6 +9,7 @@ namespace Exment {
             $(document).off('click', '[data-widgetmodal_url]').on('click', '[data-widgetmodal_url]', {}, Exment.ModalEvent.setModalEvent);
             $(document).off('click', '#modal-showmodal .modal-body a').on('click', '#modal-showmodal .modal-body a', {}, Exment.ModalEvent.setLinkClickEvent);
             $(document).off('click', '#modal-showmodal .modal-submit').on('click', '#modal-showmodal .modal-submit', {}, Exment.ModalEvent.setSubmitEvent);
+            $(document).off('keydown', '#modal-showmodal form input').on('keydown', '#modal-showmodal form input', {}, Exment.ModalEvent.setEnterEvent);
 
             // selectitem box
             $(document).off('click', '.table .button-append-selectitem').on('click', '.table .button-append-selectitem', {}, Exment.ModalEvent.appendSelectItemEvent);
@@ -25,10 +26,15 @@ namespace Exment {
         public static AddEvent() {
         }
 
-        public static ShowModal($target, url, params = []){
-
+        /**
+         * Show modal
+         * @param $target click target button
+         * @param url request url
+         * @param post_params post params
+         * @param options options
+         */
+        public static ShowModal($target, url, post_params = {}){
             let original_title = $target.data('original-title');
-
             let data = {targetid: $target.attr('id')};
             
             /// get data from "data-widgetmodal_getdata". only get in targets.
@@ -75,7 +81,7 @@ namespace Exment {
             }
 
             data = $.extend(
-                data, params
+                data, post_params
             );
 
             // get ajax
@@ -173,6 +179,17 @@ namespace Exment {
         }
         
         /**
+         * Enter Keydown event. Now disable click event
+         * @param e 
+         */
+        private static setEnterEvent = (e) => {
+            if(e.keyCode != 13){
+                return;
+            }
+            e.preventDefault();
+        }
+
+        /**
          * set modal submit event
          */
         private static setSubmitEvent = (e) => {
@@ -180,17 +197,16 @@ namespace Exment {
             let method = $(e.target).parents('.modal-content').find('form').attr('method');
             if (!formurl) return;
             e.preventDefault();
-            let form : HTMLFormElement = $('#modal-showmodal form').get()[0] as HTMLFormElement;
-
-            if(!form.reportValidity()){
-                return;
-            }
 
             // get button element
             let button = $(e.target).closest('button');
-
             // if has 'preventSubmit' class, not submit
             if(button.hasClass('preventSubmit')){
+                return;
+            }
+
+            let form : HTMLFormElement = $('#modal-showmodal form').get()[0] as HTMLFormElement;
+            if(!form.reportValidity()){
                 return;
             }
 
@@ -315,7 +331,7 @@ namespace Exment {
          * @param button 
          * @param original_title 
          */
-        private static setBodyHtml(res, button, original_title){
+        public static setBodyHtml(res, button = null, original_title = null){
             // change html
             if (res.body) {
                 $('#modal-showmodal .modal-body').html(res.body);
@@ -371,8 +387,12 @@ namespace Exment {
             if(res.preventSubmit !== undefined){
                 preventSubmit = res.preventSubmit;
             }
+
+            // toggle form pjax-container
+            let $form = $submitButton.closest('.modal-content').find('form');
             if(preventSubmit){
                 $submitButton.addClass('preventSubmit');
+                // remove pjax-container in form
             }
             else{
                 $submitButton.removeClass('preventSubmit');

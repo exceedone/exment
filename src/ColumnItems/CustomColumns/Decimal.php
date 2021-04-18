@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Model\Define;
@@ -70,7 +71,7 @@ class Decimal extends CustomItem
         return Field\Text::class;
     }
     
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
         
@@ -83,10 +84,19 @@ class Decimal extends CustomItem
         if (!is_null(array_get($options, 'decimal_digit'))) {
             $field->attribute(['decimal_digit' => array_get($options, 'decimal_digit')]);
         }
-        $field->attribute('style', 'max-width: 200px');
+        
+        $field->attribute(['style' => 'max-width: 200px']);
+        
+        if (array_key_value_exists('decimal_digit', $options)) {
+            $digit = intval(array_get($options, 'decimal_digit'));
+
+            // convert $digit digit. if $digit is 2, 0.01
+            $step = ($digit <= 0 ? "0" : "0." . str_repeat("0", $digit - 1) . "1");
+            $field->attribute(['type' => 'number', 'step' => $step]);
+        }
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
         
@@ -140,5 +150,26 @@ class Decimal extends CustomItem
             return null;
         }
         return floatval($value);
+    }
+
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $this->setCustomColumnOptionFormNumber($form);
+        
+        $form->switchbool('percent_format', exmtrans("custom_column.options.percent_format"))
+            ->help(exmtrans("custom_column.help.percent_format"));
+
+        $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
+            ->default(2)
+            ->min(0)
+            ->max(8);
     }
 }

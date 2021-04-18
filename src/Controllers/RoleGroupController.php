@@ -44,12 +44,12 @@ class RoleGroupController extends AdminControllerBase
         $grid = new Grid(new RoleGroup);
         $grid->column('role_group_name', exmtrans('role_group.role_group_name'));
         $grid->column('role_group_view_name', exmtrans('role_group.role_group_view_name'));
-        $grid->column('role_group_users', exmtrans('role_group.users_count'))->displayEscape(function ($counts) {
+        $grid->column('role_group_users', exmtrans('role_group.users_count'))->display(function ($counts) {
             return is_null($counts) ? null : count($counts);
         });
 
         if (System::organization_available()) {
-            $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->displayEscape(function ($counts) {
+            $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->display(function ($counts) {
                 return is_null($counts) ? null : count($counts);
             });
         }
@@ -192,7 +192,8 @@ class RoleGroupController extends AdminControllerBase
             ->disable(!$enable)
             ->checkWidth(120)
             ->headerHelp(RoleGroupType::SYSTEM()->getRoleGroupHelps())
-            ->items($items);
+            ->items($items)
+            ->setWidth(10, 2);
 
         $form->hidden("system_permission[system][id]")
             ->default(SystemRoleType::SYSTEM);
@@ -215,7 +216,8 @@ class RoleGroupController extends AdminControllerBase
             ->disable(!$enable)
             ->checkWidth(120)
             ->headerHelp(RoleGroupType::ROLE_GROUP()->getRoleGroupHelps())
-            ->items($items);
+            ->items($items)
+            ->setWidth(10, 2);
 
         $form->hidden("system_permission[role_groups][id]")
             ->default(SystemRoleType::ROLE_GROUP);
@@ -254,7 +256,8 @@ class RoleGroupController extends AdminControllerBase
                 ->disable(!$enable)
                 ->checkWidth(150)
                 ->headerHelp(RoleGroupType::PLUGIN()->getRoleGroupHelps())
-                ->items($items);
+                ->items($items)
+                ->setWidth(10, 2);
         }
 
 
@@ -285,8 +288,8 @@ class RoleGroupController extends AdminControllerBase
             ->disable(!$enable)
             ->checkWidth(100)
             ->headerHelp(RoleGroupType::MASTER()->getRoleGroupHelps())
-            ->items($items);
-
+            ->items($items)
+            ->setWidth(10, 2);
 
 
 
@@ -315,7 +318,9 @@ class RoleGroupController extends AdminControllerBase
             ->disable(!$enable)
             ->checkWidth(100)
             ->headerHelp(RoleGroupType::TABLE()->getRoleGroupHelps())
-            ->items($items);
+            ->items($items)
+            ->headerEsacape(false)
+            ->setWidth(10, 2);
 
         if (!$enable) {
             $form->disableSubmit();

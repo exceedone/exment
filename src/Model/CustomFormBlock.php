@@ -13,6 +13,13 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     
     protected $casts = ['options' => 'json'];
 
+    /**
+     * request key. Used by custom form setting display. Ex. NEW__f482dce0-662c-11eb-8f65-5f9d12681ab1
+     *
+     * @var string
+     */
+    protected $_request_key;
+
     public static $templateItems = [
         'excepts' => ['custom_form_id', 'target_table'],
         'langs' => [
@@ -59,6 +66,39 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     {
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
     }
+
+    public function getCustomFormCacheAttribute()
+    {
+        return CustomForm::getEloquent($this->custom_form_id);
+    }
+
+    public function getTargetTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->form_block_target_table_id);
+    }
+
+    public function getFormTableCacheAttribute()
+    {
+        $custom_form = $this->custom_form_cache;
+        return $custom_form ? $custom_form->custom_table_cache : null;
+    }
+
+    public function getCustomFormColumnsCacheAttribute()
+    {
+        return $this->hasManyCache(CustomFormColumn::class, 'custom_form_block_id');
+    }
+
+    public function getRequestKeyAttribute()
+    {
+        return $this->_request_key ?? $this->id;
+    }
+
+    public function setRequestKeyAttribute($request_key)
+    {
+        $this->_request_key = $request_key;
+        return $this;
+    }
+
     
     public function isMultipleColumn()
     {
@@ -73,8 +113,10 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     
     /**
      * get relation name etc for form block
+     *
+     * @return array offset 0 : CustomRelation, 1:relation name, 2:block label.
      */
-    public function getRelationInfo()
+    public function getRelationInfo(?CustomTable $custom_form_table = null)
     {
         $target_table = $this->target_table;
         // get label hasmany
@@ -89,9 +131,17 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
             return [null, null, $block_label];
         }
         
-        // get form columns count
-        $form_block_options = array_get($this, 'options', []);
-        $relation = CustomRelation::getRelationByParentChild($this->custom_form->custom_table, $target_table);
+        // get relation
+        // if has args $custom_form_table, use $custom_form_table. Almost use preview
+        if ($custom_form_table) {
+            $relation_custom_table = $custom_form_table;
+        } elseif ($this->custom_form) {
+            $relation_custom_table = $this->custom_form->custom_table;
+        } else {
+            return [null, null, $block_label];
+        }
+
+        $relation = CustomRelation::getRelationByParentChild($relation_custom_table, $target_table);
         $relation_name = $relation ? $relation->getRelationName() : null;
         
         return [$relation, $relation_name, $block_label];

@@ -85,7 +85,7 @@ class CustomRelationController extends AdminControllerTableBase
         $grid = new Grid(new CustomRelation);
         $grid->column('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table"))->sortable();
         $grid->column('child_custom_table.table_view_name', exmtrans("custom_relation.child_custom_table"))->sortable();
-        $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->displayEscape(function ($relation_type) {
+        $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->display(function ($relation_type) {
             return RelationType::getEnum($relation_type)->transKey('custom_relation.relation_type_options') ?? null;
         });
 
@@ -126,7 +126,7 @@ class CustomRelationController extends AdminControllerTableBase
     protected function form($id = null)
     {
         $form = new Form(new CustomRelation);
-        $form->hidden('parent_custom_table_id')->default($this->custom_table->id);
+        $form->internal('parent_custom_table_id')->default($this->custom_table->id);
 
         $form->descriptionHtml(sprintf(exmtrans('custom_relation.help.relation_caution'), getManualUrl('relation')));
 

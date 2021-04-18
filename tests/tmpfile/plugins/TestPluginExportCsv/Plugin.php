@@ -8,7 +8,7 @@ class Plugin extends PluginExportBase
     /**
      * execute
      */
-    public function execute() 
+    public function execute()
     {
         // ※メソッド「$this->getTmpFullPath()」で、一時tmpファイルを取得する
         // ※実行後、一時tmpファイルは自動的に削除されます。
@@ -43,7 +43,8 @@ class Plugin extends PluginExportBase
      *
      * @return string
      */
-    public function getFileName() : string {
+    public function getFileName() : string
+    {
         return "test.csv";
     }
 }

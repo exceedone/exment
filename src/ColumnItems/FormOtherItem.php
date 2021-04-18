@@ -5,12 +5,16 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\FormLabelType;
+use Encore\Admin\Show\Field as ShowField;
 
 abstract class FormOtherItem implements ItemInterface
 {
     use ItemTrait;
     
     protected $form_column;
+
+    protected $custom_value;
 
     /**
      * Available fields.
@@ -67,7 +71,7 @@ abstract class FormOtherItem implements ItemInterface
      */
     protected function _text($v)
     {
-        return array_get($this->form_column, 'options.text');
+        return array_get($this->form_column_options, 'text');
     }
 
     /**
@@ -98,6 +102,7 @@ abstract class FormOtherItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
+        $this->custom_value = $custom_value;
         return $this;
     }
 
@@ -113,17 +118,64 @@ abstract class FormOtherItem implements ItemInterface
 
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
+        if (is_array($form_column)) {
+            $form_column_options = $form_column;
+        } else {
+            $form_column_options = $form_column->options ?? null;
+        }
+        if (!is_nullorempty($form_column_options)) {
+            $this->form_column_options = $form_column_options;
+        }
+
         $classname = $this->getAdminFieldClass();
         $field = new $classname($this->html(), []);
-        $this->setAdminOptions($field, null);
+        $this->setAdminOptions($field);
 
         return $field;
     }
 
     abstract protected function getAdminFieldClass();
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
+        $field_label_type = $this->getLabelType();
+        // get form info
+        switch ($field_label_type) {
+            case FormLabelType::HORIZONTAL:
+                break;
+            case FormLabelType::VERTICAL:
+                $field->disableHorizontal();
+                break;
+            case FormLabelType::HIDDEN:
+                $field->disableHorizontal();
+                $field->disableLabel();
+                break;
+        }
+    }
+
+    /**
+     * Set show field options
+     *
+     * @param mixed $field
+     * @return void
+     */
+    public function setShowFieldOptions(ShowField $field, array $options = [])
+    {
+        $item = $this;
+
+        $field->as(function ($v) use ($item) {
+            if (is_null($this)) {
+                return '';
+            }
+            return $item->setCustomValue($this)->html();
+        })->setEscape(false);
+
+        // If grid shows, set label style
+        if ($options['gridShows']) {
+            $this->setAdminOptions($field);
+        }
+
+        $field->setWidth(12, 0);
     }
 
     public static function getItem(...$args)

@@ -46,7 +46,7 @@ class CustomViewSummaryTest extends UnitTestBase
         $this->assertTrue(count($summaries) == count($defaults));
 
         foreach ($summaries as $summary) {
-            $this->assertTrue(collect($defaults)->contains(function ($value) use($summary) {
+            $this->assertTrue(collect($defaults)->contains(function ($value) use ($summary) {
                 return $value['id'] == $summary['value'];
             }));
         }
@@ -104,9 +104,9 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 return $data['text'] == $summary['key'];
-            })->sum(function($data) {
+            })->sum(function ($data) {
                 return $data['integer'];
             });
             $this->assertTrue($result == $summary['value']);
@@ -135,9 +135,9 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 return $data['integer'] == $summary['key'];
-            })->map(function($data) {
+            })->map(function ($data) {
                 return $data['date'];
             })->min();
             $this->assertTrue($result == $summary['value']);
@@ -166,13 +166,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (!empty($summary['key']) && isset($data['date'])) {
                     return \Carbon\Carbon::parse($data['date'])->format('Y-m-d') == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['date']);
                 }
-            })->map(function($data) {
+            })->map(function ($data) {
                 return $data['currency'];
             })->min();
             $this->assertTrue(isMatchDecimal($summary['value'], $result));
@@ -203,13 +203,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (isset($summary['key']) && isset($data['date'])) {
                     return \Carbon\Carbon::parse($data['date'])->year == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['date']);
                 }
-            })->sum(function($data) {
+            })->sum(function ($data) {
                 return $data['decimal'];
             });
             $this->assertTrue(isMatchDecimal($summary['value'], $result));
@@ -241,13 +241,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (isset($summary['key']) && isset($data['date'])) {
                     return \Carbon\Carbon::parse($data['date'])->format('Y-m') == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['date']);
                 }
-            })->sum(function($data) {
+            })->sum(function ($data) {
                 return $data['currency'];
             });
             $this->assertTrue(isMatchDecimal($summary['value'], $result));
@@ -279,13 +279,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (isset($summary['key']) && isset($data['date'])) {
                     return \Carbon\Carbon::parse($data['date'])->format('Y-m-d') == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['date']);
                 }
-            })->map(function($data) {
+            })->map(function ($data) {
                 return $data['time'];
             })->min();
             $this->assertTrue(isMatchString($summary['value'], $result));
@@ -316,13 +316,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (!empty($summary['key']) && isset($data['date'])) {
                     return \Carbon\Carbon::parse($data['date'])->month == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['date']);
                 }
-            })->map(function($data) {
+            })->map(function ($data) {
                 return $data['datetime'];
             })->max();
             $this->assertTrue(isMatchString($summary['value'], $result));
@@ -354,13 +354,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (!empty($summary['key']) && isset($data['date'])) {
                     return \Carbon\Carbon::parse($data['date'])->day == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['date']);
                 }
-            })->map(function($data) {
+            })->map(function ($data) {
                 return \Carbon\Carbon::parse($data['created_at']);
             })->max();
 
@@ -397,9 +397,9 @@ class CustomViewSummaryTest extends UnitTestBase
         $weekday = ['日', '月', '火', '水', '木', '金', '土'];
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary, $weekday){
+            $result = collect($defaults)->filter(function ($data) use ($summary, $weekday) {
                 if (!empty($summary['key']) && isset($data['date'])) {
-                    $week = $weekday[\Carbon\Carbon::parse($data['date'])->dayOfWeek]; 
+                    $week = $weekday[\Carbon\Carbon::parse($data['date'])->dayOfWeek];
                     return $week == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['date']);
@@ -430,13 +430,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (!empty($summary['key']) && isset($data['time'])) {
                     return $data['time'] == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['time']);
                 }
-            })->map(function($data) {
+            })->map(function ($data) {
                 return $data['integer'];
             })->max();
             $this->assertTrue(isMatchString($summary['value'], $result));
@@ -465,13 +465,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (!empty($summary['key']) && isset($data['datetime'])) {
                     return \Carbon\Carbon::parse($data['datetime'])->format('Y-m-d H:i:s') == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['datetime']);
                 }
-            })->map(function($data) {
+            })->map(function ($data) {
                 return $data['suuid'];
             })->max();
             $this->assertTrue(isMatchDecimal($summary['value'], $result));
@@ -502,13 +502,13 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 if (!empty($summary['key']) && isset($data['datetime'])) {
                     return \Carbon\Carbon::parse($data['datetime'])->format('Y-m-d') == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($data['datetime']);
                 }
-            })->map(function($data) {
+            })->map(function ($data) {
                 return $data['decimal'];
             })->max();
             $this->assertTrue(isMatchDecimal($summary['value'], $result));
@@ -747,9 +747,9 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 return $data['multiples_of_3'] == $summary['key'];
-            })->sum(function($data) {
+            })->sum(function ($data) {
                 return collect($data['child_table.integer'])->sum();
             });
             $this->assertTrue($result == $summary['value']);
@@ -780,9 +780,9 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 return $data['parent_table.user'] == $summary['key'];
-            })->max(function($data) {
+            })->max(function ($data) {
                 return collect($data['integer'])->max();
             });
             $this->assertTrue($result == $summary['value']);
@@ -816,10 +816,10 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 $key = $summary['key'];
                 return $data['parent_table.user'] == $key[0] && $data['odd_even'] == $key[1];
-            })->sum(function($data) {
+            })->sum(function ($data) {
                 return $data['integer'];
             });
             $this->assertTrue($result == $summary['value']);
@@ -854,9 +854,9 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 return $data['updated_user'] == $summary['key'];
-            })->map(function($data) {
+            })->map(function ($data) {
                 return count($data['child_table_n_n.id']);
             })->sum();
             $this->assertTrue($result == $summary['value']);
@@ -887,24 +887,26 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary){
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
                 return $data['workflow_status'] == $summary['key'];
-            })->sum(function($data) {
+            })->sum(function ($data) {
                 return $data['currency'];
             });
             $this->assertTrue($result == $summary['value']);
         }
     }
 
-    protected function commonTestCount($column_name, $condition_type = ConditionType::COLUMN, $column_options = []){
+    protected function commonTestCount($column_name, $condition_type = ConditionType::COLUMN, $column_options = [])
+    {
         $this->commonTestCountBase([
             'column_name' => $column_name,
             'condition_type' => $condition_type,
-            'options' => $column_options 
+            'options' => $column_options
         ]);
     }
 
-    protected function commonTestCountBase($column_settings){
+    protected function commonTestCountBase($column_settings)
+    {
         $this->init();
 
         $options = [
@@ -921,7 +923,7 @@ class CustomViewSummaryTest extends UnitTestBase
         $defaults = $this->getCustomViewDataAll($options);
 
         foreach ($summaries as $summary) {
-            $result = collect($defaults)->filter(function($data) use($summary, $column_settings){
+            $result = collect($defaults)->filter(function ($data) use ($summary, $column_settings) {
                 $reference_table = array_get($column_settings, 'reference_table');
                 $column_name = array_get($column_settings, 'column_name');
                 $column_options = array_get($column_settings, 'options')?? [];
@@ -961,10 +963,11 @@ class CustomViewSummaryTest extends UnitTestBase
         ];
         return $datevalue->format($dateStrings[strtolower($format)]);
     }
-    protected function getCustomViewSummary($options){
-        return $this->getCustomViewData($options, ViewKindType::AGGREGATE)->map(function($data) {
+    protected function getCustomViewSummary($options)
+    {
+        return $this->getCustomViewData($options, ViewKindType::AGGREGATE)->map(function ($data) {
             $values = array_values($data->getAttributes());
-            $key = count($values) > 2 ? array_slice($values , 0, count($values) - 1): $values[0];
+            $key = count($values) > 2 ? array_slice($values, 0, count($values) - 1): $values[0];
             return [
                 'key' => $key,
                 'value' => end($values)
@@ -972,7 +975,8 @@ class CustomViewSummaryTest extends UnitTestBase
         });
     }
 
-    protected function getCustomViewDataCount($options){
+    protected function getCustomViewDataCount($options)
+    {
         System::clearCache();
         unset($options['column_settings']);
         unset($options['summary_settings']);
@@ -980,7 +984,8 @@ class CustomViewSummaryTest extends UnitTestBase
         return $this->getCustomViewData($options);
     }
 
-    protected function getCustomViewDataAll($options){
+    protected function getCustomViewDataAll($options)
+    {
         System::clearCache();
 
         $column_settings = [];
@@ -1002,8 +1007,8 @@ class CustomViewSummaryTest extends UnitTestBase
         }
         $options['view_kind_type'] = ViewKindType::DEFAULT;
 
-        return $this->getCustomViewData($options)->map(function($data) use($column_settings) {
-            return collect($column_settings)->mapWithKeys(function($column_setting) use($data){
+        return $this->getCustomViewData($options)->map(function ($data) use ($column_settings) {
+            return collect($column_settings)->mapWithKeys(function ($column_setting) use ($data) {
                 $column_setting = array_merge(
                     [
                         'column_name' => null,
@@ -1012,7 +1017,7 @@ class CustomViewSummaryTest extends UnitTestBase
                         'reference_column' => null,
                         'is_parent' => false,
                         'is_child' => false,
-                    ], 
+                    ],
                     $column_setting
                 );
                 $column_name = array_get($column_setting, 'column_name');
@@ -1027,7 +1032,7 @@ class CustomViewSummaryTest extends UnitTestBase
                     if ($is_parent) {
                         $data = $data->getParentValue();
                     } elseif ($is_child) {
-                        $data_list = $data->getChildrenValues($reference_table)->map(function($row) use($column_name, $condition_type) {
+                        $data_list = $data->getChildrenValues($reference_table)->map(function ($row) use ($column_name, $condition_type) {
                             return $this->getColumnValue($row, $column_name, $condition_type);
                         })->toArray();
                         return [$reference_key => $data_list];
@@ -1038,7 +1043,7 @@ class CustomViewSummaryTest extends UnitTestBase
                 $column_data = $this->getColumnValue($data, $column_name, $condition_type);
 
                 if ($column_data instanceof \Illuminate\Support\Collection) {
-                    $column_data = $column_data->map(function($item) {
+                    $column_data = $column_data->map(function ($item) {
                         if ($item instanceof Model) {
                             return $item->id;
                         }
@@ -1060,13 +1065,14 @@ class CustomViewSummaryTest extends UnitTestBase
             $column_data = array_get($data, $column_id);
         } elseif (isset($condition_type) && $condition_type == ConditionType::WORKFLOW) {
             $column_data = array_get($data, $column_name);
-        }elseif ($data instanceof CustomValue) {
+        } elseif ($data instanceof CustomValue) {
             $column_data = $data->getValue($column_name);
         }
         return $column_data;
     }
 
-    protected function init(){
+    protected function init()
+    {
         $this->initAllTest();
     }
 }

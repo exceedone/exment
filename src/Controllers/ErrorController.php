@@ -31,18 +31,39 @@ class ErrorController extends Controller
             $form->disableReset();
             $form->disableSubmit();
 
+            if (!boolval(config('app.debug', false))) {
+                $form->display('error_datetime', exmtrans("error.error_datetime"))
+                    ->default(\Carbon\Carbon::now()->format('Y/m/d H:i:s'))
+                ;
+            }
+
             $form->textarea('message', exmtrans("error.error_message"))
                 ->default($exception->getMessage())
                 ->attribute(['disabled' => true])
                 ->rows(3)
                 ;
-            $form->textarea('trace', exmtrans("error.error_trace"))
-                ->default($exception->getTraceAsString())
-                ->attribute(['disabled' => true])
-                ->rows(5)
+            
+            if (boolval(config('app.debug', false))) {
+                $form->textarea('trace', exmtrans("error.error_trace"))
+                    ->default($exception->getTraceAsString())
+                    ->attribute(['disabled' => true])
+                    ->rows(5)
                 ;
+            } else {
+                $form->display('trace', exmtrans("error.error_trace"))
+                    ->default(exmtrans("error.check_error_log"))
+                ;
+            }
 
             $content->row(new Box(exmtrans("error.header"), $form));
         }));
+    }
+
+
+    public function maintenance()
+    {
+        return response(view('exment::exception.maintenance', [
+            'manual_url' => \Exment::getManualUrl('troubleshooting') . '#' .exmtrans('error.maintenance_id'),
+        ])->render(), 503);
     }
 }

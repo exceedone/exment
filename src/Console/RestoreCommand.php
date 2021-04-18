@@ -16,7 +16,7 @@ class RestoreCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:restore {file?} {--tmp=}';
+    protected $signature = 'exment:restore {file?} {--tmp=} {--yes}';
 
     /**
      * The console command description.
@@ -49,7 +49,8 @@ class RestoreCommand extends Command
     public function handle()
     {
         $message = preg_replace('/<br>/u', '', exmtrans('backup.message.restore_caution'));
-        if (!$this->confirm($message)) {
+
+        if (!boolval($this->option('yes')) && !$this->confirm($message)) {
             return;
         }
 

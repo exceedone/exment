@@ -17,7 +17,6 @@ use Exceedone\Exment\Jobs;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Carbon\Carbon;
 
-
 class NotifyTest extends TestCase
 {
     use TestTrait;
@@ -27,7 +26,7 @@ class NotifyTest extends TestCase
         $this->initAllTest();
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
-        if($fake){
+        if ($fake) {
             Notification::fake();
             Notification::assertNothingSent();
         }
@@ -74,19 +73,22 @@ class NotifyTest extends TestCase
         // execute send password
         $notifiable = $this->callProtectedMethod($user, 'send', $is_newuser);
 
-        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-        function($notification, $channels, $notifiable) use($mail_template, $user, $password) {
-            if(!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)){
-                return false;
-            }
+        Notification::assertSentTo(
+            $notifiable,
+            Jobs\MailSendJob::class,
+            function ($notification, $channels, $notifiable) use ($mail_template, $user, $password) {
+                if (!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)) {
+                    return false;
+                }
 
-            // contains token in body
-            if(strpos($notifiable->getBody(), $password) === false){
-                return false;
-            }
+                // contains token in body
+                if (strpos($notifiable->getBody(), $password) === false) {
+                    return false;
+                }
 
-            return true;
-        });
+                return true;
+            }
+        );
     }
 
 
@@ -105,19 +107,22 @@ class NotifyTest extends TestCase
 
         $notifiable = $user->sendPasswordResetNotification($token);
 
-        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-        function($notification, $channels, $notifiable) use($mail_template, $user, $token) {
-            if(!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)){
-                return false;
-            }
+        Notification::assertSentTo(
+            $notifiable,
+            Jobs\MailSendJob::class,
+            function ($notification, $channels, $notifiable) use ($mail_template, $user, $token) {
+                if (!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)) {
+                    return false;
+                }
 
-            // contains token in body
-            if(strpos($notifiable->getBody(), $token) === false){
-                return false;
-            }
+                // contains token in body
+                if (strpos($notifiable->getBody(), $token) === false) {
+                    return false;
+                }
 
-            return true;
-        });
+                return true;
+            }
+        );
     }
 
     
@@ -144,19 +149,22 @@ class NotifyTest extends TestCase
             'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
         ]);
 
-        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-            function($notification, $channels, $notifiable) use($mail_template, $user, $verify_code) {
-                if(!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)){
+        Notification::assertSentTo(
+            $notifiable,
+            Jobs\MailSendJob::class,
+            function ($notification, $channels, $notifiable) use ($mail_template, $user, $verify_code) {
+                if (!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)) {
                     return false;
                 }
 
                 // contains token in $verify_code
-                if(strpos($notifiable->getBody(), strval($verify_code)) === false){
+                if (strpos($notifiable->getBody(), strval($verify_code)) === false) {
                     return false;
                 }
 
                 return true;
-            });
+            }
+        );
     }
 
 
@@ -178,7 +186,7 @@ class NotifyTest extends TestCase
         $notify->save();
 
         // change target data's date value
-        $custom_table = CustomTable::find($notify->custom_table_id);
+        $custom_table = CustomTable::find($notify->target_id);
         $model = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
         $model->update([
@@ -207,7 +215,7 @@ class NotifyTest extends TestCase
         $user_id = \Exment::user()->base_user_id;
 
         $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
-        $custom_table = CustomTable::find($notify->custom_table_id);
+        $custom_table = CustomTable::find($notify->target_id);
         $custom_value = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
 
@@ -278,7 +286,7 @@ class NotifyTest extends TestCase
         $notify->notifyWorkflow($custom_value, $workflow_action, $workflow_value, $status_to);
 
         $mail_template = $this->getMailTemplate(MailKeyName::WORKFLOW_NOTIFY);
-        foreach($users as $user){
+        foreach ($users as $user) {
             $data = NotifyNavbar::withoutGlobalScopes()
                 ->where('notify_id', $notify->id)
                 ->where('parent_type', $custom_table->table_name)
@@ -287,14 +295,13 @@ class NotifyTest extends TestCase
                 ->orderBy('created_at', 'desc')->get();
             $this->assertTrue($data->count() > 0, "Notify data not contains.");
                 
-            foreach($data as $d){
+            foreach ($data as $d) {
                 $this->assertEquals(array_get($d, 'parent_type'), $custom_table->table_name);
                 $this->assertEquals(array_get($d, 'parent_id'), $custom_value->id);
                 $this->assertEquals(array_get($d, 'target_user_id'), $user->id);
                 $this->assertEquals(array_get($d, 'trigger_user_id'), $user_id);
             }
         }
-
     }
 
 
@@ -321,9 +328,8 @@ class NotifyTest extends TestCase
         $this->assertTrue($data->count() === 1, 'NotifyNavbar count excepts 1, but count is ' . $data->count());
     }
 
-    protected function getMailTemplate($keyName){
+    protected function getMailTemplate($keyName)
+    {
         return CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', $keyName)->first();
     }
-
-
 }

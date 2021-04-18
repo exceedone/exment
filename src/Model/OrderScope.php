@@ -24,7 +24,7 @@ class OrderScope implements Scope
             $builder->orderBy($this->column, $this->direction);
         }
 
-        if (\ExmentDB::isSqlServer() && !$this->hasOrderById($builder, 'id')) {
+        if (!$this->hasOrderById($builder, 'id')) {
             $builder->orderBy('id', 'asc');
         }
     }

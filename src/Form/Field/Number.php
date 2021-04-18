@@ -41,7 +41,7 @@ class Number extends \Encore\Admin\Form\Field\Number
         // if not $disableUpdown
         if (!$this->disableUpdown) {
             // get class remoiving dot
-            $classname = str_replace('.', '', $this->getElementClassSelector());
+            $classname = str_replace('.', '', $this->getElementClassSelector(false));
             $this->script = <<<EOT
 $('{$this->getElementClassSelector()}:not(.initialized)')
     .addClass('initialized')

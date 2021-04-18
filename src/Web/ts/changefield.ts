@@ -7,6 +7,80 @@ declare function swal(...x:any): any;
 namespace Exment {
     export class ChangeFieldEvent {
         /**
+         * Call only once. It's $(document).on event.
+         */
+        public static AddEventOnce() {
+            $(document).on('change', '[data-changehtml]', {}, ChangeFieldEvent.changeHtml);
+        }
+
+
+        /**
+         * Change html event
+         * If select A(select2 item), change html object 
+         * @param ev 
+         */
+        private static changeHtml = (ev) => {
+            //
+            const $target = $(ev.target);
+            const val = $target.val();
+            const form_uniqueName = $target.closest('form[data-form_uniquename]').data('form_uniquename');
+
+            // get changehtml items
+            let items = $target.data('changehtml');
+            for(let i = 0; i < items.length; i++){
+                let item = items[i];
+                let ajax = item.url as string;
+                let $html = $(item.target);
+                let form_type = item.form_type;
+    
+                if(!hasValue(val)){
+                    $html.children().remove();
+                    continue;
+                }
+
+                    
+                // get html
+                // Please return this,
+                // [
+                //     'body' => (html),
+                //     'script' => ([form script as array]),
+                // ]
+                $.ajax({
+                    url: ajax,
+                    type: "GET",
+                    data: {
+                        'val': val,
+                        'form_type': form_type,
+                        'form_uniqueName' : form_uniqueName,
+                    },
+                    context: {
+                        html: $html,
+                        item: item,
+                    },
+                    success: function (data) {
+                        if(hasValue(data.body)){
+                            this.html.children().remove();
+
+                            // find target value
+                            let $ajaxTarget = $(data.body).find(this.item.response);
+
+                            // set html inner div
+                            let $inner = $('<div data-changehtml_key="' + val + '" />');
+                            $inner.append($ajaxTarget).appendTo(this.html);
+                        }
+
+                        if (hasValue(data.script)) {
+                            eval(data.script);
+                        }
+
+                        CommonEvent.setFormFilter($target);
+                    },
+                });
+            }
+        }
+
+
+        /**
          * toggle right-top help link and color
          */
         public static ChangeFieldEvent(ajax, eventTriggerSelector, eventTargetSelector, replaceSearch, replaceWord, showConditionKey, $hasManyTableClass){
@@ -50,3 +124,6 @@ namespace Exment {
         }
     }
 }
+$(function () {
+    Exment.ChangeFieldEvent.AddEventOnce();
+});

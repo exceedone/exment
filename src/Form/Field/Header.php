@@ -52,7 +52,7 @@ class Header extends Field\Display
      *
      * @var boolean
      */
-    public function escape(bool $escape)
+    public function escape(bool $escape = true)
     {
         $this->escape = $escape;
 
@@ -65,6 +65,7 @@ class Header extends Field\Display
             'no' => $this->no,
             'hr' => $this->hr,
             'escape' => $this->escape,
+            'headerLabel' => $this->label(),
         ]);
     }
 }

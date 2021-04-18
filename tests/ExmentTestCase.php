@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 abstract class ExmentTestCase extends TestCase
 {
-    static $databaseSetup = false;
+    public static $databaseSetup = false;
     
     use DatabaseMigrations;
     use ExmentTestTrait {

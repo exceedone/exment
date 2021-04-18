@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Model\PublicForm;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Response;
@@ -18,6 +19,14 @@ class FileController extends AdminControllerBase
      * Download file (call as web)
      */
     public function download(Request $request, $uuid)
+    {
+        return static::downloadFile($uuid);
+    }
+
+    /**
+     * Download file (call as publicform)
+     */
+    public function downloadPublicForm(Request $request, $publicFormUuid, $uuid)
     {
         return static::downloadFile($uuid);
     }
@@ -337,13 +346,43 @@ class FileController extends AdminControllerBase
      */
     protected function uploadTempFile(Request $request)
     {
+        return $this->_uploadTempFile($request, false);
+    }
+
+    /**
+     *  upload Image as temporary
+     */
+    protected function uploadTempImage(Request $request)
+    {
+        return $this->_uploadTempFile($request, true);
+    }
+
+    /**
+     *  upload Image as temporary
+     */
+    protected function uploadTempImagePublicForm(Request $request, $publicFormUuid)
+    {
+        $public_form = PublicForm::getPublicFormByUuid($publicFormUuid);
+        return $this->_uploadTempFile($request, true, $public_form);
+    }
+
+    /**
+     *  upload file as temporary
+     */
+    protected function _uploadTempFile(Request $request, bool $isImage, ?PublicForm $public_form = null)
+    {
         // delete old temporary files
         $this->removeTempFiles();
         
-        // check image file. *NOW Only this endpoint is image*
-        $validator = \Validator::make($request->all(), [
-            'file' => ['required', new ImageRule],
-        ]);
+        // check image file.
+        $rules = [
+            'file' => ['required']
+        ];
+        if ($isImage) {
+            $rules['file'][] = new ImageRule;
+        }
+
+        $validator = \Validator::make($request->all(), $rules);
         if ($validator->fails()) {
             return response()->json(array_get($validator->errors()->toArray(), 'file'), 400);
         }
@@ -358,13 +397,31 @@ class FileController extends AdminControllerBase
             $request->session()->put($uuid, $original_name);
         } catch (\Exception $e) {
         }
-        return json_encode(['location' => admin_urls('tmpfiles', basename($filename))]);
+
+        // If this request is as public_form, return as url
+        if ($public_form) {
+            $localtion = $public_form->getUrl('tmpfiles', basename($filename));
+        } else {
+            $localtion = admin_urls('tmpfiles', basename($filename));
+        }
+        return json_encode(['location' => $localtion]);
     }
 
     /**
      * Download temporary saved file
      */
     public function downloadTempFile(Request $request, $uuid)
+    {
+        // delete old temporary files
+        $this->removeTempFiles();
+
+        return static::downloadTemp($uuid);
+    }
+
+    /**
+     * Download temporary saved file
+     */
+    public function downloadTempFilePublicForm(Request $request, $publicFormUuid, $uuid)
     {
         // delete old temporary files
         $this->removeTempFiles();

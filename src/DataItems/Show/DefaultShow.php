@@ -7,10 +7,11 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Row;
-use Exceedone\Exment\Form\Show;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Show;
+use Encore\Admin\Show\Field as ShowField;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -21,7 +22,11 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomFormBlock;
+use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -30,14 +35,26 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\ColumnItems\ItemInterface;
 
 class DefaultShow extends ShowBase
 {
+    protected static $showClassName = \Exceedone\Exment\Form\Show::class;
+
+    /**
+     * Set row count. if contains parent or system values, set increment.
+     *
+     * @var integer
+     */
+    protected $rowCount = 0;
+
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
         $this->custom_form = $custom_form;
+        $this->rowCount = 0;
     }
 
     /**
@@ -60,11 +77,21 @@ class DefaultShow extends ShowBase
      */
     public function createShowForm()
     {
-        return new Show($this->custom_value, function (Show $show) {
+        return new static::$showClassName($this->custom_value, function ($show) {
             if (!$this->modal) {
                 $trashed = boolval(request()->get('trashed'));
-                $field = $show->column(null, 8)->system_values(['withTrashed' => $trashed])->setWidth(12, 0);
+                $field = (new ShowField(null, null))->system_values(['withTrashed' => $trashed])->setWidth(12, 0);
+                $show->addFieldAndOption($field, [
+                    'row' => $this->rowCount++,
+                    'column' => 1,
+                    'width' => 4,
+                    'calcWidth' => false,
+                ]);
                 $field->border = false;
+            }
+
+            if ($this->gridShows()) {
+                $show->gridShows();
             }
 
             // add parent link
@@ -72,8 +99,10 @@ class DefaultShow extends ShowBase
             if (isset($relations)) {
                 foreach ($relations as $relation) {
                     $item = ColumnItems\ParentItem::getItemWithParent($relation->child_custom_table, $relation->parent_custom_table);
+                    $this->setColumnItemOption($item);
 
-                    $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
+                    $field = new ShowField($item->name(), $item->label());
+                    $field->as(function ($v) use ($item) {
                         if (is_null($this)) {
                             return '';
                         }
@@ -83,49 +112,22 @@ class DefaultShow extends ShowBase
                     if ($this->modal) {
                         $field->setWidth(9, 3);
                     }
+                    $show->addFieldAndOption($field, [
+                        'row' => $this->rowCount++,
+                        'column' => 1,
+                        'width' => 4,
+                        'calcWidth' => false,
+                    ]);
                 }
             }
 
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
-                // whether update set width
-                $updateSetWidth = $custom_form_block->isMultipleColumn() || $this->modal;
-    
-                // if available is false, continue
-                if (!$custom_form_block->available) {
+                ////// default block(no relation block)
+                if (array_get($custom_form_block, 'form_block_type') != FormBlockType::DEFAULT) {
                     continue;
                 }
-                ////// default block(no relation block)
-                if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
-                    $hasMultiColumn = false;
-
-                    foreach ($custom_form_block->custom_form_columns as $form_column) {
-                        if ($form_column->form_column_type == FormColumnType::SYSTEM) {
-                            continue;
-                        }
-                        
-                        // if hidden field, continue
-                        if (boolval(config('exment.hide_hiddenfield', false)) && boolval(array_get($form_column, 'options.hidden', false))) {
-                            continue;
-                        }
-
-                        $item = $form_column->column_item;
-                        if (!isset($item)) {
-                            continue;
-                        }
-                        $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
-                            ->as(function ($v) use ($item) {
-                                if (is_null($this)) {
-                                    return '';
-                                }
-                                return $item->setCustomValue($this)->html();
-                            })->setEscape(false);
-                        
-                        if ($updateSetWidth) {
-                            $field->setWidth(9, 3);
-                        }
-                    }
-                }
+                $this->setByCustomFormBlock($show, $custom_form_block);
             }
             
             // if modal, disable list and delete
@@ -254,6 +256,57 @@ class DefaultShow extends ShowBase
             });
         });
     }
+
+
+    /**
+     * Set show item by custom form block
+     *
+     * @param Show $show
+     * @param CustomFormBlock $custom_form_block
+     * @return void
+     */
+    public function setByCustomFormBlock($show, $custom_form_block)
+    {
+        // if available is false, continue
+        if (!$custom_form_block->available) {
+            return;
+        }
+        $hasMultiColumn = false;
+
+        foreach ($custom_form_block->custom_form_columns as $form_column) {
+            if ($form_column->form_column_type == FormColumnType::SYSTEM) {
+                continue;
+            }
+            
+            $item = $form_column->column_item;
+            if (!isset($item)) {
+                continue;
+            }
+
+            $this->setColumnItemOption($item, $form_column);
+            
+            // if hidden field, continue
+            if ($item->disableDisplayWhenShow()) {
+                continue;
+            }
+
+            $field = new ShowField($item->name(), $item->label());
+            $item->setShowFieldOptions($field, [
+                'gridShows' => $this->gridShows(),
+            ]);
+            
+            if ($this->modal) {
+                $field->setWidth(9, 3);
+            }
+
+            $show->addFieldAndOption($field, [
+                'row' => $this->rowCount + $form_column->row_no,
+                'column' => $form_column->column_no,
+                'width' => $form_column->width ?? 4,
+            ]);
+        }
+    }
+
 
     /**
      * Append child block box.
@@ -706,10 +759,8 @@ EOT;
         // file put(store)
         foreach (toArray($httpfiles) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
-            // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
-            // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
             $custom_value = $this->custom_value;
-            $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
+            $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $httpfile, $this->custom_table->table_name, $filename)
                 ->saveCustomValue($custom_value->id, null, $this->custom_table);
             // save document model
             $document_model = $file->saveDocumentModel($custom_value, $filename);
@@ -733,29 +784,15 @@ EOT;
     {
         // get file delete flg column name
         $del_column_name = $request->input(Field::FILE_DELETE_FLAG);
-        /// file remove
-        $fields = $form->builder()->fields();
-        // filter file
-        $fields->filter(function ($field) {
-            return $field instanceof Field\Embeds;
-        })->each(function ($field) use ($del_column_name) {
-            // get fields
-            $embedFields = $field->fields();
-            $embedFields->filter(function ($field) use ($del_column_name) {
-                return $field->column() == $del_column_name;
-            })->each(function ($field) use ($del_column_name) {
-                // get file path
-                $obj = $this->custom_value;
-                $original = $obj->getValue($del_column_name, true);
-                $field->setOriginal($obj->value);
+        // get key name for delete
+        $del_key = $request->input('key');
 
-                $field->destroy(); // delete file
-                ExmentFile::deleteFileInfo($original); // delete file table
-                $obj->setValue($del_column_name, null)
-                    ->remove_file_columns($del_column_name)
-                    ->save();
-            });
-        });
+        // get custom column and item
+        $custom_column = CustomColumn::getEloquent($del_column_name, $this->custom_table);
+        $custom_item = $custom_column ? $custom_column->column_item : null;
+        if ($custom_item && method_exists($custom_item, 'deleteFile')) {
+            $custom_item->setCustomValue($this->custom_value)->deleteFile($del_key);
+        }
 
         // reget custom value
         $updated_value = getModelName($this->custom_table)::find($this->custom_value->id);
@@ -813,5 +850,46 @@ EOT;
             'result' => true,
             'toastr' => trans('admin.delete_succeeded'),
         ]);
+    }
+    
+
+
+    /**
+     * Set ColumnItem's option to column item
+     *
+     * @param ItemInterface $column_item
+     * @return void
+     */
+    protected function setColumnItemOption(ItemInterface $column_item, ?CustomFormColumn $form_column = null)
+    {
+        if ($form_column) {
+            $column_item->setFormColumnOptions($form_column->options);
+        }
+        $column_item->setCustomForm($this->custom_form);
+    }
+
+    /**
+     * Whether this form is publicform
+     *
+     * @return boolean
+     */
+    protected function isPublicForm() : bool
+    {
+        return $this instanceof PublicFormShow;
+    }
+
+    /**
+     * Whether this show is grid.
+     *
+     * @return bool
+     */
+    protected function gridShows()
+    {
+        if ($this->modal) {
+            return false;
+        }
+
+        $show_grid_type = $this->custom_form->getOption('show_grid_type') ?? ShowGridType::GRID;
+        return isMatchString($show_grid_type, ShowGridType::GRID);
     }
 }

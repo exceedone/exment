@@ -3439,18 +3439,30 @@
   color: #f1f117;
 }
 
+.main-header .logo .logo-lg {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  line-height: 50px;
+}
+
 .main-header .logo .logo-lg img {
   max-width: 200px;
-  max-height: 50px;
+  max-height: 40px;
 }
 
 .main-header .logo .logo-mini img {
   max-width: 50px;
-  max-height: 50px;
+  max-height: 40px;
 }
 
 .form-revision .form-group {
   margin-bottom: 0;
+}
+
+.colorpicker-element .input-group-addon {
+  cursor: pointer;
 }
 
 .user-avatar {
@@ -3526,7 +3538,7 @@
   transform-origin: 50% 0%;
 }
 
-.copyScript {
+[copyScript] {
   cursor: pointer;
 }
 
@@ -3633,6 +3645,18 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   min-width: 45px;
 }
 
+.embed-value-form .gridembeds-row {
+  margin-bottom: 2em;
+}
+
+.embed-value-form .gridembeds-row:last-child {
+  margin-bottom: 0;
+}
+
+.checkbox label.checkboxone-label {
+  padding-left: 0;
+}
+
 .checkboxtable .checkboxtable-header {
   height: 50px;
   vertical-align: bottom;
@@ -3641,6 +3665,15 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 .checkboxtable .checkboxtable-body {
   height: 30px;
   vertical-align: middle;
+}
+
+.box-body .nav-tabs-custom > .tab-content {
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
+.box-body .nav-tabs-custom > .nav-tabs > li.active > a, .box-body .nav-tabs-custom > .nav-tabs > li.active:hover > a {
+  background-color: #d7e6ef;
 }
 
 .calc_formula_modal .col-value-item {
@@ -3854,6 +3887,15 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   padding-left: 0;
 }
 
+.form-group-vertical {
+  margin-bottom: 10px;
+}
+
+.form-group-showhtml {
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
 table img.image_html {
   max-width: 200px;
   max-height: 200px;
@@ -3999,7 +4041,7 @@ table img.image_html:hover {
   border-left-color: #605ca8;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 992px) {
   .navbar .sidebar-toggle {
     width: 42px;
   }
@@ -4019,6 +4061,9 @@ table img.image_html:hover {
   }
   .nprogress-custom-parent {
     overflow: visible;
+  }
+  .embed-value-form .gridembeds-row {
+    margin-bottom: 0;
   }
 }
 

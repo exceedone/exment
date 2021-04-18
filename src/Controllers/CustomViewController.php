@@ -9,6 +9,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
@@ -106,12 +107,12 @@ class CustomViewController extends AdminControllerTableBase
         $grid = new Grid(new CustomView);
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
         if ($this->custom_table->hasSystemViewPermission()) {
-            $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->displayEscape(function ($view_type) {
+            $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->display(function ($view_type) {
                 return Enums\ViewType::getEnum($view_type)->transKey("custom_view.custom_view_type_options");
             });
         }
 
-        $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->displayEscape(function ($view_kind_type) {
+        $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
 
@@ -228,12 +229,20 @@ class CustomViewController extends AdminControllerTableBase
         if ($request->has('from_data')) {
             $from_data = boolval($request->get('from_data'));
         }
+        $plugin = null;
+        if ($request->has('plugin')) {
+            $plugin = $request->get('plugin');
+        } elseif (isset($model) && $view_kind_type == ViewKindType::PLUGIN) {
+            $plugin = Plugin::find($model->getOption('plugin_id'))->uuid;
+        }
 
         $form->hidden('custom_table_id')->default($this->custom_table->id);
 
         $form->hidden('view_kind_type')->default($view_kind_type);
         $form->hidden('from_data')->default($from_data);
         $form->ignore('from_data');
+        $form->hidden('plugin')->default($plugin);
+        $form->ignore('plugin');
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
@@ -262,16 +271,18 @@ class CustomViewController extends AdminControllerTableBase
         if (intval($view_kind_type) != Enums\ViewKindType::FILTER) {
             $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
         }
-        
+
         // set column' s form
         $classname = ViewKindType::getGridItemClassName($view_kind_type);
-        $classname::setViewForm($view_kind_type, $form, $this->custom_table);
+        $classname::setViewForm($view_kind_type, $form, $this->custom_table, [
+            'plugin' => $plugin,
+        ]);
 
         $custom_table = $this->custom_table;
 
         // append model for getting from options
         $form->editing(function ($form) {
-            $form->model()->append(['pager_count', 'condition_join']);
+            $form->model()->append(['use_view_infobox', 'view_infobox_title', 'view_infobox', 'pager_count', 'condition_join']);
         });
 
         // check filters and sorts count before save
@@ -292,6 +303,13 @@ class CustomViewController extends AdminControllerTableBase
                 if ($cnt > 5) {
                     admin_toastr(exmtrans('custom_view.message.over_sorts_max'), 'error');
                     return back()->withInput();
+                }
+            }
+
+            if (request()->has('plugin') && !is_null($plugin = request()->get('plugin'))) {
+                $plugin = Plugin::getPluginByUUID($plugin);
+                if (isset($plugin)) {
+                    $form->model()->setOption('plugin_id', $plugin->id);
                 }
             }
         });

@@ -66,14 +66,14 @@ class LoginSettingController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new LoginSetting);
-        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function ($v) {
+        $grid->column('login_type', exmtrans('login.login_type'))->display(function ($v) {
             $enum = LoginType::getEnum($v);
             return $enum ? $enum->transKey('login.login_type_options') : null;
         });
         $grid->column('login_view_name', exmtrans('login.login_view_name'));
-        $grid->column('active_flg', exmtrans("plugin.active_flg"))->displayEscape(function ($active_flg) {
-            return boolval($active_flg) ? exmtrans("common.available_true") : exmtrans("common.available_false");
-        });
+        $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
+            return \Exment::getTrueMark($active_flg);
+        })->escape(false);
         
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
@@ -518,18 +518,11 @@ class LoginSettingController extends AdminControllerBase
      *
      * @param Request $request
      * @param string|int|null $id
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function activate(Request $request, $id)
     {
-        $login_setting = LoginSetting::getEloquent($id);
-        $login_setting->active_flg = true;
-        $login_setting->save();
-        
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.update_succeeded'),
-        ]);
+        return $this->toggleActivate($request, $id, true);
     }
 
     /**
@@ -537,12 +530,25 @@ class LoginSettingController extends AdminControllerBase
      *
      * @param Request $request
      * @param string|int|null $id
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function deactivate(Request $request, $id)
     {
+        return $this->toggleActivate($request, $id, false);
+    }
+
+    /**
+     * Toggle activate and deactivate
+     *
+     * @param Request $request
+     * @param string $id
+     * @param boolean $active_flg
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function toggleActivate(Request $request, $id, bool $active_flg)
+    {
         $login_setting = LoginSetting::getEloquent($id);
-        $login_setting->active_flg = false;
+        $login_setting->active_flg = $active_flg;
         $login_setting->save();
         
         return getAjaxResponse([

@@ -36,4 +36,14 @@ abstract class ShowBase
 
         return $this;
     }
+
+    /**
+     * Whether this show is grid.
+     *
+     * @return bool
+     */
+    protected function gridShows()
+    {
+        return false;
+    }
 }

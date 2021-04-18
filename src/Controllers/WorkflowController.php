@@ -40,7 +40,7 @@ use \Carbon\Carbon;
 
 class WorkflowController extends AdminControllerBase
 {
-    use HasResourceActions;
+    use HasResourceActions, WorkflowTrait;
 
     protected $exists = false;
 
@@ -58,10 +58,10 @@ class WorkflowController extends AdminControllerBase
     {
         $grid = new Grid(new Workflow);
         $grid->column('id', exmtrans("common.id"));
-        $grid->column('workflow_type', exmtrans("workflow.workflow_type"))->displayEscape(function ($v) {
+        $grid->column('workflow_type', exmtrans("workflow.workflow_type"))->display(function ($v) {
             return WorkflowType::getEnum($v)->transKey('workflow.workflow_type_options');
         });
-        $grid->column('workflow_tables', exmtrans("custom_table.table"))->displayEscape(function ($v, $column, $model) {
+        $grid->column('workflow_tables', exmtrans("custom_table.table"))->display(function ($v, $column, $model) {
             if (is_null($custom_table = $model->getDesignatedTable())) {
                 return null;
             }
@@ -69,7 +69,7 @@ class WorkflowController extends AdminControllerBase
             return $custom_table->table_view_name;
         });
         $grid->column('workflow_view_name', exmtrans("workflow.workflow_view_name"))->sortable();
-        $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->displayEscape(function ($value, $column, $workflow) {
+        $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->display(function ($value, $column, $workflow) {
             return $workflow->getStatusesString();
         });
         $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function ($value) {
@@ -78,7 +78,7 @@ class WorkflowController extends AdminControllerBase
             }
 
             return null;
-        });
+        })->escape(false);
         
         $grid->disableExport();
         if (!\Exment::user()->hasPermission(Permission::WORKFLOW)) {
@@ -95,6 +95,14 @@ class WorkflowController extends AdminControllerBase
                 ->tooltip(exmtrans('workflow.action'));
             $actions->prepend($linker);
             
+            if ($actions->row->setting_completed_flg) {
+                $linker = (new Linker)
+                    ->url(admin_urls('workflow', $actions->getKey(), 'notify'))
+                    ->icon('fa-bell')
+                    ->tooltip(exmtrans('notify.header'));
+                $actions->prepend($linker);
+            }
+
             if ($actions->row->disabled_delete) {
                 $actions->disableDelete();
             }
@@ -738,7 +746,7 @@ class WorkflowController extends AdminControllerBase
         $notify = new Notify;
         $notify->notify_view_name = exmtrans('notify.notify_trigger_options.workflow');
         $notify->notify_trigger = NotifyTrigger::WORKFLOW;
-        $notify->workflow_id = $workflow->id;
+        $notify->target_id = $workflow->id;
         $notify->mail_template_id = $mail_template->id;
         $notify->action_settings = [[
             'notify_action' => NotifyAction::SHOW_PAGE,
@@ -835,46 +843,6 @@ class WorkflowController extends AdminControllerBase
             return back()->withErrors($errors)
                         ->withInput();
         }
-    }
-
-    protected function getProgressInfo($workflow, $action)
-    {
-        $id = $workflow->id ?? null;
-
-        $steps = [];
-        $hasAction = false;
-        $workflow_action_url = null;
-        $workflow_status_url = null;
-        if (isset($id)) {
-            $hasAction = WorkflowAction::where('workflow_id', $id)->count() > 0;
-            $workflow_action_url = admin_urls('workflow', $id, 'edit?action=2');
-            $workflow_status_url = admin_urls('workflow', $id, 'edit');
-        }
-        
-        $steps[] = [
-            'active' => ($action == 1),
-            'complete' => false,
-            'url' => ($action != 1)? $workflow_status_url: null,
-            'description' => exmtrans('workflow.workflow_statuses')
-        ];
-
-        $steps[] = [
-            'active' => ($action == 2),
-            'complete' => false,
-            'url' => ($action != 2)? $workflow_action_url: null,
-            'description' => exmtrans('workflow.workflow_actions')
-        ];
-
-        if (isset($workflow) && boolval($workflow->setting_completed_flg)) {
-            $steps[] = [
-                'active' => ($action == 3),
-                'complete' => false,
-                'url' => ($action != 3) ? admin_url('workflow/beginning') : null,
-                'description' => exmtrans('workflow.beginning'),
-            ];
-        }
-        
-        return $steps;
     }
 
     /**
@@ -1014,7 +982,7 @@ class WorkflowController extends AdminControllerBase
                 $hasManyTable = new ConditionHasManyTable($form, [
                     'ajax' => admin_url("webapi/{$id}/filter-value"),
                     'name' => "workflow_conditions_{$index}",
-                    'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
+                    'linkage' => json_encode(['condition_key' => url_join($custom_table->table_name, 'filter-condition')]),
                     'targetOptions' => $custom_table->getColumnsSelectOptions([
                         'include_system' => false,
                         'ignore_attachment' => true,

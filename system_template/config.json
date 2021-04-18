@@ -430,6 +430,15 @@
                     }
                 },
                 {
+                    "column_name": "mail_from_view_name",
+                    "column_view_name": "Email from view name",
+                    "column_type": "text",
+                    "system_flg": "1",
+                    "options": {
+                        "help": "Please enter the display name of the sender."
+                    }
+                },
+                {
                     "column_name": "mail_subject",
                     "column_view_name": "Email subject",
                     "column_type": "text",
@@ -885,26 +894,6 @@
                             "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "order"
-                        },
-                        {
-                            "form_column_type": "1",
-                            "options": [],
-                            "form_column_target_name": "created_at"
-                        },
-                        {
-                            "form_column_type": "1",
-                            "options": [],
-                            "form_column_target_name": "updated_at"
-                        },
-                        {
-                            "form_column_type": "1",
-                            "options": [],
-                            "form_column_target_name": "created_user"
-                        },
-                        {
-                            "form_column_type": "1",
-                            "options": [],
-                            "form_column_target_name": "updated_user"
                         }
                     ],
                     "form_block_target_table_name": "information"
@@ -1395,14 +1384,6 @@
             "title": "Plugin",
             "parent_name": "admin",
             "menu_target_name": "plugin"
-        },
-        {
-            "order": "10",
-            "menu_type": "system",
-            "menu_name": "notify",
-            "title": "Notify",
-            "parent_name": "admin",
-            "menu_target_name": "notify"
         },
         {
             "order": "11",

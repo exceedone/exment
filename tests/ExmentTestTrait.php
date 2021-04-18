@@ -9,7 +9,7 @@ use Exceedone\Exment\Middleware\Morph;
 
 trait ExmentTestTrait
 {
-    static $databaseSetup = false;
+    public static $databaseSetup = false;
     
     use DatabaseMigrations;
 
@@ -62,13 +62,13 @@ trait ExmentTestTrait
             //     }
             // });
         }
-
     }
 
-    protected function dropAllTables(){
+    protected function dropAllTables()
+    {
         \Artisan::call('migrate:reset');
         $tables = \DB::connection()->getDoctrineSchemaManager()->listTableNames();
-        foreach($tables as $table_name){
+        foreach ($tables as $table_name) {
             \Schema::dropIfExists($table_name);
         }
     }

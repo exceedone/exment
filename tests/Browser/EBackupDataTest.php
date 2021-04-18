@@ -31,9 +31,9 @@ class EBackupDataTest extends ExmentKitTestCase
         $this->post('/admin/backup/setting', $data)
         ;
 
-        try{
+        try {
             !\ExmentDB::checkBackup();
-        }catch(BackupRestoreCheckException $ex){
+        } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
         }
@@ -55,9 +55,9 @@ class EBackupDataTest extends ExmentKitTestCase
      */
     public function testDisplayBackupData()
     {
-        try{
+        try {
             !\ExmentDB::checkBackup();
-        }catch(BackupRestoreCheckException $ex){
+        } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
         }
@@ -109,9 +109,9 @@ class EBackupDataTest extends ExmentKitTestCase
      */
     public function testBackupConfigSave()
     {
-        try{
+        try {
             !\ExmentDB::checkBackup();
-        }catch(BackupRestoreCheckException $ex){
+        } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
         }
@@ -161,9 +161,9 @@ class EBackupDataTest extends ExmentKitTestCase
      */
     public function testBackupNoTarget()
     {
-        try{
+        try {
             !\ExmentDB::checkBackup();
-        }catch(BackupRestoreCheckException $ex){
+        } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
         }
@@ -184,7 +184,7 @@ class EBackupDataTest extends ExmentKitTestCase
         
         // loop target
         $targets = BackupTarget::toArray();
-        foreach($targets as $target){
+        foreach ($targets as $target) {
             $func = in_array($target, $backup_target) ? 'seeElement' : 'dontSeeElement';
             $this->{$func}('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=' . $target . '][checked]');
         }
@@ -192,9 +192,9 @@ class EBackupDataTest extends ExmentKitTestCase
 
     protected function backupData()
     {
-        try{
+        try {
             !\ExmentDB::checkBackup();
-        }catch(BackupRestoreCheckException $ex){
+        } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
         }
@@ -217,9 +217,9 @@ class EBackupDataTest extends ExmentKitTestCase
 
     protected function restoreData()
     {
-        try{
+        try {
             !\ExmentDB::checkBackup();
-        }catch(BackupRestoreCheckException $ex){
+        } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
         }
@@ -252,7 +252,7 @@ class EBackupDataTest extends ExmentKitTestCase
             ];
         })
         ->sortBy('lastModified')
-        ->map(function($file){
+        ->map(function ($file) {
             return $file['name'];
         })->toArray();
 

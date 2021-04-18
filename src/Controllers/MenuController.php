@@ -224,7 +224,6 @@ class MenuController extends AdminControllerBase
         $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
         $form->icon('icon', trans('admin.icon'))->required()->default('');
         $form->hidden('order');
-        $form->setWidth(8, 3);
 
         $form->saving(function ($form) {
             // whether set order
@@ -425,6 +424,8 @@ class MenuController extends AdminControllerBase
             return System::permission_available();
         } elseif ($k == 'api_setting') {
             return System::api_available();
+        } elseif ($k == 'notify') {
+            return false;
         }
         
         return true;

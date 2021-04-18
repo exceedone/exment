@@ -26,25 +26,28 @@ trait TestTrait
         return $this;
     }
 
-    protected function assertMatch($value1, $value2){
+    protected function assertMatch($value1, $value2)
+    {
         return $this->_assertMatch($value1, $value2, true);
     }
 
 
     protected function assertMatchRegex(string $pattern, string $string, string $message = ''): void
     {
-        if(method_exists($this, 'assertMatchesRegularExpression')){
+        if (method_exists($this, 'assertMatchesRegularExpression')) {
             $this->assertMatchesRegularExpression($pattern, $string, $message);
             return;
         }
         $this->assertRegExp($pattern, $string, $message);
     }
 
-    protected function assertNotMatch($value1, $value2){
+    protected function assertNotMatch($value1, $value2)
+    {
         return $this->_assertMatch($value1, $value2, false);
     }
 
-    protected function _assertMatch($value1, $value2, bool $isTrue){
+    protected function _assertMatch($value1, $value2, bool $isTrue)
+    {
         $messageV1 = is_array($value1) ? json_encode($value1) : $value1;
         $messageV2 = is_array($value2) ? json_encode($value2) : $value2;
 
@@ -67,7 +70,7 @@ trait TestTrait
         $statusCode = $response->getStatusCode();
         $this->assertTrue(in_array($statusCode, [200, 302]), "Status code is {$statusCode}.");
 
-        if($statusCode == 302){
+        if ($statusCode == 302) {
             $this->assertMatch($response->getTargetUrl(), $expectUrl);
         }
     }
@@ -80,19 +83,18 @@ trait TestTrait
      * @param string $messsage showing message why this test is skipped.
      * @return void
      */
-    protected function skipTempTestIfTrue($skipMatch, string $messsage = null){
+    protected function skipTempTestIfTrue($skipMatch, string $messsage = null)
+    {
         $result = null;
-        if($skipMatch instanceof \Closure){
+        if ($skipMatch instanceof \Closure) {
             $result = $skipMatch();
-        }
-        elseif(is_bool($skipMatch)){
+        } elseif (is_bool($skipMatch)) {
             $result = $skipMatch;
-        }
-        else{
+        } else {
             throw new \Exception('skipTempTestIfTrue is only bool or Closure');
         }
 
-        if($result){
+        if ($result) {
             $this->markTestSkipped('This function is temporarily skipped. ' . $messsage);
         }
     }
@@ -103,7 +105,8 @@ trait TestTrait
      * @param string $messsage showing message why this test is skipped.
      * @return void
      */
-    protected function skipTempTest(string $messsage = null){
+    protected function skipTempTest(string $messsage = null)
+    {
         $this->markTestSkipped('This function is temporarily skipped. ' . $messsage);
     }
 
@@ -112,12 +115,13 @@ trait TestTrait
      *
      * @return void
      */
-    protected function initAllTest(){
+    protected function initAllTest()
+    {
         System::clearCache();
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
         \Exceedone\Exment\Middleware\ExmentDebug::handleLog();
         getModelName(SystemTableName::USER);
-        getModelName(SystemTableName::ORGANIZATION);        
+        getModelName(SystemTableName::ORGANIZATION);
     }
 
     
@@ -135,12 +139,12 @@ trait TestTrait
         $allIds = \DB::table(getDBTableName($custom_table))->select('id')->pluck('id');
         $query = $custom_table->getValueModel()->withoutGlobalScopes();
         
-        if($filterCallback){
+        if ($filterCallback) {
             $filterCallback($query);
         }
         $all_custom_values = $query->findMany($allIds);
         
-        foreach($all_custom_values as $all_custom_value){
+        foreach ($all_custom_values as $all_custom_value) {
             // if find target user ids, check has permisison
             $hasPermission = in_array($all_custom_value->id, $ids);
             $hasPermissionString = $hasPermission ? 'true' : 'false';
@@ -153,7 +157,7 @@ trait TestTrait
     protected function getTextDirPath() : string
     {
         $dir = storage_path('app/tests');
-        if(!\File::exists($dir)){
+        if (!\File::exists($dir)) {
             \File::makeDirectory($dir);
         }
 
@@ -166,17 +170,18 @@ trait TestTrait
 
         // create file
         $file = path_join($dir, $fileName);
-        if(!\File::exists($file)){
+        if (!\File::exists($file)) {
             \File::put($file, TestDefine::FILE_BASE64);
         }
         return $file;
     }
 
-    protected function getTextImagePath($imageName = 'image.png'){
+    protected function getTextImagePath($imageName = 'image.png')
+    {
         $dir = $this->getTextDirPath();
         // create file
         $file = path_join($dir, $imageName);
-        if(!\File::exists($file)){
+        if (!\File::exists($file)) {
             // convert to base64. This string is 1*1 rad color's image
             $f = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAANSURBVBhXY3gro/IfAAVUAi3GPZKdAAAAAElFTkSuQmCC');
             \File::put($file, $f);
@@ -197,13 +202,15 @@ trait TestTrait
     }
 
     
-    protected function callProtectedMethod($obj, $methodName, ...$args){
+    protected function callProtectedMethod($obj, $methodName, ...$args)
+    {
         $method = new \ReflectionMethod(get_class($obj), $methodName);
         $method->setAccessible(true);
         return $method->invoke($obj, ...$args);
     }
 
-    protected function callStaticProtectedMethod($className, $methodName, ...$args){
+    protected function callStaticProtectedMethod($className, $methodName, ...$args)
+    {
         $method = new \ReflectionMethod($className, $methodName);
         $method->setAccessible(true);
         return $method->invokeArgs(null, $args);

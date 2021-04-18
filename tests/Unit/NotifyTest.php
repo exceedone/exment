@@ -26,7 +26,7 @@ class NotifyTest extends UnitTestBase
         $this->initAllTest();
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
-        if($fake){
+        if ($fake) {
             Notification::fake();
             Notification::assertNothingSent();
         }
@@ -43,7 +43,7 @@ class NotifyTest extends UnitTestBase
             'subject' => $subject,
             'body' => $body,
             'to' => $to,
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == $to) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -61,7 +61,7 @@ class NotifyTest extends UnitTestBase
         $this->_testNotifyMail([
             'mail_template' => $mail_template,
             'to' => $to,
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == $to) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -83,7 +83,7 @@ class NotifyTest extends UnitTestBase
                 'prms1' => 'AAA',
                 'prms2' => 'BBB',
             ],
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == $to) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -100,7 +100,7 @@ class NotifyTest extends UnitTestBase
             'subject' => $subject,
             'body' => $body,
             'to' => $to,
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == arrayToString($to)) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -117,7 +117,7 @@ class NotifyTest extends UnitTestBase
             'subject' => $subject,
             'body' => $body,
             'to' => $to,
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == arrayToString(NotifyService::getAddresses($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -134,7 +134,7 @@ class NotifyTest extends UnitTestBase
             'subject' => $subject,
             'body' => $body,
             'to' => $to,
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == arrayToString(NotifyService::getAddresses($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -151,7 +151,7 @@ class NotifyTest extends UnitTestBase
             'subject' => $subject,
             'body' => $body,
             'to' => $to,
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == arrayToString(NotifyService::getAddresses($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -168,7 +168,7 @@ class NotifyTest extends UnitTestBase
             'subject' => $subject,
             'body' => $body,
             'to' => $to,
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == arrayToString(NotifyService::getAddresses($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -188,7 +188,7 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'to' => $to,
             'disableHistoryBody' => true,
-        ], function($notifiable) use($to, $subject, $body) {
+        ], function ($notifiable) use ($to, $subject, $body) {
             return ($notifiable->getTo() == arrayToString(NotifyService::getAddresses($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
@@ -208,7 +208,7 @@ class NotifyTest extends UnitTestBase
         // get file
         $file = Model\File::whereNotNull('parent_id')->whereNotNull('parent_type')
             ->first();
-        if(!$file){
+        if (!$file) {
             return;
         }
 
@@ -217,12 +217,12 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'to' => $to,
             'attach_files' => [$file],
-        ], function($notifiable) use($to, $subject, $body, $file) {
-            if(($notifiable->getTo() != $to) ||
+        ], function ($notifiable) use ($to, $subject, $body, $file) {
+            if (($notifiable->getTo() != $to) ||
                 ($notifiable->getSubject() != $subject) ||
-                ($notifiable->getBody() != $body)){
-                    return false;
-                };
+                ($notifiable->getBody() != $body)) {
+                return false;
+            };
 
             return count($notifiable->getAttachments()) == 1 && $notifiable->getAttachments()[0]->filename == $file->filename;
         });
@@ -243,12 +243,15 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
         ]);
 
-        Notification::assertSentTo($notifiable, Jobs\SlackSendJob::class, 
-            function($notification, $channels, $notifiable) use($webhook_url, $subject, $body) {
+        Notification::assertSentTo(
+            $notifiable,
+            Jobs\SlackSendJob::class,
+            function ($notification, $channels, $notifiable) use ($webhook_url, $subject, $body) {
                 return ($notifiable->getWebhookUrl() == $webhook_url) &&
                     ($notifiable->getSubject() == $subject) &&
                     ($notifiable->getBody() == $body);
-            });
+            }
+        );
     }
 
 
@@ -266,12 +269,15 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
         ]);
 
-        Notification::assertSentTo($notifiable, Jobs\MicrosoftTeamsJob::class, 
-            function($notification, $channels, $notifiable) use($webhook_url, $subject, $body) {
+        Notification::assertSentTo(
+            $notifiable,
+            Jobs\MicrosoftTeamsJob::class,
+            function ($notification, $channels, $notifiable) use ($webhook_url, $subject, $body) {
                 return ($notifiable->getWebhookUrl() == $webhook_url) &&
                     ($notifiable->getSubject() == $subject) &&
                     ($notifiable->getBody() == $body);
-            });
+            }
+        );
     }
 
     public function testNotifyNavbar()
@@ -329,7 +335,7 @@ class NotifyTest extends UnitTestBase
         $user = \Exment::user()->base_user;
 
         $notify = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)->first();
-        $custom_table = CustomTable::find($notify->custom_table_id);
+        $custom_table = CustomTable::find($notify->target_id);
         $custom_value = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user->id)->first();
         $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
@@ -368,12 +374,15 @@ class NotifyTest extends UnitTestBase
             'to' => TestDefine::TESTDATA_DUMMY_EMAIL,
         ]);
 
-        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-            function($notification, $channels, $notifiable) {
+        Notification::assertSentTo(
+            $notifiable,
+            Jobs\MailSendJob::class,
+            function ($notification, $channels, $notifiable) {
                 return ($notifiable->getTo() == TestDefine::TESTDATA_DUMMY_EMAIL) &&
                     ($notifiable->getSubject() == 'Exment TestMail') &&
                     ($notifiable->getBody() == 'Exment TestMail');
-            });
+            }
+        );
     }
 
 
@@ -384,10 +393,13 @@ class NotifyTest extends UnitTestBase
 
         $notifiable = NotifyService::notifyMail($params);
 
-        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-            function($notification, $channels, $notifiable) use($checkCallback) {
+        Notification::assertSentTo(
+            $notifiable,
+            Jobs\MailSendJob::class,
+            function ($notification, $channels, $notifiable) use ($checkCallback) {
                 return $checkCallback($notifiable);
-            });
+            }
+        );
     }
 
     // Notify target test ----------------------------------------------------
@@ -395,14 +407,25 @@ class NotifyTest extends UnitTestBase
     /**
      * @return void
      */
+    public function testNotifyTargetAdministrator()
+    {
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::ADMINISTRATOR, function ($targets, $custom_value) {
+            $user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+            $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
+            $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
+        });
+    }
+
+    /**
+     * @return void
+     */
     public function testNotifyTargetCreatedUser()
     {
-        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::CREATED_USER, function($targets, $custom_value){
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::CREATED_USER, function ($targets, $custom_value) {
             $user = CustomTable::getEloquent('user')->getValueModel($custom_value->created_user_id);
             $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
             $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
         });
-
     }
 
 
@@ -411,17 +434,17 @@ class NotifyTest extends UnitTestBase
      */
     public function testNotifyTargetHasRoles()
     {
-        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::HAS_ROLES, function($targets, $custom_value){
-            $users = $this->callStaticProtectedMethod(NotifyTarget::class, 'getModelsAsRole', $custom_value);
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::HAS_ROLES, function ($targets, $custom_value) {
+            $users = NotifyTarget::getModelsAsRole($custom_value);
             $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
 
-            foreach($users as $user){
-                $this->assertTrue(collect($targets)->contains(function($target) use($user){
+            foreach ($users as $user) {
+                $this->assertTrue(collect($targets)->contains(function ($target) use ($user) {
                     return isMatchString($user->email(), $target->email());
                 }));
             }
-            foreach($targets as $target){
-                $this->assertTrue(collect($users)->contains(function($user) use($target){
+            foreach ($targets as $target) {
+                $this->assertTrue(collect($users)->contains(function ($user) use ($target) {
                     return isMatchString($user->email(), $target->email());
                 }));
             }
@@ -432,15 +455,15 @@ class NotifyTest extends UnitTestBase
     /**
      * @return void
      */
-    public function testNotifyTargetEmail()
+    public function testNotifyTargetEmailColumn()
     {
         // get email column
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        $email_column = $custom_table->custom_columns_cache->first(function($custom_column){
+        $email_column = $custom_table->custom_columns_cache->first(function ($custom_column) {
             return $custom_column->column_type == 'email';
         });
 
-        $this->_testNotifyTarget($custom_table, $email_column, function($targets, $custom_value) use($email_column){
+        $this->_testNotifyTarget($custom_table, $email_column, function ($targets, $custom_value) use ($email_column) {
             $email = $custom_value->getValue($email_column);
             $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
             $this->assertTrue(isMatchString($email, $targets[0]->email()), 'Expects  email is ' . $email . ' , but result is ' . $targets[0]->email());
@@ -455,18 +478,17 @@ class NotifyTest extends UnitTestBase
     {
         // get email column
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        $user_column = $custom_table->custom_columns_cache->first(function($custom_column){
+        $user_column = $custom_table->custom_columns_cache->first(function ($custom_column) {
             return $custom_column->column_type == ColumnType::USER && !($custom_column->getOption('multiple_enabled') ?? false);
         });
 
-        $this->_testNotifyTarget($custom_table, $user_column, function($targets, $custom_value) use($user_column){
+        $this->_testNotifyTarget($custom_table, $user_column, function ($targets, $custom_value) use ($user_column) {
             $user = $custom_value->getValue($user_column);
-            if(isset($user)){
+            if (isset($user)) {
                 $email = $user->getValue('email');
                 $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
                 $this->assertTrue(isMatchString($email, $targets[0]->email()), 'Expects  email is ' . $email . ' , but result is ' . $targets[0]->email());
-            }
-            else{
+            } else {
                 $this->assertTrue(count($targets) == 0, 'count expects 0, but count is ' . count($targets));
             }
         });
@@ -480,21 +502,21 @@ class NotifyTest extends UnitTestBase
     {
         // get email column
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        $org_column = $custom_table->custom_columns_cache->first(function($custom_column){
+        $org_column = $custom_table->custom_columns_cache->first(function ($custom_column) {
             return $custom_column->column_type == ColumnType::ORGANIZATION && !($custom_column->getOption('multiple_enabled') ?? false);
         });
 
-        $this->_testNotifyTarget($custom_table, $org_column, function($targets, $custom_value) use($org_column){
+        $this->_testNotifyTarget($custom_table, $org_column, function ($targets, $custom_value) use ($org_column) {
             $org = $custom_value->getValue($org_column);
             $users = $org->users;
 
-            foreach($users as $user){
-                $this->assertTrue(collect($targets)->contains(function($target) use($user){
+            foreach ($users as $user) {
+                $this->assertTrue(collect($targets)->contains(function ($target) use ($user) {
                     return isMatchString($user->getValue('email'), $target->email());
                 }));
             }
-            foreach($targets as $target){
-                $this->assertTrue(collect($users)->contains(function($user) use($target){
+            foreach ($targets as $target) {
+                $this->assertTrue(collect($users)->contains(function ($user) use ($target) {
                     return isMatchString($user->getValue('email'), $target->email());
                 }));
             }
@@ -510,11 +532,11 @@ class NotifyTest extends UnitTestBase
     {
         // get email column
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        $select_table_column = $custom_table->custom_columns_cache->first(function($custom_column){
+        $select_table_column = $custom_table->custom_columns_cache->first(function ($custom_column) {
             return $custom_column->column_name == 'select_table_2';
         });
 
-        $this->_testNotifyTarget($custom_table, $select_table_column, function($targets, $custom_value) use($select_table_column){
+        $this->_testNotifyTarget($custom_table, $select_table_column, function ($targets, $custom_value) use ($select_table_column) {
             $select_table_value = $custom_value->getValue($select_table_column);
             $email = $select_table_value->getValue('email');
 
@@ -524,26 +546,70 @@ class NotifyTest extends UnitTestBase
     }
 
     
+    /**
+     * @return void
+     */
+    public function testNotifyTargetFixedEmail()
+    {
+        $this->_testNotifyTargetFixedEmail([TestDefine::TESTDATA_DUMMY_EMAIL], [NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL)]);
+    }
+
+    
+    /**
+     * @return void
+     */
+    public function testNotifyTargetFixedEmail2()
+    {
+        $this->_testNotifyTargetFixedEmail([TestDefine::TESTDATA_DUMMY_EMAIL, TestDefine::TESTDATA_DUMMY_EMAIL2], [NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL), NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL2)]);
+    }
+
+    
+    /**
+     * @return void
+     */
+    public function testNotifyTargetFixedEmail3()
+    {
+        $this->_testNotifyTargetFixedEmail(TestDefine::TESTDATA_DUMMY_EMAIL . ',' . TestDefine::TESTDATA_DUMMY_EMAIL2, [NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL), NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL2)]);
+    }
+
 
     /**
      * @return void
      */
-    protected function _testNotifyTarget(CustomTable $custom_table, $notify_action_target, \Closure $checkCallback)
+    protected function _testNotifyTargetFixedEmail($target_emails, array $exceptUsers)
+    {
+        $users = $exceptUsers;
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::FIXED_EMAIL, function ($targets, $custom_value) use ($users) {
+            $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
+
+            foreach ($users as $user) {
+                $this->assertTrue(collect($targets)->contains(function ($target) use ($user) {
+                    return isMatchString($user->email(), $target->email());
+                }));
+            }
+            foreach ($targets as $target) {
+                $this->assertTrue(collect($users)->contains(function ($user) use ($target) {
+                    return isMatchString($user->email(), $target->email());
+                }));
+            }
+        }, ['target_emails' => $target_emails]);
+    }
+
+    
+
+
+    /**
+     * @return void
+     */
+    protected function _testNotifyTarget(CustomTable $custom_table, $notify_action_target, \Closure $checkCallback, array $action_setting = [])
     {
         $this->init(true);
 
-        foreach([2, 1, 10] as $id){
+        foreach ([2, 1, 10] as $id) {
             $custom_value = $custom_table->getValueModel($id);
-            $targets = NotifyTarget::getModels(new Notify, $custom_value, $notify_action_target);
+            $targets = NotifyTarget::getModels(new Notify, $custom_value, $notify_action_target, $action_setting);
             
             $checkCallback($targets, $custom_value);
         }
     }
-
-
-
-
-
-
-
 }

@@ -21,7 +21,6 @@ use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\PluginTestTrait;
 
-
 class PluginTest extends TestCase
 {
     use TestTrait, PluginTestTrait, DatabaseTransactions;

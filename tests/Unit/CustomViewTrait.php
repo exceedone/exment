@@ -1,5 +1,6 @@
 <?php
 namespace Exceedone\Exment\Tests\Unit;
+
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -34,7 +35,7 @@ trait CustomViewTrait
                 'filter_settings' => [],
                 'column_settings' => [],
                 'summary_settings' => [],
-            ], 
+            ],
             $options
         );
         $login_user_id = array_get($options, 'login_user_id');
@@ -58,22 +59,24 @@ trait CustomViewTrait
             'options' => ['condition_join' => $condition_join?? 'and'],
         ]);
 
-        foreach ($column_settings as $index => $column_setting)
-        {
+        foreach ($column_settings as $index => $column_setting) {
             $custom_view_column = CustomViewColumn::create($this->getViewColumnInfo(
-                $custom_table, $custom_view, $column_setting, $index
+                $custom_table,
+                $custom_view,
+                $column_setting,
+                $index
             ));
         }
 
-        foreach ($summary_settings as $summary_setting)
-        {
+        foreach ($summary_settings as $summary_setting) {
             $custom_view_summary = CustomViewSummary::create($this->getViewSummaryInfo(
-                $custom_table, $custom_view, $summary_setting
+                $custom_table,
+                $custom_view,
+                $summary_setting
             ));
         }
 
-        foreach ($filter_settings as $filter_setting)
-        {
+        foreach ($filter_settings as $filter_setting) {
             $custom_view_filter = CustomViewFilter::create([
                 'custom_view_id' => $custom_view->id,
                 'view_column_type' => $filter_setting['condition_type'] ?? ConditionType::COLUMN,
@@ -85,12 +88,12 @@ trait CustomViewTrait
             ]);
         }
 
-        $query = $custom_table->getValueModel()->query();
+        $query = $custom_table->getValueQuery();
         if ($view_kind_type == ViewKindType::AGGREGATE) {
             $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
             $data = $grid->getQuery($query)->get();
         } else {
-            $custom_view->filterModel($query);
+            $custom_view->filterSortModel($query);
             if ($get_count) {
                 $data = $query->count();
             } else {

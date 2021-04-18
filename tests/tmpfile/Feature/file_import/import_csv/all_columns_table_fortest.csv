@@ -1,0 +1,4 @@
+﻿id,column_name,file_name,display_file_name
+ID,カスタム列,添付ファイル名,添付ファイル名（画面表示）
+52,file,testdata.txt,test.txt
+52,image,testdata.png,test.png

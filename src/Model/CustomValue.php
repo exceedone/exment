@@ -649,7 +649,7 @@ abstract class CustomValue extends ModelBase
                     continue;
                 }
 
-                $file->saveCustomValueAndColumn(array_get($value, 'id'), array_get($uuid, 'column_name'), array_get($uuid, 'custom_table'));
+                $file->saveCustomValueAndColumn(array_get($value, 'id'), array_get($uuid, 'column_name'), array_get($uuid, 'custom_table'), array_get($uuid, 'replace'));
                 $uuid['setted'] = true;
             }
             System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $uuids);
@@ -703,16 +703,18 @@ abstract class CustomValue extends ModelBase
             ->filter(function ($custom_column) {
                 return ColumnType::isAttachment($custom_column);
             })->each(function ($custom_column) {
-                $value = array_get($this->value, $custom_column->column_name);
-                if (!$value) {
+                $values = array_get($this->value, $custom_column->column_name);
+                if (!$values) {
                     return;
                 }
 
-                $file = File::getData($value);
-                if (!$file) {
-                    return;
+                foreach (toArray($values) as $value) {
+                    $file = File::getData($value);
+                    if (!$file) {
+                        continue;
+                    }
+                    File::deleteFileInfo($file);
                 }
-                File::deleteFileInfo($file);
             });
 
 
@@ -1385,9 +1387,8 @@ abstract class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
         $searchColumns = $options['searchColumns'];
 
-
         // if search and not has searchColumns, return null;
-        if ($options['executeSearch'] && empty($searchColumns)) {
+        if ($options['executeSearch'] && is_nullorempty($searchColumns)) {
             // return no value if searchColumns is not has
             return static::query()->whereNotMatch();
         }
@@ -1434,7 +1435,7 @@ abstract class CustomValue extends ModelBase
 
                 // set custom view's filter
                 if (isset($options['target_view'])) {
-                    $options['target_view']->filterModel($query, ['sort' => false]);
+                    $options['target_view']->filterModel($query); // sort is false.
                 }
             }
 
@@ -1482,6 +1483,10 @@ abstract class CustomValue extends ModelBase
 
         $query->where(function ($query) use ($options, $q) {
             $searchColumns = collect($options['searchColumns']);
+            if (is_nullorempty($searchColumns)) {
+                $query->whereNotMatch();
+            }
+
             for ($i = 0; $i < count($searchColumns); $i++) {
                 $searchColumn = $searchColumns->values()->get($i);
 

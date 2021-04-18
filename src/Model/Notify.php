@@ -7,12 +7,20 @@ use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
 
+/**
+ * Notify user.
+ *
+ * *Now disable these params.
+ * - custom_table_id to target_id
+ * - workflow_id to target_id
+ * - notify_actions to action_settings
+ */
 class Notify extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
@@ -25,7 +33,11 @@ class Notify extends ModelBase
     
     public function custom_table()
     {
-        return $this->belongsTo(CustomTable::class, 'custom_table_id');
+        if (!in_array($this->notify_trigger, NotifyTrigger::CUSTOM_TABLES())) {
+            return null;
+        }
+        return $this->belongsTo(CustomTable::class, 'target_id')
+            ;
     }
     
     public function custom_view()
@@ -137,18 +149,11 @@ class Notify extends ModelBase
      */
     public function notifyCreateUpdateUser($custom_value, $notifySavedType, $options = [])
     {
-        $options = array_merge(
-            [
-                'targetUserOrgs' => null,
-                'comment' => null,
-                'attachment' => null,
-            ],
-            $options
-        );
-
         if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
             return;
         }
+
+        $notifySavedType = NotifySavedType::getEnum($notifySavedType);
 
         // check trigger
         $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
@@ -156,9 +161,34 @@ class Notify extends ModelBase
             return;
         }
 
-        $notifySavedType = NotifySavedType::getEnum($notifySavedType);
+        $prms = [
+            'target_user' => $notifySavedType->getTargetUserName($custom_value),
+            'create_or_update' => $notifySavedType->getLabel(),
+        ];
+        $options['prms'] = $prms;
 
-        $custom_table = $custom_value->custom_table;
+        return $this->notifyUser($custom_value, $options);
+    }
+    
+    /**
+     * notify target user.
+     * *Contains Comment, share
+     */
+    public function notifyUser($custom_value, $options = [])
+    {
+        $options = array_merge(
+            [
+                'targetUserOrgs' => null,
+                'comment' => null,
+                'attachment' => null,
+                'prms' => [],
+                'custom_table' => null, // Set custom table if custom value is null.
+            ],
+            $options
+        );
+        $prms = $options['prms'];
+
+        $custom_table = $options['custom_table'] ?? $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
 
@@ -170,19 +200,17 @@ class Notify extends ModelBase
             $freeSpace = exmtrans('common.attachment') . ":" . $options['attachment'];
         }
 
-        $prms = [
+        $prms = array_merge([
             'notify' => $this,
-            'target_user' => $notifySavedType->getTargetUserName($custom_value),
             'target_table' => $custom_table->table_view_name ?? null,
             'target_datetime' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
-            'create_or_update' => $notifySavedType->getLabel(),
             'free_space' => $freeSpace,
-        ];
+        ], $prms);
 
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
             if (!isset($options['targetUserOrgs'])) {
-                $users = $this->getNotifyTargetUsers($custom_value, $action_setting);
+                $users = $this->getNotifyTargetUsers($custom_value, $action_setting, $custom_table);
             } else {
                 $users = [];
                 foreach ($options['targetUserOrgs'] as $targetUserOrg) {
@@ -206,6 +234,7 @@ class Notify extends ModelBase
                 NotifyService::executeNotifyAction($this, [
                     'mail_template' => $mail_template,
                     'prms' => $prms,
+                    'custom_table' => $custom_table,
                     'custom_value' => $custom_value,
                     'mention_here' => $this->getMentionHere($action_setting),
                     'mention_users' => $this->getMentionUsers($users),
@@ -232,6 +261,7 @@ class Notify extends ModelBase
                         'mail_template' => $mail_template,
                         'prms' => array_merge(['user' => $user->toArray()], $prms),
                         'user' => $user,
+                        'custom_table' => $custom_table,
                         'custom_value' => $custom_value,
                         'action_setting' => $action_setting,
                     ]);
@@ -251,55 +281,18 @@ class Notify extends ModelBase
      * notify workflow
      * *Contains Comment, share
      */
-    public function notifyWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo)
+    public function notifyWorkflow(CustomValue $custom_value, WorkflowAction $workflow_action, WorkflowValue $workflow_value, $statusTo)
     {
         $workflow = $workflow_action->workflow_cache;
 
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
-            $users = collect();
-            $notify_action_target = array_get($action_setting, 'notify_action_target', []);
-        
-            if (in_array(NotifyActionTarget::CREATED_USER, $notify_action_target)) {
-                $created_user = $custom_value->created_user_value;
-                $users = $users->merge(collect([$created_user]));
-            }
-    
-            if (in_array(NotifyActionTarget::WORK_USER, $notify_action_target)) {
-                // if this workflow is completed
-                if (!isset($workflow_value) || !$workflow_value->isCompleted()) {
-                    WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
-                    ->each(function ($workflow_action) use (&$users, $custom_value) {
-                        $users = $users->merge($workflow_action->getAuthorityTargets($custom_value, true));
-                    });
-                }
-            }
-    
-            $loginuser = \Exment::user();
-            $users = $users->unique()->filter(function ($user) use ($loginuser) {
-                if (is_nullorempty($loginuser)) {
-                    return true;
-                }
-                if ($this->isNotifyMyself()) {
-                    return true;
-                }
-                if ($loginuser->getUserId() != $user->getUserId()) {
-                    return true;
-                }
-                return false;
-            });
-    
-            // convert as NotifyTarget
-            $users = $users->map(function ($user) {
-                return NotifyTarget::getModelAsUser($user);
-            });
-    
+            $users = $this->getNotifyTargetUsersWorkflow($custom_value, $action_setting, $workflow_action, $workflow_value, $statusTo);
             $mail_template = $this->getMailTemplate();
     
             $prms = [
                 'notify' => $this,
             ];
-    
             if (NotifyAction::isChatMessage($action_setting)) {
                 // send slack message
                 NotifyService::executeNotifyAction($this, [
@@ -365,7 +358,7 @@ class Notify extends ModelBase
         if (isset($custom_view_id)) {
             $custom_view = CustomView::getEloquent($custom_view_id);
             if (isset($custom_view)) {
-                $query = $custom_value->custom_table->getValueModel()->query();
+                $query = $custom_value->custom_table->getValueQuery();
                 return $custom_view->setValueFilters($query)->where('id', $custom_value->id)->exists();
             }
         }
@@ -474,7 +467,7 @@ class Notify extends ModelBase
 
         // find data. where equal target_date
         if (isset($this->custom_view_id)) {
-            $datalist = $this->custom_view->setValueFilters($table->getValueModel()->query())
+            $datalist = $this->custom_view->setValueFilters($table->getValueQuery())
                 ->whereRaw("$raw = ?", [$target_date_str])->get();
         } else {
             $datalist = getModelName($table)::whereRaw("$raw = ?", [$target_date_str])->get();
@@ -490,7 +483,7 @@ class Notify extends ModelBase
      * @param array $action_setting
      * @return array
      */
-    public function getNotifyTargetUsers($custom_value, array $action_setting)
+    public function getNotifyTargetUsers($custom_value, array $action_setting, ?CustomTable $custom_table = null)
     {
         $notify_action_target = array_get($action_setting, 'notify_action_target');
         if (!isset($notify_action_target)) {
@@ -500,11 +493,57 @@ class Notify extends ModelBase
         // loop
         $values = collect([]);
         foreach (stringToArray($notify_action_target) as $notify_act) {
-            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act);
+            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act, $action_setting, $custom_table);
             foreach ($values_inner as $u) {
                 $values->push($u);
             }
         }
+
+        return $values;
+    }
+
+
+    /**
+     * get notify target users for workflow
+     *
+     * @param CustomValue $custom_value target custom value
+     * @param array $action_setting
+     * @return array
+     */
+    public function getNotifyTargetUsersWorkflow(CustomValue $custom_value, array $action_setting, WorkflowAction $workflow_action, WorkflowValue $workflow_value, $statusTo)
+    {
+        $notify_action_target = array_get($action_setting, 'notify_action_target');
+        if (!isset($notify_action_target)) {
+            return [];
+        }
+
+        // loop
+        $values = collect();
+        foreach (stringToArray($notify_action_target) as $notify_act) {
+            $notifyTarget = NotifyTargetBase::make($notify_act, $this, $action_setting);
+            if (!$notifyTarget) {
+                continue;
+            }
+
+            $values_inner = $notifyTarget->getModelsWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo);
+            foreach ($values_inner as $u) {
+                $values->push($u);
+            }
+        }
+        
+        $loginuser = \Exment::user();
+        $values = $values->unique()->filter(function ($value) use ($loginuser) {
+            if (is_nullorempty($loginuser)) {
+                return true;
+            }
+            if ($this->isNotifyMyself()) {
+                return true;
+            }
+            if ($loginuser->getUserId() != $value->getUserId()) {
+                return true;
+            }
+            return false;
+        });
 
         return $values;
     }
@@ -526,7 +565,7 @@ class Notify extends ModelBase
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
         // if already send notify in 1 minutes, continue.
-        if ($checkHistory) {
+        if ($checkHistory && $custom_value) {
             $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
             $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
@@ -584,8 +623,9 @@ class Notify extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
-            if (is_null($model->custom_table_id)) {
-                $model->custom_table_id = 0;
+            // set custom_table_id because cannot null.
+            if (is_null(array_get($model->attributes, 'custom_table_id'))) {
+                $model->attributes['custom_table_id'] = 0;
             }
         });
     }

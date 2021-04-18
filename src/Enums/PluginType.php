@@ -38,9 +38,10 @@ class PluginType extends EnumBase
     public const EXPORT = '10';
     public const BUTTON = '11';
     public const EVENT = '12';
+    public const VIEW = '13';
     
     /**
-     *
+     * Plugin type. Can call from endpoint.
      * @return array
      */
     public static function PLUGIN_TYPE_PUBLIC_CLASS()
@@ -51,11 +52,12 @@ class PluginType extends EnumBase
             static::SCRIPT,
             static::STYLE,
             static::API,
+            static::VIEW,
         ];
     }
 
     /**
-     *
+     * plugin page types. Needs Page's endpoint.
      * @return array
      */
     public static function PLUGIN_TYPE_PLUGIN_PAGE()
@@ -64,11 +66,27 @@ class PluginType extends EnumBase
             static::PAGE,
             static::DASHBOARD,
             static::API,
+            static::VIEW,
         ];
     }
 
     /**
-     *
+     * Get plugin scripts and styles. Needs script and css endpoint, and read public file.
+     * @return array
+     */
+    public static function PLUGIN_TYPE_SCRIPT_STYLE()
+    {
+        return [
+            static::PAGE,
+            static::DASHBOARD,
+            static::SCRIPT,
+            static::STYLE,
+            static::VIEW,
+        ];
+    }
+
+    /**
+     * plugin types. Can read resource view.
      * @return array
      */
     public static function PLUGIN_TYPE_PLUGIN_USE_VIEW()
@@ -77,6 +95,7 @@ class PluginType extends EnumBase
             static::PAGE,
             static::DASHBOARD,
             static::BUTTON,
+            static::VIEW,
         ];
     }
 
@@ -94,6 +113,7 @@ class PluginType extends EnumBase
             static::VALIDATOR,
             static::EVENT,
             static::BUTTON,
+            static::VIEW,
         ];
     }
 
@@ -175,18 +195,15 @@ class PluginType extends EnumBase
             'as_setting' => false,
         ], $options);
 
-        // get class short name.
-        $classShortName = static::getPluginClassShortName($plugin_type, $plugin, $options);
-
-        $classname = $plugin->getNameSpace($classShortName);
-        $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
+        // get class name.
+        $classname = static::getPluginClassName($plugin_type, $plugin, $options);
     
-        if (\File::exists($fuleFullPath) && class_exists($classname)) {
+        if (!is_null($classname)) {
             // if only one record, set $plugin_type
             if (count($plugin->plugin_types) == 1) {
                 $plugin_type = $plugin->plugin_types[0];
             }
-            // else if as settingm return as setting class
+            // else if as setting return as setting class
             elseif (boolval($options['as_setting'])) {
                 return new $classname($plugin);
             }
@@ -220,6 +237,8 @@ class PluginType extends EnumBase
                 case PluginType::VALIDATOR:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, $options);
+                case PluginType::VIEW:
+                    return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'custom_view'));
             }
         }
 
@@ -230,6 +249,46 @@ class PluginType extends EnumBase
             case PluginType::SCRIPT:
             case PluginType::STYLE:
                 return new PluginPublicDefault($plugin);
+        }
+
+        return null;
+    }
+
+    
+    /**
+     * Get plugin class name
+     *
+     * @param mixed $plugin_type
+     * @param array $options
+     * @return ?string
+     */
+    public static function getPluginClassName($plugin_type, $plugin, $options = []) : ?string
+    {
+        $options = array_merge([
+            'custom_table' => null,
+            'custom_value' => null,
+            'dashboard_box' => null,
+            'id' => null,
+            'as_setting' => false,
+        ], $options);
+
+        // get class short name.
+        $classShortName = static::getPluginClassShortName($plugin_type, $plugin, $options);
+
+        $classname = $plugin->getNameSpace($classShortName);
+        $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
+    
+        if (\File::exists($fuleFullPath) && class_exists($classname)) {
+            return $classname;
+        }
+
+        // set default class
+        switch ($plugin_type) {
+            case PluginType::DOCUMENT:
+                return PluginDocumentDefault::class;
+            case PluginType::SCRIPT:
+            case PluginType::STYLE:
+                return PluginPublicDefault::class;
         }
 
         return null;

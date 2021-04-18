@@ -571,7 +571,7 @@ HTML;
         $notify = new Notify;
         $notify->notify_view_name = exmtrans('notify.notify_trigger_options.create_update_data');
         $notify->notify_trigger = NotifyTrigger::CREATE_UPDATE_DATA;
-        $notify->custom_table_id = $model->id;
+        $notify->target_id = $model->id;
         $notify->mail_template_id = $mail_template_id;
         $notify->trigger_settings = [
             'notify_saved_trigger' =>  NotifySavedType::arrays()

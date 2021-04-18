@@ -50,7 +50,7 @@ class DefaultGrid extends GridBase
             $this->gridFilterForModal($grid, $this->callback);
         } else {
             // filter
-            $this->custom_view->filterModel($grid->model(), ['callback' => $this->callback]);
+            $this->custom_view->filterSortModel($grid->model(), ['callback' => $this->callback]);
         }
 
         // get search_enabled_columns and loop
@@ -98,7 +98,7 @@ class DefaultGrid extends GridBase
     public function getQuery($query, array $options = [])
     {
         // Now only execute filter Model
-        return $this->custom_view->filterModel($query, $options);
+        return $this->custom_view->filterSortModel($query, $options);
     }
 
 
@@ -135,7 +135,7 @@ class DefaultGrid extends GridBase
                         return '';
                     }
                     return $item->setCustomValue($this)->html();
-                });
+                })->escape(false);
         }
 
         // set parpage
@@ -167,7 +167,7 @@ class DefaultGrid extends GridBase
 
         // filter using modal_target_view, and display table
         if (isset($modal_target_view)) {
-            $modal_target_view->filterModel($grid->model(), ['callback' => $filter_func]);
+            $modal_target_view->filterSortModel($grid->model(), ['callback' => $filter_func]);
         }
 
         // filter display table
@@ -654,7 +654,7 @@ class DefaultGrid extends GridBase
         $target_column_multiple = request()->get('target_column_multiple') ?? (isset($custom_column) ? boolval($custom_column->getOption('multiple_enabled')) : false);
         $widgetmodal_uuid = request()->get('widgetmodal_uuid');
 
-        $items = $this->custom_table->getValueModel()->query()->whereOrIn('id', stringToArray(request()->get('selected_items')))->get();
+        $items = $this->custom_table->getValueQuery()->whereOrIn('id', stringToArray(request()->get('selected_items')))->get();
 
         $url = request()->fullUrl() . '&modal=1';
         return getAjaxResponse([
@@ -709,7 +709,7 @@ class DefaultGrid extends GridBase
                 'label' => exmtrans('common.append_to_selectitem'),
                 'target_selectitem' => 'select',
             ])->render();
-        });
+        })->escape(false);
     }
 
     /**
@@ -719,7 +719,7 @@ class DefaultGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
-    public static function setViewForm($view_kind_type, $form, $custom_table)
+    public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
             $form->select('pager_count', exmtrans("common.pager_count"))
@@ -729,21 +729,11 @@ class DefaultGrid extends GridBase
                 ->default(0);
         }
 
-        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        // column setting
         if ($view_kind_type != Enums\ViewKindType::FILTER) {
-            // columns setting
-            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
-                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($custom_table->getColumnsSelectOptions([
-                        'append_table' => true,
-                        'include_parent' => true,
-                        'include_workflow' => true,
-                    ]));
-                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-                $form->hidden('order')->default(0);
-            })->required()->setTableColumnWidth(7, 3, 2)
-            ->rowUpDown('order', 10)
-            ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
+            static::setViewInfoboxFields($form);
+
+            static::setColumnFields($form, $custom_table);
         }
 
         // filter setting
@@ -751,20 +741,6 @@ class DefaultGrid extends GridBase
             static::setFilterFields($form, $custom_table);
         }
 
-        // sort setting
-        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-            ->options($custom_table->getColumnsSelectOptions([
-                'append_table' => true,
-                'index_enabled_only' => true,
-            ]));
-            $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
-                ->required()
-                ->default(1)
-                ->help(exmtrans('custom_view.help.sort_type'));
-            $form->hidden('priority')->default(0);
-        })->setTableColumnWidth(7, 3, 2)
-        ->rowUpDown('priority')
-        ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
+        static::setSortFields($form, $custom_table);
     }
 }

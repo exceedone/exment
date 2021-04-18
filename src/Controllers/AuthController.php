@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
@@ -283,7 +284,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 ->removable()
                 ->help(array_get($fileOption, 'maxFileSizeHelp'))
                 ->name(function ($file, $field) {
-                    $exmentfile = ExmentFile::saveFileInfo($field->getDirectory(), $file->getClientOriginalName());
+                    $exmentfile = ExmentFile::saveFileInfo(FileType::AVATAR, $field->getDirectory(), [
+                        'filename' => $file->getClientOriginalName(),
+                    ]);
                     return $exmentfile->local_filename;
                 });
 

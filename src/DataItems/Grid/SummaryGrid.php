@@ -436,7 +436,7 @@ class SummaryGrid extends GridBase
                 } else {
                     return $item->setCustomValue($custom_value)->html();
                 }
-            });
+            })->escape(false);
         }
     }
 
@@ -567,8 +567,10 @@ class SummaryGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
-    public static function setViewForm($view_kind_type, $form, $custom_table)
+    public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
+        static::setViewInfoboxFields($form);
+
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         
         // group columns setting

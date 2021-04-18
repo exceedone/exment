@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\DashboardType;
@@ -30,6 +31,7 @@ class TemplateExporter
         $options = array_merge([
             'export_target' => [],
             'target_tables' => [],
+            'zip_name' => null,
         ], $options);
 
         // set config info
@@ -77,7 +79,7 @@ class TemplateExporter
             File::deleteDirectory($thumbnail_dirpath);
         }
         // create response
-        $filename = $template_name.'.zip';
+        $filename = ($options['zip_name'] ?? $template_name).'.zip';
         $response = response()->download($zipfillpath, $filename)->deleteFileAfterSend(true);
 
         return $response;
@@ -115,9 +117,13 @@ class TemplateExporter
         if (in_array(TemplateExportTarget::ROLE_GROUP, $options['export_target'])) {
             static::setTemplateRole($config, $is_lang);
         }
+        if (in_array(TemplateExportTarget::PUBLIC_FORM, $options['export_target'])) {
+            static::setTemplatePublicForm($config, array_get($options, 'public_form_uuid'), $is_lang);
+        }
 
         return $config;
     }
+
     /**
      * set table info to config
      */
@@ -249,6 +255,20 @@ class TemplateExporter
         $config['roles'] = $configRoles;
     }
     
+
+    /**
+     * Export public form
+     */
+    protected static function setTemplatePublicForm(&$config, $public_form_uuid, $is_lang = false)
+    {
+        $public_form = PublicForm::getPublicFormByUuid($public_form_uuid);
+        if (!$public_form) {
+            return;
+        }
+        $config['public_form'] = $public_form->getTemplateExportItems($is_lang);
+    }
+    
+
     protected static function getTemplateMenuItems($menu, $target_tables, $is_lang = false)
     {
         // checking target table visible. if false, return empty array

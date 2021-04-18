@@ -51,10 +51,15 @@ class TestDefine
     public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX = 'user_relation_filter_ajax';
     public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX_VIEW = 'user_relation_filter_ajax_view';
     
+    public const FILE_TESTSTRING_TEST = 'test'; //"test"
     public const FILE_BASE64 = 'dGVzdA=='; //"test" text file.
     public const FILE_TESTSTRING = 'This is test file'; //text file.
 
+    public const FILE2_BASE64 = 'RXhtZW50IGlzIE9wZW4gU291cmNlIFNvZnR3YXJlLg=='; //FILE2_TESTSTRING text file.
+    public const FILE2_TESTSTRING = 'Exment is Open Source Software.'; //text file.
+
     public const TESTDATA_DUMMY_EMAIL = 'foobar@test.com';
+    public const TESTDATA_DUMMY_EMAIL2 = 'foobar2@test.com';
 
     public const TESTDATA_COLUMN_NAMES = [
         'default' => [
@@ -85,5 +90,4 @@ class TestDefine
             'ajax_view' => self::TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX_VIEW,
         ],
     ];
-    
 }

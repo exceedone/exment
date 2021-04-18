@@ -105,6 +105,32 @@ class TemplateImporter
         }
     }
  
+    
+    /**
+     * Get json from zip
+     */
+    public function getJsonFromZip($uploadFile)
+    {
+        try {
+            list($json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path) = $this->extractZip($uploadFile);
+            return $json;
+        } catch (\Exception $ex) {
+            throw $ex;
+        } finally {
+            // delete zip
+            if (isset($tmpfolderpath)) {
+                File::deleteDirectory($tmpfolderpath);
+            }
+
+            if (isset($fullpath)) {
+                File::delete($fullpath);
+                //unlink($fullpath);
+            }
+            
+            $this->diskService->deleteTmpDirectory();
+        }
+    }
+
     /**
      * Delete template (from display. select item)
      */
@@ -239,45 +265,9 @@ class TemplateImporter
     public function uploadTemplate($uploadFile)
     {
         try {
-            $tmpDiskItem = $this->diskService->tmpDiskItem();
-            $tmpDisk = $tmpDiskItem->disk();
+            list($json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path, $tmpDiskItem) = $this->extractZip($uploadFile);
 
-            // store uploaded file
-            $tmpfolderpath = $tmpDiskItem->dirFullPath();
-            $filename = $tmpDisk->put($tmpDiskItem->dirName(), $uploadFile);
-            $fullpath = $tmpDisk->path($filename);
-
-            // zip
-            $zip = new ZipArchive;
-            $res = $zip->open($fullpath);
-            if ($res !== true) {
-                //TODO:error
-            }
-
-            //Check existed file config (config.json)
-            $config_path = null;
-            $thumbnail_path = null;
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $stat = $zip->statIndex($i);
-                $fileInfo = $zip->getNameIndex($i);
-                if ($fileInfo === 'config.json') {
-                    $zip->extractTo($tmpfolderpath);
-                    $config_path = array_get($stat, 'name');
-                } elseif (pathinfo($fileInfo)['filename'] === 'thumbnail') {
-                    $thumbnail_path = array_get($stat, 'name');
-                }
-            }
-            $zip->close();
-            
-            //
             if (isset($config_path)) {
-                // get config.json
-                $json = json_decode(File::get(path_join($tmpfolderpath, $config_path)), true);
-                if (!isset($json)) {
-                    // TODO:Error
-                    return;
-                }
-
                 // get template name
                 $template_name = array_get($json, 'template_name');
                 if (!isset($template_name)) {
@@ -313,6 +303,107 @@ class TemplateImporter
             
             $this->diskService->deleteTmpDirectory();
         }
+    }
+
+
+    /**
+     * Extract zip and get json etc
+     *
+     * @param [type] $uploadFile
+     * @return array offset 0: json, 1: tmpfolderpath, 2: fullpath. 3: config_path, 4: thumbnail_path, 5:tmpDiskItem
+     */
+    protected function extractZip($uploadFile) : array
+    {
+        $emptyResult = [null, null, null, null, null, null];
+        $tmpDiskItem = $this->diskService->tmpDiskItem();
+        $tmpDisk = $tmpDiskItem->disk();
+
+        // store uploaded file
+        $tmpfolderpath = $tmpDiskItem->dirFullPath();
+        $filename = $tmpDisk->put($tmpDiskItem->dirName(), $uploadFile);
+        $fullpath = $tmpDisk->path($filename);
+
+        // zip
+        $zip = new ZipArchive;
+        $res = $zip->open($fullpath);
+        if ($res !== true) {
+            return $emptyResult;
+        }
+
+        //Check existed file config (config.json)
+        $config_path = null;
+        $thumbnail_path = null;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            $fileInfo = $zip->getNameIndex($i);
+            if ($fileInfo === 'config.json') {
+                $zip->extractTo($tmpfolderpath);
+                $config_path = array_get($stat, 'name');
+            } elseif (pathinfo($fileInfo)['filename'] === 'thumbnail') {
+                $thumbnail_path = array_get($stat, 'name');
+            }
+        }
+        $zip->close();
+        
+        //
+        if (isset($config_path)) {
+            // get config.json
+            $json = json_decode(File::get(path_join($tmpfolderpath, $config_path)), true);
+            if (!isset($json)) {
+                return $emptyResult;
+            }
+            return [$json, $tmpfolderpath, $fullpath, $config_path, $thumbnail_path, $tmpDiskItem];
+        }
+        return $emptyResult;
+    }
+
+
+    /**
+     * Upload Template with plugin
+     */
+    public function uploadTemplateWithPlugin($tmpDiskItem, $directory)
+    {
+        $tmpDisk = $tmpDiskItem->disk();
+        $tmpfolderpath = $tmpDiskItem->dirFullPath();
+
+        $config_path = path_join($directory, "config.json");
+        if (!$tmpDisk->exists($config_path)) {
+            return false;
+        }
+
+        // get config.json
+        $json = json_decode($tmpDisk->get($config_path), true);
+        if (!isset($json)) {
+            return false;
+        }
+
+        // get template name
+        $template_name = array_get($json, 'template_name');
+        if (!isset($template_name)) {
+            return false;
+        }
+
+        // get thumbnail name
+        $thumbnail_name = array_get($json, 'thumbnail');
+        if (isset($thumbnail_name)) {
+            $thumbnail_path = path_join($directory, $thumbnail_name);
+            if (!$tmpDisk->exists($thumbnail_path)) {
+                $thumbnail_path = null;
+            }
+        }
+
+        // copy to app/templates path
+        $files = [
+            $config_path => path_join($template_name, 'config.json')
+        ];
+        if (isset($thumbnail_path)) {
+            $files[$thumbnail_path] = path_join($template_name, pathinfo($thumbnail_path)['basename']);
+        }
+        $this->diskService->upload($files);
+
+        $this->importFromFile($tmpDisk->get($config_path), [
+            'basePath' => $tmpfolderpath,
+        ]);
     }
 
     /**
@@ -473,24 +564,12 @@ class TemplateImporter
         $is_update = $options['is_update'];
         $basePath = $options['basePath'];
 
-        $json = json_decode($jsonString, true);
-        if (!isset($json)) {
-            // TODO:Error
-            return;
-        }
 
-        // merge language file
-        $locale = \App::getLocale();
-        $langpath = "$basePath/lang/$locale/lang.json";
-
-        if (File::exists($langpath)) {
-            $lang = json_decode(File::get($langpath), true);
-            $json = $this->mergeTemplate($json, $lang);
-        }
-
+        $json = $this->getMergeJson($jsonString, $options);
         $this->import($json, $system_flg, $is_update);
 
         if (!$is_update) {
+            $locale = \App::getLocale();
             // get lang datafile
             $dataPath = path_join($basePath, 'data', $locale);
 
@@ -697,6 +776,7 @@ class TemplateImporter
 
         // patch use_label_flg
         \Artisan::call('exment:patchdata', ['action' => 'use_label_flg']);
+        \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
 
         System::clearCache();
     }
@@ -720,6 +800,55 @@ class TemplateImporter
         }
         return null;
     }
+
+
+    /**
+     * Get merged json
+     *
+     * @param string $jsonString
+     * @param array $options
+     * @return array
+     */
+    public function getMergeJson(string $jsonString = null, array $options = [])
+    {
+        $options = array_merge(
+            [
+                'basePath' => null,
+            ],
+            $options
+        );
+        $basePath = $options['basePath'];
+
+        // if not $jsonString, get from system template
+        if (!$jsonString) {
+            $templates_path = exment_package_path('system_template');
+            $paths = File::glob("$templates_path/config.json");
+            $jsonString = File::get($paths[0]);
+        }
+
+        if (!$basePath) {
+            $basePath = exment_package_path('system_template');
+        }
+
+        $json = json_decode($jsonString, true);
+        if (!isset($json)) {
+            // TODO:Error
+            return;
+        }
+
+        // merge language file
+        $locale = \App::getLocale();
+        $langpath = "$basePath/lang/$locale/lang.json";
+
+        if (File::exists($langpath)) {
+            $lang = json_decode(File::get($langpath), true);
+            $json = $this->mergeTemplate($json, $lang);
+        }
+
+        return $json;
+    }
+
+
     /**
      * update template json by language json.
      */

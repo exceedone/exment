@@ -4,15 +4,17 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Encore\Admin\Form;
+use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
-use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
+use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterSearchType;
@@ -213,6 +215,128 @@ abstract class CustomItem implements ItemInterface
 
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
+
+    /**
+     * Get help string.
+     *
+     * @return string|null
+     */
+    public function getHelp() : ?string
+    {
+        // if initonly is true and has value, not showing help
+        if ($this->initonly()) {
+            return null;
+        }
+
+        // set help string using result_options ----------------------------------------------------
+        $help = null;
+        if (array_key_value_exists('help', $this->form_column_options)) {
+            $help = array_get($this->form_column_options, 'help');
+        } elseif (array_key_value_exists('help', $this->custom_column->options)) {
+            $help = array_get($this->custom_column->options, 'help');
+        }
+        
+        // if initonly is true and now, showing help and cannot edit help
+        elseif (!boolval(array_get($this->options, 'public_form')) && boolval(array_get($this->custom_column->options, 'init_only'))) {
+            $help .= exmtrans('common.help.init_flg');
+        }
+
+        return $help;
+    }
+
+
+    /**
+     * Get default value.
+     *
+     * @return mixed
+     */
+    public function getDefaultValue()
+    {
+        // If change field, return null
+        if (boolval(array_get($this->options, 'changefield', false))) {
+            return null;
+        }
+
+        // get request query
+        $default = $this->getDefaultValueByQuery();
+        if (!is_nullorempty($default)) {
+            return $default;
+        }
+        
+        // If initonly, not set default
+        if ($this->initonly()) {
+            return null;
+        }
+
+        // get each default value definition
+        $default = $this->_getDefaultValue();
+        if (!is_nullorempty($default)) {
+            return $default;
+        }
+
+        // default
+        list($default_type, $default) = $this->getDefaultSetting();
+        $options = $this->custom_column->options;
+        if (!is_nullorempty($default)) {
+            return $default;
+        }
+        return null;
+    }
+
+
+    /**
+     * Get default type and value
+     *
+     * @return array offset 0: type, 1: value
+     */
+    protected function getDefaultSetting()
+    {
+        $default_type = array_get($this->form_column_options, 'default_type');
+        $default = array_get($this->form_column_options, 'default');
+        $default_type = is_nullorempty($default_type)? array_get($this->custom_column->options, 'default_type'):$default_type;
+        $default = is_nullorempty($default)? array_get($this->custom_column->options, 'default'):$default;
+
+        return [$default_type, $default];
+    }
+
+    /**
+     * Get default value by query string
+     *
+     * @return mixed
+     */
+    protected function getDefaultValueByQuery()
+    {
+        if (!is_nullorempty($this->id)) {
+            return null;
+        }
+
+        if ($this->isDefferentFormTable()) {
+            return null;
+        }
+
+        if (!boolval(array_get($this->options, 'enable_default_query'))) {
+            return null;
+        }
+
+        // get request query
+        $default = request()->query("value_" . $this->name());
+        if (is_nullorempty($default)) {
+            return null;
+        }
+        return $this->getPureValue($default) ?? $default;
+    }
+
+
+    /**
+     * Get default value(define each custom column)
+     *
+     * @return mixed
+     */
+    protected function _getDefaultValue()
+    {
+        return null;
+    }
+
     
     public function getFilterField($value_type = null)
     {
@@ -251,42 +375,45 @@ abstract class CustomItem implements ItemInterface
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $form_column_options = $form_column->options ?? null;
+        $this->form_column_options = $form_column_options;
 
         // if hidden setting, add hidden field
-        if (boolval(array_get($form_column_options, 'hidden'))) {
+        if ($this->hidden()) {
             $classname = Field\Hidden::class;
         } elseif ($this->initonly()) {
             $classname = ExmentField\InitOnly::class;
-        } elseif ($this->viewonly($form_column_options)) {
+        } elseif ($this->viewonly()) {
             $classname = ExmentField\ViewOnly::class;
+        } elseif ($this->internal()) {
+            $classname = ExmentField\Internal::class;
         } else {
             // get field
             $classname = $this->getAdminFieldClass();
         }
 
-        return $this->getCustomField($classname, $form_column_options, $column_name_prefix);
+        return $this->getCustomField($classname, $column_name_prefix);
     }
 
-    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    protected function getCustomField($classname, $column_name_prefix = null)
     {
         $options = $this->custom_column->options;
         // form column name. join $column_name_prefix and $column_name
         $form_column_name = $column_name_prefix.$this->name();
         
-        $field = new $classname($form_column_name, [$this->label()]);
-        if ($this->isSetAdminOptions($form_column_options)) {
-            $this->setAdminOptions($field, $form_column_options);
+        $field = new $classname($form_column_name, [array_get($this->form_column_options, 'form_column_view_name') ?? $this->label()]);
+        if ($this->isSetAdminOptions()) {
+            $this->setAdminOptions($field);
         }
 
-        if (!boolval(array_get($form_column_options, 'hidden'))) {
+        if (!$this->hidden()) {
             if ($this->initonly()) {
                 $field->displayText($this->html())->escape(false)->default($this->value)->prepareDefault();
-            } elseif ($this->viewonly($form_column_options) && !isset($this->value)) {
+            } elseif ($this->viewonly() && !isset($this->value)) {
                 // if view only and create, set default value
-                $this->value = array_get($options, 'default');
+                $this->value = $this->getDefaultValue();
                 $field->displayText($this->html())->escape(false);
                 $this->value = null;
-            } elseif ($this->viewonly($form_column_options)) {
+            } elseif ($this->viewonly()) {
                 $field->displayText($this->html())->escape(false);
             }
         }
@@ -297,24 +424,12 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default
-        if (array_key_value_exists('default', $options)) {
-            $field->default(array_get($options, 'default'));
-        }
-
-        // default (login user)
-        if ($classname != ExmentField\InitOnly::class) {
-            if (boolval(array_get($options, 'login_user_default'))) {
-                $field->default(\Exment::getUserId());
-            }
-        }
-
-        // number_format
-        if (boolval(array_get($options, 'number_format'))) {
-            $field->attribute(['number_format' => true]);
+        if (is_null($this->id) && !is_null($default = $this->getDefaultValue())) {
+            $field->default($default);
         }
 
         // readonly
-        if ($this->readonly($form_column_options)) {
+        if ($this->readonly()) {
             $field->readonly();
         }
 
@@ -324,32 +439,20 @@ abstract class CustomItem implements ItemInterface
             $field->attribute(['suggest_url' => $url]);
         }
 
+        // set label
+        $this->setLabelType($field);
+
         // set validates
-        $field->rules($this->getColumnValidates($form_column_options, $field));
+        $field->rules($this->getColumnValidates($field));
 
-        // set help string using result_options ----------------------------------------------------
-        $help = null;
-        if (array_key_value_exists('help', $options)) {
-            $help = array_get($options, 'help');
-        }
-        
-        // if initonly is true and has value, not showing help
-        if ($this->initonly()) {
-            $help = null;
-        }
-        // if initonly is true and now, showing help and cannot edit help
-        elseif (boolval(array_get($this->custom_column->options, 'init_only'))) {
-            $help .= exmtrans('common.help.init_flg');
-        }
-
+        // get help
+        $help = $this->getHelp();
         if (isset($help)) {
-            $field->help(esc_html($help));
+            $field->help(html_clean($help));
         }
-        
         // append help
-        $this->appendHelp($form_column_options, $field);
-
-
+        $this->appendHelp($field);
+        
         $field->attribute(['data-column_type' => $this->custom_column->column_type]);
 
         $field->setElementClass("class_" . $this->uniqueName());
@@ -449,6 +552,29 @@ abstract class CustomItem implements ItemInterface
         return $grammar->getColumnTypeString($type);
     }
 
+    /**
+     * Set label type to field
+     *
+     * @param Field $field
+     * @return void
+     */
+    protected function setLabelType(&$field)
+    {
+        $field_label_type = $this->getLabelType();
+        switch ($field_label_type) {
+            case FormLabelType::HORIZONTAL:
+                return;
+            case FormLabelType::VERTICAL:
+                $field->disableHorizontal();
+                return;
+            case FormLabelType::HIDDEN:
+                $field->disableHorizontal();
+                $field->disableLabel();
+                return;
+        }
+    }
+
+
     protected function getCastOptions()
     {
         return [DatabaseDataType::TYPE_STRING, false, []];
@@ -472,13 +598,13 @@ abstract class CustomItem implements ItemInterface
     {
     }
 
-    protected function disableEdit($form_column_options)
+    protected function disableEdit()
     {
         if ($this->initonly()) {
             return true;
         }
 
-        if ($this->readonly($form_column_options)) {
+        if ($this->readonly()) {
             return true;
         }
         
@@ -515,7 +641,7 @@ abstract class CustomItem implements ItemInterface
         return ExmentFilter\StartsWith::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options)
+    protected function setAdminOptions(&$field)
     {
     }
 
@@ -523,18 +649,18 @@ abstract class CustomItem implements ItemInterface
     {
     }
     
-    protected function setValidates(&$validates, $form_column_options)
+    protected function setValidates(&$validates)
     {
     }
 
-    protected function getAppendHelpText($form_column_options) : ?string
+    protected function getAppendHelpText() : ?string
     {
         return null;
     }
 
-    protected function appendHelp($form_column_options, Field $field)
+    protected function appendHelp(Field $field)
     {
-        $text = $this->getAppendHelpText($form_column_options);
+        $text = $this->getAppendHelpText();
         if (is_nullorempty($text)) {
             return;
         }
@@ -555,7 +681,17 @@ abstract class CustomItem implements ItemInterface
 
         return null;
     }
-    
+
+    /**
+     * Get font awesome class
+     *
+     * @return string|null
+     */
+    public function getFontAwesomeClass() : ?string
+    {
+        return $this->custom_column->getFontAwesomeClass();
+    }
+
     /**
      * Find item class.
      *
@@ -576,18 +712,17 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * Get column validate array.
-     * @param mixed $form_column_options
      * @param Field $field
      * @return array
      */
-    public function getColumnValidates($form_column_options, Field $field)
+    public function getColumnValidates(Field $field)
     {
         $options = array_get($this->custom_column, 'options');
         $validates = [];
         
         // setting options --------------------------------------------------
         // required
-        if ($this->required($form_column_options)) {
+        if ($this->required()) {
             $field->required();
             $validates[] = 'required';
         } else {
@@ -599,10 +734,11 @@ abstract class CustomItem implements ItemInterface
         // init_flg(for validation)
         if ($this->initonly()) {
             $validates[] = new Validator\InitOnlyRule($this->custom_column, $this->custom_value);
+        } else {
+            // set column's validates
+            $this->setValidates($validates);
         }
 
-        // set column's validates
-        $this->setValidates($validates, $form_column_options);
 
         // get removing fields.
         $field->removeRules($this->getRemoveValidates());
@@ -628,26 +764,51 @@ abstract class CustomItem implements ItemInterface
         return true;
     }
 
-    protected function initonly()
+    
+    public function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
 
         return $initOnly && isset($this->value);
     }
 
-    protected function readonly($form_column_options)
+    public function readonly()
     {
-        return boolval(array_get($form_column_options, 'read_only'));
+        return array_boolval($this->form_column_options, 'read_only') || array_get($this->form_column_options, 'field_showing_type') == 'read_only';
     }
 
-    protected function viewonly($form_column_options)
+    public function viewonly()
     {
-        return boolval(array_get($form_column_options, 'view_only'));
+        return array_boolval($this->form_column_options, 'view_only') || array_get($this->form_column_options, 'field_showing_type') == 'view_only';
     }
 
-    protected function required($form_column_options)
+    public function hidden()
     {
-        if ($this->initonly() || $this->viewonly($form_column_options)) {
+        return array_boolval($this->form_column_options, 'hidden') || array_get($this->form_column_options, 'field_showing_type') == 'hidden';
+    }
+
+    public function internal()
+    {
+        return array_boolval($this->form_column_options, 'internal') || array_get($this->form_column_options, 'field_showing_type') == 'internal';
+    }
+
+    /**
+     * Hide when showing display
+     *
+     * @return bool
+     */
+    public function disableDisplayWhenShow() : bool
+    {
+        if ($this->internal() || $this->hidden()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function required()
+    {
+        if ($this->initonly() || $this->viewonly() || $this->internal()) {
             return false;
         }
         if (!$this->required) {
@@ -655,19 +816,52 @@ abstract class CustomItem implements ItemInterface
         }
 
         $options = array_get($this->custom_column, 'options');
-        return boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required'));
+        return boolval(array_get($options, 'required')) || boolval(array_get($this->form_column_options, 'required'));
     }
 
-    protected function isSetAdminOptions($form_column_options) : bool
+    protected function isSetAdminOptions() : bool
     {
-        if (boolval(array_get($form_column_options, 'hidden'))) {
-            return false;
-        } elseif ($this->initonly()) {
-            return false;
-        } elseif ($this->viewonly($form_column_options)) {
-            return false;
-        }
+        return !$this->hidden() &&
+            !$this->initonly() &&
+            !$this->viewonly() &&
+            !$this->internal();
+    }
 
-        return true;
+    
+    /**
+     * Set Custom Column Form(defalut and form). Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnForm(&$form)
+    {
+        $this->setCustomColumnDefaultValueForm($form);
+        $this->setCustomColumnOptionForm($form);
+    }
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+    }
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form, bool $asCustomForm = false)
+    {
+        $form->text('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"));
     }
 }

@@ -83,9 +83,9 @@ class GDashboardTest extends ExmentKitTestCase
         $model = $this->getDashboardTestModel();
 
         $url = admin_urls_query('dashboardbox', 'create', [
-            'column_no' => '1', 
+            'column_no' => '1',
             'dashboard_box_type' => 'list',
-            'dashboard_suuid' => $model->suuid, 
+            'dashboard_suuid' => $model->suuid,
             'row_no' => '1',
         ]);
         $this->visit($url)
@@ -112,9 +112,9 @@ class GDashboardTest extends ExmentKitTestCase
         // cannot press 'target_view_id', so execute as post.
 
         $this->post(admin_urls_query('dashboardbox', [
-            'column_no' => '1', 
+            'column_no' => '1',
             'dashboard_box_type' => 'list',
-            'dashboard_suuid' => $model->suuid, 
+            'dashboard_suuid' => $model->suuid,
             'row_no' => '1',
         ]), [
             'dashboard_id' => $model->id,
@@ -145,9 +145,9 @@ class GDashboardTest extends ExmentKitTestCase
         $model = $this->getDashboardTestModel();
 
         $url = admin_urls_query('dashboardbox', 'create', [
-            'column_no' => '2', 
+            'column_no' => '2',
             'dashboard_box_type' => 'system',
-            'dashboard_suuid' => $model->suuid, 
+            'dashboard_suuid' => $model->suuid,
             'row_no' => '1',
         ]);
         $this->visit($url)
@@ -207,9 +207,9 @@ class GDashboardTest extends ExmentKitTestCase
         $model = $this->getDashboardTestModel();
 
         $url = admin_urls_query('dashboardbox', 'create', [
-            'column_no' => '3', 
+            'column_no' => '3',
             'dashboard_box_type' => Enums\DashboardBoxType::CHART,
-            'dashboard_suuid' => $model->suuid, 
+            'dashboard_suuid' => $model->suuid,
             'row_no' => '2',
         ]);
         $this->visit($url)
@@ -269,9 +269,9 @@ class GDashboardTest extends ExmentKitTestCase
         $model = $this->getDashboardTestModel();
 
         $url = admin_urls_query('dashboardbox', 'create', [
-            'column_no' => '3', 
+            'column_no' => '3',
             'dashboard_box_type' => Enums\DashboardBoxType::CALENDAR,
-            'dashboard_suuid' => $model->suuid, 
+            'dashboard_suuid' => $model->suuid,
             'row_no' => '3',
         ]);
         $this->visit($url)
@@ -317,13 +317,14 @@ class GDashboardTest extends ExmentKitTestCase
         $options = array_merge(
             [
                     'target_system_id' => $system_type,
-            ], $options
+            ],
+            $options
         );
 
         $this->post(admin_urls_query('dashboardbox', [
-            'column_no' => $column_no, 
+            'column_no' => $column_no,
             'dashboard_box_type' => Enums\DashboardBoxType::SYSTEM,
-            'dashboard_suuid' => $model->suuid, 
+            'dashboard_suuid' => $model->suuid,
             'row_no' => $row_no,
         ]), [
             'dashboard_id' => $model->id,
@@ -339,7 +340,7 @@ class GDashboardTest extends ExmentKitTestCase
         $this->assertTrue(isMatchString($box->dashboard_box_view_name, $dashboard_box_view_name));
         $this->assertTrue(isMatchString($box->dashboard_box_type, Enums\DashboardBoxType::SYSTEM));
 
-        foreach($options as $key => $value){
+        foreach ($options as $key => $value) {
             $this->assertTrue(isMatchString(array_get($box->options, $key), $value));
         }
     }
@@ -362,7 +363,7 @@ class GDashboardTest extends ExmentKitTestCase
         $custom_view = $custom_table->custom_views->first();
 
         // get select option item
-        $custom_view_column = $custom_view->custom_view_columns->first(function($custom_view_column){
+        $custom_view_column = $custom_view->custom_view_columns->first(function ($custom_view_column) {
             return $custom_view_column->view_column_type == Enums\ConditionType::COLUMN && $custom_view_column->custom_column->column_type == 'integer';
         });
 
@@ -372,13 +373,14 @@ class GDashboardTest extends ExmentKitTestCase
                 'target_table_id' => $custom_table->id,
                 'target_view_id' => $custom_view->id,
                 'chart_axisy' => Enums\ConditionType::COLUMN . '_' . $custom_view_column->id,
-            ], $options
+            ],
+            $options
         );
 
         $this->post(admin_urls_query('dashboardbox', [
-            'column_no' => $column_no, 
+            'column_no' => $column_no,
             'dashboard_box_type' => Enums\DashboardBoxType::CHART,
-            'dashboard_suuid' => $model->suuid, 
+            'dashboard_suuid' => $model->suuid,
             'row_no' => $row_no,
         ]), [
             'dashboard_id' => $model->id,
@@ -394,7 +396,7 @@ class GDashboardTest extends ExmentKitTestCase
         $this->assertTrue(isMatchString($box->dashboard_box_view_name, $dashboard_box_view_name));
         $this->assertTrue(isMatchString($box->dashboard_box_type, Enums\DashboardBoxType::CHART));
 
-        foreach($options as $key => $value){
+        foreach ($options as $key => $value) {
             $this->assertTrue(isMatchString(array_get($box->options, $key), $value));
         }
     }
@@ -404,7 +406,7 @@ class GDashboardTest extends ExmentKitTestCase
     {
         $model = $this->getDashboardTestModel();
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
-        $custom_view = $custom_table->custom_views->first(function($custom_view){
+        $custom_view = $custom_table->custom_views->first(function ($custom_view) {
             return $custom_view->view_kind_type == Enums\ViewKindType::CALENDAR;
         });
 
@@ -413,13 +415,14 @@ class GDashboardTest extends ExmentKitTestCase
                 'calendar_type' => $calendar_type,
                 'target_table_id' => $custom_table->id,
                 'target_view_id' => $custom_view->id,
-            ], $options
+            ],
+            $options
         );
 
         $this->post(admin_urls_query('dashboardbox', [
-            'column_no' => $column_no, 
+            'column_no' => $column_no,
             'dashboard_box_type' => Enums\DashboardBoxType::CALENDAR,
-            'dashboard_suuid' => $model->suuid, 
+            'dashboard_suuid' => $model->suuid,
             'row_no' => $row_no,
         ]), [
             'dashboard_id' => $model->id,
@@ -435,7 +438,7 @@ class GDashboardTest extends ExmentKitTestCase
         $this->assertTrue(isMatchString($box->dashboard_box_view_name, $dashboard_box_view_name));
         $this->assertTrue(isMatchString($box->dashboard_box_type, Enums\DashboardBoxType::CALENDAR));
 
-        foreach($options as $key => $value){
+        foreach ($options as $key => $value) {
             $this->assertTrue(isMatchString(array_get($box->options, $key), $value));
         }
     }
