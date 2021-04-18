@@ -48,19 +48,21 @@ class PublicFormAndOptions extends Migration
             }
         });
 
-        $schema->create('public_forms', function (ExtendedBlueprint $table) {
-            $table->increments('id');
-            $table->uuid('uuid')->unique();
-            $table->integer('custom_form_id')->unsigned();
-            $table->string('public_form_view_name', 256);
-            $table->boolean('active_flg')->default(false);
-            $table->integer('proxy_user_id')->unsigned()->index();
-            $table->json('options')->nullable();
-            $table->timestamps();
-            $table->timeusers();
-
-            $table->foreign('custom_form_id')->references('id')->on('custom_forms');
-        });
+        if(!Schema::hasTable('public_forms')){
+            $schema->create('public_forms', function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->uuid('uuid')->unique();
+                $table->integer('custom_form_id')->unsigned();
+                $table->string('public_form_view_name', 256);
+                $table->boolean('active_flg')->default(false);
+                $table->integer('proxy_user_id')->unsigned()->index();
+                $table->json('options')->nullable();
+                $table->timestamps();
+                $table->timeusers();
+    
+                $table->foreign('custom_form_id')->references('id')->on('custom_forms');
+            });
+        }
 
         $schema->table('notifies', function (ExtendedBlueprint $table) {
             if (!Schema::hasColumn('notifies', 'target_id')) {
