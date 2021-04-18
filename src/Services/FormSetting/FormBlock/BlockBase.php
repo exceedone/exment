@@ -258,6 +258,8 @@ abstract class BlockBase
             $groupColumns = $groupRow->groupBy(function ($group) {
                 $group = $group->getCustomFormColumn();
                 return $group->column_no ?? 1;
+            })->sortBy(function ($product, $key) {
+                return $key;
             });
 
             $columns = $groupColumns->map(function ($column) {

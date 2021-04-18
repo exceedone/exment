@@ -203,6 +203,10 @@ class PatchDataCommand extends Command
                 return;
             case 'select_table_user_org':
                 $this->patchSelectTableUserOrg();
+                return;
+            case 'set_file_type':
+                $this->setFileType();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1781,6 +1785,40 @@ class PatchDataCommand extends Command
                 }
                 $custom_column->forgetOption('select_target_table');
                 $custom_column->save();
+            });
+        });
+    }
+    
+    /**
+     * Set file type for update.
+     *
+     * @return void
+     */
+    protected function setFileType()
+    {
+        \DB::transaction(function () {
+            // get file_type is null
+            Model\File::whereNull('file_type')->get()
+            ->each(function ($file) {
+                $file_type = null;
+                // if set custom_column_id, set file_type is COLUMN
+                if(isset($file->custom_column_id)){
+                    $file_type = Enums\FileType::CUSTOM_VALUE_COLUMN;
+                }
+                // if local_dirname is 'system' and parent_type is null, set SYSTEM
+                elseif(isMatchString($file->local_dirname, 'system') && !isset($file->parent_type)){
+                    $file_type = Enums\FileType::SYSTEM;
+                }
+                // if local_dirname is 'avatar' and parent_type is null, set AVATAR
+                elseif(isMatchString($file->local_dirname, 'avatar') && !isset($file->parent_type)){
+                    $file_type = Enums\FileType::AVATAR;
+                }
+                // else, set as document
+                else{
+                    $file_type = Enums\FileType::CUSTOM_VALUE_DOCUMENT;
+                }
+                $file->file_type = $file_type;
+                $file->save();
             });
         });
     }
