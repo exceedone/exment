@@ -49,6 +49,10 @@ abstract class PhpSpreadSheet extends FormatBase
                         if (strpos($cell->getValue(), '=') === 0) {
                             $cell->setDataType(Cell\DataType::TYPE_STRING);
                         }
+                        // set percent last, set as string
+                        elseif (rstrpos($cell->getValue(), '%') === 0) {
+                            $cell->setDataType(Cell\DataType::TYPE_STRING);
+                        }
                     }
                 }
                 $counts = count($outputs[0]);
