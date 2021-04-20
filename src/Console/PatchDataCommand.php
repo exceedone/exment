@@ -78,6 +78,9 @@ class PatchDataCommand extends Command
         $name = $this->argument("action");
 
         switch ($name) {
+            case 'convert_number_column':
+                $this->convertNumberColumn();
+                return;
             case 'rmcomma':
                 $this->removeDecimalComma();
                 return;
@@ -359,6 +362,53 @@ class PatchDataCommand extends Command
                         \DB::table($dbTableName)->where('id', $commaValue->id)->update(["value->{$column->column_name}" => $v]);
                     }
                 });
+        }
+    }
+
+    /**
+     * Change the storage format of numeric columns from strings to numbers 
+     *
+     * @return void
+     */
+    protected function convertNumberColumn()
+    {
+        \DB::beginTransaction();
+        try {
+
+            $custom_tables = CustomTable::all();
+            // loop for table
+            foreach ($custom_tables as $custom_table) {
+                $custom_columns = $custom_table->custom_columns_cache->filter(function ($custom_column) {
+                    $column_type = array_get($custom_column, 'column_type');
+                    return ColumnType::isCalc($column_type) || ColumnType::isSelectTable($column_type);
+                });
+
+                if ($custom_columns->count() == 0) {
+                    continue;
+                }
+                $custom_table->getValueModel()
+                    ->withTrashed()
+                    ->chunk(1000, function ($custom_values) use($custom_columns){
+                        foreach ($custom_values as &$custom_value) {
+                            $isUpdate = false;
+                            foreach($custom_columns as $custom_column){ 
+                                $v = $custom_column->column_item->setCustomValue($custom_value)->saving();
+                                if(isset($v)){
+                                    $isUpdate = true;
+                                    $custom_value->setValue($custom_column->column_name, $v);
+                                }
+                            }
+                        
+                            if($isUpdate){
+                                $custom_value->disable_saved_event(true);
+                                $custom_value->save();
+                            }
+                        }
+                });                
+            }
+        } catch (\Exception $ex) {
+            \DB::rollback();
+            throw $ex;
         }
     }
     

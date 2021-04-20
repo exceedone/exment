@@ -64,7 +64,7 @@ class Decimal extends CustomItem
         if (!isset($rmv)) {
             return null;
         }
-        return $rmv;
+        return floatval($rmv);
     }
     protected function getAdminFieldClass()
     {
