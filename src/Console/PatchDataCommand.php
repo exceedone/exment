@@ -374,7 +374,6 @@ class PatchDataCommand extends Command
     {
         \DB::beginTransaction();
         try {
-
             $custom_tables = CustomTable::all();
             // loop for table
             foreach ($custom_tables as $custom_table) {
@@ -406,6 +405,7 @@ class PatchDataCommand extends Command
                         }
                 });                
             }
+            \DB::commit();
         } catch (\Exception $ex) {
             \DB::rollback();
             throw $ex;
