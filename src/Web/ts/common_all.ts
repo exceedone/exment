@@ -21,22 +21,22 @@ namespace Exment {
                 $('form.click_disabled_submit [type="submit"]').attr('disabled', 'true');
                 return true;
             });
+            $(document).off('click', '.submit_disabled,.click_disabled').on('click', '.submit_disabled,.click_disabled', {}, function(ev){
+                let $button = $(ev.target).closest('.submit_disabled,.click_disabled');
+                // // create hidden, because disabled, cannot post value.
+                if(hasValue($button.prop('name'))){
+                    $(ev.target).append($('<input />', {
+                        'name' : $button.prop('name'),
+                        'value': $button.prop('value'),
+                        'type': 'hidden',
+                    }));
+                }
+            });
         }
         
         public static AddEvent() {
             $('form').submit(function(ev){
                 let $button = $(ev.target).find('.submit_disabled');
-                // if($button.length > 1){
-                //     return true;
-                // }
-
-                // // create hidden 
-                // $(ev.target).append($('<input />', {
-                //     'name' : $button.prop('name'),
-                //     'value': $button.prop('value'),
-                //     'type': 'hidden',
-                // }));
-
                 $button.prop('disabled', true);
 
                 return true;
