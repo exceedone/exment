@@ -78,8 +78,8 @@ class PatchDataCommand extends Command
         $name = $this->argument("action");
 
         switch ($name) {
-            case 'convert_number_column':
-                $this->convertNumberColumn();
+            case 'convert_select_table_column':
+                $this->convertSelectTableColumn();
                 return;
             case 'rmcomma':
                 $this->removeDecimalComma();
@@ -366,11 +366,11 @@ class PatchDataCommand extends Command
     }
 
     /**
-     * Change the storage format of numeric columns from strings to numbers 
+     * Change the storage format of select_table columns from number to string
      *
      * @return void
      */
-    protected function convertNumberColumn()
+    protected function convertSelectTableColumn()
     {
         \DB::beginTransaction();
         try {
@@ -379,7 +379,7 @@ class PatchDataCommand extends Command
             foreach ($custom_tables as $custom_table) {
                 $custom_columns = $custom_table->custom_columns_cache->filter(function ($custom_column) {
                     $column_type = array_get($custom_column, 'column_type');
-                    return ColumnType::isCalc($column_type) || ColumnType::isSelectTable($column_type);
+                    return ColumnType::isSelectTable($column_type);
                 });
 
                 if ($custom_columns->count() == 0) {
@@ -391,14 +391,24 @@ class PatchDataCommand extends Command
                         foreach ($custom_values as &$custom_value) {
                             $isUpdate = false;
                             foreach($custom_columns as $custom_column){ 
-                                $v = $custom_column->column_item->setCustomValue($custom_value)->saving();
-                                if(isset($v)){
-                                    $isUpdate = true;
-                                    $custom_value->setValue($custom_column->column_name, $v);
+                                $originalValue = array_get($custom_value, 'value.' .$custom_column->column_name);
+                                // already string, continue
+                                if(is_null($originalValue) || gettype($originalValue) == "string"){
+                                    continue;
                                 }
+                                $v = $custom_column->column_item->setCustomValue($custom_value)->saving();
+                                // match originalValue and $v, continue
+                                if(!isset($v) || $originalValue === $v){
+                                    continue;
+                                }
+                                $isUpdate = true;
+                                $custom_value->setValue($custom_column->column_name, $v);
                             }
                         
                             if($isUpdate){
+                                // disable each event
+                                $custom_value->saving_users = false;
+                                $custom_value->disable_saving_event(true);
                                 $custom_value->disable_saved_event(true);
                                 $custom_value->save();
                             }

@@ -45,7 +45,7 @@ class SelectTable extends CustomItem
         // convert array or not, using multiple_enabled
         $v = toArray($this->value);
         $v = array_map(function($n) {
-            return intval($n);
+            return strval($n);
         }, $v);
         if ($this->isMultipleEnabled()) {
             return $v;

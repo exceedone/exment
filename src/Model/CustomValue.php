@@ -40,6 +40,12 @@ abstract class CustomValue extends ModelBase
     protected $remove_file_columns = [];
 
     /**
+     * disabled saving event.
+     * if true, disable.
+     */
+    protected $disable_saving_event = false;
+
+    /**
      * disabled saved event.
      * if true, disable.
      */
@@ -380,6 +386,11 @@ abstract class CustomValue extends ModelBase
         return $this;
     }
 
+    public function disable_saving_event($disable_saving_event)
+    {
+        $this->disable_saving_event = $disable_saving_event;
+        return $this;
+    }
     public function disable_saved_event($disable_saved_event)
     {
         $this->disable_saved_event = $disable_saved_event;
@@ -391,6 +402,10 @@ abstract class CustomValue extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
+            if($model->disable_saving_event){
+                return;
+            }
+            
             $events = $model->exists ? CustomOperationType::UPDATE : CustomOperationType::CREATE;
             // call create or update trigger operations
             CustomOperation::operationExecuteEvent($events, $model);
