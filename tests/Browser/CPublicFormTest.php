@@ -180,7 +180,7 @@ class CPublicFormTest extends ExmentKitTestCase
                 'error_title' => 'ユニットテストエラー',
                 'error_text' => 'エラーが発生しました。ユニットテストです。',
                 'error_link_url' => 'https://exment.net/docs/#/ja/',
-                'error_link_text' => 'Exmentのマニュアルページへ', 
+                'error_link_text' => 'Exmentのマニュアルページへ',
             ],
             'css_js_setting' => [
                 'custom_css' => 'h1 {color:red !important;}',
@@ -263,14 +263,14 @@ class CPublicFormTest extends ExmentKitTestCase
             // ->seeIsSelected('notify_actions_error[??][notify_action]', '1')
             // ->seeIsSelected('notify_actions_error[??][notify_action_target]', ['administrator', 'fixed_email'])
             // ->seeInField('notify_actions_error[??][target_emails]', 'unittest@mail.co.jp')
-            ->seeInField('css_js_setting[custom_css]', 'h1 {color:red !important;}') 
-            ->seeIsSelected('css_js_setting[plugin_css][]', '14') 
-            ->seeInField('css_js_setting[custom_js]', 'alert("unit test");') 
-            ->seeIsSelected('css_js_setting[plugin_js][]', '13') 
-            ->seeInField('option_setting[use_default_query]', '1') 
+            ->seeInField('css_js_setting[custom_css]', 'h1 {color:red !important;}')
+            ->seeIsSelected('css_js_setting[plugin_css][]', '14')
+            ->seeInField('css_js_setting[custom_js]', 'alert("unit test");')
+            ->seeIsSelected('css_js_setting[plugin_js][]', '13')
+            ->seeInField('option_setting[use_default_query]', '1')
         ;
 
-        // Activate public form 
+        // Activate public form
         $this->post(admin_url('formpublic/custom_value_edit_all/'. $pform->id . '/activate'))
             ->matchStatusCode(200)
         ;
@@ -338,7 +338,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeInField('value[email]', 'unittest@foobar.co.jp.test')
         ;
 
-        // Delete public form 
+        // Delete public form
         $this->delete(admin_url('formpublic/custom_value_edit_all/'. $pform->id))
             ->matchStatusCode(200)
         ;
@@ -425,7 +425,7 @@ class CPublicFormTest extends ExmentKitTestCase
             'error_setting[error_title]' => 'ユニットテストエラー',
             'error_setting[error_text]' => 'エラーが発生しました。ユニットテストです。',
             'error_setting[error_link_url]' => 'https://exment.net/docs/#/ja/',
-            'error_setting[error_link_text]' => 'Exmentのマニュアルページへ', 
+            'error_setting[error_link_text]' => 'Exmentのマニュアルページへ',
             'css_js_setting[custom_css]' => 'h1 {
                 color:red !important;
             }',
@@ -523,14 +523,14 @@ class CPublicFormTest extends ExmentKitTestCase
             // ->seeInField('notify_actions_error[??][target_emails]', 'unittest@mail.co.jp')
             ->seeInField('css_js_setting[custom_css]', 'h1 {
                 color:red !important;
-            }') 
-            ->seeIsSelected('css_js_setting[plugin_css][]', '14') 
-            ->seeInField('css_js_setting[custom_js]', 'alert("unit test");') 
-            ->seeIsSelected('css_js_setting[plugin_js][]', '13') 
-            ->seeInField('option_setting[use_default_query]', '1') 
+            }')
+            ->seeIsSelected('css_js_setting[plugin_css][]', '14')
+            ->seeInField('css_js_setting[custom_js]', 'alert("unit test");')
+            ->seeIsSelected('css_js_setting[plugin_js][]', '13')
+            ->seeInField('option_setting[use_default_query]', '1')
         ;
 
-        // Activate public form 
+        // Activate public form
         $this->post(admin_url('formpublic/custom_value_edit_all/'. $pform->id . '/activate'))
             ->matchStatusCode(200)
         ;
@@ -587,7 +587,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         $pform = $this->getNewestForm();
 
-        // Activate public form 
+        // Activate public form
         $this->post(admin_url('formpublic/custom_value_edit_all/'. $pform->id . '/activate'))
             ->matchStatusCode(200)
         ;
@@ -618,7 +618,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         $pform = $this->getNewestForm();
 
-        // Activate public form 
+        // Activate public form
         $this->post(admin_url('formpublic/custom_value_edit_all/'. $pform->id . '/activate'))
             ->matchStatusCode(200)
         ;
@@ -628,7 +628,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeElement('input.value_text')
         ;
 
-        // Activate public form 
+        // Activate public form
         $this->post(admin_url('formpublic/custom_value_edit_all/'. $pform->id . '/deactivate'))
             ->matchStatusCode(200)
         ;
