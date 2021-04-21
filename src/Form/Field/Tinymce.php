@@ -109,7 +109,7 @@ class Tinymce extends Textarea
 
         $locale = \App::getLocale();
 
-        $enableImage = !$this->disableImage && boolval(config('exment.diable_upload_images_editor', false));
+        $enableImage = !$this->disableImage && !boolval(config('exment.diable_upload_images_editor', false));
 
         if ($enableImage) {
             $toolbar = ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link image code'];
