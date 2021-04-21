@@ -402,7 +402,7 @@ abstract class CustomValue extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
-            if($model->disable_saving_event){
+            if ($model->disable_saving_event) {
                 return;
             }
             

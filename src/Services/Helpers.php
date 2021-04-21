@@ -1005,7 +1005,7 @@ if (!function_exists('rstrpos')) {
     function rstrpos(?string $haystack, ?string $needle, ?int $offset = 0)
     {
         $result = strrpos($haystack, $needle, $offset);
-        if($result === false){
+        if ($result === false) {
             return $result;
         }
 
