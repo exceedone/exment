@@ -233,19 +233,19 @@ class CustomColumnTest extends UnitTestBase
     }
     public function testDecimalText2()
     {
-        return $this->_testDecimal(ValueType::TEXT, '1000', ['decimal_digit' => 2], STATIC::DECIMAL_VALUE2);
+        return $this->_testDecimal(ValueType::TEXT, '1000', ['decimal_digit' => 2], static::DECIMAL_VALUE2);
     }
     public function testDecimalTextComma2()
     {
-        return $this->_testDecimal(ValueType::TEXT, '1,000', ['number_format' => 1, 'decimal_digit' => 2], STATIC::DECIMAL_VALUE2);
+        return $this->_testDecimal(ValueType::TEXT, '1,000', ['number_format' => 1, 'decimal_digit' => 2], static::DECIMAL_VALUE2);
     }
     public function testDecimalText3()
     {
-        return $this->_testDecimal(ValueType::TEXT, '1000.2', ['decimal_digit' => 2], STATIC::DECIMAL_VALUE3);
+        return $this->_testDecimal(ValueType::TEXT, '1000.2', ['decimal_digit' => 2], static::DECIMAL_VALUE3);
     }
     public function testDecimalTextComma3()
     {
-        return $this->_testDecimal(ValueType::TEXT, '1,000.2', ['number_format' => 1, 'decimal_digit' => 2], STATIC::DECIMAL_VALUE3);
+        return $this->_testDecimal(ValueType::TEXT, '1,000.2', ['number_format' => 1, 'decimal_digit' => 2], static::DECIMAL_VALUE3);
     }
 
 
@@ -291,29 +291,45 @@ class CustomColumnTest extends UnitTestBase
     }
     public function testCurrencyText2()
     {
-        return $this->_testCurrency(ValueType::TEXT, '1000.00円', 
+        return $this->_testCurrency(
+            ValueType::TEXT,
+            '1000.00円',
             ['currency_symbol' => CurrencySymbol::JPY2,
-             'decimal_digit' => 2], static::CURRENCY_VALUE2);
+             'decimal_digit' => 2],
+            static::CURRENCY_VALUE2
+        );
     }
     public function testCurrencyTextComma2()
     {
-        return $this->_testCurrency(ValueType::TEXT, '1,000.00円', 
+        return $this->_testCurrency(
+            ValueType::TEXT,
+            '1,000.00円',
             ['currency_symbol' => CurrencySymbol::JPY2,
              'number_format' => 1,
-             'decimal_digit' => 2], static::CURRENCY_VALUE2);
+             'decimal_digit' => 2],
+            static::CURRENCY_VALUE2
+        );
     }
     public function testCurrencyText3()
     {
-        return $this->_testCurrency(ValueType::TEXT, '$1000.20', 
+        return $this->_testCurrency(
+            ValueType::TEXT,
+            '$1000.20',
             ['currency_symbol' => CurrencySymbol::USD,
-             'decimal_digit' => 2], static::CURRENCY_VALUE3);
+             'decimal_digit' => 2],
+            static::CURRENCY_VALUE3
+        );
     }
     public function testCurrencyTextComma3()
     {
-        return $this->_testCurrency(ValueType::TEXT, '$1,000.20', 
+        return $this->_testCurrency(
+            ValueType::TEXT,
+            '$1,000.20',
             ['currency_symbol' => CurrencySymbol::USD,
              'number_format' => 1,
-             'decimal_digit' => 2], static::CURRENCY_VALUE3);
+             'decimal_digit' => 2],
+            static::CURRENCY_VALUE3
+        );
     }
 
 

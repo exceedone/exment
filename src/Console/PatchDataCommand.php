@@ -78,6 +78,9 @@ class PatchDataCommand extends Command
         $name = $this->argument("action");
 
         switch ($name) {
+            case 'convert_select_table_column':
+                $this->convertSelectTableColumn();
+                return;
             case 'rmcomma':
                 $this->removeDecimalComma();
                 return;
@@ -359,6 +362,63 @@ class PatchDataCommand extends Command
                         \DB::table($dbTableName)->where('id', $commaValue->id)->update(["value->{$column->column_name}" => $v]);
                     }
                 });
+        }
+    }
+
+    /**
+     * Change the storage format of select_table columns from number to string
+     *
+     * @return void
+     */
+    protected function convertSelectTableColumn()
+    {
+        \DB::beginTransaction();
+        try {
+            $custom_tables = CustomTable::all();
+            // loop for table
+            foreach ($custom_tables as $custom_table) {
+                $custom_columns = $custom_table->custom_columns_cache->filter(function ($custom_column) {
+                    $column_type = array_get($custom_column, 'column_type');
+                    return ColumnType::isSelectTable($column_type);
+                });
+
+                if ($custom_columns->count() == 0) {
+                    continue;
+                }
+                $custom_table->getValueModel()
+                    ->withTrashed()
+                    ->chunk(1000, function ($custom_values) use ($custom_columns) {
+                        foreach ($custom_values as &$custom_value) {
+                            $isUpdate = false;
+                            foreach ($custom_columns as $custom_column) {
+                                $originalValue = array_get($custom_value, 'value.' .$custom_column->column_name);
+                                // already string, continue
+                                if (is_null($originalValue) || gettype($originalValue) == "string") {
+                                    continue;
+                                }
+                                $v = $custom_column->column_item->setCustomValue($custom_value)->saving();
+                                // match originalValue and $v, continue
+                                if (!isset($v) || $originalValue === $v) {
+                                    continue;
+                                }
+                                $isUpdate = true;
+                                $custom_value->setValue($custom_column->column_name, $v);
+                            }
+                        
+                            if ($isUpdate) {
+                                // disable each event
+                                $custom_value->saving_users = false;
+                                $custom_value->disable_saving_event(true);
+                                $custom_value->disable_saved_event(true);
+                                $custom_value->save();
+                            }
+                        }
+                    });
+            }
+            \DB::commit();
+        } catch (\Exception $ex) {
+            \DB::rollback();
+            throw $ex;
         }
     }
     
@@ -1802,19 +1862,19 @@ class PatchDataCommand extends Command
             ->each(function ($file) {
                 $file_type = null;
                 // if set custom_column_id, set file_type is COLUMN
-                if(isset($file->custom_column_id)){
+                if (isset($file->custom_column_id)) {
                     $file_type = Enums\FileType::CUSTOM_VALUE_COLUMN;
                 }
                 // if local_dirname is 'system' and parent_type is null, set SYSTEM
-                elseif(isMatchString($file->local_dirname, 'system') && !isset($file->parent_type)){
+                elseif (isMatchString($file->local_dirname, 'system') && !isset($file->parent_type)) {
                     $file_type = Enums\FileType::SYSTEM;
                 }
                 // if local_dirname is 'avatar' and parent_type is null, set AVATAR
-                elseif(isMatchString($file->local_dirname, 'avatar') && !isset($file->parent_type)){
+                elseif (isMatchString($file->local_dirname, 'avatar') && !isset($file->parent_type)) {
                     $file_type = Enums\FileType::AVATAR;
                 }
                 // else, set as document
-                else{
+                else {
                     $file_type = Enums\FileType::CUSTOM_VALUE_DOCUMENT;
                 }
                 $file->file_type = $file_type;

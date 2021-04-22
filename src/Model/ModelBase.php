@@ -131,7 +131,7 @@ class ModelBase extends Model
     protected static function setUser($model, $columns = [])
     {
         // if property 'saving_users' is false, return;
-        if(!$model->saving_users){
+        if (!$model->saving_users) {
             return;
         }
 
