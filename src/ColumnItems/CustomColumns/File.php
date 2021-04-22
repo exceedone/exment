@@ -369,14 +369,14 @@ class File extends CustomItem
     {
         // get values ids
         $ids = $this->getQueryIds($mark, $value);
+        $query = $this->custom_table->getValueQuery();
         if (is_nullorempty($ids)) {
-            return [];
+            $query->whereNotMatch();
+        } else {
+            $query->whereOrIn('id', $ids);
         }
         
-        $query = $this->custom_table->getValueQuery();
-        $query->whereOrIn('id', $ids)->select('id');
-        
-        $query->take($takeCount);
+        $query->select('id')->take($takeCount);
 
         return [$query];
     }
