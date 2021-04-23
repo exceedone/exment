@@ -13,11 +13,17 @@ interface JQueryStatic {
 
         // remove comma
         var rmcomma = function (val) {
+            if(val === null || val === undefined){
+                return null;
+            }
             return val.toString().replace(new RegExp(setting.separator, 'g'), '');
         };
 
         // format number
         var fmcomma = function (val) {
+            if(val === null || val === undefined){
+                return null;
+            }
             var v = rmcomma(val);
             return v.replace(/(\d)(?=(?:\d{3}){2,}(?:\.|$))|(\d)(\d{3}(?:\.\d*)?$)/g
                 , '$1$2' + setting.separator + '$3');
