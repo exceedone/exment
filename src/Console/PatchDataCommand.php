@@ -408,6 +408,7 @@ class PatchDataCommand extends Command
                             if ($isUpdate) {
                                 // disable each event
                                 $custom_value->saving_users = false;
+                                $custom_value->timestamps = false;
                                 $custom_value->disable_saving_event(true);
                                 $custom_value->disable_saved_event(true);
                                 $custom_value->save();
