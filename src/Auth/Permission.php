@@ -227,6 +227,7 @@ class Permission
             case "files":
             case "notify_navbar":
             case "tmpfiles":
+            case "tmpimages":
                 return true;
             ///// only system permission
             case "system":
