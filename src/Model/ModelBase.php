@@ -8,6 +8,13 @@ use Exceedone\Exment\Enums\SystemTableName;
 class ModelBase extends Model
 {
     protected $guarded = ['id'];
+
+    /**
+     * Whether saving users
+     *
+     * @var boolean
+     */
+    public $saving_users = true;
     
     /**
      * Get CreatedUser. Only name.
@@ -123,11 +130,15 @@ class ModelBase extends Model
      */
     protected static function setUser($model, $columns = [])
     {
-        $user = \Exment::user() ?? null;
-        if (!isset($user)) {
+        // if property 'saving_users' is false, return;
+        if (!$model->saving_users) {
             return;
         }
-        $user_id = $user->getUserId();
+
+        $user_id = \Exment::getUserId();
+        if (!isset($user_id)) {
+            return;
+        }
         foreach ($columns as $column) {
             $model->{$column} = $user_id;
         }

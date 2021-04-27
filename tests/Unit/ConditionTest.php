@@ -433,7 +433,7 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnDate(null, [null], FilterOption::DAY_NEXT_MONTH, false);
     }
     public function testColumnDateDayNextMonthFalse2()
-{        // Change now
+    {        // Change now
         Carbon::setTestNow(new Carbon('2021-12-02 09:59:59'));
         // Wrong year
         $this->_testColumnDate((new Carbon('2021-01-21 09:59:59'))->firstOfMonth()->format('Y-m-d'), [null], FilterOption::DAY_NEXT_MONTH, false);

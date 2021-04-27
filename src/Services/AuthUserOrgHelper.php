@@ -469,49 +469,4 @@ class AuthUserOrgHelper
         // get only login user's organization
         $builder->whereIn("$db_table_name.id", $user->getOrganizationIdsForQuery($joinedOrgFilterType));
     }
-
-    /**
-     * Get User, org, role group form
-     *
-     * @return ModalForm
-     */
-    public static function getUserOrgModalForm($custom_table = null, $value = [], $options = [])
-    {
-        $options = array_merge([
-            'prependCallback' => null
-        ], $options);
-        
-        $form = new ModalForm();
-
-        if (isset($options['prependCallback'])) {
-            $options['prependCallback']($form);
-        }
-
-        list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
-            'display_table' => $custom_table,
-            'selected_value' => array_get($value, SystemTableName::USER),
-        ]);
-
-        // select target users
-        $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
-            ->options($users)
-            ->ajax($ajax)
-            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-            ->default(array_get($value, SystemTableName::USER));
-
-        if (System::organization_available()) {
-            list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
-                'display_table' => $custom_table,
-                'selected_value' => array_get($value, SystemTableName::ORGANIZATION),
-            ]);
-                
-            $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
-                ->options($organizations)
-                ->ajax($ajax)
-                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-                ->default(array_get($value, SystemTableName::ORGANIZATION));
-        }
-
-        return $form;
-    }
 }

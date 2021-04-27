@@ -25,6 +25,19 @@ class Yesno extends CustomItem
 
     public function saving()
     {
+        // get custom_value's value.
+        $custom_value_value = array_get($this->custom_value, 'value');
+        if (is_nullorempty($custom_value_value)) {
+            return;
+        }
+
+        // if not has key in $custom_value_value, and this is edited, return;
+        // *Why this function needs, if already saved as true and edit call, and not contains this field,
+        // if not has this function, override 0.
+        if (!array_has($custom_value_value, $this->custom_column->column_name) && !is_nullorempty($this->custom_value->id)) {
+            return;
+        }
+
         if (is_null($this->value)) {
             return 0;
         }

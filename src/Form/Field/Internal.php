@@ -20,7 +20,7 @@ class Internal extends Field
      */
     public function prepare($value)
     {
-        return $this->getDefault();
+        return $this->getDefault() ?? $this->original();
     }
 
     

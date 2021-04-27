@@ -993,6 +993,27 @@ if (!function_exists('isMatchArray')) {
 }
 
 // string --------------------------------------------------
+if (!function_exists('rstrpos')) {
+    /**
+     * last of strpos. find from last, and return last offset.
+     *
+     * @param string $haystack
+     * @param string $needle
+     * @param integer $offset
+     * @return int|false
+     */
+    function rstrpos(?string $haystack, ?string $needle, ?int $offset = 0)
+    {
+        $result = strrpos($haystack, $needle, $offset);
+        if ($result === false) {
+            return $result;
+        }
+
+        $strlen = strlen($haystack);
+        return $result - $strlen + 1;
+    }
+}
+
 if (!function_exists('make_password')) {
     function make_password($length = 16, $options = [])
     {

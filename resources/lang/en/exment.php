@@ -1066,6 +1066,8 @@ return [
             'ignore_work' => 'By checking, "executable user" set in this action is not included in the work user. <br /> Please check this when you want to return to the previous status, such as "Reject" or "Return", or when the administrator approves with a special exception.',
             'flow_executed_user_count' => 'The status will not change until the required number of people perform the action.',
             'add_notify_flg' => 'Add a setting to notify in the system for the "next work user" when the workflow is executed. Set to YES to add. <br/> * Can only be set when workflow settings are complete. Please set from the "Notification" page when updating.',
+            'target_column' => 'Columns with custom column types "User" and "Organization" are displayed in the choices.',
+            'target_user_org' => 'Only :type that has permission to access the table ":table_view_name" will be displayed in the choices. If you don\'t see the :type you want to add, add permissions from the role group settings.',
         ],
 
         'message' => [
