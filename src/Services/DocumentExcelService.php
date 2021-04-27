@@ -249,7 +249,7 @@ class DocumentExcelService
                     return '';
                 }
                 if (is_list($path)) {
-                    $path = collect($path)->last();
+                    $path = collect($path)->first();
                 }
                 $path = storage_path(path_join('app/admin', $path));
         
