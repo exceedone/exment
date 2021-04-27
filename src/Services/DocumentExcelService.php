@@ -7,6 +7,8 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomValue;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+
 
 class DocumentExcelService
 {
@@ -194,7 +196,14 @@ class DocumentExcelService
         // first time, define loop value
         $this->callbackSheetCell($sheet, function ($cell, $val, $matches) use ($sheet) {
             $text = $this->getText($val);
-            $sheet->setCellValue($cell->getColumn() . $cell->getRow(), $text);
+            $cellpos = $cell->getColumn() . $cell->getRow();
+            if ($text instanceof Drawing) {
+                $text->setCoordinates($cellpos);
+                $text->setWorksheet($sheet);
+                $sheet->setCellValue($cellpos, '');
+            } else {
+                $sheet->setCellValue($cellpos, $text);
+            }
         });
     }
 
@@ -229,6 +238,41 @@ class DocumentExcelService
         $options['disable_number_format'] = true;
         $options['afterCallback'] = function ($text, $custom_value, $options) {
             return $this->replaceText($text, $options);
+        };
+        $options['matchBeforeCallbackForce'] = function ($length_array, $custom_value, $options, $matchOptions) {
+            $key = $length_array[0];
+
+            if ($key == 'value_image') {
+                $length_array = array_slice($length_array, 1);
+                $path = $custom_value->getValue(implode('.', $length_array), false, $matchOptions) ?? '';
+                if (is_nullorempty($path)) {
+                    return '';
+                }
+                if (is_list($path)) {
+                    $path = collect($path)->first();
+                }
+                $path = storage_path(path_join('app/admin', $path));
+        
+                $width = array_get($matchOptions, 'width');
+                $height = array_get($matchOptions, 'height');
+        
+                // create drawing object
+                $drawing = new Drawing();
+                $drawing->setPath($path);
+                if (isset($width) && isset($height)) {
+                    $drawing->setResizeProportional(false);
+                    $drawing->setWidth($width);
+                    $drawing->setHeight($height);
+                }
+                else if (isset($width)) {
+                    $drawing->setWidth($width);
+                }
+                else if (isset($height)) {
+                    $drawing->setHeight($height);
+                }
+        
+                return $drawing;
+            }
         };
         return replaceTextFromFormat($text, $this->model, $options);
     }
