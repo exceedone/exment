@@ -73,7 +73,7 @@ class OperationLogProvider extends ProviderBase
     public function getRecords() : Collection
     {
         $records = new Collection;
-        $this->grid->model()->chunk(function ($data) use (&$records) {
+        $this->grid->model()->with(['user', 'user.base_user'])->chunk(function ($data) use (&$records) {
             if (is_nullorempty($records)) {
                 $records = new Collection;
             }
@@ -99,7 +99,7 @@ class OperationLogProvider extends ProviderBase
             $body_items = [];
             // add items
             $body_items[] = $record->id;
-            $body_items[] = $record->user_id;
+            $body_items[] = $record->user_name;
             $body_items[] = $record->path;
             $body_items[] = $record->method;
             $body_items[] = $record->ip;

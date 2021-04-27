@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Model;
 
 class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
 {
-    protected $appends = ['base_user_id'];
+    //protected $appends = ['base_user_id'];
 
     public function getBaseUserIdAttribute()
     {
@@ -14,5 +14,15 @@ class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
 
         $user = $this->user;
         return $user ? $user->base_user_id : "0";
+    }
+
+    public function getUserNameAttribute()
+    {
+        if (isMatchString($this->user_id, 0)) {
+            return null;
+        }
+
+        $user = $this->user;
+        return $user ? $user->user_name : null;
     }
 }
