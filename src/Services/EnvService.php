@@ -43,7 +43,7 @@ class EnvService
                 $hasKey = true;
 
                 if (!$matchRemove) {
-                    $newEnvs[] = $key . "=" . $value;
+                    $newEnvs[] = $key . "=" . static::convertEnvValue($value);
                 }
             }
             if (!$hasKey) {
@@ -57,7 +57,7 @@ class EnvService
             if (array_has($newEnvs, $key)) {
                 continue;
             }
-            $newEnvs[] = $key . "=" . $value;
+            $newEnvs[] = $key . "=" . static::convertEnvValue($value);
         }
 
         // Turn the array back to an String
@@ -65,6 +65,16 @@ class EnvService
 
         // And overwrite the .env with the new data
         file_put_contents(base_path() . '/.env', $env);
+    }
+
+    private static function convertEnvValue($value)
+    {
+        if(strpos($value,'#') !== false || strpos($value,' ') !== false){
+            if (!preg_match('/".+"/', $value)) {
+                return '"' . $value . '"';
+            }
+        }
+        return $value;
     }
     
     public static function removeEnv($data = [])
