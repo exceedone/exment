@@ -67,7 +67,14 @@ class EnvService
         file_put_contents(base_path() . '/.env', $env);
     }
 
-    private static function convertEnvValue($value)
+
+    /**
+     * Convert env value. If scape or #, append "".
+     *
+     * @param mixed $value
+     * @return string
+     */
+    protected static function convertEnvValue($value)
     {
         if(strpos($value,'#') !== false || strpos($value,' ') !== false){
             if (!preg_match('/".+"/', $value)) {
