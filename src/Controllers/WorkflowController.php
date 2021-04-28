@@ -1085,7 +1085,7 @@ class WorkflowController extends AdminControllerBase
         // Set help if has $custom_table
         if (!$isWfCommon && $custom_table) {
             $field->help(exmtrans('workflow.help.target_user_org', [
-                'table_view_name' => $custom_table->table_view_name,
+                'table_view_name' => esc_html($custom_table->table_view_name),
                 'type' => exmtrans('menu.system_definitions.user'),
             ]));
         }
@@ -1105,7 +1105,7 @@ class WorkflowController extends AdminControllerBase
             // Set help if has $custom_table
             if (!$isWfCommon && $custom_table) {
                 $field->help(exmtrans('workflow.help.target_user_org', [
-                    'table_view_name' => $custom_table->table_view_name,
+                    'table_view_name' => esc_html($custom_table->table_view_name),
                     'type' => exmtrans('menu.system_definitions.organization'),
                 ]));
             }

@@ -76,7 +76,7 @@ class EnvService
      */
     protected static function convertEnvValue($value)
     {
-        if(strpos($value,'#') !== false || strpos($value,' ') !== false){
+        if (strpos($value, '#') !== false || strpos($value, ' ') !== false) {
             if (!preg_match('/".+"/', $value)) {
                 return '"' . $value . '"';
             }
