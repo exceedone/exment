@@ -73,7 +73,10 @@ class LoginUserController extends AdminControllerBase
         $grid->exporter($service);
         
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
-            $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true));
+            $button = new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true);
+            $button->setBaseKey('common');
+            
+            $tools->append($button);
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
             });

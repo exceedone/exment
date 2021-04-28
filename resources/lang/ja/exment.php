@@ -82,6 +82,7 @@ return [
         'preview' => 'プレビュー',
         'no_selected' => '未選択',
         'no_use' => '使用しない',
+        'default_export' => 'エクスポート',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -118,10 +119,13 @@ return [
             'order' => '%sを一覧表示した時の表示順です。',
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
+            'import' => 'インポート実行のためのダイアログを表示します。',
             'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。それ以上の件数のデータは、分割してアップロードをいただくか、<a href=":manual" target="_blank">大量データ投入<i class="fa fa-external-link"></i></a>を行ってください。',
             'init_flg' => '保存後、変更はできません。',
             'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
             'more_help_here' => '詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'export_all' => 'すべてのデータをエクスポートします。',
+            'export_page' => '現在のページのデータをエクスポートします。',
         ],
 
         'weekday' => [
@@ -2300,6 +2304,7 @@ return [
     
     'operation_log' => [
         'description' => '操作ログを一覧表示します。',
+        'user_id' => 'ユーザーID',
         'user_name' => 'ユーザー名',
         'method' => 'メソッド',
         'path' => 'パス',

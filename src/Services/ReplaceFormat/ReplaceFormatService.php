@@ -20,6 +20,7 @@ class ReplaceFormatService
         $options = array_merge(
             [
                 'matchBeforeCallback' => null,
+                'matchBeforeCallbackForce' => null,
                 'afterCallBack' => null,
                 'escapeValue' => false, // escape html value
             ],
@@ -70,6 +71,15 @@ class ReplaceFormatService
                             if ($result) {
                                 $str = $result;
                                 $callbacked = true;
+                            }
+                        }
+                        if (array_key_value_exists('matchBeforeCallbackForce', $options)) {
+                            // execute callback
+                            $callbackFunc = $options['matchBeforeCallbackForce'];
+                            $result = $callbackFunc($length_array, $custom_value, $options, $matchOptions);
+                            // if get value, return this function.
+                            if (!is_null($result)) {
+                                return $result;
                             }
                         }
 

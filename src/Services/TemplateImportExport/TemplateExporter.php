@@ -261,7 +261,7 @@ class TemplateExporter
      */
     protected static function setTemplatePublicForm(&$config, $public_form_uuid, $is_lang = false)
     {
-        $public_form = PublicForm::getPublicFormByUuid($public_form_uuid);
+        $public_form = PublicForm::getPublicFormByUuid($public_form_uuid, true);
         if (!$public_form) {
             return;
         }
