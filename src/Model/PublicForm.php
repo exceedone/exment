@@ -154,7 +154,7 @@ class PublicForm extends ModelBase
      *
      * @return PublicForm|null
      */
-    public static function getPublicFormByUuid($uuid) : ?PublicForm
+    public static function getPublicFormByUuid($uuid, bool $skipCheckActiveEtc = false) : ?PublicForm
     {
         if (!$uuid) {
             return null;
@@ -163,6 +163,10 @@ class PublicForm extends ModelBase
         $model = PublicForm::findByUuid($uuid);
         if (!$model) {
             return null;
+        }
+
+        if($skipCheckActiveEtc){
+            return $model;
         }
 
         if (!boolval($model->active_flg)) {

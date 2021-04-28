@@ -353,12 +353,20 @@ trait PublicFormInputTrait
         $plugin_css = Plugin::query()->whereOrIn('plugin_name', array_get($json, 'options.plugin_css', []))->pluck('id')->filter();
         $plugin_js = Plugin::query()->whereOrIn('plugin_name', array_get($json, 'options.plugin_js', []))->pluck('id')->filter();
 
-        if (is_nullorempty($plugin_css) && is_nullorempty($plugin_js)) {
-            return;
+        if (is_nullorempty($plugin_css)) {
+            $this->forgetOption('plugin_css');
+        }
+        else{
+            $this->setOption('plugin_css', $plugin_css);
+        }
+        
+        if (is_nullorempty($plugin_js)) {
+            $this->forgetOption('plugin_js');
+        }
+        else{
+            $this->setOption('plugin_js', $plugin_js);
         }
 
-        $this->setOption('plugin_css', $plugin_css);
-        $this->setOption('plugin_js', $plugin_js);
         $this->save();
     }
 }
