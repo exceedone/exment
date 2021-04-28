@@ -46,22 +46,22 @@ class OperationLogProvider extends ProviderBase
 
         // 1st row, column name
         $rows[] = [
-            'id',
-            'user_id',
+            'user_name',
             'path',
             'method',
             'ip',
             'input',
+            'created_at',
         ];
 
         // 2nd row, column view name
         $rows[] = [
-            exmtrans('common.id'),
-            exmtrans('operation_log.user_id'),
-            exmtrans('operation_log.path'),
+            exmtrans('operation_log.user_name'),
             exmtrans('operation_log.method'),
+            exmtrans('operation_log.path'),
             exmtrans('operation_log.ip'),
             exmtrans('operation_log.input'),
+            trans('admin.created_at'),
         ];
 
         return $rows;
@@ -73,7 +73,8 @@ class OperationLogProvider extends ProviderBase
     public function getRecords() : Collection
     {
         $records = new Collection;
-        $this->grid->model()->with(['user', 'user.base_user'])->chunk(function ($data) use (&$records) {
+        $this->grid->applyQuickSearch();
+        $this->grid->getFilter()->with(['user', 'user.base_user'])->chunk(function ($data) use (&$records) {
             if (is_nullorempty($records)) {
                 $records = new Collection;
             }
@@ -98,12 +99,12 @@ class OperationLogProvider extends ProviderBase
         foreach ($records as $record) {
             $body_items = [];
             // add items
-            $body_items[] = $record->id;
             $body_items[] = $record->user_name;
-            $body_items[] = $record->path;
             $body_items[] = $record->method;
+            $body_items[] = $record->path;
             $body_items[] = $record->ip;
             $body_items[] = $record->input;
+            $body_items[] = $record->created_at;
 
             $bodies[] = $body_items;
         }
