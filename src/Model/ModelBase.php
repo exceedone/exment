@@ -136,7 +136,7 @@ class ModelBase extends Model
         }
 
         $user_id = \Exment::getUserId();
-        if (!isset($user_id)) {
+        if (is_nullorempty($user_id)) {
             return;
         }
         foreach ($columns as $column) {

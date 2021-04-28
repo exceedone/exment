@@ -82,6 +82,7 @@ return [
         'preview' => 'プレビュー',
         'no_selected' => '未選択',
         'no_use' => '使用しない',
+        'default_export' => 'エクスポート',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -118,10 +119,13 @@ return [
             'order' => '%sを一覧表示した時の表示順です。',
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
+            'import' => 'インポート実行のためのダイアログを表示します。',
             'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。それ以上の件数のデータは、分割してアップロードをいただくか、<a href=":manual" target="_blank">大量データ投入<i class="fa fa-external-link"></i></a>を行ってください。',
             'init_flg' => '保存後、変更はできません。',
             'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
             'more_help_here' => '詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'export_all' => 'すべてのデータをエクスポートします。',
+            'export_page' => '現在のページのデータをエクスポートします。',
         ],
 
         'weekday' => [
@@ -1062,6 +1066,8 @@ return [
             'ignore_work' => 'チェックすることで、このアクションに設定されている「実行可能ユーザー」は、作業ユーザーに含めません。<br />「却下」「差し戻し」など、前のステータスに戻るアクションや、管理者が特例で承認を行う場合などに、チェックを行ってください。',
             'flow_executed_user_count' => '必要人数がアクションを実行するまで、ステータスは変更されません。',
             'add_notify_flg' => 'ワークフロー実行時に、「次の作業ユーザー」を対象に、システム内通知を行う設定を追加します。追加する場合はYESにしてください。<br/>※ワークフローの設定完了時のみ、この画面で設定できます。更新時は「通知」画面より設定してください。',
+            'target_column' => 'カスタム列種類が「ユーザー」「組織」の列が、選択肢に表示されます。',
+            'target_user_org' => 'テーブル「:table_view_name」にアクセスする権限をもつ:typeのみ、選択肢に表示されます。追加したい:typeが表示されない場合、役割グループ設定より権限を追加してください。',
         ],
 
         'message' => [
@@ -2298,6 +2304,7 @@ return [
     
     'operation_log' => [
         'description' => '操作ログを一覧表示します。',
+        'user_id' => 'ユーザーID',
         'user_name' => 'ユーザー名',
         'method' => 'メソッド',
         'path' => 'パス',

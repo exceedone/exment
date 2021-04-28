@@ -10,4 +10,5 @@ use Encore\Admin\Form\Field\Display;
  */
 class ViewOnly extends Display
 {
+    protected $view = 'exment::form.field.display';
 }

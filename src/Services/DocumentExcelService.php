@@ -7,6 +7,8 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomValue;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use Exceedone\Exment\Storage\Disk\AdminDiskService;
 
 class DocumentExcelService
 {
@@ -18,6 +20,13 @@ class DocumentExcelService
     protected $outputfilename;
     protected $filename;
     protected $uniqueFileName;
+
+    /**
+     * Image setted disk services
+     *
+     * @var array
+     */
+    protected $diskServies = [];
 
     /**
      * CustomValue
@@ -47,46 +56,53 @@ class DocumentExcelService
     public function makeExcel()
     {
         //Excel::selectSheetsByIndex(0)->load($this->filename, function($reader) {
-        $reader = IOFactory::createReader('Xlsx');
-        $spreadsheet = $reader->load($this->templateFileFullPath);
-
-        // output all sheets
-        $showGridlines = [];
-        $sheetCount = $spreadsheet->getSheetCount();
-        for ($i = 0; $i < $sheetCount; $i++) {
-            $sheet = $spreadsheet->getSheet($i);
-            $showGridlines[] = $sheet->getShowGridlines();
-            // output table
-            $this->lfTable($sheet);
-
-            // outputvalue
-            $this->lfValue($sheet);
+        try {
+            $reader = IOFactory::createReader('Xlsx');
+            $spreadsheet = $reader->load($this->templateFileFullPath);
+    
+            // output all sheets
+            $showGridlines = [];
+            $sheetCount = $spreadsheet->getSheetCount();
+            for ($i = 0; $i < $sheetCount; $i++) {
+                $sheet = $spreadsheet->getSheet($i);
+                $showGridlines[] = $sheet->getShowGridlines();
+                // output table
+                $this->lfTable($sheet);
+    
+                // outputvalue
+                $this->lfValue($sheet);
+            }
+    
+            // output excel
+            $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $writer->setIncludeCharts(true);
+            //$writer->setPreCalculateFormulas(true);
+            $writer->save($this->getFullPathTmp());
+    
+            // re-load and save again. (Because cannot calc formula)
+            $reader = IOFactory::createReader('Xlsx');
+            $spreadsheet = $reader->load($this->getFullPathTmp());
+    
+            $sheetCount = $spreadsheet->getSheetCount();
+            for ($i = 0; $i < $sheetCount; $i++) {
+                $sheet = $spreadsheet->getSheet($i);
+                $sheet->setShowGridlines($showGridlines[$i]);
+            }
+    
+            $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $this->saveFile($writer);
+    
+            // remove tmpfile
+            \File::delete($this->getAdminTmpFullPath());
+            \File::delete($this->getFullPathTmp());
+    
+            return true;
+        } finally {
+            // Delete tmp directory
+            foreach ($this->diskServies as $diskService) {
+                $diskService->deleteTmpDirectory();
+            }
         }
-
-        // output excel
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->setIncludeCharts(true);
-        //$writer->setPreCalculateFormulas(true);
-        $writer->save($this->getFullPathTmp());
-
-        // re-load and save again. (Because cannot calc formula)
-        $reader = IOFactory::createReader('Xlsx');
-        $spreadsheet = $reader->load($this->getFullPathTmp());
-
-        $sheetCount = $spreadsheet->getSheetCount();
-        for ($i = 0; $i < $sheetCount; $i++) {
-            $sheet = $spreadsheet->getSheet($i);
-            $sheet->setShowGridlines($showGridlines[$i]);
-        }
-
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $this->saveFile($writer);
-
-        // remove tmpfile
-        \File::delete($this->getAdminTmpFullPath());
-        \File::delete($this->getFullPathTmp());
-
-        return true;
     }
 
     /**
@@ -194,7 +210,14 @@ class DocumentExcelService
         // first time, define loop value
         $this->callbackSheetCell($sheet, function ($cell, $val, $matches) use ($sheet) {
             $text = $this->getText($val);
-            $sheet->setCellValue($cell->getColumn() . $cell->getRow(), $text);
+            $cellpos = $cell->getColumn() . $cell->getRow();
+            if ($text instanceof Drawing) {
+                $text->setCoordinates($cellpos);
+                $text->setWorksheet($sheet);
+                $sheet->setCellValue($cellpos, '');
+            } else {
+                $sheet->setCellValue($cellpos, $text);
+            }
         });
     }
 
@@ -230,6 +253,23 @@ class DocumentExcelService
         $options['afterCallback'] = function ($text, $custom_value, $options) {
             return $this->replaceText($text, $options);
         };
+        $options['matchBeforeCallbackForce'] = function ($length_array, $custom_value, $options, $matchOptions) {
+            $key = $length_array[0];
+
+            if ($key == 'value_image') {
+                $length_array = array_slice($length_array, 1);
+                $path = $custom_value->getValue(implode('.', $length_array), false, $matchOptions) ?? '';
+                if (is_nullorempty($path)) {
+                    return '';
+                }
+                if (is_list($path)) {
+                    $path = collect($path)->first();
+                }
+
+                $drawing = $this->getImage($path, $matchOptions);
+                return $drawing;
+            }
+        };
         return replaceTextFromFormat($text, $this->model, $options);
     }
 
@@ -250,6 +290,7 @@ class DocumentExcelService
 
         return $text;
     }
+
     /**
      * get file name
      * @return string File name
@@ -350,5 +391,44 @@ class DocumentExcelService
             fclose($stream);
         } catch (\Exception $ex) {
         }
+    }
+
+
+    /**
+     * set image full
+     *
+     * @param string|null $path
+     * @return Drawing|null
+     */
+    protected function getImage(?string $path, $matchOptions)
+    {
+        $diskService = new AdminDiskService($path);
+        // sync from crowd.
+        $diskService->syncFromDisk();
+        
+        $path = $diskService->localSyncDiskItem()->fileFullPath();
+        if (!\File::exists($path)) {
+            return null;
+        }
+        
+        $width = array_get($matchOptions, 'width');
+        $height = array_get($matchOptions, 'height');
+
+        // create drawing object
+        $drawing = new Drawing();
+        $drawing->setPath($path);
+        if (isset($width) && isset($height)) {
+            $drawing->setResizeProportional(false);
+            $drawing->setWidth($width);
+            $drawing->setHeight($height);
+        } elseif (isset($width)) {
+            $drawing->setWidth($width);
+        } elseif (isset($height)) {
+            $drawing->setHeight($height);
+        }
+
+        $this->diskServies[] = $diskService;
+
+        return $drawing;
     }
 }

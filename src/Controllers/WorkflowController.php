@@ -20,6 +20,7 @@ use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
@@ -34,9 +35,8 @@ use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Symfony\Component\HttpFoundation\Response;
-use \Carbon\Carbon;
+use Carbon\Carbon;
 
 class WorkflowController extends AdminControllerBase
 {
@@ -863,7 +863,7 @@ class WorkflowController extends AdminControllerBase
 
         $index = $request->get('index');
 
-        $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value, [
+        $form = $this->getUserOrgModalForm($custom_table, $workflow, $value, [
             'prependCallback' => function ($form) use ($value, $index) {
                 if ($index > 0) {
                     $options = [
@@ -893,6 +893,7 @@ class WorkflowController extends AdminControllerBase
             $form->multipleSelect('modal_' . ConditionTypeDetail::COLUMN()->lowerkey(), exmtrans('common.custom_column'))
                 ->options($options)
                 ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
+                ->help(exmtrans('workflow.help.target_column'))
                 ->default(array_get($value, ConditionTypeDetail::COLUMN()->lowerkey()));
         }
 
@@ -1049,5 +1050,67 @@ class WorkflowController extends AdminControllerBase
             'script' => $form->getScript(),
             'title' => exmtrans('workflow.setting_complete')
         ]);
+    }
+
+
+    
+    /**
+     * Get User, org, role group form
+     *
+     * @return ModalForm
+     */
+    protected function getUserOrgModalForm(?CustomTable $custom_table, ?Workflow $workflow, $value = [], $options = [])
+    {
+        $options = array_merge([
+            'prependCallback' => null
+        ], $options);
+        $isWfCommon = $workflow && $workflow->workflow_type == WorkflowType::COMMON;
+        
+        $form = new ModalForm();
+        if (isset($options['prependCallback'])) {
+            $options['prependCallback']($form);
+        }
+
+        list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
+            'display_table' => $custom_table,
+            'selected_value' => array_get($value, SystemTableName::USER),
+        ]);
+
+        // select target users
+        $field = $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
+            ->options($users)
+            ->ajax($ajax)
+            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
+            ->default(array_get($value, SystemTableName::USER));
+        // Set help if has $custom_table
+        if (!$isWfCommon && $custom_table) {
+            $field->help(exmtrans('workflow.help.target_user_org', [
+                'table_view_name' => esc_html($custom_table->table_view_name),
+                'type' => exmtrans('menu.system_definitions.user'),
+            ]));
+        }
+
+        if (System::organization_available()) {
+            list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
+                'display_table' => $custom_table,
+                'selected_value' => array_get($value, SystemTableName::ORGANIZATION),
+            ]);
+                
+            $field = $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
+                ->options($organizations)
+                ->ajax($ajax)
+                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
+                ->default(array_get($value, SystemTableName::ORGANIZATION));
+        
+            // Set help if has $custom_table
+            if (!$isWfCommon && $custom_table) {
+                $field->help(exmtrans('workflow.help.target_user_org', [
+                    'table_view_name' => esc_html($custom_table->table_view_name),
+                    'type' => exmtrans('menu.system_definitions.organization'),
+                ]));
+            }
+        }
+
+        return $form;
     }
 }

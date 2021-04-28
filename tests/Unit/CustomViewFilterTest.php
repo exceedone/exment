@@ -1078,7 +1078,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 2
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return array_get($data, 'value.select_table') === $filter_settings[0]['filter_value_text'];
+            return isMatchString(array_get($data, 'value.select_table'), $filter_settings[0]['filter_value_text']);
         });
     }
 
@@ -1095,7 +1095,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 2
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return array_get($data, 'value.select_table') !== $filter_settings[0]['filter_value_text'];
+            return !isMatchString(array_get($data, 'value.select_table'), $filter_settings[0]['filter_value_text']);
         });
     }
 
