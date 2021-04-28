@@ -116,13 +116,12 @@ class DataImportExportService extends AbstractExporter
     
     protected function getFormatClass(string $library, bool $isExport) : FormatBase
     {
-        if($isExport){
-            if($this->exportAction && method_exists($this->exportAction, 'getFormatClass')){
+        if ($isExport) {
+            if ($this->exportAction && method_exists($this->exportAction, 'getFormatClass')) {
                 return $this->exportAction->getFormatClass($this->format, $library);
             }
-        }
-        else{
-            if($this->importAction && method_exists($this->importAction, 'getFormatClass')){
+        } else {
+            if ($this->importAction && method_exists($this->importAction, 'getFormatClass')) {
                 return $this->importAction->getFormatClass($this->format, $library);
             }
         }

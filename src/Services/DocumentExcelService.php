@@ -10,7 +10,6 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use Exceedone\Exment\Storage\Disk\AdminDiskService;
 
-
 class DocumentExcelService
 {
     /**
@@ -57,7 +56,7 @@ class DocumentExcelService
     public function makeExcel()
     {
         //Excel::selectSheetsByIndex(0)->load($this->filename, function($reader) {
-        try{
+        try {
             $reader = IOFactory::createReader('Xlsx');
             $spreadsheet = $reader->load($this->templateFileFullPath);
     
@@ -98,14 +97,12 @@ class DocumentExcelService
             \File::delete($this->getFullPathTmp());
     
             return true;
-        }
-        finally{
+        } finally {
             // Delete tmp directory
-            foreach($this->diskServies as $diskService){
+            foreach ($this->diskServies as $diskService) {
                 $diskService->deleteTmpDirectory();
             }
         }
-
     }
 
     /**
@@ -269,7 +266,7 @@ class DocumentExcelService
                     $path = collect($path)->first();
                 }
 
-                $drawing = $this->setImage($path, $matchOptions);
+                $drawing = $this->getImage($path, $matchOptions);
                 return $drawing;
             }
         };
@@ -398,39 +395,39 @@ class DocumentExcelService
 
 
     /**
-     * set image full 
+     * set image full
      *
      * @param string|null $path
      * @return Drawing|null
      */
-    protected function setImage(?string $path, $matchOptions)
+    protected function getImage(?string $path, $matchOptions)
     {
         $diskService = new AdminDiskService($path);
         // sync from crowd.
         $diskService->syncFromDisk();
         
         $path = $diskService->localSyncDiskItem()->fileFullPath();
-        if(\File::exists($path)){
-            $width = array_get($matchOptions, 'width');
-            $height = array_get($matchOptions, 'height');
-
-            // create drawing object
-            $drawing = new Drawing();
-            $drawing->setPath($path);
-            if (isset($width) && isset($height)) {
-                $drawing->setResizeProportional(false);
-                $drawing->setWidth($width);
-                $drawing->setHeight($height);
-            }
-            elseif (isset($width)) {
-                $drawing->setWidth($width);
-            }
-            elseif (isset($height)) {
-                $drawing->setHeight($height);
-            }
-
-            $this->diskServies[] = $diskService;
+        if (!\File::exists($path)) {
+            return null;
         }
+        
+        $width = array_get($matchOptions, 'width');
+        $height = array_get($matchOptions, 'height');
+
+        // create drawing object
+        $drawing = new Drawing();
+        $drawing->setPath($path);
+        if (isset($width) && isset($height)) {
+            $drawing->setResizeProportional(false);
+            $drawing->setWidth($width);
+            $drawing->setHeight($height);
+        } elseif (isset($width)) {
+            $drawing->setWidth($width);
+        } elseif (isset($height)) {
+            $drawing->setHeight($height);
+        }
+
+        $this->diskServies[] = $diskService;
 
         return $drawing;
     }

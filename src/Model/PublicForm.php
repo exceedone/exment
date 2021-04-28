@@ -165,7 +165,7 @@ class PublicForm extends ModelBase
             return null;
         }
 
-        if($skipCheckActiveEtc){
+        if ($skipCheckActiveEtc) {
             return $model;
         }
 

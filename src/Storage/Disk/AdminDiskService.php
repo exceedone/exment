@@ -73,7 +73,7 @@ class AdminDiskService extends DiskServiceBase
         }
         
         // only call if exists
-        if(!$disk->exists($diskItem->filePath())){
+        if (!$disk->exists($diskItem->filePath())) {
             return true;
         }
         $stream = $disk->readStream($diskItem->filePath());

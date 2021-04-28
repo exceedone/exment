@@ -355,15 +355,13 @@ trait PublicFormInputTrait
 
         if (is_nullorempty($plugin_css)) {
             $this->forgetOption('plugin_css');
-        }
-        else{
+        } else {
             $this->setOption('plugin_css', $plugin_css);
         }
         
         if (is_nullorempty($plugin_js)) {
             $this->forgetOption('plugin_js');
-        }
-        else{
+        } else {
             $this->setOption('plugin_js', $plugin_js);
         }
 

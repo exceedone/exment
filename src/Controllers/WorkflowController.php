@@ -35,7 +35,6 @@ use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 
@@ -1084,7 +1083,7 @@ class WorkflowController extends AdminControllerBase
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default(array_get($value, SystemTableName::USER));
         // Set help if has $custom_table
-        if(!$isWfCommon && $custom_table){
+        if (!$isWfCommon && $custom_table) {
             $field->help(exmtrans('workflow.help.target_user_org', [
                 'table_view_name' => $custom_table->table_view_name,
                 'type' => exmtrans('menu.system_definitions.user'),
@@ -1104,7 +1103,7 @@ class WorkflowController extends AdminControllerBase
                 ->default(array_get($value, SystemTableName::ORGANIZATION));
         
             // Set help if has $custom_table
-            if(!$isWfCommon && $custom_table){
+            if (!$isWfCommon && $custom_table) {
                 $field->help(exmtrans('workflow.help.target_user_org', [
                     'table_view_name' => $custom_table->table_view_name,
                     'type' => exmtrans('menu.system_definitions.organization'),
