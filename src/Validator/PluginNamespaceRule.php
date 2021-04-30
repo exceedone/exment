@@ -53,7 +53,8 @@ class PluginNamespaceRule implements Rule
 
             // define namespace
             $basePath = path_ltrim($file, $this->basePath);
-            $dirPath = path_ltrim(array_get($pathinfo, 'basename'), $basePath);
+            $baseName = array_get($pathinfo, 'basename');
+            $dirPath = path_rtrim($basePath, $baseName);
 
             // get namespace
             $namespaces = array_filter(explode('/', \Exment::replaceBackToSlash($dirPath)));

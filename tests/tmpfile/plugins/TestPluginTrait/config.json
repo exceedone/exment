@@ -1,0 +1,9 @@
+{
+    "uuid": "46971df2-787d-4f3d-660e-443fb317b1b5",
+    "plugin_name": "TestPluginTrait",
+    "plugin_view_name": "traitの実行",
+    "description": "traitをテスト実行します。",
+    "author":  "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "batch"
+}

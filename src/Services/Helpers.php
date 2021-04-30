@@ -491,6 +491,42 @@ if (!function_exists('path_ltrim')) {
     }
 }
 
+if (!function_exists('path_rtrim')) {
+    /**
+     * rtrim FilePath.
+     *
+     * @param string $path target file path.
+     * @param string $rtrim removing path.
+     * If contains ex. "20210312123244/Plugins/Plugin.php" and want to get "20210312123244/Plugins", set "Plugin.php".
+     * @return string
+     */
+    function path_rtrim($path, $rtrim)
+    {
+        foreach (['/', '\\'] as $split) {
+            $l = str_replace($split, '/', $rtrim);
+            
+            if (is_nullorempty($l)) {
+                $l = $split;
+            }
+
+            // check mb_strpos from back.
+            $mb_strpos = mb_strpos($path, $l);
+            $mb_strlen = mb_strlen($path) - mb_strlen($l);
+            if ($mb_strpos !== $mb_strlen) {
+                continue;
+            }
+
+            // mb_substr from back.
+            $path = mb_substr($path, 0, $mb_strlen);
+
+            $path = rtrim($path, '/');
+            $path = rtrim($path, '\\');
+        }
+
+        return $path;
+    }
+}
+
 if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {

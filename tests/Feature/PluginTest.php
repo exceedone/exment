@@ -314,4 +314,41 @@ class PluginTest extends TestCase
         $this->assertEquals($custom_value->id, $file->parent_id);
         $this->assertTrue(Storage::disk(config('admin.upload.disk'))->exists($file->path));
     }
+
+    
+    /**
+     * test plugin global function
+     *
+     * @return void
+     */
+    public function testBatchGlobalFunction()
+    {
+        $result = \Artisan::call('exment:batch', ['--name' => 'TestPluginGlobalFunction']);
+        $this->assertTrue($result === 0);
+    }
+    
+    /**
+     * test plugin trait function
+     *
+     * @return void
+     */
+    public function testBatchTrait()
+    {
+        $result = \Artisan::call('exment:batch', ['--name' => 'TestPluginTrait']);
+        $this->assertTrue($result === 0);
+    }
+    /**
+     * test plugin, for call error dare. Whether check other plugins not error
+     *
+     * @return void
+     */
+    public function testBatchError()
+    {
+        try {
+            \Artisan::call('exment:batch', ['--name' => 'TestPluginError']);
+            $this->assertTrue(false, 'This batch excepts error, but not throw exception.');
+        } catch (\Exception $ex) {
+            $this->assertTrue(true);
+        }
+    }
 }
