@@ -52,10 +52,12 @@ class ClassLoader
 
         foreach ($this->dirs as $dir) {
             // get filepath
-            $files = $this->getFilePaths($dir['dir'], $dir['baseNamespace'], $class);
-            foreach($files as $file){
-                require_once $file;
+            $file = $this->getFilePath($dir['dir'], $dir['baseNamespace'], $class);
+            if (!$file) {
+                continue;
             }
+            
+            require_once $file;
         }
     }
 
@@ -66,9 +68,9 @@ class ClassLoader
      * @param string $dir
      * @param string $baseNamespace
      * @param string $class
-     * @return array require target files
+     * @return string|null
      */
-    protected function getFilePaths($dir, $baseNamespace, $class) : array
+    protected function getFilePath($dir, $baseNamespace, $class) : ?string
     {
         // get default class path
         $defaultClassPath = $class . '.php';
@@ -76,7 +78,6 @@ class ClassLoader
         // removing base namespace class
         $removingClassPath = path_ltrim(str_replace($baseNamespace, '', $class), '')  . '.php';
 
-        $result = [];
         foreach ([$defaultClassPath, $removingClassPath] as $path) {
             $file = path_join($dir, $path);
             if (!is_readable($file)) {
@@ -87,53 +88,9 @@ class ClassLoader
             if (strpos($pathinfo['basename'], 'blade.php') !== false) {
                 continue;
             }
-            $result[] = $file;
-
-            // Append global php file
-            $this->getGlobalFilesByConfigJson($dir, $result);
+            return $file;
         }
         
-        return $result;
-    }
-
-    /**
-     * Get global files by json. For plugin.
-     *
-     * @return void
-     */
-    protected function getGlobalFilesByConfigJson($dir, &$result)
-    {
-        $config_path = path_join($dir, 'config.json');
-        if (!is_readable($config_path)) {
-            return;
-        }
-
-        // get config.json
-        $config = \File::get($config_path);
-        if(!$config || !is_json($config)){
-            return;
-        }
-
-        // check "unclass_phps" value
-        $json = json_decode($config, true);
-        if(!array_key_value_exists('unclass_phps', $json)){
-            return;
-        }
-
-        foreach(stringToArray($json['unclass_phps']) as $global_php){
-            // php_file
-            $global_php_file = path_join($dir, $global_php);
-            if (!is_readable($global_php_file)) {
-                continue;
-            }
-            
-            $ext = pathinfo($global_php_file, PATHINFO_EXTENSION);
-            if ($ext != 'php') {
-                continue;
-            }
-
-            // append $result
-            $result[] = $global_php_file;
-        }
+        return null;
     }
 }
