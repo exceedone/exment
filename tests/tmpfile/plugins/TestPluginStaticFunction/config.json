@@ -1,0 +1,9 @@
+{
+    "uuid": "b87ebf26-f80b-971b-d360-0b0d26b9b055",
+    "plugin_name": "TestPluginStaticFunction",
+    "plugin_view_name": "static関数の実行",
+    "description": "static関数をテスト実行します。",
+    "author":  "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "batch"
+}

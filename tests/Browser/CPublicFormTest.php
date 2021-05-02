@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Browser;
 
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Plugin;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Notification;
@@ -184,9 +185,9 @@ class CPublicFormTest extends ExmentKitTestCase
             ],
             'css_js_setting' => [
                 'custom_css' => 'h1 {color:red !important;}',
-                'plugin_css' => ['14'],
+                'plugin_css' => [$this->getStylePluginId()],
                 'custom_js' => 'alert("unit test");',
-                'plugin_js' => ['13'],
+                'plugin_js' => [$this->getScriptPluginId()],
             ],
             'option_setting' => [
                 'use_default_query' => '1'
@@ -264,9 +265,9 @@ class CPublicFormTest extends ExmentKitTestCase
             // ->seeIsSelected('notify_actions_error[??][notify_action_target]', ['administrator', 'fixed_email'])
             // ->seeInField('notify_actions_error[??][target_emails]', 'unittest@mail.co.jp')
             ->seeInField('css_js_setting[custom_css]', 'h1 {color:red !important;}')
-            ->seeIsSelected('css_js_setting[plugin_css][]', '14')
+            ->seeIsSelected('css_js_setting[plugin_css][]', $this->getStylePluginId())
             ->seeInField('css_js_setting[custom_js]', 'alert("unit test");')
-            ->seeIsSelected('css_js_setting[plugin_js][]', '13')
+            ->seeIsSelected('css_js_setting[plugin_js][]', $this->getScriptPluginId())
             ->seeInField('option_setting[use_default_query]', '1')
         ;
 
@@ -429,9 +430,9 @@ class CPublicFormTest extends ExmentKitTestCase
             'css_js_setting[custom_css]' => 'h1 {
                 color:red !important;
             }',
-            'css_js_setting[plugin_css]' => ['14'],
+            'css_js_setting[plugin_css]' => [$this->getStylePluginId()],
             'css_js_setting[custom_js]' => 'alert("unit test");',
-            'css_js_setting[plugin_js]' => ['13'],
+            'css_js_setting[plugin_js]' => [$this->getScriptPluginId()],
             'option_setting[use_default_query]' => '1',
         ];
 
@@ -524,9 +525,9 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeInField('css_js_setting[custom_css]', 'h1 {
                 color:red !important;
             }')
-            ->seeIsSelected('css_js_setting[plugin_css][]', '14')
+            ->seeIsSelected('css_js_setting[plugin_css][]', $this->getStylePluginId())
             ->seeInField('css_js_setting[custom_js]', 'alert("unit test");')
-            ->seeIsSelected('css_js_setting[plugin_js][]', '13')
+            ->seeIsSelected('css_js_setting[plugin_js][]', $this->getScriptPluginId())
             ->seeInField('option_setting[use_default_query]', '1')
         ;
 
@@ -652,5 +653,13 @@ class CPublicFormTest extends ExmentKitTestCase
     protected function getNewestForm()
     {
         return PublicForm::orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
+    }
+
+
+    protected function getStylePluginId(){
+        return Plugin::where('plugin_name', 'TestPluginStyle')->first()->id;
+    }
+    protected function getScriptPluginId(){
+        return Plugin::where('plugin_name', 'TestPluginScript')->first()->id;
     }
 }

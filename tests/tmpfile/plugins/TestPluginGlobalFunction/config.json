@@ -5,6 +5,5 @@
     "description": "グローバル関数をテスト実行します。",
     "author":  "Kajitori",
     "version": "1.0.0",
-    "plugin_type": "batch",
-    "unclass_phps": ["function.php", "Dir1/function.php"]
+    "plugin_type": "batch"
 }

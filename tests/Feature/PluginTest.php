@@ -328,6 +328,17 @@ class PluginTest extends TestCase
     }
     
     /**
+     * test plugin static function
+     *
+     * @return void
+     */
+    public function testBatchStaticFunction()
+    {
+        $result = \Artisan::call('exment:batch', ['--name' => 'TestPluginStaticFunction']);
+        $this->assertTrue($result === 0);
+    }
+    
+    /**
      * test plugin trait function
      *
      * @return void
