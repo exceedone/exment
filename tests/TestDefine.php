@@ -23,7 +23,11 @@ class TestDefine
     public const TESTDATA_TABLE_NAME_PARENT_TABLE = 'parent_table';
     public const TESTDATA_TABLE_NAME_CHILD_TABLE = 'child_table';
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE = 'pivot_table';
+    public const TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY = 'parent_table_n_n';
+    public const TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY = 'child_table_n_n';
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_MANY_TO_MANY = 'pivot_table_n_n';
+    public const TESTDATA_TABLE_NAME_PARENT_TABLE_SELECT = 'parent_table_select';
+    public const TESTDATA_TABLE_NAME_CHILD_TABLE_SELECT = 'child_table_select';
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_SELECT = 'pivot_table_select';
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG = 'pivot_table_user_org';
     public const TESTDATA_TABLE_NAME_ALL_COLUMNS = 'all_columns_table';

@@ -17,10 +17,11 @@ class ParentValue extends ItemBase
         
         // get value from model
         if (count($this->length_array) <= 1) {
-            return $this->custom_value->getParentValue(true);
+            $parent_value = $this->custom_value->getParentValue();
+            return $parent_value ? $parent_value->label : null;
         }
 
-        $parentModel = $this->custom_value->getParentValue(false);
+        $parentModel = $this->custom_value->getParentValue();
         
         // replace length_string dotted comma
         $length_string = $this->length_array[1];

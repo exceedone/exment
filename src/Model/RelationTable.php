@@ -22,14 +22,19 @@ class RelationTable
     
 
     /**
-     * Get relation tables list.
+     * Get children's relation tables list.(Contains select table)
      * It contains search_type(select_table, one_to_many, many_to_many)
+     *
+     * @param CustomTable $custom_table target custom table
+     * @param boolean $checkPermission
+     * @param array $options
+     * @return \Illuminate\Support\Collection children relation(select_table, one_to_many, many_to_many)'s RleationTable info.
      */
     public static function getRelationTables($custom_table, $checkPermission = true, $options = [])
     {
         $options = array_merge(
             [
-            'search_enabled_only' => true, // if true, filtering search enabled
+                'search_enabled_only' => true, // if true, filtering search enabled
             ],
             $options
         );
@@ -80,6 +85,7 @@ class RelationTable
             return true;
         });
     }
+
 
     /**
      * Set query as relation filter, all search type
@@ -175,4 +181,147 @@ class RelationTable
 
         return $query;
     }
+
+
+    // join table ----------------------------------------------------
+
+    /**
+     * Set join to parent table, all search type
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param mixed $searchType
+     * @param array $params
+     * @return mixed
+     */
+    public static function setParentJoin($query, $searchType, $params = [])
+    {
+        $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
+        $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
+        
+        switch ($searchType) {
+            case SearchType::ONE_TO_MANY:
+                return static::setParentJoinOneMany($query, $parent_table, $child_table);
+            case SearchType::MANY_TO_MANY:
+                return static::setParentJoinManyMany($query, $parent_table, $child_table);
+            case SearchType::SELECT_TABLE:
+                $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
+                if (\is_nullorempty($custom_column) && !\is_nullorempty($child_table)) {
+                    $custom_column = $child_table->getSelectTableColumns($parent_table)->first();
+                }
+                return static::setParentJoinSelectTable($query, $parent_table, $custom_column);
+            }
+        
+        return $query;
+    }
+
+    
+    /**
+     * Set parent join for 1:n relation
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomTable $parent_table
+     * @return mixed
+     */
+    public static function setParentJoinOneMany($query, $parent_table, $child_table)
+    {
+        if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
+            return;
+        }
+        // Get DB table name
+        $parent_table_name = getDBTableName($parent_table);
+        $child_table_name = getDBTableName($child_table);
+
+        // Append join query.
+        $query->join($parent_table_name, "$parent_table_name.id", "=", "$child_table_name.parent_id");
+        
+        return $query;
+    }
+    
+    /**
+     * Set parent join for n:n relation
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomTable $parent_table
+     * @return mixed
+     */
+    public static function setParentJoinManyMany($query, $parent_table, $child_table)
+    {
+        if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
+            return;
+        }
+
+        $relation = CustomRelation::getRelationByParentChild($parent_table, $child_table);
+        if (is_nullorempty($relation)) {
+            return;
+        }
+        
+        // Get DB table name
+        $parent_table_name = getDBTableName($parent_table);
+        $child_table_name = getDBTableName($child_table);
+        $relation_name = $relation->getRelationName();
+
+        // Append join query.
+        $query->join($relation_name, "$child_table_name.id", "=", "$relation_name.child_id")
+            ->join($parent_table_name, "$parent_table_name.id", "=", "$relation_name.parent_id");
+        
+        return $query;
+    }
+    
+
+    /**
+     * Set parent join for select table
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomTable $parent_table
+     * @param CustomColumn $custom_column select_table's column in $query's table
+     * @return mixed
+     */
+    public static function setParentJoinSelectTable($query, $parent_table, $custom_column)
+    {
+        if (is_nullorempty($parent_table) || is_nullorempty($custom_column)) {
+            return;
+        }
+
+        // Get DB table name
+        $parent_table_name = getDBTableName($parent_table);
+        $child_table_name = getDBTableName($custom_column->custom_table_cache);
+        $query_key = $custom_column->getQueryKey();
+
+        // Append join query.
+        $query->join($parent_table_name, "$parent_table_name.id", "=", "$child_table_name.$query_key")
+            ;        
+        return $query;
+    }
+    
+    /**
+     * Set child join for n:n relation
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomTable $parent_table
+     * @return mixed
+     */
+    public static function setChildJoinManyMany($query, $parent_table, $child_table)
+    {
+        if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
+            return;
+        }
+
+        $relation = CustomRelation::getRelationByParentChild($parent_table, $child_table);
+        if (is_nullorempty($relation)) {
+            return;
+        }
+        
+        // Get DB table name
+        $parent_table_name = getDBTableName($parent_table);
+        $child_table_name = getDBTableName($child_table);
+        $relation_name = $relation->getRelationName();
+
+        // Append join query.
+        $query->join($relation_name, "$parent_table_name.id", "=", "$relation_name.parent_id")
+            ->join($child_table_name, "$child_table_name.id", "=", "$relation_name.child_id")
+            ;
+        
+        return $query;
+    }
+    
 }

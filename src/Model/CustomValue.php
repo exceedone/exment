@@ -1315,20 +1315,35 @@ abstract class CustomValue extends ModelBase
     /**
      * get parent value
      */
-    public function getParentValue($isonly_label = false)
+    public function getParentValue(?CustomRelation $custom_relation = null)
     {
-        if (is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)) {
-            return null;
-        }
-        
-        $parent = CustomTable::getEloquent($this->parent_type);
-        if (isset($parent)) {
-            $model = $parent->getValueModel($this->parent_id);
-        }
-        if (!$isonly_label) {
+        // if not has arg or custom relation is one to many
+        if(!$custom_relation || $custom_relation->relation_type == RelationType::ONE_TO_MANY)
+        {
+            if (is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)) {
+                return null;
+            }
+            
+            $parent = CustomTable::getEloquent($this->parent_type);
+            if (isset($parent)) {
+                $model = $parent->getValueModel($this->parent_id);
+            }
+    
             return $model ?? null;
         }
-        return $model->label ?? null;
+
+        ///// get as n:n relation custom table
+        $parent_table = $custom_relation->parent_custom_table_cache;
+        $child_table = $custom_relation->child_custom_table_cache;
+        $query = $parent_table->getValueQuery();
+
+        // Add join query to child
+        RelationTable::setChildJoinManyMany($query, $parent_table, $child_table);
+
+        $query->where(getDBTableName($child_table) . '.id', $this->id)
+            ->select(getDBTableName($parent_table) . '.*')
+            ->distinct();
+        return $query->get();
     }
 
     /**
