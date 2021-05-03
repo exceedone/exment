@@ -9,6 +9,7 @@ use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ColumnType;
@@ -258,7 +259,21 @@ class CustomNotifyController extends AdminControllerTableBase
         return $options;
     }
 
-    protected function getTargetColumnOptions($custom_table, $isApi)
+    protected function getTargetDateColumnOptions($custom_table_id, $table_name = null)
+    {
+        return CustomColumn
+            ::where('custom_table_id', $custom_table_id)
+            ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
+            ->get(['id', 'column_view_name as text'])
+            ->map(function (&$item) use($table_name) {
+                if (isset($table_name)) {
+                    $item['text'] = $table_name . ' : ' . $item['text'];
+                }
+                return $item;
+            });
+    }
+
+    protected function getTargetColumnOptions($custom_table)
     {
         $custom_table = CustomTable::getEloquent($custom_table);
 
@@ -266,16 +281,21 @@ class CustomNotifyController extends AdminControllerTableBase
             return [];
         }
 
-        $options = CustomColumn
-            ::where('custom_table_id', $custom_table->id)
-            ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
-            ->get(['id', 'column_view_name as text']);
+        $options = $this->getTargetDateColumnOptions($custom_table->id);
 
-        if ($isApi) {
-            return $options;
-        } else {
-            return $options->pluck('text', 'id');
+        $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $custom_table->id)->get();
+        foreach ($relations as $rel) {
+            $parent = array_get($rel, 'parent_custom_table');
+            $options = $options->merge($this->getTargetDateColumnOptions($parent->id, $parent->table_view_name));
         }
+
+        $select_table_columns = $custom_table->getSelectTableColumns(null, true);
+        foreach ($select_table_columns as $select_table_column) {
+            $select_table = $select_table_column->column_item->getSelectTable();
+            $options = $options->merge($this->getTargetDateColumnOptions($select_table->id, $select_table->table_view_name));
+        }
+
+        return $options->pluck('text', 'id');
     }
 
     public function getNotifyTriggerTemplate(Request $request)

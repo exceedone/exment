@@ -741,6 +741,6 @@ class DefaultGrid extends GridBase
             static::setFilterFields($form, $custom_table);
         }
 
-        static::setSortFields($form, $custom_table);
+        static::setSortFields($form, $custom_table, true);
     }
 }

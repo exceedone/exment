@@ -215,19 +215,20 @@ abstract class GridBase
      *
      * @param Form $form
      * @param CustomTable $custom_table
-     * @param boolean $is_aggregate
+     * @param boolean $include_parent
      * @return void
      */
-    public static function setSortFields(&$form, $custom_table, $is_aggregate = false)
+    public static function setSortFields(&$form, $custom_table, $include_parent = false)
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         
         // sort setting
-        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
+        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table, $include_parent) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
             ->options($custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'index_enabled_only' => true,
+                'include_parent' => $include_parent,
             ]));
             $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                 ->required()
