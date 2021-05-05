@@ -4,10 +4,18 @@ namespace Exceedone\Exment\Services\Search;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\RelationTable;
+use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
+use Exceedone\Exment\Enums\RelationType;
 
 /**
- * Custom Value's Search model
+ * Custom Value's Search model.
+ * "where" query support CustomColumn, CustomViewFilter, Condition.
+ * "orderBy" query support CustomColumn, CustomViewSort, Condition.
  */
 class SearchService
 {
@@ -58,6 +66,17 @@ class SearchService
             $this->query->select("$db_table_name.*");
         }
         return $this->query;
+    }
+
+    /**
+     * Set eloquent query
+     *
+     * @return $this
+     */
+    public function setQuery($query)
+    {
+        $this->query = $query;
+        return $this;
     }
 
     /**
@@ -146,7 +165,7 @@ class SearchService
     
 
     /**
-     * Add a where custom column. Contains CustomColumn or string.
+     * Add a where custom column. Contains CustomColumn.
      * and linkage(relation or select table), add where exists query.
      *
      * @param  CustomColumn $column
@@ -172,15 +191,8 @@ class SearchService
         }
         // set relation query using relation type class.
         else{
-            // first, join table if needs
-            if(!$this->isJoinedTable($relationTable)){
-                RelationTable::setParentJoin($this->query, $relationTable->searchType, [
-                    'parent_table' => $whereCustomTable,
-                    'child_table' => $this->custom_table,
-                ]);
+            $this->setJoin($relationTable, $whereCustomTable);
 
-                $this->joinedTables[] = $relationTable;
-            }
             // Add where query
             $this->query->where($column->getQueryKey(), $operator, $value, $boolean);
         }
@@ -188,7 +200,6 @@ class SearchService
         return $this;
     }
 
-    
 
     /**
      * Add orderby custom column. Contains CustomColumn or string.
@@ -218,17 +229,51 @@ class SearchService
         }
         // set relation query using relation type class.
         else{
-            // first, join table if needs
-            if(!$this->isJoinedTable($relationTable)){
-                RelationTable::setParentJoin($this->query, $relationTable->searchType, [
-                    'parent_table' => $whereCustomTable,
-                    'child_table' => $this->custom_table,
-                ]);
-
-                $this->joinedTables[] = $relationTable;
-            }
+            $this->setJoin($relationTable, $whereCustomTable);
+            
             // Add orderBy query
             $this->query->orderBy($column->getQueryKey(), $direction);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * Add orderby custom column. Contains CustomViewSort.
+     * and linkage(relation or select table), add where exists query.
+     *
+     * @param  CustomViewSort $column
+     * @return $this
+     */
+    public function orderByCustomViewSort(CustomViewSort $column)
+    {
+        // get condition params
+        list($order_table_id, $order_column_id, $this_table_id, $this_column_id) = $this->getConditionParams($column);
+        $orderCustomTable = CustomTable::getEloquent($order_table_id);
+
+        // if not match this table and order table, setJoin relation table.
+        if(!isMatchString($order_table_id, $this->custom_table->id))
+        {
+            // get RelationTable info.
+            $relationTable = $this->getRelationTable($orderCustomTable, $column);
+
+            if(!$relationTable){
+                $this->query->whereNotMatch();
+            }
+            elseif($relationTable->searchType == SearchType::MANY_TO_MANY){
+                throw new \Exception('Many to many relation not support order by.');
+            }
+            // set relation query using relation type class.
+            else{
+                $this->setJoin($relationTable, $orderCustomTable);
+            }
+        }
+
+        // set sort info.
+        $condition_item = $column->condition_item;
+        if ($condition_item) {
+            $condition_item->setQuerySort($this->query, $column);
         }
 
         return $this;
@@ -239,18 +284,98 @@ class SearchService
      * Get relation table info
      *
      * @param CustomTable $whereCustomTable
-     * @return boolean is already joined
+     * @return RelationTable relation table info
      */
-    protected function getRelationTable($whereCustomTable){
+    protected function getRelationTable($whereCustomTable, $filterObj = null){
         // get RelationTable info.
-        $relationTable = RelationTable::getRelationTables($whereCustomTable, false, [
+        $relationTables = RelationTable::getRelationTables($whereCustomTable, false, [
             'search_enabled_only' => false,
         ])->filter(function($relationTable){
             return isMatchString($relationTable->table->id, $this->custom_table->id);
-        })->first();
+        });
+
+        // filter RelationTable, using custom view filter, sort etc.
+        if($filterObj){
+            $relationTable = $this->filterRelationTable($relationTables, $filterObj);
+        }
+        else{
+            $relationTable = $relationTables->first();
+        }
         return $relationTable;
     }
 
+
+    /**
+     * Filter relation table info
+     *
+     * @param \Illuminate\Support\Collection $relationTables
+     * @param CustomViewSort $filterObj
+     * @return RelationTable|null filtered Relation Table
+     */
+    protected function filterRelationTable($relationTables, $filterObj) : ?RelationTable
+    {
+        // if only 1, return first.
+        if($relationTables->count() <= 1){
+            return $relationTables->first();
+        }
+
+        ///// get relationTables filtering info
+        // get condition params
+        list($order_table_id, $order_column_id, $this_table_id, $this_column_id) = $this->getConditionParams($filterObj);
+        // get search type
+        // If $this_column_id is not "parent_id", set searchtype is select_table
+        if(!isMatchString($this_column_id, Define::PARENT_ID_NAME)){
+            $searchType = SearchType::SELECT_TABLE;
+        }
+        else{
+            // get parent and child relation table
+            $relation = CustomRelation::getRelationByParentChild($order_table_id, $this_table_id);
+            if(!$relation){
+                return null;
+            }
+            $searchType = (RelationType::ONE_TO_MANY == $relation->relation_type ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY);
+        }
+
+        return $relationTables->first(function($relationTable) use($this_column_id, $searchType){
+            // filtering $searchType
+            if(!isMatchString($relationTable->searchType, $searchType)){
+                return false;
+            }
+
+            // if select table, filtering selectTablePivotColumn
+            if(isMatchString($searchType, SearchType::SELECT_TABLE)){
+                $selectTablePivotColumn = $relationTable->selectTablePivotColumn;
+                if(!$selectTablePivotColumn || !isMatchString($selectTablePivotColumn->id, $this_column_id)){
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        return $relationTables->first();
+    }
+
+
+    /**
+     * Set join in query.
+     *
+     * @param RelationTable $relationTable relation table's info
+     * @param CustomTable $whereCustomTable parent custom table
+     * @return void
+     */
+    protected function setJoin($relationTable, $whereCustomTable){
+        // first, join table if needs
+        if(!$this->isJoinedTable($relationTable)){
+            RelationTable::setParentJoin($this->query, $relationTable->searchType, [
+                'parent_table' => $whereCustomTable,
+                'child_table' => $this->custom_table,
+                'custom_column' => $relationTable->selectTablePivotColumn,
+            ]);
+
+            $this->joinedTables[] = $relationTable;
+        }
+    }
 
     /**
      * Is already setted join table
@@ -260,8 +385,35 @@ class SearchService
      */
     protected function isJoinedTable($relationTable){
         return collect($this->joinedTables)->contains(function($joinedTable) use($relationTable){
-            return isMatchString($joinedTable->custom_table->id, $relationTable->table->id) && 
-                isMatchString($joinedTable->searchType, $relationTable->searchType);
+            return isMatchString($joinedTable->table->id, $relationTable->table->id) && 
+            isMatchString($joinedTable->searchType, $relationTable->searchType) && 
+            isMatchString($joinedTable->selectTablePivotColumn, $relationTable->selectTablePivotColumn);
         });
+    }
+
+
+    /**
+     * Get condition params
+     *
+     * @param CustomViewFilter|CustomViewSort|Condition $column
+     * @return array 
+     *  offset0 : target column's table id
+     *  offset1 : target column's id
+     *  offset2 : this table's id
+     *  offset2 : this column's id
+     */
+    protected function getConditionParams($column) : array
+    {
+
+        if($column instanceof CustomViewFilter || $column instanceof CustomViewSort){
+            return [
+                $column->view_column_table_id, 
+                $column->view_column_target_id,
+                array_get($column, 'options.view_pivot_table_id') ?? $column->view_column_table_id,
+                array_get($column, 'options.view_pivot_column_id') ?? $column->view_column_target_id,
+            ];
+        }
+
+        return [null, null, null, null];
     }
 }

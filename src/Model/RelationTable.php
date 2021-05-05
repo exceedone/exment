@@ -5,19 +5,45 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ColumnType;
 
 /**
  * RelationTable item for Search, linkage, ...
+ * Management these....
+ * 
+ * Manage relation and select table. Ex:
+ *      ・Organization (n:n relation) user 
+ *      ・Organization (select table joined "customer" table) user 
+ *      ・Organization (select table joiner "estimate") estimate
  */
 class RelationTable
 {
+    /**
+     * Target table(Child table).
+     *
+     * @var CustomTable
+     */
     public $table;
+
+    /**
+     * Search type
+     *
+     * @var SearchType
+     */
     public $searchType;
+
+    /**
+     * Select table's pivot column
+     *
+     * @var CustomColumn
+     */
+    public $selectTablePivotColumn;
 
     public function __construct(array $params = [])
     {
         $this->table = array_get($params, 'table');
         $this->searchType = array_get($params, 'searchType');
+        $this->selectTablePivotColumn = array_get($params, 'selectTablePivotColumn');
     }
     
 
@@ -43,23 +69,38 @@ class RelationTable
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $custom_table->table_name);
         return System::requestSession($key, function () use ($custom_table, $options) {
             $results = [];
-            // 1. Get tables as "select_table". They contains these columns matching them.
+            // 1. Get custom columns as "select_table". They contains these columns matching them.
             // * table_column > options > search_enabled is true.
             // * table_column > options > select_target_table is table id user selected.
-            $query = CustomTable::whereHas('custom_columns', function ($query) use ($custom_table) {
-                $query
-                ->withoutGlobalScope(OrderScope::class)
-                ->indexEnabled()
-                ->selectTargetTable($custom_table->id, strval($custom_table->id));
-            });
-            if ($options['search_enabled_only']) {
-                $query->searchEnabled();
-            }
-            $tables = $query->get();
+            
+            // get select tables custom columns.
+            $custom_columns = CustomColumn::allRecords()
+                ->filter(function($custom_column) use($custom_table, $options){
+                    if(!ColumnType::isSelectTable($custom_column)){
+                        return false;
+                    }
+                    if(!isMatchString(array_get($custom_column, 'options.select_target_table'), $custom_table->id)){
+                        return false;
+                    }
+                    if(!$custom_column->index_enabled){
+                        return false;
+                    }
+                    if($options['search_enabled_only']){
+                        $column_custom_table = $custom_column->custom_table_cache;
+                        if(!boolval($column_custom_table->getOption('search_enabled_only'))){
+                            return false;
+                        }
+                    }
+                    return true;
+                });
 
-            foreach ($tables as $table) {
-                $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
-                $results[] = new self(['searchType' => SearchType::SELECT_TABLE, 'table' => $table_obj]);
+            foreach ($custom_columns as $custom_column) {
+                $table_obj = $custom_column->custom_table_cache;
+                $results[] = new self([
+                    'searchType' => SearchType::SELECT_TABLE, 
+                    'table' => $table_obj,
+                    'selectTablePivotColumn' => $custom_column,
+                ]);
             }
 
             // 2. Get relation tables.
@@ -197,6 +238,7 @@ class RelationTable
     {
         $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
+        $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
         
         switch ($searchType) {
             case SearchType::ONE_TO_MANY:
@@ -204,7 +246,6 @@ class RelationTable
             case SearchType::MANY_TO_MANY:
                 return static::setParentJoinManyMany($query, $parent_table, $child_table);
             case SearchType::SELECT_TABLE:
-                $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
                 if (\is_nullorempty($custom_column) && !\is_nullorempty($child_table)) {
                     $custom_column = $child_table->getSelectTableColumns($parent_table)->first();
                 }
@@ -282,14 +323,18 @@ class RelationTable
             return;
         }
 
+        // set unique table name joined target
+        $custom_column->column_item->setUniqueTableName();
+
         // Get DB table name
         $parent_table_name = getDBTableName($parent_table);
+        $unique_table_name = $custom_column->column_item->sqlUniqueTableName();
         $child_table_name = getDBTableName($custom_column->custom_table_cache);
         $query_key = $custom_column->getQueryKey();
 
         // Append join query.
-        $query->join($parent_table_name, "$parent_table_name.id", "=", "$child_table_name.$query_key")
-            ;        
+        $query->leftJoin("$parent_table_name AS $unique_table_name", "$unique_table_name.id", "=", "$child_table_name.$query_key")
+            ;
         return $query;
     }
     

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
+use Exceedone\Exment\Services\Search\SearchService;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ConditionType;
@@ -31,6 +32,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     //protected $with = ['custom_table', 'custom_view_columns'];
     
     private $_grid_item;
+    
+    /**
+     * Custom Value search service.
+     *
+     * @var SearchService
+     */
+    private $_search_service;
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
@@ -227,6 +235,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     // custom function --------------------------------------------------
+    
+    /**
+     * get search service.
+     */
+    public function getSearchService() : SearchService
+    {
+        if(!$this->_search_service){
+            $this->_search_service = new SearchService($this->custom_table);
+        }
+        return $this->_search_service;
+    }
+
     
     /**
      * get eloquent using request settion.
@@ -714,20 +734,20 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set value sort
      */
-    public function sortModel($model)
+    public function sortModel($query)
     {
         // if request has "_sort", not executing
         if (request()->has('_sort')) {
-            return $model;
-        }
-        foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
-            $condition_item = $custom_view_sort->condition_item;
-            if ($condition_item) {
-                $condition_item->setQuerySort($model, $custom_view_sort);
-            }
+            return $query;
         }
 
-        return $model;
+        $service = $this->getSearchService()->setQuery($query);
+
+        foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
+            $service->orderByCustomViewSort($custom_view_sort);
+        }
+
+        return $query;
     }
 
 
