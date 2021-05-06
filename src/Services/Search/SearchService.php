@@ -41,6 +41,13 @@ class SearchService
     protected $isAppendSelect = true;
     
     /**
+     * Whether is already append select for target custom_table's columns.
+     *
+     * @var bool
+     */
+    protected $alreadyAppendSelect = false;
+    
+    /**
      * Already joined tables
      *
      * @var array
@@ -62,10 +69,26 @@ class SearchService
     public function query()
     {
         if($this->isAppendSelect){
-            $db_table_name = getDBTableName($this->custom_table);
-            $this->query->select("$db_table_name.*");
+            $this->addSelect();
         }
         return $this->query;
+    }
+
+
+    /**
+     * Add select query
+     *
+     * @return $this
+     */
+    public function addSelect()
+    {
+        if(!$this->alreadyAppendSelect){
+            $db_table_name = getDBTableName($this->custom_table);
+            $this->query->select("$db_table_name.*");
+    
+            $this->alreadyAppendSelect = true;
+        }
+        return $this;
     }
 
     /**

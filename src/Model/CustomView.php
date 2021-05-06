@@ -742,6 +742,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         $service = $this->getSearchService()->setQuery($query);
+        $service->addSelect();
 
         foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
             $service->orderByCustomViewSort($custom_view_sort);
