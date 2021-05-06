@@ -524,7 +524,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function getSortName()
     {
-        return getDBTableName($this->custom_table) .'.'. $this->custom_column->getQueryKey();
+        return $this->sqlUniqueTableName() .'.'. $this->custom_column->getQueryKey();
     }
 
     /**

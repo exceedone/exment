@@ -52,7 +52,22 @@ trait ItemTrait
      */
     protected $options = [];
 
+
+    /**
+     * Unique column name. 
+     * For use class name, laravel-admin grid (If not use this, get same field name, return wrong value.), etc.
+     *
+     * @var string
+     */
     protected $uniqueName;
+
+    /**
+     * Unique table name. 
+     * For use join relation(contains select_table).
+     *
+     * @var string
+     */
+    protected $uniqueTableName;
 
     public function getCustomTable()
     {
@@ -253,6 +268,43 @@ trait ItemTrait
     }
 
     /**
+     * get target table real db name.
+     */
+    public function sqlRealTableName()
+    {
+        return getDBTableName($this->custom_table);
+    }
+
+
+    /**
+     * get target table unique db name.
+     * Maybe, sql join same db table, so we have to set unique table name.
+     */
+    public function sqlUniqueTableName()
+    {
+        if (!is_nullorempty($this->uniqueTableName)) {
+            return $this->uniqueTableName;
+        }
+        return $this->sqlRealTableName();
+    }
+
+
+    /**
+     * Set unique table name, for join relation tables.
+     * Maybe, sql join same db table, so we have to set unique table name.
+     *
+     * @return $this
+     */
+    public function setUniqueTableName()
+    {
+        if (is_nullorempty($this->uniqueTableName)) {
+            $this->uniqueTableName = short_uuid();
+        }
+        return $this;
+    }
+
+    
+    /**
      * Get API column definition
      *
      * @return array
@@ -292,6 +344,9 @@ trait ItemTrait
         if (is_nullorempty($column_name)) {
             $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
         }
+
+        // append table name
+        $column_name = $this->sqlUniqueTableName() . ".$column_name";
 
         if ($wrap) {
             $column_name = \Exment::wrapColumn($column_name);
