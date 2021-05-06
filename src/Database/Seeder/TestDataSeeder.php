@@ -11,9 +11,11 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Model\Condition;
@@ -25,6 +27,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Menu;
@@ -833,6 +836,7 @@ class TestDataSeeder extends Seeder
         ], $options);
 
         $custom_values = [];
+        $count = 0;
         System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
         foreach ($options['users'] as $key => $user) {
             \Auth::guard('admin')->attempt([
@@ -843,15 +847,16 @@ class TestDataSeeder extends Seeder
             $user_id = array_get($user, 'id');
 
             for ($i = 1; $i <= $options['count']; $i++) {
+                $count++;
                 $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                 $custom_value = $custom_table->getValueModel();
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
                 $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
-                $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
-                $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
-                $custom_value->setValue("date", \Carbon\Carbon::now());
+                $custom_value->setValue("odd_even", (rand(0, 1) == 0 ? 'even' : 'odd'));
+                $custom_value->setValue("multiples_of_3", ($count % 3 == 0 ? 1 : 0));
+                $custom_value->setValue("date", \Carbon\Carbon::now()->addDays($count % 3));
                 $custom_value->setValue("init_text", 'init_text');
                 $custom_value->setValue("integer", $new_id * pow(10, ($new_id % 3) + 1));
                 $custom_value->setValue("decimal", $new_id * pow(10, ($new_id % 5) + 1) * ($new_id % 2 + 1) / 10000);
@@ -1234,7 +1239,55 @@ class TestDataSeeder extends Seeder
                 );
             }
         }
-        
+
+        // create parent column filter
+        if ($custom_table->table_name == 'child_table') {
+
+            foreach ($custom_table->child_custom_relations as $custom_relation) {
+                $parent_table = $custom_relation->parent_custom_table;
+
+                $this->createSortCustomView('-parent-sort', $custom_table, $custom_columns, [[
+                    'target_table' => $parent_table,
+                    'target_column' => 'date',
+                ], [
+                    'target_table' => $parent_table,
+                    'target_column' => 'odd_even',
+                    'sort' => ViewColumnSort::DESC
+                ]]);
+
+                $this->createSortCustomView('-parent-sort-mix', $custom_table, $custom_columns, [[
+                    'target_table' => $custom_table,
+                    'target_column' => 'odd_even',
+                ], [
+                    'target_table' => $parent_table,
+                    'target_column' => 'odd_even',
+                    'sort' => ViewColumnSort::DESC
+                ], [
+                    'target_table' => $parent_table,
+                    'column_type' => ConditionType::SYSTEM,
+                    'target_column' => 'created_user',
+                ]]);
+            }
+        }
+
+        // create select_table column filter
+        if ($custom_table->table_name == 'all_columns_table_fortest') {
+
+            $select_table_columns = $custom_table->getSelectTableColumns(null, true);
+            $sort_settings = [];
+
+            foreach ($select_table_columns as $select_table_column) {
+                if ($select_table_column->isMultipleEnabled()) {
+                    continue;
+                }
+                $select_table = $select_table_column->custom_table;
+                $sort_settings[] = [
+                    'target_table' => $select_table,
+                    'target_column' => 'date',
+                ];
+            }
+            $this->createSortCustomView('-select-table-sort', $custom_table, $custom_columns, $sort_settings);
+        }
 
         // create calendar view
         $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::CALENDAR, $custom_table->table_name . '-view-calendar', []);
@@ -1269,6 +1322,66 @@ class TestDataSeeder extends Seeder
         $custom_view_filter->view_filter_condition = $view_filter_condition;
         $custom_view_filter->view_filter_condition_value_text = $view_filter_condition_value_text;
         $custom_view_filter->save();
+    }
+
+    protected function createSortCustomView($custom_view_name, $custom_table, $custom_columns, $sort_settings = [])
+    {
+        $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::DEFAULT, $custom_table->table_name . $custom_view_name, ['condition_join' => 'and']);
+        $order = 1;
+        $this->createSystemViewColumn($custom_view->id, $custom_table->id, $order++);
+
+        foreach ($custom_columns as $custom_column) {
+            $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $order++);
+        }
+
+        foreach ($sort_settings as $index => $sort_setting) {
+            $target_table = array_get($sort_setting, 'target_table');
+            $column_type = array_get($sort_setting, 'column_type')?? ConditionType::COLUMN;
+            $target_column = array_get($sort_setting, 'target_column');
+            if ($column_type == ConditionType::COLUMN) {
+                \Log::debug('target table : '. $target_table->table_name);
+                \Log::debug('target column : '. $target_column);
+                $custom_column = CustomColumn::getEloquent($target_column, $target_table);
+                $target_column_id = $custom_column->id;
+            } else {
+                $target_column_id = SystemColumn::getOption(['name' => $target_column])['id'];
+            }
+            $pivot_table_id = null;
+            $pivot_column_id = null;
+            if ($target_table->id != $custom_table->id) {
+                $pivot_table_id = $custom_table->id;
+                $pivot_column_id = SystemColumn::PARENT_ID;
+            }
+
+            $this->createCustomViewSort(
+                $custom_view->id,
+                $column_type,
+                $target_table->id,
+                $target_column_id,
+                array_get($sort_setting, 'sort')?? ViewColumnSort::ASC,
+                $index + 1,
+                $pivot_table_id,
+                $pivot_column_id
+            );
+        }
+    }
+
+    protected function createCustomViewSort($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $sort, $priority, $view_pivot_table_id = null, $view_pivot_column_id = null)
+    {
+        $custom_view_sort = new CustomViewSort;
+        $custom_view_sort->custom_view_id = $custom_view_id;
+        $custom_view_sort->view_column_type = $view_column_type;
+        $custom_view_sort->view_column_table_id = $view_column_table_id;
+        $custom_view_sort->view_column_target_id = $view_column_target_id;
+        $custom_view_sort->sort = $sort;
+        $custom_view_sort->priority = $priority;
+        if (isset($view_pivot_table_id)) {
+            $custom_view_sort->view_pivot_table_id = $view_pivot_table_id;
+        }
+        if (isset($view_pivot_column_id)) {
+            $custom_view_sort->view_pivot_column_id = $view_pivot_column_id;
+        }
+        $custom_view_sort->save();
     }
     
     protected function createSystemViewColumn($custom_view_id, $view_column_table_id, $order, array $options = [])
