@@ -39,11 +39,22 @@ class RelationTable
      */
     public $selectTablePivotColumn;
 
+    /**
+     * table's unique name. If join, set database table and use this table name.
+     *
+     * @var string
+     */
+    public $tableUniqueName;
+    
+
+
     public function __construct(array $params = [])
     {
         $this->table = array_get($params, 'table');
         $this->searchType = array_get($params, 'searchType');
         $this->selectTablePivotColumn = array_get($params, 'selectTablePivotColumn');
+
+        $this->tableUniqueName = short_uuid();
     }
     
 
@@ -230,26 +241,25 @@ class RelationTable
      * Set join to parent table, all search type
      *
      * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
-     * @param mixed $searchType
      * @param array $params
      * @return mixed
      */
-    public static function setParentJoin($query, $searchType, $params = [])
+    public function setParentJoin($query, $params = [])
     {
         $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
         $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
         
-        switch ($searchType) {
+        switch ($this->searchType) {
             case SearchType::ONE_TO_MANY:
-                return static::setParentJoinOneMany($query, $parent_table, $child_table);
+                return $this->setParentJoinOneMany($query, $parent_table, $child_table);
             case SearchType::MANY_TO_MANY:
-                return static::setParentJoinManyMany($query, $parent_table, $child_table);
+                return $this->setParentJoinManyMany($query, $parent_table, $child_table);
             case SearchType::SELECT_TABLE:
                 if (\is_nullorempty($custom_column) && !\is_nullorempty($child_table)) {
                     $custom_column = $child_table->getSelectTableColumns($parent_table)->first();
                 }
-                return static::setParentJoinSelectTable($query, $parent_table, $custom_column);
+                return $this->setParentJoinSelectTable($query, $parent_table, $custom_column);
             }
         
         return $query;
@@ -263,7 +273,7 @@ class RelationTable
      * @param CustomTable $parent_table
      * @return mixed
      */
-    public static function setParentJoinOneMany($query, $parent_table, $child_table)
+    public function setParentJoinOneMany($query, $parent_table, $child_table)
     {
         if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
             return;
@@ -285,7 +295,7 @@ class RelationTable
      * @param CustomTable $parent_table
      * @return mixed
      */
-    public static function setParentJoinManyMany($query, $parent_table, $child_table)
+    public function setParentJoinManyMany($query, $parent_table, $child_table)
     {
         if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
             return;
@@ -317,14 +327,14 @@ class RelationTable
      * @param CustomColumn $custom_column select_table's column in $query's table
      * @return mixed
      */
-    public static function setParentJoinSelectTable($query, $parent_table, $custom_column)
+    public function setParentJoinSelectTable($query, $parent_table, $custom_column)
     {
         if (is_nullorempty($parent_table) || is_nullorempty($custom_column)) {
             return;
         }
 
         // set unique table name joined target
-        $custom_column->column_item->setUniqueTableName();
+        $custom_column->column_item->setUniqueTableName($this->tableUniqueName);
 
         // Get DB table name
         $parent_table_name = getDBTableName($parent_table);

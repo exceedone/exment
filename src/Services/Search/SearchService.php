@@ -290,6 +290,19 @@ class SearchService
             // set relation query using relation type class.
             else{
                 $this->setJoin($relationTable, $orderCustomTable);
+
+                // set database unique name
+                $custom_column = $column->custom_column;
+                if (!isset($custom_column)) {
+                    $this->query->whereNotMatch();
+                    return $this;
+                }
+                $column_item = $custom_column->column_item;
+                if (!isset($column_item)) {
+                    $this->query->whereNotMatch();
+                    return $this;
+                }
+                $column_item->setUniqueTableName($relationTable->tableUniqueName);
             }
         }
 
@@ -390,7 +403,7 @@ class SearchService
     protected function setJoin($relationTable, $whereCustomTable){
         // first, join table if needs
         if(!$this->isJoinedTable($relationTable)){
-            RelationTable::setParentJoin($this->query, $relationTable->searchType, [
+            $relationTable->setParentJoin($this->query, [
                 'parent_table' => $whereCustomTable,
                 'child_table' => $this->custom_table,
                 'custom_column' => $relationTable->selectTablePivotColumn,

@@ -293,13 +293,12 @@ trait ItemTrait
      * Set unique table name, for join relation tables.
      * Maybe, sql join same db table, so we have to set unique table name.
      *
+     * @param $uniqueTableName string sets unique name.
      * @return $this
      */
-    public function setUniqueTableName()
+    public function setUniqueTableName(string $uniqueTableName)
     {
-        if (is_nullorempty($this->uniqueTableName)) {
-            $this->uniqueTableName = short_uuid();
-        }
+        $this->uniqueTableName = $uniqueTableName;
         return $this;
     }
 
