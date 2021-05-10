@@ -90,7 +90,8 @@ class RelationTable
                     if(!ColumnType::isSelectTable($custom_column)){
                         return false;
                     }
-                    if(!isMatchString(array_get($custom_column, 'options.select_target_table'), $custom_table->id)){
+                    $select_target_table = $custom_column->select_target_table;
+                    if(!isMatchString(array_get($select_target_table, 'id'), $custom_table->id)){
                         return false;
                     }
                     if(!$custom_column->index_enabled){
@@ -98,7 +99,7 @@ class RelationTable
                     }
                     if($options['search_enabled_only']){
                         $column_custom_table = $custom_column->custom_table_cache;
-                        if(!boolval($column_custom_table->getOption('search_enabled_only'))){
+                        if(!boolval($column_custom_table->getOption('search_enabled'))){
                             return false;
                         }
                     }

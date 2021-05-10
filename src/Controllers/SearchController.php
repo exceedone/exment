@@ -364,8 +364,16 @@ class SearchController extends AdminControllerBase
         $relationTables = $value_table->getRelationTables();
         // 1. For self-table
         $results[] = $this->getTableArray($value_table, SearchType::SELF);
-        // loop and add $results
+        ///// loop and add $results
+        $searchTypes = [];
         foreach ($relationTables as $relationTable) {
+            // check already setted search type
+            $key = "{$relationTable->table->id}-$relationTable->searchType";
+            if(in_array($key, $searchTypes)){
+                continue;
+            }
+            $searchTypes[] = $key;
+
             $results[] = $this->getTableArray($relationTable->table, $relationTable->searchType);
         }
         return $results;
