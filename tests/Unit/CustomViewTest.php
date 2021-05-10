@@ -31,6 +31,30 @@ class CustomViewTest extends UnitTestBase
         $this->assertTrue($andCount != $array->count());
     }
 
+    public function testFuncGetSortedCustomView1()
+    {
+        $array = $this->getData('child_table', 'child_table-parent-sort');
+        $prev_data = null;
+        foreach ($array as $data) {
+            if (isset($prev_data)) {
+                $this->assertTrue($this->sortParent($prev_data, $data));
+            }
+            $prev_data = $data;
+        }
+    }
+
+    public function testFuncGetSortedCustomView2()
+    {
+        $array = $this->getData('child_table', 'child_table-parent-sort-mix');
+        $prev_data = null;
+        foreach ($array as $data) {
+            if (isset($prev_data)) {
+                $this->assertTrue($this->sortParentMix($prev_data, $data));
+            }
+            $prev_data = $data;
+        }
+    }
+
     /**
      * show select table id in custom view
      * -- bug fixed confirm test
@@ -171,11 +195,12 @@ class CustomViewTest extends UnitTestBase
         }
     }
 
-    protected function getData($table_name, $view_name)
+    protected function getData($table_name, $view_name, $page_count = 100)
     {
         $this->be(LoginUser::find(1));
         $classname = getModelName($table_name);
         $grid = new Grid(new $classname);
+        $grid->paginate($page_count);
     
         $custom_view = CustomView::where('view_view_name', $view_name)->first();
 
@@ -201,5 +226,34 @@ class CustomViewTest extends UnitTestBase
         return array_get($data, 'value.odd_even') != 'odd' ||
         array_get($data, 'value.multiples_of_3') == 1 ||
         array_get($data, 'value.user') == 2;
+    }
+    protected function sortParent($prev_data, $data)
+    {
+        $prev_parent = $prev_data->getParentValue();
+        $parent = $data->getParentValue();
+
+        if (isset($prev_parent) && isset($parent)){
+            return array_get($prev_parent, 'value.date') < array_get($parent, 'value.date') ||
+            array_get($prev_parent, 'value.date') == array_get($parent, 'value.date') &&
+            array_get($prev_parent, 'value.odd_even') >= array_get($parent, 'value.odd_even');
+        }
+
+        return false;
+    }
+    protected function sortParentMix($prev_data, $data)
+    {
+        $prev_parent = $prev_data->getParentValue();
+        $parent = $data->getParentValue();
+
+        if (isset($prev_parent) && isset($parent)){
+            return array_get($prev_data, 'value.odd_even') < array_get($data, 'value.odd_even') ||
+            (array_get($prev_data, 'value.odd_even') == array_get($data, 'value.odd_even') &&
+            array_get($prev_parent, 'value.odd_even') > array_get($parent, 'value.odd_even')) ||
+            (array_get($prev_data, 'value.odd_even') == array_get($data, 'value.odd_even') &&
+            array_get($prev_parent, 'value.odd_even') == array_get($parent, 'value.odd_even') &&
+            array_get($prev_parent, 'created_user_id') == array_get($parent, 'created_user_id'));
+        }
+
+        return false;
     }
 }
