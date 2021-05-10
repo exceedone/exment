@@ -292,12 +292,7 @@ class SearchService
                 $this->setJoin($relationTable, $orderCustomTable);
 
                 // set database unique name
-                $custom_column = $column->custom_column;
-                if (!isset($custom_column)) {
-                    $this->query->whereNotMatch();
-                    return $this;
-                }
-                $column_item = $custom_column->column_item;
+                $column_item = $column->column_item;
                 if (!isset($column_item)) {
                     $this->query->whereNotMatch();
                     return $this;

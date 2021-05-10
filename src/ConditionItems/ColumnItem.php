@@ -237,11 +237,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function setQuerySort($query, CustomViewSort $custom_view_sort)
     {
-        $custom_column = $custom_view_sort->custom_column;
-        if (!isset($custom_column)) {
-            return;
-        }
-        $column_item = $custom_column->column_item;
+        $column_item = $custom_view_sort->column_item;
         if (!isset($column_item)) {
             return;
         }

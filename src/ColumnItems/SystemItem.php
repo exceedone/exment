@@ -155,7 +155,7 @@ class SystemItem implements ItemInterface
         } else {
             $sqlname = array_get($option, 'sqlname');
         }
-        return getDBTableName($this->custom_table) .'.'. $sqlname;
+        return $this->sqlUniqueTableName() .'.'. $sqlname;
     }
 
     public function sqlAsName()
