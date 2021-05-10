@@ -278,12 +278,13 @@ class RelationTable
         if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
             return;
         }
+
         // Get DB table name
         $parent_table_name = getDBTableName($parent_table);
         $child_table_name = getDBTableName($child_table);
 
         // Append join query.
-        $query->join($parent_table_name, "$parent_table_name.id", "=", "$child_table_name.parent_id");
+        $query->join("$parent_table_name AS {$this->tableUniqueName}", "{$this->tableUniqueName}.id", "=", "$child_table_name.parent_id");
         
         return $query;
     }
@@ -313,7 +314,7 @@ class RelationTable
 
         // Append join query.
         $query->join($relation_name, "$child_table_name.id", "=", "$relation_name.child_id")
-            ->join($parent_table_name, "$parent_table_name.id", "=", "$relation_name.parent_id");
+            ->join("$parent_table_name AS {$this->tableUniqueName}", "{$this->tableUniqueName}.id", "=", "$relation_name.parent_id");
         
         return $query;
     }
