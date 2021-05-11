@@ -61,9 +61,11 @@ trait SystemColumnItemTrait
         } else {
             $pivot_custom_column = CustomColumn::getEloquent($view_pivot_column);
             $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
-            $custom_value = $this->custom_table->getValueModel($pivot_id);
-        
-            return array_get($custom_value, $valuekey);
+
+            return collect($pivot_id)->map(function ($v) use ($valuekey) {
+                $custom_value = $this->custom_table->getValueModel($v);
+                return array_get($custom_value, $valuekey);
+            })->implode(exmtrans('common.separate_word'));
         }
     }
 }
