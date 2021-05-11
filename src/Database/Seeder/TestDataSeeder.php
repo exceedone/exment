@@ -41,6 +41,7 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Storage\Disk\TestPluginDiskService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 
 class TestDataSeeder extends Seeder
 {
@@ -1280,13 +1281,19 @@ class TestDataSeeder extends Seeder
                 if ($select_table_column->isMultipleEnabled()) {
                     continue;
                 }
-                $select_table = $select_table_column->custom_table;
+                $select_table = $select_table_column->select_target_table;
+                if (ColumnType::isUserOrganization($select_table_column->column_type)) {
+                    $target_column = Str::lower($select_table->table_name) . '_name';
+                } else {
+                    $target_column = 'date';
+                }
                 $sort_settings[] = [
                     'target_table' => $select_table,
-                    'target_column' => 'date',
+                    'target_column' => $target_column,
+                    'pivot_column_id' => $select_table_column->id,
                 ];
             }
-            $this->createSortCustomView('-select-table-sort', $custom_table, $custom_columns, $sort_settings);
+            $this->createSortCustomView('-select-table-1', $custom_table, $custom_columns, $sort_settings);
         }
 
         // create calendar view
@@ -1339,8 +1346,6 @@ class TestDataSeeder extends Seeder
             $column_type = array_get($sort_setting, 'column_type')?? ConditionType::COLUMN;
             $target_column = array_get($sort_setting, 'target_column');
             if ($column_type == ConditionType::COLUMN) {
-                \Log::debug('target table : '. $target_table->table_name);
-                \Log::debug('target column : '. $target_column);
                 $custom_column = CustomColumn::getEloquent($target_column, $target_table);
                 $target_column_id = $custom_column->id;
             } else {
@@ -1350,7 +1355,7 @@ class TestDataSeeder extends Seeder
             $pivot_column_id = null;
             if ($target_table->id != $custom_table->id) {
                 $pivot_table_id = $custom_table->id;
-                $pivot_column_id = SystemColumn::PARENT_ID;
+                $pivot_column_id = array_get($sort_setting, 'pivot_column_id')?? SystemColumn::PARENT_ID;
             }
 
             $this->createCustomViewSort(

@@ -4,8 +4,12 @@ namespace Exceedone\Exment\Tests\Unit;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewTest extends UnitTestBase
 {
@@ -31,7 +35,7 @@ class CustomViewTest extends UnitTestBase
         $this->assertTrue($andCount != $array->count());
     }
 
-    public function testFuncGetSortedCustomView1()
+    public function testFuncGetSortedByParent1()
     {
         $array = $this->getData('child_table', 'child_table-parent-sort');
         $prev_data = null;
@@ -43,7 +47,7 @@ class CustomViewTest extends UnitTestBase
         }
     }
 
-    public function testFuncGetSortedCustomView2()
+    public function testFuncGetSortedByParent2()
     {
         $array = $this->getData('child_table', 'child_table-parent-sort-mix');
         $prev_data = null;
@@ -52,6 +56,87 @@ class CustomViewTest extends UnitTestBase
                 $this->assertTrue($this->sortParentMix($prev_data, $data));
             }
             $prev_data = $data;
+        }
+    }
+
+    public function testFuncGetSortedBySelectTable()
+    {
+        $array = $this->getData('all_columns_table_fortest', 'all_columns_table_fortest-select-table-1');
+        $prev_data = null;
+        foreach ($array as $data) {
+            if (isset($prev_data)) {
+                $this->assertTrue($this->sortSelectTable($prev_data, $data));
+            }
+            $prev_data = $data;
+        }
+    }
+
+    /**
+     * show select table id in custom view
+     */
+    public function testFuncSelectAllColumns()
+    {
+        $this->initAllTest();
+
+        $options = [
+            'column_settings' => [],
+            'filter_settings' => [[
+                'column_name' => 'user',
+                'filter_condition' => FilterOption::EQ,
+                'filter_value_text' => 1
+            ]]
+        ];
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        // foreach (SystemColumn::getOptions() as $option) {
+        //     if (boolval(array_get($option, 'header')) || boolval(array_get($option, 'footer'))) {
+        //         $options['column_settings'][] = [
+        //             'condition_type' => ConditionType::SYSTEM,
+        //             'column_name' => array_get($option, 'name'),
+        //         ];
+        //     }
+        // }
+        // foreach ($custom_table->custom_columns_cache as $custom_column) {
+        //     $options['column_settings'][] = [
+        //         'column_name' => $custom_column->column_name,
+        //     ];
+        // }
+        $select_table_columns = $custom_table->getSelectTableColumns(null, true);
+        foreach ($select_table_columns as $select_table_column) {
+            $select_table = $select_table_column->column_item->getSelectTable();
+            foreach ($select_table->custom_columns_cache as $custom_column) {
+                $options['column_settings'][] = [
+                    'reference_table' => $select_table->table_name,
+                    'reference_column' => $select_table_column->column_name,
+                    'column_name' => $custom_column->column_name,
+                ];
+            }
+        }
+        list($custom_view, $array) = $this->getCustomView($options);
+
+        foreach ($array as $index => $data) {
+            $custom_value = $custom_table->getValueModel()->find($data->id);
+            foreach ($custom_view->custom_view_columns as $custom_view_column) {
+                $text = $custom_view_column->column_item->options([
+                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                ])->setCustomValue($data)->text();
+                if (isset($custom_view_column->view_pivot_column_id)) {
+                    $pivot_info = $custom_view_column->getPivotUniqueKeyValues();
+                    $compare_value = $custom_value->getValue($pivot_info['column_name']);
+                } else {
+                    $compare_value = $custom_value;
+                }
+                if (!isset($compare_value)) {
+                    $compare = null;
+                } elseif ($custom_view_column->view_column_type == ConditionType::COLUMN) {
+                    $column_name = $custom_view_column->custom_column->column_name;
+                    $compare = $compare_value->getValue($column_name, true);
+                } else {
+                    $column_name = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'] ?? null;
+                    $compare = array_get($compare_value, $column_name);
+                }
+                $this->assertEquals($text, $compare);
+            }
         }
     }
 
@@ -251,9 +336,31 @@ class CustomViewTest extends UnitTestBase
             array_get($prev_parent, 'value.odd_even') > array_get($parent, 'value.odd_even')) ||
             (array_get($prev_data, 'value.odd_even') == array_get($data, 'value.odd_even') &&
             array_get($prev_parent, 'value.odd_even') == array_get($parent, 'value.odd_even') &&
-            array_get($prev_parent, 'created_user_id') == array_get($parent, 'created_user_id'));
+            array_get($prev_parent, 'created_user_id') <= array_get($parent, 'created_user_id'));
         }
 
         return false;
+    }
+    protected function sortSelectTable($prev_data, $data)
+    {
+        $select_table_prev = $prev_data->getValue('select_table');
+        $select_table = $data->getValue('select_table');
+        $select_table_2_prev = $prev_data->getValue('select_table_2');
+        $select_table_2 = $data->getValue('select_table_2');
+        $user_prev = $prev_data->getValue('user');
+        $user = $data->getValue('user');
+        $organization_prev = $prev_data->getValue('organization');
+        $organization = $data->getValue('organization');
+
+        return array_get($select_table_prev, 'date') < array_get($select_table, 'date') ||
+            (array_get($select_table_prev, 'date') == array_get($select_table, 'date') &&
+            array_get($select_table_2_prev, 'date') < array_get($select_table_2, 'date')) ||
+            (array_get($select_table_prev, 'date') == array_get($select_table, 'date') &&
+            array_get($select_table_2_prev, 'date') == array_get($select_table_2, 'date') &&
+            array_get($user_prev, 'user_name') < array_get($user, 'user_name')) ||
+            (array_get($select_table_prev, 'date') == array_get($select_table, 'date') &&
+            array_get($select_table_2_prev, 'date') == array_get($select_table_2, 'date') &&
+            array_get($user_prev, 'user_name') == array_get($user, 'user_name') &&
+            array_get($organization_prev, 'organization_name') <= array_get($organization, 'organization_name'));
     }
 }
