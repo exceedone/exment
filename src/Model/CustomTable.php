@@ -2246,7 +2246,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     continue;
                 }
                 $select_table = $select_table_column->column_item->getSelectTable();
-                $tablename = array_get($select_table, 'table_view_name');
+                $column_name = array_get($select_table_column, 'column_view_name');
                 $this->setColumnOptions(
                     $options,
                     $select_table->custom_columns_cache,
@@ -2256,7 +2256,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'index_enabled_only' => $index_enabled_only,
                         'include_parent' => false,
                         'include_system' => $include_system,
-                        'table_view_name' => $tablename,
+                        'table_view_name' => $column_name,
                         'view_pivot_column' => $select_table_column,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
