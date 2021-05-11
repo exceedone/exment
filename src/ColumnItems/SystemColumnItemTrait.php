@@ -65,7 +65,7 @@ trait SystemColumnItemTrait
             return collect($pivot_id)->map(function ($v) use ($valuekey) {
                 $custom_value = $this->custom_table->getValueModel($v);
                 return array_get($custom_value, $valuekey);
-            })->implode(exmtrans('common.separate_word'));
+            });
         }
     }
 }
