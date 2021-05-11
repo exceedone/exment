@@ -2159,6 +2159,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_condition' => false,
                 'include_form_type' => false,
                 'ignore_attachment' => false,
+                'ignore_multiple' => false,
             ],
             $selectOptions
         );
@@ -2173,6 +2174,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
+        $ignore_multiple = $selectOptions['ignore_multiple'];
 
         $options = [];
         
@@ -2212,6 +2214,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_workflow' => $include_workflow,
                     'include_workflow_work_users' => $include_workflow_work_users,
                     'ignore_attachment' => $ignore_attachment,
+                    'ignore_multiple' => $ignore_multiple,
                 ]
             );
         }
@@ -2220,6 +2223,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ///// get child table columns
             $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
             foreach ($relations as $rel) {
+                if ($ignore_multiple && $rel->relation_type == RelationType::MANY_TO_MANY) {
+                    continue;
+                }
                 $parent = array_get($rel, 'parent_custom_table');
                 $parent_id = array_get($rel, 'parent_custom_table_id');
                 $tablename = array_get($parent, 'table_view_name');
@@ -2236,6 +2242,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_column' => SystemColumn::PARENT_ID,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_multiple' => $ignore_multiple,
                     ]
                 );
             }
@@ -2243,6 +2250,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $select_table_columns = $this->getSelectTableColumns(null, true);
             foreach ($select_table_columns as $select_table_column) {
                 if ($index_enabled_only && !$select_table_column->index_enabled) {
+                    continue;
+                }
+                if ($ignore_multiple && $select_table_column->isMultipleEnabled()) {
                     continue;
                 }
                 $select_table = $select_table_column->column_item->getSelectTable();
@@ -2260,6 +2270,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_column' => $select_table_column,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_multiple' => $ignore_multiple,
                     ]
                 );
             }
@@ -2283,6 +2294,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_system' => true,
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_multiple' => $ignore_multiple,
                     ]
                 );
             }
@@ -2302,6 +2314,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_system' => true,
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_multiple' => $ignore_multiple,
                     ]
                 );
             }
@@ -2327,6 +2340,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
                 'ignore_attachment' => false,
+                'ignore_multiple' => false,
             ],
             $selectOptions
         );
@@ -2343,6 +2357,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $view_pivot_column = $selectOptions['view_pivot_column'];
         $view_pivot_table = $selectOptions['view_pivot_table'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
+        $ignore_multiple = $selectOptions['ignore_multiple'];
 
 
         // get option key
@@ -2389,6 +2404,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             foreach ($custom_columns as $custom_column) {
                 // if $index_enabled_only = true and options.index_enabled_only is false, continue
                 if ($index_enabled_only && !$custom_column->index_enabled) {
+                    continue;
+                }
+                if ($ignore_multiple && $custom_column->isMultipleEnabled()) {
                     continue;
                 }
                 if ($ignore_attachment && ColumnType::isAttachment($custom_column->column_type)) {

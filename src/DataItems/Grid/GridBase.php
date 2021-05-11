@@ -229,6 +229,7 @@ abstract class GridBase
                 'append_table' => true,
                 'index_enabled_only' => true,
                 'include_parent' => $include_parent,
+                'ignore_multiple' => true,
             ]));
             $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                 ->required()
