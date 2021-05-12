@@ -7,13 +7,14 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewTest extends UnitTestBase
 {
-    use CustomViewTrait, DatabaseTransactions;
+    use CustomViewTrait;
 
     public function testFuncGetMatchedCustomView1()
     {
@@ -72,9 +73,150 @@ class CustomViewTest extends UnitTestBase
     }
 
     /**
-     * show select table id in custom view
+     * show all columns refered parent_table
      */
-    public function testFuncSelectAllColumns()
+    public function testFuncParentTableAllColumns()
+    {
+        $this->initAllTest();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE,
+            'column_settings' => [],
+            'filter_settings' => [[
+                'column_name' => 'user',
+                'filter_condition' => FilterOption::USER_EQ_USER,
+            ]]
+        ];
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
+        $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $custom_table->id)->get();
+
+        foreach ($relations as $rel) {
+            $parent = array_get($rel, 'parent_custom_table');
+            foreach ($parent->custom_columns_cache as $custom_column) {
+                $options['column_settings'][] = [
+                    'reference_table' => TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE,
+                    'reference_column' => SystemColumn::PARENT_ID,
+                    'column_name' => $custom_column->column_name,
+                ];
+            }
+            foreach (SystemColumn::getOptions() as $option) {
+                if (boolval(array_get($option, 'header')) || boolval(array_get($option, 'footer'))) {
+                    $options['column_settings'][] = [
+                        'reference_table' => TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE,
+                        'reference_column' => SystemColumn::PARENT_ID,
+                        'condition_type' => ConditionType::SYSTEM,
+                        'column_name' => array_get($option, 'name'),
+                    ];
+                }
+            }
+        }
+        list($custom_view, $array) = $this->getCustomView($options);
+
+        $this->checkSelectColumns($custom_table, $custom_view, $array, $relations->first());
+    }
+
+    /**
+     * show all columns refered parent_table
+     */
+    public function testFuncParentTableNNAllColumns()
+    {
+        $this->initAllTest();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY,
+            'column_settings' => [],
+            'filter_settings' => [[
+                'column_name' => 'user',
+                'filter_condition' => FilterOption::USER_EQ_USER,
+            ]]
+        ];
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
+        $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $custom_table->id)->get();
+
+        foreach ($relations as $rel) {
+            $parent = array_get($rel, 'parent_custom_table');
+            foreach ($parent->custom_columns_cache as $custom_column) {
+                $options['column_settings'][] = [
+                    'reference_table' => TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY,
+                    'reference_column' => SystemColumn::PARENT_ID,
+                    'column_name' => $custom_column->column_name,
+                ];
+            }
+            foreach (SystemColumn::getOptions() as $option) {
+                if (boolval(array_get($option, 'header')) || boolval(array_get($option, 'footer'))) {
+                    $options['column_settings'][] = [
+                        'reference_table' => TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY,
+                        'reference_column' => SystemColumn::PARENT_ID,
+                        'condition_type' => ConditionType::SYSTEM,
+                        'column_name' => array_get($option, 'name'),
+                    ];
+                }
+            }
+        }
+        list($custom_view, $array) = $this->getCustomView($options);
+
+        $this->checkSelectColumns($custom_table, $custom_view, $array, $relations->first());
+    }
+
+    protected function checkSelectColumns($custom_table, $custom_view, $array, $relation = null)
+    {
+        foreach ($array as $index => $data) {
+            $custom_value = $custom_table->getValueModel()->find($data->id);
+            $parent_value = null;
+            if (isset($relation)) {
+                $parent_value = $custom_value->getParentValue($relation);
+            }
+            foreach ($custom_view->custom_view_columns as $custom_view_column) {
+                // get grid show value
+                $text = $custom_view_column->column_item->options([
+                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                ])->setCustomValue($data)->text();
+
+                if (isset($custom_view_column->view_pivot_column_id)) {
+                    if ($custom_view_column->view_pivot_column_id == SystemColumn::PARENT_ID) {
+                        $compare_value = $parent_value;
+                    } else {
+                        $pivot_info = $custom_view_column->getPivotUniqueKeyValues();
+                        $compare_value = $custom_value->getValue($pivot_info['column_name']);
+                    }
+                } else {
+                    $compare_value = $custom_value;
+                }
+                if (!isset($compare_value)) {
+                    $compare = null;
+                } elseif (is_list($compare_value)) {
+                    $compare = collect($compare_value)->map(function($v) use($custom_view_column) {
+                        return $this->getCompareValue($custom_view_column, $v);
+                    })->filter()->implode('、');
+                } else {
+                    $compare = $this->getCompareValue($custom_view_column, $compare_value);
+                }
+                $this->assertEquals($text, $compare);
+            }
+        }
+
+    }
+
+    protected function getCompareValue($custom_view_column, $compare_value)
+    {
+        if ($custom_view_column->view_column_type == ConditionType::COLUMN) {
+            $column_name = $custom_view_column->custom_column->column_name;
+            $compare = $compare_value->getValue($column_name, true);
+        } else {
+            $column_name = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'] ?? null;
+            $compare = array_get($compare_value, $column_name);
+        }
+        if ($compare instanceof \Carbon\Carbon) {
+            $compare = $compare->toDateTimeString();
+        }
+        return $compare;
+    }
+
+    /**
+     * show all columns refered by select_table
+     */
+    public function testFuncSelectTableAllColumns()
     {
         $this->initAllTest();
 
@@ -82,24 +224,24 @@ class CustomViewTest extends UnitTestBase
             'column_settings' => [],
             'filter_settings' => [[
                 'column_name' => 'user',
-                'filter_condition' => FilterOption::EQ,
+                'filter_condition' => FilterOption::USER_EQ,
                 'filter_value_text' => 1
             ]]
         ];
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        // foreach (SystemColumn::getOptions() as $option) {
-        //     if (boolval(array_get($option, 'header')) || boolval(array_get($option, 'footer'))) {
-        //         $options['column_settings'][] = [
-        //             'condition_type' => ConditionType::SYSTEM,
-        //             'column_name' => array_get($option, 'name'),
-        //         ];
-        //     }
-        // }
-        // foreach ($custom_table->custom_columns_cache as $custom_column) {
-        //     $options['column_settings'][] = [
-        //         'column_name' => $custom_column->column_name,
-        //     ];
-        // }
+        foreach (SystemColumn::getOptions() as $option) {
+            if (boolval(array_get($option, 'header')) || boolval(array_get($option, 'footer'))) {
+                $options['column_settings'][] = [
+                    'condition_type' => ConditionType::SYSTEM,
+                    'column_name' => array_get($option, 'name'),
+                ];
+            }
+        }
+        foreach ($custom_table->custom_columns_cache as $custom_column) {
+            $options['column_settings'][] = [
+                'column_name' => $custom_column->column_name,
+            ];
+        }
         $select_table_columns = $custom_table->getSelectTableColumns(null, true);
         foreach ($select_table_columns as $select_table_column) {
             $select_table = $select_table_column->column_item->getSelectTable();
@@ -113,31 +255,8 @@ class CustomViewTest extends UnitTestBase
         }
         list($custom_view, $array) = $this->getCustomView($options);
 
-        foreach ($array as $index => $data) {
-            $custom_value = $custom_table->getValueModel()->find($data->id);
-            foreach ($custom_view->custom_view_columns as $custom_view_column) {
-                $text = $custom_view_column->column_item->options([
-                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
-                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
-                ])->setCustomValue($data)->text();
-                if (isset($custom_view_column->view_pivot_column_id)) {
-                    $pivot_info = $custom_view_column->getPivotUniqueKeyValues();
-                    $compare_value = $custom_value->getValue($pivot_info['column_name']);
-                } else {
-                    $compare_value = $custom_value;
-                }
-                if (!isset($compare_value)) {
-                    $compare = null;
-                } elseif ($custom_view_column->view_column_type == ConditionType::COLUMN) {
-                    $column_name = $custom_view_column->custom_column->column_name;
-                    $compare = $compare_value->getValue($column_name, true);
-                } else {
-                    $column_name = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'] ?? null;
-                    $compare = array_get($compare_value, $column_name);
-                }
-                $this->assertEquals($text, $compare);
-            }
-        }
+        $this->checkSelectColumns($custom_table, $custom_view, $array);
+
     }
 
     /**

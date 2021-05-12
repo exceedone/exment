@@ -10,6 +10,7 @@ use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomRelation;
@@ -18,6 +19,7 @@ use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
@@ -54,7 +56,12 @@ abstract class CustomItem implements ItemInterface
         $params = static::getOptionParams($view_column_target, $this->custom_table);
         // get label. check not match $this->custom_table and pivot table
         if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
-            $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
+            if ($params['view_pivot_column_id'] == SystemColumn::PARENT_ID) {
+                $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
+            } else {
+                $pivot_column = CustomColumn::getEloquent($params['view_pivot_column_id'], $params['view_pivot_table_id']);
+                $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $pivot_column->column_view_name);
+            }
         } else {
             $this->label = $this->custom_column->column_view_name;
         }

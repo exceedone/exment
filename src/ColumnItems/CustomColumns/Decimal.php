@@ -15,13 +15,25 @@ class Decimal extends CustomItem
     public function prepare()
     {
         if (!is_null($this->value)) {
-            $this->value = parseFloat($this->value);
-            if (array_has($this->custom_column, 'options.decimal_digit')) {
-                $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-                $this->value = floorDigit($this->value, $digit);
+            if (is_list($this->value)) {
+                $this->value = collect($this->value)->map(function($v) {
+                    return $this->_format($v);
+                });
+            } else {
+                $this->value = $this->_format($this->value);
             }
         }
         return $this;
+    }
+
+    protected function _format($v)
+    {
+        $v = parseFloat($v);
+        if (array_has($this->custom_column, 'options.decimal_digit')) {
+            $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+            $v = floorDigit($v, $digit);
+        }
+        return $v;
     }
 
     /**

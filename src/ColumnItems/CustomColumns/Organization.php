@@ -8,9 +8,9 @@ use Exceedone\Exment\Model\CustomTable;
 
 class Organization extends SelectTable
 {
-    public function __construct($custom_column, $custom_value)
+    public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
-        parent::__construct($custom_column, $custom_value);
+        parent::__construct($custom_column, $custom_value, $view_column_target);
 
         $this->target_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
     }
