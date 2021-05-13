@@ -271,6 +271,48 @@ class SearchService
      */
     public function orderByCustomViewSort(CustomViewSort $column)
     {
+        // set relation table join.
+        $this->setRelationJoin($column);
+
+        // set sort info.
+        $condition_item = $column->condition_item;
+        if ($condition_item) {
+            $condition_item->setQuerySort($this->query, $column);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add filter by custom column. Contains CustomViewFilter.
+     *
+     * @param  CustomViewFilter $column
+     * @return $this
+     */
+    public function whereCustomViewFilter(CustomViewFilter $column, $filter_is_or, $query = null)
+    {
+        // if $query is null, set $query as base $this->query.
+        // if $query is not null, $query(Setting filter target query) maybe inner where kakko.
+        if(is_null($query)){
+            $query = $this->query;
+        }
+ 
+        // // set relation table join.
+        // $this->setRelationJoin($column);
+
+        // set filter info.
+        $column->setValueFilter($query, $filter_is_or);
+
+        return $this;      
+    }
+
+    /**
+     * Join relation table for filter or sort
+     *
+     * @param CustomViewSort|CustomViewFilter $column
+     */
+    public function setRelationJoin($column)
+    {
         // get condition params
         list($order_table_id, $order_column_id, $this_table_id, $this_column_id) = $this->getConditionParams($column);
         $orderCustomTable = CustomTable::getEloquent($order_table_id);
@@ -300,16 +342,7 @@ class SearchService
                 $column_item->setUniqueTableName($relationTable->tableUniqueName);
             }
         }
-
-        // set sort info.
-        $condition_item = $column->condition_item;
-        if ($condition_item) {
-            $condition_item->setQuerySort($this->query, $column);
-        }
-
-        return $this;
     }
-
 
     /**
      * Get relation table info

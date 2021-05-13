@@ -713,13 +713,20 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (!empty($this->custom_view_filters_cache)) {
             // set workflow query
             $this->custom_table->appendWorkflowSubQuery($query, $this);
+ 
+            $service = $this->getSearchService()->setQuery($query);
 
-            $query->where(function ($query) use ($db_table_name) {
+            foreach ($this->custom_view_filters_cache as $filter) {
+                $service->setRelationJoin($filter);
+            }
+
+            $query->where(function ($query) use($service) {
                 foreach ($this->custom_view_filters_cache as $filter) {
-                    $filter->setValueFilter($query, $db_table_name, $this->filter_is_or);
+                    $service->whereCustomViewFilter($filter, $this->filter_is_or, $query);
                 }
             });
         }
+
         return $query;
     }
 

@@ -326,6 +326,15 @@ trait ItemTrait
     }
 
     /**
+     * get column name with table name
+     */
+    public function getTableAndColumn()
+    {
+        $column_name = $this->sqlname();
+        return $this->sqlUniqueTableName() . ".$column_name";
+    }
+
+    /**
      * get sort column name as SQL
      */
     public function getSortColumn()
@@ -336,7 +345,7 @@ trait ItemTrait
     /**
      * get cast column name as SQL
      */
-    public function getCastColumn($column_name = null, bool $wrap = true)
+    public function getCastColumn($column_name = null, bool $wrap = true, bool $appendDatabaseTable = true)
     {
         $cast = $this->getCastName();
 
@@ -344,8 +353,10 @@ trait ItemTrait
             $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
         }
 
-        // append table name
-        $column_name = $this->sqlUniqueTableName() . ".$column_name";
+        if ($appendDatabaseTable) {
+            // append table name
+            $column_name = $this->sqlUniqueTableName() . ".$column_name";
+        }
 
         if ($wrap) {
             $column_name = \Exment::wrapColumn($column_name);

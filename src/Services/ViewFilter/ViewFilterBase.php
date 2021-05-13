@@ -124,7 +124,7 @@ abstract class ViewFilterBase
      */
     public function setFilter($query, $query_value)
     {
-        $column = $this->column_item->sqlname();
+        $column = $this->column_item->getTableAndColumn();
 
         $method_name = $this->getQueryWhereName();
 

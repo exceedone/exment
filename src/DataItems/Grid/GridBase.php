@@ -157,11 +157,12 @@ abstract class GridBase
                 [
                     'append_table' => true,
                     'index_enabled_only' => true,
-                    'include_parent' => $is_aggregate,
+                    'include_parent' => true,
                     'include_child' => $is_aggregate,
                     'include_workflow' => true,
                     'include_workflow_work_users' => true,
                     'ignore_attachment' => true,
+                    'ignore_many_to_many' => true,
                 ]
             ),
             'custom_table' => $custom_table,
@@ -230,6 +231,7 @@ abstract class GridBase
                 'index_enabled_only' => true,
                 'include_parent' => $include_parent,
                 'ignore_multiple' => true,
+                'ignore_many_to_many' => true,
             ]));
             $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                 ->required()

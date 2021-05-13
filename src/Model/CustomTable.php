@@ -2160,6 +2160,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_form_type' => false,
                 'ignore_attachment' => false,
                 'ignore_multiple' => false,
+                'ignore_many_to_many' => false,
             ],
             $selectOptions
         );
@@ -2175,6 +2176,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_form_type = $selectOptions['include_form_type'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
+        $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
 
         $options = [];
         
@@ -2223,7 +2225,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ///// get child table columns
             $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
             foreach ($relations as $rel) {
-                if ($ignore_multiple && $rel->relation_type == RelationType::MANY_TO_MANY) {
+                if ($ignore_many_to_many && $rel->relation_type == RelationType::MANY_TO_MANY) {
                     continue;
                 }
                 $parent = array_get($rel, 'parent_custom_table');

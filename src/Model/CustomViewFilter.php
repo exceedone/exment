@@ -110,7 +110,7 @@ class CustomViewFilter extends ModelBase
     /**
      * set value filter
      */
-    public function setValueFilter($query, $db_table_name = null, $or_option = false)
+    public function setValueFilter($query, $or_option = false)
     {
         // get filter target column
         $condition_value_text = $this->view_filter_condition_value_text;

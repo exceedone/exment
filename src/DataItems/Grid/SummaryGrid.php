@@ -454,7 +454,7 @@ class SummaryGrid extends GridBase
 
         $query->addSelect($summary_option->getSelects());
         foreach ($summary_option->getFilters() as $filter) {
-            $filter->setValueFilter($query, $table_name, $this->custom_view->filter_is_or);
+            $filter->setValueFilter($query, $this->custom_view->filter_is_or);
         }
     }
     
@@ -476,7 +476,7 @@ class SummaryGrid extends GridBase
 
         $query->addSelect($summary_option->getSelects());
         foreach ($summary_option->getFilters() as $filter) {
-            $filter->setValueFilter($query, $summary_option->getTableName(), $this->custom_view->filter_is_or);
+            $filter->setValueFilter($query, $this->custom_view->filter_is_or);
         }
     }
 
@@ -502,7 +502,7 @@ class SummaryGrid extends GridBase
         $custom_filter = $summary_option->getFilters();
         $sub_query->where(function ($query) use ($child_table_name, $custom_filter) {
             foreach ($custom_filter as $filter) {
-                $filter->setValueFilter($query, $child_table_name, $this->custom_view->filter_is_or);
+                $filter->setValueFilter($query, $this->custom_view->filter_is_or);
             }
         });
 
@@ -539,7 +539,7 @@ class SummaryGrid extends GridBase
         $custom_filter = $summary_option->getFilters();
         $sub_query->where(function ($query) use ($child_table_name, $custom_filter) {
             foreach ($custom_filter as $filter) {
-                $filter->setValueFilter($query, $child_table_name, $this->custom_view->filter_is_or);
+                $filter->setValueFilter($query, $this->custom_view->filter_is_or);
             }
         });
     
