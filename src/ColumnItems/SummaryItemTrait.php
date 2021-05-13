@@ -14,6 +14,12 @@ trait SummaryItemTrait
 {
     //for summary  --------------------------------------------------
 
+    /**
+     * Get summary condion name.
+     * SUM, COUNT, MIN, MAX
+     *
+     * @return string|null
+     */
     protected function getSummaryConditionName()
     {
         $summary_option = array_get($this->options, 'summary_condition');

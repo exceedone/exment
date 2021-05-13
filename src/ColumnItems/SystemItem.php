@@ -20,17 +20,17 @@ class SystemItem implements ItemInterface
 {
     use ItemTrait, SystemColumnItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
     
-    protected $column_name;
+    protected $table_column_name;
     
     protected $custom_value;
     
-    public function __construct($custom_table, $column_name, $custom_value)
+    public function __construct($custom_table, $table_column_name, $custom_value)
     {
         // if view_pivot(like select table), custom_table is target's table
         $this->custom_table = $custom_table;
         $this->setCustomValue($custom_value);
 
-        $params = static::getOptionParams($column_name, $custom_table);
+        $params = static::getOptionParams($table_column_name, $custom_table);
         $this->column_name = $params['column_target'];
 
         // get label. check not match $this->custom_table and pivot table
@@ -65,7 +65,7 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'groupby'))) {
             return $this->getGroupBySqlName();
         }
-        return $this->getSqlColumnName();
+        return $this->getSqlColumnName(false);
     }
 
     /**
@@ -73,7 +73,7 @@ class SystemItem implements ItemInterface
      */
     public function getSortName()
     {
-        return $this->getSqlColumnName();
+        return $this->getSqlColumnName(true);
     }
 
     /**
@@ -105,23 +105,23 @@ class SystemItem implements ItemInterface
      */
     protected function getSummarySqlName()
     {
-        $column_name = $this->getSqlColumnName();
+        $table_column_name = $this->getSqlColumnName(true);
 
         $summary_condition = $this->getSummaryConditionName();
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($summary_condition)) {
-            $column_name = \Exment::wrapColumn($column_name);
-            $raw = "$summary_condition($column_name) AS ".$this->sqlAsName();
+            $table_column_name = \Exment::wrapColumn($table_column_name);
+            $raw = "$summary_condition($table_column_name) AS ".$this->sqlAsName();
         } elseif (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, false) . " AS ".$this->sqlAsName();
+            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, false) . " AS ".$this->sqlAsName();
         }
         // if sql server and created_at, set datetime cast
         elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
-            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $column_name, true);
+            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
         } else {
-            $column_name = \Exment::wrapColumn($column_name);
-            $raw = "$column_name AS ".$this->sqlAsName();
+            $table_column_name = \Exment::wrapColumn($table_column_name);
+            $raw = "$table_column_name AS ".$this->sqlAsName();
         }
 
         return \DB::raw($raw);
@@ -132,18 +132,18 @@ class SystemItem implements ItemInterface
      */
     protected function getGroupBySqlName()
     {
-        $column_name = $this->getSqlColumnName();
+        $table_column_name = $this->getSqlColumnName(true);
 
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
+            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, true);
         }
         // if sql server and created_at, set datetime cast
         elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
-            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $column_name, true);
+            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
         } else {
-            $raw = \Exment::wrapColumn($column_name);
+            $raw = \Exment::wrapColumn($table_column_name);
         }
 
         return \DB::raw($raw);
@@ -151,8 +151,11 @@ class SystemItem implements ItemInterface
 
     /**
      * get sql query column name
+     *
+     * @param boolean $appendTable if true, append column name
+     * @return string
      */
-    protected function getSqlColumnName()
+    protected function getSqlColumnName(bool $appendTable)
     {
         // get SystemColumn enum
         $option = $this->getSystemColumnOption();
@@ -161,7 +164,11 @@ class SystemItem implements ItemInterface
         } else {
             $sqlname = array_get($option, 'sqlname');
         }
-        return $this->sqlUniqueTableName() .'.'. $sqlname;
+
+        if($appendTable){
+            return $this->sqlUniqueTableName() .'.'. $sqlname;
+        }
+        return $sqlname;
     }
 
     public function sqlAsName()
@@ -396,7 +403,7 @@ class SystemItem implements ItemInterface
 
     public static function getItem(...$args)
     {
-        list($custom_table, $column_name, $custom_value) = $args + [null, null, null];
-        return new self($custom_table, $column_name, $custom_value);
+        list($custom_table, $table_column_name, $custom_value) = $args + [null, null, null];
+        return new self($custom_table, $table_column_name, $custom_value);
     }
 }

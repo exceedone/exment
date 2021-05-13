@@ -26,7 +26,7 @@ class WorkflowItem extends SystemItem
     /**
      * get sql query column name
      */
-    protected function getSqlColumnName()
+    protected function getSqlColumnName(bool $appendTable)
     {
         // get SystemColumn enum
         $option = SystemColumn::getOption(['name' => $this->column_name]);
@@ -35,7 +35,11 @@ class WorkflowItem extends SystemItem
         } else {
             $sqlname = array_get($option, 'sqlname');
         }
-        return $this->table_name.'.'.$sqlname;
+        
+        if($appendTable){
+            return $this->sqlUniqueTableName() .'.'. $sqlname;
+        }
+        return $sqlname;
     }
 
     public static function getItem(...$args)
