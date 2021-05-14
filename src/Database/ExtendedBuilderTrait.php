@@ -152,7 +152,7 @@ trait ExtendedBuilderTrait
         }
 
         // if not suport where in multiple, first getting target id, and add query. ----------------------------------------------------
-        $tableName = $this->model->getTable();
+        $tableName = $this->_getTableExment();
         $subquery = \DB::table($tableName);
 
         // group "$values" index.
@@ -240,8 +240,74 @@ trait ExtendedBuilderTrait
             return $this->whereNotMatch();
         }
 
-        $tableName = $this->model->getTable();
+        $tableName = $this->_getTableExment();
         $this->_getQueryExment()->grammar->whereInArrayString($this, $tableName, $column, $values, $isOr, $isNot);
+
+        return $this;
+    }
+
+
+    /**
+     * wherein column.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $baseColumn
+     * @param  string                                         $column
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereInArrayColumn($baseColumn, $column)
+    {
+        return $this->_whereInArrayColumn($baseColumn, $column, false, false);
+    }
+    
+    /**
+     * or wherein string.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $baseColumn
+     * @param  string                                         $column
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function orWhereInArrayColumn($baseColumn, $column)
+    {
+        return $this->_whereInArrayColumn($baseColumn, $column, true, false);
+    }
+    
+    /**
+     * where not in string.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $baseColumn
+     * @param  string                                         $column
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereNotInArrayColumn($baseColumn, $column)
+    {
+        return $this->_whereInArrayColumn($baseColumn, $column, true, true);
+    }
+    
+    /**
+     * or where not in string.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $baseColumn
+     * @param  string                                         $column
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function orWhereNotInArrayColumn($baseColumn, $column)
+    {
+        return $this->_whereInArrayColumn($baseColumn, $column, true, false);
+    }
+    
+
+    protected function _whereInArrayColumn($baseColumn, $column, bool $isOr = false, bool $isNot = false)
+    {
+        $tableName = $this->_getTableExment();
+        $this->_getQueryExment()->grammar->whereInArrayColumn($this, $tableName, $baseColumn, $column, $isOr, $isNot);
 
         return $this;
     }
@@ -502,5 +568,18 @@ trait ExtendedBuilderTrait
             return $this->query;
         }
         return $this;
+    }
+
+    /**
+     * get table name
+     * @return string table name
+     */
+    protected function _getTableExment()
+    {
+        if ($this instanceof \Illuminate\Database\Query\JoinClause) {
+            return $this->table;
+        }
+
+        return $this->model->getTable();
     }
 }

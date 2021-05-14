@@ -88,6 +88,33 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         return $builder;
     }
     
+    /**
+     * wherein column.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param \Illuminate\Database\Query\Builder $builder
+     * @param string $tableName database table name
+     * @param string $baseColumn join base column
+     * @param string $column target table name
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereInArrayColumn($builder, string $tableName, string $baseColumn, string $column, bool $isOr = false, bool $isNot = false)
+    {
+        $index = $this->wrap($column);
+        $baseColumnIndex = $this->wrap($baseColumn);
+
+        if ($isNot) {
+            $queryStr = "NOT FIND_IN_SET({$baseColumnIndex}, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))";
+        } else {
+            $queryStr = "FIND_IN_SET({$baseColumnIndex}, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
+        }
+        
+        $func = $isOr ? 'orWhereRaw' : 'whereRaw';
+        $builder->{$func}($queryStr);
+
+        return $builder;
+    }
+    
 
     /**
      * Get cast column string

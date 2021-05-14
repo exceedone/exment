@@ -26,6 +26,18 @@ interface GrammarInterface
      */
     public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false);
         
+    /**
+     * wherein column.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param \Illuminate\Database\Query\Builder $builder
+     * @param string $tableName database table name
+     * @param string $column target table name
+     * @param string $baseColumn join base column
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereInArrayColumn($builder, string $tableName,  string $baseColumn, string $column, bool $isOr = false, bool $isNot = false);
+
     public function wrapWhereInMultiple(array $columns);
 
     /**

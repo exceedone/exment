@@ -575,7 +575,8 @@ class RelationTable
         }
 
         // set unique table name joined target
-        $custom_column->column_item->setUniqueTableName($this->tableUniqueName);
+        $custom_item = $custom_column->column_item;
+        $custom_item->setUniqueTableName($this->tableUniqueName);
 
         // Get DB table name
         $parent_table_name = getDBTableName($parent_table);
@@ -585,7 +586,15 @@ class RelationTable
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoin' : 'join';
-        $query->{$joinName}("$child_table_name AS $unique_table_name", "$parent_table_name.id", "=", "$unique_table_name.$query_key")
+        $query->{$joinName}("$child_table_name AS $unique_table_name", function($join) use($custom_item, $parent_table_name, $unique_table_name, $query_key){
+            // If multiple, join as array string
+            if($custom_item->isMultipleEnabled()){
+                $join->whereInArrayColumn("$parent_table_name.id", "$unique_table_name.$query_key");
+            }
+            else{
+                $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$query_key");
+            }
+        })
             ;
         return $query;
     }

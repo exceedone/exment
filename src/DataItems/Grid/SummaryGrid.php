@@ -9,18 +9,14 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ViewColumnSort;
-use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\DataItems\Grid\Summary\SummaryOption;
 
 class SummaryGrid extends GridBase
 {
