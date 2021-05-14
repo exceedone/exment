@@ -89,17 +89,12 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
-     * sqlname
+     * For sql column name.
+     * Join table: false
+     * Wrap: false
      */
     public function sqlname()
     {
-        if (boolval(array_get($this->options, 'summary'))) {
-            return $this->getSummarySqlName();
-        }
-        if (boolval(array_get($this->options, 'groupby'))) {
-            return $this->getGroupBySqlName();
-        }
-
         return $this->custom_column->getQueryKey();
     }
 

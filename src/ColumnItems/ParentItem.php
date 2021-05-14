@@ -81,7 +81,7 @@ class ParentItem implements ItemInterface
      */
     public function sqltypename()
     {
-        return getDBTableName($this->custom_table) .'.'. 'parent_type';
+        return $this->sqlUniqueTableName() .'.parent_type';
     }
 
     /**
@@ -239,5 +239,18 @@ class ParentItem implements ItemInterface
     {
         list($custom_table, $parent_table) = $args + [null, null];
         return new self($custom_table, null, $parent_table);
+    }
+
+    /**
+     * get sqlname for summary
+     * *Please override if use.
+     * Join table: true
+     * Wrap: true
+     * 
+     * @return string Ex: COUNT(`exm__3914ac5180d7dc43fcbb AS AAAA`)
+     */
+    public function getSummaryWrapTableColumn() : string
+    {
+        return '';
     }
 }

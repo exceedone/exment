@@ -27,10 +27,15 @@ trait SummaryItemTrait
         return $summary_condition;
     }
 
+    
     /**
-     * get sqlname for summary
+     * Get sqlname for summary
+     * Join table: true
+     * Wrap: true
+     *
+     * @return string
      */
-    protected function getSummarySqlName()
+    public function getSummaryWrapTableColumn() : string
     {
         $options = $this->getSummaryParams();
         $value_column = $options['value_column'];
@@ -52,9 +57,13 @@ trait SummaryItemTrait
     }
     
     /**
-     * get sqlname for summary
+     * Get sqlname for group by
+     * Join table: true
+     * Wrap: true
+     * 
+     * @return string group by column name
      */
-    protected function getGroupBySqlName()
+    public function getGroupByWrapTableColumn() : string
     {
         $options = $this->getSummaryParams();
         $value_column = $options['value_column'];

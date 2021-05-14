@@ -6,16 +6,7 @@ use Exceedone\Exment\Services\Search\SearchService;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\RelationTable;
-use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\Linkage;
-use Exceedone\Exment\Enums\SearchType;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Tests\TestDefine;
-use Exceedone\Exment\Services\AuthUserOrgHelper;
-use Illuminate\Support\Collection;
 
 class SearchServiceTest extends UnitTestBase
 {
@@ -63,7 +54,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value) use($parent_custom_table, $parent_custom_column){
+        $values->each(function($value){
             // get parent value
             $parent_value = $value->getParentValue();
             $this->assertMatch($parent_value->getValue('index_text'), 'index_3_1');
@@ -84,7 +75,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value) use($parent_custom_table, $parent_custom_column){
+        $values->each(function($value){
             // get parent value
             $parent_value = $value->getParentValue();
             $this->assertMatch($parent_value->getValue('index_text'), 'index_3_1');
@@ -105,7 +96,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value) use($parent_custom_table, $parent_custom_column, $relation){
+        $values->each(function($value) use($relation){
             // get parent values(this list contains not filter target value)
             $parent_values = $value->getParentValue($relation);
             // Whether checking contains parent value
@@ -128,7 +119,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value) use($parent_custom_table, $parent_custom_column){
+        $values->each(function($value){
             // get parent value
             $parent_value = $value->getValue('parent_select_table');
             $this->assertMatch($parent_value->getValue('index_text'), 'index_3_1');
@@ -214,8 +205,10 @@ class SearchServiceTest extends UnitTestBase
         // Not support order by many-to-many relation
         try{
             $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
-            $service = new SearchService($custom_table);
-    
+            $column = CustomColumn::getEloquent('index_text', $custom_table);
+            $direction = 'desc';
+
+            $service = new SearchService($custom_table);    
             $service->orderBy($column, $direction);
 
             $this->assertTrue(false, 'Not support order by many-to-many relation');

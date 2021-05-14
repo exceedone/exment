@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Date;
-use Encore\Admin\Form\Field\Select;
 use Encore\Admin\Form\Field\MultipleSelect;
 use Encore\Admin\Form\Field\Text;
 use Encore\Admin\Form\Field;
@@ -20,7 +19,7 @@ class SystemItem implements ItemInterface
 {
     use ItemTrait, SystemColumnItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
     
-    protected $table_column_name;
+    protected $column_name;
     
     protected $custom_value;
     
@@ -59,12 +58,6 @@ class SystemItem implements ItemInterface
      */
     public function sqlname()
     {
-        if (boolval(array_get($this->options, 'summary'))) {
-            return $this->getSummarySqlName();
-        }
-        if (boolval(array_get($this->options, 'groupby'))) {
-            return $this->getGroupBySqlName();
-        }
         return $this->getSqlColumnName(false);
     }
 
@@ -103,7 +96,7 @@ class SystemItem implements ItemInterface
     /**
      * get sqlname for summary
      */
-    protected function getSummarySqlName()
+    public function getSummaryWrapTableColumn() : string
     {
         $table_column_name = $this->getSqlColumnName(true);
 
@@ -127,10 +120,15 @@ class SystemItem implements ItemInterface
         return \DB::raw($raw);
     }
 
+
     /**
-     * get sqlname for grouping
+     * Get sqlname for group by
+     * Join table: true
+     * Wrap: true
+     * 
+     * @return string group by column name
      */
-    protected function getGroupBySqlName()
+    public function getGroupByWrapTableColumn() : string
     {
         $table_column_name = $this->getSqlColumnName(true);
 

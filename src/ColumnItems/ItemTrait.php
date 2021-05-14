@@ -325,27 +325,58 @@ trait ItemTrait
         return $items;
     }
 
+
     /**
-     * get column name with table name
+     * Get column name with table name.
+     * Join table: true
+     * Wrap: false
+     * 
+     * @return string Joined DB table name and column name.  Ex. "exm__3914ac5180d7dc43fcbb.column1" or "sfhwuiefhkmklml.column1"
      */
-    public function getTableAndColumn()
+    public function getTableColumn() : string
     {
         $column_name = $this->sqlname();
         return $this->sqlUniqueTableName() . ".$column_name";
     }
 
+    
     /**
-     * get sort column name as SQL
+     * The column to use for sorting.
+     * Join table: true
+     * Wrap: true
+     *
+     * @return string
      */
-    public function getSortColumn()
+    public function getSortWrapTableColumn() : string
     {
-        return $this->getCastColumn();
+        return $this->getCastWrapTableColumn();
     }
 
+    
+    /**
+     * The cast column.
+     * Join table: true
+     * Wrap: true
+     * @param string|null $column_name If select column name, set.
+     *
+     * @return string
+     */
+    public function getCastWrapTableColumn(?string $column_name = null) : string
+    {
+        return $this->getCastColumn($column_name, true, true);
+    }
+    
     /**
      * get cast column name as SQL
+     *
+     * @param string|null $column_name If select column name, set.
+     * @param boolean $wrap
+     * @param boolean $appendDatabaseTable
+     * @return string Cast column string.
+     * Ex1. If use cast type: CAST(`exm__3914ac5180d7dc43fcbb.column_sfbhiuewfb` AS signed)
+     * Ex2. If not use cast type: `exm__3914ac5180d7dc43fcbb.column_sfbhiuewfb`
      */
-    public function getCastColumn($column_name = null, bool $wrap = true, bool $appendDatabaseTable = true)
+    protected function getCastColumn(?string $column_name = null, bool $wrap = true, bool $appendDatabaseTable = true) : string
     {
         $cast = $this->getCastName();
 

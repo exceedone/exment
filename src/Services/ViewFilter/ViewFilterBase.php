@@ -93,6 +93,14 @@ abstract class ViewFilterBase
     protected static $isConditionPassAsArray = false;
 
     /**
+     * If true, called setFilter function, append column name.
+     * If append cast, please set false.
+     *
+     * @var boolean
+     */
+    protected static $isAppendDatabaseTable = true;
+
+    /**
      * Whether this query sets as or
      *
      * @var boolean
@@ -124,7 +132,7 @@ abstract class ViewFilterBase
      */
     public function setFilter($query, $query_value)
     {
-        $column = $this->column_item->getTableAndColumn();
+        $column = static::$isAppendDatabaseTable ? $this->column_item->getTableColumn() : $this->column_item->sqlname();
 
         $method_name = $this->getQueryWhereName();
 

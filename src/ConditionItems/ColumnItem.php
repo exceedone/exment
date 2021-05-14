@@ -246,7 +246,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             return;
         }
 
-        $view_column_target = $column_item->getSortColumn();
+        $view_column_target = $column_item->getSortWrapTableColumn();
         $sort_order = $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc';
         //set order
         // $view_column_target is wraped

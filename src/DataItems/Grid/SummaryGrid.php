@@ -151,7 +151,7 @@ class SummaryGrid extends GridBase
         // join table refer to this table as select.
         $selected_table_columns = $this->custom_table->getSelectedTables();
 
-        $group_columns = [];
+        $wrap_group_columns = [];
         $sort_columns = [];
         $summary_options = [];
 
@@ -175,15 +175,15 @@ class SummaryGrid extends GridBase
 
             if ($item instanceof CustomViewColumn) {
                 // first, set group_column. this column's name uses index.
-                $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition'), 'summary_index' => $index, 'is_child' => $is_child]);
-                $groupSqlName = $column_item->sqlname();
+                $column_item->options(['group_condition' => array_get($item, 'view_group_condition'), 'summary_index' => $index, 'is_child' => $is_child]);
+                $wrapGroupSqlName = $column_item->getGroupByWrapTableColumn();
                 $groupSqlAsName = $column_item->sqlAsName();
-                $group_columns[] = $is_child ? $groupSqlAsName : $groupSqlName;
-                $column_item->options(['groupby' => false, 'group_condition' => null]);
+                $wrap_group_columns[] = $is_child ? \Exment::wrapColumn($groupSqlAsName) : $wrapGroupSqlName;
+                $column_item->options(['group_condition' => null]);
 
                 // parent_id need parent_type
                 if ($column_item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
-                    $group_columns[] = $column_item->sqltypename();
+                    $wrap_group_columns[] = \Exment::wrapColumn($column_item->sqltypename());
                 } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
                     \Exceedone\Exment\ColumnItems\WorkflowItem::getStatusSubquery($query, $item->custom_table);
                 }
@@ -234,8 +234,10 @@ class SummaryGrid extends GridBase
                 $query->orderBy(array_get($order, 'column_name'), $sort);
             }
         }
+        
         // set sql grouping columns
-        $query->groupBy($group_columns);
+        // wrap_group_columns is wraped
+        $query->groupByRaw($wrap_group_columns);
 
         return $query;
     }
@@ -395,7 +397,6 @@ class SummaryGrid extends GridBase
         $custom_view_column = $options['custom_view_column'];
 
         $item->options([
-            'summary' => true,
             'summary_condition' => $summary_condition,
             'summary_index' => $index,
             'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
@@ -410,7 +411,7 @@ class SummaryGrid extends GridBase
             $summary_options[$table_id] = new SummaryOption([ 'table_name' => $db_table_name ]);
         }
 
-        $summary_options[$table_id]->addSelect($item->sqlname());
+        $summary_options[$table_id]->addSelect($item->getSummaryWrapTableColumn());
         if ($item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
             $summary_options[$table_id]->addSelect($item->sqltypename());
         }
@@ -500,7 +501,7 @@ class SummaryGrid extends GridBase
         $sub_query->addSelect($summary_option->getSelects());
         
         $custom_filter = $summary_option->getFilters();
-        $sub_query->where(function ($query) use ($child_table_name, $custom_filter) {
+        $sub_query->where(function ($query) use ($custom_filter) {
             foreach ($custom_filter as $filter) {
                 $filter->setValueFilter($query, $this->custom_view->filter_is_or);
             }
@@ -537,7 +538,7 @@ class SummaryGrid extends GridBase
         $sub_query->addSelect($summary_option->getSelects());
     
         $custom_filter = $summary_option->getFilters();
-        $sub_query->where(function ($query) use ($child_table_name, $custom_filter) {
+        $sub_query->where(function ($query) use ($custom_filter) {
             foreach ($custom_filter as $filter) {
                 $filter->setValueFilter($query, $this->custom_view->filter_is_or);
             }
