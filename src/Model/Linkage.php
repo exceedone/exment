@@ -40,9 +40,11 @@ class Linkage
     {
         $result = [];
 
+        // Get select table columns in custom table.
         $columns = $custom_table->getSelectTableColumns();
         
-        // re-loop for relation
+        ///// re-loop for relation
+        $checkedSelectTableIds = [];
         foreach ($columns as $column) {
             // get custom table
             $select_target_table = $column->select_target_table;
@@ -55,14 +57,28 @@ class Linkage
                 continue;
             }
 
+            // If already getting select_target_table, continue.
+            if(in_array($select_target_table->id, $checkedSelectTableIds)){
+                continue;
+            }
+            $checkedSelectTableIds[] = $select_target_table->id;
+
             // get children tables
             $relations = $select_target_table->getRelationTables($checkPermission, ['search_enabled_only' => false]);
+          
             // if not exists, continue
             if (!$relations) {
                 continue;
             }
+
             foreach ($relations as $relation) {
                 $child_custom_table = $relation->table;
+                
+                // If searchType is SELECT_TABLE, and not selectTablePivotColumn(select table setting column), continue
+                if($relation->searchType == SearchType::SELECT_TABLE && $relation->selectTablePivotColumn->id != $column->id){
+                    continue;
+                }
+
                 collect($columns)->filter(function ($child_column) use ($child_custom_table) {
                     return $child_column->select_target_table && $child_column->select_target_table->id == $child_custom_table->id;
                 })
