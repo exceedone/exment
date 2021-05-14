@@ -80,20 +80,6 @@ class SystemItem implements ItemInterface
     }
 
     /**
-     * get column key refer to subquery.
-     */
-    public function getGroupName()
-    {
-        if (boolval(array_get($this->options, 'summary'))) {
-            $summary_condition = $this->getSummaryConditionName();
-            $alter_name = $this->sqlAsName();
-            $raw = "$summary_condition($alter_name) AS $alter_name";
-            return \DB::raw($raw);
-        }
-        return null;
-    }
-
-    /**
      * get sqlname for summary
      */
     public function getSummaryWrapTableColumn() : string
@@ -105,19 +91,18 @@ class SystemItem implements ItemInterface
 
         if (isset($summary_condition)) {
             $table_column_name = \Exment::wrapColumn($table_column_name);
-            $raw = "$summary_condition($table_column_name) AS ".$this->sqlAsName();
+            $result = "$summary_condition($table_column_name)";
         } elseif (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, false) . " AS ".$this->sqlAsName();
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, false);
         }
         // if sql server and created_at, set datetime cast
         elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
-            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
         } else {
-            $table_column_name = \Exment::wrapColumn($table_column_name);
-            $raw = "$table_column_name AS ".$this->sqlAsName();
+            $result = \Exment::wrapColumn($table_column_name);
         }
 
-        return \DB::raw($raw);
+        return $result;
     }
 
 

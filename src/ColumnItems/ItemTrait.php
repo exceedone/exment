@@ -404,7 +404,7 @@ trait ItemTrait
 
         if ($appendDatabaseTable) {
             // append table name
-            $column_name = $this->sqlUniqueTableName() . ".$column_name";
+            $column_name = $this->getTableColumn($column_name);
         }
 
         if ($wrap) {

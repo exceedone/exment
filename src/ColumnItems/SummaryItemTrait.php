@@ -42,15 +42,14 @@ trait SummaryItemTrait
         $group_condition = $options['group_condition'];
 
         $summary_condition = $this->getSummaryConditionName();
-        
         if (isset($summary_condition)) {
             // get cast
-            $castColumn = $this->getCastColumn($value_column);
-            $result = "$summary_condition($castColumn)";
+            $wrapCastColumn = $this->getCastColumn($value_column);
+            $result = "$summary_condition($wrapCastColumn)";
         } elseif (isset($group_condition)) {
             $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, false);
         } else {
-            $result = $value_column;
+            $result = \Exment::wrapColumn($value_column);
         }
 
         return $result;
@@ -68,19 +67,11 @@ trait SummaryItemTrait
         $options = $this->getSummaryParams();
         $value_column = $options['value_column'];
         $group_condition = $options['group_condition'];
-        $is_child = $options['is_child'];
         
-        // get column_name. toggle whether is child or not
-        if ($is_child) {
-            $column_name = $this->sqlAsName();
-        } else {
-            $column_name = $value_column;
-        }
-
         if (isset($group_condition)) {
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, true);
         } else {
-            $result = \Exment::wrapColumn($this->getTableColumn($column_name));
+            $result = \Exment::wrapColumn($value_column);
         }
 
         return $result;
@@ -88,38 +79,16 @@ trait SummaryItemTrait
 
     protected function getSummaryParams()
     {
-        $db_table_name = getDBTableName($this->custom_column->custom_table_cache);
-        $column_name = $this->custom_column->column_name;
-
         $group_condition = array_get($this->options, 'group_condition');
         $group_condition = isset($group_condition) ? GroupCondition::getEnum($group_condition) : null;
-        
-        $is_child = array_get($this->options, 'is_child');
 
         // get value_column
-        $json_column = \DB::getQueryGrammar()->wrapJsonUnquote("$db_table_name.value->$column_name");
-        $value_column = ($this->custom_column->index_enabled) ? $this->index() : $json_column;
+        $value_column = $this->getTableColumn($this->custom_column->getQueryKey());
         
         return [
-            'db_table_name' => $db_table_name,
-            'column_name' => $column_name,
             'group_condition' => $group_condition,
-            'json_column' => $json_column,
             'value_column' => $value_column,
-            'is_child' => $is_child,
         ];
-    }
-    
-    public function getGroupName()
-    {
-        $db_table_name = getDBTableName($this->custom_column->custom_table);
-        $column_name = $this->custom_column->column_name;
-        
-        $summary_condition = $this->getSummaryConditionName();
-        $alter_name = $this->sqlAsName();
-        $raw = "$summary_condition($alter_name) AS $alter_name";
-
-        return \DB::raw($raw);
     }
     
     /**

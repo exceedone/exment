@@ -245,4 +245,32 @@ class ParentItem implements ItemInterface
     {
         return '';
     }
+
+    
+
+    /**
+     * Get sqlname for group by
+     * Join table: true
+     * Wrap: true
+     * 
+     * @return string group by column name
+     */
+    public function getGroupByWrapTableColumn() : string
+    {
+        $table_column_name = $this->getTableColumn();
+
+        $group_condition = array_get($this->options, 'group_condition');
+
+        if (isset($group_condition)) {
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, true);
+        }
+        // if sql server and created_at, set datetime cast
+        elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
+            $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
+        } else {
+            $result = \Exment::wrapColumn($table_column_name);
+        }
+
+        return $result;
+    }
 }
