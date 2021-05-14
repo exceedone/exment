@@ -298,6 +298,7 @@ class SearchService
         }
  
         // // set relation table join.
+        // Cannot join in $query->where(function($query), so please call outer $query->where.
         // $this->setRelationJoin($column);
 
         // set filter info.
