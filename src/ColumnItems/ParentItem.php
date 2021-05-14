@@ -69,14 +69,6 @@ class ParentItem implements ItemInterface
     }
 
     /**
-     * get column name
-     */
-    public function sqlAsName()
-    {
-        return $this->sqlname();
-    }
-
-    /**
      * get parent_type column name
      */
     public function sqltypename()

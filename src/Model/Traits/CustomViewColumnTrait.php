@@ -78,9 +78,7 @@ trait CustomViewColumnTrait
         }
 
         if (!is_nullorempty($this->suuid)) {
-            $this->_custom_item->options([
-                'view_column_suuid' => $this->suuid,
-            ]);
+            $this->_custom_item->setUniqueName("ckey_{$this->suuid}");
         }
 
         return $this->_custom_item;

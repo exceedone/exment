@@ -135,16 +135,16 @@ class SystemItem implements ItemInterface
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, true);
         }
         // if sql server and created_at, set datetime cast
         elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
-            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
         } else {
-            $raw = \Exment::wrapColumn($table_column_name);
+            $result = \Exment::wrapColumn($table_column_name);
         }
 
-        return \DB::raw($raw);
+        return $result;
     }
 
     /**
@@ -167,11 +167,6 @@ class SystemItem implements ItemInterface
             return $this->sqlUniqueTableName() .'.'. $sqlname;
         }
         return $sqlname;
-    }
-
-    public function sqlAsName()
-    {
-        return "column_".array_get($this->options, 'summary_index');
     }
 
     /**

@@ -5,12 +5,15 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
+use Encore\Admin\Grid;
 
 /**
  * Custom Value's Search model.
@@ -283,8 +286,58 @@ class SearchService
         return $this;
     }
 
+
     /**
-     * Add filter by custom column. Contains CustomViewFilter.
+     * Add groupby by custom view column. Contains CustomViewColumn.
+     *
+     * @param  CustomViewColumn $column
+     * @return $this
+     */
+    public function groupByCustomViewColumn(CustomViewColumn $column)
+    {
+        // set relation table join.
+        $this->setRelationJoin($column, true);
+
+        $column_item = $column->column_item;
+
+        // get group's column. this is wraped.
+        $wrap_column = $column_item->getGroupByWrapTableColumn();
+
+        // set group by.
+        $this->query->groupByRaw($wrap_column);
+
+        // set select column. And add "as".
+        $sqlAsName = $column_item->sqlAsName();
+        $this->query->selectRaw("$wrap_column AS $sqlAsName");
+        
+        return $this;
+    }
+
+    /**
+     * Add select by custom view summary. Contains CustomViewSummary.
+     *
+     * @param  CustomViewSummary $column
+     * @return $this
+     */
+    public function selectSummaryCustomViewSummary(CustomViewSummary $column)
+    {
+        // set relation table join.
+        $this->setRelationJoin($column, true);
+
+        $column_item = $column->column_item;
+
+        // set summary.
+        // $select is wraped.
+        $wrap_column = $column_item->getSummaryWrapTableColumn();
+        $sqlAsName = $column_item->sqlAsName();
+        $this->query->selectRaw("$wrap_column AS $sqlAsName");
+        
+        return $this;
+    }
+
+
+    /**
+     * Add group by and select by custom column. Contains CustomViewFilter.
      *
      * @param  CustomViewFilter $column
      * @return $this
@@ -307,12 +360,13 @@ class SearchService
         return $this;      
     }
 
+
     /**
      * Join relation table for filter or sort
      *
-     * @param CustomViewSort|CustomViewFilter $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary $column
      */
-    public function setRelationJoin($column)
+    public function setRelationJoin($column, bool $asSummary = false)
     {
         // get condition params
         list($order_table_id, $order_column_id, $this_table_id, $this_column_id) = $this->getConditionParams($column);
@@ -322,7 +376,7 @@ class SearchService
         if(!isMatchString($order_table_id, $this->custom_table->id))
         {
             // get RelationTable info.
-            $relationTable = $this->getRelationTable($orderCustomTable, $column);
+            $relationTable = $this->getRelationTable($orderCustomTable, $asSummary, $column);
 
             if(!$relationTable){
                 $this->query->whereNotMatch();
@@ -351,10 +405,11 @@ class SearchService
      * @param CustomTable $whereCustomTable
      * @return RelationTable relation table info
      */
-    protected function getRelationTable($whereCustomTable, $filterObj = null){
+    protected function getRelationTable($whereCustomTable, bool $asSummary = false, $filterObj = null){
         // get RelationTable info.
         $relationTables = RelationTable::getRelationTables($whereCustomTable, false, [
             'search_enabled_only' => false,
+            'get_parent_relation_tables' => $asSummary,
         ])->filter(function($relationTable){
             return isMatchString($relationTable->table->id, $this->custom_table->id);
         });
@@ -403,7 +458,15 @@ class SearchService
 
         return $relationTables->first(function($relationTable) use($this_column_id, $searchType){
             // filtering $searchType
-            if(!isMatchString($relationTable->searchType, $searchType)){
+            $isMatchSearchType = false;
+            if(isMatchString($relationTable->searchType, $searchType)){
+                $isMatchSearchType = true;
+            }
+            // if $searchType is SELECT_TABLE and SUMMARY_SELECT_TABLE
+            elseif($searchType == SearchType::SELECT_TABLE && $relationTable->searchType == SearchType::SUMMARY_SELECT_TABLE){
+                $isMatchSearchType = true;
+            }
+            if(!$isMatchSearchType){
                 return false;
             }
 
@@ -417,8 +480,6 @@ class SearchService
 
             return true;
         });
-
-        return $relationTables->first();
     }
 
 
@@ -432,11 +493,22 @@ class SearchService
     protected function setJoin($relationTable, $whereCustomTable){
         // first, join table if needs
         if(!$this->isJoinedTable($relationTable)){
-            $relationTable->setParentJoin($this->query, [
-                'parent_table' => $whereCustomTable,
-                'child_table' => $this->custom_table,
-                'custom_column' => $relationTable->selectTablePivotColumn,
-            ]);
+            // If summary view and target is child, call as left join
+            if(SearchType::isSummarySearchType($relationTable->searchType)){
+                $relationTable->setChildJoin($this->query, [
+                    'parent_table' => $this->custom_table,
+                    'child_table' => $whereCustomTable,
+                    'custom_column' => $relationTable->selectTablePivotColumn,
+                    'leftJoin' => true,
+                ]);
+            }
+            else{
+                $relationTable->setParentJoin($this->query, [
+                    'parent_table' => $this->custom_table,
+                    'child_table' => $whereCustomTable,
+                    'custom_column' => $relationTable->selectTablePivotColumn,
+                ]);
+            }
 
             $this->joinedTables[] = $relationTable;
         }
@@ -460,7 +532,7 @@ class SearchService
     /**
      * Get condition params
      *
-     * @param CustomViewFilter|CustomViewSort|Condition $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|Condition $column
      * @return array 
      *  offset0 : target column's table id
      *  offset1 : target column's id
@@ -470,7 +542,7 @@ class SearchService
     protected function getConditionParams($column) : array
     {
 
-        if($column instanceof CustomViewFilter || $column instanceof CustomViewSort){
+        if($column instanceof CustomViewColumn || $column instanceof CustomViewFilter || $column instanceof CustomViewSort || $column instanceof CustomViewSummary){
             return [
                 $column->view_column_table_id, 
                 $column->view_column_target_id,

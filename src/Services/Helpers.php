@@ -1085,9 +1085,16 @@ if (!function_exists('make_password')) {
 }
 
 if (!function_exists('make_randomstr')) {
-    function make_randomstr($length)
+    function make_randomstr($length, bool $useAlphabet = true, bool $useNumber = true)
     {
-        static $chars = "abcdefghjkmnpqrstuvwxyz23456789";
+        $chars = '';
+        if($useAlphabet){
+            $chars .= "abcdefghjkmnpqrstuvwxyz";
+        }
+        if($useNumber){
+            $chars .= "23456789";
+        }
+        
         $str = '';
         for ($i = 0; $i < $length; ++$i) {
             $str .= $chars[mt_rand(0, strlen($chars) -1)];

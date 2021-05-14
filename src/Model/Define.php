@@ -170,7 +170,7 @@ class Define
     public const SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES = "all_database_table_names";
     public const SYSTEM_KEY_SESSION_ALL_RECORDS = "all_records_%s";
     public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
-    public const SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES = "custom_table_relation_tables.%s";
+    public const SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES = "custom_table_relation_tables_%s_%s";
     public const SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE = "custom_value_value.%s.%s";
     public const SYSTEM_KEY_SESSION_CUSTOM_VALUE_COUNT = "custom_value_count.%s";
     public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";

@@ -45,15 +45,15 @@ trait SummaryItemTrait
         
         if (isset($summary_condition)) {
             // get cast
-            $castColumn = $this->getCastColumn($value_column, false, false);
-            $raw = "$summary_condition($castColumn) AS ".$this->sqlAsName();
+            $castColumn = $this->getCastColumn($value_column);
+            $result = "$summary_condition($castColumn)";
         } elseif (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, false) . " AS ".$this->sqlAsName();
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, false);
         } else {
-            $raw = "$value_column AS ".$this->sqlAsName();
+            $result = $value_column;
         }
 
-        return \DB::raw($raw);
+        return $result;
     }
     
     /**
@@ -78,12 +78,12 @@ trait SummaryItemTrait
         }
 
         if (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
         } else {
-            $raw = $column_name;
+            $result = \Exment::wrapColumn($this->getTableColumn($column_name));
         }
 
-        return \DB::raw($raw);
+        return $result;
     }
 
     protected function getSummaryParams()
@@ -110,11 +110,6 @@ trait SummaryItemTrait
         ];
     }
     
-    public function sqlAsName()
-    {
-        return "column_".array_get($this->options, 'summary_index');
-    }
-
     public function getGroupName()
     {
         $db_table_name = getDBTableName($this->custom_column->custom_table);
@@ -134,6 +129,6 @@ trait SummaryItemTrait
      */
     protected function _apiName()
     {
-        return array_get($this->options, 'view_column_suuid');
+        return $this->uniqueName();
     }
 }

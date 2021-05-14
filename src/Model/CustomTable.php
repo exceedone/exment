@@ -2317,6 +2317,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
+                        'view_pivot_column' => $selected_table_column,
+                        'view_pivot_table' => $this,
                     ]
                 );
             }

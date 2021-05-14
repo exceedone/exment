@@ -262,9 +262,25 @@ trait ItemTrait
     public function uniqueName()
     {
         if (is_nullorempty($this->uniqueName)) {
-            $this->uniqueName = make_uuid();
+            $this->uniqueName = make_randomstr(20, true, false);
         }
         return $this->uniqueName;
+    }
+
+    /**
+     * Set unique name. 
+     *
+     * @return $this
+     */
+    public function setUniqueName($uniqueName)
+    {
+        $this->uniqueName = $uniqueName;
+        return $this;
+    }
+
+    public function sqlAsName()
+    {
+        return $this->uniqueName();
     }
 
     /**
@@ -333,9 +349,11 @@ trait ItemTrait
      * 
      * @return string Joined DB table name and column name.  Ex. "exm__3914ac5180d7dc43fcbb.column1" or "sfhwuiefhkmklml.column1"
      */
-    public function getTableColumn() : string
+    public function getTableColumn(?string $column_name = null) : string
     {
-        $column_name = $this->sqlname();
+        if(!$column_name){
+            $column_name = $this->sqlname();
+        }
         return $this->sqlUniqueTableName() . ".$column_name";
     }
 
