@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\ViewFilter\Items\WorkflowStatus;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\Enums\FilterOption;
 
 abstract class WorkflowStatusBase extends ViewFilterBase
 {
@@ -17,7 +18,32 @@ abstract class WorkflowStatusBase extends ViewFilterBase
 
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
-        // not use query for workflow.
+         // if $status is start
+         $status = $query_value;
+         $condition = $this->getFilterOption();
+         $or_option = $this->or_option;
+
+         if ($status == Define::WORKFLOW_START_KEYNAME) {
+            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
+                $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
+            } else {
+                $func = $or_option ? 'orWhereNull': 'whereNull';
+            }
+            $query->{$func}('workflow_status_to_id');
+        } else {
+            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
+                $func = $or_option ? 'orWhere': 'where';
+                $query->{$func}(function ($query) use ($status) {
+                    $query->where('workflow_status_to_id', '<>', $status)
+                        ->orWhereNull('workflow_status_to_id');
+                });
+            } else {
+                $func = $or_option ? 'orWhere': 'where';
+                $query->{$func}('workflow_status_to_id', $status);
+            }
+        }
+
+        return $query;
     }
     
 

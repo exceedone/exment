@@ -12,8 +12,9 @@ use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\RelationType;
-use Encore\Admin\Grid;
+use Exceedone\Exment\Enums\SystemColumn;
 
 /**
  * Custom Value's Search model.
@@ -56,6 +57,13 @@ class SearchService
      * @var array
      */
     protected $joinedTables = [];
+    
+    /**
+     * Already joined workflows(status, work_user)
+     *
+     * @var array
+     */
+    protected $joinedWorkflows = [];
     
 
     public function __construct(CustomTable $custom_table)
@@ -397,6 +405,15 @@ class SearchService
                 $column_item->setUniqueTableName($relationTable->tableUniqueName);
             }
         }
+
+        // set relation workflow status
+        if($this->isJoinWorkflowStatus($column)){
+            RelationTable::setWorkflowStatusSubquery($this->query, $this->custom_table, $column->custom_view_cache->filter_is_or);
+        }
+        // set relation workflow work user
+        if($this->isJoinWorkflowWorkUsers($column)){
+            RelationTable::setWorkflowWorkUsersSubQuery($this->query, $this->custom_table, $column->custom_view_cache->filter_is_or);
+        }
     }
 
     /**
@@ -526,6 +543,53 @@ class SearchService
             isMatchString($joinedTable->searchType, $relationTable->searchType) && 
             isMatchString($joinedTable->selectTablePivotColumn, $relationTable->selectTablePivotColumn);
         });
+    }
+
+
+    /**
+     * Is join workflow status
+     *
+     * @return boolean is join workflow status
+     */
+    protected function isJoinWorkflowStatus($custom_view_filter) : bool
+    {
+        return $this->isJoinWorkflow($custom_view_filter, SystemColumn::WORKFLOW_STATUS);
+    }
+
+    /**
+     * Is join workflow work user
+     *
+     * @return boolean is join workflow status
+     */
+    protected function isJoinWorkflowWorkUsers($custom_view_filter) : bool
+    {
+        return $this->isJoinWorkflow($custom_view_filter, SystemColumn::WORKFLOW_WORK_USERS);
+    }
+
+    /**
+     * Is join workflow work user
+     *
+     * @return boolean is join workflow status
+     */
+    protected function isJoinWorkflow($custom_view_filter, $key) : bool
+    {
+        if(!($custom_view_filter instanceof CustomViewFilter || $custom_view_filter instanceof CustomViewColumn)){
+            return false;
+        }
+        if($custom_view_filter->view_column_type != ConditionType::WORKFLOW){
+            return false;
+        }
+        
+        $enum = SystemColumn::getEnum($key);
+        if($custom_view_filter->view_column_target_id != $enum->option()['id']){
+            return false;
+        }
+        if(in_array($key, $this->joinedWorkflows)){
+            return false;
+        }
+
+        $this->joinedWorkflows[] = $key;
+        return true;
     }
 
 

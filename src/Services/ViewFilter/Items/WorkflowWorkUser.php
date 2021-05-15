@@ -20,7 +20,12 @@ class WorkflowWorkUser extends ViewFilterBase
 
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
-        // not use query for workflow.
+        $or_option = $this->or_option;
+
+        $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
+        $query->{$func}('workflow_values_wf.morph_id');
+
+        return $query;
     }
 
     /**

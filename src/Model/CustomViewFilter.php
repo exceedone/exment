@@ -116,10 +116,6 @@ class CustomViewFilter extends ModelBase
         $condition_value_text = $this->view_filter_condition_value_text;
         $view_filter_condition = $this->view_filter_condition;
         
-        if ($this->view_column_type == ConditionType::WORKFLOW) {
-            return WorkflowItem::scopeWorkflow($query, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text, $or_option);
-        }
-
         $viewFilterItem = ViewFilterBase::make($this->view_filter_condition, $this->column_item, [
             'or_option' => $or_option,
         ]);

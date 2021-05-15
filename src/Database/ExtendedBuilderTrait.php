@@ -12,13 +12,6 @@ use Carbon\Carbon;
 trait ExtendedBuilderTrait
 {
     /**
-     * Checking whether appended query.
-     *
-     * @var array
-     */
-    protected $appendedQuery = [];
-
-    /**
      * Set not match query
      *
      * @return $this
@@ -40,27 +33,7 @@ trait ExtendedBuilderTrait
         return $this;
     }
 
-    /**
-     * Whether appended query or sub query. If not appended, return false, and set query
-     *
-     * @param string $keyName
-     * @return $this
-     */
-    public function appendQueryOnce(string $keyName, \Closure $queryCallback)
-    {
-        // if already set, return true.
-        if (in_array($keyName, $this->appendedQuery)) {
-            return $this;
-        }
-
-        // Execute \Closure.
-        $queryCallback($this);
-
-        $this->appendedQuery[] = $keyName;
-        return $this;
-    }
-
-
+    
     /**
      * Update a removing json key.
      *

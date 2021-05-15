@@ -1468,8 +1468,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function appendSubQuery($query, ?CustomView $custom_view)
     {
-        $this->appendWorkflowSubQuery($query, $custom_view);
-
         // if has relations, set with
         if (!is_nullorempty($custom_view)) {
             $relations = $custom_view->custom_view_columns_cache->map(function ($custom_view_column) {
@@ -1489,37 +1487,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     $query->with($r->getRelationName());
                 });
             }
-        }
-    }
-
-
-    /**
-     * Append to query for filtering workflow
-     *
-     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
-     * @param CustomView|null $custom_view
-     * @return void
-     */
-    public function appendWorkflowSubQuery($query, ?CustomView $custom_view)
-    {
-        if (
-            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
-            (!is_nullorempty($custom_view) &&
-            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
-                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
-            }))) {
-            // add query
-            WorkflowItem::getStatusSubquery($query, $this, $custom_view->filter_is_or ?? false);
-        }
-        // if contains custom_view_filters workflow query
-        if (
-            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
-            ($custom_view &&
-            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
-                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
-            }))) {
-            // add query
-            WorkflowItem::getWorkUsersSubQuery($query, $this, $custom_view->filter_is_or ?? false);
         }
     }
 

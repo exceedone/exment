@@ -44,6 +44,10 @@ trait CustomViewColumnTrait
     {
         return CustomTable::getEloquent($this->view_column_table_id);
     }
+    public function getCustomViewCacheAttribute()
+    {
+        return CustomView::getEloquent($this->custom_view_id);
+    }
 
     /**
      * get ViewColumnTarget.

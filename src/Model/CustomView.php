@@ -711,9 +711,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setValueFilters($query, $db_table_name = null)
     {
         if (!empty($this->custom_view_filters_cache)) {
-            // set workflow query
-            $this->custom_table->appendWorkflowSubQuery($query, $this);
- 
             $service = $this->getSearchService()->setQuery($query);
 
             foreach ($this->custom_view_filters_cache as $filter) {
