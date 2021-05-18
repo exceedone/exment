@@ -163,6 +163,7 @@ abstract class GridBase
                     'include_workflow_work_users' => true,
                     'ignore_attachment' => true,
                     'ignore_many_to_many' => true,
+                    'ignore_multiple' => true,
                 ]
             ),
             'custom_table' => $custom_table,
