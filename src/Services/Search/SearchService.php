@@ -521,8 +521,8 @@ class SearchService
             }
             else{
                 $relationTable->setParentJoin($this->query, [
-                    'parent_table' => $this->custom_table,
-                    'child_table' => $whereCustomTable,
+                    'child_table' => $this->custom_table,
+                    'parent_table' => $whereCustomTable,
                     'custom_column' => $relationTable->selectTablePivotColumn,
                 ]);
             }
