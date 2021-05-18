@@ -524,6 +524,7 @@ class SearchService
                     'child_table' => $this->custom_table,
                     'parent_table' => $whereCustomTable,
                     'custom_column' => $relationTable->selectTablePivotColumn,
+                    'leftJoin' => true,
                 ]);
             }
 
