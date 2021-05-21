@@ -269,6 +269,7 @@ class Editor extends CustomItem
         $form->tinymce('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->attribute(['data-default_timymce' => 1])
+            ->disableImage()
             ->rows(3);
     }
 }
