@@ -31,6 +31,12 @@ class MailHistory
      */
     protected $parent_type;
     
+    /**
+     * Target custom value.
+     * @var CustomValue|null
+     */
+    protected $custom_value;
+    
 
     /**
      * Whether history
@@ -108,6 +114,10 @@ class MailHistory
      */
     public function getCustomValue() : ?CustomValue
     {
+        if(isset($this->custom_value)){
+            return $this->custom_value;
+        }
+
         $custom_table = CustomTable::getEloquent($this->parent_type);
         if (!isset($custom_table)) {
             return null;
@@ -152,6 +162,7 @@ class MailHistory
 
     public function setCustomValue(?CustomValue $custom_value)
     {
+        $this->custom_value = $custom_value;
         $this->parent_id = $custom_value ? $custom_value->id : null;
         $this->parent_type = $custom_value ? $custom_value->custom_table->table_name : null;
 
