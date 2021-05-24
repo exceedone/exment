@@ -372,6 +372,8 @@ class Define
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
     public const PARENT_ID_NAME = 'parent_id';
 
+    public const COLUMN_ITEM_UNIQUE_PREFIX = "ckey_";
+
     public const DATABASE_TYPE = [
         'mysql' => 'MySQL',
         'mariadb' => 'MariaDB',

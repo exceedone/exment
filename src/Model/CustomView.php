@@ -710,17 +710,20 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function setValueFilters($query, $db_table_name = null)
     {
-        if (!empty($this->custom_view_filters_cache)) {
+        // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
+        $custom_view_filters = $this->custom_view_filters;
+
+        if (!empty($custom_view_filters)) {
             $service = $this->getSearchService()->setQuery($query);
 
-            foreach ($this->custom_view_filters_cache as $filter) {
+            foreach ($custom_view_filters as $filter) {
                 $service->setRelationJoin($filter, [
                     'asSummary' => $this->view_kind_type == ViewKindType::AGGREGATE,
                 ]);
             }
 
-            $query->where(function ($query) use($service) {
-                foreach ($this->custom_view_filters_cache as $filter) {
+            $query->where(function ($query) use($custom_view_filters, $service) {
+                foreach ($custom_view_filters as $filter) {
                     $service->whereCustomViewFilter($filter, $this->filter_is_or, $query);
                 }
             });

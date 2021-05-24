@@ -725,8 +725,6 @@ class CustomViewSummaryTest extends UnitTestBase
      */
     public function testFuncSummaryChild()
     {
-        $this->skipTempTestIfTrue(true, 'now this logic has bug...');
-        
         $this->init();
 
         $options = [
@@ -831,7 +829,6 @@ class CustomViewSummaryTest extends UnitTestBase
      */
     public function testFuncSummaryChildNN()
     {
-        $this->skipTempTestIfTrue(true, 'now this logic has bug...');
         $this->init();
 
         $options = [

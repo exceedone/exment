@@ -15,6 +15,14 @@ abstract class WorkflowStatusBase extends ViewFilterBase
      */
     protected static $isConditionNullIgnore = false;
 
+    /**
+     * If true, called setFilter function, append column name.
+     * If append cast, please set false.
+     *
+     * @var boolean
+     */
+    protected static $isAppendDatabaseTable = false;
+
 
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {

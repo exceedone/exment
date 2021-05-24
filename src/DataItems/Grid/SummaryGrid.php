@@ -49,24 +49,19 @@ class SummaryGrid extends GridBase
             $grid->disableActions();
         }
 
-        $grid->actions(function (Grid\Displayers\Actions $actions) use ($isShowViewSummaryDetail, $custom_view, $table_name) {
+        $_this = $this;
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($_this, $isShowViewSummaryDetail, $custom_view, $table_name) {
             $actions->disableDelete();
             $actions->disableEdit();
             $actions->disableView();
 
-            $params = [];
-            foreach ($actions->row->toArray() as $key => $value) {
-                $keys = explode('_', $key);
-                if (count($keys) == 3 && $keys[1] == ViewKindType::DEFAULT) {
-                    $params[$keys[2]] = $value;
-                }
-            }
-
             if ($isShowViewSummaryDetail) {
+                $params = $_this->getCallbackGroupKeys($actions->row);
+
                 $linker = (new Grid\Linker)
-                ->url(admin_urls_query('data', $table_name, ['view' => CustomView::getAllData($table_name)->suuid, 'group_view' => $custom_view->suuid, 'group_key' => json_encode($params)]))
-                ->icon('fa-list')
-                ->tooltip(exmtrans('custom_value.view_summary_detail'));
+                    ->url(admin_urls_query('data', $table_name, ['view' => CustomView::getAllData($table_name)->suuid, 'group_view' => $custom_view->suuid, 'group_key' => json_encode($params)]))
+                    ->icon('fa-list')
+                    ->tooltip(exmtrans('custom_value.view_summary_detail'));
                 $actions->prepend($linker);
             }
         });
@@ -375,5 +370,28 @@ class SummaryGrid extends GridBase
         return collect($options)->map(function ($array) {
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.group_condition_options.'.array_get($array, 'name'))];
         });
+    }
+
+
+    public function getCallbackGroupKeys($model)
+    {
+        $keys = [];
+        foreach($this->custom_view->custom_view_columns_cache as $group_column)
+        {
+            $column_item = $group_column->column_item;
+            if(!$column_item)
+            {
+                continue;
+            }
+
+            $uniqueName = $column_item->uniqueName();
+            if(is_nullorempty($uniqueName)){
+                continue;
+            }
+
+            $keys[$uniqueName] = array_get($model, $uniqueName);
+        }
+
+        return $keys;
     }
 }

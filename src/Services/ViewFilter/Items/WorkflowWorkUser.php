@@ -6,6 +6,15 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class WorkflowWorkUser extends ViewFilterBase
 {
+    /**
+     * If true, called setFilter function, append column name.
+     * If append cast, please set false.
+     *
+     * @var boolean
+     */
+    protected static $isAppendDatabaseTable = false;
+
+    
     public static function getFilterOption()
     {
         return FilterOption::WORKFLOW_EQ_WORK_USER;

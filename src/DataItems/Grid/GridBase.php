@@ -88,7 +88,7 @@ abstract class GridBase
         $this->custom_view = CustomView::getAllData($this->custom_table);
         $filters = [];
         foreach ($group_keys as $key => $value) {
-            $custom_view_column = CustomViewColumn::find($key);
+            $custom_view_column = CustomViewColumn::findByCkey($key);
             $custom_view_filter = new CustomViewFilter;
             $custom_view_filter->custom_view_id = $custom_view_column->custom_view_id;
             $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
@@ -105,12 +105,8 @@ abstract class GridBase
             }
         }
         $filter_func = function ($model) use ($filters, $group_view) {
-            $group_view->filterModel($model); // sort is false.
-            $model->where(function ($query) use ($filters) {
-                foreach ($filters as $filter) {
-                    $filter->setValueFilter($query);
-                }
-            });
+            $group_view->custom_view_filters = collect($filters);
+            $group_view->filterModel($model);
             return $model;
         };
         return $filter_func;

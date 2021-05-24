@@ -1340,7 +1340,7 @@ class CustomViewFilterTest extends UnitTestBase
         $filter_settings = [[
             'column_name' => 'workflow_status',
             'condition_type' => ConditionType::WORKFLOW,
-            'filter_condition' => FilterOption::EQ,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_STATUS,
             'filter_value_text' => '7'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
@@ -1381,7 +1381,7 @@ class CustomViewFilterTest extends UnitTestBase
         $filter_settings = [[
             'column_name' => 'workflow_work_users',
             'condition_type' => ConditionType::WORKFLOW,
-            'filter_condition' => FilterOption::USER_EQ_USER,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_WORK_USER,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $workflow_work_users = array_get($data, 'workflow_work_users');
@@ -1418,7 +1418,7 @@ class CustomViewFilterTest extends UnitTestBase
         $filter_settings = [[
             'column_name' => 'workflow_work_users',
             'condition_type' => ConditionType::WORKFLOW,
-            'filter_condition' => FilterOption::USER_EQ_USER,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_WORK_USER,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $workflow_work_users = array_get($data, 'workflow_work_users');

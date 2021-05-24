@@ -119,4 +119,14 @@ class WorkflowItem extends SystemItem
     {
         return $this->table_name;
     }
+
+    
+    /**
+     * get real table name.
+     * If workflow, this name is workflow view. 
+     */
+    public function sqlRealTableName()
+    {
+        return $this->getTableName();
+    }
 }

@@ -82,7 +82,7 @@ trait CustomViewColumnTrait
         }
 
         if (!is_nullorempty($this->suuid)) {
-            $this->_custom_item->setUniqueName("ckey_{$this->suuid}");
+            $this->_custom_item->setUniqueName(Define::COLUMN_ITEM_UNIQUE_PREFIX . $this->suuid);
         }
 
         return $this->_custom_item;
@@ -304,5 +304,10 @@ trait CustomViewColumnTrait
         }
         array_forget($json, 'view_pivot_column_name');
         array_forget($json, 'view_pivot_table_name');
+    }
+
+    public static function findByCkey($ckey)
+    {
+        return static::findBySuuid(str_replace(Define::COLUMN_ITEM_UNIQUE_PREFIX, '', $ckey));
     }
 }
