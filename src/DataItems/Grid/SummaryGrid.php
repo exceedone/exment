@@ -172,9 +172,11 @@ class SummaryGrid extends GridBase
 
         ///// set filter columns.
         $this->custom_view->setValueFilters($query);
-
-        ///// execute Summary OrderBy
-        $searchSearvice->executeSummaryOrderBy();
+        
+        // if request not has "_sort", execute Summary OrderBy
+        if (!request()->has('_sort')) {
+            $searchSearvice->executeSummaryOrderBy();
+        }
 
         return $query;
     }
