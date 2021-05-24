@@ -182,10 +182,14 @@ class SummaryGrid extends GridBase
      *
      * @param Grid $grid
      * @param CustomViewColumn|CustomViewSummary $column
-     * @return void
+     * @return $this
      */
-    protected function setGridColumn(Grid $grid, $column)
+    protected function setGridColumn(?Grid $grid, $column)
     {
+        if(is_null($grid)){
+            return $this;
+        }
+
         $column_item = $column->column_item;
         $column_label = $column_item->label();
 
