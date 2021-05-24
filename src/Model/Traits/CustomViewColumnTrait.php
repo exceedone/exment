@@ -148,6 +148,11 @@ trait CustomViewColumnTrait
         $model = new self;
         $model->view_column_target = $view_column_target;
 
+        // if not view_column_table_id, set custom table
+        if(is_nullorempty(array_get($model, 'view_column_table_id')) && $custom_table){
+            $model->view_column_table_id = $custom_table->id;
+        }
+
         $column_item = $model->column_item;
         // set custom table(if workflow item is not set custom table)
         if (!$column_item->getCustomTable() && isset($custom_table)) {

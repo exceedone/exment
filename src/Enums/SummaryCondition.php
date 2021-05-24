@@ -23,9 +23,6 @@ class SummaryCondition extends EnumBase
     public static function getSummaryCondition($value)
     {
         $option = self::getOption(['id' => $value]);
-        if (array_get($option, 'countable')) {
-            return self::getEnum(self::SUM)->lowerKey();
-        }
-        return self::getEnum(self::MIN)->lowerKey();
+        return array_get($option, 'name');
     }
 }

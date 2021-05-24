@@ -82,6 +82,14 @@ trait ItemTrait
     }
 
     /**
+     * set item label
+     */
+    public function setLabel($label)
+    {
+        return $this->label = $label;
+    }
+    
+    /**
      * CustomForm
      *
      * @var CustomForm
