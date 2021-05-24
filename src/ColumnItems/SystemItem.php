@@ -32,17 +32,7 @@ class SystemItem implements ItemInterface
         $params = static::getOptionParams($table_column_name, $custom_table);
         $this->column_name = $params['column_target'];
 
-        // get label. check not match $this->custom_table and pivot table
-        if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
-            if ($params['view_pivot_column_id'] == SystemColumn::PARENT_ID) {
-                $this->label = static::getViewColumnLabel(exmtrans("common.$this->column_name"), $this->custom_table->table_view_name);
-            } else {
-                $pivot_column = CustomColumn::getEloquent($params['view_pivot_column_id'], $params['view_pivot_table_id']);
-                $this->label = static::getViewColumnLabel(exmtrans("common.$this->column_name"), $pivot_column->column_view_name);
-            }
-        } else {
-            $this->label = exmtrans("common.$this->column_name");
-        }
+        $this->setDefaultLabel($params);
     }
 
     /**
@@ -237,8 +227,34 @@ class SystemItem implements ItemInterface
         return $this->label = $label;
     }
 
+    
+    /**
+     * set default label
+     */
+    protected function setDefaultLabel($params)
+    {
+        // get label. check not match $this->custom_table and pivot table
+        if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
+            if ($params['view_pivot_column_id'] == SystemColumn::PARENT_ID) {
+                $this->label = static::getViewColumnLabel(exmtrans("common.$this->column_name"), $this->custom_table->table_view_name);
+            } else {
+                $pivot_column = CustomColumn::getEloquent($params['view_pivot_column_id'], $params['view_pivot_table_id']);
+                $this->label = static::getViewColumnLabel(exmtrans("common.$this->column_name"), $pivot_column->column_view_name);
+            }
+        } else {
+            $this->label = exmtrans("common.$this->column_name");
+        }
+    }
+
     public function setCustomValue($custom_value)
     {
+        // if contains uniqueName's value in $custom_value, set $custom_value as column name.
+        // For summary. When summary, not get as system column name.
+        if(array_key_value_exists($this->uniqueName, $custom_value)){
+            $option = $this->getSystemColumnOption();
+            $custom_value->{array_get($option, 'sqlname')} = $custom_value[$this->uniqueName];
+        }
+
         $this->custom_value = $custom_value;
         if (isset($custom_value)) {
             $this->id = array_get($custom_value, 'id');

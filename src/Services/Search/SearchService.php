@@ -65,6 +65,12 @@ class SearchService
      */
     protected $joinedWorkflows = [];
     
+    /**
+     * Summary orders
+     * @var array
+     */
+    protected $summaryOrders = [];
+    
 
     public function __construct(CustomTable $custom_table)
     {
@@ -283,7 +289,9 @@ class SearchService
     public function orderByCustomViewSort(CustomViewSort $column)
     {
         // set relation table join.
-        $this->setRelationJoin($column);
+        $this->setRelationJoin($column, [
+            'asOrderBy' => true,
+        ]);
 
         // set sort info.
         $condition_item = $column->condition_item;
@@ -304,7 +312,9 @@ class SearchService
     public function groupByCustomViewColumn(CustomViewColumn $column)
     {
         // set relation table join.
-        $this->setRelationJoin($column, true);
+        $this->setRelationJoin($column, [
+            'asSummary' => true,
+        ]);
 
         $column_item = $column->column_item;
 
@@ -318,6 +328,9 @@ class SearchService
         $sqlAsName = $column_item->sqlAsName();
         $this->query->selectRaw("$wrap_column AS $sqlAsName");
         
+        // if has sort order, set order by
+        $this->setSummaryOrderBy($column, $wrap_column);
+
         return $this;
     }
 
@@ -330,7 +343,9 @@ class SearchService
     public function selectSummaryCustomViewSummary(CustomViewSummary $column)
     {
         // set relation table join.
-        $this->setRelationJoin($column, true);
+        $this->setRelationJoin($column, [
+            'asSummary' => true,
+        ]);
 
         $column_item = $column->column_item;
 
@@ -340,9 +355,50 @@ class SearchService
         $sqlAsName = $column_item->sqlAsName();
         $this->query->selectRaw("$wrap_column AS $sqlAsName");
         
+        // if has sort order, set order by
+        $this->setSummaryOrderBy($column, $wrap_column);
+
         return $this;
     }
 
+
+    /**
+     * Set summary order by if has option "sort_order"
+     *
+     * @return $this
+     */
+    protected function setSummaryOrderBy($column, $wrap_column)
+    {
+        $sort_order = array_get($column->options, 'sort_order');
+        if(is_nullorempty($sort_order)){
+            return $this;
+        }
+
+        $sort_type = isMatchString(array_get($column->options, 'sort_type'), '-1') ? 'desc' : 'asc';
+
+        // set summaryOrders
+        $this->summaryOrders[] = [
+            'sort_order' => $sort_order,
+            'sort_type' => $sort_type,
+            'wrap_column' => $wrap_column,
+        ];
+
+        return $this;
+    }
+
+
+    /**
+     * Execute  order by if for summary
+     *
+     * @return $this
+     */
+    public function executeSummaryOrderBy()
+    {
+        foreach(collect($this->summaryOrders)->sortBy('sort_order') as $summaryOrder){
+            //$wrap_column is wraped
+            $this->query->orderByRaw("{$summaryOrder['wrap_column']} {$summaryOrder['sort_type']}");
+        }
+    }
 
     /**
      * Add group by and select by custom column. Contains CustomViewFilter.
@@ -374,8 +430,15 @@ class SearchService
      *
      * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary $column
      */
-    public function setRelationJoin($column, bool $asSummary = false)
+    public function setRelationJoin($column, array $options = [])
     {
+        $options = array_merge([
+            'asSummary' => false,
+            'asOrderBy' => false,
+        ], $options);
+        $asSummary = $options['asSummary'];
+        $asOrderBy = $options['asOrderBy'];
+
         // get condition params
         list($order_table_id, $order_column_id, $this_table_id, $this_column_id) = $this->getConditionParams($column);
         $orderCustomTable = CustomTable::getEloquent($order_table_id);
@@ -389,7 +452,7 @@ class SearchService
             if(!$relationTable){
                 $this->query->whereNotMatch();
             }
-            elseif($relationTable->searchType == SearchType::MANY_TO_MANY){
+            elseif($asOrderBy && $relationTable->searchType == SearchType::MANY_TO_MANY){
                 throw new \Exception('Many to many relation not support order by.');
             }
             // set relation query using relation type class.

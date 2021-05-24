@@ -38,18 +38,18 @@ trait SummaryItemTrait
     public function getSummaryWrapTableColumn() : string
     {
         $options = $this->getSummaryParams();
-        $value_column = $options['value_column'];
+        $value_table_column = $options['value_table_column'];
         $group_condition = $options['group_condition'];
 
         $summary_condition = $this->getSummaryConditionName();
         if (isset($summary_condition)) {
-            // get cast
-            $wrapCastColumn = $this->getCastColumn($value_column);
+            // get cast. Already set table, so getCastColumn 3 arg is false.
+            $wrapCastColumn = $this->getCastColumn($value_table_column, true, false);
             $result = "$summary_condition($wrapCastColumn)";
         } elseif (isset($group_condition)) {
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, false);
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, false);
         } else {
-            $result = \Exment::wrapColumn($value_column);
+            $result = \Exment::wrapColumn($value_table_column);
         }
 
         return $result;
@@ -65,13 +65,13 @@ trait SummaryItemTrait
     public function getGroupByWrapTableColumn() : string
     {
         $options = $this->getSummaryParams();
-        $value_column = $options['value_column'];
+        $value_table_column = $options['value_table_column'];
         $group_condition = $options['group_condition'];
         
         if (isset($group_condition)) {
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, true);
         } else {
-            $result = \Exment::wrapColumn($value_column);
+            $result = \Exment::wrapColumn($value_table_column);
         }
 
         return $result;
@@ -82,12 +82,12 @@ trait SummaryItemTrait
         $group_condition = array_get($this->options, 'group_condition');
         $group_condition = isset($group_condition) ? GroupCondition::getEnum($group_condition) : null;
 
-        // get value_column
-        $value_column = $this->getTableColumn($this->custom_column->getQueryKey());
+        // get value_table_column(Contains table and column)
+        $value_table_column = $this->getTableColumn($this->custom_column->getQueryKey());
         
         return [
             'group_condition' => $group_condition,
-            'value_column' => $value_column,
+            'value_table_column' => $value_table_column,
         ];
     }
     

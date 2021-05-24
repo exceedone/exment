@@ -714,7 +714,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $service = $this->getSearchService()->setQuery($query);
 
             foreach ($this->custom_view_filters_cache as $filter) {
-                $service->setRelationJoin($filter);
+                $service->setRelationJoin($filter, [
+                    'asSummary' => $this->view_kind_type == ViewKindType::AGGREGATE,
+                ]);
             }
 
             $query->where(function ($query) use($service) {

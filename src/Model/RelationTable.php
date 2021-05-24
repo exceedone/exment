@@ -407,7 +407,7 @@ class RelationTable
             case SearchType::SUMMARY_ONE_TO_MANY:
                 return $this->setChildJoinOneMany($query, $parent_table, $child_table, $leftJoin);
             case SearchType::SUMMARY_MANY_TO_MANY:
-                return $this->setChildJoinManyMany($query, $parent_table, $child_table, $leftJoin);
+                return $this->setChildJoinManyAndMany($query, $parent_table, $child_table, $leftJoin);
             case SearchType::SUMMARY_SELECT_TABLE:
                 if (\is_nullorempty($custom_column) && !\is_nullorempty($parent_table)) {
                     $custom_column = $parent_table->getSelectTableColumns($child_table)->first();
@@ -547,7 +547,7 @@ class RelationTable
      * @param CustomTable $parent_table
      * @return mixed
      */
-    public static function setChildJoinManyMany($query, $parent_table, $child_table)
+    public static function setChildJoinManyMany($query, $parent_table, $child_table, ?string $tableUniqueName = null)
     {
         if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
             return;
@@ -564,13 +564,31 @@ class RelationTable
         $relation_name = $relation->getRelationName();
 
         // Append join query.
-        $query->join($relation_name, "$parent_table_name.id", "=", "$relation_name.parent_id")
-            ->join($child_table_name, "$child_table_name.id", "=", "$relation_name.child_id")
-            ;
-        
+        $query->join($relation_name, "$parent_table_name.id", "=", "$relation_name.parent_id");
+
+        if(isset($tableUniqueName)){
+            $query->join("$child_table_name AS $tableUniqueName", "$tableUniqueName.id", "=", "$relation_name.child_id");
+        }
+        else{
+            $query->join($child_table_name, "$child_table_name.id", "=", "$relation_name.child_id");
+        }
+
         return $query;
     }
     
+    
+    /**
+     * Set child join for n:n relation 
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomTable $parent_table
+     * @return mixed
+     */
+    public function setChildJoinManyAndMany($query, $parent_table, $child_table)
+    {
+        return static::setChildJoinManyMany($query, $parent_table, $child_table, $this->tableUniqueName);
+    }
+
     /**
      * Set parent join for select table
      *
