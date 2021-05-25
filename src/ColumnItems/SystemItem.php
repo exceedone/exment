@@ -101,20 +101,21 @@ class SystemItem implements ItemInterface
      * Join table: true
      * Wrap: true
      * 
+     * @param boolean $asSelect if true, get sqlname for select column
      * @return string group by column name
      */
-    public function getGroupByWrapTableColumn() : string
+    public function getGroupByWrapTableColumn(bool $asSelect = false) : string
     {
         $table_column_name = $this->getSqlColumnName(true);
 
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($group_condition)) {
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, !$asSelect);
         }
         // if sql server and created_at, set datetime cast
         elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
-            $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, !$asSelect);
         } else {
             $result = \Exment::wrapColumn($table_column_name);
         }

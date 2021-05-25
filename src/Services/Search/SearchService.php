@@ -217,9 +217,11 @@ class SearchService
     protected function whereCustomColumn(CustomColumn $column, $operator = null, $value = null, $boolean = 'and')
     {
         $whereCustomTable = $column->custom_table_cache;
+        $column_item = $column->column_item;
+
         if(isMatchString($whereCustomTable->id, $this->custom_table->id))
         {
-            $this->query->where($column->getQueryKey(), $operator, $value, $boolean);
+            $this->query->where($column_item->getTableColumn(), $operator, $value, $boolean);
             return $this;
         }
 
@@ -233,8 +235,10 @@ class SearchService
         else{
             $this->setJoin($relationTable, $whereCustomTable);
 
+            $column_item->setUniqueTableName($relationTable->tableUniqueName);
+
             // Add where query
-            $this->query->where($column->getQueryKey(), $operator, $value, $boolean);
+            $this->query->where($column_item->getTableColumn(), $operator, $value, $boolean);
         }
 
         return $this;
@@ -323,6 +327,9 @@ class SearchService
 
         // set group by.
         $this->query->groupByRaw($wrap_column);
+
+        // get group's column for select. this is wraped.
+        $wrap_column = $column_item->getGroupByWrapTableColumn(true);
 
         // set select column. And add "as".
         $sqlAsName = $column_item->sqlAsName();

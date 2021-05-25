@@ -60,16 +60,17 @@ trait SummaryItemTrait
      * Join table: true
      * Wrap: true
      * 
+     * @param boolean $asSelect if true, get sqlname for select column
      * @return string group by column name
      */
-    public function getGroupByWrapTableColumn() : string
+    public function getGroupByWrapTableColumn(bool $asSelect = false) : string
     {
         $options = $this->getSummaryParams();
         $value_table_column = $options['value_table_column'];
         $group_condition = $options['group_condition'];
         
         if (isset($group_condition)) {
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, true);
+            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, !$asSelect);
         } else {
             $result = \Exment::wrapColumn($value_table_column);
         }

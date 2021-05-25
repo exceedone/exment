@@ -14,7 +14,7 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewTest extends UnitTestBase
 {
-    use CustomViewTrait;
+    use CustomViewTrait, DatabaseTransactions;
 
     public function testFuncGetMatchedCustomView1()
     {

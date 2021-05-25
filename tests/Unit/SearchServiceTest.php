@@ -31,13 +31,13 @@ class SearchServiceTest extends UnitTestBase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
         $service = new SearchService($custom_table);
 
-        $service->where('index_text', 'index_1_1')
+        $service->where('text', 'test_1')
             ->where('odd_even', 'odd');
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function($value){
-            $this->assertMatch($value->getValue('index_text'), 'index_1_1');
+            $this->assertMatch($value->getValue('text'), 'test_1');
             $this->assertMatch($value->getValue('odd_even'), 'odd');
         });
     }
@@ -69,8 +69,8 @@ class SearchServiceTest extends UnitTestBase
 
         // get parent custom column
         $parent_custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
-        $parent_custom_column = CustomColumn::getEloquent('index_text', $parent_custom_table);
-        $service->where($parent_custom_column, 'index_3_1')
+        $parent_custom_column = CustomColumn::getEloquent('integer', $parent_custom_table);
+        $service->where($parent_custom_column, '>', 1000)
             ->where('odd_even', 'odd');
 
         $values = $service->get();
@@ -78,8 +78,8 @@ class SearchServiceTest extends UnitTestBase
         $values->each(function($value){
             // get parent value
             $parent_value = $value->getParentValue();
-            $this->assertMatch($parent_value->getValue('index_text'), 'index_3_1');
-            $this->assertMatch($parent_value->getValue('odd_even'), 'odd');
+            $this->assertTrue($parent_value->getValue('integer') > 1000);
+            $this->assertMatch($value->getValue('odd_even'), 'odd');
         });
     }
     
