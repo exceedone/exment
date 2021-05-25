@@ -21,7 +21,14 @@ use Illuminate\Support\Collection;
 class RelationTable
 {
     /**
-     * Target table.
+     * Relation base table.
+     *
+     * @var CustomTable
+     */
+    public $base_table;
+
+    /**
+     * Relation Target table.
      * Default (almost), this table is CHILD relation or select table.
      * If summary only this table is PARENT relation or select table.
      *
@@ -54,6 +61,7 @@ class RelationTable
 
     public function __construct(array $params = [])
     {
+        $this->base_table = array_get($params, 'base_table');
         $this->table = array_get($params, 'table');
         $this->searchType = array_get($params, 'searchType');
         $this->selectTablePivotColumn = array_get($params, 'selectTablePivotColumn');
@@ -158,6 +166,7 @@ class RelationTable
             $table_obj = $custom_column->custom_table_cache;
             $results->push(new self([
                 'searchType' => SearchType::SELECT_TABLE, 
+                'base_table' => $custom_table,
                 'table' => $table_obj,
                 'selectTablePivotColumn' => $custom_column,
             ]));
@@ -204,6 +213,7 @@ class RelationTable
             
             $results->push(new self([
                 'searchType' => SearchType::SUMMARY_SELECT_TABLE, 
+                'base_table' => $custom_table,
                 'table' => $table_obj,
                 'selectTablePivotColumn' => $custom_column,
             ]));
@@ -234,7 +244,11 @@ class RelationTable
         foreach ($tables as $table) {
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
             $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
-            $results->push(new self(['searchType' => $searchType, 'table' => $table_obj]));
+            $results->push(new self([
+                'searchType' => $searchType,
+                'base_table' => $custom_table,
+                'table' => $table_obj,
+            ]));
         }
 
         return $results;
@@ -262,7 +276,11 @@ class RelationTable
         foreach ($tables as $table) {
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
             $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::SUMMARY_ONE_TO_MANY : SearchType::SUMMARY_MANY_TO_MANY;
-            $results->push(new self(['searchType' => $searchType, 'table' => $table_obj]));
+            $results->push(new self([
+                'searchType' => $searchType,
+                'base_table' => $custom_table,
+                'table' => $table_obj,
+            ]));
         }
 
         return $results;
