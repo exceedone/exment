@@ -381,17 +381,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         })->filter();
     }
 
-    /**
-     * get Select table's relation columns.
-     * If there are two or more select_tables in the same table and they are in a parent-child relationship, parent-child relationship information is acquired.
-     *
-     * @return array contains parent_column, child_column, searchType
-     */
-    public function getSelectTableLinkages($checkPermission = true)
-    {
-        return Linkage::getSelectTableLinkages($this, $checkPermission);
-    }
-
 
     /**
      * Get unique keys. Contains simple and multiple column settings

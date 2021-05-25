@@ -76,6 +76,7 @@ class RelationTable
         $options = array_merge(
             [
                 'search_enabled_only' => true, // if true, filtering search enabled
+                'get_child_relation_tables' => true, // if true, get relation tables joined to parent. Now only use summary view.
                 'get_parent_relation_tables' => false, // if true, get relation tables joined to parent. Now only use summary view.
             ],
             $options
@@ -84,12 +85,18 @@ class RelationTable
         // check already execute
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $custom_table->table_name, strval($options['get_parent_relation_tables']));
         return System::requestSession($key, function () use ($custom_table, $options) {
-            // 1. Get custom columns as "select_table". They contains these columns matching them.
-            $results = static::_getTablesSelectTable($custom_table, $options);
+            $results = collect();
 
-            // 2. Get relation tables.
-            // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
-            $results = $results->merge(static::_getTablesRelation($custom_table, $options));
+            // Get only options get_child_relation_tables is true
+            if(boolval($options['get_child_relation_tables']))
+            {
+                // 1. Get custom columns as "select_table". They contains these columns matching them.
+                $results = $results->merge(static::_getTablesSelectTable($custom_table, $options));
+
+                // 2. Get relation tables.
+                // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
+                $results = $results->merge(static::_getTablesRelation($custom_table, $options));
+            }
 
             // Only call get_parent_relation_tables option.
             if(boolval($options['get_parent_relation_tables'])){
