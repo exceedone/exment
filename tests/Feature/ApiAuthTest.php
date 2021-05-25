@@ -199,7 +199,7 @@ class ApiAuthTest extends ApiTestBase
     public function testPublicFormApiAuthReadFalse()
     {
         // dummy uri
-        $uri = asset_urls('publicformapi', 'naofenofwnefielk');
+        $uri = url_join(public_form_url(), 'naofenofwnefielk');
 
         $this->withHeaders([
         ])->get(url_join($uri, 'data', 'custom_value_edit', 5))
