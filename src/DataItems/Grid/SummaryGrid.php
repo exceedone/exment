@@ -262,18 +262,25 @@ class SummaryGrid extends GridBase
         
         // group columns setting
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($custom_table->getColumnsSelectOptions([
-                    'append_table' => true,
-                    'index_enabled_only' => true,
-                    'include_parent' => true,
-                    'include_child' => true,
-                    'include_workflow' => true,
-                ]))
+            $targetOptions = $custom_table->getColumnsSelectOptions([
+                'append_table' => true,
+                'index_enabled_only' => true,
+                'include_parent' => true,
+                'include_child' => true,
+                'include_workflow' => true,
+            ]);
+
+            $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($targetOptions)
                 ->attribute([
                     'data-linkage' => json_encode(['view_group_condition' => admin_urls('view', $custom_table->table_name, 'group-condition')]),
                     'data-change_field_target' => 'view_column_target',
                 ]);
+
+            if (boolval(config('exment.form_column_option_group', 'true'))) {
+                $targetGroups = static::convertGroups($targetOptions, $custom_table);
+                $field->groups($targetGroups);
+            }
             
             $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);
 
@@ -304,9 +311,15 @@ class SummaryGrid extends GridBase
 
         // summary columns setting
         $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($custom_table->getSummaryColumnsSelectOptions())
+            $targetOptions = $custom_table->getSummaryColumnsSelectOptions();
+            $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($targetOptions)
                 ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
+
+            if (boolval(config('exment.form_column_option_group', 'true'))) {
+                $targetGroups = static::convertGroups($targetOptions, $custom_table);
+                $field->groups($targetGroups);
+            }
             $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
                 ->options(function ($val, $form) {
                     $view_column_target = array_get($form->data(), 'view_column_target');

@@ -32,6 +32,7 @@ class ConditionHasManyTable
      */
     protected $linkage;
     protected $targetOptions;
+    protected $targetGroups;
     protected $name;
 
     /**
@@ -152,6 +153,9 @@ class ConditionHasManyTable
         $field = $this->form->hasManyTable($this->name, $this->label, function ($form) use ($condition_target_name, $condition_key_name, $condition_value_name, $filterKind, $hasManyTableClass) {
             $field = $form->select($condition_target_name, $this->condition_target_label)->required()
                 ->options($this->targetOptions);
+            if (isset($this->targetGroups)) {
+                $field->groups($this->targetGroups);
+            }
             if (isset($this->linkage)) {
                 $field->attribute([
                     'data-linkage' => $this->linkage,
