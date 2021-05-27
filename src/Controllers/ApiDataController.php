@@ -858,24 +858,25 @@ class ApiDataController extends AdminControllerTableBase
      */
     protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column)
     {
+        $db_table_name = getDBTableName($this->custom_table);
         $query = clone $model;
         // filter end data
         if (isset($target_end_column)) {
             // filter enddate.
             // ex. 4/1 - endDate - 4/30
             $endQuery = (clone $query);
-            $endQuery = $endQuery->where((function ($query) use ($target_end_column, $start, $end) {
-                $query->where($target_end_column, '>=', $start->toDateString())
-                ->where($target_end_column, '<', $end->toDateString());
-            }))->select('id');
+            $endQuery = $endQuery->where((function ($query) use ($db_table_name, $target_end_column, $start, $end) {
+                $query->where("$db_table_name.$target_end_column", '>=', $start->toDateString())
+                ->where("$db_table_name.$target_end_column", '<', $end->toDateString());
+            }))->select("$db_table_name.id");
 
             // filter start and enddate.
             // ex. startDate - 4/1 - 4/30 - endDate
             $startEndQuery = (clone $query);
-            $startEndQuery = $startEndQuery->where((function ($query) use ($target_start_column, $target_end_column, $start, $end) {
-                $query->where($target_start_column, '<=', $start->toDateString())
-                ->where($target_end_column, '>=', $end->toDateString());
-            }))->select('id');
+            $startEndQuery = $startEndQuery->where((function ($query) use ($db_table_name, $target_start_column, $target_end_column, $start, $end) {
+                $query->where("$db_table_name.$target_start_column", '<=', $start->toDateString())
+                ->where("$db_table_name.$target_end_column", '>=', $end->toDateString());
+            }))->select("$db_table_name.id");
         }
 
         if ($query instanceof \Illuminate\Database\Eloquent\Model) {
@@ -884,10 +885,10 @@ class ApiDataController extends AdminControllerTableBase
 
         // filter startDate
         // ex. 4/1 - startDate - 4/30
-        $query->where(function ($query) use ($target_start_column, $start, $end) {
-            $query->where($target_start_column, '>=', $start->toDateString())
-            ->where($target_start_column, '<', $end->toDateString());
-        })->select('id');
+        $query->where(function ($query) use ($db_table_name, $target_start_column, $start, $end) {
+            $query->where("$db_table_name.$target_start_column", '>=', $start->toDateString())
+            ->where("$db_table_name.$target_start_column", '<', $end->toDateString());
+        })->select("$db_table_name.id");
 
         // union queries
         if (isset($endQuery)) {
@@ -901,7 +902,7 @@ class ApiDataController extends AdminControllerTableBase
         $ids = \DB::query()->fromSub($query, 'sub')->pluck('id');
 
         // return as eloquent
-        return $model->whereIn('id', $ids);
+        return $model->whereIn("$db_table_name.id", $ids);
     }
 
     /**
