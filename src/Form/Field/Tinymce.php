@@ -114,8 +114,7 @@ class Tinymce extends Textarea
         // if readonly, disable tool bar
         if (array_boolval($this->config, 'readonly')) {
             $toolbar = false;
-        }
-        elseif ($enableImage) {
+        } elseif ($enableImage) {
             $toolbar = ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link image code'];
         } else {
             $toolbar = ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link code'];

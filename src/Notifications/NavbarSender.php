@@ -93,12 +93,12 @@ class NavbarSender extends SenderBase
         $parent_id = isset($this->custom_value) ? array_get($this->custom_value, 'id') : null;
 
         $parent_type = null;
-        if($this->custom_table_id){
+        if ($this->custom_table_id) {
             $custom_table = CustomTable::getEloquent($this->custom_table_id);
             $parent_type = $custom_table ? $custom_table->table_name : null;
         }
-        if(is_nullorempty($parent_type)){
-            $parent_type = (isset($this->custom_value) ? $this->custom_value->custom_table->table_name : null);    
+        if (is_nullorempty($parent_type)) {
+            $parent_type = (isset($this->custom_value) ? $this->custom_value->custom_table->table_name : null);
         }
 
         // send slack message
