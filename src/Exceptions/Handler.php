@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Exceptions;
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
 
 class Handler extends ExceptionHandler
 {
@@ -47,6 +48,12 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $exception)
     {
         return \Exment::error($request, $exception, function ($request, $exception) {
+            if ($request->expectsJson()) {
+                if ($exception instanceof TokenMismatchException) {
+                    return response()->json([
+                        'message' => exmtrans('common.message.csrf_error')], 419);
+                }
+            }
             return parent::render($request, $exception);
         });
     }

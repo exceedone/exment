@@ -204,8 +204,8 @@ EOT;
      */
     protected function setCustomFormColumns($form, $custom_form_block)
     {
-        $fields = []; // setting fields.
-        foreach ($custom_form_block->custom_form_columns as $form_column) {
+        $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
+        foreach ($custom_form_columns as $form_column) {
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
                 continue;
@@ -215,7 +215,7 @@ EOT;
             if (isset($this->id)) {
                 $item->id($this->id);
             }
-            $this->setColumnItemOption($item);
+            $this->setColumnItemOption($item, $custom_form_columns);
 
             $form->pushField($item->getAdminField($form_column));
         }
@@ -237,8 +237,9 @@ EOT;
         }
 
         return function ($form) use ($custom_form_block, $target_custom_value) {
+            $custom_form_columns = $custom_form_block->custom_form_columns;
             // setting fields.
-            foreach ($custom_form_block->custom_form_columns as $form_column) {
+            foreach ($custom_form_columns as $form_column) {
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                     continue;
                 }
@@ -247,7 +248,7 @@ EOT;
                 if (is_null($column_item)) {
                     continue;
                 }
-                $this->setColumnItemOption($column_item);
+                $this->setColumnItemOption($column_item, $custom_form_columns);
     
                 $field = $column_item
                     ->setCustomValue($target_custom_value)
@@ -793,9 +794,11 @@ EOT;
      * @param ItemInterface $column_item
      * @return void
      */
-    protected function setColumnItemOption(ItemInterface $column_item)
+    protected function setColumnItemOption(ItemInterface $column_item, $custom_form_columns)
     {
         $column_item->setCustomForm($this->custom_form);
+        $column_item->setOtherFormColumns($custom_form_columns);
+
         if ($this->enableDefaultQuery) {
             $column_item->options(['enable_default_query' => true]);
         }

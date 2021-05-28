@@ -107,6 +107,7 @@ return [
             'preview' => 'This page is a preview. If you want to refresh the content, click the preview button again in the original window.',
             'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
             'preview_error' => 'The preview has expired. Please close this screen and preview again.',
+            'csrf_error' => 'The expiration date has expired, so please reopen your browser.',
         ],
 
         'help' =>[
