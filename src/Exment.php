@@ -704,6 +704,23 @@ class Exment
         return str_replace('\\', '/', $path);
     }
 
+    /**
+     * Replace \ or /, to system os slash
+     * Windows : "\"
+     * Others : "/"
+     *
+     * @param string $path
+     * @return string
+     */
+    public function replaceOsSeparator($path) : string
+    {
+        if($this->isWindows()){
+            return str_replace('/', '\\', $path);
+        }else{
+            return str_replace('\\', '/', $path);
+        }
+    }
+
 
     /**
      * Set time limit long
