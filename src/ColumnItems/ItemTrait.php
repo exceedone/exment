@@ -187,7 +187,7 @@ trait ItemTrait
     public function label($label = null)
     {
         if (!func_num_args()) {
-            return $this->label;
+            return array_get($this->form_column_options, 'form_column_view_name') ?? $this->label;
         }
         if (isset($label)) {
             $this->label = $label;
