@@ -714,9 +714,9 @@ class Exment
      */
     public function replaceOsSeparator($path) : string
     {
-        if($this->isWindows()){
+        if ($this->isWindows()) {
             return str_replace('/', '\\', $path);
-        }else{
+        } else {
             return str_replace('\\', '/', $path);
         }
     }

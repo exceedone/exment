@@ -804,11 +804,11 @@ abstract class CustomItem implements ItemInterface
         }
 
         // If config EXMENT_DISABLE_SHOW_READONLY AND EXMENT_DISABLE_SHOW_VIEWONLY
-        if(boolval(config('exment.disable_show_field_readonly', false)) && $this->readonly()){
+        if (boolval(config('exment.disable_show_field_readonly', false)) && $this->readonly()) {
             return true;
         }
         
-        if(boolval(config('exment.disable_show_field_viewonly', false)) && $this->viewonly()){
+        if (boolval(config('exment.disable_show_field_viewonly', false)) && $this->viewonly()) {
             return true;
         }
 
