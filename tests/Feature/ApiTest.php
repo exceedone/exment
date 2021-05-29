@@ -1710,10 +1710,11 @@ class ApiTest extends ApiTestBase
     public function testPutFileMultipleAppend()
     {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+        $custom_column = CustomColumn::getEloquent('file_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
 
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
             ->getValueQuery()
-            ->whereNull('value->file_multiple')
+            ->whereNull($custom_column->getQueryKey())
             ->first();
 
         $response = $this->withHeaders([

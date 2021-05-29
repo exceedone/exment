@@ -471,7 +471,7 @@ class TestDataSeeder extends Seeder
                         ['column_name' => 'user_multiple', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1','multiple_enabled' => '1', 'showing_all_user_organizations' => '1']],
                         ['column_name' => 'organization_multiple', 'column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1','multiple_enabled' => '1']],
                         ['column_name' => 'image_multiple', 'column_type' => ColumnType::IMAGE, 'options' => ['multiple_enabled' => '1']],
-                        ['column_name' => 'file_multiple', 'column_type' => ColumnType::FILE, 'options' => ['multiple_enabled' => '1']],
+                        ['column_name' => 'file_multiple', 'column_type' => ColumnType::FILE, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1']],
                     ];
 
                     foreach ($columns as $column) {
