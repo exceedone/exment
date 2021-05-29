@@ -79,7 +79,9 @@ class ClassLoader
         $removingClassPath = path_ltrim(str_replace($baseNamespace, '', $class), '')  . '.php';
 
         foreach ([$defaultClassPath, $removingClassPath] as $path) {
-            $file = path_join($dir, $path);
+            $file = path_join_os($dir, $path);
+            $file = \Exment::replaceOsSeparator($file);
+
             if (!is_readable($file)) {
                 continue;
             }

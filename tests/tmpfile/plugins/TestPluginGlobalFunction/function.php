@@ -1,6 +1,7 @@
 <?php
 namespace App\Plugins\TestPluginGlobalFunction;
 
-function testPluginGlobalFunction(){
+function testPluginGlobalFunction()
+{
     return true;
 }

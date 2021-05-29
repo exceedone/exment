@@ -656,10 +656,12 @@ class CPublicFormTest extends ExmentKitTestCase
     }
 
 
-    protected function getStylePluginId(){
+    protected function getStylePluginId()
+    {
         return Plugin::where('plugin_name', 'TestPluginStyle')->first()->id;
     }
-    protected function getScriptPluginId(){
+    protected function getScriptPluginId()
+    {
         return Plugin::where('plugin_name', 'TestPluginScript')->first()->id;
     }
 }

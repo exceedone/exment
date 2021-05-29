@@ -107,6 +107,7 @@ return [
             'preview' => 'This page is a preview. If you want to refresh the content, click the preview button again in the original window.',
             'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
             'preview_error' => 'The preview has expired. Please close this screen and preview again.',
+            'csrf_error' => 'The expiration date has expired, so please reopen your browser.',
         ],
 
         'help' =>[
@@ -469,6 +470,11 @@ return [
                 'label' => 'Memory usage limit',
                 'explain' => 'The upper limit of memory usage allocated to run PHP.(Recommended value: 512MB or more)',
                 'warning' => 'The memory usage limit is below the recommended size. We recommend changing the upper limit setting.',
+            ],
+            'max_input_vars' => [
+                'label' => 'Maximum number of POST at one time',
+                'explain' => 'The maximum number of POST parameters that can be allocated to run PHP. (Recommended value: 3000 or more)',
+                'warning' => 'The upper limit of the parameters that can be POSTed at one time is below the recommended value. If this number is small, the value may not be saved normally on some screens. We recommend changing the upper limit setting.',
             ],
             'file_upload_size' => [
                 'label' => 'File upload size limit',
@@ -1509,6 +1515,7 @@ return [
             'delete_revert_message' => 'Click to restore',
             'required_as_column' => '* Required settings are made by custom column settings.',
             'validate_error_message' => 'There was something wrong with the input contents. Check the settings of the items that are red.',
+            'max_input_warning' => '* If there are many form items and saving fails, you need to change the server settings. Click <a href="%s" target="_blank">here</a> for details.',
         ],
     ],
 

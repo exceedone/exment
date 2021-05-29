@@ -114,7 +114,7 @@ class MailHistory
      */
     public function getCustomValue() : ?CustomValue
     {
-        if(isset($this->custom_value)){
+        if (isset($this->custom_value)) {
             return $this->custom_value;
         }
 

@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -334,10 +335,40 @@ class SelectTable extends CustomItem
 
         // get callback
         $callback = function (&$query) use ($linkage) {
-            return $linkage->setQueryFilter($query, $linkage->getParentValueId($this->custom_value));
+            return $linkage->setQueryFilter($query, $this->getRelationParentValue($linkage));
         };
         
         return $callback;
+    }
+
+
+    /**
+     * Get relation parent value. Consider other form field's default.
+     * (1)parent field's value.
+     * (2)parent field's default value.
+     * (3)null
+     *
+     * @param Linkage $linkage
+     * @return mixed
+     */
+    protected function getRelationParentValue($linkage)
+    {
+        $value = $linkage->getParentValueId($this->custom_value);
+        if (!is_nullorempty($value)) {
+            return $value;
+        }
+
+        $parent_column = $linkage->parent_column;
+        // get parent form column using column id
+        $parent_form_column = collect($this->other_form_columns)->filter(function ($other_form_column) use ($parent_column) {
+            return array_get($other_form_column, 'form_column_type') == FormColumnType::COLUMN && array_get($other_form_column, 'form_column_target_id') == $parent_column->id;
+        })->first();
+        // check has default value
+        if (isset($parent_form_column) && !is_nullorempty($value = $parent_form_column->column_item->getDefaultValue())) {
+            return $value;
+        }
+
+        return null;
     }
     
     public function getAdminFilterWhereQuery($query, $input)
