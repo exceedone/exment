@@ -968,6 +968,22 @@ return [
     */
     'disable_publicform_use_footer_label' => env('EXMENT_DISABLE_PUBLICFORM_USE_FOOTER_LABEL', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Show disable field readonly
+    |--------------------------------------------------------------------------
+    |
+    */
+    'disable_show_field_readonly' => env('EXMENT_DISABLE_SHOW_FIELD_READONLY', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Show disable field readonly
+    |--------------------------------------------------------------------------
+    |
+    */
+    'disable_show_field_viewonly' => env('EXMENT_DISABLE_SHOW_FIELD_VIEWONLY', false),
+
 
   
     /*

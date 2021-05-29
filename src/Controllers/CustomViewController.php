@@ -329,7 +329,7 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
 
-        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $custom_table, $view_type) {
+        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $custom_table, $view_type, $view_kind_type) {
             $tools->add((new Tools\CustomTableMenuButton('view', $custom_table)));
 
             if ($view_type == Enums\ViewType::USER) {
@@ -339,7 +339,7 @@ class CustomViewController extends AdminControllerTableBase
                 ));
             }
     
-            if (isset($suuid)) {
+            if (isset($suuid) && intval($view_kind_type) != Enums\ViewKindType::FILTER) {
                 $tools->append(view('exment::tools.button', [
                     'href' => $custom_table->getGridUrl(true, ['view' => $suuid]),
                     'label' => exmtrans('custom_view.view_datalist'),

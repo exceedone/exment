@@ -14,6 +14,7 @@ class SystemRequireList
 
     protected static $requireClassesCommand = [
         MemorySize::class,
+        MaxInputVars::class,
         FileUploadSize::class,
         TimeoutTime::class,
         FilePermission::class,
@@ -23,6 +24,7 @@ class SystemRequireList
 
     protected static $requireClassesWeb = [
         MemorySize::class,
+        MaxInputVars::class,
         FileUploadSize::class,
         TimeoutTime::class,
         FilePermission::class,
@@ -32,6 +34,7 @@ class SystemRequireList
 
     protected static $requireClassesInstallWeb = [
         MemorySize::class,
+        MaxInputVars::class,
         FileUploadSize::class,
         TimeoutTime::class,
         FilePermissionInstaller::class,

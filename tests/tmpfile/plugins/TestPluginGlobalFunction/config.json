@@ -1,0 +1,9 @@
+{
+    "uuid": "b87ebf26-f80b-971b-d360-0b0d26b9b023",
+    "plugin_name": "TestPluginGlobalFunction",
+    "plugin_view_name": "グローバル関数の実行",
+    "description": "グローバル関数をテスト実行します。",
+    "author":  "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "batch"
+}

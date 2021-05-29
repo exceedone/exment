@@ -1,0 +1,9 @@
+{
+    "uuid": "45fe0a75-7cc6-be1d-5de7-0ab0c170b08b",
+    "plugin_name": "TestPluginError",
+    "plugin_view_name": "エラー発生",
+    "description": "あえてエラーを発生させ、エラーハンドリングします。",
+    "author":  "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "batch"
+}

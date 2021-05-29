@@ -40,6 +40,13 @@ trait ItemTrait
      * @var array
      */
     protected $form_column_options = [];
+
+    /**
+     * Custom form columns in same block. Use for getting other fields.
+     *
+     * @var array
+     */
+    protected $other_form_columns = [];
     
     /**
      * Form items option
@@ -180,7 +187,7 @@ trait ItemTrait
     public function label($label = null)
     {
         if (!func_num_args()) {
-            return $this->label;
+            return array_get($this->form_column_options, 'form_column_view_name') ?? $this->label;
         }
         if (isset($label)) {
             $this->label = $label;
@@ -374,6 +381,23 @@ trait ItemTrait
             $form_column_options = $form_column_options->options;
         }
         $this->form_column_options = $form_column_options;
+
+        return $this;
+    }
+    
+    /**
+     * Set other_form_columns
+     *
+     * @param  array  $other_form_columns Other form columns
+     *
+     * @return  self
+     */
+    public function setOtherFormColumns($other_form_columns)
+    {
+        if (is_null($other_form_columns)) {
+            return;
+        }
+        $this->other_form_columns = $other_form_columns;
 
         return $this;
     }

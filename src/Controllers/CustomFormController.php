@@ -498,6 +498,9 @@ class CustomFormController extends AdminControllerTableBase
         $form = new WidgetForm($custom_form);
         $form->disableSubmit()->disableReset()->onlyRenderFields();
 
+        $manualUrl = getManualUrl('additional_php_ini');
+        $form->description(sprintf(exmtrans("custom_form.message.max_input_warning"), $manualUrl))->escape(false);
+
         $form->text('form_view_name', exmtrans('custom_form.form_view_name'))
             ->required();
 
