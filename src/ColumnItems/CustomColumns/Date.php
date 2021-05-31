@@ -91,10 +91,6 @@ class Date extends CustomItem
         return Field\Date::class;
     }
     
-    protected function getAdminFilterClass()
-    {
-        return Filter\BetweenDate::class;
-    }
 
     protected function getCustomField($classname, $column_name_prefix = null)
     {

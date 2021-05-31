@@ -33,11 +33,6 @@ class Datetime extends Date
         return Field\Datetime::class;
     }
 
-    protected function getAdminFilterClass()
-    {
-        return Filter\BetweenDatetime::class;
-    }
-
     /**
      * get cast Options
      */

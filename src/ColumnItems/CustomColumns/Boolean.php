@@ -53,10 +53,6 @@ class Boolean extends CustomItem
         return Field\SwitchField::class;
     }
     
-    protected function getAdminFilterClass()
-    {
-        return Filter\Equal::class;
-    }
  
     protected function setValidates(&$validates)
     {

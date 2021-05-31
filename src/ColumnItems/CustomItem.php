@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -610,15 +611,6 @@ abstract class CustomItem implements ItemInterface
     }
 
     abstract protected function getAdminFieldClass();
-
-    protected function getAdminFilterClass()
-    {
-        if (System::filter_search_type() == FilterSearchType::ALL) {
-            return Filter\Like::class;
-        }
-
-        return ExmentFilter\StartsWith::class;
-    }
 
     protected function setAdminOptions(&$field)
     {

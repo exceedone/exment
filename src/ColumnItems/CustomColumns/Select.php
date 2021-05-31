@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Enums\FilterOption;
 use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field\RadioButton;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
@@ -70,12 +71,14 @@ class Select extends CustomItem
         }
     }
     
-    protected function getAdminFilterClass()
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
     {
-        if ($this->isMultipleEnabled()) {
-            return ExmFilter\Where::class;
-        }
-        return ExmFilter\EqualOrIn::class;
+        return FilterOption::SELECT_EXISTS;
     }
 
     /**
@@ -145,11 +148,6 @@ class Select extends CustomItem
     protected function getImportValueOption()
     {
         return $this->custom_column->createSelectOptions();
-    }
-    
-    public function getAdminFilterWhereQuery($query, $input)
-    {
-        $this->getSelectFilterQuery($query, $input);
     }
     
     /**

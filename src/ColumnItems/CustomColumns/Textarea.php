@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Validator;
 
 class Textarea extends CustomItem
@@ -92,5 +93,16 @@ class Textarea extends CustomItem
         $form->textarea('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->rows(3);
+    }
+
+    
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
+    {
+        return FilterOption::LIKE;
     }
 }

@@ -264,18 +264,18 @@ class DefaultGrid extends GridBase
             // set filter item
             if (count($filterItems) <= 6) {
                 foreach ($filterItems as $filterItem) {
-                    $filterItem($filter);
+                    $filterItem->setAdminFilter($filter);
                 }
             } else {
                 $separate = floor(count($filterItems) /  2);
                 $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
                     for ($i = 0; $i < $separate; $i++) {
-                        $filterItems[$i]($filter);
+                        $filterItems[$i]->setAdminFilter($filter);
                     }
                 });
                 $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
                     for ($i = $separate; $i < count($filterItems); $i++) {
-                        $filterItems[$i]($filter);
+                        $filterItems[$i]->setAdminFilter($filter);
                     }
                 });
             }
@@ -296,10 +296,8 @@ class DefaultGrid extends GridBase
         $custom_view_grid_filters = $this->custom_view->custom_view_grid_filters;
         if(count($custom_view_grid_filters) > 0)
         {
-            foreach($custom_view_grid_filters as $condition){
-                $filterItems[] = function ($filter) use ($condition) {
-                    $condition->column_item->setAdminFilter($filter);
-                };
+            foreach($custom_view_grid_filters as $custom_view_grid_filter){
+                $filterItems[] = $custom_view_grid_filter->column_item;
             }
 
             return collect($filterItems);
@@ -310,10 +308,7 @@ class DefaultGrid extends GridBase
                 continue;
             }
             
-            $column_item = ColumnItems\SystemItem::getItem($this->custom_table, $filterKey);
-            $filterItems[] = function ($filter) use ($column_item) {
-                $column_item->setAdminFilter($filter);
-            };
+            $filterItems[] = ColumnItems\SystemItem::getItem($this->custom_table, $filterKey);
         }
 
         // check relation
@@ -326,10 +321,7 @@ class DefaultGrid extends GridBase
                     continue;
                 }
             
-                $column_item = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
-                $filterItems[] = function ($filter) use ($column_item) {
-                    $column_item->setAdminFilter($filter);
-                };
+                $filterItems[] = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
             }
         }
 
@@ -363,30 +355,32 @@ class DefaultGrid extends GridBase
             }
         }
 
+        $column_item = ColumnItems\ParentItem::getItemWithRelation($this->custom_table, $relation);
+        $filterItems[] = $column_item;
 
         // get options and ajax url
-        $options = $relation->parent_custom_table->getSelectOptions();
-        $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
-        $table_view_name = $relation->parent_custom_table->table_view_name;
+        // $options = $relation->parent_custom_table->getSelectOptions();
+        // $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
+        // $table_view_name = $relation->parent_custom_table->table_view_name;
 
-        $relationQuery = function ($query, $input) use ($relation) {
-            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $input);
-            } else {
-                RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $input);
-            }
-        };
+        // $relationQuery = function ($query, $input) use ($relation) {
+        //     if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+        //         RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $input);
+        //     } else {
+        //         RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $input);
+        //     }
+        // };
 
-        // set relation
-        if (isset($ajax)) {
-            $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
-                $filter->exmwhere($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-            };
-        } else {
-            $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
-                $filter->exmwhere($relationQuery, $table_view_name)->select($options);
-            };
-        }
+        // // set relation
+        // if (isset($ajax)) {
+        //     $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
+        //         $filter->exmwhere($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
+        //     };
+        // } else {
+        //     $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
+        //         $filter->exmwhere($relationQuery, $table_view_name)->select($options);
+        //     };
+        // }
     }
 
     
@@ -420,9 +414,7 @@ class DefaultGrid extends GridBase
                 }
             }
 
-            $filterItems[] = function ($filter) use ($search_column) {
-                $search_column->column_item->setAdminFilter($filter);
-            };
+            $filterItems[] = $search_column->column_item;
         }
     }
 
@@ -784,7 +776,7 @@ class DefaultGrid extends GridBase
             }
 
             $form->hidden('order')->default(0);
-        })->required()->setTableColumnWidth(8, 4)
+        })->setTableColumnWidth(8, 4)
         ->rowUpDown('order', 10)
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters"));
     }

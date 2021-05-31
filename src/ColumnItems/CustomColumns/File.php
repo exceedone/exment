@@ -111,10 +111,6 @@ class File extends CustomItem
         return Field\File::class;
     }
     
-    protected function getAdminFilterClass()
-    {
-        return ExmWhere::class;
-    }
 
     protected function setAdminOptions(&$field)
     {

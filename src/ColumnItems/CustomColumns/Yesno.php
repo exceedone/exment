@@ -72,11 +72,6 @@ class Yesno extends CustomItem
         }
     }
     
-    protected function getAdminFilterClass()
-    {
-        return Filter\Equal::class;
-    }
-
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->radio(Define::YESNO_RADIO);

@@ -147,8 +147,8 @@ abstract class GridBase
                 $view_pivot_column_id = array_get($view_column_query_array, 'view_pivot_column_id');
                 $view_pivot_table_id = array_get($view_column_query_array, 'view_pivot_table_id');
                 $label = CustomTable::getEloquent($column_table_id)->table_view_name;
-                if (isset($view_pivot_column_id)) {
-                    $label .= ' : ' . CustomColumn::getEloquent($view_pivot_column_id)->column_view_name;
+                if (isset($view_pivot_column_id) && !is_nullorempty($view_pivot_column = CustomColumn::getEloquent($view_pivot_column_id))) {
+                    $label .= ' : ' . $view_pivot_column->column_view_name;
                 }
             }
             return [

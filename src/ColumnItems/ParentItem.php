@@ -3,8 +3,10 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\FilterType;
+use Encore\Admin\Grid\Filter;
 
 class ParentItem implements ItemInterface
 {
@@ -25,22 +27,24 @@ class ParentItem implements ItemInterface
      */
     protected $target_parent = false;
     
-    public function __construct($custom_table, $custom_value, $parent_table = null)
+    public function __construct($custom_table, $custom_value, $parent_table = null, ?CustomRelation $custom_relation = null)
     {
         $this->custom_table = $custom_table;
         $this->value = $this->getTargetValue($custom_value);
 
-        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table->id);
-        
-        if (isset($parent_table)) {
-            $relation = $relation->where('parent_custom_table_id', $parent_table->id);
-            $this->target_parent = true;
+        if(!$custom_relation){
+            $custom_relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table->id);
+            
+            if (isset($parent_table)) {
+                $custom_relation = $custom_relation->where('parent_custom_table_id', $parent_table->id);
+                $this->target_parent = true;
+            }
+            $custom_relation = $custom_relation->first();
         }
-        $relation = $relation->first();
 
-        if (isset($relation)) {
-            $this->custom_relation = $relation;
-            $this->parent_table = $relation->parent_custom_table;
+        if (isset($custom_relation)) {
+            $this->custom_relation = $custom_relation;
+            $this->parent_table = $custom_relation->parent_custom_table;
         }
 
         $this->label = isset($this->parent_table) ? $this->parent_table->table_view_name : null;
@@ -233,6 +237,12 @@ class ParentItem implements ItemInterface
         return new self($custom_table, null, $parent_table);
     }
 
+    public static function getItemWithRelation(...$args)
+    {
+        list($custom_table, $custom_relation) = $args + [null, null];
+        return new self($custom_table, null, null, $custom_relation);
+    }
+
     /**
      * get sqlname for summary
      * *Please override if use.
@@ -273,5 +283,30 @@ class ParentItem implements ItemInterface
         }
 
         return $result;
+    }
+
+
+    /**
+     * Set admin filter options
+     *
+     * @param [type] $filter
+     * @return void
+     */
+    protected function setAdminFilterOptions(&$filter)
+    {
+        $relation = $this->custom_relation;
+        $parent_custom_table = $relation->parent_custom_table;
+        
+        // get options and ajax url
+        $options = $parent_custom_table->getSelectOptions();
+        $ajax = $parent_custom_table->getOptionAjaxUrl();
+        $table_view_name = $parent_custom_table->table_view_name;
+
+        // set relation
+        if (isset($ajax)) {
+            $filter->select([])->ajax($ajax, 'id', 'text');
+        } else {
+            $filter->select($options);
+        }
     }
 }

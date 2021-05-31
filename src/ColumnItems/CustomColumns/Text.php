@@ -7,6 +7,7 @@ use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Enums\FilterOption;
 
 class Text extends CustomItem
 {
@@ -111,7 +112,17 @@ class Text extends CustomItem
             'help' => count($help_regexes) ? sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes)) : null,
         ];
     }
-
+    
+    
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
+    {
+        return FilterOption::LIKE;
+    }
     
 
     /**

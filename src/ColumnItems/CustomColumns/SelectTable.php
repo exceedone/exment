@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
@@ -172,13 +173,15 @@ class SelectTable extends CustomItem
             return Field\Select::class;
         }
     }
-    
-    protected function getAdminFilterClass()
+        
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
     {
-        if ($this->isMultipleEnabled()) {
-            return ExmFilter\Where::class;
-        }
-        return ExmFilter\EqualOrIn::class;
+        return FilterOption::SELECT_EXISTS;
     }
 
     protected function setAdminOptions(&$field)
@@ -371,11 +374,6 @@ class SelectTable extends CustomItem
         return null;
     }
     
-    public function getAdminFilterWhereQuery($query, $input)
-    {
-        $this->getSelectFilterQuery($query, $input);
-    }
-
     protected function setAdminFilterOptions(&$filter)
     {
         if (!isset($this->target_table)) {
@@ -618,6 +616,7 @@ class SelectTable extends CustomItem
             return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
         }
 
+        // If multiple enabled, 
         $query = $this->custom_table->getValueQuery();
         $this->getAdminFilterWhereQuery($query, $value);
 

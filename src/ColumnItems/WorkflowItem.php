@@ -145,11 +145,6 @@ class WorkflowItem extends SystemItem
     }
 
     
-    protected function getAdminFilterClass()
-    {
-        return ExmWhere::class;
-    }
-    
     /**
      * Set admin filter options
      *
@@ -181,26 +176,5 @@ class WorkflowItem extends SystemItem
                 System::setRequestSession($key, true);
             }
         }
-    }
-    
-
-    /**
-     * Set where query for grid filter. If class is "ExmWhere".
-     *
-     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
-     * @param mixed $input
-     * @return void
-     */
-    public function getAdminFilterWhereQuery($query, $input)
-    {
-        $option = $this->getSystemColumnOption();
-
-        // get viewfilterbase function
-        $view_filter_condition = array_get($option, 'name') == SystemColumn::WORKFLOW_WORK_USERS ? FilterOption::WORKFLOW_EQ_WORK_USER : FilterOption::WORKFLOW_EQ_STATUS;
-        $viewFilterItem = ViewFilterBase::make($view_filter_condition, $this, [
-            'or_option' => false,
-        ]);
-        
-        $viewFilterItem->setFilter($query, $input);
     }
 }

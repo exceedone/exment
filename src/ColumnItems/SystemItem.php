@@ -7,9 +7,11 @@ use Encore\Admin\Form\Field\MultipleSelect;
 use Encore\Admin\Form\Field\Text;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
@@ -391,17 +393,33 @@ class SystemItem implements ItemInterface
         return FilterType::DEFAULT;
     }
 
-    protected function getAdminFilterClass()
+    
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
     {
         switch ($this->column_name) {
+            case SystemColumn::ID:
+            case SystemColumn::SUUID:
+            case SystemColumn::PARENT_ID:
+                return FilterOption::EQ;
             case SystemColumn::CREATED_AT:
             case SystemColumn::UPDATED_AT:
-                return \Exceedone\Exment\Grid\Filter\BetweenDatetime::class;
+                // Use custom query. So return null.
+                return null;
+            case SystemColumn::WORKFLOW_STATUS:
+                return FilterOption::WORKFLOW_EQ_STATUS;
+            case SystemColumn::WORKFLOW_WORK_USERS:
+                return FilterOption::WORKFLOW_WORK_USERS;
         }
-        return Filter\Equal::class;
+
+        return null;
     }
 
-    
+
     /**
      * Set admin filter options
      *

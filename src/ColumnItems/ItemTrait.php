@@ -8,7 +8,9 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FormLabelType;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Encore\Admin\Show\Field as ShowField;
 
 /**
@@ -701,6 +703,11 @@ trait ItemTrait
     }
 
 
+    protected function getAdminFilterClass()
+    {
+        return ExmWhere::class;
+    }
+
     /**
      * set admin filter for filtering grid.
      */
@@ -713,9 +720,10 @@ trait ItemTrait
             $item = $this;
             $filteritem = new $classname(function ($query, $input) use ($item) {
                 $item->getAdminFilterWhereQuery($query, $input);
-            }, $this->label(), $this->index());
+            }, $this->label(), !is_nullorempty($this->uniqueName) ? $this->uniqueName : $this->index());
         } else {
-            $filteritem = new $classname($this->index(), $this->label());
+            // Refactor, so doesn't use not ExmWhere class
+            throw new \Exception('Please use ExmWhere');
         }
 
         if($this->isShowFilterNullCheck()){
@@ -740,6 +748,16 @@ trait ItemTrait
     }
 
     /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
+    {
+        return FilterOption::EQ;
+    }
+    
+    /**
      * Set where query for grid filter. If class is "ExmWhere".
      *
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
@@ -748,6 +766,9 @@ trait ItemTrait
      */
     public function getAdminFilterWhereQuery($query, $input)
     {
+        // get vieww filter item
+        $viewFilterItem = ViewFilterBase::make($this->getGridFilterOption(), $this);
+        $viewFilterItem->setFilter($query, $input);
     }
 
 

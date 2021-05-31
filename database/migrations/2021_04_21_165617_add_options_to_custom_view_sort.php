@@ -29,6 +29,7 @@ class AddOptionsToCustomViewSort extends Migration
         
         $schema->create('custom_view_grid_filters', function (ExtendedBlueprint $table) {
             $table->increments('id');
+            $table->string('suuid', 20)->index();
             $table->integer('custom_view_id')->unsigned();
             $table->integer('view_column_type')->default(0);
             $table->integer('view_column_table_id')->unsigned();
@@ -54,5 +55,7 @@ class AddOptionsToCustomViewSort extends Migration
                 $table->dropColumn('options');
             }
         });
+
+        Schema::dropIfExists('custom_view_grid_filters');
     }
 }
