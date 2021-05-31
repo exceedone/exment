@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Encore\Admin\Show\Field as ShowField;
 
@@ -705,7 +705,7 @@ trait ItemTrait
 
     protected function getAdminFilterClass()
     {
-        return ExmWhere::class;
+        return ExmFilter\Where::class;
     }
 
     /**
@@ -716,7 +716,7 @@ trait ItemTrait
         $classname = $this->getAdminFilterClass();
 
         // if where query, call Cloquire
-        if ($classname == ExmWhere::class) {
+        if (in_array($classname, [ExmFilter\Where::class, ExmFilter\BetweenDate::class, ExmFilter\BetweenDatetime::class])) {
             $item = $this;
             $filteritem = new $classname(function ($query, $input) use ($item) {
                 $item->getAdminFilterWhereQuery($query, $input);
@@ -771,6 +771,24 @@ trait ItemTrait
         $viewFilterItem->setFilter($query, $input);
     }
 
+    /**
+     * Set where query for grid filter for date, datetime
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQueryDate($query, $input)
+    {
+        if(array_key_value_exists('start', $input)){
+            $viewFilterItem = ViewFilterBase::make(FilterOption::DAY_ON_OR_AFTER, $this);
+            $viewFilterItem->setFilter($query, $input['start']);
+        }
+        if(array_key_value_exists('end', $input)){
+            $viewFilterItem = ViewFilterBase::make(FilterOption::DAY_ON_OR_BEFORE, $this);
+            $viewFilterItem->setFilter($query, $input['end']);
+        }
+    }
 
     /**
      * Whether is show filter null check

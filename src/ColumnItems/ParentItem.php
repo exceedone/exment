@@ -3,10 +3,10 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
-use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Enums\FilterType;
-use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Enums\RelationType;
 
 class ParentItem implements ItemInterface
 {
@@ -78,6 +78,18 @@ class ParentItem implements ItemInterface
     public function sqltypename()
     {
         return $this->sqlUniqueTableName() .'.parent_type';
+    }
+
+    /**
+     * get target table real db name.
+     */
+    public function sqlRealTableName()
+    {
+        if($this->custom_relation->relation_type == RelationType::ONE_TO_MANY){
+            return getDBTableName($this->custom_table);
+        }
+
+        return $this->custom_relation->getRelationName();
     }
 
     /**
@@ -170,7 +182,7 @@ class ParentItem implements ItemInterface
         $relation_name = $this->custom_relation->getRelationName();
         return $custom_value->{$relation_name};
     }
-    
+
     /**
      * replace value for import
      *
@@ -285,6 +297,23 @@ class ParentItem implements ItemInterface
         return $result;
     }
 
+    
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        $relation = $this->custom_relation;
+        if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+            RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $relation->child_custom_table, $input);
+        } else {
+            RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $input);
+        }
+    }
 
     /**
      * Set admin filter options
@@ -304,9 +333,9 @@ class ParentItem implements ItemInterface
 
         // set relation
         if (isset($ajax)) {
-            $filter->select([])->ajax($ajax, 'id', 'text');
+            $filter->multipleSelect([])->ajax($ajax, 'id', 'text');
         } else {
-            $filter->select($options);
+            $filter->multipleSelect($options);
         }
     }
 }

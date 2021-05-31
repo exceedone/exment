@@ -7,6 +7,7 @@ use Encore\Admin\Form\Field\MultipleSelect;
 use Encore\Admin\Form\Field\Text;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -17,10 +18,14 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 class SystemItem implements ItemInterface
 {
-    use ItemTrait, SystemColumnItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
+    use ItemTrait{
+        ItemTrait::getAdminFilterWhereQuery as getAdminFilterWhereQueryTrait;
+    }
+    use SystemColumnItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
     
     protected $column_name;
     
@@ -413,10 +418,41 @@ class SystemItem implements ItemInterface
             case SystemColumn::WORKFLOW_STATUS:
                 return FilterOption::WORKFLOW_EQ_STATUS;
             case SystemColumn::WORKFLOW_WORK_USERS:
-                return FilterOption::WORKFLOW_WORK_USERS;
+                return FilterOption::WORKFLOW_EQ_WORK_USER;
         }
 
         return null;
+    }
+
+    protected function getAdminFilterClass()
+    {
+        switch ($this->column_name) {
+            case SystemColumn::CREATED_AT:
+            case SystemColumn::UPDATED_AT:
+                return ExmFilter\BetweenDatetime::class;
+        }
+
+        return ExmWhere::class;
+    }
+
+    
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        switch ($this->column_name) {
+            case SystemColumn::CREATED_AT:
+            case SystemColumn::UPDATED_AT:
+                $this->getAdminFilterWhereQueryDate($query, $input);
+                return;
+        }
+
+        return $this->getAdminFilterWhereQueryTrait($query, $input);
     }
 
 

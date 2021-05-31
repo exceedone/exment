@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewGridFilter;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomRelation;
@@ -435,7 +436,7 @@ class SearchService
     /**
      * Join relation table for filter or sort
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
      */
     public function setRelationJoin($column, array $options = [])
     {
@@ -692,7 +693,7 @@ class SearchService
     /**
      * Get condition params
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|Condition $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
      * @return array 
      *  offset0 : target column's table id
      *  offset1 : target column's id
@@ -702,7 +703,7 @@ class SearchService
     protected function getConditionParams($column) : array
     {
 
-        if($column instanceof CustomViewColumn || $column instanceof CustomViewFilter || $column instanceof CustomViewSort || $column instanceof CustomViewSummary){
+        if($column instanceof CustomViewColumn || $column instanceof CustomViewFilter || $column instanceof CustomViewSort || $column instanceof CustomViewSummary || $column instanceof CustomViewGridFilter){
             return [
                 $column->view_column_table_id, 
                 $column->view_column_target_id,

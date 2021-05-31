@@ -158,7 +158,7 @@ class Linkage
         $child_target_table = $this->child_column->select_target_table;
 
         if ($this->searchType == SearchType::ONE_TO_MANY) {
-            RelationTable::setQueryOneMany($query, $parent_target_table, $parent_v);
+            RelationTable::setQueryOneMany($query, $parent_target_table, $child_target_table, $parent_v);
         }
 
         // n:n filter

@@ -303,9 +303,9 @@ class RelationTable
         
         switch ($searchType) {
             case SearchType::ONE_TO_MANY:
-                return static::setQueryOneMany($query, array_get($params, 'parent_table'), $value);
+                return static::setQueryOneMany($query, $parent_table, $child_table, $value);
             case SearchType::MANY_TO_MANY:
-                return static::setQueryManyMany($query, array_get($params, 'parent_table'), array_get($params, 'child_table'), $value);
+                return static::setQueryManyMany($query, $parent_table, $child_table, $value);
             case SearchType::SELECT_TABLE:
                 $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
                 if (\is_nullorempty($custom_column) && !\is_nullorempty($child_table)) {
@@ -325,13 +325,14 @@ class RelationTable
      * @param mixed $value
      * @return mixed
      */
-    public static function setQueryOneMany($query, $parent_table, $value)
+    public static function setQueryOneMany($query, $parent_table, $child_table, $value)
     {
-        if (is_nullorempty($parent_table)) {
+        if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
             return;
         }
         
-        $query->whereOrIn("parent_id", $value)->where('parent_type', $parent_table->table_name);
+        $dbName = getDBTableName($child_table);
+        $query->whereOrIn("$dbName.parent_id", $value)->where("$dbName.parent_type", $parent_table->table_name);
         
         return $query;
     }

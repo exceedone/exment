@@ -296,7 +296,11 @@ class DefaultGrid extends GridBase
         $custom_view_grid_filters = $this->custom_view->custom_view_grid_filters;
         if(count($custom_view_grid_filters) > 0)
         {
+            $service = $this->custom_view->getSearchService()->setQuery($filter->model());
+
             foreach($custom_view_grid_filters as $custom_view_grid_filter){
+                $service->setRelationJoin($custom_view_grid_filter);
+                
                 $filterItems[] = $custom_view_grid_filter->column_item;
             }
 
@@ -357,30 +361,6 @@ class DefaultGrid extends GridBase
 
         $column_item = ColumnItems\ParentItem::getItemWithRelation($this->custom_table, $relation);
         $filterItems[] = $column_item;
-
-        // get options and ajax url
-        // $options = $relation->parent_custom_table->getSelectOptions();
-        // $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
-        // $table_view_name = $relation->parent_custom_table->table_view_name;
-
-        // $relationQuery = function ($query, $input) use ($relation) {
-        //     if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-        //         RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $input);
-        //     } else {
-        //         RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $input);
-        //     }
-        // };
-
-        // // set relation
-        // if (isset($ajax)) {
-        //     $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
-        //         $filter->exmwhere($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-        //     };
-        // } else {
-        //     $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
-        //         $filter->exmwhere($relationQuery, $table_view_name)->select($options);
-        //     };
-        // }
     }
 
     

@@ -432,7 +432,7 @@ class SelectTableTest extends UnitTestBase
         // relation filter
         switch ($options['relation_filter']) {
             case SearchType::ONE_TO_MANY:
-                RelationTable::setQueryOneMany($query, array_get($options, 'parent_table'), $value);
+                RelationTable::setQueryOneMany($query, array_get($options, 'parent_table'), array_get($options, 'child_table'), $value);
                 break;
             case SearchType::MANY_TO_MANY:
                 RelationTable::setQueryManyMany($query, array_get($options, 'parent_table'), array_get($options, 'child_table'), $value);

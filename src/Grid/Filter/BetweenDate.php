@@ -7,6 +7,20 @@ use Encore\Admin\Grid\Filter\Between;
 
 class BetweenDate extends Between
 {
+    use BetweenDateTrait;
+    
+    /**
+     * Where constructor.
+     *
+     * @param \Closure $query
+     * @param string   $label
+     * @param string   $column
+     */
+    public function __construct(\Closure $query, $label, $column = null)
+    {
+        $this->construct($query, $label, $column);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -35,18 +49,16 @@ class BetweenDate extends Between
             return;
         }
 
-        $column = $this->column;
+        $value = $this->convertValue($value);
 
-        if (!isset($value['start'])) {
-            return $this->buildCondition($column, '<=', $value['end']);
-        }
+        $func = $this->where;
+        return $this->buildCondition(function ($query) use ($func, $value) {
+            $func($query, $value, $this);
+        });
+    }
 
-        if (!isset($value['end'])) {
-            return $this->buildCondition($column, '>=', $value['start']);
-        }
-
-        $this->query = 'whereBetweenQuery';
-
-        return $this->buildCondition($column, $this->value);
+    protected function convertValue($value)
+    {
+        return $value;
     }
 }

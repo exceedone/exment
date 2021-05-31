@@ -1390,7 +1390,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // one_to_many
             case SearchType::ONE_TO_MANY:
                 $query = $child_table->getValueQuery();
-                RelationTable::setQueryOneMany($query, $this, $parent_value_id);
+                RelationTable::setQueryOneMany($query, $this, $child_table, $parent_value_id);
 
                 // set query info
                 $options['listQuery'] = [
