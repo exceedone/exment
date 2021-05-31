@@ -6,6 +6,7 @@ use Encore\Admin\Form\Field\Date;
 use Encore\Admin\Form\Field\MultipleSelect;
 use Encore\Admin\Form\Field\Text;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterType;
@@ -390,6 +391,32 @@ class SystemItem implements ItemInterface
         return FilterType::DEFAULT;
     }
 
+    protected function getAdminFilterClass()
+    {
+        switch ($this->column_name) {
+            case SystemColumn::CREATED_AT:
+            case SystemColumn::UPDATED_AT:
+                return \Exceedone\Exment\Grid\Filter\BetweenDatetime::class;
+        }
+        return Filter\Equal::class;
+    }
+
+    
+    /**
+     * Set admin filter options
+     *
+     * @param [type] $filter
+     * @return void
+     */
+    protected function setAdminFilterOptions(&$filter)
+    {
+        $option = $this->getSystemColumnOption();
+        if(array_get($option, 'type') == 'datetime'){
+            $filter->date();
+        }
+    }
+
+ 
     protected function getSystemColumnOption()
     {
         return SystemColumn::getOption(['name' => $this->column_name]);

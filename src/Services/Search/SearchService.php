@@ -486,6 +486,25 @@ class SearchService
         }
     }
 
+    
+    /**
+     * Join relation join for workflow. For use workflow view filter.
+     *
+     * @param string $key
+     */
+    public function setRelationJoinWorkflow(string $key, array $options = [])
+    {
+        // set relation workflow status
+        if($this->isJoinWorkflowStatus($key == SystemColumn::WORKFLOW_STATUS)){
+            RelationTable::setWorkflowStatusSubquery($this->query, $this->custom_table, false);
+        }
+        // set relation workflow work user
+        if($this->isJoinWorkflowWorkUsers($key == SystemColumn::WORKFLOW_WORK_USERS)){
+            RelationTable::setWorkflowWorkUsersSubQuery($this->query, $this->custom_table, false);
+        }
+    }
+
+
     /**
      * Get relation table info
      *
@@ -644,17 +663,23 @@ class SearchService
      */
     protected function isJoinWorkflow($custom_view_filter, $key) : bool
     {
-        if(!($custom_view_filter instanceof CustomViewFilter || $custom_view_filter instanceof CustomViewColumn)){
-            return false;
+        // Whether custom_view_filter is boolelan. if true, always call.
+        if($custom_view_filter === true){
         }
-        if($custom_view_filter->view_column_type != ConditionType::WORKFLOW){
-            return false;
+        else{
+            if(!($custom_view_filter instanceof CustomViewFilter || $custom_view_filter instanceof CustomViewColumn)){
+                return false;
+            }
+            if($custom_view_filter->view_column_type != ConditionType::WORKFLOW){
+                return false;
+            }
+            
+            $enum = SystemColumn::getEnum($key);
+            if($custom_view_filter->view_column_target_id != $enum->option()['id']){
+                return false;
+            }
         }
-        
-        $enum = SystemColumn::getEnum($key);
-        if($custom_view_filter->view_column_target_id != $enum->option()['id']){
-            return false;
-        }
+
         if(in_array($key, $this->joinedWorkflows)){
             return false;
         }

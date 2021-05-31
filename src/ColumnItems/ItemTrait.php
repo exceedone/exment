@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FormLabelType;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Encore\Admin\Show\Field as ShowField;
 
 /**
@@ -698,6 +699,70 @@ trait ItemTrait
     {
         return $value;
     }
+
+
+    /**
+     * set admin filter for filtering grid.
+     */
+    public function setAdminFilter(&$filter)
+    {
+        $classname = $this->getAdminFilterClass();
+
+        // if where query, call Cloquire
+        if ($classname == ExmWhere::class) {
+            $item = $this;
+            $filteritem = new $classname(function ($query, $input) use ($item) {
+                $item->getAdminFilterWhereQuery($query, $input);
+            }, $this->label(), $this->index());
+        } else {
+            $filteritem = new $classname($this->index(), $this->label());
+        }
+
+        if($this->isShowFilterNullCheck()){
+            $filteritem->showNullCheck();
+        }
+
+        // first, set $filter->use
+        $filter->use($filteritem);
+
+        // next, set admin filter options
+        $this->setAdminFilterOptions($filteritem);
+    }
+
+    /**
+     * Set admin filter options
+     *
+     * @param [type] $filter
+     * @return void
+     */
+    protected function setAdminFilterOptions(&$filter)
+    {
+    }
+
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+    }
+
+
+    /**
+     * Whether is show filter null check
+     *
+     * @return bool
+     */
+    public function isShowFilterNullCheck() : bool
+    {
+        return false;
+    }
+    
+
+
 
     /**
      * Set customForm

@@ -1457,6 +1457,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function appendSubQuery($query, ?CustomView $custom_view)
     {
+        $this->appendWorkflowSubQuery($query, $custom_view);
+        
         // if has relations, set with
         if (!is_nullorempty($custom_view)) {
             $relations = $custom_view->custom_view_columns_cache->map(function ($custom_view_column) {
@@ -1479,6 +1481,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
     }
 
+
+    /**
+     * Append to query for filtering workflow
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomView|null $custom_view
+     * @return void
+     */
+    public function appendWorkflowSubQuery($query, ?CustomView $custom_view)
+    {
+        if ($custom_view && System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true) {
+            // add query
+            $custom_view->getSearchService()->setRelationJoinWorkflow(SystemColumn::WORKFLOW_STATUS);
+        }
+        // if contains custom_view_filters workflow query
+        if ($custom_view && System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true) {
+            // add query
+            $custom_view->getSearchService()->setRelationJoinWorkflow(SystemColumn::WORKFLOW_WORK_USERS);
+        }
+    }
 
     /**
      * Set selectTable value's and relations. for after calling from select_table object

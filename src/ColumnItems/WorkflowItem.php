@@ -4,12 +4,26 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 class WorkflowItem extends SystemItem
 {
     protected $table_name = 'workflow_values';
+
+    /**
+     * get workflow
+     */
+    protected function getWorkflow() : ?Workflow
+    {
+        return Workflow::getWorkflowByTable($this->custom_table);
+    }
+
 
     /**
      * whether column is enabled index.
@@ -82,7 +96,7 @@ class WorkflowItem extends SystemItem
 
         // if null, get default status name
         if (!isset($val)) {
-            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+            $workflow = $this->getWorkflow();
             if (!$workflow) {
                 return null;
             }
@@ -128,5 +142,65 @@ class WorkflowItem extends SystemItem
     public function sqlRealTableName()
     {
         return $this->getTableName();
+    }
+
+    
+    protected function getAdminFilterClass()
+    {
+        return ExmWhere::class;
+    }
+    
+    /**
+     * Set admin filter options
+     *
+     * @param [type] $filter
+     * @return void
+     */
+    protected function setAdminFilterOptions(&$filter)
+    {
+        $option = $this->getSystemColumnOption();
+        $workflow = $this->getWorkflow();
+        
+        if($workflow)
+        {
+            // Whether executed search.
+            $searched = boolval(request()->get($filter->getId()));
+            
+            if(array_get($option, 'name') == SystemColumn::WORKFLOW_WORK_USERS)
+            {
+                $filter->checkbox([1 => 'YES']);
+                $key = Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK;
+            }
+            else
+            {
+                $filter->select($workflow->getStatusOptions());
+                $key = Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK;
+            }
+
+            if($searched){
+                System::setRequestSession($key, true);
+            }
+        }
+    }
+    
+
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        $option = $this->getSystemColumnOption();
+
+        // get viewfilterbase function
+        $view_filter_condition = array_get($option, 'name') == SystemColumn::WORKFLOW_WORK_USERS ? FilterOption::WORKFLOW_EQ_WORK_USER : FilterOption::WORKFLOW_EQ_STATUS;
+        $viewFilterItem = ViewFilterBase::make($view_filter_condition, $this, [
+            'or_option' => false,
+        ]);
+        
+        $viewFilterItem->setFilter($query, $input);
     }
 }

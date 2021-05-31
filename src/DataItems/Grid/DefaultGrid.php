@@ -17,9 +17,11 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
@@ -262,58 +264,7 @@ class DefaultGrid extends GridBase
                 return;
             }
 
-            $filterItems = [];
-
-            foreach ([
-                'id' => 'equal',
-                'created_at' => 'date',
-                'updated_at' => 'date',
-            ] as $filterKey => $filterType) {
-                if ($this->custom_table->gridFilterDisable($filterKey)) {
-                    continue;
-                }
-
-                $filterItems[] = function ($filter) use ($filterKey, $filterType) {
-                    if ($filterType == 'date') {
-                        $filter->betweendatetime($filterKey, exmtrans("common.$filterKey"))->date();
-                    } else {
-                        $filter->equal($filterKey, exmtrans("common.$filterKey"));
-                    }
-                };
-            }
-
-            // check relation
-            $this->setRelationFilter($filterItems);
-
-            // filter workflow
-            if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
-                $custom_table = $this->custom_table;
-
-                if (!$custom_table->gridFilterDisable('workflow_status')) {
-                    $filterItems[] = function ($filter) use ($workflow, $custom_table) {
-                        $field = $filter->exmwhere(function ($query, $input) use ($custom_table) {
-                            WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $input);
-                        }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
-                        if (boolval(request()->get($field->getFilter()->getId()))) {
-                            System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
-                        }
-                    };
-                }
-
-                if (!$custom_table->gridFilterDisable('workflow_work_users')) {
-                    $filterItems[] = function ($filter) {
-                        $field = $filter->where(function ($query) {
-                        }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
-    
-                        if (boolval(request()->get($field->getFilter()->getId()))) {
-                            System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
-                        }
-                    };
-                }
-            }
-
-            // loop custom column
-            $this->setColumnFilter($filterItems, $search_enabled_columns);
+            $filterItems = $this->getFilterColumns($filter, $search_enabled_columns);
 
             // set filter item
             if (count($filterItems) <= 6) {
@@ -419,6 +370,50 @@ class DefaultGrid extends GridBase
                 $search_column->column_item->setAdminFilter($filter);
             };
         }
+    }
+
+
+    /**
+     * Get filter showing columns
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getFilterColumns($filter, $search_enabled_columns) : \Illuminate\Support\Collection
+    {
+        $filterItems = [];
+
+        foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => true]) as $filterKey => $filterType) {
+            if ($this->custom_table->gridFilterDisable($filterKey)) {
+                continue;
+            }
+            
+            $column_item = ColumnItems\SystemItem::getItem($this->custom_table, $filterKey);
+            $filterItems[] = function ($filter) use ($column_item) {
+                $column_item->setAdminFilter($filter);
+            };
+        }
+
+        // check relation
+        $this->setRelationFilter($filterItems);
+
+        // filter workflow
+        if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
+            foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
+                if ($this->custom_table->gridFilterDisable($filterKey)) {
+                    continue;
+                }
+            
+                $column_item = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
+                $filterItems[] = function ($filter) use ($column_item) {
+                    $column_item->setAdminFilter($filter);
+                };
+            }
+        }
+
+        // loop custom column
+        $this->setColumnFilter($filterItems, $search_enabled_columns);
+
+        return collect($filterItems);
     }
 
 
