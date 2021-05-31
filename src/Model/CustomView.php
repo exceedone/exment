@@ -104,6 +104,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
     }
 
+    public function custom_view_grid_filters()
+    {
+        return $this->hasMany(CustomViewGridFilter::class, 'custom_view_id');
+    }
+
     public function data_share_authoritables()
     {
         return $this->hasMany(DataShareAuthoritable::class, 'parent_id')
@@ -179,6 +184,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->custom_view_filters()->delete();
         $this->custom_view_sorts()->delete();
         $this->custom_view_summaries()->delete();
+        $this->custom_view_grid_filters()->delete();
         // delete data_share_authoritables
         DataShareAuthoritable::deleteDataAuthoritable($this);
     }

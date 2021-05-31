@@ -2139,6 +2139,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'ignore_attachment' => false,
                 'ignore_multiple' => false,
                 'ignore_many_to_many' => false,
+                'only_system_grid_filter' => false,
             ],
             $selectOptions
         );
@@ -2155,6 +2156,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $ignore_attachment = $selectOptions['ignore_attachment'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
+        $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
 
         $options = [];
         
@@ -2195,6 +2197,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_workflow_work_users' => $include_workflow_work_users,
                     'ignore_attachment' => $ignore_attachment,
                     'ignore_multiple' => $ignore_multiple,
+                    'only_system_grid_filter' => $only_system_grid_filter,
                 ]
             );
         }
@@ -2223,6 +2226,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
+                        'only_system_grid_filter' => $only_system_grid_filter,
                     ]
                 );
             }
@@ -2251,6 +2255,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
+                        'only_system_grid_filter' => $only_system_grid_filter,
                     ]
                 );
             }
@@ -2275,6 +2280,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
+                        'only_system_grid_filter' => $only_system_grid_filter,
                     ]
                 );
             }
@@ -2297,6 +2303,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'ignore_multiple' => $ignore_multiple,
                         'view_pivot_column' => $selected_table_column,
                         'view_pivot_table' => $this,
+                        'only_system_grid_filter' => $only_system_grid_filter,
                     ]
                 );
             }
@@ -2323,6 +2330,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'view_pivot_table' => null,
                 'ignore_attachment' => false,
                 'ignore_multiple' => false,
+                'only_system_grid_filter' => false,
             ],
             $selectOptions
         );
@@ -2340,6 +2348,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $view_pivot_table = $selectOptions['view_pivot_table'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
+        $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
 
 
         // get option key
@@ -2349,8 +2358,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ];
 
         /// get system columns
-        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams) {
+        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams, $only_system_grid_filter) {
             foreach (SystemColumn::getOptions($filter) as $option) {
+                if($only_system_grid_filter && !array_boolval($option, 'grid_filter')){
+                    continue;
+                }
                 $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id, $optionKeyParams);
                 $value = exmtrans('common.'.array_get($option, 'name'));
                 static::setKeyValueOption($options, $key, $value, $table_view_name);

@@ -55,9 +55,7 @@ class DefaultGrid extends GridBase
             $this->custom_view->filterSortModel($grid->model(), ['callback' => $this->callback]);
         }
 
-        // get search_enabled_columns and loop
-        $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
-        $this->setCustomGridFilters($grid, $search_enabled_columns);
+        $this->setCustomGridFilters($grid);
 
         if (!$this->modal) {
             Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
@@ -224,10 +222,7 @@ class DefaultGrid extends GridBase
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
         
-        // get search_enabled_columns and loop
-        $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
-
-        $this->setCustomGridFilters($grid, $search_enabled_columns, true);
+        $this->setCustomGridFilters($grid, true);
 
         // get html force
         $html = null;
@@ -241,7 +236,7 @@ class DefaultGrid extends GridBase
     /**
      * set grid filter
      */
-    protected function setCustomGridFilters($grid, $search_enabled_columns, $ajax = false)
+    protected function setCustomGridFilters($grid, $ajax = false)
     {
         $grid->quickSearch(function ($model, $input) {
             $eloquent = $model->eloquent();
@@ -251,7 +246,7 @@ class DefaultGrid extends GridBase
             }
         }, 'left');
 
-        $grid->filter(function ($filter) use ($search_enabled_columns, $ajax) {
+        $grid->filter(function ($filter) use ($ajax) {
             $filter->disableIdFilter();
             $filter->setAction($this->getFilterUrl());
 
@@ -264,7 +259,7 @@ class DefaultGrid extends GridBase
                 return;
             }
 
-            $filterItems = $this->getFilterColumns($filter, $search_enabled_columns);
+            $filterItems = $this->getFilterColumns($filter);
 
             // set filter item
             if (count($filterItems) <= 6) {
@@ -286,6 +281,64 @@ class DefaultGrid extends GridBase
             }
         });
     }
+
+
+    /**
+     * Get filter showing columns
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getFilterColumns($filter) : \Illuminate\Support\Collection
+    {
+        $filterItems = [];
+
+        // if has custom_view_grid_filters, set as value
+        $custom_view_grid_filters = $this->custom_view->custom_view_grid_filters;
+        if(count($custom_view_grid_filters) > 0)
+        {
+            foreach($custom_view_grid_filters as $condition){
+                $filterItems[] = function ($filter) use ($condition) {
+                    $condition->column_item->setAdminFilter($filter);
+                };
+            }
+
+            return collect($filterItems);
+        }
+
+        foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => true]) as $filterKey => $filterType) {
+            if ($this->custom_table->gridFilterDisable($filterKey)) {
+                continue;
+            }
+            
+            $column_item = ColumnItems\SystemItem::getItem($this->custom_table, $filterKey);
+            $filterItems[] = function ($filter) use ($column_item) {
+                $column_item->setAdminFilter($filter);
+            };
+        }
+
+        // check relation
+        $this->setRelationFilter($filterItems);
+
+        // filter workflow
+        if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
+            foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
+                if ($this->custom_table->gridFilterDisable($filterKey)) {
+                    continue;
+                }
+            
+                $column_item = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
+                $filterItems[] = function ($filter) use ($column_item) {
+                    $column_item->setAdminFilter($filter);
+                };
+            }
+        }
+
+        // loop custom column
+        $this->setColumnFilter($filterItems);
+
+        return collect($filterItems);
+    }
+
 
 
     /**
@@ -342,7 +395,7 @@ class DefaultGrid extends GridBase
      *
      * @return void
      */
-    protected function setColumnFilter(&$filterItems, $search_enabled_columns)
+    protected function setColumnFilter(&$filterItems)
     {
         // if modal, skip
         $search_column_select = null;
@@ -357,7 +410,8 @@ class DefaultGrid extends GridBase
             }
         }
 
-        // loop custom column
+        // get search_enabled_columns and loop
+        $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
         foreach ($search_enabled_columns as $search_column) {
             // if modal, checking relatin type
             if ($this->modal) {
@@ -371,51 +425,6 @@ class DefaultGrid extends GridBase
             };
         }
     }
-
-
-    /**
-     * Get filter showing columns
-     *
-     * @return \Illuminate\Support\Collection
-     */
-    protected function getFilterColumns($filter, $search_enabled_columns) : \Illuminate\Support\Collection
-    {
-        $filterItems = [];
-
-        foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => true]) as $filterKey => $filterType) {
-            if ($this->custom_table->gridFilterDisable($filterKey)) {
-                continue;
-            }
-            
-            $column_item = ColumnItems\SystemItem::getItem($this->custom_table, $filterKey);
-            $filterItems[] = function ($filter) use ($column_item) {
-                $column_item->setAdminFilter($filter);
-            };
-        }
-
-        // check relation
-        $this->setRelationFilter($filterItems);
-
-        // filter workflow
-        if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
-            foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
-                if ($this->custom_table->gridFilterDisable($filterKey)) {
-                    continue;
-                }
-            
-                $column_item = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
-                $filterItems[] = function ($filter) use ($column_item) {
-                    $column_item->setAdminFilter($filter);
-                };
-            }
-        }
-
-        // loop custom column
-        $this->setColumnFilter($filterItems, $search_enabled_columns);
-
-        return collect($filterItems);
-    }
-
 
     /**
      * Manage Grid Tool Button
@@ -737,5 +746,47 @@ class DefaultGrid extends GridBase
         }
 
         static::setSortFields($form, $custom_table, true);
+
+        if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
+            static::setGridFilterFields($form, $custom_table);
+        }
     }
+
+    
+
+    /**
+     * Set column gridfilter item form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    public static function setGridFilterFields(&$form, $custom_table, array $column_options = [])
+    {
+        // columns setting
+        $column_options = array_merge([
+            'append_table' => true,
+            'include_parent' => true,
+            'include_workflow' => true,
+            'index_enabled_only' => true,
+            'only_system_grid_filter' => true,
+        ], $column_options);
+
+        $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
+            $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
+            
+            $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($targetOptions);
+
+            if (boolval(config('exment.form_column_option_group', 'true'))) {
+                $targetGroups = static::convertGroups($targetOptions, $custom_table);
+                $field->groups($targetGroups);
+            }
+
+            $form->hidden('order')->default(0);
+        })->required()->setTableColumnWidth(8, 4)
+        ->rowUpDown('order', 10)
+        ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters"));
+    }
+
 }
