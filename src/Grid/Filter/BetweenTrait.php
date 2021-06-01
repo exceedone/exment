@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Grid\Filter;
 use Illuminate\Support\Arr;
 use Encore\Admin\Grid\Filter\Between;
 
-trait BetweenDateTrait
+trait BetweenTrait
 {
     protected function construct(\Closure $query, $label, $column = null)
     {
