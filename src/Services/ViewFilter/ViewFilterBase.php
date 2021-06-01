@@ -50,6 +50,9 @@ abstract class ViewFilterBase
         Items\DayBeforeAfter\DayTodayOrAfter::class,
         Items\DayBeforeAfter\DayTodayOrBefore::class,
 
+        Items\TimeBeforeAfter\TimeOnOrAfter::class,
+        Items\TimeBeforeAfter\TimeOnOrBefore::class,
+
         Items\Exists\SelectExists::class,
         Items\Exists\SelectNotExists::class,
         Items\Exists\UserEq::class,

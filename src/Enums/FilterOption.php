@@ -32,6 +32,9 @@ class FilterOption extends EnumBase
     const DAY_LAST_X_DAY_OR_BEFORE = 1042;
     const DAY_NEXT_X_DAY_OR_AFTER = 1043;
     const DAY_NEXT_X_DAY_OR_BEFORE = 1044;
+
+    const TIME_ON_OR_AFTER = 1052;
+    const TIME_ON_OR_BEFORE = 1053;
     
     const USER_EQ = 2001;
     const USER_NE = 2002;
