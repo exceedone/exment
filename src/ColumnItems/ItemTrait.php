@@ -716,7 +716,7 @@ trait ItemTrait
         $classname = $this->getAdminFilterClass();
 
         // if where query, call Cloquire
-        if (in_array($classname, [ExmFilter\Where::class, ExmFilter\BetweenDate::class, ExmFilter\BetweenDatetime::class])) {
+        if (in_array($classname, [ExmFilter\Where::class, ExmFilter\Between::class, ExmFilter\BetweenDate::class, ExmFilter\BetweenDatetime::class])) {
             $item = $this;
             $filteritem = new $classname(function ($query, $input) use ($item) {
                 $item->getAdminFilterWhereQuery($query, $input);
@@ -771,6 +771,24 @@ trait ItemTrait
         $viewFilterItem->setFilter($query, $input);
     }
 
+    /**
+     * Set where query for grid filter for number
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQueryNumber($query, $input)
+    {
+        if(array_key_value_exists('start', $input)){
+            $viewFilterItem = ViewFilterBase::make(FilterOption::NUMBER_GTE, $this);
+            $viewFilterItem->setFilter($query, $input['start']);
+        }
+        if(array_key_value_exists('end', $input)){
+            $viewFilterItem = ViewFilterBase::make(FilterOption::NUMBER_LTE, $this);
+            $viewFilterItem->setFilter($query, $input['end']);
+        }
+    }
     /**
      * Set where query for grid filter for date, datetime
      *
