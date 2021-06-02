@@ -241,7 +241,7 @@ class SearchService
             $column_name = $column_item->getTableColumn();
 
             if (isset($options['format'])) {
-                $column_name = \DB::getQueryGrammar()->getDateFormatString($options['format'], $column_name, false, false);   
+                $column_name = \DB::raw(\DB::getQueryGrammar()->getDateFormatString($options['format'], $column_name, false, false));  
             }
             // Add where query
             $this->query->where($column_name, $operator, $value, $boolean);
