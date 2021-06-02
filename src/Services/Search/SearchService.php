@@ -155,7 +155,7 @@ class SearchService
      * @param  string  $boolean
      * @return $this
      */
-    public function where($column, $operator = null, $value = null, $boolean = 'and')
+    public function where($column, $operator = null, $value = null, $boolean = 'and', $options = [])
     {
         // Here we will make some assumptions about the operator. If only 2 values are
         // passed to the method, we will assume that the operator is an equals sign
@@ -167,10 +167,10 @@ class SearchService
         // If custom column, execute where custom column's exists query.
         if($column instanceof CustomColumn)
         {
-            return $this->whereCustomColumn($column, $operator, $value, $boolean);
+            return $this->whereCustomColumn($column, $operator, $value, $boolean, $options);
         }
         if(is_string($column)){
-            return $this->whereCustomColumn(CustomColumn::getEloquent($column, $this->custom_table), $operator, $value, $boolean);
+            return $this->whereCustomColumn(CustomColumn::getEloquent($column, $this->custom_table), $operator, $value, $boolean, $options);
         }
 
         $this->query->where($column, $operator, $value, $boolean);
@@ -215,7 +215,7 @@ class SearchService
      * @param  string  $boolean
      * @return $this
      */
-    protected function whereCustomColumn(CustomColumn $column, $operator = null, $value = null, $boolean = 'and')
+    protected function whereCustomColumn(CustomColumn $column, $operator = null, $value = null, $boolean = 'and', $options = [])
     {
         $whereCustomTable = $column->custom_table_cache;
         $column_item = $column->column_item;
@@ -238,8 +238,13 @@ class SearchService
 
             $column_item->setUniqueTableName($relationTable->tableUniqueName);
 
+            $column_name = $column_item->getTableColumn();
+
+            if (isset($options['format'])) {
+                $column_name = \DB::getQueryGrammar()->getDateFormatString($options['format'], $column_name, false, false);   
+            }
             // Add where query
-            $this->query->where($column_item->getTableColumn(), $operator, $value, $boolean);
+            $this->query->where($column_name, $operator, $value, $boolean);
         }
 
         return $this;

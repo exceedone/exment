@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\Search\SearchService;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
@@ -462,16 +463,13 @@ class Notify extends ModelBase
         $table = $this->custom_table;
         $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
 
-        //ymd row
-        $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false, false);
-
-        // find data. where equal target_date
         if (isset($this->custom_view_id)) {
-            $datalist = $this->custom_view->setValueFilters($table->getValueQuery())
-                ->whereRaw("$raw = ?", [$target_date_str])->get();
+            $this->custom_view->setValueFilters($table->getValueQuery());
+            $service = $this->custom_view->getSearchService();
         } else {
-            $datalist = getModelName($table)::whereRaw("$raw = ?", [$target_date_str])->get();
+            $service = new SearchService($table);
         }
+        $datalist = $service->where($column, '=', $target_date_str, 'and', ['format' => GroupCondition::YMD])->get();
 
         return [$datalist, $table, $column];
     }
