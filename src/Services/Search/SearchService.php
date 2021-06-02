@@ -238,11 +238,13 @@ class SearchService
 
             $column_item->setUniqueTableName($relationTable->tableUniqueName);
 
-            $column_name = $column_item->getTableColumn();
-
+            // If set date format, get date format column.
             if (isset($options['format'])) {
-                $column_name = \DB::raw(\DB::getQueryGrammar()->getDateFormatString($options['format'], $column_name, false, false));  
+                $column_name = \DB::raw($column_item->getDateFormatWrapTableColumn($options['format']));
+            }else{
+                $column_name = $column_item->getTableColumn();
             }
+
             // Add where query
             $this->query->where($column_name, $operator, $value, $boolean);
         }

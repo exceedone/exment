@@ -463,12 +463,16 @@ class Notify extends ModelBase
         $table = $this->custom_table;
         $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
 
+        // get search service
+        $query = $table->getValueQuery();
         if (isset($this->custom_view_id)) {
-            $this->custom_view->setValueFilters($table->getValueQuery());
+            $this->custom_view->setValueFilters($query);
             $service = $this->custom_view->getSearchService();
         } else {
             $service = new SearchService($table);
         }
+        $service->setQuery($query);
+
         $datalist = $service->where($column, '=', $target_date_str, 'and', ['format' => GroupCondition::YMD])->get();
 
         return [$datalist, $table, $column];

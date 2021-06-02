@@ -403,6 +403,19 @@ trait ItemTrait
     }
     
     /**
+     * Get date format(Ex. date_format(XXXX,'%Y-%m-%d'))
+     * Join table: true
+     * Wrap: true
+     * 
+     * get sqlname for summary
+     */
+    public function getDateFormatWrapTableColumn(string $format) : string
+    {
+        $table_column_name = $this->getTableColumn();
+        return \DB::getQueryGrammar()->getDateFormatString($format, $table_column_name);
+    }
+
+    /**
      * get cast column name as SQL
      *
      * @param string|null $column_name If select column name, set.
