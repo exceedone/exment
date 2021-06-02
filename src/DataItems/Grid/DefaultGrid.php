@@ -296,7 +296,7 @@ class DefaultGrid extends GridBase
         $custom_view_grid_filters = $this->custom_view->custom_view_grid_filters;
         if(count($custom_view_grid_filters) > 0)
         {
-            $service = $this->custom_view->getSearchService()->setQuery($filter->model());
+            $service = $this->custom_view->getSearchService()->setQuery($filter->getModel());
 
             foreach($custom_view_grid_filters as $custom_view_grid_filter){
                 $service->setRelationJoin($custom_view_grid_filter);
@@ -742,6 +742,7 @@ class DefaultGrid extends GridBase
             'include_workflow' => true,
             'index_enabled_only' => true,
             'only_system_grid_filter' => true,
+            'ignore_many_to_many' => true,
         ], $column_options);
 
         $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
