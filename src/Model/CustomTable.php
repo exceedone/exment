@@ -2140,6 +2140,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'ignore_multiple' => false,
                 'ignore_many_to_many' => false,
                 'only_system_grid_filter' => false,
+                'column_type_filter' => null,
             ],
             $selectOptions
         );
@@ -2157,6 +2158,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $ignore_multiple = $selectOptions['ignore_multiple'];
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
+        $column_type_filter = $selectOptions['column_type_filter'];
 
         $options = [];
         
@@ -2198,6 +2200,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'ignore_attachment' => $ignore_attachment,
                     'ignore_multiple' => $ignore_multiple,
                     'only_system_grid_filter' => $only_system_grid_filter,
+                    'column_type_filter' => $column_type_filter,
                 ]
             );
         }
@@ -2227,6 +2230,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
                         'only_system_grid_filter' => $only_system_grid_filter,
+                        'column_type_filter' => $column_type_filter,
                     ]
                 );
             }
@@ -2256,6 +2260,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
                         'only_system_grid_filter' => $only_system_grid_filter,
+                        'column_type_filter' => $column_type_filter,
                     ]
                 );
             }
@@ -2281,6 +2286,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
                         'only_system_grid_filter' => $only_system_grid_filter,
+                        'column_type_filter' => $column_type_filter,
                     ]
                 );
             }
@@ -2304,6 +2310,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_column' => $selected_table_column,
                         'view_pivot_table' => $this,
                         'only_system_grid_filter' => $only_system_grid_filter,
+                        'column_type_filter' => $column_type_filter,
                     ]
                 );
             }
@@ -2331,6 +2338,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'ignore_attachment' => false,
                 'ignore_multiple' => false,
                 'only_system_grid_filter' => false,
+                'column_type_filter' => null,
             ],
             $selectOptions
         );
@@ -2349,6 +2357,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $ignore_attachment = $selectOptions['ignore_attachment'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
+        $column_type_filter = $selectOptions['column_type_filter'];
 
 
         // get option key
@@ -2358,9 +2367,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ];
 
         /// get system columns
-        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams, $only_system_grid_filter) {
+        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams, $only_system_grid_filter, $column_type_filter) {
             foreach (SystemColumn::getOptions($filter) as $option) {
                 if($only_system_grid_filter && !array_boolval($option, 'grid_filter')){
+                    continue;
+                }
+                if ($column_type_filter && !$column_type_filter($option)) {
                     continue;
                 }
                 $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id, $optionKeyParams);
@@ -2374,12 +2386,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if ($include_parent) {
-            $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table_id)->first();
-            ///// if this table is child relation(1:n), add parent table
-            if (isset($relation)) {
-                $key = static::getOptionKey('parent_id', $append_table, $table_id);
-                $value = array_get($relation, 'parent_custom_table.table_view_name');
-                static::setKeyValueOption($options, $key, $value, $table_view_name);
+            if (!$column_type_filter || $column_type_filter('parent_id')) {
+                $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table_id)->first();
+                ///// if this table is child relation(1:n), add parent table
+                if (isset($relation)) {
+                    $key = static::getOptionKey('parent_id', $append_table, $table_id);
+                    $value = array_get($relation, 'parent_custom_table.table_view_name');
+                    static::setKeyValueOption($options, $key, $value, $table_view_name);
+                }
             }
         }
 
@@ -2404,6 +2418,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     continue;
                 }
                 if ($ignore_attachment && ColumnType::isAttachment($custom_column->column_type)) {
+                    continue;
+                }
+                if ($column_type_filter && !$column_type_filter($custom_column)) {
                     continue;
                 }
                 $key = static::getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id, $optionKeyParams);

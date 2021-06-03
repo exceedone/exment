@@ -173,10 +173,20 @@ class CustomNotifyController extends AdminControllerTableBase
         $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($custom_table) {
             // Notify Time --------------------------------------------------
             $controller = $this;
-            $form->select('notify_target_column', exmtrans("notify.notify_target_column"))
-            ->options(function ($val) use ($controller, $custom_table) {
-                return $controller->getTargetColumnOptions($custom_table, false);
-            })
+            $form->select('notify_target_date', exmtrans("notify.notify_target_column"))
+            ->options($custom_table->getColumnsSelectOptions([
+                'append_table' => true,
+                'include_parent' => true,
+                'include_system' => false,
+                'ignore_multiple' => true,
+                'column_type_filter' => function($column) {
+                    if ($column instanceof CustomColumn) {
+                        return ColumnType::isDate($column->column_type);
+                    } else if (is_array($column) && array_has($column, 'type')) {
+                        return array_get($column, 'type') == 'datetime';
+                    }
+                },
+            ]))
             ->required()
             ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
             ->help(exmtrans("notify.help.trigger_settings"));
