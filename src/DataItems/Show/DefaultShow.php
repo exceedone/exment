@@ -140,6 +140,10 @@ class DefaultShow extends ShowBase
                     $tools->disableDelete();
                 }
 
+                if ($this->custom_table->enableView(true) !== true) {
+                    $tools->disableList();
+                }
+
                 if (!is_null($parent_value = $this->custom_value->getParentValue()) && $parent_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                     $tools->disableDelete();
