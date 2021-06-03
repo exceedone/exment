@@ -220,34 +220,31 @@ class SearchService
         $whereCustomTable = $column->custom_table_cache;
         $column_item = $column->column_item;
 
-        if(isMatchString($whereCustomTable->id, $this->custom_table->id))
+        if(!isMatchString($whereCustomTable->id, $this->custom_table->id))
         {
-            $this->query->where($column_item->getTableColumn(), $operator, $value, $boolean);
-            return $this;
-        }
+            // get RelationTable info.
+            $relationTable = $this->getRelationTable($whereCustomTable);
 
-        // get RelationTable info.
-        $relationTable = $this->getRelationTable($whereCustomTable);
-
-        if(!$relationTable){
-            $this->query->whereNotMatch();
-        }
-        // set relation query using relation type class.
-        else{
-            $this->setJoin($relationTable, $whereCustomTable);
-
-            $column_item->setUniqueTableName($relationTable->tableUniqueName);
-
-            // If set date format, get date format column.
-            if (isset($options['format'])) {
-                $column_name = \DB::raw($column_item->getDateFormatWrapTableColumn($options['format']));
-            }else{
-                $column_name = $column_item->getTableColumn();
+            if(!$relationTable){
+                return $this->query->whereNotMatch();
             }
+            // set relation query using relation type class.
+            else{
+                $this->setJoin($relationTable, $whereCustomTable);
 
-            // Add where query
-            $this->query->where($column_name, $operator, $value, $boolean);
+                $column_item->setUniqueTableName($relationTable->tableUniqueName);
+            }
         }
+
+        // If set date format, get date format column.
+        if (isset($options['format'])) {
+            $column_name = \DB::raw($column_item->getDateFormatWrapTableColumn($options['format']));
+        }else{
+            $column_name = $column_item->getTableColumn();
+        }
+
+        // Add where query
+        $this->query->where($column_name, $operator, $value, $boolean);
 
         return $this;
     }
