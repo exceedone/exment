@@ -150,16 +150,6 @@ class Select extends CustomItem
         return $this->custom_column->createSelectOptions();
     }
     
-    /**
-     * sortable for grid
-     */
-    public function sortable()
-    {
-        if ($this->isMultipleEnabled()) {
-            return false;
-        }
-        return parent::sortable();
-    }
 
     public function isMultipleEnabled()
     {

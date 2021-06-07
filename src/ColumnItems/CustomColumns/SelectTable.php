@@ -56,17 +56,6 @@ class SelectTable extends CustomItem
     }
 
     /**
-     * sortable for grid
-     */
-    public function sortable()
-    {
-        if ($this->isMultipleEnabled()) {
-            return false;
-        }
-        return parent::sortable();
-    }
-
-    /**
      * get cast Options
      */
     protected function getCastOptions()

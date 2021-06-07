@@ -140,7 +140,7 @@ class ParentItem implements ItemInterface
      */
     public function sortable()
     {
-        return true;
+        return $this->custom_relation && $this->custom_relation->relation_type == RelationType::ONE_TO_MANY;
     }
 
     public function setCustomValue($custom_value)

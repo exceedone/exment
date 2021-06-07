@@ -127,7 +127,10 @@ class DefaultGrid extends GridBase
             $grid->column($item->uniqueName(), $item->label())
                 ->sort($item->sortable())
                 ->sortName($item->getSortName())
-                ->cast($item->getCastName())
+                //->cast($item->getCastName())
+                ->sortCallback(function($query, $args) use($custom_view_column){
+                    $this->custom_view->getSearchService()->setQuery($query)->addSelect()->orderByCustomViewColumn($custom_view_column, (count($args) > 0 ? $args[0] : 'asc'));
+                })
                 ->style($item->gridStyle())
                 ->setClasses($className)
                 ->display(function ($v) use ($item) {

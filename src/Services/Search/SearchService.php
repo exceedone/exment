@@ -310,6 +310,30 @@ class SearchService
 
         return $this;
     }
+    
+    /**
+     * Add orderby custom column. Contains CustomViewColumn.
+     * Convert to custom view sort directly.
+     * and linkage(relation or select table), add where exists query.
+     *
+     * @param  CustomViewColumn $column
+     * @param  string $type 'asc' : 'desc'
+     * @return $this
+     */
+    public function orderByCustomViewColumn(CustomViewColumn $column, $type)
+    {
+        $custom_view_sort = new CustomViewSort ([
+            'custom_view_id' => $column->custom_view_id,
+            'view_column_type' => $column->view_column_type,
+            'view_column_table_id' => $column->view_column_table_id,
+            'view_column_target_id' => $column->view_column_target_id,
+            'sort' => $type == 'desc' ? -1 : 1,
+            'priority' => 1,
+        ]);
+
+        return $this->orderByCustomViewSort($custom_view_sort);
+    }
+    
 
 
     /**
