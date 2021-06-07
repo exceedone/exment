@@ -47,7 +47,7 @@ class Notify extends ModelBase
         if (isset($this->custom_view_id)) {
             return $this->belongsTo(CustomView::class, 'custom_view_id');
         }
-        return null;
+        return $this->belongsTo(CustomView::class, 'custom_view_id')->whereNotMatch();
     }
     
     public function getNotifyActionsAttribute()
