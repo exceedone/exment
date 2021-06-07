@@ -64,7 +64,7 @@ class Notify extends ModelBase
         $notify_target_table_id = array_get($trigger_settings, 'notify_target_table_id');
 
         if (!isset($notify_target_column) || !isset($notify_target_table_id)) {
-            return null;
+            return $trigger_settings;
         }
 
         $optionKeyParams['view_pivot_column'] = array_get($trigger_settings, 'view_pivot_column_id');
