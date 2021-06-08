@@ -336,7 +336,23 @@ trait ItemTrait
         return $this;
     }
 
-    
+    /**
+     * Get target custom value.
+     * Almost return args custom value, but maybe view_pivot_column, get relation parents custom value.
+     *
+     * @param CustomValue $custom_value
+     * @return CustomValue|\Illuminate\Support\Collection|null
+     */
+    protected function getTargetCustomValue($custom_value)
+    {
+        // if options has "view_pivot_column", get select_table's custom_value first
+        if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+            return $this->getViewPivotCustomValue($custom_value, $this->options);
+        }
+
+        return $custom_value;
+    }
+
     /**
      * Get API column definition
      *

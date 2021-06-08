@@ -264,7 +264,7 @@ class SystemItem implements ItemInterface
             $custom_value->{array_get($option, 'sqlname')} = $custom_value[$this->uniqueName];
         }
 
-        $this->custom_value = $custom_value;
+        $this->custom_value = $this->getTargetCustomValue($custom_value);
         if (isset($custom_value)) {
             $this->id = array_get($custom_value, 'id');
             $this->value = $this->getTargetValue($custom_value);

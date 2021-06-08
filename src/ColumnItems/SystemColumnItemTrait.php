@@ -32,10 +32,32 @@ trait SystemColumnItemTrait
      * Get view pivot value for 1:n or n:n
      *
      * @param CustomValue $custom_value
-     * @param array $custom_value
+     * @param array $options
      * @return mixed
      */
     protected function getViewPivotValue($custom_value, $options)
+    {
+        $view_pivot_column = array_get($options, 'view_pivot_column');
+        $valuekey = $this instanceof \Exceedone\Exment\ColumnItems\SystemItem ? $this->name() : 'value.'.$this->name();
+        
+        $pivot_custom_value = $this->getViewPivotCustomValue($custom_value, $options);
+
+        if (is_list($pivot_custom_value)) {
+            return collect($pivot_custom_value)->map(function ($v) use ($valuekey) {
+                return array_get($v, $valuekey);
+            });
+        }
+        return array_get($pivot_custom_value, $valuekey);
+    }
+    
+    /**
+     * Get view pivot custom value for 1:n or n:n
+     *
+     * @param CustomValue $custom_value
+     * @param array $options
+     * @return mixed
+     */
+    protected function getViewPivotCustomValue($custom_value, $options)
     {
         $view_pivot_column = array_get($options, 'view_pivot_column');
 
@@ -51,12 +73,10 @@ trait SystemColumnItemTrait
             $relation_custom_value = $custom_value->{$relation_name};
 
             if (is_list($relation_custom_value)) {
-                return collect($relation_custom_value)->map(function ($v) use ($valuekey) {
-                    return array_get($v, $valuekey);
-                });
+                return collect($relation_custom_value);
             }
         
-            return array_get($relation_custom_value, $valuekey);
+            return $relation_custom_value;
         // for select table ----------------------------------------------------
         } else {
             $pivot_custom_column = CustomColumn::getEloquent($view_pivot_column);
@@ -65,11 +85,11 @@ trait SystemColumnItemTrait
             if (is_list($pivot_id)) {
                 return collect($pivot_id)->map(function ($v) use ($valuekey) {
                     $custom_value = $this->custom_table->getValueModel($v);
-                    return array_get($custom_value, $valuekey);
+                    return $custom_value;
                 });
             } else {
                 $custom_value = $this->custom_table->getValueModel($pivot_id);
-                return array_get($custom_value, $valuekey);
+                return $custom_value;
             }
         }
     }
