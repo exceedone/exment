@@ -296,7 +296,7 @@ class DefaultGrid extends GridBase
         $custom_view_grid_filters = $this->custom_view->custom_view_grid_filters;
         if(count($custom_view_grid_filters) > 0)
         {
-            $service = $this->custom_view->getSearchService()->setQuery($filter->getModel());
+            $service = $this->custom_view->getSearchService()->setQuery($filter->model());
 
             foreach($custom_view_grid_filters as $custom_view_grid_filter){
                 $service->setRelationJoin($custom_view_grid_filter);
