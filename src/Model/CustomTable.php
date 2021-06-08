@@ -2138,6 +2138,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_form_type' => false,
                 'ignore_attachment' => false,
                 'ignore_multiple' => false,
+                'ignore_multiple_refer' => false,
                 'ignore_many_to_many' => false,
                 'only_system_grid_filter' => false,
                 'column_type_filter' => null,
@@ -2156,6 +2157,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_form_type = $selectOptions['include_form_type'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
+        $ignore_multiple_refer = $ignore_multiple || $selectOptions['ignore_multiple_refer'];
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
         $column_type_filter = $selectOptions['column_type_filter'];
@@ -2240,7 +2242,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if ($index_enabled_only && !$select_table_column->index_enabled) {
                     continue;
                 }
-                if ($ignore_multiple && $select_table_column->isMultipleEnabled()) {
+                if ($ignore_multiple_refer && $select_table_column->isMultipleEnabled()) {
                     continue;
                 }
                 $select_table = $select_table_column->column_item->getSelectTable();
