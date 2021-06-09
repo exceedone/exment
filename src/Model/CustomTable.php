@@ -2474,7 +2474,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
         foreach ($relations as $rel) {
             $parent_custom_table = array_get($rel, 'parent_custom_table');
-            $this->setSummarySelectOptionItem($options, $parent_custom_table, $parent_custom_table->custom_columns_cache, $parent_custom_table->table_view_name);
+            $optionKeyParams = [
+                'view_pivot_column' => SystemColumn::PARENT_ID,
+                'view_pivot_table' => $this,
+            ];
+            $this->setSummarySelectOptionItem($options, $parent_custom_table, $parent_custom_table->custom_columns_cache, $parent_custom_table->table_view_name, $optionKeyParams);
         }
         
         ///// get child table columns for summary
@@ -2488,25 +2492,32 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $selected_table_columns = $this->getSelectedTableColumns();
         foreach ($selected_table_columns as $selected_table_column) {
             $custom_table = $selected_table_column->custom_table;
-            $this->setSummarySelectOptionItem($options, $custom_table, $custom_table->custom_columns_cache, $selected_table_column->column_view_name);
+            $optionKeyParams = [
+                'view_pivot_column' => $selected_table_column,
+                'view_pivot_table' => $this,
+            ];
+            $this->setSummarySelectOptionItem($options, $custom_table, $custom_table->custom_columns_cache, $selected_table_column->column_view_name, $optionKeyParams);
         }
     
         return $options;
     }
 
 
-    protected function setSummarySelectOptionItem(&$options, $custom_table, $custom_columns, ?string $view_name)
+    protected function setSummarySelectOptionItem(&$options, $custom_table, $custom_columns, ?string $view_name, $optionKeyParams = [])
     {
+
         /// get system columns for summary
         foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-            $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id);
-            $options[$key] = $view_name . ' : ' . exmtrans('common.'.array_get($option, 'name'));
+            $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id, $optionKeyParams);
+            $value = exmtrans('common.'.array_get($option, 'name'));
+            static::setKeyValueOption($options, $key, $value, $view_name);
         }
-        foreach ($custom_columns as $option) {
-            $column_type = array_get($option, 'column_type');
+        foreach ($custom_columns as $custom_column) {
+            $column_type = array_get($custom_column, 'column_type');
             if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                $key = static::getOptionKey(array_get($option, 'id'), true, $custom_table->id);
-                $options[$key] = $view_name . ' : ' . array_get($option, 'column_view_name');
+                $key = static::getOptionKey(array_get($custom_column, 'id'), true, $custom_table->id, $optionKeyParams);
+                $value = array_get($custom_column, 'column_view_name');
+                static::setKeyValueOption($options, $key, $value, $view_name);
             }
         }
     }
