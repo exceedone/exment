@@ -179,6 +179,7 @@ class CustomNotifyController extends AdminControllerTableBase
                 'include_parent' => true,
                 'include_system' => false,
                 'ignore_multiple' => true,
+                'ignore_many_to_many' => true,
                 'column_type_filter' => function($column) {
                     if ($column instanceof CustomColumn) {
                         return ColumnType::isDate($column->column_type);

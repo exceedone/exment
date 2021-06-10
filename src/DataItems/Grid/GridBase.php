@@ -180,7 +180,7 @@ abstract class GridBase
                 'include_workflow_work_users' => true,
                 'ignore_attachment' => true,
                 'ignore_many_to_many' => true,
-                'ignore_multiple' => true,
+                'ignore_multiple_refer' => true,
             ]
         );
         if (boolval(config('exment.form_column_option_group', 'true'))) {

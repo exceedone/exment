@@ -746,6 +746,7 @@ class DefaultGrid extends GridBase
             'index_enabled_only' => true,
             'only_system_grid_filter' => true,
             'ignore_many_to_many' => true,
+            'ignore_multiple_refer' => true,
         ], $column_options);
 
         $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
