@@ -348,7 +348,7 @@ class File extends CustomItem
             $query->whereNotMatch();
         }
         
-        $query->whereOrIn('id', $ids);
+        $query->whereOrIn($this->getTableColumn('id'), $ids);
     }
     
 

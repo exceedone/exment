@@ -164,7 +164,7 @@ abstract class CustomItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
-        $this->custom_value = $custom_value;
+        $this->custom_value = $this->getTargetCustomValue($custom_value);
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
             $this->id = array_get($custom_value, 'id');

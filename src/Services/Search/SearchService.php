@@ -329,6 +329,10 @@ class SearchService
             'view_column_target_id' => $column->view_column_target_id,
             'sort' => $type == 'desc' ? -1 : 1,
             'priority' => 1,
+            'options' => [
+                'view_pivot_table_id' => array_get($column, 'options.view_pivot_table_id'),
+                'view_pivot_column_id' => array_get($column, 'options.view_pivot_column_id'),
+            ],
         ]);
 
         return $this->orderByCustomViewSort($custom_view_sort);
