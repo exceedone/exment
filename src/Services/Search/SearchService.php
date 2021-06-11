@@ -370,12 +370,11 @@ class SearchService
         }
 
         // set group by. Maybe if has subquery, set again.
-        $group_by_column = $column_item->getGroupByWrapTableColumn(false, $isSubQuery);
-        $this->query->groupByRaw($group_by_column);
+        $wrap_column = $column_item->getGroupByWrapTableColumn(false, $isSubQuery);
+        $this->query->groupByRaw($wrap_column);
 
         // get group's column for select. this is wraped.
         $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
-
         // set select column. And add "as".
         $this->query->selectRaw("$wrap_column AS $sqlAsName");
         
@@ -385,6 +384,7 @@ class SearchService
         return $this;
     }
 
+    
     /**
      * Add select by custom view summary. Contains CustomViewSummary.
      *
