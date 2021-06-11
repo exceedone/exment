@@ -179,6 +179,11 @@ class ParentItem implements ItemInterface
             return;
         }
 
+        // if options has "summary" (for summary view)
+        if (boolval(array_get($this->options, 'summary'))) {
+            return $this->custom_relation->child_custom_table_cache->getValueModel(array_get($custom_value, $this->sqlAsName()));
+        }
+
         $relation_name = $this->custom_relation->getRelationName();
         return $custom_value->{$relation_name};
     }
@@ -276,11 +281,12 @@ class ParentItem implements ItemInterface
      * Wrap: true
      * 
      * @param boolean $asSelect if true, get sqlname for select column
+     * @param boolean $asSqlAsName if true, get sqlname as name.
      * @return string group by column name
      */
-    public function getGroupByWrapTableColumn(bool $asSelect = false) : string
+    public function getGroupByWrapTableColumn(bool $asSelect = false, bool $asSqlAsName = false) : string
     {
-        $table_column_name = $this->getTableColumn();
+        $table_column_name = $asSqlAsName ? $this->getTableColumn($this->sqlAsName()) : $this->getTableColumn();
 
         $group_condition = array_get($this->options, 'group_condition');
 

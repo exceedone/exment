@@ -61,12 +61,13 @@ trait SummaryItemTrait
      * Wrap: true
      * 
      * @param boolean $asSelect if true, get sqlname for select column
+     * @param boolean $asSqlAsName if true, get sqlname as name.
      * @return string group by column name
      */
-    public function getGroupByWrapTableColumn(bool $asSelect = false) : string
+    public function getGroupByWrapTableColumn(bool $asSelect = false, bool $asSqlAsName = false) : string
     {
         $options = $this->getSummaryParams();
-        $value_table_column = $options['value_table_column'];
+        $value_table_column = $asSqlAsName ? $this->getTableColumn($this->sqlAsName()) : $options['value_table_column'];
         $group_condition = $options['group_condition'];
         
         if (isset($group_condition)) {

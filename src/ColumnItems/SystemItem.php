@@ -110,11 +110,12 @@ class SystemItem implements ItemInterface
      * Wrap: true
      * 
      * @param boolean $asSelect if true, get sqlname for select column
+     * @param boolean $asSqlAsName if true, get sqlname as name.
      * @return string group by column name
      */
-    public function getGroupByWrapTableColumn(bool $asSelect = false) : string
+    public function getGroupByWrapTableColumn(bool $asSelect = false, bool $asSqlAsName = false) : string
     {
-        $table_column_name = $this->getSqlColumnName(true);
+        $table_column_name = $asSqlAsName ? $this->getTableColumn($this->sqlAsName()) : $this->getSqlColumnName(true);
 
         $group_condition = array_get($this->options, 'group_condition');
 

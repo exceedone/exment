@@ -690,7 +690,7 @@ class RelationTable
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
-        $query->{$joinName}(function($subQuery) use($child_table_name, $query_key){
+        $query->{$joinName}(function($subQuery) use($child_table_name, $custom_item, $query_key){
             // set from and default group by, select.
             $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
                 ->select("{$this->tableUniqueName}.$query_key")

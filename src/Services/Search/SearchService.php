@@ -357,24 +357,26 @@ class SearchService
 
         // get group's column. this is wraped.
         $wrap_column = $column_item->getGroupByWrapTableColumn();
+        $sqlAsName = \Exment::wrapColumn($column_item->sqlAsName());
         
         // if has sub query(for child relation), set to sub query
+        $isSubQuery = false;
         if($relationTable && SearchType::isSummarySearchType($relationTable->searchType)){
+            $isSubQuery = true;
             $relationTable->subQueryCallbacks[] = function($subquery, $relationTable) use($wrap_column, $sqlAsName){
                 $subquery->selectRaw("$wrap_column AS $sqlAsName");
                 $subquery->groupByRaw($wrap_column);
             };
-
         }
 
-        // set group by. If has subquery, set again.
-        $this->query->groupByRaw($wrap_column);
+        // set group by. Maybe if has subquery, set again.
+        $group_by_column = $column_item->getGroupByWrapTableColumn(false, $isSubQuery);
+        $this->query->groupByRaw($group_by_column);
 
         // get group's column for select. this is wraped.
-        $wrap_column = $column_item->getGroupByWrapTableColumn(true);
+        $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
 
         // set select column. And add "as".
-        $sqlAsName = $column_item->sqlAsName();
         $this->query->selectRaw("$wrap_column AS $sqlAsName");
         
         // if has sort order, set order by
@@ -401,7 +403,7 @@ class SearchService
         ///// set summary.
         // $select is wraped.
         $wrap_column = $column_item->getSummaryWrapTableColumn();
-        $sqlAsName = $column_item->sqlAsName();
+        $sqlAsName = \Exment::wrapColumn($column_item->sqlAsName());
 
         // if has sub query(for child relation), set to sub query
         if($relationTable && SearchType::isSummarySearchType($relationTable->searchType)){
