@@ -349,7 +349,7 @@ class SearchService
     public function groupByCustomViewColumn(CustomViewColumn $column)
     {
         // set relation table join.
-        $this->setRelationJoin($column, [
+        $relationTable = $this->setRelationJoin($column, [
             'asSummary' => true,
         ]);
 
@@ -357,8 +357,17 @@ class SearchService
 
         // get group's column. this is wraped.
         $wrap_column = $column_item->getGroupByWrapTableColumn();
+        
+        // if has sub query(for child relation), set to sub query
+        if($relationTable && SearchType::isSummarySearchType($relationTable->searchType)){
+            $relationTable->subQueryCallbacks[] = function($subquery, $relationTable) use($wrap_column, $sqlAsName){
+                $subquery->selectRaw("$wrap_column AS $sqlAsName");
+                $subquery->groupByRaw($wrap_column);
+            };
 
-        // set group by.
+        }
+
+        // set group by. If has subquery, set again.
         $this->query->groupByRaw($wrap_column);
 
         // get group's column for select. this is wraped.
@@ -383,17 +392,33 @@ class SearchService
     public function selectSummaryCustomViewSummary(CustomViewSummary $column)
     {
         // set relation table join.
-        $this->setRelationJoin($column, [
+        $relationTable = $this->setRelationJoin($column, [
             'asSummary' => true,
         ]);
 
         $column_item = $column->column_item;
 
-        // set summary.
+        ///// set summary.
         // $select is wraped.
         $wrap_column = $column_item->getSummaryWrapTableColumn();
         $sqlAsName = $column_item->sqlAsName();
-        $this->query->selectRaw("$wrap_column AS $sqlAsName");
+
+        // if has sub query(for child relation), set to sub query
+        if($relationTable && SearchType::isSummarySearchType($relationTable->searchType)){
+            $relationTable->subQueryCallbacks[] = function($subquery, $relationTable) use($wrap_column, $sqlAsName){
+                $subquery->selectRaw("$wrap_column AS $sqlAsName");
+            };
+
+            // set to default query.
+            // MIN, MAX : non summary.
+            // COUNT, SUM : SUM.
+            $result_column = $column_item->getSummaryJoinResultWrapTableColumn();
+            $this->query->selectRaw("$result_column AS $sqlAsName");
+        }
+        // default, set to default query.
+        else{
+            $this->query->selectRaw("$wrap_column AS $sqlAsName");
+        }
         
         // if has sort order, set order by
         $this->setSummaryOrderBy($column, $wrap_column);
@@ -470,7 +495,7 @@ class SearchService
      *
      * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
      */
-    public function setRelationJoin($column, array $options = [])
+    public function setRelationJoin($column, array $options = []) : ?RelationTable
     {
         $options = array_merge([
             'asSummary' => false,
@@ -478,6 +503,8 @@ class SearchService
         ], $options);
         $asSummary = $options['asSummary'];
         $asOrderBy = $options['asOrderBy'];
+
+        $relationTable = null;
 
         // get condition params
         list($order_table_id, $order_column_id, $this_table_id, $this_column_id) = $this->getConditionParams($column);
@@ -517,6 +544,8 @@ class SearchService
         if($this->isJoinWorkflowWorkUsers($column)){
             RelationTable::setWorkflowWorkUsersSubQuery($this->query, $this->custom_table, $column->custom_view_cache->filter_is_or);
         }
+
+        return $relationTable;
     }
 
     
@@ -746,4 +775,5 @@ class SearchService
 
         return [null, null, null, null];
     }
+
 }

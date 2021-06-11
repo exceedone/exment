@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Encore\Admin\Show\Field as ShowField;
@@ -429,6 +430,42 @@ trait ItemTrait
     {
         $table_column_name = $this->getTableColumn();
         return \DB::getQueryGrammar()->getDateFormatString($format, $table_column_name);
+    }
+
+    /**
+     * Get summary query,for use join sub.
+     * 
+     * MIN, MAX : non summary.
+     * COUNT, SUM : SUM.
+     * 
+     * Join table: true
+     * Wrap: true
+     *
+     * @return string
+     */
+    public function getSummaryJoinResultWrapTableColumn() : string
+    {
+        $options = $this->getSummaryParams();
+        // get normal summary condition.
+        $summary_condition = $this->getSummaryConditionName();
+
+        $new_summary_condition = null;
+        switch($summary_condition){
+            case SummaryCondition::SUM:
+            case SummaryCondition::COUNT:
+                $new_summary_condition = SummaryCondition::SUM;
+        }
+
+        // get wraped, joined table, and sub query's as name. 
+        $wrapCastColumn = \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
+        if (isset($new_summary_condition)) {
+            // add condition.
+            $result = "$new_summary_condition($wrapCastColumn)";
+        } else {
+            $result = $wrapCastColumn;
+        }
+
+        return $result;
     }
 
     /**

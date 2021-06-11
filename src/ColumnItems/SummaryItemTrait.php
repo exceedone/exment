@@ -84,7 +84,7 @@ trait SummaryItemTrait
         $group_condition = isset($group_condition) ? GroupCondition::getEnum($group_condition) : null;
 
         // get value_table_column(Contains table and column)
-        $value_table_column = $this->getTableColumn($this->custom_column->getQueryKey());
+        $value_table_column = $this->getTableColumn($this->sqlname());
         
         return [
             'group_condition' => $group_condition,

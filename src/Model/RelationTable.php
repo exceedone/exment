@@ -57,6 +57,13 @@ class RelationTable
      */
     public $tableUniqueName;
     
+    /**
+     * Sub query's callbacks. Use for summary.
+     * If set, call for sub query select, group by etc.
+     *
+     * @var []
+     */
+    public $subQueryCallbacks = [];
 
 
     public function __construct(array $params = [])
@@ -431,14 +438,14 @@ class RelationTable
         
         switch ($this->searchType) {
             case SearchType::SUMMARY_ONE_TO_MANY:
-                return $this->setChildJoinOneMany($query, $parent_table, $child_table, $leftJoin);
+                return $this->setSummaryChildJoinOneMany($query, $parent_table, $child_table, $leftJoin);
             case SearchType::SUMMARY_MANY_TO_MANY:
-                return $this->setChildJoinManyAndMany($query, $parent_table, $child_table, $leftJoin);
+                return $this->setSummaryChildJoinManyAndMany($query, $parent_table, $child_table, $leftJoin);
             case SearchType::SUMMARY_SELECT_TABLE:
                 if (\is_nullorempty($custom_column) && !\is_nullorempty($parent_table)) {
                     $custom_column = $parent_table->getSelectTableColumns($child_table)->first();
                 }
-                return $this->setChildJoinSelectTable($query, $parent_table, $custom_column, $leftJoin);
+                return $this->setSummaryChildJoinSelectTable($query, $parent_table, $custom_column, $leftJoin);
             }
         
         return $query;
@@ -498,8 +505,8 @@ class RelationTable
         
         return $query;
     }
-    
 
+    
     /**
      * Set parent join for select table
      *
@@ -542,13 +549,13 @@ class RelationTable
 
 
     /**
-     * Set child join for 1:n relation
+     * Set summary child join for 1:n relation. join sub query.
      *
      * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param CustomTable $parent_table
      * @return mixed
      */
-    public function setChildJoinOneMany($query, $parent_table, $child_table, bool $leftJoin = false)
+    public function setSummaryChildJoinOneMany($query, $parent_table, $child_table, bool $leftJoin = false)
     {
         if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
             return;
@@ -559,8 +566,18 @@ class RelationTable
         $child_table_name = getDBTableName($child_table);
 
         // Append join query.
-        $joinName = $leftJoin ? 'leftJoin' : 'join';
-        $query->{$joinName}("$child_table_name AS {$this->tableUniqueName}", "{$this->tableUniqueName}.parent_id", "=", "$parent_table_name.id");
+        $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
+        $query->{$joinName}(function($subQuery) use($child_table_name){
+            // set from and default group by, select.
+            $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
+                ->select("{$this->tableUniqueName}.parent_id")
+                ->groupBy("{$this->tableUniqueName}.parent_id");
+
+            // call subquery object callbacks.
+            foreach($this->subQueryCallbacks as $callback){
+                $callback($subQuery, $this);
+            };
+        }, $this->tableUniqueName, "{$this->tableUniqueName}.parent_id", "=", "$parent_table_name.id");
         
         return $query;
     }
@@ -610,9 +627,41 @@ class RelationTable
      * @param CustomTable $parent_table
      * @return mixed
      */
-    public function setChildJoinManyAndMany($query, $parent_table, $child_table)
+    public function setSummaryChildJoinManyAndMany($query, $parent_table, $child_table, bool $leftJoin = false)
     {
-        return static::setChildJoinManyMany($query, $parent_table, $child_table, $this->tableUniqueName);
+        if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
+            return;
+        }
+
+        $relation = CustomRelation::getRelationByParentChild($parent_table, $child_table, RelationType::MANY_TO_MANY);
+        if (is_nullorempty($relation)) {
+            return;
+        }
+        
+        // Get DB table name
+        $parent_table_name = getDBTableName($parent_table);
+        $child_table_name = getDBTableName($child_table);
+        $relation_name = $relation->getRelationName();
+
+        
+        // Append join query.
+        $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
+        $query->{$joinName}(function($subQuery) use($child_table_name, $relation_name, $leftJoin){
+            $joinName = $leftJoin ? 'leftJoin' : 'join';
+
+            // set from and default group by, select.
+            $subQuery->from($relation_name)
+                ->{$joinName}("$child_table_name AS {$this->tableUniqueName}", "{$this->tableUniqueName}.id", "=", "$relation_name.child_id")
+                ->select("{$relation_name}.parent_id")
+                ->groupBy("{$relation_name}.parent_id");
+
+            // call subquery object callbacks.
+            foreach($this->subQueryCallbacks as $callback){
+                $callback($subQuery, $this);
+            };
+        }, $this->tableUniqueName, "{$this->tableUniqueName}.parent_id", "=", "$parent_table_name.id");
+        
+        return $query;
     }
 
     /**
@@ -623,7 +672,7 @@ class RelationTable
      * @param CustomColumn $custom_column select_table's column in $query's table
      * @return mixed
      */
-    public function setChildJoinSelectTable($query, $parent_table, $custom_column, bool $leftJoin = false)
+    public function setSummaryChildJoinSelectTable($query, $parent_table, $custom_column, bool $leftJoin = false)
     {
         if (is_nullorempty($parent_table) || is_nullorempty($custom_column)) {
             return;
@@ -640,8 +689,18 @@ class RelationTable
         $query_key = $custom_column->getQueryKey();
 
         // Append join query.
-        $joinName = $leftJoin ? 'leftJoin' : 'join';
-        $query->{$joinName}("$child_table_name AS $unique_table_name", function($join) use($custom_item, $parent_table_name, $unique_table_name, $query_key){
+        $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
+        $query->{$joinName}(function($subQuery) use($child_table_name, $query_key){
+            // set from and default group by, select.
+            $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
+                ->select("{$this->tableUniqueName}.$query_key")
+                ->groupBy("{$this->tableUniqueName}.$query_key");
+
+            // call subquery object callbacks.
+            foreach($this->subQueryCallbacks as $callback){
+                $callback($subQuery, $this);
+            };
+        }, $this->tableUniqueName, function($join) use($custom_item, $parent_table_name, $unique_table_name, $query_key){
             // If multiple, join as array string
             if($custom_item->isMultipleEnabled()){
                 $join->whereInArrayColumn("$parent_table_name.id", "$unique_table_name.$query_key");
@@ -649,8 +708,8 @@ class RelationTable
             else{
                 $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$query_key");
             }
-        })
-            ;
+        });
+        
         return $query;
     }
 
