@@ -186,10 +186,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
             case GroupCondition::D:
                 return "format(datepart(DAY, $column), '00')";
             case GroupCondition::W:
-                if ($groupBy) {
-                    return "datepart(WEEKDAY, $column)";
-                }
-                return $this->getWeekdayCaseWhenQuery("datepart(WEEKDAY, $column)");
+                return "datepart(WEEKDAY, $column)";
             case GroupCondition::YMDHIS:
                 return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00') + '-' + format(datepart(DAY, $column), '00') + ' ' + format(datepart(HOUR, $column), '00') + ':' + format(datepart(MINUTE, $column), '00') + ':' + format(datepart(SECOND, $column), '00')";
         }
@@ -225,42 +222,6 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         }
 
         return null;
-    }
-
-    /**
-     * Get case when query
-     *
-     * @return string
-     */
-    protected function getWeekdayCaseWhenQuery($str)
-    {
-        $queries = [];
-
-        // get weekday and no list
-        $weekdayNos = $this->getWeekdayNolist();
-
-        foreach ($weekdayNos as $no => $weekdayKey) {
-            $weekday = exmtrans('common.weekday.' . $weekdayKey);
-            $queries[] = "when {$no} then '$weekday'";
-        }
-
-        $queries[] = "else ''";
-
-        $when = implode(" ", $queries);
-        return "(case {$str} {$when} end)";
-    }
-
-    protected function getWeekdayNolist()
-    {
-        return [
-            '1' => 'sun',
-            '2' => 'mon',
-            '3' => 'tue',
-            '4' => 'wed',
-            '5' => 'thu',
-            '6' => 'fri',
-            '7' => 'sat',
-        ];
     }
 
     /**

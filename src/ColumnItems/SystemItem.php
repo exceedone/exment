@@ -295,7 +295,12 @@ class SystemItem implements ItemInterface
     {
         // if options has "summary" (for summary view)
         if (boolval(array_get($this->options, 'summary'))) {
-            return array_get($custom_value, $this->sqlAsName());
+            // if group condition is weekday, return weekday format
+            $v = array_get($custom_value, $this->sqlAsName());
+            if(array_get($this->options, 'group_condition') == 'w'){
+                return $this->getWeekdayFormat($v);
+            }
+            return $v;
         }
 
         // if options has "view_pivot_column", get select_table's custom_value first

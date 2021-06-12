@@ -906,6 +906,34 @@ trait ItemTrait
     }
 
     /**
+     * Get weekday format
+     *
+     * @return string
+     */
+    protected function getWeekdayFormat($val)
+    {
+        $queries = [];
+
+        // get weekday and no list
+        $weekdayNos = $this->getWeekdayNolist();
+
+        return exmtrans('common.weekday.' . array_get($weekdayNos, $val));
+    }
+
+    protected function getWeekdayNolist()
+    {
+        return [
+            '1' => 'sun',
+            '2' => 'mon',
+            '3' => 'tue',
+            '4' => 'wed',
+            '5' => 'thu',
+            '6' => 'fri',
+            '7' => 'sat',
+        ];
+    }
+
+    /**
      * Whether is show filter null check
      *
      * @return bool

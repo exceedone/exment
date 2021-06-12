@@ -235,10 +235,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
             case GroupCondition::D:
                 return "date_format($column, '%d')";
             case GroupCondition::W:
-                if ($groupBy) {
-                    return "date_format($column, '%w')";
-                }
-                return $this->getWeekdayCaseWhenQuery("date_format($column, '%w')");
+                return "date_format($column, '%w')";
             case GroupCondition::YMDHIS:
                 // not use
                 return null;
@@ -275,43 +272,6 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         }
 
         return null;
-    }
-
-    /**
-     * Get case when query
-     *
-     * @return string
-     */
-    protected function getWeekdayCaseWhenQuery($str)
-    {
-        $queries = [];
-
-        // get weekday and no list
-        $weekdayNos = $this->getWeekdayNolist();
-
-        foreach ($weekdayNos as $no => $weekdayKey) {
-            $weekday = exmtrans('common.weekday.' . $weekdayKey);
-            $queries[] = "when {$no} then '$weekday'";
-        }
-
-        $queries[] = "else ''";
-
-        $when = implode(" ", $queries);
-        return "(case {$str} {$when} end)";
-    }
-
-    protected function getWeekdayNolist()
-    {
-        return [
-            '0' => 'sun',
-            '1' => 'mon',
-            '2' => 'tue',
-            '3' => 'wed',
-            '4' => 'thu',
-            '5' => 'fri',
-            '6' => 'sat',
-            '7' => 'sun',
-        ];
     }
 
     /**
