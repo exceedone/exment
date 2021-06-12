@@ -416,6 +416,13 @@ class SearchService
             // COUNT, SUM : SUM.
             $result_column = $column_item->getSummaryJoinResultWrapTableColumn();
             $this->query->selectRaw("$result_column AS $sqlAsName");
+
+            // set to default query group by.
+            // Need MIN, MAX.
+            $result_column = $column_item->getGroupByJoinResultWrapTableColumn();
+            if(!is_nullorempty($result_column)){
+                $this->query->groupByRaw($result_column);
+            }
         }
         // default, set to default query.
         else{

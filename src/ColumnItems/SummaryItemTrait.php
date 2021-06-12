@@ -15,6 +15,18 @@ trait SummaryItemTrait
     //for summary  --------------------------------------------------
 
     /**
+     * Get summary condion enum.
+     * SUM, COUNT, MIN, MAX
+     *
+     * @return string|null
+     */
+    protected function getSummaryCondition()
+    {
+        $summary_option = array_get($this->options, 'summary_condition');
+        $summary_condition = is_null($summary_option) ? null : SummaryCondition::getEnum($summary_option);
+        return $summary_condition;
+    }
+    /**
      * Get summary condion name.
      * SUM, COUNT, MIN, MAX
      *
@@ -22,9 +34,11 @@ trait SummaryItemTrait
      */
     protected function getSummaryConditionName()
     {
-        $summary_option = array_get($this->options, 'summary_condition');
-        $summary_condition = is_null($summary_option) ? null : SummaryCondition::getEnum($summary_option)->lowerKey();
-        return $summary_condition;
+        $summary_condition = $this->getSummaryCondition();
+        if(!is_null($summary_condition)){
+            return $summary_condition->lowerKey();
+        }
+        return null;
     }
 
     

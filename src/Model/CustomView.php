@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\SearchType;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -714,18 +715,20 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set value filters
      */
-    public function setValueFilters($query, $db_table_name = null)
+    public function setValueFilters($query)
     {
+        // If summary, call setSummaryValueFilters.
+        if($this->view_kind_type == ViewKindType::AGGREGATE){
+            return $this->setSummaryValueFilters($query);
+        }
+
         // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
         $custom_view_filters = $this->custom_view_filters;
 
         if (!empty($custom_view_filters)) {
             $service = $this->getSearchService()->setQuery($query);
-
             foreach ($custom_view_filters as $filter) {
-                $service->setRelationJoin($filter, [
-                    'asSummary' => $this->view_kind_type == ViewKindType::AGGREGATE,
-                ]);
+                $service->setRelationJoin($filter);
             }
 
             $query->where(function ($query) use($custom_view_filters, $service) {
@@ -738,8 +741,53 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $query;
     }
 
+
+    /**
+     * set summary value filters
+     */
+    protected function setSummaryValueFilters($query)
+    {
+        // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
+        $custom_view_filters = $this->custom_view_filters;
+
+        if (!empty($custom_view_filters)) {
+            $service = $this->getSearchService()->setQuery($query);
+
+            // Get $relationTables.
+            // If summary sub query, set filter to sub query.
+            $relationTables = [];
+            foreach ($custom_view_filters as $filter) {
+                $relationTable = $service->setRelationJoin($filter, [
+                    'asSummary' => true,
+                ]);
+                $relationTables[] = $relationTable;
+
+                // if has sub query(for child relation), set filter to sub query
+                if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
+                    $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($service, $filter) {
+                        $service->whereCustomViewFilter($filter, $this->filter_is_or, $subquery);
+                    };
+                }
+            }
+
+            $query->where(function ($query) use($relationTables, $custom_view_filters, $service) {
+                foreach ($custom_view_filters as $index => $filter) {
+                    $relationTable = $relationTables[$index];
+                    // If filter is not already setted, call.
+                    if (!$relationTable || !SearchType::isSummarySearchType($relationTable->searchType)) {
+                        $service->whereCustomViewFilter($filter, $this->filter_is_or, $query);
+                    }
+                }
+            });
+        }
+
+        return $query;
+    }
+
     /**
      * set value sort
+     * 
+     * @deprecated Please use sortModel func.
      */
     public function setValueSort($model)
     {

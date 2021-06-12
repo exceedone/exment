@@ -230,7 +230,7 @@ class SummaryGrid extends GridBase
         }
         // Set default label if summary
         elseif($column instanceof CustomViewSummary){
-            $summary_condition = SummaryCondition::getSummaryCondition(array_get($column, 'view_summary_condition'));
+            $summary_condition = SummaryCondition::getSummaryConditionName(array_get($column, 'view_summary_condition'));
             if(!is_nullorempty($summary_condition)){
                 $column_item->setLabel(exmtrans('common.format_keyvalue', exmtrans("custom_view.summary_condition_options.{$summary_condition}"), $column_item->label()));
             }

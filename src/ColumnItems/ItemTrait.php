@@ -452,13 +452,13 @@ trait ItemTrait
     {
         $options = $this->getSummaryParams();
         // get normal summary condition.
-        $summary_condition = $this->getSummaryConditionName();
+        $summary_condition = $this->getSummaryCondition();
 
         $new_summary_condition = null;
         switch($summary_condition){
             case SummaryCondition::SUM:
             case SummaryCondition::COUNT:
-                $new_summary_condition = SummaryCondition::SUM;
+                $new_summary_condition = SummaryCondition::getSummaryConditionName(SummaryCondition::SUM);
         }
 
         // get wraped, joined table, and sub query's as name. 
@@ -471,6 +471,32 @@ trait ItemTrait
         }
 
         return $result;
+    }
+
+    /**
+     * Get group by query,for use join sub.
+     * 
+     * MIN, MAX : group string.
+     * Others : null.
+     * 
+     * Join table: true
+     * Wrap: true
+     *
+     * @return string|null
+     */
+    public function getGroupByJoinResultWrapTableColumn() : ?string
+    {
+        $options = $this->getSummaryParams();
+        // get normal summary condition.
+        $summary_condition = $this->getSummaryCondition();
+
+        switch($summary_condition){
+            case SummaryCondition::MAX:
+            case SummaryCondition::MIN:
+                // get wraped, joined table, and sub query's as name. 
+                return \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
+        }
+        return null;
     }
 
     /**
