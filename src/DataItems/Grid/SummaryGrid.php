@@ -282,7 +282,7 @@ class SummaryGrid extends GridBase
                     'data-change_field_target' => 'view_column_target',
                 ]);
 
-            if (boolval(config('exment.form_column_option_group', 'true'))) {
+            if (boolval(config('exment.form_column_option_group', false))) {
                 $targetGroups = static::convertGroups($targetOptions, $custom_table);
                 $field->groups($targetGroups);
             }
@@ -321,7 +321,7 @@ class SummaryGrid extends GridBase
                 ->options($targetOptions)
                 ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
 
-            if (boolval(config('exment.form_column_option_group', 'true'))) {
+            if (boolval(config('exment.form_column_option_group', false))) {
                 $targetGroups = static::convertGroups($targetOptions, $custom_table);
                 $field->groups($targetGroups);
             }

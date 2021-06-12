@@ -183,7 +183,7 @@ abstract class GridBase
                 'ignore_multiple_refer' => true,
             ]
         );
-        if (boolval(config('exment.form_column_option_group', 'true'))) {
+        if (boolval(config('exment.form_column_option_group', false))) {
             $targetGroups = static::convertGroups($targetOptions, $custom_table);
         }
 
@@ -235,7 +235,7 @@ abstract class GridBase
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions);
 
-            if (boolval(config('exment.form_column_option_group', 'true'))) {
+            if (boolval(config('exment.form_column_option_group', false))) {
                 $targetGroups = static::convertGroups($targetOptions, $custom_table);
                 $field->groups($targetGroups);
             }
@@ -273,7 +273,7 @@ abstract class GridBase
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions);
 
-            if (boolval(config('exment.form_column_option_group', 'true'))) {
+            if (boolval(config('exment.form_column_option_group', false))) {
                 $targetGroups = static::convertGroups($targetOptions, $custom_table);
                 $field->groups($targetGroups);
             }

@@ -41,6 +41,8 @@ class AddOptionsToCustomViewSort extends Migration
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
         });
+        
+        \Artisan::call('exment:patchdata', ['action' => 'patch_custom_view_summary_view_pivot']);
     }
 
     /**

@@ -1014,5 +1014,5 @@ return [
     | Show Select field with group option
     |
     */
-    'form_column_option_group' => env('EXMENT_FORM_COLUMN_OPTION_GROUP', true),
+    'form_column_option_group' => env('EXMENT_FORM_COLUMN_OPTION_GROUP', false),
 ];

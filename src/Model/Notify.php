@@ -63,12 +63,17 @@ class Notify extends ModelBase
         $notify_target_column = array_get($trigger_settings, 'notify_target_column');
         $notify_target_table_id = array_get($trigger_settings, 'notify_target_table_id');
 
-        if (!isset($notify_target_column) || !isset($notify_target_table_id)) {
-            return $trigger_settings;
-        }
+        // if (!isset($notify_target_column) || !isset($notify_target_table_id)) {
+        //     return $trigger_settings;
+        // }
 
-        $optionKeyParams['view_pivot_column'] = array_get($trigger_settings, 'view_pivot_column_id');
-        $optionKeyParams['view_pivot_table'] = array_get($trigger_settings, 'view_pivot_table_id');
+        $optionKeyParams = [];
+        if(!is_nullorempty($v = array_get($trigger_settings, 'view_pivot_column_id'))){
+            $optionKeyParams['view_pivot_column'] = $v;
+        }
+        if(!is_nullorempty($v = array_get($trigger_settings, 'view_pivot_table_id'))){
+            $optionKeyParams['view_pivot_table'] = $v;
+        }
 
         $trigger_settings['notify_target_date'] = static::getOptionKey($notify_target_column, true, $notify_target_table_id, $optionKeyParams);
 
@@ -84,8 +89,12 @@ class Notify extends ModelBase
 
             $value['notify_target_column'] = $column_type_target;
             $value['notify_target_table_id'] = $column_table_id;
-            $value['view_pivot_column_id'] = $view_pivot_column;
-            $value['view_pivot_table_id'] = $view_pivot_table;
+            if(!is_nullorempty($view_pivot_column)){
+                $value['view_pivot_column_id'] = $view_pivot_column;
+            }
+            if(!is_nullorempty($view_pivot_table)){
+                $value['view_pivot_table_id'] = $view_pivot_table;
+            }
             unset($value['notify_target_date']);
         }
 

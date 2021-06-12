@@ -606,7 +606,7 @@ class SearchService
      * Filter relation table info
      *
      * @param \Illuminate\Support\Collection $relationTables
-     * @param CustomViewSort $filterObj
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $filterObj
      * @return RelationTable|null filtered Relation Table
      */
     protected function filterRelationTable($relationTables, $filterObj) : ?RelationTable
