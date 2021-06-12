@@ -96,6 +96,7 @@ class RelationTable
             ],
             $options
         );
+        $custom_table = CustomTable::getEloquent($custom_table);
 
         // check already execute
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $custom_table->table_name, strval($options['get_parent_relation_tables']));
