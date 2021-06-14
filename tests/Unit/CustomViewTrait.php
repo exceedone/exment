@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Tests\TestDefine;
 
 trait CustomViewTrait
@@ -107,7 +108,8 @@ trait CustomViewTrait
     protected function getTargetColumnId($setting, $custom_table)
     {
         if ($setting['column_name'] == SystemColumn::PARENT_ID) {
-            $column_id = $setting['column_name'];
+            //$column_id = $setting['column_name'];
+            $column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
         } elseif (!isset($setting['condition_type']) || $setting['condition_type'] == ConditionType::COLUMN) {
             $custom_column = CustomColumn::getEloquent($setting['column_name'], $custom_table);
             $column_id = $custom_column->id;
