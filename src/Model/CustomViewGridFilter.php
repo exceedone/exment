@@ -14,6 +14,7 @@ class CustomViewGridFilter extends ModelBase
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonOptionTrait;
+    use Traits\AutoSUuidTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['view_column_target'];
