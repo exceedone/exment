@@ -701,6 +701,7 @@ class SearchService
     protected function isJoinedTable($relationTable){
         return collect($this->joinedTables)->contains(function($joinedTable) use($relationTable){
             return isMatchString($joinedTable->table->id, $relationTable->table->id) && 
+            isMatchString($joinedTable->base_table->id, $relationTable->base_table->id) && 
             isMatchString($joinedTable->searchType, $relationTable->searchType) && 
             isMatchString($joinedTable->selectTablePivotColumn, $relationTable->selectTablePivotColumn);
         });

@@ -276,11 +276,11 @@ class RelationTable
     
         // 2. Get relation tables.
         // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
-        $tables = CustomTable::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
-        ->join('custom_tables AS parent_custom_tables', 'parent_custom_tables.id', 'custom_relations.parent_custom_table_id')
-            ->whereHas('custom_relations', function ($query) use ($custom_table) {
-                $query->where('child_custom_table_id', $custom_table->id);
-            })->get(['parent_custom_tables.*', 'custom_relations.relation_type'])->toArray();
+        $tables = CustomTable::join('custom_relations', function ($join) use($custom_table) {
+            $join->on('custom_tables.id', '=', 'custom_relations.parent_custom_table_id')
+                 ->where('custom_relations.child_custom_table_id', '=', $custom_table->id);
+        })->join('custom_tables AS parent_custom_tables', 'parent_custom_tables.id', 'custom_relations.parent_custom_table_id')
+            ->get(['parent_custom_tables.*', 'custom_relations.relation_type'])->toArray();
         foreach ($tables as $table) {
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
             $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::SUMMARY_ONE_TO_MANY : SearchType::SUMMARY_MANY_TO_MANY;
