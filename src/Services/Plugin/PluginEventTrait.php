@@ -41,6 +41,6 @@ trait PluginEventTrait
         if (isset($options['notify'])) {
             $this->notify = $options['notify'];
         }
-        $this->isCreate = is_nullorempty($custom_value);
+        $this->isCreate = is_nullorempty($custom_value) || $custom_value->wasRecentlyCreated;
     }
 }
