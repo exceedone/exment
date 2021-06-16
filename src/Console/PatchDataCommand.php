@@ -1900,46 +1900,49 @@ class PatchDataCommand extends Command
     protected function patchCustomViewSummaryViewPivot()
     {
         \DB::transaction(function () {
-            // get all CustomViewSummary
-            CustomViewSummary::with('custom_view')->get()
-            ->each(function ($custom_view_summary) {
-                // get view and table info
-                $custom_view = $custom_view_summary->custom_view;
-                $custom_table_id = $custom_view->custom_table_id;
+            $classNames = [CustomViewSummary::class, CustomViewColumn::class];
+            foreach($classNames as $className){
+                // get all CustomViewSummary
+                $className::with('custom_view')->get()
+                ->each(function ($custom_view_summary) {
+                    // get view and table info
+                    $custom_view = $custom_view_summary->custom_view;
+                    $custom_table_id = $custom_view->custom_table_id;
 
-                // if match column table's id and view's table id, continue.
-                if(isMatchString($custom_table_id, $custom_view_summary->view_column_table_id)){
-                    return true;
-                }
-                // if already set view_pivot_column_id, continue.
-                if(!is_nullorempty($custom_view_summary->getOption('view_pivot_column_id'))){
-                    return true;
-                }
+                    // if match column table's id and view's table id, continue.
+                    if(isMatchString($custom_table_id, $custom_view_summary->view_column_table_id)){
+                        return true;
+                    }
+                    // if already set view_pivot_column_id, continue.
+                    if(!is_nullorempty($custom_view_summary->getOption('view_pivot_column_id'))){
+                        return true;
+                    }
 
-                // get relation table info
-                $relation_table = RelationTable::getRelationTables($custom_table_id, false, [
-                    'search_enabled_only' => false,
-                    'get_parent_relation_tables' => true,
-                ])->first(function($relation_table) use($custom_view_summary){
-                    return isMatchString($relation_table->table->id, $custom_view_summary->view_column_table_id);
+                    // get relation table info
+                    $relation_table = RelationTable::getRelationTables($custom_table_id, false, [
+                        'search_enabled_only' => false,
+                        'get_parent_relation_tables' => true,
+                    ])->first(function($relation_table) use($custom_view_summary){
+                        return isMatchString($relation_table->table->id, $custom_view_summary->view_column_table_id);
+                    });
+                    if(!$relation_table){
+                        return true;
+                    }
+
+                    // Set view pivot info
+                    $custom_view_summary->setOption('view_pivot_table_id', $custom_table_id);
+
+                    // If select table, set pivot column info
+                    if(isMatchString($relation_table->searchType, Enums\SearchType::SELECT_TABLE)){
+                        $custom_view_summary->setOption('view_pivot_column_id', $relation_table->selectTablePivotColumn->id);
+                    }
+                    // relation, set "parent_id".
+                    else{
+                        $custom_view_summary->setOption('view_pivot_column_id', Define::PARENT_ID_NAME);
+                    }
+                    $custom_view_summary->save();
                 });
-                if(!$relation_table){
-                    return true;
-                }
-
-                // Set view pivot info
-                $custom_view_summary->setOption('view_pivot_table_id', $custom_table_id);
-
-                // If select table, set pivot column info
-                if(isMatchString($relation_table->searchType, Enums\SearchType::SELECT_TABLE)){
-                    $custom_view_summary->setOption('view_pivot_column_id', $relation_table->selectTablePivotColumn->id);
-                }
-                // relation, set "parent_id".
-                else{
-                    $custom_view_summary->setOption('view_pivot_column_id', Define::PARENT_ID_NAME);
-                }
-                $custom_view_summary->save();
-            });
+            }
         });
     }
     
