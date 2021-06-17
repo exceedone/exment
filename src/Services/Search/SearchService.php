@@ -316,11 +316,11 @@ class SearchService
      * Convert to custom view sort directly.
      * and linkage(relation or select table), add where exists query.
      *
-     * @param  CustomViewColumn $column
+     * @param  CustomViewColumn|CustomViewSummary $column
      * @param  string $type 'asc' : 'desc'
      * @return $this
      */
-    public function orderByCustomViewColumn(CustomViewColumn $column, $type)
+    public function orderByCustomViewColumn($column, $type)
     {
         $custom_view_sort = new CustomViewSort ([
             'custom_view_id' => $column->custom_view_id,
