@@ -195,11 +195,6 @@ class SummaryGrid extends GridBase
 
         $grid->column($column_item->sqlAsName(), $column_label)
             ->sort($column_item->sortable())
-            ->sortName($column_item->getSortName())
-            //->cast($item->getCastName())
-            ->sortCallback(function($query, $args) use($column){
-                $this->custom_view->getSearchService()->setQuery($query)->orderByCustomViewColumn($column, (count($args) > 0 ? $args[0] : 'asc'));
-            })
             ->display(function ($id, $column, $custom_value) use ($column_item) {
                 return $column_item->setCustomValue($custom_value)->html();
             })->escape(false);
