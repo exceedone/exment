@@ -72,6 +72,13 @@ class SearchService
      */
     protected $summaryOrders = [];
     
+    /**
+     * Summary Joins.
+     * "joinSub" query only calls once, so First set select and group by, and after these, join sub query.
+     * @var array
+     */
+    protected $summaryJoins = [];
+    
 
     public function __construct(CustomTable $custom_table)
     {
@@ -475,6 +482,19 @@ class SearchService
     }
 
     /**
+     * Execute summary join.
+     *
+     * @return $this
+     */
+    public function executeSummaryJoin()
+    {
+        foreach($this->summaryJoins as $summaryJoin){
+            // call summary join.
+            $summaryJoin();
+        }
+    }
+
+    /**
      * Add group by and select by custom column. Contains CustomViewFilter.
      *
      * @param  CustomViewFilter $column
@@ -672,12 +692,15 @@ class SearchService
         if(!$this->isJoinedTable($relationTable)){
             // If summary view and target is child, call as left join
             if(SearchType::isSummarySearchType($relationTable->searchType)){
-                $relationTable->setChildJoin($this->query, [
-                    'parent_table' => $this->custom_table,
-                    'child_table' => $whereCustomTable,
-                    'custom_column' => $relationTable->selectTablePivotColumn,
-                    'leftJoin' => true,
-                ]);
+                // set summary joins array. After all select and group by columns, call these.
+                $this->summaryJoins[] = function() use($relationTable, $whereCustomTable){
+                    $relationTable->setSummaryChildJoin($this->query, [
+                        'parent_table' => $this->custom_table,
+                        'child_table' => $whereCustomTable,
+                        'custom_column' => $relationTable->selectTablePivotColumn,
+                        'leftJoin' => true,
+                    ]);    
+                };
             }
             else{
                 $relationTable->setParentJoin($this->query, [

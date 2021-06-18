@@ -430,7 +430,7 @@ class RelationTable
      * @param array $params
      * @return mixed
      */
-    public function setChildJoin($query, $params = [])
+    public function setSummaryChildJoin($query, $params = [])
     {
         $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));

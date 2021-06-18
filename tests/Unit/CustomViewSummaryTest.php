@@ -394,15 +394,15 @@ class CustomViewSummaryTest extends UnitTestBase
 
         $defaults = $this->getCustomViewDataAll($options);
 
-        $weekday = ['日', '月', '火', '水', '木', '金', '土'];
+        $weekday = [0,1,2,3,4,5,6];
 
         foreach ($summaries as $summary) {
             $result = collect($defaults)->filter(function ($data) use ($summary, $weekday) {
-                if (!empty($summary['key']) && isset($data['date'])) {
+                if (!is_nullorempty($summary['key']) && !is_nullorempty($data['date'])) {
                     $week = $weekday[\Carbon\Carbon::parse($data['date'])->dayOfWeek];
                     return $week == $summary['key'];
                 } else {
-                    return empty($summary['key']) && empty($data['date']);
+                    return is_nullorempty($summary['key']) && is_nullorempty($data['date']);
                 }
             })->count();
             $this->assertMatch($summary['value'], $result);

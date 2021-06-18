@@ -173,6 +173,9 @@ class SummaryGrid extends GridBase
             $searchSearvice->executeSummaryOrderBy();
         }
 
+        // call join children.
+        $searchSearvice->executeSummaryJoin();
+
         return $query;
     }
     
