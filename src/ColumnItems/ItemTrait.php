@@ -827,6 +827,11 @@ trait ItemTrait
             $filteritem->showNullCheck();
         }
 
+        // set whereNull query
+        $filteritem->whereNull(function($query){
+            $this->getAdminFilterWhereNullQuery($query);
+        });
+
         // first, set $filter->use
         $filter->use($filteritem);
 
@@ -866,6 +871,20 @@ trait ItemTrait
         // get vieww filter item
         $viewFilterItem = ViewFilterBase::make($this->getGridFilterOption(), $this);
         $viewFilterItem->setFilter($query, $input);
+    }
+
+    /**
+     * Set where null query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereNullQuery($query)
+    {
+        // get vieww filter item
+        $viewFilterItem = ViewFilterBase::make(FilterOption::NULL, $this);
+        $viewFilterItem->setFilter($query, null);
     }
 
     /**

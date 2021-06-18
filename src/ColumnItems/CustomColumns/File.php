@@ -80,6 +80,10 @@ class File extends CustomItem
             ];
         }
 
+        if(is_array($value)){
+            $value = collect($value)->implode(",");
+        }
+
         // Get file info by url
         // only check by uuid
         $uuid = pathinfo(trim($value, '/'), PATHINFO_FILENAME);

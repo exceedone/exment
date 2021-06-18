@@ -202,16 +202,20 @@ class DefaultGrid extends GridBase
     protected function getFilterUrl() : string
     {
         if (!$this->modal) {
-            return admin_urls('data', $this->custom_table->table_name);
+            $query = array_filter(request()->all([
+                '_scope_',
+            ]));
+        }
+        else{
+            $query = array_filter(request()->all([
+                'target_view_id',
+                'display_table_id',
+                'target_column_id',
+                'linkage',
+            ]));
+            $query['modal'] = 1;
         }
 
-        $query = array_filter(request()->all([
-            'target_view_id',
-            'display_table_id',
-            'target_column_id',
-            'linkage',
-        ]));
-        $query['modal'] = 1;
         return admin_urls_query('data', $this->custom_table->table_name, $query);
     }
 

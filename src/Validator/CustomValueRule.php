@@ -93,7 +93,7 @@ class CustomValueRule implements Rule
         $query = $this->custom_table->getValueQuery();
         $this->custom_view->filterModel($query); // Not sort.
 
-        $query->whereIn('id', $values);
+        $query->whereIn(getDBTableName($this->custom_table) . '.id', $values);
         
         // check data counts;
         $count = $query->count();

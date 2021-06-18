@@ -8,6 +8,24 @@ use Illuminate\Support\Arr;
 class Where extends BaseWhere
 {
     /**
+     * where null query closure.
+     *
+     * @var \Closure
+     */
+    protected $whereNull;
+
+    /**
+     * Set where null query.
+     *
+     * @param \Closure $whereNull
+     * @return $this
+     */
+    public function whereNull($whereNull){
+        $this->whereNull = $whereNull;
+        return $this;
+    }
+
+    /**
      * Get condition of this filter.
      *
      * @param array $inputs
@@ -27,6 +45,26 @@ class Where extends BaseWhere
         $func = $this->where;
         return $this->buildCondition(function ($query) use ($func, $value) {
             $func($query, $value, $this);
+        });
+    }
+    
+    /**
+     * Get query where null condition from filter.
+     *
+     * @param array $inputs
+     *
+     * @return array|mixed|null
+     */
+    public function whereNullCondition()
+    {
+        if(!$this->whereNull){
+            return parent::whereNullCondition();
+        }
+
+        $this->isnull = true;
+        $whereNull = $this->whereNull;
+        return $this->buildCondition(function ($query) use ($whereNull) {
+            $whereNull($query, $this);
         });
     }
 }
