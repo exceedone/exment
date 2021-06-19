@@ -21,28 +21,39 @@ class AddOptionsToCustomViewSort extends Migration
         });
 
 
+        Schema::table('custom_view_filters', function (Blueprint $table) {
+            if (!Schema::hasColumn('custom_view_filters', 'suuid')) {
+                $table->string('suuid', 20)->index()->after('id')->nullable();
+            }
+        });
         Schema::table('custom_view_sorts', function (Blueprint $table) {
+            if (!Schema::hasColumn('custom_view_sorts', 'suuid')) {
+                $table->string('suuid', 20)->index()->after('id')->nullable();
+            }
             if (!Schema::hasColumn('custom_view_sorts', 'options')) {
                 $table->json('options')->after('priority')->nullable();
             }
         });
         
-        $schema->create('custom_view_grid_filters', function (ExtendedBlueprint $table) {
-            $table->increments('id');
-            $table->string('suuid', 20)->index();
-            $table->integer('custom_view_id')->unsigned();
-            $table->integer('view_column_type')->default(0);
-            $table->integer('view_column_table_id')->unsigned();
-            $table->integer('view_column_target_id')->nullable();
-            $table->integer('order')->unsigned()->default(0);
-            $table->json('options')->nullable();
-            $table->timestamps();
-            $table->timeusers();
+        if (!Schema::hasTable('custom_view_grid_filters')) {
+            $schema->create('custom_view_grid_filters', function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->string('suuid', 20)->index();
+                $table->integer('custom_view_id')->unsigned();
+                $table->integer('view_column_type')->default(0);
+                $table->integer('view_column_table_id')->unsigned();
+                $table->integer('view_column_target_id')->nullable();
+                $table->integer('order')->unsigned()->default(0);
+                $table->json('options')->nullable();
+                $table->timestamps();
+                $table->timeusers();
 
-            $table->foreign('custom_view_id')->references('id')->on('custom_views');
-        });
+                $table->foreign('custom_view_id')->references('id')->on('custom_views');
+            });
+        }
         
         \Artisan::call('exment:patchdata', ['action' => 'patch_custom_view_summary_view_pivot']);
+        \Artisan::call('exment:patchdata', ['action' => 'view_filter_suuid']);
     }
 
     /**
@@ -55,6 +66,14 @@ class AddOptionsToCustomViewSort extends Migration
         Schema::table('custom_view_sorts', function (Blueprint $table) {
             if(Schema::hasColumn('custom_view_sorts', 'options')){
                 $table->dropColumn('options');
+            }
+            if(Schema::hasColumn('custom_view_sorts', 'suuid')){
+                $table->dropColumn('suuid');
+            }
+        });
+        Schema::table('custom_view_filters', function (Blueprint $table) {
+            if(Schema::hasColumn('custom_view_filters', 'suuid')){
+                $table->dropColumn('suuid');
             }
         });
 

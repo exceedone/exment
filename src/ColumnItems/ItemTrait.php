@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SummaryCondition;
@@ -18,6 +19,9 @@ use Encore\Admin\Show\Field as ShowField;
  *
  * @property CustomTable $custom_table
  * @property CustomColumn $custom_column
+ * @method array getSummaryParams()
+ * @method mixed getSummaryCondition()
+ * @method mixed getViewPivotCustomValue($custom_value, $options)
  */
 trait ItemTrait
 {
@@ -341,8 +345,8 @@ trait ItemTrait
      * Get target custom value.
      * Almost return args custom value, but maybe view_pivot_column, get relation parents custom value.
      *
-     * @param CustomValue $custom_value
-     * @return CustomValue|\Illuminate\Support\Collection|null
+     * @param \Exceedone\Exment\Model\CustomValue $custom_value
+     * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Support\Collection|null
      */
     protected function getTargetCustomValue($custom_value)
     {
@@ -352,7 +356,7 @@ trait ItemTrait
         }
 
         // if options has "view_pivot_column", get select_table's custom_value first
-        if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+        if (!is_nullorempty($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
             return $this->getViewPivotCustomValue($custom_value, $this->options);
         }
 

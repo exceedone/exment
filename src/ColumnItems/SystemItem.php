@@ -457,7 +457,7 @@ class SystemItem implements ItemInterface
                 return;
         }
 
-        return $this->getAdminFilterWhereQueryTrait($query, $input);
+        $this->getAdminFilterWhereQueryTrait($query, $input);
     }
 
 

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
 
 trait SystemColumnItemTrait
 {
@@ -31,7 +32,7 @@ trait SystemColumnItemTrait
     /**
      * Get view pivot value for 1:n or n:n
      *
-     * @param CustomValue $custom_value
+     * @param \Exceedone\Exment\Model\CustomValue $custom_value
      * @param array $options
      * @return mixed
      */
@@ -50,10 +51,11 @@ trait SystemColumnItemTrait
         return array_get($pivot_custom_value, $valuekey);
     }
     
+    
     /**
      * Get view pivot custom value for 1:n or n:n
      *
-     * @param CustomValue $custom_value
+     * @param \Exceedone\Exment\Model\CustomValue $custom_value
      * @param array $options
      * @return mixed
      */
@@ -83,7 +85,7 @@ trait SystemColumnItemTrait
             $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
 
             if (is_list($pivot_id)) {
-                return collect($pivot_id)->map(function ($v) use ($valuekey) {
+                return collect($pivot_id)->map(function ($v) {
                     $custom_value = $this->custom_table->getValueModel($v);
                     return $custom_value;
                 });

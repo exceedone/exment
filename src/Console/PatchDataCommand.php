@@ -159,7 +159,10 @@ class PatchDataCommand extends Command
                 return;
             case 'view_column_suuid':
                 $this->patchViewColumnSuuid();
-                // no break
+                return;
+            case 'view_filter_suuid':
+                $this->patchViewFilterSuuid();
+                return;
             case 'patch_form_column_relation':
                 $this->patchFormColumnRelation();
                 return;
@@ -1343,24 +1346,50 @@ class PatchDataCommand extends Command
      */
     protected function patchViewColumnSuuid()
     {
-        if (!canConnection() || !hasTable('custom_view_columns')) {
-            return;
-        }
-
         $classes = [
             CustomViewColumn::class,
             CustomViewSummary::class,
         ];
-        foreach ($classes as $c) {
-            $c::all()->each(function ($v) {
-                if (!is_nullorempty($v->suuid)) {
-                    return true;
-                }
-
-                $v->suuid = short_uuid();
-                $v->save();
-            });
+        $this->patchViewSuuid($classes);
+    }
+    
+    /**
+     * patchViewColumnSuuid
+     *
+     * @return void
+     */
+    protected function patchViewFilterSuuid()
+    {
+        $classes = [
+            Model\CustomViewFilter::class,
+            Model\CustomViewSort::class,
+        ];
+        $this->patchViewSuuid($classes);
+    }
+    
+    /**
+     * patchViewColumnSuuid
+     *
+     * @return void
+     */
+    protected function patchViewSuuid(array $classes)
+    {
+        if (!canConnection() || !hasTable('custom_view_columns')) {
+            return;
         }
+        
+        \DB::transaction(function () use ($classes) {
+            foreach ($classes as $c) {
+                $c::all()->each(function ($v) {
+                    if (!is_nullorempty($v->suuid)) {
+                        return true;
+                    }
+
+                    $v->suuid = short_uuid();
+                    $v->save();
+                });
+            }
+        });
     }
     
     /**

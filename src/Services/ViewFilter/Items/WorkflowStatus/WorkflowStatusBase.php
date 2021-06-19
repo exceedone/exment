@@ -28,7 +28,7 @@ abstract class WorkflowStatusBase extends ViewFilterBase
     {
         // if $status is start
         $status = $query_value;
-        $condition = $this->getFilterOption();
+        $condition = static::getFilterOption();
         $or_option = $this->or_option;
 
         if ($status == Define::WORKFLOW_START_KEYNAME) {

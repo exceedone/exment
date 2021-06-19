@@ -275,4 +275,12 @@ abstract class ViewFilterBase
      * @return boolean is match, return true
      */
     abstract protected function _compareValue($value, $conditionValue) : bool;
+
+
+    /**
+     * Get Filter Option.
+     *
+     * @return string
+     */
+    abstract public static function getFilterOption();
 }

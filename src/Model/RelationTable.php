@@ -316,7 +316,7 @@ class RelationTable
 
         // get select tables custom columns.
         $custom_columns = $custom_table->custom_columns_cache
-            ->filter(function ($custom_column) use ($custom_table, $options) {
+            ->filter(function ($custom_column) use ($options) {
                 if (!ColumnType::isSelectTable($custom_column)) {
                     return false;
                 }
@@ -810,7 +810,7 @@ class RelationTable
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
-        $query->{$joinName}(function ($subQuery) use ($child_table_name, $custom_item, $query_key) {
+        $query->{$joinName}(function ($subQuery) use ($child_table_name, $query_key) {
             // set from and default group by, select.
             $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
                 ->select("{$this->tableUniqueName}.$query_key")

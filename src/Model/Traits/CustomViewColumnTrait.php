@@ -17,6 +17,7 @@ use Exceedone\Exment\ColumnItems;
 /**
  * @method getOption($key, $default = null))
  * @method setOption($key, $val = null, $forgetIfNull = false)
+ * @method static mixed findBySuuid($key)
  */
 trait CustomViewColumnTrait
 {
