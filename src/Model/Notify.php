@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\Search\SearchService;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
@@ -26,6 +27,7 @@ class Notify extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\ColumnOptionQueryTrait;
     use Notifiable;
 
     protected $guarded = ['id'];
@@ -45,12 +47,60 @@ class Notify extends ModelBase
         if (isset($this->custom_view_id)) {
             return $this->belongsTo(CustomView::class, 'custom_view_id');
         }
-        return null;
+        return $this->belongsTo(CustomView::class, 'custom_view_id')->whereNotMatch();
     }
     
     public function getNotifyActionsAttribute()
     {
         return explode(",", array_get($this->attributes, 'notify_actions'));
+    }
+
+    public function getTriggerSettingsAttribute()
+    {
+        $trigger_settings = $this->getAttributeFromArray('trigger_settings');
+        $trigger_settings = $this->castAttribute('trigger_settings', $trigger_settings);
+
+        $notify_target_column = array_get($trigger_settings, 'notify_target_column');
+        $notify_target_table_id = array_get($trigger_settings, 'notify_target_table_id');
+
+        // if (!isset($notify_target_column) || !isset($notify_target_table_id)) {
+        //     return $trigger_settings;
+        // }
+
+        $optionKeyParams = [];
+        if (!is_nullorempty($v = array_get($trigger_settings, 'view_pivot_column_id'))) {
+            $optionKeyParams['view_pivot_column'] = $v;
+        }
+        if (!is_nullorempty($v = array_get($trigger_settings, 'view_pivot_table_id'))) {
+            $optionKeyParams['view_pivot_table'] = $v;
+        }
+
+        $trigger_settings['notify_target_date'] = static::getOptionKey($notify_target_column, true, $notify_target_table_id, $optionKeyParams);
+
+        return $trigger_settings;
+    }
+
+    public function setTriggerSettingsAttribute($value = null)
+    {
+        $notify_target_date = array_get($value, 'notify_target_date');
+
+        if (isset($notify_target_date)) {
+            list($column_type, $column_table_id, $column_type_target, $view_pivot_column, $view_pivot_table) = $this->getViewColumnTargetItems($notify_target_date);
+
+            $value['notify_target_column'] = $column_type_target;
+            $value['notify_target_table_id'] = $column_table_id;
+            if (!is_nullorempty($view_pivot_column)) {
+                $value['view_pivot_column_id'] = $view_pivot_column;
+            }
+            if (!is_nullorempty($view_pivot_table)) {
+                $value['view_pivot_table_id'] = $view_pivot_table;
+            }
+            unset($value['notify_target_date']);
+        }
+
+        $value = $this->castAttributeAsJson('trigger_settings', $value);
+
+        $this->attributes['trigger_settings'] = $value;
     }
 
     public function getMailTemplate()
@@ -98,7 +148,7 @@ class Notify extends ModelBase
                 'notify' => $this,
                 'target_table' => $table->table_view_name ?? null,
                 'notify_target_column_key' => $column->column_view_name ?? null,
-                'notify_target_column_value' => $custom_value->getValue($column),
+                'notify_target_column_value' => $this->getNotifyTargetValue($custom_value, $column),
             ];
     
             foreach ($this->action_settings as $action_setting) {
@@ -462,16 +512,17 @@ class Notify extends ModelBase
         $table = $this->custom_table;
         $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
 
-        //ymd row
-        $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false, false);
-
-        // find data. where equal target_date
+        // get search service
+        $query = $table->getValueQuery();
         if (isset($this->custom_view_id)) {
-            $datalist = $this->custom_view->setValueFilters($table->getValueQuery())
-                ->whereRaw("$raw = ?", [$target_date_str])->get();
+            $this->custom_view->setValueFilters($query);
+            $service = $this->custom_view->getSearchService();
         } else {
-            $datalist = getModelName($table)::whereRaw("$raw = ?", [$target_date_str])->get();
+            $service = new SearchService($table);
         }
+        $service->setQuery($query);
+
+        $datalist = $service->where($column, '=', $target_date_str, 'and', ['format' => GroupCondition::YMD])->get();
 
         return [$datalist, $table, $column];
     }
@@ -628,5 +679,16 @@ class Notify extends ModelBase
                 $model->attributes['custom_table_id'] = 0;
             }
         });
+    }
+
+    protected function getNotifyTargetValue($custom_value, $column)
+    {
+        $item = $column->column_item
+        ->options([
+            'view_pivot_column' => $this->getTriggerSetting('view_pivot_column_id'),
+            'view_pivot_table' => $this->getTriggerSetting('view_pivot_table_id'),
+        ]);
+        
+        return $item->setCustomValue($custom_value)->value();
     }
 }

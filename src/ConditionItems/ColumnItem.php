@@ -237,11 +237,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function setQuerySort($query, CustomViewSort $custom_view_sort)
     {
-        $custom_column = $custom_view_sort->custom_column;
-        if (!isset($custom_column)) {
-            return;
-        }
-        $column_item = $custom_column->column_item;
+        $column_item = $custom_view_sort->column_item;
         if (!isset($column_item)) {
             return;
         }
@@ -250,7 +246,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             return;
         }
 
-        $view_column_target = $column_item->getSortColumn();
+        $view_column_target = $column_item->getSortWrapTableColumn();
         $sort_order = $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc';
         //set order
         // $view_column_target is wraped

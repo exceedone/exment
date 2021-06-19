@@ -3,13 +3,11 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
+use Encore\Admin\Grid;
 use Encore\Admin\Grid\Filter;
 use Encore\Admin\Form;
-use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Form\Field as ExmentField;
-use Exceedone\Exment\Grid\Filter as ExmentFilter;
-use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
-use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomRelation;
@@ -17,7 +15,7 @@ use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterType;
-use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
@@ -54,7 +52,12 @@ abstract class CustomItem implements ItemInterface
         $params = static::getOptionParams($view_column_target, $this->custom_table);
         // get label. check not match $this->custom_table and pivot table
         if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
-            $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
+            if ($params['view_pivot_column_id'] == SystemColumn::PARENT_ID) {
+                $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
+            } else {
+                $pivot_column = CustomColumn::getEloquent($params['view_pivot_column_id'], $params['view_pivot_table_id']);
+                $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $pivot_column->column_view_name);
+            }
         } else {
             $this->label = $this->custom_column->column_view_name;
         }
@@ -82,17 +85,12 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
-     * sqlname
+     * For sql column name.
+     * Join table: false
+     * Wrap: false
      */
     public function sqlname()
     {
-        if (boolval(array_get($this->options, 'summary'))) {
-            return $this->getSummarySqlName();
-        }
-        if (boolval(array_get($this->options, 'groupby'))) {
-            return $this->getGroupBySqlName();
-        }
-
         return $this->custom_column->getQueryKey();
     }
 
@@ -148,7 +146,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function sortable()
     {
-        return $this->indexEnabled() && !array_key_value_exists('view_pivot_column', $this->options);
+        return $this->indexEnabled() && !$this->isMultipleEnabled();
     }
 
     /**
@@ -160,17 +158,9 @@ abstract class CustomItem implements ItemInterface
         return $this->custom_column->index_enabled;
     }
 
-    /**
-     * set item label
-     */
-    public function setLabel($label)
-    {
-        return $this->label = $label;
-    }
-
     public function setCustomValue($custom_value)
     {
-        $this->custom_value = $custom_value;
+        $this->custom_value = $this->getTargetCustomValue($custom_value);
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
             $this->id = array_get($custom_value, 'id');
@@ -366,6 +356,17 @@ abstract class CustomItem implements ItemInterface
 
         return $this->getCustomField($classname);
     }
+
+    
+    /**
+     * Whether is show filter null check
+     *
+     * @return bool
+     */
+    public function isShowFilterNullCheck() : bool
+    {
+        return true;
+    }
     
     protected function getFilterFieldClass()
     {
@@ -460,31 +461,6 @@ abstract class CustomItem implements ItemInterface
         return $field;
     }
 
-    /**
-     * set admin filter
-     */
-    public function setAdminFilter(&$filter)
-    {
-        $classname = $this->getAdminFilterClass();
-
-        // if where query, call Cloquire
-        if ($classname == ExmWhere::class) {
-            $item = $this;
-            $filteritem = new $classname(function ($query, $input) use ($item) {
-                $item->getAdminFilterWhereQuery($query, $input);
-            }, $this->label(), $this->index());
-        } else {
-            $filteritem = new $classname($this->index(), $this->label());
-        }
-
-        $filteritem->showNullCheck();
-
-        // first, set $filter->use
-        $filter->use($filteritem);
-
-        // next, set admin filter options
-        $this->setAdminFilterOptions($filteritem);
-    }
 
     /**
      * get view filter type
@@ -524,7 +500,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function getSortName()
     {
-        return getDBTableName($this->custom_table) .'.'. $this->custom_column->getQueryKey();
+        return $this->sqlUniqueTableName() .'.'. $this->custom_column->getQueryKey();
     }
 
     /**
@@ -631,15 +607,6 @@ abstract class CustomItem implements ItemInterface
     }
 
     abstract protected function getAdminFieldClass();
-
-    protected function getAdminFilterClass()
-    {
-        if (System::filter_search_type() == FilterSearchType::ALL) {
-            return Filter\Like::class;
-        }
-
-        return ExmentFilter\StartsWith::class;
-    }
 
     protected function setAdminOptions(&$field)
     {

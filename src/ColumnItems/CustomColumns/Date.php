@@ -8,7 +8,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ColumnDefaultType;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Grid\Filter;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Exceedone\Exment\Model\CustomColumnMulti;
 
 class Date extends CustomItem
@@ -91,10 +91,6 @@ class Date extends CustomItem
         return Field\Date::class;
     }
     
-    protected function getAdminFilterClass()
-    {
-        return Filter\BetweenDate::class;
-    }
 
     protected function getCustomField($classname, $column_name_prefix = null)
     {
@@ -120,6 +116,23 @@ class Date extends CustomItem
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->date();
+    }
+
+    protected function getAdminFilterClass()
+    {
+        return ExmFilter\BetweenDate::class;
+    }
+
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        $this->getAdminFilterWhereQueryDate($query, $input);
     }
 
     /**

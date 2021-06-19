@@ -7,7 +7,6 @@ use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Validator;
-use Encore\Admin\Grid\Filter;
 
 class Yesno extends CustomItem
 {
@@ -72,11 +71,6 @@ class Yesno extends CustomItem
         }
     }
     
-    protected function getAdminFilterClass()
-    {
-        return Filter\Equal::class;
-    }
-
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->radio(Define::YESNO_RADIO);

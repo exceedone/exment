@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Exceedone\Exment\Enums\FilterOption;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 
@@ -20,6 +21,16 @@ class AutoNumber extends CustomItem
         if (!isset($this->id)) {
             $field->default(exmtrans('custom_value.auto_number_create'));
         }
+    }
+    
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
+    {
+        return FilterOption::LIKE;
     }
     
     /**

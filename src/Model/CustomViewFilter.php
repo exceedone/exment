@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 class CustomViewFilter extends ModelBase
@@ -110,16 +109,12 @@ class CustomViewFilter extends ModelBase
     /**
      * set value filter
      */
-    public function setValueFilter($query, $db_table_name = null, $or_option = false)
+    public function setValueFilter($query, $or_option = false)
     {
         // get filter target column
         $condition_value_text = $this->view_filter_condition_value_text;
         $view_filter_condition = $this->view_filter_condition;
         
-        if ($this->view_column_type == ConditionType::WORKFLOW) {
-            return WorkflowItem::scopeWorkflow($query, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text, $or_option);
-        }
-
         $viewFilterItem = ViewFilterBase::make($this->view_filter_condition, $this->column_item, [
             'or_option' => $or_option,
         ]);

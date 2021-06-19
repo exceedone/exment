@@ -9,6 +9,7 @@ use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ColumnType;
@@ -172,10 +173,21 @@ class CustomNotifyController extends AdminControllerTableBase
         $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($custom_table) {
             // Notify Time --------------------------------------------------
             $controller = $this;
-            $form->select('notify_target_column', exmtrans("notify.notify_target_column"))
-            ->options(function ($val) use ($controller, $custom_table) {
-                return $controller->getTargetColumnOptions($custom_table, false);
-            })
+            $form->select('notify_target_date', exmtrans("notify.notify_target_column"))
+            ->options($custom_table->getColumnsSelectOptions([
+                'append_table' => true,
+                'include_parent' => true,
+                'include_system' => false,
+                'ignore_multiple' => true,
+                'ignore_many_to_many' => true,
+                'column_type_filter' => function ($column) {
+                    if ($column instanceof CustomColumn) {
+                        return ColumnType::isDate($column->column_type);
+                    } elseif (is_array($column) && array_has($column, 'type')) {
+                        return array_get($column, 'type') == 'datetime';
+                    }
+                },
+            ]))
             ->required()
             ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
             ->help(exmtrans("notify.help.trigger_settings"));
@@ -253,12 +265,28 @@ class CustomNotifyController extends AdminControllerTableBase
 
     public function notify_action_target(Request $request)
     {
-        $options = NotifyService::getNotifyTargetColumns($this->custom_table, $request->get('q'));
+        $options = NotifyService::getNotifyTargetColumns($this->custom_table, $request->get('q'), [
+            'get_realtion_email' => true,
+        ]);
 
         return $options;
     }
 
-    protected function getTargetColumnOptions($custom_table, $isApi)
+    protected function getTargetDateColumnOptions($custom_table_id, $table_name = null)
+    {
+        return CustomColumn
+            ::where('custom_table_id', $custom_table_id)
+            ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
+            ->get(['id', 'column_view_name as text'])
+            ->map(function (&$item) use ($table_name) {
+                if (isset($table_name)) {
+                    $item['text'] = $table_name . ' : ' . $item['text'];
+                }
+                return $item;
+            });
+    }
+
+    protected function getTargetColumnOptions($custom_table)
     {
         $custom_table = CustomTable::getEloquent($custom_table);
 
@@ -266,16 +294,21 @@ class CustomNotifyController extends AdminControllerTableBase
             return [];
         }
 
-        $options = CustomColumn
-            ::where('custom_table_id', $custom_table->id)
-            ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
-            ->get(['id', 'column_view_name as text']);
+        $options = $this->getTargetDateColumnOptions($custom_table->id);
 
-        if ($isApi) {
-            return $options;
-        } else {
-            return $options->pluck('text', 'id');
+        $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $custom_table->id)->get();
+        foreach ($relations as $rel) {
+            $parent = array_get($rel, 'parent_custom_table');
+            $options = $options->merge($this->getTargetDateColumnOptions($parent->id, $parent->table_view_name));
         }
+
+        $select_table_columns = $custom_table->getSelectTableColumns(null, true);
+        foreach ($select_table_columns as $select_table_column) {
+            $select_table = $select_table_column->column_item->getSelectTable();
+            $options = $options->merge($this->getTargetDateColumnOptions($select_table->id, $select_table->table_view_name));
+        }
+
+        return $options->pluck('text', 'id');
     }
 
     public function getNotifyTriggerTemplate(Request $request)

@@ -74,10 +74,20 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function setQuerySort($query, CustomViewSort $custom_view_sort)
     {
-        $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
-        $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
+        $column_item = $custom_view_sort->column_item;
+        if (!isset($column_item)) {
+            return;
+        }
+        // if cannot sort column, break
+        if (!$column_item->sortable()) {
+            return;
+        }
+
+        $view_column_target = $column_item->getSortWrapTableColumn();
+        $sort_order = $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc';
         //set order
-        $query->orderby($view_column_target, $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc');
+        // $view_column_target is wraped
+        $query->orderByRaw("$view_column_target $sort_order");
     }
 
 

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\UrlTagType;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
@@ -26,6 +27,16 @@ class Url extends CustomItem
     protected function getAdminFieldClass()
     {
         return Field\Url::class;
+    }
+    
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
+    {
+        return FilterOption::LIKE;
     }
 
     /**

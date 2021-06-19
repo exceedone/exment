@@ -1005,4 +1005,14 @@ return [
     | *This config doesn't want to copy backup restore, so set key is ADMIN_, not EXMENT_.*
     */  
     'trust_proxy_headers' => env('ADMIN_TRUST_PROXY_HEADERS', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Show Select field with group option
+    |--------------------------------------------------------------------------
+    |
+    | Show Select field with group option
+    |
+    */
+    'form_column_option_group' => env('EXMENT_FORM_COLUMN_OPTION_GROUP', false),
 ];

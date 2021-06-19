@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
@@ -88,7 +89,7 @@ abstract class GridBase
         $this->custom_view = CustomView::getAllData($this->custom_table);
         $filters = [];
         foreach ($group_keys as $key => $value) {
-            $custom_view_column = CustomViewColumn::find($key);
+            $custom_view_column = CustomViewColumn::findByCkey($key);
             $custom_view_filter = new CustomViewFilter;
             $custom_view_filter->custom_view_id = $custom_view_column->custom_view_id;
             $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
@@ -105,12 +106,8 @@ abstract class GridBase
             }
         }
         $filter_func = function ($model) use ($filters, $group_view) {
-            $group_view->filterModel($model); // sort is false.
-            $model->where(function ($query) use ($filters) {
-                foreach ($filters as $filter) {
-                    $filter->setValueFilter($query);
-                }
-            });
+            $group_view->custom_view_filters = collect($filters);
+            $group_view->filterModel($model);
             return $model;
         };
         return $filter_func;
@@ -135,7 +132,33 @@ abstract class GridBase
             ->attribute(['data-filter' => json_encode(['key' => 'use_view_infobox', 'value' => '1'])]);
     }
     
-    
+    protected static function convertGroups($targetOptions, $defaultCustomTable)
+    {
+        $options = collect($targetOptions)->mapToDictionary(function ($item, $query) {
+            $keys = preg_split('/\?/', $query, 2);
+            $items = preg_split('/\:/', $item);
+            return [$keys[1] => [$query => trim($items[count($items)-1])]];
+        })->map(function ($item, $key) use($defaultCustomTable) {
+            if (empty($key)) {
+                $label = $defaultCustomTable->table_view_name;
+            } else {
+                parse_str($key, $view_column_query_array);
+                $column_table_id = array_get($view_column_query_array, 'table_id', $defaultCustomTable->id ?? null);
+                $view_pivot_column_id = array_get($view_column_query_array, 'view_pivot_column_id');
+                $view_pivot_table_id = array_get($view_column_query_array, 'view_pivot_table_id');
+                $label = CustomTable::getEloquent($column_table_id)->table_view_name;
+                if (isset($view_pivot_column_id) && !is_nullorempty($view_pivot_column = CustomColumn::getEloquent($view_pivot_column_id))) {
+                    $label .= ' : ' . $view_pivot_column->column_view_name;
+                }
+            }
+            return [
+                'label' => $label,
+                'options' => call_user_func_array("array_merge", $item)
+            ];
+        })->toArray();
+        return $options;
+    }
+
     /**
      * Set filter fileds form
      *
@@ -147,23 +170,30 @@ abstract class GridBase
     public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        $targetOptions = $custom_table->getColumnsSelectOptions(
+            [
+                'append_table' => true,
+                'index_enabled_only' => true,
+                'include_parent' => true,
+                'include_child' => $is_aggregate,
+                'include_workflow' => true,
+                'include_workflow_work_users' => true,
+                'ignore_attachment' => true,
+                'ignore_many_to_many' => true,
+                'ignore_multiple_refer' => true,
+            ]
+        );
+        if (boolval(config('exment.form_column_option_group', false))) {
+            $targetGroups = static::convertGroups($targetOptions, $custom_table);
+        }
 
         // filter setting
         $hasManyTable = new ConditionHasManyTable($form, [
             'ajax' => admin_url("webapi/{$custom_table->table_name}/filter-value"),
             'name' => "custom_view_filters",
             'linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
-            'targetOptions' => $custom_table->getColumnsSelectOptions(
-                [
-                    'append_table' => true,
-                    'index_enabled_only' => true,
-                    'include_parent' => $is_aggregate,
-                    'include_child' => $is_aggregate,
-                    'include_workflow' => true,
-                    'include_workflow_work_users' => true,
-                    'ignore_attachment' => true,
-                ]
-            ),
+            'targetOptions' => $targetOptions,
+            'targetGroups' => $targetGroups ?? null,
             'custom_table' => $custom_table,
             'filterKind' => Enums\FilterKind::VIEW,
             'condition_target_name' => 'view_column_target',
@@ -200,8 +230,16 @@ abstract class GridBase
         ], $column_options);
 
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table, $column_options) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($custom_table->getColumnsSelectOptions($column_options));
+            $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
+    
+            $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($targetOptions);
+
+            if (boolval(config('exment.form_column_option_group', false))) {
+                $targetGroups = static::convertGroups($targetOptions, $custom_table);
+                $field->groups($targetGroups);
+            }
+    
             $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
             $form->hidden('order')->default(0);
         })->required()->setTableColumnWidth(7, 3, 2)
@@ -215,20 +253,31 @@ abstract class GridBase
      *
      * @param Form $form
      * @param CustomTable $custom_table
-     * @param boolean $is_aggregate
+     * @param boolean $include_parent
      * @return void
      */
-    public static function setSortFields(&$form, $custom_table, $is_aggregate = false)
+    public static function setSortFields(&$form, $custom_table, $include_parent = false)
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         
         // sort setting
-        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-            ->options($custom_table->getColumnsSelectOptions([
+        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table, $include_parent) {
+            $targetOptions = $custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'index_enabled_only' => true,
-            ]));
+                'include_parent' => $include_parent,
+                'ignore_multiple' => true,
+                'ignore_many_to_many' => true,
+            ]);
+
+            $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($targetOptions);
+
+            if (boolval(config('exment.form_column_option_group', false))) {
+                $targetGroups = static::convertGroups($targetOptions, $custom_table);
+                $field->groups($targetGroups);
+            }
+
             $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                 ->required()
                 ->default(1)

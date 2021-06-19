@@ -779,8 +779,18 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => $target_value
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.user_multiple'));
+            return $this->checkArray($filter_settings[0]['filter_value_text'], array_get($data, 'value.user_multiple'));
         });
+    }
+
+    protected function checkArray($expected, $actual)
+    {
+        if (is_null($actual))
+        {
+            return is_null($expected);
+        } else {
+            return in_array($expected, $actual);
+        }
     }
 
     /**
@@ -833,7 +843,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => $target_value
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return !in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.organization_multiple'));
+            return !$this->checkArray($filter_settings[0]['filter_value_text'], array_get($data, 'value.organization_multiple'));
         });
     }
 
@@ -1112,7 +1122,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 'bar'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_multiple'));
+            return $this->checkArray($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_multiple'));
         });
     }
 
@@ -1129,7 +1139,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 'foo'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return !in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_multiple'));
+            return !$this->checkArray($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_multiple'));
         });
     }
 
@@ -1146,7 +1156,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 'bar'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_valtext_multiple'));
+            return $this->checkArray($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_valtext_multiple'));
         });
     }
 
@@ -1163,7 +1173,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 'baz'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return !in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_valtext_multiple'));
+            return !$this->checkArray($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_valtext_multiple'));
         });
     }
 
@@ -1180,7 +1190,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 2
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_table_multiple'));
+            return $this->checkArray($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_table_multiple'));
         });
     }
 
@@ -1197,7 +1207,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 4
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return !in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_table_multiple'));
+            return !$this->checkArray($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_table_multiple'));
         });
     }
 
@@ -1340,7 +1350,7 @@ class CustomViewFilterTest extends UnitTestBase
         $filter_settings = [[
             'column_name' => 'workflow_status',
             'condition_type' => ConditionType::WORKFLOW,
-            'filter_condition' => FilterOption::EQ,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_STATUS,
             'filter_value_text' => '7'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
@@ -1381,7 +1391,7 @@ class CustomViewFilterTest extends UnitTestBase
         $filter_settings = [[
             'column_name' => 'workflow_work_users',
             'condition_type' => ConditionType::WORKFLOW,
-            'filter_condition' => FilterOption::USER_EQ_USER,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_WORK_USER,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $workflow_work_users = array_get($data, 'workflow_work_users');
@@ -1418,7 +1428,7 @@ class CustomViewFilterTest extends UnitTestBase
         $filter_settings = [[
             'column_name' => 'workflow_work_users',
             'condition_type' => ConditionType::WORKFLOW,
-            'filter_condition' => FilterOption::USER_EQ_USER,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_WORK_USER,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $workflow_work_users = array_get($data, 'workflow_work_users');

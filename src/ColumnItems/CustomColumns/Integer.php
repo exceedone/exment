@@ -8,6 +8,7 @@ use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
 
 class Integer extends CustomItem
 {
@@ -63,6 +64,23 @@ class Integer extends CustomItem
         });
     }
 
+    protected function getAdminFilterClass()
+    {
+        return ExmFilter\Between::class;
+    }
+
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        $this->getAdminFilterWhereQueryNumber($query, $input);
+    }
+    
     protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;

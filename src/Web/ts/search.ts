@@ -100,7 +100,7 @@ namespace Exment {
         private static getListNaviData() {
             const tables = JSON.parse($('.tables').val());
             const search_execute_count = $('#search_execute_count');
-            const url = admin_url('search/lists&query=' + $('.base_query').val());
+            const url = admin_url('search/lists&' + $.param({query : $('.base_query').val()}));
 
             // search target table names
             let searchTables = [];

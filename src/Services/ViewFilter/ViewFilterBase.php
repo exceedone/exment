@@ -50,6 +50,9 @@ abstract class ViewFilterBase
         Items\DayBeforeAfter\DayTodayOrAfter::class,
         Items\DayBeforeAfter\DayTodayOrBefore::class,
 
+        Items\TimeBeforeAfter\TimeOnOrAfter::class,
+        Items\TimeBeforeAfter\TimeOnOrBefore::class,
+
         Items\Exists\SelectExists::class,
         Items\Exists\SelectNotExists::class,
         Items\Exists\UserEq::class,
@@ -93,6 +96,14 @@ abstract class ViewFilterBase
     protected static $isConditionPassAsArray = false;
 
     /**
+     * If true, called setFilter function, append column name.
+     * If append cast, please set false.
+     *
+     * @var boolean
+     */
+    protected static $isAppendDatabaseTable = true;
+
+    /**
      * Whether this query sets as or
      *
      * @var boolean
@@ -124,7 +135,7 @@ abstract class ViewFilterBase
      */
     public function setFilter($query, $query_value)
     {
-        $column = $this->column_item->sqlname();
+        $column = static::$isAppendDatabaseTable ? $this->column_item->getTableColumn() : $this->column_item->sqlname();
 
         $method_name = $this->getQueryWhereName();
 
@@ -264,4 +275,12 @@ abstract class ViewFilterBase
      * @return boolean is match, return true
      */
     abstract protected function _compareValue($value, $conditionValue) : bool;
+
+
+    /**
+     * Get Filter Option.
+     *
+     * @return string
+     */
+    abstract public static function getFilterOption();
 }

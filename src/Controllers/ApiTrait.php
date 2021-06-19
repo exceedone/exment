@@ -17,7 +17,7 @@ trait ApiTrait
     /**
      * Get error message from validator
      *
-     * @param Exceedone\Exment\Validator\ExmentCustomValidator $validator
+     * @param \Exceedone\Exment\Validator\ExmentCustomValidator $validator
      * @return array error messages
      */
     protected function getErrorMessages($validator)

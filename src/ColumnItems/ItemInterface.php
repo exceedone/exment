@@ -94,6 +94,11 @@ interface ItemInterface
     public function convertFilterValue($value);
 
     /**
+     * set admin filter for filtering grid.
+     */
+    public function setAdminFilter(&$filter);
+
+    /**
      * get item model
      */
     public static function getItem(...$options);

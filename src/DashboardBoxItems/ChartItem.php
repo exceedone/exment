@@ -12,7 +12,6 @@ use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewKindType;
 
 class ChartItem implements ItemInterface
@@ -193,16 +192,11 @@ class ChartItem implements ItemInterface
         $chart_label = $datalist->map(function ($val) use ($item_x_list) {
             $labels = $item_x_list->map(function ($item_x) use ($val) {
                 $item = $item_x->setCustomValue($val);
-                $option = SystemColumn::getOption(['name' => $item->name()]);
-                if (array_get($option, 'type') == 'user') {
-                    return getUserName($item->text());
-                } else {
-                    return esc_html($item->text());
-                }
+                return esc_html($item->text());
             });
             return $labels->implode(' ');
         });
-        $chart_data = $datalist->pluck("column_$this->axis_y");
+        $chart_data = $datalist->pluck($item_y->uniqueName());
 
         // get item label
         $axisx_label = collect($view_column_x_list)->map(function ($item) {

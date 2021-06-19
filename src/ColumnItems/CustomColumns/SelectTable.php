@@ -16,7 +16,7 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Grid\Filter as ExmFilter;
+use Exceedone\Exment\Enums\FilterOption;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -29,9 +29,9 @@ class SelectTable extends CustomItem
     protected $target_table;
     protected $target_view;
     
-    public function __construct($custom_column, $custom_value)
+    public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
-        parent::__construct($custom_column, $custom_value);
+        parent::__construct($custom_column, $custom_value, $view_column_target);
 
         $this->target_table = CustomTable::getEloquent(array_get($custom_column, 'options.select_target_table'));
         $this->target_view = CustomView::getEloquent(array_get($custom_column, 'options.select_target_view'));
@@ -52,17 +52,6 @@ class SelectTable extends CustomItem
             return $v;
         }
         return count($v) == 0 ? null : $v[0];
-    }
-
-    /**
-     * sortable for grid
-     */
-    public function sortable()
-    {
-        if ($this->isMultipleEnabled()) {
-            return false;
-        }
-        return parent::sortable();
     }
 
     /**
@@ -172,13 +161,15 @@ class SelectTable extends CustomItem
             return Field\Select::class;
         }
     }
-    
-    protected function getAdminFilterClass()
+        
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
     {
-        if ($this->isMultipleEnabled()) {
-            return ExmFilter\Where::class;
-        }
-        return ExmFilter\EqualOrIn::class;
+        return FilterOption::SELECT_EXISTS;
     }
 
     protected function setAdminOptions(&$field)
@@ -371,11 +362,6 @@ class SelectTable extends CustomItem
         return null;
     }
     
-    public function getAdminFilterWhereQuery($query, $input)
-    {
-        $this->getSelectFilterQuery($query, $input);
-    }
-
     protected function setAdminFilterOptions(&$filter)
     {
         if (!isset($this->target_table)) {
@@ -618,6 +604,7 @@ class SelectTable extends CustomItem
             return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
         }
 
+        // If multiple enabled,
         $query = $this->custom_table->getValueQuery();
         $this->getAdminFilterWhereQuery($query, $value);
 

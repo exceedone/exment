@@ -5,7 +5,6 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
-use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -80,6 +79,10 @@ class File extends CustomItem
             ];
         }
 
+        if (is_array($value)) {
+            $value = collect($value)->implode(",");
+        }
+
         // Get file info by url
         // only check by uuid
         $uuid = pathinfo(trim($value, '/'), PATHINFO_FILENAME);
@@ -111,10 +114,6 @@ class File extends CustomItem
         return Field\File::class;
     }
     
-    protected function getAdminFilterClass()
-    {
-        return ExmWhere::class;
-    }
 
     protected function setAdminOptions(&$field)
     {
@@ -352,7 +351,7 @@ class File extends CustomItem
             $query->whereNotMatch();
         }
         
-        $query->whereOrIn('id', $ids);
+        $query->whereOrIn($this->getTableColumn('id'), $ids);
     }
     
 

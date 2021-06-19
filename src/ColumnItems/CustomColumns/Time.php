@@ -7,6 +7,8 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ColumnDefaultType;
+use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 class Time extends Date
 {
@@ -87,5 +89,24 @@ class Time extends Date
             ->help(exmtrans("custom_column.help.default"))
             ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_TIME])])
             ;
+    }
+
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        if (array_key_value_exists('start', $input)) {
+            $viewFilterItem = ViewFilterBase::make(FilterOption::TIME_ON_OR_AFTER, $this);
+            $viewFilterItem->setFilter($query, $input['start']);
+        }
+        if (array_key_value_exists('end', $input)) {
+            $viewFilterItem = ViewFilterBase::make(FilterOption::TIME_ON_OR_BEFORE, $this);
+            $viewFilterItem->setFilter($query, $input['end']);
+        }
     }
 }
