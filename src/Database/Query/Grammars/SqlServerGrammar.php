@@ -238,7 +238,10 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
             case GroupCondition::D:
                 return "format(datepart(DAY, $column), '00')";
             case GroupCondition::W:
-                return "datepart(WEEKDAY, $column)";
+                if ($groupBy) {
+                    return "datepart(WEEKDAY, $column)";
+                }
+                return $this->getWeekdayCaseWhenQuery("datepart(WEEKDAY, $column)");
             case GroupCondition::YMDHIS:
                 return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00') + '-' + format(datepart(DAY, $column), '00') + ' ' + format(datepart(HOUR, $column), '00') + ':' + format(datepart(MINUTE, $column), '00') + ':' + format(datepart(SECOND, $column), '00')";
         }
@@ -274,6 +277,43 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         }
 
         return null;
+    }
+
+    /**
+     * Get case when query
+     * *Convert starting 0 start*
+     *
+     * @return string
+     */
+    protected function getWeekdayCaseWhenQuery($str)
+    {
+        $queries = [];
+
+        // get weekday and no list
+        $weekdayNos = $this->getWeekdayNolist();
+
+        foreach ($weekdayNos as $no => $weekdayKey) {
+            $queries[] = "when {$no} then '$weekday'";
+        }
+
+        $queries[] = "else ''";
+
+        $when = implode(" ", $queries);
+        return "(case {$str} {$when} end)";
+    }
+
+    protected function getWeekdayNolist()
+    {
+        // fixed mysql server
+        return [
+            '1' => '0',
+            '2' => '1',
+            '3' => '2',
+            '4' => '3',
+            '5' => '4',
+            '6' => '5',
+            '7' => '6',
+        ];
     }
 
     /**

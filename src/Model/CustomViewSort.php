@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\ConditionType;
 class CustomViewSort extends ModelBase
 {
     use Traits\CustomViewColumnTrait;
+    use Traits\AutoSUuidTrait;
     use Traits\ConditionTypeTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
