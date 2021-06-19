@@ -10,6 +10,7 @@ class CustomViewFilter extends ModelBase
 {
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
+    use Traits\AutoSUuidTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\ConditionTypeTrait;
     use Traits\DatabaseJsonOptionTrait;
