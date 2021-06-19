@@ -19,4 +19,17 @@ class SearchType extends EnumBase
     {
         return in_array($search_type, [static::SUMMARY_ONE_TO_MANY, static::SUMMARY_MANY_TO_MANY, static::SUMMARY_SELECT_TABLE]);
     }
+
+    public static function isOneToMany($search_type)
+    {
+        return in_array($search_type, [static::ONE_TO_MANY, static::SUMMARY_ONE_TO_MANY]);
+    }
+    public static function isManyToMany($search_type)
+    {
+        return in_array($search_type, [static::MANY_TO_MANY, static::SUMMARY_MANY_TO_MANY]);
+    }
+    public static function isSelectTable($search_type)
+    {
+        return in_array($search_type, [static::SELECT_TABLE, static::SUMMARY_SELECT_TABLE]);
+    }
 }

@@ -51,6 +51,13 @@ class RelationTable
     public $selectTablePivotColumn;
 
     /**
+     * Custom relation. Only use relation search.
+     *
+     * @var CustomRelation
+     */
+    public $relation;
+
+    /**
      * table's unique name. If join, set database table and use this table name.
      *
      * @var string
@@ -72,6 +79,7 @@ class RelationTable
         $this->table = array_get($params, 'table');
         $this->searchType = array_get($params, 'searchType');
         $this->selectTablePivotColumn = array_get($params, 'selectTablePivotColumn');
+        $this->relation = CustomRelation::getEloquent(array_get($params, 'relation'));
 
         $this->tableUniqueName = short_uuid();
     }
@@ -133,6 +141,115 @@ class RelationTable
             return true;
         });
     }
+
+    
+
+    /**
+     * Get relation table. Using view pivot table and column id.
+     * *Alomose same func contains SearchService.*
+     *
+     * @param CustomColumn|string|int $custom_column target custom column
+     * @param string|int|null $view_pivot_column_id
+     * @param string|int|null $view_pivot_table_id
+     * @return RelationTable|null
+     */
+    public static function getRelationTable($custom_column, $view_pivot_column_id, $view_pivot_table_id) : ?RelationTable
+    {
+        if(is_nullorempty($view_pivot_column_id) || is_nullorempty($view_pivot_table_id)){
+            return null;
+        }
+
+        $options = [
+            'search_enabled_only' => false,
+            'get_child_relation_tables' => false,
+            'get_parent_relation_tables' => true,
+        ];
+        $custom_column = CustomColumn::getEloquent($custom_column);
+        if(!$custom_column){ return null; }
+        $custom_table = CustomTable::getEloquent($custom_column->custom_table_id);
+        if(!$custom_table){ return null; }
+        $view_pivot_table = CustomTable::getEloquent($view_pivot_table_id);
+        if(!$view_pivot_table){ return null; }
+
+        // get relation tables. Base table is view_pivot_table(real base table).
+        $relationTables = static::getRelationTables($view_pivot_table, false, $options);
+        if(is_nullorempty($relationTables)){
+            return null;
+        }
+        
+        // if only 1, return first.
+        if($relationTables->count() <= 1){
+            return $relationTables->first();
+        }
+
+        // get search type
+        // If $view_pivot_column_id is not "parent_id", set searchtype is select_table
+        if(!isMatchString($view_pivot_column_id, Define::PARENT_ID_NAME)){
+            $searchType = SearchType::SELECT_TABLE;
+        }
+        else{
+            // get parent and child relation table
+            $relation = CustomRelation::getRelationByParentChild($custom_table->id, $view_pivot_table_id);
+            if(!$relation){
+                return null;
+            }
+            $searchType = (RelationType::ONE_TO_MANY == $relation->relation_type ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY);
+        }
+
+        return $relationTables->first(function($relationTable) use($view_pivot_column_id, $searchType){
+            // filtering $searchType
+            $isMatchSearchType = false;
+            if(isMatchString($relationTable->searchType, $searchType)){
+                $isMatchSearchType = true;
+            }
+            // if $searchType is SELECT_TABLE and SUMMARY_SELECT_TABLE
+            elseif($searchType == SearchType::SELECT_TABLE && SearchType::isSelectTable($relationTable->searchType)){
+                $isMatchSearchType = true;
+            }
+            elseif($searchType == SearchType::ONE_TO_MANY && SearchType::isOneToMany($relationTable->searchType)){
+                $isMatchSearchType = true;
+            }
+            elseif($searchType == SearchType::MANY_TO_MANY && SearchType::isManyToMany($relationTable->searchType)){
+                $isMatchSearchType = true;
+            }
+            if(!$isMatchSearchType){
+                return false;
+            }
+
+            // if select table, filtering selectTablePivotColumn
+            if(isMatchString($searchType, SearchType::SELECT_TABLE) || isMatchString($searchType, SearchType::SUMMARY_SELECT_TABLE)){
+                $selectTablePivotColumn = $relationTable->selectTablePivotColumn;
+                if(!$selectTablePivotColumn || !isMatchString($selectTablePivotColumn->id, $view_pivot_column_id)){
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }
+
+    /**
+     * Get relation table by key (Ex. 27?view_pivot_column_id=parent_id&view_pivot_table_id=20)
+     *
+     * @param string|null $key. 27?view_pivot_column_id=parent_id&view_pivot_table_id=20
+     * @return RelationTable|null
+     */
+    public static function getRelationTableByKey(?string $key) : ?RelationTable
+    {
+        if(is_nullorempty($key) || strpos($key, '?') === false){
+            return null;
+        }
+
+        $custom_column_id = explode('?', $key)[0];
+        parse_str(explode('?', $key)[1], $prms);
+        
+        return static::getRelationTable(
+            $custom_column_id,
+            array_get($prms, 'view_pivot_column_id'),
+            array_get($prms, 'view_pivot_table_id'),
+        );
+    }
+
 
     /**
      * Get custom tables as "select_table". They contains these columns matching them.
@@ -248,7 +365,7 @@ class RelationTable
         ->join('custom_tables AS child_custom_tables', 'child_custom_tables.id', 'custom_relations.child_custom_table_id')
             ->whereHas('custom_relations', function ($query) use ($custom_table) {
                 $query->where('parent_custom_table_id', $custom_table->id);
-            })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
+            })->get(['child_custom_tables.*', 'custom_relations.id AS custom_relation_id', 'custom_relations.relation_type'])->toArray();
         foreach ($tables as $table) {
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
             $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
@@ -256,6 +373,7 @@ class RelationTable
                 'searchType' => $searchType,
                 'base_table' => $custom_table,
                 'table' => $table_obj,
+                'relation' => array_get($table, 'custom_relation_id'),
             ]));
         }
 
@@ -280,7 +398,7 @@ class RelationTable
             $join->on('custom_tables.id', '=', 'custom_relations.parent_custom_table_id')
                  ->where('custom_relations.child_custom_table_id', '=', $custom_table->id);
         })->join('custom_tables AS parent_custom_tables', 'parent_custom_tables.id', 'custom_relations.parent_custom_table_id')
-            ->get(['parent_custom_tables.*', 'custom_relations.relation_type'])->toArray();
+            ->get(['parent_custom_tables.*', 'custom_relations.id AS custom_relation_id', 'custom_relations.relation_type'])->toArray();
         foreach ($tables as $table) {
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
             $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::SUMMARY_ONE_TO_MANY : SearchType::SUMMARY_MANY_TO_MANY;
@@ -288,6 +406,7 @@ class RelationTable
                 'searchType' => $searchType,
                 'base_table' => $custom_table,
                 'table' => $table_obj,
+                'relation' => array_get($table, 'custom_relation_id'),
             ]));
         }
 

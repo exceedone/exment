@@ -265,7 +265,9 @@ class CustomNotifyController extends AdminControllerTableBase
 
     public function notify_action_target(Request $request)
     {
-        $options = NotifyService::getNotifyTargetColumns($this->custom_table, $request->get('q'));
+        $options = NotifyService::getNotifyTargetColumns($this->custom_table, $request->get('q'), [
+            'get_realtion_email' => true,
+        ]);
 
         return $options;
     }
