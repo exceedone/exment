@@ -1901,7 +1901,7 @@ class PatchDataCommand extends Command
     {
         \DB::transaction(function () {
             $classNames = [CustomViewSummary::class, CustomViewColumn::class];
-            foreach($classNames as $className){
+            foreach ($classNames as $className) {
                 // get all CustomViewSummary
                 $className::with('custom_view')->get()
                 ->each(function ($custom_view_summary) {
@@ -1910,11 +1910,11 @@ class PatchDataCommand extends Command
                     $custom_table_id = $custom_view->custom_table_id;
 
                     // if match column table's id and view's table id, continue.
-                    if(isMatchString($custom_table_id, $custom_view_summary->view_column_table_id)){
+                    if (isMatchString($custom_table_id, $custom_view_summary->view_column_table_id)) {
                         return true;
                     }
                     // if already set view_pivot_column_id, continue.
-                    if(!is_nullorempty($custom_view_summary->getOption('view_pivot_column_id'))){
+                    if (!is_nullorempty($custom_view_summary->getOption('view_pivot_column_id'))) {
                         return true;
                     }
 
@@ -1922,10 +1922,10 @@ class PatchDataCommand extends Command
                     $relation_table = RelationTable::getRelationTables($custom_table_id, false, [
                         'search_enabled_only' => false,
                         'get_parent_relation_tables' => true,
-                    ])->first(function($relation_table) use($custom_view_summary){
+                    ])->first(function ($relation_table) use ($custom_view_summary) {
                         return isMatchString($relation_table->table->id, $custom_view_summary->view_column_table_id);
                     });
-                    if(!$relation_table){
+                    if (!$relation_table) {
                         return true;
                     }
 
@@ -1933,11 +1933,11 @@ class PatchDataCommand extends Command
                     $custom_view_summary->setOption('view_pivot_table_id', $custom_table_id);
 
                     // If select table, set pivot column info
-                    if(isMatchString($relation_table->searchType, Enums\SearchType::SELECT_TABLE)){
+                    if (isMatchString($relation_table->searchType, Enums\SearchType::SELECT_TABLE)) {
                         $custom_view_summary->setOption('view_pivot_column_id', $relation_table->selectTablePivotColumn->id);
                     }
                     // relation, set "parent_id".
-                    else{
+                    else {
                         $custom_view_summary->setOption('view_pivot_column_id', Define::PARENT_ID_NAME);
                     }
                     $custom_view_summary->save();
@@ -1965,27 +1965,27 @@ class PatchDataCommand extends Command
                 // get notify column info
                 $notify_target_column_id = $notify->getTriggerSetting('notify_target_column');
                 $notify_target_column = CustomColumn::getEloquent($notify_target_column_id);
-                if(!$notify_target_column){
+                if (!$notify_target_column) {
                     return true;
                 }
                 $notify_target_table_id = $notify_target_column->custom_table_id;
 
                 // if match column table's id and notify target table id, continue.
-                if(isMatchString($custom_table_id, $notify_target_table_id)){
+                if (isMatchString($custom_table_id, $notify_target_table_id)) {
                     return true;
                 }
                 // if already set view_pivot_column_id, continue.
-                if(!is_nullorempty($notify->getTriggerSetting('view_pivot_column_id'))){
+                if (!is_nullorempty($notify->getTriggerSetting('view_pivot_column_id'))) {
                     return true;
                 }
 
                 // get relation table info
                 $relation_table = RelationTable::getRelationTables($custom_table_id, false, [
                     'search_enabled_only' => false,
-                ])->first(function($relation_table) use($notify_target_table_id){
+                ])->first(function ($relation_table) use ($notify_target_table_id) {
                     return isMatchString($relation_table->table->id, $notify_target_table_id);
                 });
-                if(!$relation_table){
+                if (!$relation_table) {
                     return true;
                 }
 
@@ -1993,11 +1993,11 @@ class PatchDataCommand extends Command
                 $notify->setOption('view_pivot_table_id', $custom_table_id);
 
                 // If select table, set pivot column info
-                if(isMatchString($relation_table->searchType, Enums\SearchType::SELECT_TABLE)){
+                if (isMatchString($relation_table->searchType, Enums\SearchType::SELECT_TABLE)) {
                     $notify->setOption('view_pivot_column_id', $relation_table->selectTablePivotColumn->id);
                 }
                 // relation, set "parent_id".
-                else{
+                else {
                     $notify->setOption('view_pivot_column_id', Define::PARENT_ID_NAME);
                 }
                 $notify->save();

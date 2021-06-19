@@ -1243,7 +1243,6 @@ class TestDataSeeder extends Seeder
 
         // create parent column filter
         if ($custom_table->table_name == 'child_table') {
-
             foreach ($custom_table->child_custom_relations as $custom_relation) {
                 $parent_table = $custom_relation->parent_custom_table;
 
@@ -1273,7 +1272,6 @@ class TestDataSeeder extends Seeder
 
         // create select_table column filter
         if ($custom_table->table_name == 'all_columns_table_fortest') {
-
             $select_table_columns = $custom_table->getSelectTableColumns(null, true);
             $sort_settings = [];
 

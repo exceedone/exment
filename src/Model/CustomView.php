@@ -248,7 +248,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function getSearchService() : SearchService
     {
-        if(!$this->_search_service){
+        if (!$this->_search_service) {
             $this->_search_service = new SearchService($this->custom_table);
         }
         return $this->_search_service;
@@ -718,7 +718,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setValueFilters($query)
     {
         // If summary, call setSummaryValueFilters.
-        if($this->view_kind_type == ViewKindType::AGGREGATE){
+        if ($this->view_kind_type == ViewKindType::AGGREGATE) {
             return $this->setSummaryValueFilters($query);
         }
 
@@ -731,7 +731,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $service->setRelationJoin($filter);
             }
 
-            $query->where(function ($query) use($custom_view_filters, $service) {
+            $query->where(function ($query) use ($custom_view_filters, $service) {
                 foreach ($custom_view_filters as $filter) {
                     $service->whereCustomViewFilter($filter, $this->filter_is_or, $query);
                 }
@@ -770,7 +770,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
             }
 
-            $query->where(function ($query) use($relationTables, $custom_view_filters, $service) {
+            $query->where(function ($query) use ($relationTables, $custom_view_filters, $service) {
                 foreach ($custom_view_filters as $index => $filter) {
                     $relationTable = $relationTables[$index];
                     // If filter is not already setted, call.
@@ -786,7 +786,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * set value sort
-     * 
+     *
      * @deprecated Please use sortModel func.
      */
     public function setValueSort($model)

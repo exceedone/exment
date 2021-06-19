@@ -26,12 +26,12 @@ abstract class WorkflowStatusBase extends ViewFilterBase
 
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
-         // if $status is start
-         $status = $query_value;
-         $condition = $this->getFilterOption();
-         $or_option = $this->or_option;
+        // if $status is start
+        $status = $query_value;
+        $condition = $this->getFilterOption();
+        $or_option = $this->or_option;
 
-         if ($status == Define::WORKFLOW_START_KEYNAME) {
+        if ($status == Define::WORKFLOW_START_KEYNAME) {
             if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
                 $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
             } else {

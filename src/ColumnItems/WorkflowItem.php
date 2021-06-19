@@ -4,13 +4,10 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
-use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 class WorkflowItem extends SystemItem
 {
@@ -47,7 +44,7 @@ class WorkflowItem extends SystemItem
             $sqlname = array_get($option, 'sqlname');
         }
         
-        if($appendTable){
+        if ($appendTable) {
             return $this->sqlUniqueTableName() .'.'. $sqlname;
         }
         return $sqlname;
@@ -137,7 +134,7 @@ class WorkflowItem extends SystemItem
     
     /**
      * get real table name.
-     * If workflow, this name is workflow view. 
+     * If workflow, this name is workflow view.
      */
     public function sqlRealTableName()
     {
@@ -156,23 +153,19 @@ class WorkflowItem extends SystemItem
         $option = $this->getSystemColumnOption();
         $workflow = $this->getWorkflow();
         
-        if($workflow)
-        {
+        if ($workflow) {
             // Whether executed search.
             $searched = boolval(request()->get($filter->getId()));
             
-            if(array_get($option, 'name') == SystemColumn::WORKFLOW_WORK_USERS)
-            {
+            if (array_get($option, 'name') == SystemColumn::WORKFLOW_WORK_USERS) {
                 $filter->checkbox([1 => 'YES']);
                 $key = Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK;
-            }
-            else
-            {
+            } else {
                 $filter->select($workflow->getStatusOptions());
                 $key = Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK;
             }
 
-            if($searched){
+            if ($searched) {
                 System::setRequestSession($key, true);
             }
         }

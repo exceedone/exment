@@ -17,7 +17,6 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -605,7 +604,7 @@ class SelectTable extends CustomItem
             return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
         }
 
-        // If multiple enabled, 
+        // If multiple enabled,
         $query = $this->custom_table->getValueQuery();
         $this->getAdminFilterWhereQuery($query, $value);
 

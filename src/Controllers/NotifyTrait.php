@@ -101,9 +101,10 @@ trait NotifyTrait
                     'get_realtion_email' => true,
                 ], $options);
                 return collect(NotifyService::getNotifyTargetColumns(
-                    $custom_table ?? null, 
-                    array_get($field->data(), 'notify_action'), 
-                    $options))->pluck('text', 'id');
+                    $custom_table ?? null,
+                    array_get($field->data(), 'notify_action'),
+                    $options
+                ))->pluck('text', 'id');
             })
             ->attribute([
                 'data-filter' => json_encode([

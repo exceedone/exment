@@ -20,7 +20,8 @@ class Where extends BaseWhere
      * @param \Closure $whereNull
      * @return $this
      */
-    public function whereNull($whereNull){
+    public function whereNull($whereNull)
+    {
         $this->whereNull = $whereNull;
         return $this;
     }
@@ -57,7 +58,7 @@ class Where extends BaseWhere
      */
     public function whereNullCondition()
     {
-        if(!$this->whereNull){
+        if (!$this->whereNull) {
             return parent::whereNullCondition();
         }
 

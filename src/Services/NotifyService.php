@@ -808,26 +808,24 @@ class NotifyService
                 ]);
 
                 // loop $relationTables
-                foreach($relationTables as $relationTable){
-                    $relationTable->table->custom_columns_cache->each(function($custom_column) use($relationTable, &$items){
+                foreach ($relationTables as $relationTable) {
+                    $relationTable->table->custom_columns_cache->each(function ($custom_column) use ($relationTable, &$items) {
                         if (!ismatchString($custom_column->column_type, ColumnType::EMAIL)) {
                             return;
                         }
                         
                         // Set item. Contains pivot column and table.
-                        if($relationTable->searchType == SearchType::SELECT_TABLE || $relationTable->searchType == SearchType::SUMMARY_SELECT_TABLE){
+                        if ($relationTable->searchType == SearchType::SELECT_TABLE || $relationTable->searchType == SearchType::SUMMARY_SELECT_TABLE) {
                             $view_pivot_column_id = $relationTable->selectTablePivotColumn->id;
-                        }
-                        else{
+                        } else {
                             $view_pivot_column_id = Define::PARENT_ID_NAME;
                         }
                         $text = exmtrans('common.custom_column') . ' : ' . $relationTable->table->table_view_name . ' : ' . $custom_column->column_view_name;
                         $items[] = [
-                            'id' => "{$custom_column->id}?view_pivot_column_id={$view_pivot_column_id}&view_pivot_table_id={$relationTable->base_table->id}", 
+                            'id' => "{$custom_column->id}?view_pivot_column_id={$view_pivot_column_id}&view_pivot_table_id={$relationTable->base_table->id}",
                             'text' => $text,
                         ];
                     });
-
                 }
             }
         }

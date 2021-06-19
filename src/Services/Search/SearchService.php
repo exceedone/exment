@@ -93,7 +93,7 @@ class SearchService
      */
     public function query()
     {
-        if($this->isAppendSelect){
+        if ($this->isAppendSelect) {
             $this->addSelect();
         }
         return $this->query;
@@ -107,7 +107,7 @@ class SearchService
      */
     public function addSelect()
     {
-        if(!$this->alreadyAppendSelect){
+        if (!$this->alreadyAppendSelect) {
             $db_table_name = getDBTableName($this->custom_table);
             $this->query->select("$db_table_name.*");
     
@@ -153,7 +153,7 @@ class SearchService
 
 
     /**
-     * Add a where column. 
+     * Add a where column.
      * If CustomColumn, and linkage(relation or select table), add where exists query.
      *
      * @param  CustomColumn|string|\Closure|array|\Illuminate\Database\Query\Expression $column
@@ -168,15 +168,16 @@ class SearchService
         // passed to the method, we will assume that the operator is an equals sign
         // and keep going. Otherwise, we'll require the operator to be passed in.
         [$value, $operator] = $this->query->getQuery()->prepareValueAndOperator(
-            $value, $operator, func_num_args() === 2
+            $value,
+            $operator,
+            func_num_args() === 2
         );
         
         // If custom column, execute where custom column's exists query.
-        if($column instanceof CustomColumn)
-        {
+        if ($column instanceof CustomColumn) {
             return $this->whereCustomColumn($column, $operator, $value, $boolean, $options);
         }
-        if(is_string($column)){
+        if (is_string($column)) {
             return $this->whereCustomColumn(CustomColumn::getEloquent($column, $this->custom_table), $operator, $value, $boolean, $options);
         }
 
@@ -198,11 +199,10 @@ class SearchService
     public function orderBy($column, $direction = 'asc')
     {
         // If custom column, execute where custom column's exists query.
-        if($column instanceof CustomColumn)
-        {
+        if ($column instanceof CustomColumn) {
             return $this->orderByCustomColumn($column, $direction);
         }
-        if(is_string($column)){
+        if (is_string($column)) {
             return $this->orderByCustomColumn(CustomColumn::getEloquent($column, $this->custom_table), $direction);
         }
 
@@ -227,16 +227,15 @@ class SearchService
         $whereCustomTable = $column->custom_table_cache;
         $column_item = $column->column_item;
 
-        if(!isMatchString($whereCustomTable->id, $this->custom_table->id))
-        {
+        if (!isMatchString($whereCustomTable->id, $this->custom_table->id)) {
             // get RelationTable info.
             $relationTable = $this->getRelationTable($whereCustomTable);
 
-            if(!$relationTable){
+            if (!$relationTable) {
                 return $this->query->whereNotMatch();
             }
             // set relation query using relation type class.
-            else{
+            else {
                 $this->setJoin($relationTable, $whereCustomTable);
 
                 $column_item->setUniqueTableName($relationTable->tableUniqueName);
@@ -246,7 +245,7 @@ class SearchService
         // If set date format, get date format column.
         if (isset($options['format'])) {
             $column_name = \DB::raw($column_item->getDateFormatWrapTableColumn($options['format']));
-        }else{
+        } else {
             $column_name = $column_item->getTableColumn();
         }
 
@@ -268,8 +267,7 @@ class SearchService
     protected function orderByCustomColumn(CustomColumn $column, $direction = 'asc')
     {
         $whereCustomTable = $column->custom_table_cache;
-        if(isMatchString($whereCustomTable->id, $this->custom_table->id))
-        {
+        if (isMatchString($whereCustomTable->id, $this->custom_table->id)) {
             $this->query->orderBy($column->getQueryKey(), $direction);
             return $this;
         }
@@ -277,14 +275,13 @@ class SearchService
         // get RelationTable info.
         $relationTable = $this->getRelationTable($whereCustomTable);
 
-        if(!$relationTable){
+        if (!$relationTable) {
             $this->query->whereNotMatch();
-        }
-        elseif($relationTable->searchType == SearchType::MANY_TO_MANY){
+        } elseif ($relationTable->searchType == SearchType::MANY_TO_MANY) {
             throw new \Exception('Many to many relation not support order by.');
         }
         // set relation query using relation type class.
-        else{
+        else {
             $this->setJoin($relationTable, $whereCustomTable);
             
             // Add orderBy query
@@ -329,7 +326,7 @@ class SearchService
      */
     public function orderByCustomViewColumn($column, $type)
     {
-        $custom_view_sort = new CustomViewSort ([
+        $custom_view_sort = new CustomViewSort([
             'custom_view_id' => $column->custom_view_id,
             'view_column_type' => $column->view_column_type,
             'view_column_table_id' => $column->view_column_table_id,
@@ -368,9 +365,9 @@ class SearchService
         
         // if has sub query(for child relation), set to sub query
         $isSubQuery = false;
-        if($relationTable && SearchType::isSummarySearchType($relationTable->searchType)){
+        if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
             $isSubQuery = true;
-            $relationTable->subQueryCallbacks[] = function($subquery, $relationTable) use($wrap_column, $sqlAsName){
+            $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($wrap_column, $sqlAsName) {
                 $subquery->selectRaw("$wrap_column AS $sqlAsName");
                 $subquery->groupByRaw($wrap_column);
             };
@@ -413,8 +410,8 @@ class SearchService
         $sqlAsName = \Exment::wrapColumn($column_item->sqlAsName());
 
         // if has sub query(for child relation), set to sub query
-        if($relationTable && SearchType::isSummarySearchType($relationTable->searchType)){
-            $relationTable->subQueryCallbacks[] = function($subquery, $relationTable) use($wrap_column, $sqlAsName){
+        if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
+            $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($wrap_column, $sqlAsName) {
                 $subquery->selectRaw("$wrap_column AS $sqlAsName");
             };
 
@@ -427,12 +424,12 @@ class SearchService
             // set to default query group by.
             // Need MIN, MAX.
             $result_column = $column_item->getGroupByJoinResultWrapTableColumn();
-            if(!is_nullorempty($result_column)){
+            if (!is_nullorempty($result_column)) {
                 $this->query->groupByRaw($result_column);
             }
         }
         // default, set to default query.
-        else{
+        else {
             $this->query->selectRaw("$wrap_column AS $sqlAsName");
         }
         
@@ -451,7 +448,7 @@ class SearchService
     protected function setSummaryOrderBy($column, $wrap_column)
     {
         $sort_order = array_get($column->options, 'sort_order');
-        if(is_nullorempty($sort_order)){
+        if (is_nullorempty($sort_order)) {
             return $this;
         }
 
@@ -475,7 +472,7 @@ class SearchService
      */
     public function executeSummaryOrderBy()
     {
-        foreach(collect($this->summaryOrders)->sortBy('sort_order') as $summaryOrder){
+        foreach (collect($this->summaryOrders)->sortBy('sort_order') as $summaryOrder) {
             //$wrap_column is wraped
             $this->query->orderByRaw("{$summaryOrder['wrap_column']} {$summaryOrder['sort_type']}");
         }
@@ -488,7 +485,7 @@ class SearchService
      */
     public function executeSummaryJoin()
     {
-        foreach($this->summaryJoins as $summaryJoin){
+        foreach ($this->summaryJoins as $summaryJoin) {
             // call summary join.
             $summaryJoin();
         }
@@ -504,7 +501,7 @@ class SearchService
     {
         // if $query is null, set $query as base $this->query.
         // if $query is not null, $query(Setting filter target query) maybe inner where kakko.
-        if(is_null($query)){
+        if (is_null($query)) {
             $query = $this->query;
         }
  
@@ -515,7 +512,7 @@ class SearchService
         // set filter info.
         $column->setValueFilter($query, $filter_is_or);
 
-        return $this;      
+        return $this;
     }
 
 
@@ -540,19 +537,17 @@ class SearchService
         $orderCustomTable = CustomTable::getEloquent($order_table_id);
 
         // if not match this table and order table, setJoin relation table.
-        if(!isMatchString($order_table_id, $this->custom_table->id))
-        {
+        if (!isMatchString($order_table_id, $this->custom_table->id)) {
             // get RelationTable info.
             $relationTable = $this->getRelationTable($orderCustomTable, $asSummary, $column);
 
-            if(!$relationTable){
+            if (!$relationTable) {
                 $this->query->whereNotMatch();
-            }
-            elseif($asOrderBy && $relationTable->searchType == SearchType::MANY_TO_MANY){
+            } elseif ($asOrderBy && $relationTable->searchType == SearchType::MANY_TO_MANY) {
                 throw new \Exception('Many to many relation not support order by.');
             }
             // set relation query using relation type class.
-            else{
+            else {
                 $this->setJoin($relationTable, $orderCustomTable);
 
                 // set database unique name
@@ -566,11 +561,11 @@ class SearchService
         }
 
         // set relation workflow status
-        if($this->isJoinWorkflowStatus($column)){
+        if ($this->isJoinWorkflowStatus($column)) {
             RelationTable::setWorkflowStatusSubquery($this->query, $this->custom_table, $column->custom_view_cache->filter_is_or);
         }
         // set relation workflow work user
-        if($this->isJoinWorkflowWorkUsers($column)){
+        if ($this->isJoinWorkflowWorkUsers($column)) {
             RelationTable::setWorkflowWorkUsersSubQuery($this->query, $this->custom_table, $column->custom_view_cache->filter_is_or);
         }
 
@@ -586,11 +581,11 @@ class SearchService
     public function setRelationJoinWorkflow(string $key, array $options = [])
     {
         // set relation workflow status
-        if($this->isJoinWorkflowStatus($key == SystemColumn::WORKFLOW_STATUS)){
+        if ($this->isJoinWorkflowStatus($key == SystemColumn::WORKFLOW_STATUS)) {
             RelationTable::setWorkflowStatusSubquery($this->query, $this->custom_table, false);
         }
         // set relation workflow work user
-        if($this->isJoinWorkflowWorkUsers($key == SystemColumn::WORKFLOW_WORK_USERS)){
+        if ($this->isJoinWorkflowWorkUsers($key == SystemColumn::WORKFLOW_WORK_USERS)) {
             RelationTable::setWorkflowWorkUsersSubQuery($this->query, $this->custom_table, false);
         }
     }
@@ -602,20 +597,20 @@ class SearchService
      * @param CustomTable $whereCustomTable
      * @return RelationTable relation table info
      */
-    protected function getRelationTable($whereCustomTable, bool $asSummary = false, $filterObj = null){
+    protected function getRelationTable($whereCustomTable, bool $asSummary = false, $filterObj = null)
+    {
         // get RelationTable info.
         $relationTables = RelationTable::getRelationTables($whereCustomTable, false, [
             'search_enabled_only' => false,
             'get_parent_relation_tables' => $asSummary,
-        ])->filter(function($relationTable){
+        ])->filter(function ($relationTable) {
             return isMatchString($relationTable->table->id, $this->custom_table->id);
         });
 
         // filter RelationTable, using custom view filter, sort etc.
-        if($filterObj){
+        if ($filterObj) {
             $relationTable = $this->filterRelationTable($relationTables, $filterObj);
-        }
-        else{
+        } else {
             $relationTable = $relationTables->first();
         }
         return $relationTable;
@@ -632,7 +627,7 @@ class SearchService
     protected function filterRelationTable($relationTables, $filterObj) : ?RelationTable
     {
         // if only 1, return first.
-        if($relationTables->count() <= 1){
+        if ($relationTables->count() <= 1) {
             return $relationTables->first();
         }
 
@@ -641,36 +636,35 @@ class SearchService
         list($order_table_id, $order_column_id, $this_table_id, $this_column_id) = $this->getConditionParams($filterObj);
         // get search type
         // If $this_column_id is not "parent_id", set searchtype is select_table
-        if(!isMatchString($this_column_id, Define::PARENT_ID_NAME)){
+        if (!isMatchString($this_column_id, Define::PARENT_ID_NAME)) {
             $searchType = SearchType::SELECT_TABLE;
-        }
-        else{
+        } else {
             // get parent and child relation table
             $relation = CustomRelation::getRelationByParentChild($order_table_id, $this_table_id);
-            if(!$relation){
+            if (!$relation) {
                 return null;
             }
             $searchType = (RelationType::ONE_TO_MANY == $relation->relation_type ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY);
         }
 
-        return $relationTables->first(function($relationTable) use($this_column_id, $searchType){
+        return $relationTables->first(function ($relationTable) use ($this_column_id, $searchType) {
             // filtering $searchType
             $isMatchSearchType = false;
-            if(isMatchString($relationTable->searchType, $searchType)){
+            if (isMatchString($relationTable->searchType, $searchType)) {
                 $isMatchSearchType = true;
             }
             // if $searchType is SELECT_TABLE and SUMMARY_SELECT_TABLE
-            elseif($searchType == SearchType::SELECT_TABLE && $relationTable->searchType == SearchType::SUMMARY_SELECT_TABLE){
+            elseif ($searchType == SearchType::SELECT_TABLE && $relationTable->searchType == SearchType::SUMMARY_SELECT_TABLE) {
                 $isMatchSearchType = true;
             }
-            if(!$isMatchSearchType){
+            if (!$isMatchSearchType) {
                 return false;
             }
 
             // if select table, filtering selectTablePivotColumn
-            if(isMatchString($searchType, SearchType::SELECT_TABLE)){
+            if (isMatchString($searchType, SearchType::SELECT_TABLE)) {
                 $selectTablePivotColumn = $relationTable->selectTablePivotColumn;
-                if(!$selectTablePivotColumn || !isMatchString($selectTablePivotColumn->id, $this_column_id)){
+                if (!$selectTablePivotColumn || !isMatchString($selectTablePivotColumn->id, $this_column_id)) {
                     return false;
                 }
             }
@@ -687,22 +681,22 @@ class SearchService
      * @param CustomTable $whereCustomTable parent custom table
      * @return void
      */
-    protected function setJoin($relationTable, $whereCustomTable){
+    protected function setJoin($relationTable, $whereCustomTable)
+    {
         // first, join table if needs
-        if(!$this->isJoinedTable($relationTable)){
+        if (!$this->isJoinedTable($relationTable)) {
             // If summary view and target is child, call as left join
-            if(SearchType::isSummarySearchType($relationTable->searchType)){
+            if (SearchType::isSummarySearchType($relationTable->searchType)) {
                 // set summary joins array. After all select and group by columns, call these.
-                $this->summaryJoins[] = function() use($relationTable, $whereCustomTable){
+                $this->summaryJoins[] = function () use ($relationTable, $whereCustomTable) {
                     $relationTable->setSummaryChildJoin($this->query, [
                         'parent_table' => $this->custom_table,
                         'child_table' => $whereCustomTable,
                         'custom_column' => $relationTable->selectTablePivotColumn,
                         'leftJoin' => true,
-                    ]);    
+                    ]);
                 };
-            }
-            else{
+            } else {
                 $relationTable->setParentJoin($this->query, [
                     'child_table' => $this->custom_table,
                     'parent_table' => $whereCustomTable,
@@ -721,11 +715,12 @@ class SearchService
      * @param RelationTable $relationTable
      * @return boolean is already joined
      */
-    protected function isJoinedTable($relationTable){
-        return collect($this->joinedTables)->contains(function($joinedTable) use($relationTable){
-            return isMatchString($joinedTable->table->id, $relationTable->table->id) && 
-            isMatchString($joinedTable->base_table->id, $relationTable->base_table->id) && 
-            isMatchString($joinedTable->searchType, $relationTable->searchType) && 
+    protected function isJoinedTable($relationTable)
+    {
+        return collect($this->joinedTables)->contains(function ($joinedTable) use ($relationTable) {
+            return isMatchString($joinedTable->table->id, $relationTable->table->id) &&
+            isMatchString($joinedTable->base_table->id, $relationTable->base_table->id) &&
+            isMatchString($joinedTable->searchType, $relationTable->searchType) &&
             isMatchString($joinedTable->selectTablePivotColumn, $relationTable->selectTablePivotColumn);
         });
     }
@@ -759,23 +754,22 @@ class SearchService
     protected function isJoinWorkflow($custom_view_filter, $key) : bool
     {
         // Whether custom_view_filter is boolelan. if true, always call.
-        if($custom_view_filter === true){
-        }
-        else{
-            if(!($custom_view_filter instanceof CustomViewFilter || $custom_view_filter instanceof CustomViewColumn)){
+        if ($custom_view_filter === true) {
+        } else {
+            if (!($custom_view_filter instanceof CustomViewFilter || $custom_view_filter instanceof CustomViewColumn)) {
                 return false;
             }
-            if($custom_view_filter->view_column_type != ConditionType::WORKFLOW){
+            if ($custom_view_filter->view_column_type != ConditionType::WORKFLOW) {
                 return false;
             }
             
             $enum = SystemColumn::getEnum($key);
-            if($custom_view_filter->view_column_target_id != $enum->option()['id']){
+            if ($custom_view_filter->view_column_target_id != $enum->option()['id']) {
                 return false;
             }
         }
 
-        if(in_array($key, $this->joinedWorkflows)){
+        if (in_array($key, $this->joinedWorkflows)) {
             return false;
         }
 
@@ -788,7 +782,7 @@ class SearchService
      * Get condition params
      *
      * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
-     * @return array 
+     * @return array
      *  offset0 : target column's table id
      *  offset1 : target column's id
      *  offset2 : this table's id
@@ -796,10 +790,9 @@ class SearchService
      */
     protected function getConditionParams($column) : array
     {
-
-        if($column instanceof CustomViewColumn || $column instanceof CustomViewFilter || $column instanceof CustomViewSort || $column instanceof CustomViewSummary || $column instanceof CustomViewGridFilter){
+        if ($column instanceof CustomViewColumn || $column instanceof CustomViewFilter || $column instanceof CustomViewSort || $column instanceof CustomViewSummary || $column instanceof CustomViewGridFilter) {
             return [
-                $column->view_column_table_id, 
+                $column->view_column_table_id,
                 $column->view_column_target_id,
                 array_get($column, 'options.view_pivot_table_id') ?? $column->view_column_table_id,
                 array_get($column, 'options.view_pivot_column_id') ?? $column->view_column_target_id,
@@ -808,5 +801,4 @@ class SearchService
 
         return [null, null, null, null];
     }
-
 }

@@ -2,9 +2,6 @@
 
 namespace Exceedone\Exment\Grid\Filter;
 
-use Illuminate\Support\Arr;
-use Encore\Admin\Grid\Filter\Between;
-
 trait BetweenTrait
 {
     /**
@@ -38,7 +35,8 @@ trait BetweenTrait
      * @param \Closure $whereNull
      * @return $this
      */
-    public function whereNull($whereNull){
+    public function whereNull($whereNull)
+    {
         $this->whereNull = $whereNull;
         return $this;
     }
@@ -67,7 +65,7 @@ trait BetweenTrait
      */
     public function whereNullCondition()
     {
-        if(!$this->whereNull){
+        if (!$this->whereNull) {
             return parent::whereNullCondition();
         }
 

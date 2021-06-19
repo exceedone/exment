@@ -68,10 +68,10 @@ class Notify extends ModelBase
         // }
 
         $optionKeyParams = [];
-        if(!is_nullorempty($v = array_get($trigger_settings, 'view_pivot_column_id'))){
+        if (!is_nullorempty($v = array_get($trigger_settings, 'view_pivot_column_id'))) {
             $optionKeyParams['view_pivot_column'] = $v;
         }
-        if(!is_nullorempty($v = array_get($trigger_settings, 'view_pivot_table_id'))){
+        if (!is_nullorempty($v = array_get($trigger_settings, 'view_pivot_table_id'))) {
             $optionKeyParams['view_pivot_table'] = $v;
         }
 
@@ -89,10 +89,10 @@ class Notify extends ModelBase
 
             $value['notify_target_column'] = $column_type_target;
             $value['notify_target_table_id'] = $column_table_id;
-            if(!is_nullorempty($view_pivot_column)){
+            if (!is_nullorempty($view_pivot_column)) {
                 $value['view_pivot_column_id'] = $view_pivot_column;
             }
-            if(!is_nullorempty($view_pivot_table)){
+            if (!is_nullorempty($view_pivot_table)) {
                 $value['view_pivot_table_id'] = $view_pivot_table;
             }
             unset($value['notify_target_date']);
@@ -681,7 +681,7 @@ class Notify extends ModelBase
         });
     }
 
-    protected function getNotifyTargetValue($custom_value, $column) 
+    protected function getNotifyTargetValue($custom_value, $column)
     {
         $item = $column->column_item
         ->options([

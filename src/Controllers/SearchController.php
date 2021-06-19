@@ -369,7 +369,7 @@ class SearchController extends AdminControllerBase
         foreach ($relationTables as $relationTable) {
             // check already setted search type
             $key = "{$relationTable->table->id}-$relationTable->searchType";
-            if(in_array($key, $searchTypes)){
+            if (in_array($key, $searchTypes)) {
                 continue;
             }
             $searchTypes[] = $key;

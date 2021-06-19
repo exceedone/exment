@@ -35,7 +35,7 @@ trait SummaryItemTrait
     protected function getSummaryConditionName()
     {
         $summary_condition = $this->getSummaryCondition();
-        if(!is_null($summary_condition)){
+        if (!is_null($summary_condition)) {
             return $summary_condition->lowerKey();
         }
         return null;
@@ -73,7 +73,7 @@ trait SummaryItemTrait
      * Get sqlname for group by
      * Join table: true
      * Wrap: true
-     * 
+     *
      * @param boolean $asSelect if true, get sqlname for select column
      * @param boolean $asSqlAsName if true, get sqlname as name.
      * @return string group by column name

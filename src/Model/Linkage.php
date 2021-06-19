@@ -58,7 +58,7 @@ class Linkage
             }
 
             // If already getting select_target_table, continue.
-            if(in_array($select_target_table->id, $checkedSelectTableIds)){
+            if (in_array($select_target_table->id, $checkedSelectTableIds)) {
                 continue;
             }
             $checkedSelectTableIds[] = $select_target_table->id;

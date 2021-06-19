@@ -32,7 +32,7 @@ class ParentItem implements ItemInterface
         $this->custom_table = $custom_table;
         $this->value = $this->getTargetValue($custom_value);
 
-        if(!$custom_relation){
+        if (!$custom_relation) {
             $custom_relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table->id);
             
             if (isset($parent_table)) {
@@ -85,7 +85,7 @@ class ParentItem implements ItemInterface
      */
     public function sqlRealTableName()
     {
-        if($this->custom_relation->relation_type == RelationType::ONE_TO_MANY){
+        if ($this->custom_relation->relation_type == RelationType::ONE_TO_MANY) {
             return getDBTableName($this->custom_table);
         }
 
@@ -265,7 +265,7 @@ class ParentItem implements ItemInterface
      * *Please override if use.
      * Join table: true
      * Wrap: true
-     * 
+     *
      * @return string Ex: COUNT(`exm__3914ac5180d7dc43fcbb AS AAAA`)
      */
     public function getSummaryWrapTableColumn() : string
@@ -279,7 +279,7 @@ class ParentItem implements ItemInterface
      * Get sqlname for group by
      * Join table: true
      * Wrap: true
-     * 
+     *
      * @param boolean $asSelect if true, get sqlname for select column
      * @param boolean $asSqlAsName if true, get sqlname as name.
      * @return string group by column name

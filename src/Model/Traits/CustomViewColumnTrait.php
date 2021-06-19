@@ -149,7 +149,7 @@ trait CustomViewColumnTrait
         $model->view_column_target = $view_column_target;
 
         // if not view_column_table_id, set custom table
-        if(is_nullorempty(array_get($model, 'view_column_table_id')) && $custom_table){
+        if (is_nullorempty(array_get($model, 'view_column_table_id')) && $custom_table) {
             $model->view_column_table_id = $custom_table->id;
         }
 

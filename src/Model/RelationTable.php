@@ -12,10 +12,10 @@ use Illuminate\Support\Collection;
 /**
  * RelationTable item for Search, linkage, ...
  * Management these....
- * 
+ *
  * Manage relation and select table. Ex:
- *      ・Organization (n:n relation) user 
- *      ・Organization (select table joined "customer" table) user 
+ *      ・Organization (n:n relation) user
+ *      ・Organization (select table joined "customer" table) user
  *      ・Organization (select table joiner "estimate") estimate
  */
 class RelationTable
@@ -112,8 +112,7 @@ class RelationTable
             $results = collect();
 
             // Get only options get_child_relation_tables is true
-            if(boolval($options['get_child_relation_tables']))
-            {
+            if (boolval($options['get_child_relation_tables'])) {
                 // 1. Get custom columns as "select_table". They contains these columns matching them.
                 $results = $results->merge(static::_getTablesSelectTable($custom_table, $options));
 
@@ -123,7 +122,7 @@ class RelationTable
             }
 
             // Only call get_parent_relation_tables option.
-            if(boolval($options['get_parent_relation_tables'])){
+            if (boolval($options['get_parent_relation_tables'])) {
                 // 3. Get custom columns as "select_table" to parent.
                 $results = $results->merge(static::_getParentTablesSelectTable($custom_table, $options));
 
@@ -155,7 +154,7 @@ class RelationTable
      */
     public static function getRelationTable($custom_column, $view_pivot_column_id, $view_pivot_table_id) : ?RelationTable
     {
-        if(is_nullorempty($view_pivot_column_id) || is_nullorempty($view_pivot_table_id)){
+        if (is_nullorempty($view_pivot_column_id) || is_nullorempty($view_pivot_table_id)) {
             return null;
         }
 
@@ -165,61 +164,64 @@ class RelationTable
             'get_parent_relation_tables' => true,
         ];
         $custom_column = CustomColumn::getEloquent($custom_column);
-        if(!$custom_column){ return null; }
+        if (!$custom_column) {
+            return null;
+        }
         $custom_table = CustomTable::getEloquent($custom_column->custom_table_id);
-        if(!$custom_table){ return null; }
+        if (!$custom_table) {
+            return null;
+        }
         $view_pivot_table = CustomTable::getEloquent($view_pivot_table_id);
-        if(!$view_pivot_table){ return null; }
+        if (!$view_pivot_table) {
+            return null;
+        }
 
         // get relation tables. Base table is view_pivot_table(real base table).
         $relationTables = static::getRelationTables($view_pivot_table, false, $options);
-        if(is_nullorempty($relationTables)){
+        if (is_nullorempty($relationTables)) {
             return null;
         }
         
         // if only 1, return first.
-        if($relationTables->count() <= 1){
+        if ($relationTables->count() <= 1) {
             return $relationTables->first();
         }
 
         // get search type
         // If $view_pivot_column_id is not "parent_id", set searchtype is select_table
-        if(!isMatchString($view_pivot_column_id, Define::PARENT_ID_NAME)){
+        if (!isMatchString($view_pivot_column_id, Define::PARENT_ID_NAME)) {
             $searchType = SearchType::SELECT_TABLE;
-        }
-        else{
+        } else {
             // get parent and child relation table
             $relation = CustomRelation::getRelationByParentChild($custom_table->id, $view_pivot_table_id);
-            if(!$relation){
+            if (!$relation) {
                 return null;
             }
             $searchType = (RelationType::ONE_TO_MANY == $relation->relation_type ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY);
         }
 
-        return $relationTables->first(function($relationTable) use($view_pivot_column_id, $searchType){
+        return $relationTables->first(function ($relationTable) use ($view_pivot_column_id, $searchType) {
             // filtering $searchType
             $isMatchSearchType = false;
-            if(isMatchString($relationTable->searchType, $searchType)){
+            if (isMatchString($relationTable->searchType, $searchType)) {
                 $isMatchSearchType = true;
             }
             // if $searchType is SELECT_TABLE and SUMMARY_SELECT_TABLE
-            elseif($searchType == SearchType::SELECT_TABLE && SearchType::isSelectTable($relationTable->searchType)){
+            elseif ($searchType == SearchType::SELECT_TABLE && SearchType::isSelectTable($relationTable->searchType)) {
+                $isMatchSearchType = true;
+            } elseif ($searchType == SearchType::ONE_TO_MANY && SearchType::isOneToMany($relationTable->searchType)) {
+                $isMatchSearchType = true;
+            } elseif ($searchType == SearchType::MANY_TO_MANY && SearchType::isManyToMany($relationTable->searchType)) {
                 $isMatchSearchType = true;
             }
-            elseif($searchType == SearchType::ONE_TO_MANY && SearchType::isOneToMany($relationTable->searchType)){
-                $isMatchSearchType = true;
-            }
-            elseif($searchType == SearchType::MANY_TO_MANY && SearchType::isManyToMany($relationTable->searchType)){
-                $isMatchSearchType = true;
-            }
-            if(!$isMatchSearchType){
+            if (!$isMatchSearchType) {
                 return false;
             }
 
             // if select table, filtering selectTablePivotColumn
-            if(isMatchString($searchType, SearchType::SELECT_TABLE) || isMatchString($searchType, SearchType::SUMMARY_SELECT_TABLE)){
+            if (isMatchString($searchType, SearchType::SELECT_TABLE) || isMatchString($searchType, SearchType::SUMMARY_SELECT_TABLE)) {
                 $selectTablePivotColumn = $relationTable->selectTablePivotColumn;
-                if(!$selectTablePivotColumn || !isMatchString($selectTablePivotColumn->id, $view_pivot_column_id)){
+                if (!$selectTablePivotColumn || !isMatchString($selectTablePivotColumn->id, $view_pivot_column_id)) {
                     return false;
                 }
             }
@@ -236,7 +238,7 @@ class RelationTable
      */
     public static function getRelationTableByKey(?string $key) : ?RelationTable
     {
-        if(is_nullorempty($key) || strpos($key, '?') === false){
+        if (is_nullorempty($key) || strpos($key, '?') === false) {
             return null;
         }
 
@@ -267,20 +269,20 @@ class RelationTable
         
         // get select tables custom columns.
         $custom_columns = CustomColumn::allRecords()
-        ->filter(function($custom_column) use($custom_table, $options){
-            if(!ColumnType::isSelectTable($custom_column)){
+        ->filter(function ($custom_column) use ($custom_table, $options) {
+            if (!ColumnType::isSelectTable($custom_column)) {
                 return false;
             }
             $select_target_table = $custom_column->select_target_table;
-            if(!isMatchString(array_get($select_target_table, 'id'), $custom_table->id)){
+            if (!isMatchString(array_get($select_target_table, 'id'), $custom_table->id)) {
                 return false;
             }
-            if(!$custom_column->index_enabled){
+            if (!$custom_column->index_enabled) {
                 return false;
             }
-            if($options['search_enabled_only']){
+            if ($options['search_enabled_only']) {
                 $column_custom_table = $custom_column->custom_table_cache;
-                if(!boolval($column_custom_table->getOption('search_enabled'))){
+                if (!boolval($column_custom_table->getOption('search_enabled'))) {
                     return false;
                 }
             }
@@ -290,7 +292,7 @@ class RelationTable
         foreach ($custom_columns as $custom_column) {
             $table_obj = $custom_column->custom_table_cache;
             $results->push(new self([
-                'searchType' => SearchType::SELECT_TABLE, 
+                'searchType' => SearchType::SELECT_TABLE,
                 'base_table' => $custom_table,
                 'table' => $table_obj,
                 'selectTablePivotColumn' => $custom_column,
@@ -314,20 +316,20 @@ class RelationTable
 
         // get select tables custom columns.
         $custom_columns = $custom_table->custom_columns_cache
-            ->filter(function($custom_column) use($custom_table, $options){
-                if(!ColumnType::isSelectTable($custom_column)){
+            ->filter(function ($custom_column) use ($custom_table, $options) {
+                if (!ColumnType::isSelectTable($custom_column)) {
                     return false;
                 }
-                if(!$custom_column->index_enabled){
+                if (!$custom_column->index_enabled) {
                     return false;
                 }
                 
                 $select_target_table = $custom_column->select_target_table;
-                if(!$select_target_table){
+                if (!$select_target_table) {
                     return false;
                 }
 
-                if($options['search_enabled_only'] && !boolval($select_target_table->getOption('search_enabled'))){
+                if ($options['search_enabled_only'] && !boolval($select_target_table->getOption('search_enabled'))) {
                     return false;
                 }
                 return true;
@@ -337,7 +339,7 @@ class RelationTable
             $table_obj = $custom_column->select_target_table;
             
             $results->push(new self([
-                'searchType' => SearchType::SUMMARY_SELECT_TABLE, 
+                'searchType' => SearchType::SUMMARY_SELECT_TABLE,
                 'base_table' => $custom_table,
                 'table' => $table_obj,
                 'selectTablePivotColumn' => $custom_column,
@@ -394,7 +396,7 @@ class RelationTable
     
         // 2. Get relation tables.
         // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
-        $tables = CustomTable::join('custom_relations', function ($join) use($custom_table) {
+        $tables = CustomTable::join('custom_relations', function ($join) use ($custom_table) {
             $join->on('custom_tables.id', '=', 'custom_relations.parent_custom_table_id')
                  ->where('custom_relations.child_custom_table_id', '=', $custom_table->id);
         })->join('custom_tables AS parent_custom_tables', 'parent_custom_tables.id', 'custom_relations.parent_custom_table_id')
@@ -653,12 +655,11 @@ class RelationTable
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoin' : 'join';
-        $query->{$joinName}("$parent_table_name AS $unique_table_name", function($join) use($custom_item, $child_table_name, $unique_table_name, $query_key){
+        $query->{$joinName}("$parent_table_name AS $unique_table_name", function ($join) use ($custom_item, $child_table_name, $unique_table_name, $query_key) {
             // If multiple, join as array string
-            if($custom_item->isMultipleEnabled()){
+            if ($custom_item->isMultipleEnabled()) {
                 $join->whereInArrayColumn("$unique_table_name.id", "$child_table_name.$query_key");
-            }
-            else{
+            } else {
                 $join->whereColumn("$unique_table_name.id", "=", "$child_table_name.$query_key");
             }
         })
@@ -687,14 +688,14 @@ class RelationTable
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
-        $query->{$joinName}(function($subQuery) use($child_table_name){
+        $query->{$joinName}(function ($subQuery) use ($child_table_name) {
             // set from and default group by, select.
             $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
                 ->select("{$this->tableUniqueName}.parent_id")
                 ->groupBy("{$this->tableUniqueName}.parent_id");
 
             // call subquery object callbacks.
-            foreach($this->subQueryCallbacks as $callback){
+            foreach ($this->subQueryCallbacks as $callback) {
                 $callback($subQuery, $this);
             };
         }, $this->tableUniqueName, "{$this->tableUniqueName}.parent_id", "=", "$parent_table_name.id");
@@ -729,10 +730,9 @@ class RelationTable
         // Append join query.
         $query->join($relation_name, "$parent_table_name.id", "=", "$relation_name.parent_id");
 
-        if(isset($tableUniqueName)){
+        if (isset($tableUniqueName)) {
             $query->join("$child_table_name AS $tableUniqueName", "$tableUniqueName.id", "=", "$relation_name.child_id");
-        }
-        else{
+        } else {
             $query->join($child_table_name, "$child_table_name.id", "=", "$relation_name.child_id");
         }
 
@@ -741,7 +741,7 @@ class RelationTable
     
     
     /**
-     * Set child join for n:n relation 
+     * Set child join for n:n relation
      *
      * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param CustomTable $parent_table
@@ -766,7 +766,7 @@ class RelationTable
         
         // Append join query.
         $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
-        $query->{$joinName}(function($subQuery) use($child_table_name, $relation_name, $leftJoin){
+        $query->{$joinName}(function ($subQuery) use ($child_table_name, $relation_name, $leftJoin) {
             $joinName = $leftJoin ? 'leftJoin' : 'join';
 
             // set from and default group by, select.
@@ -776,7 +776,7 @@ class RelationTable
                 ->groupBy("{$relation_name}.parent_id");
 
             // call subquery object callbacks.
-            foreach($this->subQueryCallbacks as $callback){
+            foreach ($this->subQueryCallbacks as $callback) {
                 $callback($subQuery, $this);
             };
         }, $this->tableUniqueName, "{$this->tableUniqueName}.parent_id", "=", "$parent_table_name.id");
@@ -810,22 +810,21 @@ class RelationTable
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
-        $query->{$joinName}(function($subQuery) use($child_table_name, $custom_item, $query_key){
+        $query->{$joinName}(function ($subQuery) use ($child_table_name, $custom_item, $query_key) {
             // set from and default group by, select.
             $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
                 ->select("{$this->tableUniqueName}.$query_key")
                 ->groupBy("{$this->tableUniqueName}.$query_key");
 
             // call subquery object callbacks.
-            foreach($this->subQueryCallbacks as $callback){
+            foreach ($this->subQueryCallbacks as $callback) {
                 $callback($subQuery, $this);
             };
-        }, $this->tableUniqueName, function($join) use($custom_item, $parent_table_name, $unique_table_name, $query_key){
+        }, $this->tableUniqueName, function ($join) use ($custom_item, $parent_table_name, $unique_table_name, $query_key) {
             // If multiple, join as array string
-            if($custom_item->isMultipleEnabled()){
+            if ($custom_item->isMultipleEnabled()) {
                 $join->whereInArrayColumn("$parent_table_name.id", "$unique_table_name.$query_key");
-            }
-            else{
+            } else {
                 $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$query_key");
             }
         });

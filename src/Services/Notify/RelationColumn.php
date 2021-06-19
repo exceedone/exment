@@ -2,8 +2,6 @@
 namespace Exceedone\Exment\Services\Notify;
 
 use Illuminate\Support\Collection;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\NotifyTargetType;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\CustomValue;
@@ -44,29 +42,29 @@ class RelationColumn extends Column
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
     {
         $result = collect();
-        if(!$this->relationTable || !$this->column){
+        if (!$this->relationTable || !$this->column) {
             return $result;
         }
 
-        if(SearchType::isSelectTable($this->relationTable->searchType)){
+        if (SearchType::isSelectTable($this->relationTable->searchType)) {
             // get pivot value
             $pivotValue = $custom_value->getValue($this->relationTable->selectTablePivotColumn);
-        }else{
+        } else {
             $pivotValue = $custom_value->getParentValue($this->relationTable->relation);
         }
 
-        if(is_nullorempty($pivotValue)){
+        if (is_nullorempty($pivotValue)) {
             return $result;
         }
 
-        if(!is_list($pivotValue)){
+        if (!is_list($pivotValue)) {
             $pivotValue = [$pivotValue];
         }
 
-        foreach($pivotValue as $value){
+        foreach ($pivotValue as $value) {
             // Now only support email
             $email = $value->getValue($this->column);
-            if(!is_nullorempty($email)){
+            if (!is_nullorempty($email)) {
                 $result->push(NotifyTarget::getModelAsEmail($email));
             }
         }

@@ -36,7 +36,7 @@ interface GrammarInterface
      * @param string $baseColumn join base column
      * @return \Illuminate\Database\Query\Builder
      */
-    public function whereInArrayColumn($builder, string $tableName,  string $baseColumn, string $column, bool $isOr = false, bool $isNot = false);
+    public function whereInArrayColumn($builder, string $tableName, string $baseColumn, string $column, bool $isOr = false, bool $isNot = false);
 
     public function wrapWhereInMultiple(array $columns);
 

@@ -1088,10 +1088,10 @@ if (!function_exists('make_randomstr')) {
     function make_randomstr($length, bool $useAlphabet = true, bool $useNumber = true)
     {
         $chars = '';
-        if($useAlphabet){
+        if ($useAlphabet) {
             $chars .= "abcdefghjkmnpqrstuvwxyz";
         }
-        if($useNumber){
+        if ($useNumber) {
             $chars .= "23456789";
         }
         

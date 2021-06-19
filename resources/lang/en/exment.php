@@ -1737,12 +1737,14 @@ return [
         'view_summary_condition' => 'Summary type',
         'default_view_name' => 'Default View',
        	'alldata_view_name' => 'All Data View',
+        'custom_view_grid_filters' => 'View "filter" item setting',
         'description_custom_view_columns' => 'Select display columns.',
         'description_custom_view_calendar_columns' => 'Select the date column to display in the calendar.<br/>* If custom columns do not appear in Target column, no <a href="%s" target="_blank">search index columns<i class="fa fa-external-link"></i></a> has been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_groups' => 'Sets the grouping key columns displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_summaries' => 'Sets the summary columns of data displayed in the view.<br/>*The aggregation target is the column that becomes "ID" "Integer" "Decimal" "Currency" "Date".',
         'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
+        'description_custom_view_grid_filters' => 'In the Filter that appears at the top of the view, specify the columns that you want to display as choices.<br/>*If you want to display the system default items, do not add columns to this list.<br/>*If the custom column is not displayed in "Target column", the <a href="%s" target="_blank">search index<i class="fa fa-external-link"></i></a> is not set. Please check the contents of the link and make the settings.',
 
         'help' => [
             'custom_view_type' => 'System view: A view available to all users of this table. User view: This view is available only to the created user.',

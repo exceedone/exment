@@ -134,11 +134,11 @@ abstract class GridBase
     
     protected static function convertGroups($targetOptions, $defaultCustomTable)
     {
-        $options = collect($targetOptions)->mapToDictionary(function($item, $query) {
-            $keys = preg_split( '/\?/', $query, 2);
-            $items = preg_split( '/\:/', $item);
+        $options = collect($targetOptions)->mapToDictionary(function ($item, $query) {
+            $keys = preg_split('/\?/', $query, 2);
+            $items = preg_split('/\:/', $item);
             return [$keys[1] => [$query => trim($items[count($items)-1])]];
-        })->map(function($item, $key) {
+        })->map(function ($item, $key) {
             if (empty($key)) {
                 $label = $defaultCustomTable->table_view_name;
             } else {
@@ -157,7 +157,7 @@ abstract class GridBase
             ];
         })->toArray();
         return $options;
-    }    
+    }
 
     /**
      * Set filter fileds form

@@ -18,7 +18,6 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
-use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 class SystemItem implements ItemInterface
 {
@@ -108,7 +107,7 @@ class SystemItem implements ItemInterface
      * Get sqlname for group by
      * Join table: true
      * Wrap: true
-     * 
+     *
      * @param boolean $asSelect if true, get sqlname for select column
      * @param boolean $asSqlAsName if true, get sqlname as name.
      * @return string group by column name
@@ -148,7 +147,7 @@ class SystemItem implements ItemInterface
             $sqlname = array_get($option, 'sqlname');
         }
 
-        if($appendTable){
+        if ($appendTable) {
             return $this->sqlUniqueTableName() .'.'. $sqlname;
         }
         return $sqlname;
@@ -260,7 +259,7 @@ class SystemItem implements ItemInterface
     {
         // if contains uniqueName's value in $custom_value, set $custom_value as column name.
         // For summary. When summary, not get as system column name.
-        if(array_key_value_exists($this->uniqueName, $custom_value)){
+        if (array_key_value_exists($this->uniqueName, $custom_value)) {
             $option = $this->getSystemColumnOption();
             $custom_value->{array_get($option, 'sqlname')} = $custom_value[$this->uniqueName];
         }
@@ -297,7 +296,7 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             // if group condition is weekday, return weekday format
             $v = array_get($custom_value, $this->sqlAsName());
-            if(array_get($this->options, 'group_condition') == 'w'){
+            if (array_get($this->options, 'group_condition') == 'w') {
                 return $this->getWeekdayFormat($v);
             }
             return $v;
@@ -471,7 +470,7 @@ class SystemItem implements ItemInterface
     protected function setAdminFilterOptions(&$filter)
     {
         $option = $this->getSystemColumnOption();
-        if(array_get($option, 'type') == 'datetime'){
+        if (array_get($option, 'type') == 'datetime') {
             $filter->date();
         }
     }

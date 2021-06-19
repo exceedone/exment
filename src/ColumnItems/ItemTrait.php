@@ -65,7 +65,7 @@ trait ItemTrait
 
 
     /**
-     * Unique column name. 
+     * Unique column name.
      * For use class name, laravel-admin grid (If not use this, get same field name, return wrong value.), etc.
      *
      * @var string
@@ -73,7 +73,7 @@ trait ItemTrait
     protected $uniqueName;
 
     /**
-     * Unique table name. 
+     * Unique table name.
      * For use join relation(contains select_table).
      *
      * @var string
@@ -287,7 +287,7 @@ trait ItemTrait
     }
 
     /**
-     * Set unique name. 
+     * Set unique name.
      *
      * @return $this
      */
@@ -347,7 +347,7 @@ trait ItemTrait
     protected function getTargetCustomValue($custom_value)
     {
         // if summary, cannot get view_pivot_column, so return $custom_value.
-        if(array_boolval($this->options, 'summary')){
+        if (array_boolval($this->options, 'summary')) {
             return $custom_value;
         }
 
@@ -386,12 +386,12 @@ trait ItemTrait
      * Get column name with table name.
      * Join table: true
      * Wrap: false
-     * 
+     *
      * @return string Joined DB table name and column name.  Ex. "exm__3914ac5180d7dc43fcbb.column1" or "sfhwuiefhkmklml.column1"
      */
     public function getTableColumn(?string $column_name = null) : string
     {
-        if(!$column_name){
+        if (!$column_name) {
             $column_name = $this->sqlname();
         }
         return $this->sqlUniqueTableName() . ".$column_name";
@@ -428,7 +428,7 @@ trait ItemTrait
      * Get date format(Ex. date_format(XXXX,'%Y-%m-%d'))
      * Join table: true
      * Wrap: true
-     * 
+     *
      * get sqlname for summary
      */
     public function getDateFormatWrapTableColumn(string $format) : string
@@ -439,10 +439,10 @@ trait ItemTrait
 
     /**
      * Get summary query,for use join sub.
-     * 
+     *
      * MIN, MAX : non summary.
      * COUNT, SUM : SUM.
-     * 
+     *
      * Join table: true
      * Wrap: true
      *
@@ -455,13 +455,13 @@ trait ItemTrait
         $summary_condition = $this->getSummaryCondition();
 
         $new_summary_condition = null;
-        switch($summary_condition){
+        switch ($summary_condition) {
             case SummaryCondition::SUM:
             case SummaryCondition::COUNT:
                 $new_summary_condition = SummaryCondition::getSummaryConditionName(SummaryCondition::SUM);
         }
 
-        // get wraped, joined table, and sub query's as name. 
+        // get wraped, joined table, and sub query's as name.
         $wrapCastColumn = \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
         if (isset($new_summary_condition)) {
             // add condition.
@@ -475,10 +475,10 @@ trait ItemTrait
 
     /**
      * Get group by query,for use join sub.
-     * 
+     *
      * MIN, MAX : group string.
      * Others : null.
-     * 
+     *
      * Join table: true
      * Wrap: true
      *
@@ -490,10 +490,10 @@ trait ItemTrait
         // get normal summary condition.
         $summary_condition = $this->getSummaryCondition();
 
-        switch($summary_condition){
+        switch ($summary_condition) {
             case SummaryCondition::MAX:
             case SummaryCondition::MIN:
-                // get wraped, joined table, and sub query's as name. 
+                // get wraped, joined table, and sub query's as name.
                 return \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
         }
         return null;
@@ -823,12 +823,12 @@ trait ItemTrait
             throw new \Exception('Please use ExmWhere');
         }
 
-        if($this->isShowFilterNullCheck()){
+        if ($this->isShowFilterNullCheck()) {
             $filteritem->showNullCheck();
         }
 
         // set whereNull query
-        $filteritem->whereNull(function($query){
+        $filteritem->whereNull(function ($query) {
             $this->getAdminFilterWhereNullQuery($query);
         });
 
@@ -896,11 +896,11 @@ trait ItemTrait
      */
     public function getAdminFilterWhereQueryNumber($query, $input)
     {
-        if(array_key_value_exists('start', $input)){
+        if (array_key_value_exists('start', $input)) {
             $viewFilterItem = ViewFilterBase::make(FilterOption::NUMBER_GTE, $this);
             $viewFilterItem->setFilter($query, $input['start']);
         }
-        if(array_key_value_exists('end', $input)){
+        if (array_key_value_exists('end', $input)) {
             $viewFilterItem = ViewFilterBase::make(FilterOption::NUMBER_LTE, $this);
             $viewFilterItem->setFilter($query, $input['end']);
         }
@@ -914,11 +914,11 @@ trait ItemTrait
      */
     public function getAdminFilterWhereQueryDate($query, $input)
     {
-        if(array_key_value_exists('start', $input)){
+        if (array_key_value_exists('start', $input)) {
             $viewFilterItem = ViewFilterBase::make(FilterOption::DAY_ON_OR_AFTER, $this);
             $viewFilterItem->setFilter($query, $input['start']);
         }
-        if(array_key_value_exists('end', $input)){
+        if (array_key_value_exists('end', $input)) {
             $viewFilterItem = ViewFilterBase::make(FilterOption::DAY_ON_OR_BEFORE, $this);
             $viewFilterItem->setFilter($query, $input['end']);
         }

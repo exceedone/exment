@@ -2371,7 +2371,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         /// get system columns
         $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams, $only_system_grid_filter, $column_type_filter) {
             foreach (SystemColumn::getOptions($filter) as $option) {
-                if($only_system_grid_filter && !array_boolval($option, 'grid_filter')){
+                if ($only_system_grid_filter && !array_boolval($option, 'grid_filter')) {
                     continue;
                 }
                 if ($column_type_filter && !$column_type_filter($option)) {

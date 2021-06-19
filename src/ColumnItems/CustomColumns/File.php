@@ -5,7 +5,6 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
-use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -80,7 +79,7 @@ class File extends CustomItem
             ];
         }
 
-        if(is_array($value)){
+        if (is_array($value)) {
             $value = collect($value)->implode(",");
         }
 

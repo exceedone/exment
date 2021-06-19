@@ -13,10 +13,8 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SummaryCondition;
-use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\PluginEventTrigger;
-use Exceedone\Exment\Enums\ViewColumnSort;
 
 class SummaryGrid extends GridBase
 {
@@ -139,7 +137,7 @@ class SummaryGrid extends GridBase
 
         ///// set "group by" columns, and "select" columns.
         // using custom_view_columns
-        foreach($this->custom_view->custom_view_columns_cache as $custom_view_column){
+        foreach ($this->custom_view->custom_view_columns_cache as $custom_view_column) {
             // set option item
             $this->setSummaryItem($custom_view_column);
             
@@ -153,7 +151,7 @@ class SummaryGrid extends GridBase
         
         ///// set summary's "select" columns.
         // using custom_view_summary
-        foreach($this->custom_view->custom_view_summaries_cache as $custom_view_summary){
+        foreach ($this->custom_view->custom_view_summaries_cache as $custom_view_summary) {
             // set option item
             $this->setSummaryItem($custom_view_summary);
 
@@ -181,7 +179,7 @@ class SummaryGrid extends GridBase
     
 
     /**
-     * Set grid column 
+     * Set grid column
      *
      * @param Grid $grid
      * @param CustomViewColumn|CustomViewSummary $column
@@ -189,7 +187,7 @@ class SummaryGrid extends GridBase
      */
     protected function setGridColumn(?Grid $grid, $column)
     {
-        if(is_null($grid)){
+        if (is_null($grid)) {
             return $this;
         }
 
@@ -222,14 +220,13 @@ class SummaryGrid extends GridBase
         ]);
 
         // Set label.
-        if(!is_nullorempty($view_column_name = array_get($column, 'view_column_name')))
-        {
+        if (!is_nullorempty($view_column_name = array_get($column, 'view_column_name'))) {
             $column_item->setLabel($view_column_name);
         }
         // Set default label if summary
-        elseif($column instanceof CustomViewSummary){
+        elseif ($column instanceof CustomViewSummary) {
             $summary_condition = SummaryCondition::getSummaryConditionName(array_get($column, 'view_summary_condition'));
-            if(!is_nullorempty($summary_condition)){
+            if (!is_nullorempty($summary_condition)) {
                 $column_item->setLabel(exmtrans('common.format_keyvalue', exmtrans("custom_view.summary_condition_options.{$summary_condition}"), $column_item->label()));
             }
         }
@@ -392,16 +389,14 @@ class SummaryGrid extends GridBase
     public function getCallbackGroupKeys($model)
     {
         $keys = [];
-        foreach($this->custom_view->custom_view_columns_cache as $group_column)
-        {
+        foreach ($this->custom_view->custom_view_columns_cache as $group_column) {
             $column_item = $group_column->column_item;
-            if(!$column_item)
-            {
+            if (!$column_item) {
                 continue;
             }
 
             $uniqueName = $column_item->uniqueName();
-            if(is_nullorempty($uniqueName)){
+            if (is_nullorempty($uniqueName)) {
                 continue;
             }
 

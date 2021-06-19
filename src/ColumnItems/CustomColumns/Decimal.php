@@ -17,7 +17,7 @@ class Decimal extends CustomItem
     {
         if (!is_null($this->value)) {
             if (is_list($this->value)) {
-                $this->value = collect($this->value)->map(function($v) {
+                $this->value = collect($this->value)->map(function ($v) {
                     return $this->_format($v);
                 });
             } else {

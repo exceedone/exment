@@ -180,10 +180,10 @@ class CustomNotifyController extends AdminControllerTableBase
                 'include_system' => false,
                 'ignore_multiple' => true,
                 'ignore_many_to_many' => true,
-                'column_type_filter' => function($column) {
+                'column_type_filter' => function ($column) {
                     if ($column instanceof CustomColumn) {
                         return ColumnType::isDate($column->column_type);
-                    } else if (is_array($column) && array_has($column, 'type')) {
+                    } elseif (is_array($column) && array_has($column, 'type')) {
                         return array_get($column, 'type') == 'datetime';
                     }
                 },
@@ -278,7 +278,7 @@ class CustomNotifyController extends AdminControllerTableBase
             ::where('custom_table_id', $custom_table_id)
             ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
             ->get(['id', 'column_view_name as text'])
-            ->map(function (&$item) use($table_name) {
+            ->map(function (&$item) use ($table_name) {
                 if (isset($table_name)) {
                     $item['text'] = $table_name . ' : ' . $item['text'];
                 }

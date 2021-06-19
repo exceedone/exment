@@ -18,12 +18,9 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\ColumnItems;
-use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums;
-use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
@@ -128,7 +125,7 @@ class DefaultGrid extends GridBase
                 ->sort($item->sortable())
                 ->sortName($item->getSortName())
                 //->cast($item->getCastName())
-                ->sortCallback(function($query, $args) use($custom_view_column){
+                ->sortCallback(function ($query, $args) use ($custom_view_column) {
                     $this->custom_view->getSearchService()->setQuery($query)->addSelect()->orderByCustomViewColumn($custom_view_column, (count($args) > 0 ? $args[0] : 'asc'));
                 })
                 ->style($item->gridStyle())
@@ -205,8 +202,7 @@ class DefaultGrid extends GridBase
             $query = array_filter(request()->all([
                 '_scope_',
             ]));
-        }
-        else{
+        } else {
             $query = array_filter(request()->all([
                 'target_view_id',
                 'display_table_id',
@@ -301,11 +297,10 @@ class DefaultGrid extends GridBase
 
         // if has custom_view_grid_filters, set as value
         $custom_view_grid_filters = $this->custom_view->custom_view_grid_filters;
-        if(count($custom_view_grid_filters) > 0)
-        {
+        if (count($custom_view_grid_filters) > 0) {
             $service = $this->custom_view->getSearchService()->setQuery($filter->model());
 
-            foreach($custom_view_grid_filters as $custom_view_grid_filter){
+            foreach ($custom_view_grid_filters as $custom_view_grid_filter) {
                 $service->setRelationJoin($custom_view_grid_filter);
                 
                 $filterItems[] = $custom_view_grid_filter->column_item;
@@ -769,5 +764,4 @@ class DefaultGrid extends GridBase
         ->rowUpDown('order', 10)
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters"));
     }
-
 }

@@ -1318,8 +1318,7 @@ abstract class CustomValue extends ModelBase
     public function getParentValue(?CustomRelation $custom_relation = null)
     {
         // if not has arg or custom relation is one to many
-        if(!$custom_relation || $custom_relation->relation_type == RelationType::ONE_TO_MANY)
-        {
+        if (!$custom_relation || $custom_relation->relation_type == RelationType::ONE_TO_MANY) {
             if (is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)) {
                 return null;
             }

@@ -227,7 +227,7 @@ abstract class FormOtherItem implements ItemInterface
      * *Please override if use.
      * Join table: true
      * Wrap: true
-     * 
+     *
      * @return string Ex: COUNT(`exm__3914ac5180d7dc43fcbb AS AAAA`)
      */
     public function getSummaryWrapTableColumn() : string
