@@ -497,6 +497,29 @@ class SelectTable extends CustomItem
             return $values;
         });
     }
+
+    /**
+     * Get pure value by query string
+     *
+     * @return mixed
+     */
+    protected function getPureValueByQuery($default)
+    {
+        if (boolval(config('exment.publicform_urlparam_suuid', false))) {
+            $select_table = $this->custom_column->select_target_table ?? null;
+            if (!isset($select_table)) {
+                return null;
+            }
+
+            $query = $select_table->getValueModel()::query();
+            $query->where('suuid', $default);
+
+            $ids = $query->pluck('id');
+            return is_nullorempty($ids) ? null : ($this->isMultipleEnabled() ? $ids->toArray() : $ids->first());
+        } else {
+            return parent::getPureValueByQuery($default);
+        }
+    }
     
     /**
      * Get pure value. If you want to change the search value, change it with this function.
@@ -570,7 +593,7 @@ class SelectTable extends CustomItem
 
         // get value
         $ids = $query->pluck('id');
-        return is_nullorempty($ids) ? null : $ids;
+        return is_nullorempty($ids) ? null : ($this->isMultipleEnabled() ? $ids->toArray() : $ids->first());
     }
 
     protected function setSelectTableQuery($query, $custom_column_id, $value)
