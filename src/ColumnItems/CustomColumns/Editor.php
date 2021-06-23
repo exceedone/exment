@@ -85,6 +85,9 @@ class Editor extends CustomItem
     {
         // value string
         $validates[] = new Validator\StringNumericRule();
+
+        // value size
+        $validates[] = new Validator\MaxLengthExRule(config('exment.char_length_limit', 63999));
     }
 
 

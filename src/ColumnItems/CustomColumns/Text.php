@@ -10,6 +10,8 @@ use Exceedone\Exment\Validator;
 
 class Text extends CustomItem
 {
+    use TextTrait;
+
     public function saving()
     {
         if (is_nullorempty($this->value)) {
@@ -25,12 +27,8 @@ class Text extends CustomItem
     
     protected function setAdminOptions(&$field)
     {
-        $options = $this->custom_column->options;
-        
         // value size
-        if (array_get($options, 'string_length')) {
-            $field->attribute(['maxlength' => array_get($options, 'string_length')]);
-        }
+        $field->attribute(['maxlength' => $this->getMaxLength()]);
 
         // regex
         $regex = $this->getAvailableCharactersInfo();
@@ -41,12 +39,8 @@ class Text extends CustomItem
 
     protected function setValidates(&$validates)
     {
-        $options = $this->custom_column->options;
-        
         // value size
-        if (array_get($options, 'string_length')) {
-            $validates[] = 'max:'.array_get($options, 'string_length');
-        }
+        $validates[] = 'max:'.$this->getMaxLength();
         
         // value type
         $validates[] = new Validator\StringNumericRule();
@@ -126,7 +120,8 @@ class Text extends CustomItem
         // text
         // string length
         $form->number('string_length', exmtrans("custom_column.options.string_length"))
-            ->default(256);
+            ->default(256)
+            ->max(config('exment.char_length_limit', 63999));
 
         $form->checkbox('available_characters', exmtrans("custom_column.options.available_characters"))
             ->options(CustomColumn::getAvailableCharacters()->pluck('label', 'key'))
