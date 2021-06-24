@@ -664,7 +664,7 @@ abstract class CustomValue extends ModelBase
                     continue;
                 }
 
-                $file->saveCustomValueAndColumn($this->id, array_get($uuid, 'column_name'), array_get($uuid, 'custom_table'), array_get($uuid, 'replace'));
+                $file->saveCustomValueAndColumn(array_get($value, 'id')?? $this->id, array_get($uuid, 'column_name'), array_get($uuid, 'custom_table'), array_get($uuid, 'replace'));
                 $uuid['setted'] = true;
             }
             System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $uuids);
