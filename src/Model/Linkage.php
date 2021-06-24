@@ -92,7 +92,7 @@ class Linkage
         $parent_custom_column = CustomColumn::getEloquent($parent_custom_column);
         $child_custom_column = CustomColumn::getEloquent($child_custom_column);
 
-        if (!isset($child_custom_column)) {
+        if (is_nullorempty($child_custom_column)) {
             return collect();
         }
 
