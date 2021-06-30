@@ -220,6 +220,9 @@ class PatchDataCommand extends Command
             case 'patch_notify_time':
                 $this->patchNotifyTime();
                 return;
+            case 'set_file_parent':
+                $this->setFileParent();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -2030,6 +2033,31 @@ class PatchDataCommand extends Command
                     $notify->setOption('view_pivot_column_id', Define::PARENT_ID_NAME);
                 }
                 $notify->save();
+            });
+        });
+    }
+    
+    /**
+     * Set file parent_type and parent_id for bugfix.
+     *
+     * @return void
+     */
+    protected function setFileParent()
+    {
+        \DB::transaction(function () {
+            $column_key = CustomColumn::getEloquent('file_uuid', SystemTableName::DOCUMENT)->getQueryKey();
+            // get file_type is null
+            Model\File::where('file_type', '2')->whereNull('parent_id')->get()
+            ->each(function ($file) use ($column_key) {
+                $uuid = $file->uuid;
+                $document = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getValueModel()
+                    ->where($column_key, $uuid)->first();
+
+                if (isset($document)) {
+                    $file->parent_id = $document->parent_id;
+                    $file->parent_type = $document->parent_type;
+                    $file->save();
+                }
             });
         });
     }
