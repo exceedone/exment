@@ -279,7 +279,7 @@ class SelectTable extends CustomItem
         }
 
         $relation_filter_target_column_id = array_get($this->form_column_options, 'relation_filter_target_column_id');
-        if (!isset($relation_filter_target_column_id)) {
+        if (is_nullorempty($relation_filter_target_column_id)) {
             return;
         }
 
