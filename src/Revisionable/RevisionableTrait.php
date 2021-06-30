@@ -55,6 +55,13 @@ trait RevisionableTrait
     protected $dirtyData = array();
 
     /**
+     * Remove old revisions (works only when used with $historyLimit)
+     *
+     * @var boolean
+     */
+    protected $revisionCleanup = true;
+
+    /**
      * Ensure that the bootRevisionableTrait is called only
      * if the current installation is a laravel 4 installation
      * Laravel 5 will call bootRevisionableTrait() automatically
@@ -393,7 +400,7 @@ trait RevisionableTrait
             $exists_revision_no = Revision
                 ::where('revisionable_type', array_get($revision, 'revisionable_type'))
                 ->where('revisionable_id', array_get($revision, 'revisionable_id'))
-                ->count() + 1;
+                ->max('revision_no') + 1;
             $obj_revision = new Revision;
             $obj_revision->revision_no = $exists_revision_no;
             foreach ($revision as $key => $r) {
