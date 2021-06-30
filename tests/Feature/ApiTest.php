@@ -2963,10 +2963,10 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'log', 7))
+        ])->get(admin_urls('api', 'log', 5))
             ->assertStatus(200)
             ->assertJsonFragment([
-                'id' => 7,
+                'id' => 5,
             ]);
     }
 

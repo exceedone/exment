@@ -2201,6 +2201,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_workflow_work_users' => $include_workflow_work_users,
                     'ignore_attachment' => $ignore_attachment,
                     'ignore_multiple' => $ignore_multiple,
+                    'ignore_many_to_many' => $ignore_many_to_many,
                     'only_system_grid_filter' => $only_system_grid_filter,
                     'column_type_filter' => $column_type_filter,
                 ]
@@ -2231,6 +2232,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
+                        'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
                         'column_type_filter' => $column_type_filter,
                     ]
@@ -2261,6 +2263,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
+                        'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
                         'column_type_filter' => $column_type_filter,
                     ]
@@ -2287,6 +2290,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
+                        'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
                         'column_type_filter' => $column_type_filter,
                     ]
@@ -2309,6 +2313,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
                         'ignore_multiple' => $ignore_multiple,
+                        'ignore_many_to_many' => $ignore_many_to_many,
                         'view_pivot_column' => $selected_table_column,
                         'view_pivot_table' => $this,
                         'only_system_grid_filter' => $only_system_grid_filter,
@@ -2339,6 +2344,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'view_pivot_table' => null,
                 'ignore_attachment' => false,
                 'ignore_multiple' => false,
+                'ignore_many_to_many' => false,
                 'only_system_grid_filter' => false,
                 'column_type_filter' => null,
             ],
@@ -2358,6 +2364,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $view_pivot_table = $selectOptions['view_pivot_table'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
+        $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
         $column_type_filter = $selectOptions['column_type_filter'];
 
@@ -2392,9 +2399,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table_id)->first();
                 ///// if this table is child relation(1:n), add parent table
                 if (isset($relation)) {
-                    $key = static::getOptionKey('parent_id', $append_table, $table_id);
-                    $value = array_get($relation, 'parent_custom_table.table_view_name');
-                    static::setKeyValueOption($options, $key, $value, $table_view_name);
+                    if (!$ignore_many_to_many || $relation->relation_type != RelationType::MANY_TO_MANY) {
+                        $key = static::getOptionKey('parent_id', $append_table, $table_id);
+                        $value = array_get($relation, 'parent_custom_table.table_view_name');
+                        static::setKeyValueOption($options, $key, $value, $table_view_name);
+                    }
                 }
             }
         }
