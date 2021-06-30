@@ -313,6 +313,17 @@ abstract class CustomItem implements ItemInterface
         if (is_nullorempty($default)) {
             return null;
         }
+        return $this->getPureValueByQuery($default);
+    }
+
+    /**
+     * Get pure value by query string
+     *
+     * @param string $default
+     * @return mixed
+     */
+    protected function getPureValueByQuery($default)
+    {
         return $this->getPureValue($default) ?? $default;
     }
 

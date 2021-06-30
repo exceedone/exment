@@ -970,6 +970,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | PUBLICFORM URLPARAM SUUID
+    |--------------------------------------------------------------------------
+    |
+    | Use suuid when getting the value of select table from a URL parameter.
+    |
+    */
+    'publicform_urlparam_suuid' => env('EXMENT_PUBLICFORM_URLPARAM_SUUID', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Show disable field readonly
     |--------------------------------------------------------------------------
     |
