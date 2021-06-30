@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
+use Encore\Admin\Form\Field\MultipleSelect;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Enums\FilterType;
@@ -223,7 +224,7 @@ class ParentItem implements ItemInterface
     public function getFilterField()
     {
         if ($this->parent_table) {
-            $field = new Select($this->name(), [$this->parent_table->table_view_name]);
+            $field = new MultipleSelect($this->name(), [$this->parent_table->table_view_name]);
             $field->options(function ($value) {
                 // get DB option value
                 return $this->parent_table->getSelectOptions([
@@ -239,7 +240,7 @@ class ParentItem implements ItemInterface
      */
     public function getViewFilterType()
     {
-        return FilterType::DEFAULT;
+        return FilterType::SELECT;
     }
 
     public static function getItem(...$args)
