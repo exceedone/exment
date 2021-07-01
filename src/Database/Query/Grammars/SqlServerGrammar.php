@@ -293,7 +293,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         $weekdayNos = $this->getWeekdayNolist();
 
         foreach ($weekdayNos as $no => $weekdayKey) {
-            $queries[] = "when {$no} then '$weekday'";
+            $queries[] = "when {$no} then '$weekdayKey'";
         }
 
         $queries[] = "else ''";
