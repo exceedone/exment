@@ -182,7 +182,7 @@ class ParentItem implements ItemInterface
 
         // if options has "summary" (for summary view)
         if (boolval(array_get($this->options, 'summary'))) {
-            return $this->custom_relation->child_custom_table_cache->getValueModel(array_get($custom_value, $this->sqlAsName()));
+            return $this->custom_relation->parent_custom_table_cache->getValueModel(array_get($custom_value, $this->sqlAsName()));
         }
 
         $relation_name = $this->custom_relation->getRelationName();
