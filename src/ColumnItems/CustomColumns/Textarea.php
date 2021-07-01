@@ -5,10 +5,13 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Validator;
 
 class Textarea extends CustomItem
 {
+    use TextTrait;
+
     public function saving()
     {
         if (is_nullorempty($this->value)) {
@@ -40,19 +43,13 @@ class Textarea extends CustomItem
         $options = $this->custom_column->options;
         $field->rows(array_get($options, 'rows', 6));
 
-        if (array_get($options, 'string_length')) {
-            $field->attribute(['maxlength' => array_get($options, 'string_length')]);
-        }
+        $field->attribute(['maxlength' => $this->getMaxLength($options)]);
     }
     
     protected function setValidates(&$validates)
     {
-        $options = $this->custom_column->options;
-        
         // value size
-        if (array_get($options, 'string_length')) {
-            $validates[] = 'max:'.array_get($options, 'string_length');
-        }
+        $validates[] = new Validator\MaxLengthExRule($this->getMaxLength());
 
         // value string
         $validates[] = new Validator\StringNumericRule();
@@ -71,7 +68,8 @@ class Textarea extends CustomItem
         // text
         // string length
         $form->number('string_length', exmtrans("custom_column.options.string_length"))
-            ->default(256);
+            ->default(256)
+            ->max(config('exment.char_length_limit', 63999));
 
         $form->number('rows', exmtrans("custom_column.options.rows"))
             ->default(6)
@@ -92,5 +90,16 @@ class Textarea extends CustomItem
         $form->textarea('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->rows(3);
+    }
+
+    
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
+    {
+        return FilterOption::LIKE;
     }
 }

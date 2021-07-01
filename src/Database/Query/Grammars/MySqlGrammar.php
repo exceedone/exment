@@ -88,6 +88,33 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         return $builder;
     }
     
+    /**
+     * wherein column.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param \Illuminate\Database\Query\Builder $builder
+     * @param string $tableName database table name
+     * @param string $baseColumn join base column
+     * @param string $column target table name
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereInArrayColumn($builder, string $tableName, string $baseColumn, string $column, bool $isOr = false, bool $isNot = false)
+    {
+        $index = $this->wrap($column);
+        $baseColumnIndex = $this->wrap($baseColumn);
+
+        if ($isNot) {
+            $queryStr = "NOT FIND_IN_SET({$baseColumnIndex}, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))";
+        } else {
+            $queryStr = "FIND_IN_SET({$baseColumnIndex}, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
+        }
+        
+        $func = $isOr ? 'orWhereRaw' : 'whereRaw';
+        $builder->{$func}($queryStr);
+
+        return $builder;
+    }
+    
 
     /**
      * Get cast column string
@@ -208,10 +235,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
             case GroupCondition::D:
                 return "date_format($column, '%d')";
             case GroupCondition::W:
-                if ($groupBy) {
-                    return "date_format($column, '%w')";
-                }
-                return $this->getWeekdayCaseWhenQuery("date_format($column, '%w')");
+                return "date_format($column, '%w')";
             case GroupCondition::YMDHIS:
                 // not use
                 return null;
@@ -248,43 +272,6 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         }
 
         return null;
-    }
-
-    /**
-     * Get case when query
-     *
-     * @return string
-     */
-    protected function getWeekdayCaseWhenQuery($str)
-    {
-        $queries = [];
-
-        // get weekday and no list
-        $weekdayNos = $this->getWeekdayNolist();
-
-        foreach ($weekdayNos as $no => $weekdayKey) {
-            $weekday = exmtrans('common.weekday.' . $weekdayKey);
-            $queries[] = "when {$no} then '$weekday'";
-        }
-
-        $queries[] = "else ''";
-
-        $when = implode(" ", $queries);
-        return "(case {$str} {$when} end)";
-    }
-
-    protected function getWeekdayNolist()
-    {
-        return [
-            '0' => 'sun',
-            '1' => 'mon',
-            '2' => 'tue',
-            '3' => 'wed',
-            '4' => 'thu',
-            '5' => 'fri',
-            '6' => 'sat',
-            '7' => 'sun',
-        ];
     }
 
     /**

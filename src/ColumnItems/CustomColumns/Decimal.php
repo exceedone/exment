@@ -7,6 +7,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
 
 class Decimal extends CustomItem
 {
@@ -15,13 +16,25 @@ class Decimal extends CustomItem
     public function prepare()
     {
         if (!is_null($this->value)) {
-            $this->value = parseFloat($this->value);
-            if (array_has($this->custom_column, 'options.decimal_digit')) {
-                $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-                $this->value = floorDigit($this->value, $digit);
+            if (is_list($this->value)) {
+                $this->value = collect($this->value)->map(function ($v) {
+                    return $this->_format($v);
+                });
+            } else {
+                $this->value = $this->_format($this->value);
             }
         }
         return $this;
+    }
+
+    protected function _format($v)
+    {
+        $v = parseFloat($v);
+        if (array_has($this->custom_column, 'options.decimal_digit')) {
+            $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+            $v = floorDigit($v, $digit);
+        }
+        return $v;
     }
 
     /**
@@ -95,7 +108,24 @@ class Decimal extends CustomItem
             $field->attribute(['type' => 'number', 'step' => $step]);
         }
     }
-    
+   
+    protected function getAdminFilterClass()
+    {
+        return ExmFilter\Between::class;
+    }
+
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        $this->getAdminFilterWhereQueryNumber($query, $input);
+    }
+
     protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;

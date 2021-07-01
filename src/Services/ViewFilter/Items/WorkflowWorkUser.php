@@ -6,6 +6,15 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class WorkflowWorkUser extends ViewFilterBase
 {
+    /**
+     * If true, called setFilter function, append column name.
+     * If append cast, please set false.
+     *
+     * @var boolean
+     */
+    protected static $isAppendDatabaseTable = false;
+
+    
     public static function getFilterOption()
     {
         return FilterOption::WORKFLOW_EQ_WORK_USER;
@@ -20,7 +29,12 @@ class WorkflowWorkUser extends ViewFilterBase
 
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
-        // not use query for workflow.
+        $or_option = $this->or_option;
+
+        $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
+        $query->{$func}('workflow_values_wf.morph_id');
+
+        return $query;
     }
 
     /**

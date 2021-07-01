@@ -60,6 +60,11 @@ abstract class NotifyTargetBase
                 return new Column($notify, $action_setting, $notify_action_target);
         }
 
+        // If contains "view_pivot_column_id", return as RelationColumn
+        if (strpos($notify_action_target, 'view_pivot_column_id') !== false) {
+            return new RelationColumn($notify, $action_setting, $notify_action_target);
+        }
+
         return new Column($notify, $action_setting, $notify_action_target);
     }
 

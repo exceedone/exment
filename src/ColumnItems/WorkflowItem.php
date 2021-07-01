@@ -4,15 +4,23 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 
 class WorkflowItem extends SystemItem
 {
     protected $table_name = 'workflow_values';
+
+    /**
+     * get workflow
+     */
+    protected function getWorkflow() : ?Workflow
+    {
+        return Workflow::getWorkflowByTable($this->custom_table);
+    }
+
 
     /**
      * whether column is enabled index.
@@ -26,7 +34,7 @@ class WorkflowItem extends SystemItem
     /**
      * get sql query column name
      */
-    protected function getSqlColumnName()
+    protected function getSqlColumnName(bool $appendTable)
     {
         // get SystemColumn enum
         $option = SystemColumn::getOption(['name' => $this->column_name]);
@@ -35,7 +43,11 @@ class WorkflowItem extends SystemItem
         } else {
             $sqlname = array_get($option, 'sqlname');
         }
-        return $this->table_name.'.'.$sqlname;
+        
+        if ($appendTable) {
+            return $this->sqlUniqueTableName() .'.'. $sqlname;
+        }
+        return $sqlname;
     }
 
     public static function getItem(...$args)
@@ -81,7 +93,7 @@ class WorkflowItem extends SystemItem
 
         // if null, get default status name
         if (!isset($val)) {
-            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+            $workflow = $this->getWorkflow();
             if (!$workflow) {
                 return null;
             }
@@ -119,154 +131,43 @@ class WorkflowItem extends SystemItem
         return $this->table_name;
     }
 
+    
     /**
-     * create subquery for join
+     * get real table name.
+     * If workflow, this name is workflow view.
      */
-    public static function getStatusSubquery($query, $custom_table, $or_option = false)
+    public function sqlRealTableName()
     {
-        $query->appendQueryOnce(Define::APPEND_QUERY_WORK_STATUS_SUB_QUERY, function ($query) use ($custom_table) {
-            $tableName = getDBTableName($custom_table);
-            $subquery = \DB::table($tableName)
-                ->leftJoin(SystemTableName::WORKFLOW_VALUE, function ($join) use ($tableName, $custom_table) {
-                    $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', "$tableName.id")
-                        ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
-                        ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', true);
-                })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_from_id', 'workflow_status_to_id']);
-                
-            // join query is $or_option is true then leftJoin
-            $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName) {
-                $join->on($tableName . '.id', 'workflow_values.morph_id');
-            });
-        });
+        return $this->getTableName();
     }
 
+    
     /**
-     * create subquery for join
+     * Set admin filter options
+     *
+     * @param [type] $filter
+     * @return void
      */
-    public static function getWorkUsersSubQuery($query, $custom_table, $or_option = false)
+    protected function setAdminFilterOptions(&$filter)
     {
-        $query->appendQueryOnce(Define::APPEND_QUERY_WORK_USERS_SUB_QUERY, function ($query) use ($custom_table, $or_option) {
-            $tableName = getDBTableName($custom_table);
-
-            /////// first query. has workflow value's custom value
-            $subquery = \DB::table($tableName)
-                ->join(SystemTableName::VIEW_WORKFLOW_VALUE_UNION, function ($join) use ($tableName, $custom_table) {
-                    $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_id', "$tableName.id")
-                        ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_type', $custom_table->table_name)
-                        ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.workflow_table_id', $custom_table->id)
-                        ;
-                })
-                ///// add authority function for user or org
-                ->where(function ($query) use ($tableName, $custom_table) {
-                    $classes = [
-                        \Exceedone\Exment\ConditionItems\UserItem::class,
-                        \Exceedone\Exment\ConditionItems\OrganizationItem::class,
-                        \Exceedone\Exment\ConditionItems\ColumnItem::class,
-                        \Exceedone\Exment\ConditionItems\SystemItem::class,
-                    ];
-    
-                    foreach ($classes as $class) {
-                        $class::setWorkflowConditionQuery($query, $tableName, $custom_table);
-                    }
-                })
-                ->distinct()
-                ->select([$tableName .'.id  as morph_id']);
-    
+        $option = $this->getSystemColumnOption();
+        $workflow = $this->getWorkflow();
+        
+        if ($workflow) {
+            // Whether executed search.
+            $searched = boolval(request()->get($filter->getId()));
             
-            /////// second query. not has workflow value's custom value
-            $subquery2 = \DB::table($tableName)
-                ->join(SystemTableName::VIEW_WORKFLOW_START, function ($join) use ($custom_table) {
-                    $join->where(SystemTableName::VIEW_WORKFLOW_START . '.workflow_table_id', $custom_table->id)
-                        ;
-                })
-                // filtering not contains workflow value
-                ->whereNotExists(function ($query) use ($tableName, $custom_table) {
-                    $query->select(\DB::raw(1))
-                        ->from(SystemTableName::WORKFLOW_VALUE)
-                        ->whereColumn(SystemTableName::WORKFLOW_VALUE . '.morph_id', "$tableName.id")
-                        ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
-                        ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1)
-                        ;
-                })
-                ///// add authority function for user or org
-                ->where(function ($query) use ($tableName, $custom_table) {
-                    $classes = [
-                        \Exceedone\Exment\ConditionItems\UserItem::class,
-                        \Exceedone\Exment\ConditionItems\OrganizationItem::class,
-                        \Exceedone\Exment\ConditionItems\ColumnItem::class,
-                        \Exceedone\Exment\ConditionItems\SystemItem::class,
-                    ];
-    
-                    foreach ($classes as $class) {
-                        $class::setWorkflowConditionQuery($query, $tableName, $custom_table);
-                    }
-                })
-                ->union($subquery)
-                ->distinct()
-                ->select([$tableName .'.id as morph_id']);
-     
-            // join query is $or_option is true then leftJoin
-            $joinFunc = $or_option ? 'leftJoinSub' : 'joinSub';
-            $query->{$joinFunc}($subquery2, 'workflow_values_wf', function ($join) use ($tableName) {
-                $join->on($tableName . '.id', 'workflow_values_wf.morph_id');
-            });
-        });
-    }
-
-    /**
-     * set workflow status or work user condition
-     */
-    public static function scopeWorkflow($query, $view_column_target_id, $custom_table, $condition, $status, $or_option = false)
-    {
-        $enum = SystemColumn::getEnum($view_column_target_id);
-        if ($enum == SystemColumn::WORKFLOW_WORK_USERS) {
-            static::scopeWorkflowWorkUsers($query, $custom_table, $condition, $status, $or_option);
-        } else {
-            static::scopeWorkflowStatus($query, $custom_table, $condition, $status, $or_option);
-        }
-    }
-
-    /**
-     * set workflow status condition
-     */
-    public static function scopeWorkflowStatus($query, $custom_table, $condition, $status, $or_option = false)
-    {
-        ///// Introduction: When the workflow status is "start", one of the following two conditions is required.
-        ///// *No value in workflow_values ​​when registering data for the first time
-        ///// *When workflow_status_id of workflow_values ​​is null. Ex.Rejection
-
-        // if $status is start
-        if ($status == Define::WORKFLOW_START_KEYNAME) {
-            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
-                $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
+            if (array_get($option, 'name') == SystemColumn::WORKFLOW_WORK_USERS) {
+                $filter->checkbox([1 => 'YES']);
+                $key = Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK;
             } else {
-                $func = $or_option ? 'orWhereNull': 'whereNull';
+                $filter->select($workflow->getStatusOptions());
+                $key = Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK;
             }
-            $query->{$func}('workflow_status_to_id');
-        } else {
-            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
-                $func = $or_option ? 'orWhere': 'where';
-                $query->{$func}(function ($query) use ($status) {
-                    $query->where('workflow_status_to_id', '<>', $status)
-                        ->orWhereNull('workflow_status_to_id');
-                });
-            } else {
-                $func = $or_option ? 'orWhere': 'where';
-                $query->{$func}('workflow_status_to_id', $status);
+
+            if ($searched) {
+                System::setRequestSession($key, true);
             }
         }
-
-        return $query;
-    }
-    
-    /**
-     * set workflow work users condition
-     */
-    protected static function scopeWorkflowWorkUsers($query, $custom_table, $condition, $value, $or_option = false)
-    {
-        $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
-        $query->{$func}('workflow_values_wf.morph_id');
-
-        return $query;
     }
 }

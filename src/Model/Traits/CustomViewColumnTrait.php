@@ -17,6 +17,7 @@ use Exceedone\Exment\ColumnItems;
 /**
  * @method getOption($key, $default = null))
  * @method setOption($key, $val = null, $forgetIfNull = false)
+ * @method static mixed findBySuuid($key)
  */
 trait CustomViewColumnTrait
 {
@@ -43,6 +44,10 @@ trait CustomViewColumnTrait
     public function getCustomTableCacheAttribute()
     {
         return CustomTable::getEloquent($this->view_column_table_id);
+    }
+    public function getCustomViewCacheAttribute()
+    {
+        return CustomView::getEloquent($this->custom_view_id);
     }
 
     /**
@@ -78,9 +83,7 @@ trait CustomViewColumnTrait
         }
 
         if (!is_nullorempty($this->suuid)) {
-            $this->_custom_item->options([
-                'view_column_suuid' => $this->suuid,
-            ]);
+            $this->_custom_item->setUniqueName(Define::COLUMN_ITEM_UNIQUE_PREFIX . $this->suuid);
         }
 
         return $this->_custom_item;
@@ -145,6 +148,11 @@ trait CustomViewColumnTrait
     {
         $model = new self;
         $model->view_column_target = $view_column_target;
+
+        // if not view_column_table_id, set custom table
+        if (is_nullorempty(array_get($model, 'view_column_table_id')) && $custom_table) {
+            $model->view_column_table_id = $custom_table->id;
+        }
 
         $column_item = $model->column_item;
         // set custom table(if workflow item is not set custom table)
@@ -297,5 +305,10 @@ trait CustomViewColumnTrait
         }
         array_forget($json, 'view_pivot_column_name');
         array_forget($json, 'view_pivot_table_name');
+    }
+
+    public static function findByCkey($ckey)
+    {
+        return static::findBySuuid(str_replace(Define::COLUMN_ITEM_UNIQUE_PREFIX, '', $ckey));
     }
 }

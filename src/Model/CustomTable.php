@@ -381,17 +381,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         })->filter();
     }
 
-    /**
-     * get Select table's relation columns.
-     * If there are two or more select_tables in the same table and they are in a parent-child relationship, parent-child relationship information is acquired.
-     *
-     * @return array contains parent_column, child_column, searchType
-     */
-    public function getSelectTableLinkages($checkPermission = true)
-    {
-        return Linkage::getSelectTableLinkages($this, $checkPermission);
-    }
-
 
     /**
      * Get unique keys. Contains simple and multiple column settings
@@ -1401,7 +1390,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // one_to_many
             case SearchType::ONE_TO_MANY:
                 $query = $child_table->getValueQuery();
-                RelationTable::setQueryOneMany($query, $this, $parent_value_id);
+                RelationTable::setQueryOneMany($query, $this, $child_table, $parent_value_id);
 
                 // set query info
                 $options['listQuery'] = [
@@ -1469,7 +1458,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function appendSubQuery($query, ?CustomView $custom_view)
     {
         $this->appendWorkflowSubQuery($query, $custom_view);
-
+        
         // if has relations, set with
         if (!is_nullorempty($custom_view)) {
             $relations = $custom_view->custom_view_columns_cache->map(function ($custom_view_column) {
@@ -1502,27 +1491,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function appendWorkflowSubQuery($query, ?CustomView $custom_view)
     {
-        if (
-            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
-            (!is_nullorempty($custom_view) &&
-            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
-                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
-            }))) {
+        if ($custom_view && System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true) {
             // add query
-            WorkflowItem::getStatusSubquery($query, $this, $custom_view->filter_is_or ?? false);
+            $custom_view->getSearchService()->setRelationJoinWorkflow(SystemColumn::WORKFLOW_STATUS);
         }
         // if contains custom_view_filters workflow query
-        if (
-            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
-            ($custom_view &&
-            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
-                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
-            }))) {
+        if ($custom_view && System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true) {
             // add query
-            WorkflowItem::getWorkUsersSubQuery($query, $this, $custom_view->filter_is_or ?? false);
+            $custom_view->getSearchService()->setRelationJoinWorkflow(SystemColumn::WORKFLOW_WORK_USERS);
         }
     }
-
 
     /**
      * Set selectTable value's and relations. for after calling from select_table object
@@ -2159,6 +2137,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_condition' => false,
                 'include_form_type' => false,
                 'ignore_attachment' => false,
+                'ignore_multiple' => false,
+                'ignore_multiple_refer' => false,
+                'ignore_many_to_many' => false,
+                'only_system_grid_filter' => false,
+                'column_type_filter' => null,
             ],
             $selectOptions
         );
@@ -2173,6 +2156,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
+        $ignore_multiple = $selectOptions['ignore_multiple'];
+        $ignore_multiple_refer = $ignore_multiple || $selectOptions['ignore_multiple_refer'];
+        $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
+        $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
+        $column_type_filter = $selectOptions['column_type_filter'];
 
         $options = [];
         
@@ -2212,6 +2200,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_workflow' => $include_workflow,
                     'include_workflow_work_users' => $include_workflow_work_users,
                     'ignore_attachment' => $ignore_attachment,
+                    'ignore_multiple' => $ignore_multiple,
+                    'ignore_many_to_many' => $ignore_many_to_many,
+                    'only_system_grid_filter' => $only_system_grid_filter,
+                    'column_type_filter' => $column_type_filter,
                 ]
             );
         }
@@ -2220,6 +2212,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ///// get child table columns
             $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
             foreach ($relations as $rel) {
+                if ($ignore_many_to_many && $rel->relation_type == RelationType::MANY_TO_MANY) {
+                    continue;
+                }
                 $parent = array_get($rel, 'parent_custom_table');
                 $parent_id = array_get($rel, 'parent_custom_table_id');
                 $tablename = array_get($parent, 'table_view_name');
@@ -2236,6 +2231,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_column' => SystemColumn::PARENT_ID,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_multiple' => $ignore_multiple,
+                        'ignore_many_to_many' => $ignore_many_to_many,
+                        'only_system_grid_filter' => $only_system_grid_filter,
+                        'column_type_filter' => $column_type_filter,
                     ]
                 );
             }
@@ -2245,8 +2244,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if ($index_enabled_only && !$select_table_column->index_enabled) {
                     continue;
                 }
+                if ($ignore_multiple_refer && $select_table_column->isMultipleEnabled()) {
+                    continue;
+                }
                 $select_table = $select_table_column->column_item->getSelectTable();
-                $tablename = array_get($select_table, 'table_view_name');
+                $column_name = array_get($select_table_column, 'column_view_name');
                 $this->setColumnOptions(
                     $options,
                     $select_table->custom_columns_cache,
@@ -2256,10 +2258,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'index_enabled_only' => $index_enabled_only,
                         'include_parent' => false,
                         'include_system' => $include_system,
-                        'table_view_name' => $tablename,
+                        'table_view_name' => $column_name,
                         'view_pivot_column' => $select_table_column,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_multiple' => $ignore_multiple,
+                        'ignore_many_to_many' => $ignore_many_to_many,
+                        'only_system_grid_filter' => $only_system_grid_filter,
+                        'column_type_filter' => $column_type_filter,
                     ]
                 );
             }
@@ -2283,6 +2289,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_system' => true,
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_multiple' => $ignore_multiple,
+                        'ignore_many_to_many' => $ignore_many_to_many,
+                        'only_system_grid_filter' => $only_system_grid_filter,
+                        'column_type_filter' => $column_type_filter,
                     ]
                 );
             }
@@ -2290,7 +2300,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $selected_table_columns = $this->getSelectedTableColumns();
             foreach ($selected_table_columns as $selected_table_column) {
                 $custom_table = $selected_table_column->custom_table;
-                $tablename = array_get($custom_table, 'table_view_name');
+                $tablename = array_get($selected_table_column, 'column_view_name');
                 $this->setColumnOptions(
                     $options,
                     $custom_table->custom_columns_cache,
@@ -2302,6 +2312,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_system' => true,
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_multiple' => $ignore_multiple,
+                        'ignore_many_to_many' => $ignore_many_to_many,
+                        'view_pivot_column' => $selected_table_column,
+                        'view_pivot_table' => $this,
+                        'only_system_grid_filter' => $only_system_grid_filter,
+                        'column_type_filter' => $column_type_filter,
                     ]
                 );
             }
@@ -2327,6 +2343,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
                 'ignore_attachment' => false,
+                'ignore_multiple' => false,
+                'ignore_many_to_many' => false,
+                'only_system_grid_filter' => false,
+                'column_type_filter' => null,
             ],
             $selectOptions
         );
@@ -2343,6 +2363,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $view_pivot_column = $selectOptions['view_pivot_column'];
         $view_pivot_table = $selectOptions['view_pivot_table'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
+        $ignore_multiple = $selectOptions['ignore_multiple'];
+        $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
+        $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
+        $column_type_filter = $selectOptions['column_type_filter'];
 
 
         // get option key
@@ -2352,8 +2376,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ];
 
         /// get system columns
-        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams) {
+        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams, $only_system_grid_filter, $column_type_filter) {
             foreach (SystemColumn::getOptions($filter) as $option) {
+                if ($only_system_grid_filter && !array_boolval($option, 'grid_filter')) {
+                    continue;
+                }
+                if ($column_type_filter && !$column_type_filter($option)) {
+                    continue;
+                }
                 $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id, $optionKeyParams);
                 $value = exmtrans('common.'.array_get($option, 'name'));
                 static::setKeyValueOption($options, $key, $value, $table_view_name);
@@ -2365,12 +2395,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if ($include_parent) {
-            $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table_id)->first();
-            ///// if this table is child relation(1:n), add parent table
-            if (isset($relation)) {
-                $key = static::getOptionKey('parent_id', $append_table, $table_id);
-                $value = array_get($relation, 'parent_custom_table.table_view_name');
-                static::setKeyValueOption($options, $key, $value, $table_view_name);
+            if (!$column_type_filter || $column_type_filter('parent_id')) {
+                $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table_id)->first();
+                ///// if this table is child relation(1:n), add parent table
+                if (isset($relation)) {
+                    if (!$ignore_many_to_many || $relation->relation_type != RelationType::MANY_TO_MANY) {
+                        $key = static::getOptionKey('parent_id', $append_table, $table_id);
+                        $value = array_get($relation, 'parent_custom_table.table_view_name');
+                        static::setKeyValueOption($options, $key, $value, $table_view_name);
+                    }
+                }
             }
         }
 
@@ -2391,7 +2425,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if ($index_enabled_only && !$custom_column->index_enabled) {
                     continue;
                 }
+                if ($ignore_multiple && $custom_column->isMultipleEnabled()) {
+                    continue;
+                }
                 if ($ignore_attachment && ColumnType::isAttachment($custom_column->column_type)) {
+                    continue;
+                }
+                if ($column_type_filter && !$column_type_filter($custom_column)) {
                     continue;
                 }
                 $key = static::getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id, $optionKeyParams);
@@ -2443,40 +2483,50 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
         foreach ($relations as $rel) {
             $parent_custom_table = array_get($rel, 'parent_custom_table');
-            $this->setSummarySelectOptionItem($options, $parent_custom_table, $parent_custom_table->custom_columns_cache);
+            $optionKeyParams = [
+                'view_pivot_column' => SystemColumn::PARENT_ID,
+                'view_pivot_table' => $this,
+            ];
+            $this->setSummarySelectOptionItem($options, $parent_custom_table, $parent_custom_table->custom_columns_cache, $parent_custom_table->table_view_name, $optionKeyParams);
         }
         
         ///// get child table columns for summary
         $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
         foreach ($relations as $rel) {
             $child_custom_table = array_get($rel, 'child_custom_table');
-            $this->setSummarySelectOptionItem($options, $child_custom_table, $child_custom_table->custom_columns_cache);
+            $this->setSummarySelectOptionItem($options, $child_custom_table, $child_custom_table->custom_columns_cache, $child_custom_table->table_view_name);
         }
 
         ///// get selected table columns
         $selected_table_columns = $this->getSelectedTableColumns();
         foreach ($selected_table_columns as $selected_table_column) {
             $custom_table = $selected_table_column->custom_table;
-            $this->setSummarySelectOptionItem($options, $custom_table, $custom_table->custom_columns_cache);
+            $optionKeyParams = [
+                'view_pivot_column' => $selected_table_column,
+                'view_pivot_table' => $this,
+            ];
+            $this->setSummarySelectOptionItem($options, $custom_table, $custom_table->custom_columns_cache, $selected_table_column->column_view_name, $optionKeyParams);
         }
     
         return $options;
     }
 
 
-    protected function setSummarySelectOptionItem(&$options, $custom_table, $custom_columns)
+    protected function setSummarySelectOptionItem(&$options, $custom_table, $custom_columns, ?string $view_name, $optionKeyParams = [])
     {
-        $tablename = array_get($custom_table, 'table_view_name');
+
         /// get system columns for summary
         foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-            $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id);
-            $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
+            $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id, $optionKeyParams);
+            $value = exmtrans('common.'.array_get($option, 'name'));
+            static::setKeyValueOption($options, $key, $value, $view_name);
         }
-        foreach ($custom_columns as $option) {
-            $column_type = array_get($option, 'column_type');
+        foreach ($custom_columns as $custom_column) {
+            $column_type = array_get($custom_column, 'column_type');
             if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                $key = static::getOptionKey(array_get($option, 'id'), true, $custom_table->id);
-                $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
+                $key = static::getOptionKey(array_get($custom_column, 'id'), true, $custom_table->id, $optionKeyParams);
+                $value = array_get($custom_column, 'column_view_name');
+                static::setKeyValueOption($options, $key, $value, $view_name);
             }
         }
     }

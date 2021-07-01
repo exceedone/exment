@@ -6,7 +6,6 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Validator;
-use Encore\Admin\Grid\Filter;
 
 class Boolean extends CustomItem
 {
@@ -53,10 +52,6 @@ class Boolean extends CustomItem
         return Field\SwitchField::class;
     }
     
-    protected function getAdminFilterClass()
-    {
-        return Filter\Equal::class;
-    }
  
     protected function setValidates(&$validates)
     {

@@ -8,12 +8,15 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\RelationTable;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginEventTrigger;
-use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Notifications;
 use Exceedone\Exment\Enums\NotifyActionTarget;
@@ -704,11 +707,13 @@ class NotifyService
             'as_created_user' => false, // Only use "as_default" is false
             'as_fixed_email' => true, // If true, set "FIXED_EMAIL"
             
-            'get_email' => false,
-            'get_select_table_email' => false,
-            'get_user' => false,
-            'get_organization' => false,
+            'get_email' => false, // Get email's columns.
+            'get_select_table_email' => false, // Get select table where has email column
+            'get_user' => false, // Get users column.
+            'get_organization' => false, // Get organizations column.
             'get_custom_columns' => true,
+
+            'get_realtion_email' => false, // Get parent 1:n, n:n, select table's relation email column.
         ], $options);
 
         // if (!isset($notify_action)) {
@@ -788,9 +793,40 @@ class NotifyService
                     }
                 }
             }
-    
+            
             foreach ($column_items as $column_item) {
                 $items[] = ['id' => $column_item->id, 'text' => exmtrans('common.custom_column') . ' : ' . $column_item->column_view_name];
+            }
+
+
+            // Get parent 1:n, n:n, select table's relation email column.
+            if ($options['get_realtion_email'] && isMatchString($notify_action, NotifyAction::EMAIL)) {
+                // get parent tables.
+                $relationTables = RelationTable::getRelationTables($custom_table, false, [
+                    'get_child_relation_tables' => false,
+                    'get_parent_relation_tables' => true,
+                ]);
+
+                // loop $relationTables
+                foreach ($relationTables as $relationTable) {
+                    $relationTable->table->custom_columns_cache->each(function ($custom_column) use ($relationTable, &$items) {
+                        if (!ismatchString($custom_column->column_type, ColumnType::EMAIL)) {
+                            return;
+                        }
+                        
+                        // Set item. Contains pivot column and table.
+                        if ($relationTable->searchType == SearchType::SELECT_TABLE || $relationTable->searchType == SearchType::SUMMARY_SELECT_TABLE) {
+                            $view_pivot_column_id = $relationTable->selectTablePivotColumn->id;
+                        } else {
+                            $view_pivot_column_id = Define::PARENT_ID_NAME;
+                        }
+                        $text = exmtrans('common.custom_column') . ' : ' . $relationTable->table->table_view_name . ' : ' . $custom_column->column_view_name;
+                        $items[] = [
+                            'id' => "{$custom_column->id}?view_pivot_column_id={$view_pivot_column_id}&view_pivot_table_id={$relationTable->base_table->id}",
+                            'text' => $text,
+                        ];
+                    });
+                }
             }
         }
 

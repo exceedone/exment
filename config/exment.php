@@ -512,6 +512,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | CHARACTER LENGTH LIMIT COUNT
+    |--------------------------------------------------------------------------
+    |
+    | It is character limit count for textbox or editor.
+    |
+    */
+    'char_length_limit' => env('EXMENT_CHAR_LENGTH_LIMIT_COUNT', 63999),
+
+    /*
+    |--------------------------------------------------------------------------
     | GRID_MIN_WIDTH
     |--------------------------------------------------------------------------
     |
@@ -970,6 +980,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | PUBLICFORM URLPARAM SUUID
+    |--------------------------------------------------------------------------
+    |
+    | Use suuid when getting the value of select table from a URL parameter.
+    |
+    */
+    'publicform_urlparam_suuid' => env('EXMENT_PUBLICFORM_URLPARAM_SUUID', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Show disable field readonly
     |--------------------------------------------------------------------------
     |
@@ -1005,4 +1025,14 @@ return [
     | *This config doesn't want to copy backup restore, so set key is ADMIN_, not EXMENT_.*
     */  
     'trust_proxy_headers' => env('ADMIN_TRUST_PROXY_HEADERS', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Show Select field with group option
+    |--------------------------------------------------------------------------
+    |
+    | Show Select field with group option
+    |
+    */
+    'form_column_option_group' => env('EXMENT_FORM_COLUMN_OPTION_GROUP', false),
 ];

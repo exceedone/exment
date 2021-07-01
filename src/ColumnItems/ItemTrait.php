@@ -8,12 +8,19 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FormLabelType;
+use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\SummaryCondition;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Encore\Admin\Show\Field as ShowField;
 
 /**
  *
  * @property CustomTable $custom_table
  * @property CustomColumn $custom_column
+ * @method array getSummaryParams()
+ * @method mixed getSummaryCondition()
+ * @method mixed getViewPivotCustomValue($custom_value, $options)
  */
 trait ItemTrait
 {
@@ -59,7 +66,22 @@ trait ItemTrait
      */
     protected $options = [];
 
+
+    /**
+     * Unique column name.
+     * For use class name, laravel-admin grid (If not use this, get same field name, return wrong value.), etc.
+     *
+     * @var string
+     */
     protected $uniqueName;
+
+    /**
+     * Unique table name.
+     * For use join relation(contains select_table).
+     *
+     * @var string
+     */
+    protected $uniqueTableName;
 
     public function getCustomTable()
     {
@@ -73,6 +95,14 @@ trait ItemTrait
         return $this;
     }
 
+    /**
+     * set item label
+     */
+    public function setLabel($label)
+    {
+        return $this->label = $label;
+    }
+    
     /**
      * CustomForm
      *
@@ -254,9 +284,82 @@ trait ItemTrait
     public function uniqueName()
     {
         if (is_nullorempty($this->uniqueName)) {
-            $this->uniqueName = make_uuid();
+            $this->uniqueName = make_randomstr(20, true, false);
         }
         return $this->uniqueName;
+    }
+
+    /**
+     * Set unique name.
+     *
+     * @return $this
+     */
+    public function setUniqueName($uniqueName)
+    {
+        $this->uniqueName = $uniqueName;
+        return $this;
+    }
+
+    public function sqlAsName()
+    {
+        return $this->uniqueName();
+    }
+
+    /**
+     * get target table real db name.
+     */
+    public function sqlRealTableName()
+    {
+        return getDBTableName($this->custom_table);
+    }
+
+
+    /**
+     * get target table unique db name.
+     * Maybe, sql join same db table, so we have to set unique table name.
+     */
+    public function sqlUniqueTableName()
+    {
+        if (!is_nullorempty($this->uniqueTableName)) {
+            return $this->uniqueTableName;
+        }
+        return $this->sqlRealTableName();
+    }
+
+
+    /**
+     * Set unique table name, for join relation tables.
+     * Maybe, sql join same db table, so we have to set unique table name.
+     *
+     * @param $uniqueTableName string sets unique name.
+     * @return $this
+     */
+    public function setUniqueTableName(string $uniqueTableName)
+    {
+        $this->uniqueTableName = $uniqueTableName;
+        return $this;
+    }
+
+    /**
+     * Get target custom value.
+     * Almost return args custom value, but maybe view_pivot_column, get relation parents custom value.
+     *
+     * @param \Exceedone\Exment\Model\CustomValue $custom_value
+     * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Support\Collection|null
+     */
+    protected function getTargetCustomValue($custom_value)
+    {
+        // if summary, cannot get view_pivot_column, so return $custom_value.
+        if (array_boolval($this->options, 'summary')) {
+            return $custom_value;
+        }
+
+        // if options has "view_pivot_column", get select_table's custom_value first
+        if (!is_nullorempty($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+            return $this->getViewPivotCustomValue($custom_value, $this->options);
+        }
+
+        return $custom_value;
     }
 
     /**
@@ -281,23 +384,145 @@ trait ItemTrait
         return $items;
     }
 
+
     /**
-     * get sort column name as SQL
+     * Get column name with table name.
+     * Join table: true
+     * Wrap: false
+     *
+     * @return string Joined DB table name and column name.  Ex. "exm__3914ac5180d7dc43fcbb.column1" or "sfhwuiefhkmklml.column1"
      */
-    public function getSortColumn()
+    public function getTableColumn(?string $column_name = null) : string
     {
-        return $this->getCastColumn();
+        if (!$column_name) {
+            $column_name = $this->sqlname();
+        }
+        return $this->sqlUniqueTableName() . ".$column_name";
+    }
+
+    
+    /**
+     * The column to use for sorting.
+     * Join table: true
+     * Wrap: true
+     *
+     * @return string
+     */
+    public function getSortWrapTableColumn() : string
+    {
+        return $this->getCastWrapTableColumn();
+    }
+
+    
+    /**
+     * The cast column.
+     * Join table: true
+     * Wrap: true
+     * @param string|null $column_name If select column name, set.
+     *
+     * @return string
+     */
+    public function getCastWrapTableColumn(?string $column_name = null) : string
+    {
+        return $this->getCastColumn($column_name, true, true);
+    }
+    
+    /**
+     * Get date format(Ex. date_format(XXXX,'%Y-%m-%d'))
+     * Join table: true
+     * Wrap: true
+     *
+     * get sqlname for summary
+     */
+    public function getDateFormatWrapTableColumn(string $format) : string
+    {
+        $table_column_name = $this->getTableColumn();
+        return \DB::getQueryGrammar()->getDateFormatString($format, $table_column_name);
+    }
+
+    /**
+     * Get summary query,for use join sub.
+     *
+     * MIN, MAX : non summary.
+     * COUNT, SUM : SUM.
+     *
+     * Join table: true
+     * Wrap: true
+     *
+     * @return string
+     */
+    public function getSummaryJoinResultWrapTableColumn() : string
+    {
+        $options = $this->getSummaryParams();
+        // get normal summary condition.
+        $summary_condition = $this->getSummaryCondition();
+
+        $new_summary_condition = null;
+        switch ($summary_condition) {
+            case SummaryCondition::SUM:
+            case SummaryCondition::COUNT:
+                $new_summary_condition = SummaryCondition::getSummaryConditionName(SummaryCondition::SUM);
+        }
+
+        // get wraped, joined table, and sub query's as name.
+        $wrapCastColumn = \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
+        if (isset($new_summary_condition)) {
+            // add condition.
+            $result = "$new_summary_condition($wrapCastColumn)";
+        } else {
+            $result = $wrapCastColumn;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get group by query,for use join sub.
+     *
+     * MIN, MAX : group string.
+     * Others : null.
+     *
+     * Join table: true
+     * Wrap: true
+     *
+     * @return string|null
+     */
+    public function getGroupByJoinResultWrapTableColumn() : ?string
+    {
+        $options = $this->getSummaryParams();
+        // get normal summary condition.
+        $summary_condition = $this->getSummaryCondition();
+
+        switch ($summary_condition) {
+            case SummaryCondition::MAX:
+            case SummaryCondition::MIN:
+                // get wraped, joined table, and sub query's as name.
+                return \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
+        }
+        return null;
     }
 
     /**
      * get cast column name as SQL
+     *
+     * @param string|null $column_name If select column name, set.
+     * @param boolean $wrap
+     * @param boolean $appendDatabaseTable
+     * @return string Cast column string.
+     * Ex1. If use cast type: CAST(`exm__3914ac5180d7dc43fcbb.column_sfbhiuewfb` AS signed)
+     * Ex2. If not use cast type: `exm__3914ac5180d7dc43fcbb.column_sfbhiuewfb`
      */
-    public function getCastColumn($column_name = null, bool $wrap = true)
+    protected function getCastColumn(?string $column_name = null, bool $wrap = true, bool $appendDatabaseTable = true) : string
     {
         $cast = $this->getCastName();
 
         if (is_nullorempty($column_name)) {
             $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
+        }
+
+        if ($appendDatabaseTable) {
+            // append table name
+            $column_name = $this->getTableColumn($column_name);
         }
 
         if ($wrap) {
@@ -576,6 +801,172 @@ trait ItemTrait
     {
         return $value;
     }
+
+
+    protected function getAdminFilterClass()
+    {
+        return ExmFilter\Where::class;
+    }
+
+    /**
+     * set admin filter for filtering grid.
+     */
+    public function setAdminFilter(&$filter)
+    {
+        $classname = $this->getAdminFilterClass();
+
+        // if where query, call Cloquire
+        if (in_array($classname, [ExmFilter\Where::class, ExmFilter\Between::class, ExmFilter\BetweenDate::class, ExmFilter\BetweenDatetime::class])) {
+            $item = $this;
+            $filteritem = new $classname(function ($query, $input) use ($item) {
+                $item->getAdminFilterWhereQuery($query, $input);
+            }, $this->label(), !is_nullorempty($this->uniqueName) ? $this->uniqueName : $this->index());
+        } else {
+            // Refactor, so doesn't use not ExmWhere class
+            throw new \Exception('Please use ExmWhere');
+        }
+
+        if ($this->isShowFilterNullCheck()) {
+            $filteritem->showNullCheck();
+        }
+
+        // set whereNull query
+        $filteritem->whereNull(function ($query) {
+            $this->getAdminFilterWhereNullQuery($query);
+        });
+
+        // first, set $filter->use
+        $filter->use($filteritem);
+
+        // next, set admin filter options
+        $this->setAdminFilterOptions($filteritem);
+    }
+
+    /**
+     * Set admin filter options
+     *
+     * @param [type] $filter
+     * @return void
+     */
+    protected function setAdminFilterOptions(&$filter)
+    {
+    }
+
+    /**
+     * Get grid filter option. Use grid filter, Ex. LIKE search.
+     *
+     * @return string
+     */
+    protected function getGridFilterOption() : ?string
+    {
+        return FilterOption::EQ;
+    }
+    
+    /**
+     * Set where query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        // get vieww filter item
+        $viewFilterItem = ViewFilterBase::make($this->getGridFilterOption(), $this);
+        $viewFilterItem->setFilter($query, $input);
+    }
+
+    /**
+     * Set where null query for grid filter. If class is "ExmWhere".
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereNullQuery($query)
+    {
+        // get vieww filter item
+        $viewFilterItem = ViewFilterBase::make(FilterOption::NULL, $this);
+        $viewFilterItem->setFilter($query, null);
+    }
+
+    /**
+     * Set where query for grid filter for number
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQueryNumber($query, $input)
+    {
+        if (array_key_value_exists('start', $input)) {
+            $viewFilterItem = ViewFilterBase::make(FilterOption::NUMBER_GTE, $this);
+            $viewFilterItem->setFilter($query, $input['start']);
+        }
+        if (array_key_value_exists('end', $input)) {
+            $viewFilterItem = ViewFilterBase::make(FilterOption::NUMBER_LTE, $this);
+            $viewFilterItem->setFilter($query, $input['end']);
+        }
+    }
+    /**
+     * Set where query for grid filter for date, datetime
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param mixed $input
+     * @return void
+     */
+    public function getAdminFilterWhereQueryDate($query, $input)
+    {
+        if (array_key_value_exists('start', $input)) {
+            $viewFilterItem = ViewFilterBase::make(FilterOption::DAY_ON_OR_AFTER, $this);
+            $viewFilterItem->setFilter($query, $input['start']);
+        }
+        if (array_key_value_exists('end', $input)) {
+            $viewFilterItem = ViewFilterBase::make(FilterOption::DAY_ON_OR_BEFORE, $this);
+            $viewFilterItem->setFilter($query, $input['end']);
+        }
+    }
+
+    /**
+     * Get weekday format
+     *
+     * @return string
+     */
+    protected function getWeekdayFormat($val)
+    {
+        $queries = [];
+
+        // get weekday and no list
+        $weekdayNos = $this->getWeekdayNolist();
+
+        return exmtrans('common.weekday.' . array_get($weekdayNos, $val));
+    }
+
+    protected function getWeekdayNolist()
+    {
+        return [
+            '0' => 'sun',
+            '1' => 'mon',
+            '2' => 'tue',
+            '3' => 'wed',
+            '4' => 'thu',
+            '5' => 'fri',
+            '6' => 'sat',
+        ];
+    }
+
+    /**
+     * Whether is show filter null check
+     *
+     * @return bool
+     */
+    public function isShowFilterNullCheck() : bool
+    {
+        return false;
+    }
+    
+
+
 
     /**
      * Set customForm

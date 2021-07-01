@@ -12,13 +12,6 @@ use Carbon\Carbon;
 trait ExtendedBuilderTrait
 {
     /**
-     * Checking whether appended query.
-     *
-     * @var array
-     */
-    protected $appendedQuery = [];
-
-    /**
      * Set not match query
      *
      * @return $this
@@ -40,27 +33,7 @@ trait ExtendedBuilderTrait
         return $this;
     }
 
-    /**
-     * Whether appended query or sub query. If not appended, return false, and set query
-     *
-     * @param string $keyName
-     * @return $this
-     */
-    public function appendQueryOnce(string $keyName, \Closure $queryCallback)
-    {
-        // if already set, return true.
-        if (in_array($keyName, $this->appendedQuery)) {
-            return $this;
-        }
-
-        // Execute \Closure.
-        $queryCallback($this);
-
-        $this->appendedQuery[] = $keyName;
-        return $this;
-    }
-
-
+    
     /**
      * Update a removing json key.
      *
@@ -152,7 +125,7 @@ trait ExtendedBuilderTrait
         }
 
         // if not suport where in multiple, first getting target id, and add query. ----------------------------------------------------
-        $tableName = $this->model->getTable();
+        $tableName = $this->_getTableExment();
         $subquery = \DB::table($tableName);
 
         // group "$values" index.
@@ -240,8 +213,74 @@ trait ExtendedBuilderTrait
             return $this->whereNotMatch();
         }
 
-        $tableName = $this->model->getTable();
+        $tableName = $this->_getTableExment();
         $this->_getQueryExment()->grammar->whereInArrayString($this, $tableName, $column, $values, $isOr, $isNot);
+
+        return $this;
+    }
+
+
+    /**
+     * wherein column.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $baseColumn
+     * @param  string                                         $column
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereInArrayColumn($baseColumn, $column)
+    {
+        return $this->_whereInArrayColumn($baseColumn, $column, false, false);
+    }
+    
+    /**
+     * or wherein string.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $baseColumn
+     * @param  string                                         $column
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function orWhereInArrayColumn($baseColumn, $column)
+    {
+        return $this->_whereInArrayColumn($baseColumn, $column, true, false);
+    }
+    
+    /**
+     * where not in string.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $baseColumn
+     * @param  string                                         $column
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereNotInArrayColumn($baseColumn, $column)
+    {
+        return $this->_whereInArrayColumn($baseColumn, $column, true, true);
+    }
+    
+    /**
+     * or where not in string.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $baseColumn
+     * @param  string                                         $column
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function orWhereNotInArrayColumn($baseColumn, $column)
+    {
+        return $this->_whereInArrayColumn($baseColumn, $column, true, false);
+    }
+    
+
+    protected function _whereInArrayColumn($baseColumn, $column, bool $isOr = false, bool $isNot = false)
+    {
+        $tableName = $this->_getTableExment();
+        $this->_getQueryExment()->grammar->whereInArrayColumn($this, $tableName, $baseColumn, $column, $isOr, $isNot);
 
         return $this;
     }
@@ -502,5 +541,18 @@ trait ExtendedBuilderTrait
             return $this->query;
         }
         return $this;
+    }
+
+    /**
+     * get table name
+     * @return string table name
+     */
+    protected function _getTableExment()
+    {
+        if ($this instanceof \Illuminate\Database\Query\JoinClause) {
+            return $this->table;
+        }
+
+        return $this->model->getTable();
     }
 }

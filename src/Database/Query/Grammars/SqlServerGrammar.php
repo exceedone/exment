@@ -59,6 +59,58 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         return $builder;
     }
     
+    
+    /**
+     * wherein column.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param \Illuminate\Database\Query\Builder $builder
+     * @param string $tableName database table name
+     * @param string $baseColumn join base column
+     * @param string $column target table name
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereInArrayColumn($builder, string $tableName, string $baseColumn, string $column, bool $isOr = false, bool $isNot = false)
+    {
+        $index = $this->wrap($column);
+        $queryStr = "STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\"', ''), ',')";
+
+        // definition table name
+        $tableNameAs = "{$tableName}_exists";
+        $tableNameWrap = $this->wrapTable($tableName);
+        $tableNameWrapAs = $this->wrapTable($tableNameAs);
+
+        // CREATE "CROSS APPLY"
+        $fromRaw = "$tableNameWrap as $tableNameWrapAs CROSS APPLY $queryStr AS CROSS_APPLY_TABLE";
+
+        $func = $isNot ? 'whereNotExists' : 'whereExists';
+        $builder->{$func}(function ($query) use ($baseColumn, $fromRaw, $tableNameWrap, $tableNameWrapAs) {
+            $query->select(\DB::raw(1))
+                // fromRaw is wrapped.
+                ->fromRaw($fromRaw)
+                // $tableNameWrapAs and $tableNameWrap is wrapped.
+                ->whereRaw("$tableNameWrapAs.id = $tableNameWrap.id")
+                ->whereColumn("CROSS_APPLY_TABLE.value", $baseColumn);
+        });
+
+        return $builder;
+
+
+        $index = $this->wrap($column);
+        $baseColumnIndex = $this->wrap($baseColumn);
+
+        if ($isNot) {
+            $queryStr = "NOT FIND_IN_SET({$baseColumnIndex}, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))";
+        } else {
+            $queryStr = "FIND_IN_SET({$baseColumnIndex}, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
+        }
+        
+        $func = $isOr ? 'orWhereRaw' : 'whereRaw';
+        $builder->{$func}($queryStr);
+
+        return $builder;
+    }
+
 
     /**
      * Get cast column string
@@ -229,6 +281,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
     /**
      * Get case when query
+     * *Convert starting 0 start*
      *
      * @return string
      */
@@ -240,8 +293,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         $weekdayNos = $this->getWeekdayNolist();
 
         foreach ($weekdayNos as $no => $weekdayKey) {
-            $weekday = exmtrans('common.weekday.' . $weekdayKey);
-            $queries[] = "when {$no} then '$weekday'";
+            $queries[] = "when {$no} then '$weekdayKey'";
         }
 
         $queries[] = "else ''";
@@ -252,14 +304,15 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
     protected function getWeekdayNolist()
     {
+        // fixed mysql server
         return [
-            '1' => 'sun',
-            '2' => 'mon',
-            '3' => 'tue',
-            '4' => 'wed',
-            '5' => 'thu',
-            '6' => 'fri',
-            '7' => 'sat',
+            '1' => '0',
+            '2' => '1',
+            '3' => '2',
+            '4' => '3',
+            '5' => '4',
+            '6' => '5',
+            '7' => '6',
         ];
     }
 

@@ -85,6 +85,9 @@ class Editor extends CustomItem
     {
         // value string
         $validates[] = new Validator\StringNumericRule();
+
+        // value size
+        $validates[] = new Validator\MaxLengthExRule(config('exment.char_length_limit', 63999));
     }
 
 
@@ -187,7 +190,8 @@ class Editor extends CustomItem
                     'uuid' => $exmentfile->uuid,
                     'column_name' => $this->custom_column->column_name,
                     'custom_table' => $this->custom_table,
-                    'path' => $exmentfile->path
+                    'path' => $exmentfile->path,
+                    'replace' => false
                 ];
                 $file_uuids[] = $file_uuid;
                 System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);

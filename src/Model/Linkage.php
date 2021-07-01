@@ -40,12 +40,14 @@ class Linkage
     {
         $result = [];
 
-        $columns = $custom_table->getSelectTableColumns();
+        // Get select table columns in custom table.
+        $parent_columns = $custom_table->getSelectTableColumns();
         
-        // re-loop for relation
-        foreach ($columns as $column) {
+        ///// re-loop for relation
+        $checkedSelectTableIds = [];
+        foreach ($parent_columns as $parent_column) {
             // get custom table
-            $select_target_table = $column->select_target_table;
+            $select_target_table = $parent_column->select_target_table;
             if (!isset($select_target_table)) {
                 continue;
             }
@@ -55,20 +57,29 @@ class Linkage
                 continue;
             }
 
-            // get children tables
+            // If already getting select_target_table, continue.
+            if (in_array($select_target_table->id, $checkedSelectTableIds)) {
+                continue;
+            }
+            $checkedSelectTableIds[] = $select_target_table->id;
+
+            // get RelationTable children tables
             $relations = $select_target_table->getRelationTables($checkPermission, ['search_enabled_only' => false]);
+          
             // if not exists, continue
             if (!$relations) {
                 continue;
             }
+
             foreach ($relations as $relation) {
                 $child_custom_table = $relation->table;
-                collect($columns)->filter(function ($child_column) use ($child_custom_table) {
+                
+                collect($parent_columns)->filter(function ($child_column) use ($child_custom_table) {
                     return $child_column->select_target_table && $child_column->select_target_table->id == $child_custom_table->id;
                 })
-                ->each(function ($child_column) use ($column, $relation, &$result) {
+                ->each(function ($child_column) use ($parent_column, $relation, &$result) {
                     $result[] = [
-                        'parent_column' => $column,
+                        'parent_column' => $parent_column,
                         'child_column' => $child_column,
                         'searchType' => $relation->searchType,
                     ];
@@ -92,7 +103,7 @@ class Linkage
         $parent_custom_column = CustomColumn::getEloquent($parent_custom_column);
         $child_custom_column = CustomColumn::getEloquent($child_custom_column);
 
-        if (!isset($child_custom_column)) {
+        if (is_nullorempty($child_custom_column)) {
             return collect();
         }
 
@@ -147,7 +158,7 @@ class Linkage
         $child_target_table = $this->child_column->select_target_table;
 
         if ($this->searchType == SearchType::ONE_TO_MANY) {
-            RelationTable::setQueryOneMany($query, $parent_target_table, $parent_v);
+            RelationTable::setQueryOneMany($query, $parent_target_table, $child_target_table, $parent_v);
         }
 
         // n:n filter

@@ -7,12 +7,15 @@ use Exceedone\Exment\Enums\ConditionType;
 class CustomViewSort extends ModelBase
 {
     use Traits\CustomViewColumnTrait;
+    use Traits\AutoSUuidTrait;
     use Traits\ConditionTypeTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\DatabaseJsonOptionTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['view_column_target'];
+    protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
@@ -48,8 +51,30 @@ class CustomViewSort extends ModelBase
     protected static function boot()
     {
         parent::boot();
+        
+        static::saving(function ($model) {
+            $model->prepareJson('options');
+        });
 
         // add default order
         static::addGlobalScope(new OrderScope('priority'));
+    }
+
+    public function getViewPivotColumnIdAttribute()
+    {
+        return $this->getViewPivotIdTrait('view_pivot_column_id');
+    }
+    public function setViewPivotColumnIdAttribute($view_pivot_column_id)
+    {
+        return $this->setViewPivotIdTrait('view_pivot_column_id', $view_pivot_column_id);
+    }
+    
+    public function getViewPivotTableIdAttribute()
+    {
+        return $this->getViewPivotIdTrait('view_pivot_table_id');
+    }
+    public function setViewPivotTableIdAttribute($view_pivot_table_id)
+    {
+        return $this->setViewPivotIdTrait('view_pivot_table_id', $view_pivot_table_id);
     }
 }

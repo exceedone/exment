@@ -7,7 +7,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\ColumnDefaultType;
-use Exceedone\Exment\Grid\Filter;
+use Exceedone\Exment\Grid\Filter as ExmFilter;
 
 class Datetime extends Date
 {
@@ -35,7 +35,7 @@ class Datetime extends Date
 
     protected function getAdminFilterClass()
     {
-        return Filter\BetweenDatetime::class;
+        return ExmFilter\BetweenDatetime::class;
     }
 
     /**

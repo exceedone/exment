@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
+use Exceedone\Exment\Services\Search\SearchService;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ConditionType;
@@ -15,6 +16,7 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\SearchType;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -31,6 +33,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     //protected $with = ['custom_table', 'custom_view_columns'];
     
     private $_grid_item;
+    
+    /**
+     * Custom Value search service.
+     *
+     * @var SearchService
+     */
+    private $_search_service;
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
@@ -94,6 +103,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function custom_view_summaries()
     {
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
+    }
+
+    public function custom_view_grid_filters()
+    {
+        return $this->hasMany(CustomViewGridFilter::class, 'custom_view_id');
     }
 
     public function data_share_authoritables()
@@ -171,6 +185,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->custom_view_filters()->delete();
         $this->custom_view_sorts()->delete();
         $this->custom_view_summaries()->delete();
+        $this->custom_view_grid_filters()->delete();
         // delete data_share_authoritables
         DataShareAuthoritable::deleteDataAuthoritable($this);
     }
@@ -227,6 +242,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     // custom function --------------------------------------------------
+    
+    /**
+     * get search service.
+     */
+    public function getSearchService() : SearchService
+    {
+        if (!$this->_search_service) {
+            $this->_search_service = new SearchService($this->custom_table);
+        }
+        return $this->_search_service;
+    }
+
     
     /**
      * get eloquent using request settion.
@@ -688,23 +715,79 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set value filters
      */
-    public function setValueFilters($query, $db_table_name = null)
+    public function setValueFilters($query)
     {
-        if (!empty($this->custom_view_filters_cache)) {
-            // set workflow query
-            $this->custom_table->appendWorkflowSubQuery($query, $this);
+        // If summary, call setSummaryValueFilters.
+        if ($this->view_kind_type == ViewKindType::AGGREGATE) {
+            return $this->setSummaryValueFilters($query);
+        }
 
-            $query->where(function ($query) use ($db_table_name) {
-                foreach ($this->custom_view_filters_cache as $filter) {
-                    $filter->setValueFilter($query, $db_table_name, $this->filter_is_or);
+        // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
+        $custom_view_filters = $this->custom_view_filters;
+
+        if (!empty($custom_view_filters)) {
+            $service = $this->getSearchService()->setQuery($query);
+            foreach ($custom_view_filters as $filter) {
+                $service->setRelationJoin($filter);
+            }
+
+            $query->where(function ($query) use ($custom_view_filters, $service) {
+                foreach ($custom_view_filters as $filter) {
+                    $service->whereCustomViewFilter($filter, $this->filter_is_or, $query);
                 }
             });
         }
+
+        return $query;
+    }
+
+
+    /**
+     * set summary value filters
+     */
+    protected function setSummaryValueFilters($query)
+    {
+        // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
+        $custom_view_filters = $this->custom_view_filters;
+
+        if (!empty($custom_view_filters)) {
+            $service = $this->getSearchService()->setQuery($query);
+
+            // Get $relationTables.
+            // If summary sub query, set filter to sub query.
+            $relationTables = [];
+            foreach ($custom_view_filters as $filter) {
+                $relationTable = $service->setRelationJoin($filter, [
+                    'asSummary' => true,
+                ]);
+                $relationTables[] = $relationTable;
+
+                // if has sub query(for child relation), set filter to sub query
+                if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
+                    $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($service, $filter) {
+                        $service->whereCustomViewFilter($filter, $this->filter_is_or, $subquery);
+                    };
+                }
+            }
+
+            $query->where(function ($query) use ($relationTables, $custom_view_filters, $service) {
+                foreach ($custom_view_filters as $index => $filter) {
+                    $relationTable = $relationTables[$index];
+                    // If filter is not already setted, call.
+                    if (!$relationTable || !SearchType::isSummarySearchType($relationTable->searchType)) {
+                        $service->whereCustomViewFilter($filter, $this->filter_is_or, $query);
+                    }
+                }
+            });
+        }
+
         return $query;
     }
 
     /**
      * set value sort
+     *
+     * @deprecated Please use sortModel func.
      */
     public function setValueSort($model)
     {
@@ -714,20 +797,21 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set value sort
      */
-    public function sortModel($model)
+    public function sortModel($query)
     {
         // if request has "_sort", not executing
         if (request()->has('_sort')) {
-            return $model;
-        }
-        foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
-            $condition_item = $custom_view_sort->condition_item;
-            if ($condition_item) {
-                $condition_item->setQuerySort($model, $custom_view_sort);
-            }
+            return $query;
         }
 
-        return $model;
+        $service = $this->getSearchService()->setQuery($query);
+        $service->addSelect();
+
+        foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
+            $service->orderByCustomViewSort($custom_view_sort);
+        }
+
+        return $query;
     }
 
 
