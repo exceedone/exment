@@ -191,7 +191,11 @@ abstract class CustomItem implements ItemInterface
     {
         // if options has "summary" (for summary view)
         if (boolval(array_get($this->options, 'summary'))) {
-            return array_get($custom_value, $this->sqlAsName());
+            $v = array_get($custom_value, $this->sqlAsName());
+            if (array_get($this->options, 'group_condition') == 'w') {
+                return $this->getWeekdayFormat($v);
+            }
+            return $v;
         }
         // if options has "summary_child" (for not only summary view, but also default view)
         if (isset($custom_value) && boolval(array_get($this->options, 'summary_child'))) {
