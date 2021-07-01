@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\NotifyAction;
@@ -32,6 +33,8 @@ class Notify extends ModelBase
 
     protected $guarded = ['id'];
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];
+
+    protected $_schedule_date_column_item;
     
     public function custom_table()
     {
@@ -135,6 +138,29 @@ class Notify extends ModelBase
         })->filter()->unique()->toArray();
     }
 
+    /**
+     * Get schedule date's column item.
+     *
+     * @return void
+     */
+    public function getScheduleDateColumnItemAttribute()
+    {
+        if (isset($this->_schedule_date_column_item)) {
+            return $this->_schedule_date_column_item;
+        }
+
+        // Now only column.
+        $custom_column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
+        $query_key = \Exment::getOptionKey($custom_column->id, true, $custom_column->custom_table_id, array_get($this, 'trigger_settings'));
+        
+        $this->_schedule_date_column_item = ColumnItems\CustomItem::getItem($custom_column, null, $query_key);
+
+        if (!is_nullorempty($this->suuid)) {
+            $this->_schedule_date_column_item->setUniqueName(Define::COLUMN_ITEM_UNIQUE_PREFIX . $this->suuid);
+        }
+
+        return $this->_schedule_date_column_item;
+    }
     /**
      * notify user on schedule
      */
@@ -507,8 +533,6 @@ class Notify extends ModelBase
         // calc target date
         $target_date = Carbon::today()->addDay($before_after_number * $notify_day * -1);
         $target_date_str = $target_date->format('Y-m-d');
-
-        // get target table and column
         $table = $this->custom_table;
         $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
 
@@ -522,7 +546,7 @@ class Notify extends ModelBase
         }
         $service->setQuery($query);
 
-        $datalist = $service->where($column, '=', $target_date_str, 'and', ['format' => GroupCondition::YMD])->get();
+        $datalist = $service->whereNotifySchedule($this, '=', $target_date_str, 'and', ['format' => GroupCondition::YMD])->get();
 
         return [$datalist, $table, $column];
     }

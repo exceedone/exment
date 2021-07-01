@@ -23,53 +23,7 @@ trait ColumnOptionQueryTrait
      */
     protected static function getOptionKey($column_key, $append_table = true, $table_id = null, $options = [])
     {
-        $options = array_merge(
-            [
-                'view_pivot_column' => null,
-                'view_pivot_table' => null,
-                'codition_type' => null,
-            ],
-            $options
-        );
-
-        $view_pivot_column = $options['view_pivot_column'];
-        $view_pivot_table = $options['view_pivot_table'];
-        $codition_type = $options['codition_type'];
-        
-        $query = [];
-        
-        if ($append_table && isset($table_id)) {
-            $query['table_id'] = $table_id;
-        }
-
-        // set as select_table key
-        if (isset($view_pivot_column)) {
-            if ($view_pivot_column == SystemColumn::PARENT_ID) {
-                $query['view_pivot_column_id'] = SystemColumn::PARENT_ID;
-            } else {
-                $query['view_pivot_column_id'] = CustomColumn::getEloquent($view_pivot_column)->id ?? null;
-            }
-
-            $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
-        }
-
-        if (isset($codition_type)) {
-            if ($view_pivot_column == SystemColumn::PARENT_ID) {
-                $query['view_pivot_column_id'] = SystemColumn::PARENT_ID;
-            } else {
-                $query['view_pivot_column_id'] = CustomColumn::getEloquent($view_pivot_column)->id ?? null;
-            }
-
-            $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
-        }
-
-        if (count($query) == 0) {
-            return $column_key;
-        }
-
-        return $column_key . '?' . implode('&', collect($query)->map(function ($val, $key) {
-            return $key . '=' . $val;
-        })->toArray());
+        return\Exment::getOptionKey($column_key, $append_table, $table_id, $options);
     }
     
     protected static function setKeyValueOption(&$options, $key, $value, $table_view_name)
