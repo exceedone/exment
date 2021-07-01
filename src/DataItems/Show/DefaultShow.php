@@ -358,8 +358,11 @@ class DefaultShow extends ShowBase
                 
                 // one to many
                 if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
+                    $table_name = getDBTableName($target_table);
                     // append filter
-                    $grid->model()->where('parent_id', $this->custom_value->id)->where('parent_type', $this->custom_table->table_name);
+                    $grid->model()
+                        ->where("$table_name.parent_id", $this->custom_value->id)
+                        ->where("$table_name.parent_type", $this->custom_table->table_name);
                     if ($trashed) {
                         $grid->model()->withTrashed();
                     }

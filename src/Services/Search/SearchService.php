@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\RelationType;
@@ -162,7 +163,7 @@ class SearchService
      * @param  string  $boolean
      * @return $this
      */
-    public function where($column, $operator = null, $value = null, $boolean = 'and', $options = [])
+    public function where($column, $operator = null, $value = null, $boolean = 'and')
     {
         // Here we will make some assumptions about the operator. If only 2 values are
         // passed to the method, we will assume that the operator is an equals sign
@@ -175,10 +176,10 @@ class SearchService
         
         // If custom column, execute where custom column's exists query.
         if ($column instanceof CustomColumn) {
-            return $this->whereCustomColumn($column, $operator, $value, $boolean, $options);
+            return $this->whereCustomColumn($column, $operator, $value, $boolean);
         }
         if (is_string($column)) {
-            return $this->whereCustomColumn(CustomColumn::getEloquent($column, $this->custom_table), $operator, $value, $boolean, $options);
+            return $this->whereCustomColumn(CustomColumn::getEloquent($column, $this->custom_table), $operator, $value, $boolean);
         }
 
         $this->query->where($column, $operator, $value, $boolean);
@@ -222,7 +223,7 @@ class SearchService
      * @param  string  $boolean
      * @return $this
      */
-    protected function whereCustomColumn(CustomColumn $column, $operator = null, $value = null, $boolean = 'and', $options = [])
+    protected function whereCustomColumn(CustomColumn $column, $operator = null, $value = null, $boolean = 'and')
     {
         $whereCustomTable = $column->custom_table_cache;
         $column_item = $column->column_item;
@@ -242,12 +243,7 @@ class SearchService
             }
         }
 
-        // If set date format, get date format column.
-        if (isset($options['format'])) {
-            $column_name = \DB::raw($column_item->getDateFormatWrapTableColumn($options['format']));
-        } else {
-            $column_name = $column_item->getTableColumn();
-        }
+        $column_name = $column_item->getTableColumn();
 
         // Add where query
         $this->query->where($column_name, $operator, $value, $boolean);
@@ -492,7 +488,7 @@ class SearchService
     }
 
     /**
-     * Add group by and select by custom column. Contains CustomViewFilter.
+     * Add where by custom view filter.
      *
      * @param  CustomViewFilter $column
      * @return $this
@@ -515,11 +511,43 @@ class SearchService
         return $this;
     }
 
+    /**
+     * Add where by Notify Schedule.
+     * *We want to refactor, but now *
+     *
+     * @param  Notify $notify notify target
+     * @return $this
+     */
+    public function whereNotifySchedule(Notify $notify, $operator = null, $value = null, $boolean = 'and', array $options = [])
+    {
+        // if $query is null, set $query as base $this->query.
+        // if $query is not null, $query(Setting filter target query) maybe inner where kakko.
+        $query = $this->query;
+
+        // set relation table join.
+        $this->setRelationJoin($notify);
+
+        // get target table and column
+        $table = $this->custom_table;
+        $column_item = $this->getColumnItem($notify);
+
+        // If set date format, get date format column.
+        if (isset($options['format'])) {
+            $column_name = \DB::raw($column_item->getDateFormatWrapTableColumn($options['format']));
+        } else {
+            $column_name = $column_item->getTableColumn();
+        }
+
+        $this->query->where($column_name, $operator, $value, $boolean);
+
+        return $this;
+    }
+
 
     /**
      * Join relation table for filter or sort
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter|Notify $column
      */
     public function setRelationJoin($column, array $options = []) : ?RelationTable
     {
@@ -551,7 +579,7 @@ class SearchService
                 $this->setJoin($relationTable, $orderCustomTable);
 
                 // set database unique name
-                $column_item = $column->column_item;
+                $column_item = $this->getColumnItem($column);
                 if (!isset($column_item)) {
                     $this->query->whereNotMatch();
                     return $this;
@@ -797,8 +825,30 @@ class SearchService
                 array_get($column, 'options.view_pivot_table_id') ?? $column->view_column_table_id,
                 array_get($column, 'options.view_pivot_column_id') ?? $column->view_column_target_id,
             ];
+        } elseif ($column instanceof Notify) {
+            return [
+                array_get($column, 'trigger_settings.notify_target_table_id'),
+                array_get($column, 'trigger_settings.notify_target_column'),
+                array_get($column, 'trigger_settings.view_pivot_table_id'),
+                array_get($column, 'trigger_settings.view_pivot_column_id'),
+            ];
         }
 
         return [null, null, null, null];
+    }
+
+    /**
+     * Get column item
+     *
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
+     * @return mixed
+     */
+    protected function getColumnItem($column)
+    {
+        if ($column instanceof Notify) {
+            return $column->schedule_date_column_item;
+        }
+
+        return $column->column_item;
     }
 }
