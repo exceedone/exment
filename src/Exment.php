@@ -28,7 +28,6 @@ use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-
 /**
  * Class Admin.
  */

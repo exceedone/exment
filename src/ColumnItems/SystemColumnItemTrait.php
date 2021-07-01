@@ -5,7 +5,6 @@ namespace Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\CustomValue;
 
 trait SystemColumnItemTrait
 {

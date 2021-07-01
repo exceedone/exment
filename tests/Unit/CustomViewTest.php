@@ -186,7 +186,7 @@ class CustomViewTest extends UnitTestBase
                 if (!isset($compare_value)) {
                     $compare = null;
                 } elseif (is_list($compare_value)) {
-                    $compare = collect($compare_value)->map(function($v) use($custom_view_column) {
+                    $compare = collect($compare_value)->map(function ($v) use ($custom_view_column) {
                         return $this->getCompareValue($custom_view_column, $v);
                     })->filter()->implode('、');
                 } else {
@@ -195,7 +195,6 @@ class CustomViewTest extends UnitTestBase
                 $this->assertEquals($text, $compare);
             }
         }
-
     }
 
     protected function getCompareValue($custom_view_column, $compare_value)
@@ -256,7 +255,6 @@ class CustomViewTest extends UnitTestBase
         list($custom_view, $array) = $this->getCustomView($options);
 
         $this->checkSelectColumns($custom_table, $custom_view, $array);
-
     }
 
     /**
@@ -436,7 +434,7 @@ class CustomViewTest extends UnitTestBase
         $prev_parent = $prev_data->getParentValue();
         $parent = $data->getParentValue();
 
-        if (isset($prev_parent) && isset($parent)){
+        if (isset($prev_parent) && isset($parent)) {
             return array_get($prev_parent, 'value.date') < array_get($parent, 'value.date') ||
             array_get($prev_parent, 'value.date') == array_get($parent, 'value.date') &&
             array_get($prev_parent, 'value.odd_even') >= array_get($parent, 'value.odd_even');
@@ -449,7 +447,7 @@ class CustomViewTest extends UnitTestBase
         $prev_parent = $prev_data->getParentValue();
         $parent = $data->getParentValue();
 
-        if (isset($prev_parent) && isset($parent)){
+        if (isset($prev_parent) && isset($parent)) {
             return array_get($prev_data, 'value.odd_even') < array_get($data, 'value.odd_even') ||
             (array_get($prev_data, 'value.odd_even') == array_get($data, 'value.odd_even') &&
             array_get($prev_parent, 'value.odd_even') > array_get($parent, 'value.odd_even')) ||

@@ -785,8 +785,7 @@ class CustomViewFilterTest extends UnitTestBase
 
     protected function checkArray($expected, $actual)
     {
-        if (is_null($actual))
-        {
+        if (is_null($actual)) {
             return is_null($expected);
         } else {
             return in_array($expected, $actual);

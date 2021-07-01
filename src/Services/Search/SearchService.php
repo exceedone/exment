@@ -17,7 +17,6 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\ColumnItems;
 
 /**
  * Custom Value's Search model.
@@ -826,8 +825,7 @@ class SearchService
                 array_get($column, 'options.view_pivot_table_id') ?? $column->view_column_table_id,
                 array_get($column, 'options.view_pivot_column_id') ?? $column->view_column_target_id,
             ];
-        }
-        elseif($column instanceof Notify){
+        } elseif ($column instanceof Notify) {
             return [
                 array_get($column, 'trigger_settings.notify_target_table_id'),
                 array_get($column, 'trigger_settings.notify_target_column'),
@@ -847,7 +845,7 @@ class SearchService
      */
     protected function getColumnItem($column)
     {
-        if($column instanceof Notify){
+        if ($column instanceof Notify) {
             return $column->schedule_date_column_item;
         }
 

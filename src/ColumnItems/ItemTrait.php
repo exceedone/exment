@@ -7,7 +7,6 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SummaryCondition;

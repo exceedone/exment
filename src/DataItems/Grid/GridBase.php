@@ -138,7 +138,7 @@ abstract class GridBase
             $keys = preg_split('/\?/', $query, 2);
             $items = preg_split('/\:/', $item);
             return [$keys[1] => [$query => trim($items[count($items)-1])]];
-        })->map(function ($item, $key) use($defaultCustomTable) {
+        })->map(function ($item, $key) use ($defaultCustomTable) {
             if (empty($key)) {
                 $label = $defaultCustomTable->table_view_name;
             } else {

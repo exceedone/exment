@@ -20,7 +20,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value){
+        $values->each(function ($value) {
             $this->assertMatch($value->getValue('index_text'), 'index_1_1');
         });
     }
@@ -36,7 +36,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value){
+        $values->each(function ($value) {
             $this->assertMatch($value->getValue('text'), 'test_1');
             $this->assertMatch($value->getValue('odd_even'), 'odd');
         });
@@ -54,7 +54,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value){
+        $values->each(function ($value) {
             // get parent value
             $parent_value = $value->getParentValue();
             $this->assertMatch($parent_value->getValue('index_text'), 'index_3_1');
@@ -75,7 +75,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value){
+        $values->each(function ($value) {
             // get parent value
             $parent_value = $value->getParentValue();
             $this->assertTrue($parent_value->getValue('integer') > 1000);
@@ -96,11 +96,11 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value) use($relation){
+        $values->each(function ($value) use ($relation) {
             // get parent values(this list contains not filter target value)
             $parent_values = $value->getParentValue($relation);
             // Whether checking contains parent value
-            $this->assertTrue($parent_values->contains(function($parent_value){
+            $this->assertTrue($parent_values->contains(function ($parent_value) {
                 return isMatchString($parent_value->getValue('index_text'), 'index_3_1');
             }));
         });
@@ -119,7 +119,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function($value){
+        $values->each(function ($value) {
             // get parent value
             $parent_value = $value->getValue('parent_select_table');
             $this->assertMatch($parent_value->getValue('index_text'), 'index_3_1');
@@ -157,7 +157,7 @@ class SearchServiceTest extends UnitTestBase
         $this->assertTrue($values->count() > 0);
         
         $checkValue = null;
-        $values->each(function($value) use(&$checkValue, $direction){
+        $values->each(function ($value) use (&$checkValue, $direction) {
             $this->assertTrue(is_null($checkValue) || ($direction == 'asc' ? $value->getValue('index_text') >= $checkValue : $value->getValue('index_text') <= $checkValue));
             $checkValue = $value->getValue('index_text');
         });
@@ -189,7 +189,7 @@ class SearchServiceTest extends UnitTestBase
         $this->assertTrue($values->count() > 0);
         
         $checkValue = null;
-        $values->each(function($value) use(&$checkValue, $direction){
+        $values->each(function ($value) use (&$checkValue, $direction) {
             // get parent value
             $parent_value = $value->getParentValue();
             
@@ -203,17 +203,16 @@ class SearchServiceTest extends UnitTestBase
     public function testOrderManyMany()
     {
         // Not support order by many-to-many relation
-        try{
+        try {
             $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
             $column = CustomColumn::getEloquent('index_text', $custom_table);
             $direction = 'desc';
 
-            $service = new SearchService($custom_table);    
+            $service = new SearchService($custom_table);
             $service->orderBy($column, $direction);
 
             $this->assertTrue(false, 'Not support order by many-to-many relation');
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             $this->assertTrue(true);
         }
     }
@@ -233,7 +232,7 @@ class SearchServiceTest extends UnitTestBase
         
         $checkValue = null;
         $direction = 'asc';
-        $values->each(function($value) use(&$checkValue, $direction){
+        $values->each(function ($value) use (&$checkValue, $direction) {
             // get parent value
             $parent_value = $value->getValue('parent_select_table');
             
@@ -241,5 +240,4 @@ class SearchServiceTest extends UnitTestBase
             $checkValue = $parent_value->getValue('index_text');
         });
     }
-
 }
