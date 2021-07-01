@@ -275,7 +275,7 @@ class TestDataSeeder extends Seeder
 
             // get child table's view
             $child_table_view = $child_table->custom_views->first(function ($view) use ($child_table) {
-                return $view->view_view_name == "{$child_table->table_name}-view-odd";
+                return $view->view_kind_type == ViewKindType::FILTER;
             });
 
             // cerate pivot table
@@ -333,7 +333,7 @@ class TestDataSeeder extends Seeder
         // cerate pivot table for user org  ----------------------------------------------------
         // get user table's view
         $user_table_view = CustomTable::getEloquent(SystemTableName::USER)->custom_views->first(function ($view) {
-            return $view->view_view_name == "user-view-dev";
+            return $view->view_kind_type == ViewKindType::FILTER;
         });
 
         $pivot_table = $this->createTable('pivot_table_user_org', [
@@ -648,6 +648,18 @@ class TestDataSeeder extends Seeder
                 );
             }
         }
+
+        // create condition filter
+        // create view
+        $custom_view = $this->createCustomView($custom_table_user, ViewType::SYSTEM, ViewKindType::FILTER, $custom_table_user->table_name . '-filter', ['condition_join' => 'and']);
+        $this->createCustomViewFilter(
+            $custom_view->id,
+            ConditionType::SYSTEM,
+            $custom_table_user->id,
+            SystemColumn::getOption(['name' => SystemColumn::CREATED_AT])['id'],
+            FilterOption::DAY_TODAY,
+            null
+        );
 
         // create test table
         $permissions = [
@@ -1240,6 +1252,18 @@ class TestDataSeeder extends Seeder
                 );
             }
         }
+
+        // create condition filter
+        // create view
+        $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::FILTER, $custom_table->table_name . '-filter', ['condition_join' => 'and']);
+        $this->createCustomViewFilter(
+            $custom_view->id,
+            ConditionType::SYSTEM,
+            $custom_table->id,
+            SystemColumn::getOption(['name' => SystemColumn::UPDATED_USER])['id'],
+            FilterOption::USER_EQ_USER,
+            null
+        );
 
         // create parent column filter
         if ($custom_table->table_name == 'child_table') {
