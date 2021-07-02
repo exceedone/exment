@@ -248,7 +248,7 @@ class RelationTable
         return static::getRelationTable(
             $custom_column_id,
             array_get($prms, 'view_pivot_column_id'),
-            array_get($prms, 'view_pivot_table_id'),
+            array_get($prms, 'view_pivot_table_id')
         );
     }
 
