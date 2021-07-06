@@ -176,6 +176,11 @@ class HasManyTable extends HasMany
      */
     protected function setTableFieldItem(&$field, &$tableitems, &$hiddens, &$requires, &$helps)
     {
+        // if internal, skip field
+        if ($field instanceof Internal) {
+            return;
+        }
+
         // if hidden, set $hiddens
         if ($field instanceof Hidden) {
             $hiddens[] = $field;
