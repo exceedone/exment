@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Define;
@@ -34,6 +35,7 @@ trait CustomViewTrait
                 'condition_join' => 'and',
                 'filter_settings' => [],
                 'column_settings' => [],
+                'sort_settings' => [],
                 'summary_settings' => [],
             ],
             $options
@@ -43,6 +45,7 @@ trait CustomViewTrait
         $condition_join = array_get($options, 'condition_join');
         $filter_settings = array_get($options, 'filter_settings');
         $column_settings = array_get($options, 'column_settings');
+        $sort_settings = array_get($options, 'sort_settings');
         $summary_settings = array_get($options, 'summary_settings');
 
         // Login user.
@@ -80,6 +83,14 @@ trait CustomViewTrait
                 $custom_table,
                 $custom_view,
                 $filter_setting
+            ));
+        }
+
+        foreach ($sort_settings as $sort_setting) {
+            $custom_view_filter = CustomViewSort::create($this->getViewSortInfo(
+                $custom_table,
+                $custom_view,
+                $sort_setting
             ));
         }
         return [$custom_table, $custom_view];
@@ -140,6 +151,15 @@ trait CustomViewTrait
         unset($options['view_column_name']);
         $options['view_filter_condition'] = $column_setting['filter_condition']?? null;
         $options['view_filter_condition_value_text'] = $column_setting['filter_value_text']?? null;
+        return $options;
+    }
+
+    protected function getViewSortInfo($custom_table, $custom_view, $column_setting)
+    {
+        $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
+        unset($options['view_column_name']);
+        $options['sort'] = $column_setting['sort']?? 1;
+        $options['priority'] = $column_setting['priority']?? 1;
         return $options;
     }
 
