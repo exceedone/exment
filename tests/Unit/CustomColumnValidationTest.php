@@ -86,17 +86,6 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
-    public function testTextareaNotString()
-    {
-        $this->executeTestAllColumns(ColumnType::TEXTAREA, [
-            ColumnType::TEXTAREA => ['abc'],
-        ], [
-            ColumnType::TEXTAREA => [$this->getErrorMessage('string', ColumnType::TEXTAREA)],
-        ]);
-    }
-
-
-
 
     // Textarea ----------------------------------------------------
     public function testSuccessEditor()
@@ -109,15 +98,6 @@ class CustomColumnValidationTest extends UnitTestBase
     {
         $this->executeTestAllColumns(ColumnType::EDITOR, [
             ColumnType::EDITOR => 1,
-        ]);
-    }
-
-    public function testEditorNotString()
-    {
-        $this->executeTestAllColumns(ColumnType::EDITOR, [
-            ColumnType::EDITOR => ['abc'],
-        ], [
-            ColumnType::EDITOR => [$this->getErrorMessage('string', ColumnType::EDITOR)],
         ]);
     }
 
