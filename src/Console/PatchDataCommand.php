@@ -1939,6 +1939,10 @@ class PatchDataCommand extends Command
                 ->each(function ($custom_view_summary) {
                     // get view and table info
                     $custom_view = $custom_view_summary->custom_view;
+                    // If not has custom view, continue
+                    if(!$custom_view){
+                        return true;
+                    }
                     $custom_table_id = $custom_view->custom_table_id;
 
                     // if match column table's id and view's table id, continue.
