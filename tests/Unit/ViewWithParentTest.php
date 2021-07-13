@@ -329,15 +329,14 @@ class ViewWithParentTest extends TestCase
         );
 
         $options['target_table_name'] = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
-        $filter_column = 'id';
         $filter_value = 5;
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_column, $filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_value) {
             if ($data instanceof CustomValue) {
                 $select_table = $data->getValue('select_table');
-                return array_get($select_table, $filter_column) == $filter_value;
+                return array_get($select_table, 'id') == $filter_value;
             } else {
                 $column_item = $custom_view->custom_view_columns[0]->column_item;
                 $unique_name = $column_item->uniqueName();
@@ -763,6 +762,185 @@ class ViewWithParentTest extends TestCase
             }
             return array_get($prev_parent, 'id') == array_get($parent, 'id') &&
                 array_get($prev_user, 'id') <= array_get($user, 'id');
+        }, $options);
+    }
+
+    /**
+     * 4-1.
+     * CustomViewColumn = select_table : YES
+     * CustomViewFilter = select_table : YES
+     * (This table has multiple columns that reference the same table)
+     */
+    public function testFuncFilterSelectSameTable()
+    {
+        $this->init();
+
+        $options = $this->getOptions(
+            ['child_table.odd_even.child', 'child_table.odd_even.child_view', 'child_table.odd_even.child_ajax', 'id', 'parent_table.odd_even.parent'],
+            ['child_table.odd_even.child', 'child_table.odd_even.child_view', 'child_table.odd_even.child_ajax']
+        );
+
+        $options['target_table_name'] = TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE;
+        $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
+        $options['filter_settings'][0]['filter_value_text'] = 'odd';
+        $options['filter_settings'][1]['filter_condition'] = FilterOption::EQ;
+        $options['filter_settings'][1]['filter_value_text'] = 'even';
+        $options['filter_settings'][2]['filter_condition'] = FilterOption::EQ;
+        $options['filter_settings'][2]['filter_value_text'] = 'odd';
+
+        $array = $this->getColumnFilterData(function ($data, $custom_view) {
+            if ($data instanceof CustomValue) {
+                $child = $data->getValue('child');
+                $child_view = $data->getValue('child_view');
+                $child_ajax = $data->getValue('child_ajax');
+                return $child->getValue('odd_even') == 'odd' 
+                    && $child_view->getValue('odd_even') == 'even' 
+                    && $child_ajax->getValue('odd_even') == 'odd';
+            } else {
+                $column_item = $custom_view->custom_view_columns[0]->column_item;
+                $unique_name = $column_item->uniqueName();
+                $column_item_2 = $custom_view->custom_view_columns[1]->column_item;
+                $unique_name_2 = $column_item_2->uniqueName();
+                $column_item_3 = $custom_view->custom_view_columns[2]->column_item;
+                $unique_name_3 = $column_item_3->uniqueName();
+                return array_get($data, $unique_name) == 'odd' 
+                    && array_get($data, $unique_name_2) == 'even'
+                    && array_get($data, $unique_name_3) == 'odd';
+            }
+        }, $options);
+    }
+
+    /**
+     * 4-2.
+     * CustomViewColumn = select_table : NO
+     * CustomViewFilter = select_table : YES
+     * (This table has multiple columns that reference the same table)
+     */
+    public function testFuncFilterSelectSameTableNoColumn()
+    {
+        $this->init();
+
+        $options = $this->getOptions(
+            ['id', 'created_at'],
+            ['child_table.odd_even.child', 'child_table.odd_even.child_view', 'child_table.odd_even.child_ajax']
+        );
+
+        $options['target_table_name'] = TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE;
+        $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
+        $options['filter_settings'][0]['filter_value_text'] = 'even';
+        $options['filter_settings'][1]['filter_condition'] = FilterOption::EQ;
+        $options['filter_settings'][1]['filter_value_text'] = 'odd';
+        $options['filter_settings'][2]['filter_condition'] = FilterOption::EQ;
+        $options['filter_settings'][2]['filter_value_text'] = 'even';
+
+        $array = $this->getColumnFilterData(function ($data, $custom_view) {
+            if (!($data instanceof CustomValue)) {
+                $id = array_get($data, 'id');
+                $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE)::find($id);
+            }
+            $child = $data->getValue('child');
+            $child_view = $data->getValue('child_view');
+            $child_ajax = $data->getValue('child_ajax');
+            return $child->getValue('odd_even') == 'even' 
+                && $child_view->getValue('odd_even') == 'odd' 
+                && $child_ajax->getValue('odd_even') == 'even';
+        }, $options);
+    }
+
+    /**
+     * 4-3.
+     * CustomViewColumn = select_table : YES
+     * CustomViewSort = select_table : YES
+     * (This table has multiple columns that reference the same table)
+     */
+    public function testFuncSortBySelectSameTable()
+    {
+        $this->init();
+
+        $options = $this->getOptions(
+            ['child_table.date.child', 'child_table.date.child_view', 'child_table.date.child_ajax', 'id', 'parent_table.integer.parent'],
+            [],
+            ['child_table.date.child', 'child_table.date.child_view', 'child_table.date.child_ajax']
+        );
+
+        $options['target_table_name'] = TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE;
+        $options['sort_settings'][0]['sort'] = ViewColumnSort::ASC;
+        $options['sort_settings'][0]['priority'] = 1;
+        $options['sort_settings'][1]['sort'] = ViewColumnSort::DESC;
+        $options['sort_settings'][1]['priority'] = 2;
+        $options['sort_settings'][2]['sort'] = ViewColumnSort::ASC;
+        $options['sort_settings'][2]['priority'] = 3;
+
+        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) {
+            $column_item = $custom_view->custom_view_columns[0]->column_item;
+            $unique_name = $column_item->uniqueName();
+            $column_item_2 = $custom_view->custom_view_columns[1]->column_item;
+            $unique_name_2 = $column_item_2->uniqueName();
+            $column_item_3 = $custom_view->custom_view_columns[2]->column_item;
+            $unique_name_3 = $column_item_3->uniqueName();
+            if (array_get($prev_data, $unique_name) < array_get($data, $unique_name)) {
+                return true;
+            }
+            if (array_get($prev_data, $unique_name) == array_get($data, $unique_name)
+                && array_get($prev_data, $unique_name_2) > array_get($data, $unique_name_2)) {
+                return true;
+            }
+            return array_get($prev_data, $unique_name) == array_get($data, $unique_name)
+                && array_get($prev_data, $unique_name_2) == array_get($data, $unique_name_2)
+                && array_get($prev_data, $unique_name_3) <= array_get($data, $unique_name_3);
+        }, $options);
+    }
+
+    /**
+     * 4-4.
+     * CustomViewColumn = select_table : NO
+     * CustomViewSort = select_table : YES
+     * (This table has multiple columns that reference the same table)
+     */
+    public function testFuncSortBySelectSameTableNoColumn()
+    {
+        $this->init();
+
+        $options = $this->getOptions(
+            ['id', 'created_at'],
+            [],
+            ['child_table.date.child', 'child_table.date.child_view', 'child_table.date.child_ajax']
+        );
+
+        $options['target_table_name'] = TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE;
+        $options['sort_settings'][0]['sort'] = ViewColumnSort::DESC;
+        $options['sort_settings'][0]['priority'] = 1;
+        $options['sort_settings'][1]['sort'] = ViewColumnSort::ASC;
+        $options['sort_settings'][1]['priority'] = 2;
+        $options['sort_settings'][2]['sort'] = ViewColumnSort::ASC;
+        $options['sort_settings'][2]['priority'] = 3;
+
+        $pivot_table = getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE);
+
+        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use($pivot_table){
+            if (!($data instanceof CustomValue)) {
+                $data = $pivot_table::find(array_get($data, 'id'));
+                $prev_data = $pivot_table::find(array_get($prev_data, 'id'));
+            }
+            $child = $data->getValue('child');
+            $prev_child = $prev_data->getValue('child');
+            $child_view = $data->getValue('child_view');
+            $prev_child_view = $prev_data->getValue('child_view');
+            $child_ajax = $data->getValue('child_ajax');
+            $prev_child_ajax = $prev_data->getValue('child_ajax');
+            if ($prev_child->getValue('date') > $child->getValue('date')) {
+                return true;
+            }
+            if ($prev_child->getValue('date') < $child->getValue('date')) {
+                return false;
+            }
+            if ($prev_child_view->getValue('date') < $child_view->getValue('date')) {
+                return true;
+            }
+            if ($prev_child_view->getValue('date') > $child_view->getValue('date')) {
+                return false;
+            }
+            return $prev_child_ajax->getValue('date') <= $child_ajax->getValue('date');
         }, $options);
     }
 
