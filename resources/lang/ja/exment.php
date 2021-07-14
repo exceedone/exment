@@ -1689,6 +1689,7 @@ return [
         'operation_value_type_options' => [
             'execute_datetime' => '実行日時',
             'login_user' => 'ログインユーザー',
+            'created_user' => '作成者',
             'berong_organizations' => '所属組織',
         ],
         'options' => [

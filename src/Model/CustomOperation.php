@@ -204,7 +204,7 @@ class CustomOperation extends ModelBase
      */
     protected function getUpdateValues($model)
     {
-        return collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) {
+        return collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use($model) {
             $custom_column = $operation_column->custom_column;
             if (is_nullorempty($custom_column)) {
                 return null;
@@ -213,7 +213,7 @@ class CustomOperation extends ModelBase
             $column_name = $custom_column->column_name;
             // if update as system value, set system
             if (Enums\ColumnType::isOperationEnableSystem($custom_column->column_type) && isMatchString($operation_column->operation_update_type, Enums\OperationUpdateType::SYSTEM)) {
-                return [$column_name => Enums\OperationValueType::getOperationValue($custom_column, $operation_column['update_value_text'])];
+                return [$column_name => Enums\OperationValueType::getOperationValue($custom_column, $operation_column['update_value_text'], $model)];
             }
 
             return [$column_name => $operation_column['update_value_text']];
