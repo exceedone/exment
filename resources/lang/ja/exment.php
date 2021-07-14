@@ -1664,9 +1664,13 @@ return [
         'custom_operation_button_label' => '一括更新設定',
         'custom_operation_columns' => '更新列設定',
         'custom_operation_conditions' => '更新条件',
+        'custom_operation_input_columns' => '入力ダイアログ設定',
+        'input_custom_column' => '対象テーブル列',
         'view_column_target' => '対象列',
         'operation_update_type' => '更新の種類',
         'update_value_text' => '更新値',
+        'input_column_description' => 'データ更新のタイミングがボタンの場合に、更新値を設定するフォーム(ダイアログ)を表示することができます。<br/>入力を行う列を設定してください。',
+        'dialog_description' => "%sのデータを更新する値を記入してください。",
 
         'operation_type_options' => [
             'bulk_update' => '一覧画面のチェックボタン選択時',

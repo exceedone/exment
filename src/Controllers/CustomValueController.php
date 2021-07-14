@@ -494,7 +494,7 @@ class CustomValueController extends AdminControllerTableBase
         
         \Exment::setTimeLimitLong();
 
-        $response = $operation->execute($this->custom_table, $id);
+        $response = $operation->execute($this->custom_table, $id, $request->all());
         
         if ($response === false) {
             return getAjaxResponse(false);
@@ -626,6 +626,59 @@ class CustomValueController extends AdminControllerTableBase
             $label = array_get($copy, 'options.label');
         } else {
             $label = exmtrans('common.copy');
+        }
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => $label
+        ]);
+    }
+
+    /**
+     * get operation modal
+     */
+    public function operationModal(Request $request, $tableKey, $id)
+    {
+        if ($request->input('suuid') === null) {
+            abort(404);
+        }
+        // get copy eloquent
+        $suuid = $request->input('suuid');
+        $operation = CustomOperation::findBySuuid($suuid);
+        if (!isset($operation)) {
+            abort(404);
+        }
+
+        $table_view_name = esc_html($this->custom_table->table_view_name);
+        $path = admin_urls('data', $this->custom_table->table_name, $id, 'operationClick');
+        
+        // create form fields
+        $form = new ModalForm();
+        $form->action($path);
+        $form->method('POST');
+
+        $operation_input_columns = $operation->custom_operation_input_columns ?? [];
+
+        // add form
+        $form->descriptionHtml(sprintf(exmtrans('custom_operation.dialog_description'), $table_view_name));
+        foreach ($operation_input_columns as $operation_input_column) {
+            $field = FormHelper::getFormFieldObj($this->custom_table, $operation_input_column->custom_column, [
+                'columnOptions' => [
+                    'as_modal' => true,
+                ]
+            ]);
+            $form->pushField($field);
+        }
+        $form->hidden('suuid')->default($suuid);
+        
+        $form->setWidth(10, 2);
+
+        // get label
+        if (!is_null(array_get($operation, 'options.label'))) {
+            $label = array_get($operation, 'options.label');
+        } else {
+            $label = exmtrans('common.updated');
         }
 
         return getAjaxResponse([

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\CustomOperationType;
 
 class CustomOperation extends ModelBase
@@ -23,7 +24,14 @@ class CustomOperation extends ModelBase
 
     public function custom_operation_columns()
     {
-        return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id');
+        return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
+            ->where('operation_column_type', CopyColumnType::DEFAULT);
+    }
+
+    public function custom_operation_input_columns()
+    {
+        return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
+            ->where('operation_column_type', CopyColumnType::INPUT);
     }
 
     public function custom_operation_conditions()
@@ -162,9 +170,10 @@ class CustomOperation extends ModelBase
      *
      * @param CustomTable $custom_table
      * @param int|string $id signle id or id string
+     * @param array $inputs input from dialog form
      * @return bool success or not
      */
-    public function execute($custom_table, $id)
+    public function execute($custom_table, $id, $inputs = null)
     {
         $ids = stringToArray($id);
         $custom_values = $custom_table->getValueModel()->find($ids);
@@ -186,9 +195,9 @@ class CustomOperation extends ModelBase
         }
 
         // Update value
-        \DB::transaction(function () use ($custom_values) {
+        \DB::transaction(function () use ($custom_values, $inputs) {
             foreach ($custom_values as $custom_value) {
-                $updates = $this->getUpdateValues($custom_value);
+                $updates = $this->getUpdateValues($custom_value, $inputs);
                 $custom_value->setValueStrictly($updates)->save();
             }
         });
@@ -200,11 +209,12 @@ class CustomOperation extends ModelBase
      * Get update values. Convert update_value, or set system value.
      *
      * @param CustomValue $model
+     * @param array $inputs
      * @return array "value"'s array.
      */
-    protected function getUpdateValues($model)
+    protected function getUpdateValues($model, $inputs = null)
     {
-        return collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use($model) {
+        $updates = collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use($model) {
             $custom_column = $operation_column->custom_column;
             if (is_nullorempty($custom_column)) {
                 return null;
@@ -217,6 +227,18 @@ class CustomOperation extends ModelBase
             }
 
             return [$column_name => $operation_column['update_value_text']];
-        })->toArray();
+        });
+
+        $input_updates = collect($this->custom_operation_input_columns)->mapWithKeys(function ($operation_column) use($inputs) {
+            $custom_column = $operation_column->custom_column;
+            $column_name = $custom_column->column_name;
+            // get input value
+            $val = array_get($inputs, $column_name);
+            if (isset($val)) {
+                return [$column_name => $val];
+            }
+        })->filter();
+
+        return $updates->merge($input_updates)->toArray();
     }
 }

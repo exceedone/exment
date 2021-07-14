@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\Permission;
@@ -257,6 +258,17 @@ class CustomOperationController extends AdminControllerTableBase
         $form->radio('condition_join', exmtrans("condition.condition_join"))
             ->options(exmtrans("condition.condition_join_options"))
             ->default('and');
+
+        ///// get input columns
+        $form->hasManyTable('custom_operation_input_columns', exmtrans("custom_operation.custom_operation_input_columns"), function ($form) use ($custom_table) {
+            $form->select('view_column_target', exmtrans("custom_operation.input_custom_column"))
+                ->options($custom_table->getColumnsSelectOptions([
+                    'append_table' => true,
+                    'include_system' => false,
+                ]))->required();
+            $form->hidden('operation_column_type')->default(CopyColumnType::INPUT);
+        })->setTableWidth(10, 1)
+        ->descriptionHtml(exmtrans("custom_operation.input_column_description"));
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('operation', $custom_table));
