@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Illuminate\Validation\ValidationException;
 
 class CustomOperation extends ModelBase
 {
@@ -187,20 +188,24 @@ class CustomOperation extends ModelBase
                 return $notMatchCondition->getLabel();
             })->implode(exmtrans('common.separate_word'));
 
-            return getAjaxResponse([
-                'result'  => false,
-                'swal' => exmtrans('common.error'),
-                'swaltext' => exmtrans('custom_value.message.operation_contains_notmatch_condition', $label),
-            ]);
+            return exmtrans('custom_value.message.operation_contains_notmatch_condition', $label);
         }
 
         // Update value
-        \DB::transaction(function () use ($custom_values, $inputs) {
+        \DB::beginTransaction();
+        try {
             foreach ($custom_values as $custom_value) {
                 $updates = $this->getUpdateValues($custom_value, $inputs);
                 $custom_value->setValueStrictly($updates)->save();
             }
-        });
+            \DB::commit();
+        } catch (\Exception $ex) {
+            \DB::rollback();
+            if ($ex instanceof ValidationException) {
+                return array_first(array_flatten($ex->validator->getMessages()));
+            }
+            throw $ex;
+        }
 
         return true;
     }
@@ -229,15 +234,16 @@ class CustomOperation extends ModelBase
             return [$column_name => $operation_column['update_value_text']];
         });
 
-        $input_updates = collect($this->custom_operation_input_columns)->mapWithKeys(function ($operation_column) use($inputs) {
+        $input_updates = [];
+        foreach ($this->custom_operation_input_columns as $operation_column) {
             $custom_column = $operation_column->custom_column;
             $column_name = $custom_column->column_name;
             // get input value
             $val = array_get($inputs, $column_name);
             if (isset($val)) {
-                return [$column_name => $val];
+                $input_updates[$column_name] = $val;
             }
-        })->filter();
+        }
 
         return $updates->merge($input_updates)->toArray();
     }

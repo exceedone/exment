@@ -1708,6 +1708,9 @@ return [
             'custom_operation_columns' => 'データ更新の対象列と、更新値を設定します。',
             'custom_operation_conditions' => '登録した更新設定を実行することができるデータの、条件を指定します。',
         ],
+        'message' => [
+            'invalid_operation_type' => 'データ新規作成時とデータ更新時は入力ダイアログを指定できません。',
+        ],
     ],
 
     'custom_view' => [

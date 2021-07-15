@@ -481,7 +481,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function operationClick(Request $request, $tableKey, $id = null)
     {
-        $id = !is_nullorempty($id) ? $id : $request->input('id');
+        $ids = !is_nullorempty($id) ? $id : $request->input('id');
         if ($request->input('suuid') === null) {
             abort(404);
         }
@@ -494,18 +494,29 @@ class CustomValueController extends AdminControllerTableBase
         
         \Exment::setTimeLimitLong();
 
-        $response = $operation->execute($this->custom_table, $id, $request->all());
+        $response = $operation->execute($this->custom_table, $ids, $request->all());
         
-        if ($response === false) {
-            return getAjaxResponse(false);
-        } elseif ($response instanceof Response) {
-            return $response;
+        if ($response === true) {
+            return getAjaxResponse([
+                'result' => true,
+                'toastr' => exmtrans('common.message.success_execute'),
+            ]);
+        } else {
+            if ($request->has('id')) {
+                return [
+                    'result' => false,
+                    'message' => $response,
+                ];
+            } else {
+                return getAjaxResponse([
+                    'result'  => false,
+                    'swal' => exmtrans('common.error'),
+                    'swaltext' => $response,
+                ]);
+            }
         }
 
-        return getAjaxResponse([
-            'result' => true,
-            'toastr' => exmtrans('common.message.success_execute'),
-        ]);
+        return $response;
     }
 
     //Function handle workflow history click event
@@ -638,7 +649,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * get operation modal
      */
-    public function operationModal(Request $request, $tableKey, $id)
+    public function operationModal(Request $request, $tableKey, $id = null)
     {
         if ($request->input('suuid') === null) {
             abort(404);
@@ -652,6 +663,13 @@ class CustomValueController extends AdminControllerTableBase
 
         $table_view_name = esc_html($this->custom_table->table_view_name);
         $path = admin_urls('data', $this->custom_table->table_name, $id, 'operationClick');
+
+        if (is_null($id)) {
+            if ($request->input('id') === null) {
+                abort(404);
+            }
+            $id = $request->input('id');
+        }
         
         // create form fields
         $form = new ModalForm();
@@ -671,6 +689,7 @@ class CustomValueController extends AdminControllerTableBase
             $form->pushField($field);
         }
         $form->hidden('suuid')->default($suuid);
+        $form->hidden('id')->default($id);
         
         $form->setWidth(10, 2);
 

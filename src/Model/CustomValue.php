@@ -962,6 +962,7 @@ abstract class CustomValue extends ModelBase
             'appendKeyName' => false,
             'checkCustomValueExists' => true,
             'checkUnnecessaryColumn' => true,
+            'addValue' => false,
         ]);
 
         if ($validator->fails()) {

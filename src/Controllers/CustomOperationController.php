@@ -265,10 +265,21 @@ class CustomOperationController extends AdminControllerTableBase
                 ->options($custom_table->getColumnsSelectOptions([
                     'append_table' => true,
                     'include_system' => false,
+                    'ignore_attachment' => true,
                 ]))->required();
             $form->hidden('operation_column_type')->default(CopyColumnType::INPUT);
         })->setTableWidth(10, 1)
         ->descriptionHtml(exmtrans("custom_operation.input_column_description"));
+
+        // check inputs and operation_type before save
+        $form->saving(function (Form $form) {
+            if (!is_null($form->custom_operation_input_columns)) {
+                if (array_intersect($form->operation_type, [CustomOperationType::CREATE, CustomOperationType::UPDATE])) {
+                    admin_toastr(exmtrans('custom_operation.message.invalid_operation_type'), 'error');
+                    return back()->withInput();
+                }
+            }
+        });
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('operation', $custom_table));
