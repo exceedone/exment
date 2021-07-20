@@ -418,7 +418,7 @@ var Exment;
             return;
         }
         // Create FormData Object
-        var formData = new FormData(form);
+        var formData = getFormData(form);
         $.ajax({
             url: formurl,
             method: 'POST',

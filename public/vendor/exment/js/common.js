@@ -1043,3 +1043,14 @@ const getUuid = function () {
         return v.toString(16);
     });
 };
+const getFormData = function (form) {
+    var formData = new FormData(form);
+    if (tinymce.activeEditor) {
+        tinymce.activeEditor.save();
+    }
+    $('textarea[data-column_type="editor"]').each(function (index, elem) {
+        let $elem = $(elem);
+        formData.append($elem.attr('name'), $elem.val());
+    });
+    return formData;
+};

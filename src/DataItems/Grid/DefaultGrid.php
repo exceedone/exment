@@ -453,21 +453,21 @@ class DefaultGrid extends GridBase
             
             // manage batch --------------------------------------------------
             $tools->batch(function ($batch) {
-                // if cannot edit, disable delete and update operations
                 if ($this->custom_table->enableEdit() === true) {
-                    foreach ($this->custom_table->custom_operations as $custom_operation) {
-                        if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
-                            $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                    if (request()->get('_scope_') == 'trashed' && $this->custom_table->enableShowTrashed() === true) {
+                        $batch->disableDelete();
+                        $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
+                        $batch->add(exmtrans('custom_value.hard_delete'), new GridTools\BatchHardDelete(exmtrans('custom_value.hard_delete')));
+                    } else {
+                        foreach ($this->custom_table->custom_operations as $custom_operation) {
+                            if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
+                                $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                            }
                         }
                     }
                 } else {
+                    // if cannot edit, disable delete and update operations
                     $batch->disableDelete();
-                }
-                
-                if (request()->get('_scope_') == 'trashed' && $this->custom_table->enableEdit() === true && $this->custom_table->enableShowTrashed() === true) {
-                    $batch->disableDelete();
-                    $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
-                    $batch->add(exmtrans('custom_value.hard_delete'), new GridTools\BatchHardDelete(exmtrans('custom_value.hard_delete')));
                 }
             });
         });

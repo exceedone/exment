@@ -264,7 +264,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
      * @param CustomValue|null $custom_value
      * @return bool
      */
-    public function compareValue($input, $custom_value = null)
+    public function compareValue($input, $custom_value = null, array $options = [])
     {
         $column1 = $this->compare_column1;
         $column2 = $this->compare_column2;
@@ -274,14 +274,16 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         }
 
         // get value function
-        $getValueFunc = function ($input, $column, $custom_value) {
+        $getValueFunc = function ($input, $column, $custom_value) use ($options) {
             if (is_string($column)) {
                 return CompareColumnType::getCompareValue($column);
             }
 
+            $prefix = $options['addValue']? 'value.': '';
+
             // if key has value in input
-            if (array_has($input, 'value.' . $column->column_name)) {
-                return array_get($input, 'value.' . $column->column_name);
+            if (array_has($input, "$prefix{$column->column_name}")) {
+                return array_get($input, "$prefix{$column->column_name}");
             }
 
             // if not has, get from custom value

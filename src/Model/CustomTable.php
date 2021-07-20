@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
@@ -836,7 +837,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     }
     
                     // get value
-                    $value = array_get($input, $prefix . $column->column_name);
+                    $value = null;
+                    if (array_has($input, $prefix . $column->column_name)) {
+                        $value = array_get($input, $prefix . $column->column_name);
+                    } else if (isset($custom_value)) {
+                        $value = $custom_value->getValue($column->column_name, ValueType::PURE_VALUE);
+                    }
                     if (is_array($value)) {
                         $value = json_encode(array_filter($value));
                     }
@@ -908,7 +914,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         foreach ($compare_columns as $compare_column) {
             // get two values
-            $compareResult = $compare_column->compareValue($input, $custom_value);
+            $compareResult = $compare_column->compareValue($input, $custom_value, $options);
             if ($compareResult === true) {
                 continue;
             }

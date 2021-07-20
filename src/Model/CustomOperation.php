@@ -69,6 +69,7 @@ class CustomOperation extends ModelBase
     public function deletingChildren()
     {
         $this->custom_operation_columns()->delete();
+        $this->custom_operation_input_columns()->delete();
         $this->custom_operation_conditions()->delete();
     }
 
