@@ -269,6 +269,10 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         $column1 = $this->compare_column1;
         $column2 = $this->compare_column2;
 
+        $options = array_merge([
+            'addValue' => true, // add value. to column name
+        ], $options);
+
         if (!isset($column1) || !isset($column2)) {
             return true;
         }
