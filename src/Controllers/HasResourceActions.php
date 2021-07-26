@@ -43,7 +43,11 @@ trait HasResourceActions
         $disabled_delete = false;
         $rows->each(function ($id) use (&$disabled_delete) {
             if (!$disabled_delete) {
-                $model = $this->form($id)->model()->find($id);
+                if (method_exists($this, 'getModel')) {
+                    $model = $this->getModel($id);
+                } else {
+                    $model = $this->form($id)->model()->find($id);
+                }
 
                 if (boolval(array_get($model, 'disabled_delete'))) {
                     $disabled_delete = true;
