@@ -1664,10 +1664,13 @@ return [
         'custom_operation_button_label' => 'Mass Update Setting',
         'custom_operation_columns' => 'Update Column Setting',
         'custom_operation_conditions' => 'Update Condition',
-        'description_custom_operation_columns' => 'Set the target column and update value for mass update.',
+        'custom_operation_input_columns' => 'Input dialog settings',
+        'input_custom_column' => 'Target table column',
         'view_column_target' => 'Target Column',
         'operation_update_type' => 'Update Type',
         'update_value_text' => 'Update Value',
+        'input_column_description' => 'When the data update timing is a button, a form (dialog) for setting the update value can be displayed. <br/> Please set the column to input.',
+        'dialog_description' => "Enter the value to update the data of %s.",
         
         'operation_type_options' => [
             'bulk_update' => 'Pressing button on the list page',
@@ -1676,6 +1679,7 @@ return [
             'update' => 'Updating data',
             //'notified' => 'Sending notification',
         ],
+
         'operation_type_options_short' => [
             'bulk_update' => 'List Button',
             'button' => 'Detail Button',
@@ -1689,6 +1693,7 @@ return [
         'operation_value_type_options' => [
             'execute_datetime' => 'Execute Datetime',
             'login_user' => 'Login User',
+            'created_user' => 'Created user',
             'berong_organizations' => 'Berong Organizations',
         ],
         'options' => [
@@ -1702,6 +1707,9 @@ return [
             'button_class' => 'The class to add to the button HTML.',
             'custom_operation_columns' => 'Set the target column of data update and update value.',
             'custom_operation_conditions' => 'Specify the condition of the data that can execute the registered update settings.',
+        ],
+        'message' => [
+            'invalid_operation_type' => 'The input dialog cannot be specified when creating a new data or updating.',
         ],
     ],
 
