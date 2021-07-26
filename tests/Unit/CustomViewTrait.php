@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Define;
@@ -25,16 +26,16 @@ trait CustomViewTrait
         return $data;
     }
 
-    protected function getCustomView(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
+    protected function createCustomViewAll(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
     {
         $options = array_merge(
             [
                 'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
                 'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
                 'condition_join' => 'and',
-                'get_count' => false,
                 'filter_settings' => [],
                 'column_settings' => [],
+                'sort_settings' => [],
                 'summary_settings' => [],
             ],
             $options
@@ -42,9 +43,9 @@ trait CustomViewTrait
         $login_user_id = array_get($options, 'login_user_id');
         $target_table_name = array_get($options, 'target_table_name');
         $condition_join = array_get($options, 'condition_join');
-        $get_count = array_get($options, 'get_count');
         $filter_settings = array_get($options, 'filter_settings');
         $column_settings = array_get($options, 'column_settings');
+        $sort_settings = array_get($options, 'sort_settings');
         $summary_settings = array_get($options, 'summary_settings');
 
         // Login user.
@@ -78,16 +79,28 @@ trait CustomViewTrait
         }
 
         foreach ($filter_settings as $filter_setting) {
-            $custom_view_filter = CustomViewFilter::create([
-                'custom_view_id' => $custom_view->id,
-                'view_column_type' => $filter_setting['condition_type'] ?? ConditionType::COLUMN,
-                'view_column_table_id' => $custom_table->id,
-                'view_column_target_id' => $this->getTargetColumnId($filter_setting, $custom_table),
-                'view_filter_condition' => $filter_setting['filter_condition']?? null,
-                'view_filter_condition_value_text' => $filter_setting['filter_value_text']?? null,
-                'options' => $filter_setting['options']?? null,
-            ]);
+            $custom_view_filter = CustomViewFilter::create($this->getViewFilterInfo(
+                $custom_table,
+                $custom_view,
+                $filter_setting
+            ));
         }
+
+        foreach ($sort_settings as $sort_setting) {
+            $custom_view_filter = CustomViewSort::create($this->getViewSortInfo(
+                $custom_table,
+                $custom_view,
+                $sort_setting
+            ));
+        }
+        return [$custom_table, $custom_view];
+    }
+
+    protected function getCustomView(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
+    {
+        $get_count = array_get($options, 'get_count')?? false;
+
+        list($custom_table, $custom_view) = $this->createCustomViewAll($options, $view_kind_type);
 
         $query = $custom_table->getValueQuery();
         if ($view_kind_type == ViewKindType::AGGREGATE) {
@@ -105,11 +118,10 @@ trait CustomViewTrait
         return [$custom_view, $data];
     }
 
-    protected function getTargetColumnId($setting, $custom_table)
+    protected function getTargetColumnId($setting, $custom_table, $is_pivot = false)
     {
         if ($setting['column_name'] == SystemColumn::PARENT_ID) {
-            //$column_id = $setting['column_name'];
-            $column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
+            $column_id = $is_pivot? $setting['column_name']: Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
         } elseif (!isset($setting['condition_type']) || $setting['condition_type'] == ConditionType::COLUMN) {
             $custom_column = CustomColumn::getEloquent($setting['column_name'], $custom_table);
             $column_id = $custom_column->id;
@@ -133,6 +145,24 @@ trait CustomViewTrait
         return $options;
     }
 
+    protected function getViewFilterInfo($custom_table, $custom_view, $column_setting)
+    {
+        $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
+        unset($options['view_column_name']);
+        $options['view_filter_condition'] = $column_setting['filter_condition']?? null;
+        $options['view_filter_condition_value_text'] = $column_setting['filter_value_text']?? null;
+        return $options;
+    }
+
+    protected function getViewSortInfo($custom_table, $custom_view, $column_setting)
+    {
+        $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
+        unset($options['view_column_name']);
+        $options['sort'] = $column_setting['sort']?? 1;
+        $options['priority'] = $column_setting['priority']?? 1;
+        return $options;
+    }
+
     protected function getViewColumnBase($custom_table, $custom_view, $column_setting)
     {
         if (isset($column_setting['reference_table'])) {
@@ -143,7 +173,7 @@ trait CustomViewTrait
                 $column_setting['options']['view_pivot_table_id'] = $custom_table->id;
                 $column_setting['options']['view_pivot_column_id'] = $this->getTargetColumnId([
                     'column_name' => $column_setting['reference_column'],
-                ], $custom_table);
+                ], $custom_table, true);
             }
         } else {
             $view_column_table_id = $custom_table->id;
@@ -157,6 +187,7 @@ trait CustomViewTrait
             'view_column_name' => $column_setting['view_column_name']?? null,
             'options' => $column_setting['options']?? null,
         ];
+        
     }
 
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
