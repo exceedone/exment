@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Model\OperationLog;
@@ -515,6 +516,11 @@ class ApiTest extends ApiTestBase
     }
 
 
+
+    
+    // get custom value -------------------------------------
+
+
     public function testGetValues()
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
@@ -692,6 +698,160 @@ class ApiTest extends ApiTestBase
     }
 
 
+
+    
+    // get custom value with view -------------------------------------
+
+
+    public function testGetViewData()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid))
+            ->assertStatus(200);
+
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $data = array_get($json, 'data');
+        $column_definitions = array_get($json, 'column_definitions');
+        $user_key = collect($column_definitions)->filter(function($val) {
+            return array_get($val, 'column_name') == 'user';
+        })->keys()->first();
+        $this->assertMatch(array_get($data[0], $user_key), '1');
+    }
+
+    public function testGetViewDataWithPage()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid).'?page=3')
+            ->assertStatus(200)
+            ->assertJsonCount(20, 'data');
+    }
+
+    public function testGetViewDataWithCount()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid).'?count=3')
+            ->assertStatus(200)
+            ->assertJsonCount(3, 'data');
+    }
+
+    public function testGetViewDataWithValueType()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid).'?valuetype=text')
+            ->assertStatus(200);
+
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $data = array_get($json, 'data');
+        $column_definitions = array_get($json, 'column_definitions');
+        $user_key = collect($column_definitions)->filter(function($val) {
+            return array_get($val, 'column_name') == 'user';
+        })->keys()->first();
+        $this->assertMatch(array_get($data[0], $user_key), 'admin');
+    }
+
+    public function testGetViewDataWithSort()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST . '-select-table-1')->first();
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $custom_view->suuid))
+            ->assertStatus(200);
+
+        $check_data = $custom_view->getQueryData();         
+
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $data = array_get($json, 'data');
+        $column_definitions = array_get($json, 'column_definitions');
+        $id_key = collect($column_definitions)->filter(function($val) {
+            return array_get($val, 'column_name') == 'id';
+        })->keys()->first();
+        foreach ($data as $index => $row) {
+            $this->assertMatch(array_get($row, $id_key), array_get($check_data[$index], 'id'));
+        }
+    }
+
+    public function testGetViewDataById()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid, 3))
+            ->assertStatus(200);
+
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $data = array_get($json, 'value');
+        $column_definitions = array_get($json, 'column_definitions');
+        $id_key = collect($column_definitions)->filter(function($val) {
+            return array_get($val, 'column_name') == 'id';
+        })->keys()->first();
+        $this->assertMatch(array_get($data, $id_key), '3');
+    }
+
+    public function testWrongScopeGetViewData()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::ME]);
+
+        $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    public function testNotFoundGetViewData()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, 'afkheiufu', 1))
+            ->assertStatus(400);
+    }
+
+    public function testNotIdGetViewData()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL . '-view-all')->first();
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid, 99999))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
 
 
 

@@ -1289,10 +1289,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
 
             // set pager items
-            $query = getModelName($this)::whereIn("id", $ids->toArray());
+            $query = getModelName($this)::whereIn("$dbTableName.id", $ids->toArray());
 
             // set custom view, sort again.
             if (isset($target_view)) {
+                $target_view->resetSearchService();
                 $target_view->setValueSort($query);
             }
 
@@ -1324,10 +1325,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // return default
         $ids = $mainQuery->select("$dbTableName.id")->take($maxCount)->get()->pluck('id');
         
-        $query = getModelName($this)::whereIn('id', $ids);
+        $query = getModelName($this)::whereIn("$dbTableName.id", $ids);
     
         // set custom view, sort again
         if (isset($target_view)) {
+            $target_view->resetSearchService();
             $target_view->setValueSort($query);
         }
         
