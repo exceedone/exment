@@ -1174,7 +1174,7 @@ return [
             'column_target' => '対象列',
             'priority' => '優先順位',
             'options_label' => 'オプション設定',
-            'table_label_format' => '見出しフォーマット文字列',
+            'table_label_format' => '見出しフォーマット設定',
             'table_label_format_string' => 'フォーマット文字列',
             'form_action_disable_flg' => '画面からの変更不可',
 

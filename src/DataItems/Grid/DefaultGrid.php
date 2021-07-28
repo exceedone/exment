@@ -748,6 +748,8 @@ class DefaultGrid extends GridBase
             'ignore_multiple_refer' => true,
         ], $column_options);
 
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+
         $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
             $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
             
@@ -762,6 +764,6 @@ class DefaultGrid extends GridBase
             $form->hidden('order')->default(0);
         })->setTableColumnWidth(8, 4)
         ->rowUpDown('order', 10)
-        ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters"));
+        ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters", $manualUrl));
     }
 }

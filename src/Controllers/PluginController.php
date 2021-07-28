@@ -258,11 +258,11 @@ class PluginController extends AdminControllerBase
                 }
             } elseif ($plugin->matchPluginType(PluginType::BATCH)) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
-                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
+                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
                     ->default(3);
                     
                 $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
-                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
+                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
                     ->rules('max:100');
             }
 

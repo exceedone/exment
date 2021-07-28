@@ -98,7 +98,7 @@ class BackupController extends AdminControllerBase
             ;
         
         $form->switchbool('backup_enable_automatic', exmtrans("backup.enable_automatic"))
-            ->help(exmtrans("backup.help.enable_automatic") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
+            ->help(exmtrans("backup.help.enable_automatic") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
             ->attribute(['data-filtertrigger' =>true]);
 
         $form->number('backup_automatic_term', exmtrans("backup.automatic_term"))
@@ -280,7 +280,7 @@ class BackupController extends AdminControllerBase
             ->help(exmtrans(
                 'backup.help.file_name',
                 array_get($fileOption, 'maxFileSizeHelp'),
-                getManualUrl('backup#'.exmtrans('backup.filesize_over'))
+                getManualUrl('backup?id='.exmtrans('backup.filesize_over'))
             ));
         }
 
