@@ -192,6 +192,7 @@ class CustomOperationController extends AdminControllerTableBase
                 'include_child' => false,
                 'include_system' => false,
                 'ignore_attachment' => true,
+                'ignore_autonumber' => true,
             ]),
             'custom_table' => $custom_table,
             'filterKind' => FilterKind::OPERATION,
@@ -266,6 +267,7 @@ class CustomOperationController extends AdminControllerTableBase
                     'append_table' => true,
                     'include_system' => false,
                     'ignore_attachment' => true,
+                    'ignore_autonumber' => true,
                 ]))->required();
             $form->hidden('operation_column_type')->default(CopyColumnType::INPUT);
         })->setTableWidth(10, 1)
