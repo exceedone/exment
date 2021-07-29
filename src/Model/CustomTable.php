@@ -1785,6 +1785,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Get all accessible users on this table. (get model, consider performance)
+     * *Not check "loginuser"'s permission.
+     */
+    public function getAccessibleUsers()
+    {
+        $target_ids = $this->getAccessibleUserOrganizationIds(SystemTableName::USER);
+        return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->find($target_ids);
+    }
+
+    /**
      * Get all accessible organizations on this table. (only get id, consider performance)
      * *Not check "loginuser"'s permission.
      */
