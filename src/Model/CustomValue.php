@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 abstract class CustomValue extends ModelBase
 {
@@ -1782,5 +1783,31 @@ abstract class CustomValue extends ModelBase
         }
 
         return true;
+    }
+
+    /**
+     * Get all accessible users on this value. (get model)
+     */
+    public function getAccessibleUsers()
+    {
+        $custom_table = $this->custom_table;
+        $ids = $this->value_authoritable_users()->pluck('authoritable_target_id')->toArray();
+
+        // get custom table's user ids(contains all table and permission role group)
+        $queryTable = AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($custom_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE);
+
+        if (!is_nullorempty($queryTable)) {
+            $queryTable->withoutGlobalScope(CustomValueModelScope::class);
+
+            $tablename = getDBTableName(SystemTableName::USER);
+            $ids = array_merge($queryTable->pluck("$tablename.id")->toArray(), $ids);
+        }
+
+        // get real value
+        return getModelName(SystemTableName::USER)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->whereIn('id', $ids)
+            ->get()
+            ->unique();
     }
 }
