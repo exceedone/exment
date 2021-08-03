@@ -10,7 +10,7 @@ class CustomOperationColumn extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'update_value', 'operation_update_type'];
+    protected $appends = ['view_column_target', 'operation_update_type'];
     protected $casts = ['options' => 'json'];
     
     public function custom_operation()
@@ -38,32 +38,37 @@ class CustomOperationColumn extends ModelBase
     /**
      * get edited view_filter_condition_value_text.
      */
-    public function getUpdateValueAttribute()
+    public function getUpdateValueTextAttribute()
     {
-        if (is_string($this->update_value_text)) {
-            $array = json_decode($this->update_value_text);
+        $update_value_text = array_get($this->attributes, 'update_value_text');
+        if (is_null($update_value_text)) {
+            return null;
+        }
+
+        if (is_string($update_value_text)) {
+            $array = json_decode($update_value_text);
             if (is_array($array)) {
                 return array_filter($array, function ($val) {
                     return !is_null($val);
                 });
             }
         }
-        return $this->update_value_text;
+        return $update_value_text;
     }
     
     /**
      * set view_filter_condition_value_text.
      * * we have to convert int if view_filter_condition_value is array*
      */
-    public function setUpdateValueAttribute($update_value)
+    public function setUpdateValueTextAttribute($update_value)
     {
         if (is_array($update_value)) {
             $array = array_filter($update_value, function ($val) {
                 return !is_null($val);
             });
-            $this->update_value_text = json_encode($array);
+            $this->attributes['update_value_text'] = json_encode($array);
         } else {
-            $this->update_value_text = $update_value;
+            $this->attributes['update_value_text'] = $update_value;
         }
     }
 

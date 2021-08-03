@@ -642,7 +642,11 @@ class SelectTable extends CustomItem
     }
     protected function getFilterFieldClass()
     {
-        return Field\Select::class;
+        if ($this->isMultipleEnabled()) {
+            return Field\MultipleSelect::class;
+        } else {
+            return Field\Select::class;
+        }
     }
 
 
