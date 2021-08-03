@@ -1785,7 +1785,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * Get all accessible users on this table. (get model, consider performance)
+     * Get all accessible users on this table. (get model)
      * *Not check "loginuser"'s permission.
      */
     public function getAccessibleUsers()
