@@ -234,7 +234,18 @@ class CustomOperationController extends AdminControllerTableBase
         });
         $hasManyTable->render();
 
-
+        ///// get input columns
+        $form->hasManyTable('custom_operation_input_columns', exmtrans("custom_operation.custom_operation_input_columns"), function ($form) use ($custom_table) {
+            $form->select('view_column_target', exmtrans("custom_operation.input_custom_column"))
+                ->options($custom_table->getColumnsSelectOptions([
+                    'append_table' => true,
+                    'include_system' => false,
+                    'ignore_attachment' => true,
+                    'ignore_autonumber' => true,
+                ]))->required();
+            $form->hidden('operation_column_type')->default(CopyColumnType::INPUT);
+        })->setTableWidth(10, 1)
+        ->descriptionHtml(exmtrans("custom_operation.input_column_description"));
 
         // filter setting
         $filterTable = new Tools\ConditionHasManyTable($form, [
@@ -259,19 +270,6 @@ class CustomOperationController extends AdminControllerTableBase
         $form->radio('condition_join', exmtrans("condition.condition_join"))
             ->options(exmtrans("condition.condition_join_options"))
             ->default('and');
-
-        ///// get input columns
-        $form->hasManyTable('custom_operation_input_columns', exmtrans("custom_operation.custom_operation_input_columns"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_operation.input_custom_column"))
-                ->options($custom_table->getColumnsSelectOptions([
-                    'append_table' => true,
-                    'include_system' => false,
-                    'ignore_attachment' => true,
-                    'ignore_autonumber' => true,
-                ]))->required();
-            $form->hidden('operation_column_type')->default(CopyColumnType::INPUT);
-        })->setTableWidth(10, 1)
-        ->descriptionHtml(exmtrans("custom_operation.input_column_description"));
 
         // check inputs and operation_type before save
         $form->saving(function (Form $form) {
