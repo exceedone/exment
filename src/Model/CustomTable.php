@@ -2742,6 +2742,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return true;
             }
 
+            // if role key is import or export, and has system custom_value_edit_all permisson
+            elseif (RoleType::SYSTEM == $role_type
+                && array_keys_exists(Permission::CUSTOM_VALUE_EDIT_ALL, $permission_details)
+                && array_intersect($role_key, Permission::IMPORT_EXPORT)) {
+                return true;
+            }
+
             // if role type is table, and match table name
             elseif (RoleType::TABLE == $role_type && $permission->getTableName() == $table_name) {
                 // if user has role
@@ -3020,6 +3027,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
+        if (!$this->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
         if ($this->formActionDisable(FormActionType::EXPORT)) {
             return ErrorCode::FORM_ACTION_DISABLED();
         }
@@ -3035,6 +3046,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function enableImport()
     {
         if (!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if (!$this->hasPermission(Permission::CUSTOM_VALUE_IMPORT)) {
             return ErrorCode::PERMISSION_DENY();
         }
 

@@ -1927,6 +1927,8 @@ return [
             'custom_view' => ['label' => 'View', 'help' => 'You can add, change and delete system views.'],
             'custom_value_edit_all' => ['label' => 'Edit data', 'help' => 'You can add, edit and delete master data.'],
             'custom_value_view_all' => ['label' => 'View data', 'help' => 'You can view the master data.'],
+            'custom_value_import' => ['label' => 'Import', 'help' => 'You can import master data from an external file.<br />* Edit permission is required for the data.'],
+            'custom_value_export' => ['label' => 'Export', 'help' => 'You can export the master data to an external file.<br />* Browsing authority for the data is required.'],
         ], 
         'role_type_option_table' => [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
@@ -1940,6 +1942,8 @@ return [
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
             'custom_value_access' => ['label' => 'Access All Data', 'help' => 'Users can see personnel data in custom tables.<br />*It is not displayed on the menu or list page, it can be displayed only with internal data or reference from another table.'],
             'custom_value_share' => ['label' => 'Data sharing', 'help' => 'Data can be shared with other users.<br />* You need edit permission for the data.'],
+            'custom_value_import' => ['label' => 'Import', 'help' => 'You can import master data from an external file.<br />* Edit permission is required for the data.'],
+            'custom_value_export' => ['label' => 'Export', 'help' => 'You can export the master data to an external file.<br />* Browsing authority for the data is required.'],
             'custom_value_view_trashed' => ['label' => 'Show Trashed Data', 'help' => 'Users can restore data that has been deleted. <br /> *To restore data, you need to have edit authority for the data.'],
         ], 
         'role_type_option_value' => [
