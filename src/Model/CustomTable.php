@@ -2153,6 +2153,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_condition' => false,
                 'include_form_type' => false,
                 'ignore_attachment' => false,
+                'ignore_autonumber' => false,
                 'ignore_multiple' => false,
                 'ignore_multiple_refer' => false,
                 'ignore_many_to_many' => false,
@@ -2172,6 +2173,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
+        $ignore_autonumber = $selectOptions['ignore_autonumber'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
         $ignore_multiple_refer = $ignore_multiple || $selectOptions['ignore_multiple_refer'];
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
@@ -2216,6 +2218,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_workflow' => $include_workflow,
                     'include_workflow_work_users' => $include_workflow_work_users,
                     'ignore_attachment' => $ignore_attachment,
+                    'ignore_autonumber' => $ignore_autonumber,
                     'ignore_multiple' => $ignore_multiple,
                     'ignore_many_to_many' => $ignore_many_to_many,
                     'only_system_grid_filter' => $only_system_grid_filter,
@@ -2247,6 +2250,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_column' => SystemColumn::PARENT_ID,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_autonumber' => $ignore_autonumber,
                         'ignore_multiple' => $ignore_multiple,
                         'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
@@ -2278,6 +2282,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_column' => $select_table_column,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_autonumber' => $ignore_autonumber,
                         'ignore_multiple' => $ignore_multiple,
                         'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
@@ -2305,6 +2310,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_system' => true,
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_autonumber' => $ignore_autonumber,
                         'ignore_multiple' => $ignore_multiple,
                         'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
@@ -2328,6 +2334,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_system' => true,
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_autonumber' => $ignore_autonumber,
                         'ignore_multiple' => $ignore_multiple,
                         'ignore_many_to_many' => $ignore_many_to_many,
                         'view_pivot_column' => $selected_table_column,
@@ -2359,6 +2366,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
                 'ignore_attachment' => false,
+                'ignore_autonumber' => false,
                 'ignore_multiple' => false,
                 'ignore_many_to_many' => false,
                 'only_system_grid_filter' => false,
@@ -2379,6 +2387,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $view_pivot_column = $selectOptions['view_pivot_column'];
         $view_pivot_table = $selectOptions['view_pivot_table'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
+        $ignore_autonumber = $selectOptions['ignore_autonumber'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
@@ -2445,6 +2454,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     continue;
                 }
                 if ($ignore_attachment && ColumnType::isAttachment($custom_column->column_type)) {
+                    continue;
+                }
+                if ($ignore_autonumber && $custom_column->column_type == ColumnType::AUTO_NUMBER) {
                     continue;
                 }
                 if ($column_type_filter && !$column_type_filter($custom_column)) {
