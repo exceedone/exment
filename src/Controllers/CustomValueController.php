@@ -684,6 +684,7 @@ class CustomValueController extends AdminControllerTableBase
             $field = FormHelper::getFormFieldObj($this->custom_table, $operation_input_column->custom_column, [
                 'columnOptions' => [
                     'as_modal' => true,
+                    'is_operation' => true,
                 ]
             ]);
             $form->pushField($field);
