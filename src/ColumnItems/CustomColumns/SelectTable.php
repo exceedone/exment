@@ -742,7 +742,7 @@ class SelectTable extends CustomItem
             });
         
         $custom_table = $this->custom_table;
-        $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
+        $manual_url = getManualUrl('data_import_export?id='.exmtrans('custom_column.help.select_import_column_id_key'));
         $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
             ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
             ->options(function ($select_table, $field) use ($id, $custom_table) {
