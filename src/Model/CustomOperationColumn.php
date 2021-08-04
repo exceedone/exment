@@ -90,4 +90,15 @@ class CustomOperationColumn extends ModelBase
     {
         return static::getEloquentDefault($id, $withs);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            if (is_null(array_get($model, 'update_value_text'))) {
+                $model->update_value_text = '';
+            }
+        });
+    }
 }
