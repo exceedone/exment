@@ -10,6 +10,8 @@ trait PluginBase
 
     protected $useCustomOption = false;
 
+    protected $pluginOptions;
+
     public function useCustomOption()
     {
         return $this->useCustomOption;

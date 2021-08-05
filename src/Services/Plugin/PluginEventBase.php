@@ -11,7 +11,6 @@ class PluginEventBase
     public $custom_table;
     public $custom_value;
     public $isCreate;
-    public $pluginOptions;
 
     public function __construct($plugin, $custom_table, $custom_value, $options = [])
     {
