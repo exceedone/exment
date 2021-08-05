@@ -28,7 +28,6 @@ class SummaryGrid extends GridBase
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
 
         $this->setSummaryGrid($grid);
 
@@ -96,7 +95,6 @@ class SummaryGrid extends GridBase
             }
         });
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $grid;
     }
 

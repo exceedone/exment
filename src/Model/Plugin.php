@@ -438,6 +438,14 @@ class Plugin extends ModelBase
     {
         $plugins = static::getPluginsByTable($custom_table, false);
 
+        if (isset($event) && !isset($options['event_type'])) {
+            $options['event_type'] = $event;
+        }
+
+        if (isset($custom_table) && !isset($options['custom_table'])) {
+            $options['custom_table'] = $custom_table;
+        }
+
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // if $plugin_types is not trigger, continue

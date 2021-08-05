@@ -222,6 +222,9 @@ class PluginType extends EnumBase
                             'workflow_action' => array_get($options, 'workflow_action'),
                             'notify' => array_get($options, 'notify'),
                             'selected_custom_values' => array_get($options, 'selected_custom_values'),
+                            'event_type' => array_get($options, 'event_type'),
+                            'page_type' => array_get($options, 'page_type'),
+                            'is_modal' => array_get($options, 'is_modal'),
                         ]
                     );
                 case PluginType::BATCH:

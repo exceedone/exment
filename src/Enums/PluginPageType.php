@@ -6,6 +6,8 @@ class PluginPageType extends EnumBase
 {
     public const PAGE = 'page';
     public const DASHBOARD = 'dashboard';
-    //public const LIST = 'list';
-    //public const FORM = 'form';
+    public const LIST = 'list';
+    public const SHOW = 'show';
+    public const CREATE = 'create';
+    public const EDIT = 'edit';
 }
