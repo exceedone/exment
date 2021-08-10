@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -83,8 +84,9 @@ class CCustomCopyTest extends ExmentKitTestCase
             );
         }
 
-        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL));
-        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL));
+        $options = ['ignore_attachment' => true];
+        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, $options));
+        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $options));
     }
 
     /**
@@ -123,10 +125,11 @@ class CCustomCopyTest extends ExmentKitTestCase
                 $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id
             );
         }
-            
-        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL));
-        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL));
-        $this->exactSelectOptions('select.custom_copy_input_columns', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL));
+        
+        $options = ['ignore_attachment' => true];
+        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, $options));
+        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $options));
+        $this->exactSelectOptions('select.custom_copy_input_columns', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $options));
     }
 
     /**
@@ -291,7 +294,12 @@ class CCustomCopyTest extends ExmentKitTestCase
             'custom_copy_input_columns' => [],
         ];
 
+        $column_count = 0;
+
         foreach ($from_table->custom_columns as $index => $from_column) {
+            if ($from_column->column_type == ColumnType::AUTO_NUMBER || ColumnType::isAttachment($from_column->column_type)) {
+                continue;
+            }
             $row_id = 'new_' . ($index + 1);
             if ($is_same) {
                 $to_column = $from_column;
@@ -304,9 +312,8 @@ class CCustomCopyTest extends ExmentKitTestCase
                 'copy_column_type' => CopyColumnType::DEFAULT,
                 '_remove_' => 0,
             ];
+            $column_count++;
         }
-
-        $column_count = $from_table->custom_columns->count();
 
         $this->post(admin_url('copy/custom_value_edit_all'), $data);
         $this->assertPostResponse($this->response, admin_url('copy/custom_value_edit_all'));
