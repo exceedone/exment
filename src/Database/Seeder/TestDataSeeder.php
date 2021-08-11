@@ -1116,6 +1116,7 @@ class TestDataSeeder extends Seeder
         $notify->notify_trigger = 1;
         $notify->mail_template_id = 5;
         $notify->trigger_settings = [
+            "notify_target_table_id" => $custom_table->id,
             "notify_target_column" => $column->id,
             "notify_day" => '0',
             "notify_beforeafter" => '-1',

@@ -145,7 +145,8 @@ class CustomOperationTest extends UnitTestBase
 
         $result = $operation->execute($custom_table, $custom_value->id);
 
-        $this->assertFalse($result->getData()->result);
+        $this->assertFalse($result === true);
+        $this->assertTrue(is_string($result));
     }
 
     /**
