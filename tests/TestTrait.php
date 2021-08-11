@@ -5,11 +5,14 @@ namespace Exceedone\Exment\Tests;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
+// use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
+use ArrayAccess;
+use PHPUnit\Framework\InvalidArgumentException;
+use PHPUnit\Framework\Constraint\ArraySubset;
 
 trait TestTrait
 {
-    use ArraySubsetAsserts;
+    // use ArraySubsetAsserts;
 
     /**
      * Assert that the response is a superset of the given JSON.
@@ -214,5 +217,37 @@ trait TestTrait
         $method = new \ReflectionMethod($className, $methodName);
         $method->setAccessible(true);
         return $method->invokeArgs(null, $args);
+    }
+
+    /**
+     * Asserts that an array has a specified subset.
+     * (Moved method because it was removed in PHPUnit9)
+     *
+     * @param array|ArrayAccess|mixed[] $subset
+     * @param array|ArrayAccess|mixed[] $array
+     *
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
+     * @throws Exception
+     */
+    public static function assertArraySubset($subset, $array, bool $checkForObjectIdentity = false, string $message = ''): void
+    {
+        if (!(is_array($subset) || $subset instanceof ArrayAccess)) {
+            throw InvalidArgumentException::create(
+                1,
+                'array or ArrayAccess'
+            );
+        }
+
+        if (!(is_array($array) || $array instanceof ArrayAccess)) {
+            throw InvalidArgumentException::create(
+                2,
+                'array or ArrayAccess'
+            );
+        }
+
+        $constraint = new ArraySubset($subset, $checkForObjectIdentity);
+
+        static::assertThat($array, $constraint, $message);
     }
 }
