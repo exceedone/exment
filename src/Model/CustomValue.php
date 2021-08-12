@@ -1098,10 +1098,11 @@ abstract class CustomValue extends ModelBase
         $label_columns = $this->custom_table->getLabelColumns();
         
         if (isset($label_columns) && is_string($label_columns)) {
-            return $this->getExpansionLabel($label_columns);
+            $this->_label = $this->getExpansionLabel($label_columns);
         } else {
-            return $this->getBasicLabel($label_columns);
+            $this->_label = $this->getBasicLabel($label_columns);
         }
+        return  $this->_label;
     }
 
     /**
