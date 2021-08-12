@@ -220,7 +220,7 @@ class CustomOperation extends ModelBase
      */
     protected function getUpdateValues($model, $inputs = null)
     {
-        $updates = collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use($model) {
+        $updates = collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use ($model) {
             $custom_column = $operation_column->custom_column;
             if (is_nullorempty($custom_column)) {
                 return null;

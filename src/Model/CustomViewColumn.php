@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionType;
-use Exceedone\Exment\Enums\SystemColumn;
 
 class CustomViewColumn extends ModelBase
 {

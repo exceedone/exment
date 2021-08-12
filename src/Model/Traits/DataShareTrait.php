@@ -32,9 +32,9 @@ trait DataShareTrait
         foreach ($keys as $key) {
             $selected_value = null;
             if (isset($default)) {
-                $selected_value = collect(toArray($default))->filter(function ($s) use($key) {
+                $selected_value = collect(toArray($default))->filter(function ($s) use ($key) {
                     return strpos($s, "{$key}_") === 0;
-                })->map(function ($s) use($key) {
+                })->map(function ($s) use ($key) {
                     return str_replace("{$key}_", "", $s);
                 })->toArray();
             }

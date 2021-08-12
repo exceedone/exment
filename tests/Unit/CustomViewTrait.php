@@ -187,7 +187,6 @@ trait CustomViewTrait
             'view_column_name' => $column_setting['view_column_name']?? null,
             'options' => $column_setting['options']?? null,
         ];
-        
     }
 
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])

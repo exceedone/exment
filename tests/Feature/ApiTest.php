@@ -717,7 +717,7 @@ class ApiTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $column_definitions = array_get($json, 'column_definitions');
-        $user_key = collect($column_definitions)->filter(function($val) {
+        $user_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'user';
         })->keys()->first();
         $this->assertMatch(array_get($data[0], $user_key), '1');
@@ -763,7 +763,7 @@ class ApiTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $column_definitions = array_get($json, 'column_definitions');
-        $user_key = collect($column_definitions)->filter(function($val) {
+        $user_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'user';
         })->keys()->first();
         $this->assertMatch(array_get($data[0], $user_key), 'admin');
@@ -782,12 +782,12 @@ class ApiTest extends ApiTestBase
         ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $custom_view->suuid))
             ->assertStatus(200);
 
-        $check_data = $custom_view->getQueryData();         
+        $check_data = $custom_view->getQueryData();
 
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $column_definitions = array_get($json, 'column_definitions');
-        $id_key = collect($column_definitions)->filter(function($val) {
+        $id_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'id';
         })->keys()->first();
         foreach ($data as $index => $row) {
@@ -809,7 +809,7 @@ class ApiTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = array_get($json, 'value');
         $column_definitions = array_get($json, 'column_definitions');
-        $id_key = collect($column_definitions)->filter(function($val) {
+        $id_key = collect($column_definitions)->filter(function ($val) {
             return array_get($val, 'column_name') == 'id';
         })->keys()->first();
         $this->assertMatch(array_get($data, $id_key), '3');

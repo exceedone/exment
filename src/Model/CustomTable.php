@@ -840,7 +840,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     $value = null;
                     if (array_has($input, $prefix . $column->column_name)) {
                         $value = array_get($input, $prefix . $column->column_name);
-                    } else if (isset($custom_value)) {
+                    } elseif (isset($custom_value)) {
                         $value = $custom_value->getValue($column->column_name, ValueType::PURE_VALUE);
                     }
                     if (is_array($value)) {

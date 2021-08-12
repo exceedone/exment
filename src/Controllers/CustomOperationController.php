@@ -274,7 +274,7 @@ class CustomOperationController extends AdminControllerTableBase
         // check inputs and operation_type before save
         $form->saving(function (Form $form) {
             if (!is_null($form->custom_operation_input_columns)) {
-                if (collect($form->custom_operation_input_columns)->contains(function($val) {
+                if (collect($form->custom_operation_input_columns)->contains(function ($val) {
                     return array_get($val, Form::REMOVE_FLAG_NAME) != 1;
                 })) {
                     if (array_intersect($form->operation_type, [CustomOperationType::CREATE, CustomOperationType::UPDATE])) {

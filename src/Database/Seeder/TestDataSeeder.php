@@ -310,7 +310,7 @@ class TestDataSeeder extends Seeder
                         $custom_columns[] = $custom_column;
                     }
                 },
-                'createValueCallback' => function ($custom_table, $options) use($users) {
+                'createValueCallback' => function ($custom_table, $options) use ($users) {
                     $custom_values = [];
                     System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
                     $index = 0;

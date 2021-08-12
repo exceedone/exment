@@ -189,7 +189,10 @@ class DocumentExcelService
                     foreach ($column_item['formats'] as $format) {
                         // replace using format
                         $text = str_replace($format['format_text'], $this->getText(
-                            $format['column_name'], [], $child), $text);
+                            $format['column_name'],
+                            [],
+                            $child
+                        ), $text);
                     }
                     $sheet->setCellValue($cell_column . $row, $text);
                 }

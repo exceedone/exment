@@ -1027,7 +1027,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $query = $this->custom_table->getValueQuery();
         $this->filterSortModel($query);
-        return $query->get();         
+        return $query->get();
     }
 
     /**

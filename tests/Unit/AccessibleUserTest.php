@@ -12,7 +12,7 @@ class AccessibleUserTest extends UnitTestBase
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
 
-        $users = $custom_table->getAccessibleUsers()->map(function($val) {
+        $users = $custom_table->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
@@ -26,7 +26,7 @@ class AccessibleUserTest extends UnitTestBase
     {
         $custom_table = CustomTable::getEloquent('information');
 
-        $users = $custom_table->getAccessibleUsers()->map(function($val) {
+        $users = $custom_table->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
@@ -39,12 +39,12 @@ class AccessibleUserTest extends UnitTestBase
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NO_PERMISSION);
 
-        $users = $custom_table->getAccessibleUsers()->map(function($val) {
+        $users = $custom_table->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
-            ->where(function($query){
+            ->where(function ($query) {
                 $query->orWhere('value->user_code', 'admin')
                       ->orWhere('value->user_code', 'user1');
             })->get()->pluck('id')->toArray();
@@ -61,12 +61,12 @@ class AccessibleUserTest extends UnitTestBase
         $custom_value = $custom_table->getValueModel()->where('created_user_id', TestDefine::TESTDATA_USER_LOGINID_DEV1_USERD)
             ->first();
 
-        $users = $custom_value->getAccessibleUsers()->map(function($val) {
+        $users = $custom_value->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
-            ->where(function($query){
+            ->where(function ($query) {
                 $query->orWhere('value->user_code', 'admin')
                       ->orWhere('value->user_code', 'user1')
                       ->orWhere('value->user_code', 'dev1-userD');
@@ -84,12 +84,12 @@ class AccessibleUserTest extends UnitTestBase
         $custom_value = $custom_table->getValueModel()->where('created_user_id', TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC)
             ->first();
 
-        $users = $custom_value->getAccessibleUsers()->map(function($val) {
+        $users = $custom_value->getAccessibleUsers()->map(function ($val) {
             return array_get($val, 'id');
         })->toArray();
 
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
-            ->where(function($query){
+            ->where(function ($query) {
                 $query->orWhere('value->user_code', 'admin')
                       ->orWhere('value->user_code', 'user1')
                       ->orWhere('value->user_code', 'dev1-userC');
@@ -98,7 +98,7 @@ class AccessibleUserTest extends UnitTestBase
         $this->_compareArray($users, $target_users);
     }
 
-    protected function _compareArray(Array $array1, Array $array2)
+    protected function _compareArray(array $array1, array $array2)
     {
         $result = array_diff($array1, $array2);
         $this->assertTrue(empty($result));

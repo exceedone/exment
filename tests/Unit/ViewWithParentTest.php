@@ -15,7 +15,6 @@ use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Encore\Admin\Grid;
 
-
 /**
  * Custom view include parent or select table column test.
  */
@@ -48,7 +47,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_column, $filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if ($data instanceof CustomValue) {
                 $parent = $data->getParentValue();
                 return $parent->getValue($filter_column) == $filter_value;
@@ -78,7 +77,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_column, $filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE)::find($id);
@@ -107,7 +106,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_column, $filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if ($data instanceof CustomValue) {
                 $parent = $data->getParentValue();
                 return $parent->getValue($filter_column) == $filter_value;
@@ -138,7 +137,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_column, $filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE)::find($id);
@@ -194,7 +193,7 @@ class ViewWithParentTest extends TestCase
 
         $parent_table = getModelName(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
 
-        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use($sort_column, $parent_table) {
+        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($sort_column, $parent_table) {
             $prev_parent = $parent_table::find(array_get($prev_data, 'parent_id'));
             $parent = $parent_table::find(array_get($data, 'parent_id'));
             return $prev_parent->getValue($sort_column) <= $parent->getValue($sort_column);
@@ -246,7 +245,7 @@ class ViewWithParentTest extends TestCase
 
         $parent_table = getModelName(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
 
-        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use($parent_table) {
+        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($parent_table) {
             $prev_parent = $parent_table::find(array_get($prev_data, 'parent_id'));
             $parent = $parent_table::find(array_get($data, 'parent_id'));
             return $prev_parent->id <= $parent->id;
@@ -273,7 +272,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_column, $filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if ($data instanceof CustomValue) {
                 $select_table = $data->getValue('select_table');
                 return $select_table->getValue($filter_column) == $filter_value;
@@ -305,7 +304,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_column, $filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)::find($id);
@@ -334,7 +333,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_value) {
             if ($data instanceof CustomValue) {
                 $select_table = $data->getValue('select_table');
                 return array_get($select_table, 'id') == $filter_value;
@@ -366,7 +365,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($filter_column, $filter_value) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($filter_column, $filter_value) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)::find($id);
@@ -518,7 +517,7 @@ class ViewWithParentTest extends TestCase
                 $unique_name = $column_item->uniqueName();
                 $column_item_2 = $custom_view->custom_view_columns[1]->column_item;
                 $unique_name_2 = $column_item_2->uniqueName();
-                return array_get($data, $unique_name) == 'test_2' 
+                return array_get($data, $unique_name) == 'test_2'
                     && strpos(array_get($data, $unique_name_2), 'user') === 0;
             }
         }, $options);
@@ -584,7 +583,7 @@ class ViewWithParentTest extends TestCase
                 $unique_name = $column_item->uniqueName();
                 $column_item_2 = $custom_view->custom_view_columns[1]->column_item;
                 $unique_name_2 = $column_item_2->uniqueName();
-                return array_get($data, $unique_name) == 2 
+                return array_get($data, $unique_name) == 2
                     && array_get($data, $unique_name_2) == 1;
             }
         }, $options);
@@ -675,7 +674,7 @@ class ViewWithParentTest extends TestCase
 
         $child_table = getModelName(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
 
-        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use($child_table) {
+        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($child_table) {
             if (!($data instanceof CustomValue)) {
                 $data = $child_table::find(array_get($data, 'id'));
                 $prev_data = $child_table::find(array_get($prev_data, 'id'));
@@ -748,7 +747,7 @@ class ViewWithParentTest extends TestCase
 
         $child_table = getModelName(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
 
-        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use($child_table) {
+        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($child_table) {
             if (!($data instanceof CustomValue)) {
                 $data = $child_table::find(array_get($data, 'id'));
                 $prev_data = $child_table::find(array_get($prev_data, 'id'));
@@ -794,8 +793,8 @@ class ViewWithParentTest extends TestCase
                 $child = $data->getValue('child');
                 $child_view = $data->getValue('child_view');
                 $child_ajax = $data->getValue('child_ajax');
-                return $child->getValue('odd_even') == 'odd' 
-                    && $child_view->getValue('odd_even') == 'even' 
+                return $child->getValue('odd_even') == 'odd'
+                    && $child_view->getValue('odd_even') == 'even'
                     && $child_ajax->getValue('odd_even') == 'odd';
             } else {
                 $column_item = $custom_view->custom_view_columns[0]->column_item;
@@ -804,7 +803,7 @@ class ViewWithParentTest extends TestCase
                 $unique_name_2 = $column_item_2->uniqueName();
                 $column_item_3 = $custom_view->custom_view_columns[2]->column_item;
                 $unique_name_3 = $column_item_3->uniqueName();
-                return array_get($data, $unique_name) == 'odd' 
+                return array_get($data, $unique_name) == 'odd'
                     && array_get($data, $unique_name_2) == 'even'
                     && array_get($data, $unique_name_3) == 'odd';
             }
@@ -842,8 +841,8 @@ class ViewWithParentTest extends TestCase
             $child = $data->getValue('child');
             $child_view = $data->getValue('child_view');
             $child_ajax = $data->getValue('child_ajax');
-            return $child->getValue('odd_even') == 'even' 
-                && $child_view->getValue('odd_even') == 'odd' 
+            return $child->getValue('odd_even') == 'even'
+                && $child_view->getValue('odd_even') == 'odd'
                 && $child_ajax->getValue('odd_even') == 'even';
         }, $options);
     }
@@ -876,7 +875,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][2]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][2]['filter_value_text'] = $target_id_3;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($target_id_1, $target_id_2, $target_id_3) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($target_id_1, $target_id_2, $target_id_3) {
             if ($data instanceof CustomValue) {
                 $child = $data->getValue('child');
                 $child_view = $data->getValue('child_view');
@@ -891,7 +890,7 @@ class ViewWithParentTest extends TestCase
                 $unique_name_2 = $column_item_2->uniqueName();
                 $column_item_3 = $custom_view->custom_view_columns[2]->column_item;
                 $unique_name_3 = $column_item_3->uniqueName();
-                return array_get($data, $unique_name) == $target_id_1 
+                return array_get($data, $unique_name) == $target_id_1
                     && array_get($data, $unique_name_2) == $target_id_2
                     && array_get($data, $unique_name_3) == $target_id_3;
             }
@@ -926,7 +925,7 @@ class ViewWithParentTest extends TestCase
         $options['filter_settings'][2]['filter_condition'] = FilterOption::USER_EQ;
         $options['filter_settings'][2]['filter_value_text'] = $target_id_3;
 
-        $array = $this->getColumnFilterData(function ($data, $custom_view) use($target_id_1, $target_id_2, $target_id_3) {
+        $array = $this->getColumnFilterData(function ($data, $custom_view) use ($target_id_1, $target_id_2, $target_id_3) {
             if (!($data instanceof CustomValue)) {
                 $id = array_get($data, 'id');
                 $data = getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE)::find($id);
@@ -1010,7 +1009,7 @@ class ViewWithParentTest extends TestCase
 
         $pivot_table = getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE);
 
-        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use($pivot_table){
+        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($pivot_table) {
             if (!($data instanceof CustomValue)) {
                 $data = $pivot_table::find(array_get($data, 'id'));
                 $prev_data = $pivot_table::find(array_get($prev_data, 'id'));
@@ -1107,7 +1106,7 @@ class ViewWithParentTest extends TestCase
 
         $pivot_table = getModelName(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE);
 
-        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use($pivot_table) {
+        $array = $this->getColumnFilterData(function ($prev_data, $data, $custom_view) use ($pivot_table) {
             if (!($data instanceof CustomValue)) {
                 $data = $pivot_table::find(array_get($data, 'id'));
                 $prev_data = $pivot_table::find(array_get($prev_data, 'id'));
@@ -1236,7 +1235,7 @@ class ViewWithParentTest extends TestCase
 
             // check not getted values.
             $custom_table = CustomTable::getEloquent($options['target_table_name']);
-            $ids = $collection->map(function($data) {
+            $ids = $collection->map(function ($data) {
                 return array_get($data->model(), 'id');
             })->toArray();
             $notMatchedValues = $custom_table->getValueQuery()->whereNotIn('id', $ids)->get();
@@ -1254,7 +1253,7 @@ class ViewWithParentTest extends TestCase
             foreach ($collection as $data) {
                 if (isset($prev_data)) {
                     $matchResult = $testCallback($prev_data, $data->model(), $custom_view);
-                    $this->assertTrue($matchResult, 'matchResult is false. Sort order is wrong. ' . array_get($data->model(),'id'));
+                    $this->assertTrue($matchResult, 'matchResult is false. Sort order is wrong. ' . array_get($data->model(), 'id'));
                 }
 
                 $prev_data = $data->model();

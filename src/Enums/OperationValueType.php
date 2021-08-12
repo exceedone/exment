@@ -53,6 +53,7 @@ class OperationValueType extends EnumBase
                     return $custom_value->created_user_id;
                 }
                     
+                // no break
             case static::BERONG_ORGANIZATIONS:
                 $login_user = \Exment::user();
                 if (is_null($login_user)) {
