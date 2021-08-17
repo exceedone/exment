@@ -5,14 +5,15 @@ namespace Exceedone\Exment\Tests;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
-// use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
-use ArrayAccess;
-use PHPUnit\Framework\InvalidArgumentException;
-use PHPUnit\Framework\Constraint\ArraySubset;
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
+// cannot call PHPUnit\Framework\Constraint\ArraySubset.
+// use ArrayAccess;
+// use PHPUnit\Framework\InvalidArgumentException;
+// use PHPUnit\Framework\Constraint\ArraySubset;
 
 trait TestTrait
 {
-    // use ArraySubsetAsserts;
+    use ArraySubsetAsserts;
 
     /**
      * Assert that the response is a superset of the given JSON.
@@ -25,6 +26,13 @@ trait TestTrait
     public function assertJsonExment(array $data1, $data2, $strict = false)
     {
         self::assertArraySubset($data1, $data2, $strict);
+        // cannot call PHPUnit\Framework\Constraint\ArraySubset.
+        // if(function_exists($this, 'assertArraySubset')){
+        //     self::assertArraySubset($data1, $data2, $strict);
+        // }
+        // else{
+        //     self::assertArraySubsetExm($data1, $data2, $strict);
+        // }
 
         return $this;
     }
@@ -230,7 +238,7 @@ trait TestTrait
      * @throws InvalidArgumentException
      * @throws Exception
      */
-    public static function assertArraySubset($subset, $array, bool $checkForObjectIdentity = false, string $message = ''): void
+    public static function assertArraySubsetExm($subset, $array, bool $checkForObjectIdentity = false, string $message = ''): void
     {
         if (!(is_array($subset) || $subset instanceof ArrayAccess)) {
             throw InvalidArgumentException::create(
