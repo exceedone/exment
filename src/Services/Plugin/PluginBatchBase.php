@@ -9,9 +9,10 @@ class PluginBatchBase
 {
     use PluginBase;
     
-    public function __construct($plugin)
+    public function __construct($plugin, $options = [])
     {
         $this->plugin = $plugin;
+        $this->pluginOptions = new PluginOption\PluginOptionBatch($options);
     }
 
     /**
