@@ -53,10 +53,6 @@ class DefaultGrid extends GridBase
         }
 
         $this->setCustomGridFilters($grid);
-
-        if (!$this->modal) {
-            Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
-        }
         
         // create grid
         $this->setGrid($grid);
@@ -66,10 +62,6 @@ class DefaultGrid extends GridBase
 
         // manage tool button
         $this->manageMenuToolButton($grid);
-
-        if (!$this->modal) {
-            Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
-        }
 
         $grid->getDataCallback(function ($grid) {
             $customValueCollection = $grid->getOriginalCollection();

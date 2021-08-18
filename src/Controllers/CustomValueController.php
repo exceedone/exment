@@ -25,7 +25,8 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\CustomValuePageType;
-use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginPageType;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\FormHelper;
@@ -137,6 +138,13 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
+        if (!$modalframe || $modal) {
+            Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
+                'is_modal' => $modal,
+                'page_type' => PluginPageType::LIST
+            ]);
+        }
+
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
@@ -205,7 +213,12 @@ class CustomValueController extends AdminControllerTableBase
             $grid = $grid_item->grid($callback);
 
             if ($modal) {
-                return $grid_item->renderModal($grid);
+                $content = $grid_item->renderModal($grid);
+                Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
+                    'is_modal' => true,
+                    'page_type' => PluginPageType::LIST
+                ]);
+                return $content;
             } elseif ($modalframe) {
                 return $grid_item->renderModalFrame();
             }
@@ -218,6 +231,13 @@ class CustomValueController extends AdminControllerTableBase
 
         if (!$modal) {
             PartialCrudService::setGridContent($this->custom_table, $content);
+        }
+
+        if (!$modalframe || $modal) {
+            Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
+                'is_modal' => $modal,
+                'page_type' => PluginPageType::LIST
+            ]);
         }
 
         return $content;
@@ -236,13 +256,17 @@ class CustomValueController extends AdminControllerTableBase
 
         $this->AdminContent($content);
         
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
+        Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
+            'page_type' => PluginPageType::CREATE
+        ]);
 
         $row = new Row($this->form(null));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
         
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
+        Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
+            'page_type' => PluginPageType::CREATE
+        ]);
         return $content;
     }
 
@@ -268,14 +292,23 @@ class CustomValueController extends AdminControllerTableBase
             return $redirect;
         }
 
+        $custom_value = $this->custom_table->getValueModel($id);
+
         $this->AdminContent($content);
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
+
+        Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
+            'page_type' => PluginPageType::EDIT,
+            'custom_value' => $custom_value
+        ]);
 
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
+        Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
+            'page_type' => PluginPageType::EDIT,
+            'custom_value' => $custom_value
+        ]);
         return $content;
     }
     
@@ -293,17 +326,32 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
 
+        $custom_value = $this->custom_table->getValueModel($id);
+
+        Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
+            'is_modal' => $modal,
+            'page_type' => PluginPageType::SHOW,
+            'custom_value' => $custom_value
+        ]);
+
         $show_item = $this->custom_form->show_item->id($id)->modal($modal);
         if ($modal) {
-            return $show_item->createShowForm();
+            $content = $show_item->createShowForm();
+        } else {
+            $this->AdminContent($content);
+            $content->row($show_item->createShowForm());
+            $content->row(function ($row) use ($show_item) {
+                $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+                $show_item->setOptionBoxes($row);
+            });
         }
 
-        $this->AdminContent($content);
-        $content->row($show_item->createShowForm());
-        $content->row(function ($row) use ($show_item) {
-            $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
-            $show_item->setOptionBoxes($row);
-        });
+        Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
+            'is_modal' => $modal,
+            'page_type' => PluginPageType::SHOW,
+            'custom_value' => $custom_value
+        ]);
+
         return $content;
     }
 

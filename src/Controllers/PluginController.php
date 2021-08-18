@@ -199,6 +199,7 @@ class PluginController extends AdminControllerBase
             Checker::notFoundOrDeny();
             return false;
         }
+        $command_only = boolval(array_get($plugin, 'options.command_only'));
 
         // create form
         $form = new Form(new Plugin);
@@ -218,7 +219,7 @@ class PluginController extends AdminControllerBase
         $form->switchbool('active_flg', exmtrans("plugin.active_flg"));
         
         $form->exmheader(exmtrans("common.detail_setting"))->hr();
-        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin) {
+        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin, $command_only) {
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
                     $options = CustomTable::filterList(null, ['checkPermission' => false])->pluck('table_view_name', 'table_name')->toArray();
@@ -256,11 +257,11 @@ class PluginController extends AdminControllerBase
                 if ($plugin->matchPluginType(PluginType::API)) {
                     $form->display('endpoint_api', exmtrans("plugin.options.endpoint_api"))->default($plugin->getRootUrl(PluginType::API))->help(exmtrans("plugin.help.endpoint"));
                 }
-            } elseif ($plugin->matchPluginType(PluginType::BATCH)) {
+            } elseif ($plugin->matchPluginType(PluginType::BATCH) && !$command_only) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
                     ->default(3);
-                    
+                
                 $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
                     ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
                     ->rules('max:100');
@@ -302,7 +303,7 @@ class PluginController extends AdminControllerBase
             $this->setCustomOptionForm($plugin, $form);
         }
 
-        $form->tools(function (Form\Tools $tools) use ($plugin, $id) {
+        $form->tools(function (Form\Tools $tools) use ($plugin, $id, $command_only) {
             if ($plugin->disabled_delete) {
                 $tools->disableDelete();
             }
@@ -323,7 +324,7 @@ class PluginController extends AdminControllerBase
                 ]));
             }
             
-            if ($plugin->matchPluginType(PluginType::BATCH)) {
+            if ($plugin->matchPluginType(PluginType::BATCH) && !$command_only) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_urls('plugin', $plugin->id, 'executeBatch'),
                     'label' => exmtrans('plugin.execute_plugin_batch'),
