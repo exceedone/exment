@@ -228,9 +228,10 @@ class PluginType extends EnumBase
                         ]
                     );
                 case PluginType::BATCH:
-                    return new $classname($plugin, 
+                    return new $classname(
+                        $plugin,
                         [
-                            'command_options' => array_get($options, 'command_options') 
+                            'command_options' => array_get($options, 'command_options')
                         ]
                     );
                 case PluginType::PAGE:
