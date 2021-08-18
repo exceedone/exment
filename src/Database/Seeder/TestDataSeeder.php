@@ -274,7 +274,7 @@ class TestDataSeeder extends Seeder
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $child_table]);
 
             // get child table's view
-            $child_table_view = $child_table->custom_views->first(function ($view) use ($child_table) {
+            $child_table_view = $child_table->custom_views->first(function ($view) {
                 return $view->view_kind_type == ViewKindType::FILTER;
             });
 

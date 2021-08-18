@@ -228,35 +228,35 @@ trait TestTrait
         return $method->invokeArgs(null, $args);
     }
 
-    /**
-     * Asserts that an array has a specified subset.
-     * (Moved method because it was removed in PHPUnit9)
-     *
-     * @param array|ArrayAccess|mixed[] $subset
-     * @param array|ArrayAccess|mixed[] $array
-     *
-     * @throws ExpectationFailedException
-     * @throws InvalidArgumentException
-     * @throws Exception
-     */
-    public static function assertArraySubsetExm($subset, $array, bool $checkForObjectIdentity = false, string $message = ''): void
-    {
-        if (!(is_array($subset) || $subset instanceof ArrayAccess)) {
-            throw InvalidArgumentException::create(
-                1,
-                'array or ArrayAccess'
-            );
-        }
+    // /**
+    //  * Asserts that an array has a specified subset.
+    //  * (Moved method because it was removed in PHPUnit9)
+    //  *
+    //  * @param array|ArrayAccess|mixed[] $subset
+    //  * @param array|ArrayAccess|mixed[] $array
+    //  *
+    //  * @throws ExpectationFailedException
+    //  * @throws InvalidArgumentException
+    //  * @throws Exception
+    //  */
+    // public static function assertArraySubsetExm($subset, $array, bool $checkForObjectIdentity = false, string $message = ''): void
+    // {
+    //     if (!(is_array($subset) || $subset instanceof ArrayAccess)) {
+    //         throw InvalidArgumentException::create(
+    //             1,
+    //             'array or ArrayAccess'
+    //         );
+    //     }
 
-        if (!(is_array($array) || $array instanceof ArrayAccess)) {
-            throw InvalidArgumentException::create(
-                2,
-                'array or ArrayAccess'
-            );
-        }
+    //     if (!(is_array($array) || $array instanceof ArrayAccess)) {
+    //         throw InvalidArgumentException::create(
+    //             2,
+    //             'array or ArrayAccess'
+    //         );
+    //     }
 
-        $constraint = new ArraySubset($subset, $checkForObjectIdentity);
+    //     $constraint = new ArraySubset($subset, $checkForObjectIdentity);
 
-        static::assertThat($array, $constraint, $message);
-    }
+    //     static::assertThat($array, $constraint, $message);
+    // }
 }

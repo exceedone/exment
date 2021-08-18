@@ -59,7 +59,7 @@ class FileRule implements Rule
 
         if ($value instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
             $original_name = $value->getClientOriginalName();
-            if (isset($original_name)) {
+            if (!is_nullorempty($original_name)) {
                 $ext = pathinfo($original_name, PATHINFO_EXTENSION);
                 return in_array($ext, $this->extensions);
             }
