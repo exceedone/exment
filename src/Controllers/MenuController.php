@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
@@ -287,7 +288,8 @@ class MenuController extends AdminControllerBase
         $options = [];
 
         CustomView::where('view_type', ViewType::SYSTEM)
-            ->where('custom_table_id', $custom_table->id)->get()->each(function ($item) use (&$options) {
+            ->where('custom_table_id', $custom_table->id)
+            ->where('view_kind_type', '<>', ViewKindType::FILTER)->get()->each(function ($item) use (&$options) {
                 $options[] = ['id' => $item->id, 'text' =>  $item->view_view_name ];
             });
 
