@@ -15,7 +15,7 @@ class BatchCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:batch {id?} {--name=} {--uuid=}';
+    protected $signature = 'exment:batch {id?} {--name=} {--uuid=} {--param1=} {--param2=} {--param3=} {--param4=} {--param5=} {--param6=} {--param7=} {--param8=} {--param9=} {--param10=}';
 
     /**
      * The console command description.
@@ -65,7 +65,9 @@ class BatchCommand extends Command
             return;
         }
 
-        $batch = $plugin->getClass(PluginType::BATCH);
+        $batch = $plugin->getClass(PluginType::BATCH, [
+            'command_options' => $this->options()
+        ]);
         $batch->execute();
     }
 

@@ -1174,7 +1174,7 @@ return [
             'column_target' => '対象列',
             'priority' => '優先順位',
             'options_label' => 'オプション設定',
-            'table_label_format' => '見出しフォーマット文字列',
+            'table_label_format' => '見出しフォーマット設定',
             'table_label_format_string' => 'フォーマット文字列',
             'form_action_disable_flg' => '画面からの変更不可',
 
@@ -1664,9 +1664,13 @@ return [
         'custom_operation_button_label' => '一括更新設定',
         'custom_operation_columns' => '更新列設定',
         'custom_operation_conditions' => '更新条件',
+        'custom_operation_input_columns' => '入力ダイアログ設定',
+        'input_custom_column' => '対象テーブル列',
         'view_column_target' => '対象列',
         'operation_update_type' => '更新の種類',
         'update_value_text' => '更新値',
+        'input_column_description' => 'データ更新のタイミングがボタンの場合に、更新値を設定するフォーム(ダイアログ)を表示することができます。<br/>入力を行う列を設定してください。',
+        'dialog_description' => "%sのデータを更新する値を記入してください。",
 
         'operation_type_options' => [
             'bulk_update' => '一覧画面のチェックボタン選択時',
@@ -1689,6 +1693,7 @@ return [
         'operation_value_type_options' => [
             'execute_datetime' => '実行日時',
             'login_user' => 'ログインユーザー',
+            'created_user' => '作成者',
             'berong_organizations' => '所属組織',
         ],
         'options' => [
@@ -1702,6 +1707,9 @@ return [
             'button_class' => 'ボタンのHTMLに付加するclassです。',
             'custom_operation_columns' => 'データ更新の対象列と、更新値を設定します。',
             'custom_operation_conditions' => '登録した更新設定を実行することができるデータの、条件を指定します。',
+        ],
+        'message' => [
+            'invalid_operation_type' => 'データ新規作成時とデータ更新時は入力ダイアログを指定できません。',
         ],
     ],
 
@@ -1919,6 +1927,8 @@ return [
             'custom_view' => ['label' => 'システムビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'データの編集', 'help' => 'マスターデータを追加・編集・削除できます。'],
             'custom_value_view_all' => ['label' => 'データの閲覧', 'help' => 'マスターデータを閲覧できます。'],
+            'custom_value_import' => ['label' => 'インポート', 'help' => '外部ファイルからマスターデータをインポートすることができます。<br />※そのデータに対する編集権限が必要です。'],
+            'custom_value_export' => ['label' => 'エクスポート', 'help' => '外部ファイルにマスターデータをエクスポートすることができます。<br />※そのデータに対する閲覧権限が必要です。'],
         ], 
         'role_type_option_table' => [
             'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除、論理削除されたデータを再表示できます。'],
@@ -1932,6 +1942,8 @@ return [
             'custom_value_view' => ['label' => '担当データの閲覧', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを閲覧できます。'],
             'custom_value_access' => ['label' => '担当データの参照', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
             'custom_value_share' => ['label' => 'データの共有', 'help' => 'データを、他のユーザーに共有することができます。<br />※そのデータに対する編集権限が必要です。'],
+            'custom_value_import' => ['label' => 'インポート', 'help' => '外部ファイルからデータをインポートすることができます。<br />※そのデータに対する編集権限が必要です。'],
+            'custom_value_export' => ['label' => 'エクスポート', 'help' => '外部ファイルにデータをエクスポートすることができます。<br />※そのデータに対する閲覧権限が必要です。'],
             'custom_value_view_trashed' => ['label' => '削除データの表示', 'help' => '論理削除されたデータを再表示することができます。<br />※データの復元には、そのデータに対する編集権限が必要です。'],
         ], 
         'role_type_option_value' => [

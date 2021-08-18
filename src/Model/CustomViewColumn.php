@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionType;
-use Exceedone\Exment\Enums\SystemColumn;
 
 class CustomViewColumn extends ModelBase
 {
@@ -151,33 +150,5 @@ class CustomViewColumn extends ModelBase
     public function getViewColumnEndDateTypeAttribute()
     {
         return $this->getOption('end_date_type');
-    }
-    
-    /**
-     * get Table And Column Name
-     */
-    public function getPivotUniqueKeyValues()
-    {
-        if (!isset($this->view_pivot_column_id)) {
-            return [
-                'table_name' => null,
-                'column_name' => null,
-            ];
-        }
-
-        $table_name = CustomTable::getEloquent($this->view_pivot_table_id)->table_name;
-        switch ($this->view_column_type) {
-            case ConditionType::COLUMN:
-                return [
-                    'table_name' => $table_name,
-                    'column_name' => CustomColumn::getEloquent($this->view_pivot_column_id)->column_name ?? null,
-                ];
-            case ConditionType::SYSTEM:
-                return [
-                    'table_name' => $table_name,
-                    'column_name' => SystemColumn::getOption(['id' => $this->view_pivot_column_id])['name'] ?? null,
-                ];
-        }
-        return [];
     }
 }

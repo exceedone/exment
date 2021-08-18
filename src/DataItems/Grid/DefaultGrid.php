@@ -53,10 +53,6 @@ class DefaultGrid extends GridBase
         }
 
         $this->setCustomGridFilters($grid);
-
-        if (!$this->modal) {
-            Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
-        }
         
         // create grid
         $this->setGrid($grid);
@@ -66,10 +62,6 @@ class DefaultGrid extends GridBase
 
         // manage tool button
         $this->manageMenuToolButton($grid);
-
-        if (!$this->modal) {
-            Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
-        }
 
         $grid->getDataCallback(function ($grid) {
             $customValueCollection = $grid->getOriginalCollection();
@@ -453,21 +445,21 @@ class DefaultGrid extends GridBase
             
             // manage batch --------------------------------------------------
             $tools->batch(function ($batch) {
-                // if cannot edit, disable delete and update operations
                 if ($this->custom_table->enableEdit() === true) {
-                    foreach ($this->custom_table->custom_operations as $custom_operation) {
-                        if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
-                            $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                    if (request()->get('_scope_') == 'trashed' && $this->custom_table->enableShowTrashed() === true) {
+                        $batch->disableDelete();
+                        $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
+                        $batch->add(exmtrans('custom_value.hard_delete'), new GridTools\BatchHardDelete(exmtrans('custom_value.hard_delete')));
+                    } else {
+                        foreach ($this->custom_table->custom_operations as $custom_operation) {
+                            if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
+                                $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                            }
                         }
                     }
                 } else {
+                    // if cannot edit, disable delete and update operations
                     $batch->disableDelete();
-                }
-                
-                if (request()->get('_scope_') == 'trashed' && $this->custom_table->enableEdit() === true && $this->custom_table->enableShowTrashed() === true) {
-                    $batch->disableDelete();
-                    $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
-                    $batch->add(exmtrans('custom_value.hard_delete'), new GridTools\BatchHardDelete(exmtrans('custom_value.hard_delete')));
                 }
             });
         });
@@ -748,6 +740,8 @@ class DefaultGrid extends GridBase
             'ignore_multiple_refer' => true,
         ], $column_options);
 
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+
         $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
             $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
             
@@ -762,6 +756,6 @@ class DefaultGrid extends GridBase
             $form->hidden('order')->default(0);
         })->setTableColumnWidth(8, 4)
         ->rowUpDown('order', 10)
-        ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters"));
+        ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters", $manualUrl));
     }
 }

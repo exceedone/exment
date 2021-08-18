@@ -99,7 +99,7 @@ class AutoNumber extends CustomItem
             ->attribute(['data-filtertrigger' =>true]);
 
         // set manual
-        $manual_url = getManualUrl('column#'.exmtrans('custom_column.auto_number_format_rule'));
+        $manual_url = getManualUrl('column?id='.exmtrans('custom_column.auto_number_format_rule'));
         $form->text('auto_number_format', exmtrans("custom_column.options.auto_number_format"))
             ->attribute(['data-filter' => json_encode([
                 ['parent' => 1, 'key' => 'options_auto_number_type', 'value' => 'format'],

@@ -9,12 +9,10 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\GroupCondition;
-use Exceedone\Exment\Enums\PluginEventTrigger;
 
 class SummaryGrid extends GridBase
 {
@@ -28,7 +26,6 @@ class SummaryGrid extends GridBase
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
 
         $this->setSummaryGrid($grid);
 
@@ -96,7 +93,6 @@ class SummaryGrid extends GridBase
             }
         });
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $grid;
     }
 

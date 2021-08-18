@@ -294,7 +294,7 @@ class PluginInstaller
             }
         }
 
-        foreach (['all_user_enabled', 'label', 'icon', 'button_class', 'document_type', 'event_triggers', 'batch_hour', 'batch_cron', 'cdns', 'uri', 'export_description'] as $key) {
+        foreach (['all_user_enabled', 'label', 'icon', 'button_class', 'document_type', 'event_triggers', 'batch_hour', 'batch_cron', 'cdns', 'uri', 'export_description', 'command_only'] as $key) {
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }

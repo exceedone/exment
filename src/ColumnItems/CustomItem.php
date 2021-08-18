@@ -802,6 +802,9 @@ abstract class CustomItem implements ItemInterface
         if ($this->initonly() || $this->viewonly() || $this->internal()) {
             return false;
         }
+        if (boolval(array_get($this->options, 'is_operation'))) {
+            return false;
+        }
         if (!$this->required) {
             return false;
         }

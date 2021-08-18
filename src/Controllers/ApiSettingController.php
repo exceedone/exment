@@ -57,7 +57,7 @@ class ApiSettingController extends AdminControllerBase
             $filter->like('name', exmtrans("api.app_name"));
             $filter->like('id', exmtrans("api.client_id"));
 
-            $filter->betweendatetime('created_at', trans('admin.created_at'))->date();
+            //$filter->betweendatetime('created_at', trans('admin.created_at'))->date();
         });
 
         $grid->disableExport();

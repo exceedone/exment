@@ -196,7 +196,7 @@ class Column extends ColumnBase
 
         if ($selectColumns->count() > 0) {
             $form->exmheader(exmtrans('custom_form.changedata'))->hr();
-            $form->description(sprintf(exmtrans('custom_form.help.changedata'), getManualUrl('form#'.exmtrans('custom_form.changedata'))))->escape(false);
+            $form->description(sprintf(exmtrans('custom_form.help.changedata'), getManualUrl('form?id='.exmtrans('custom_form.changedata'))))->escape(false);
 
             $form->select('changedata_target_column_id', exmtrans('custom_form.changedata_target_column'))
                 ->help(exmtrans('custom_form.changedata_target_column_when'))

@@ -9,6 +9,7 @@ class TestDefine
     public const TESTDATA_USER_LOGINID_USER2 = '3'; // user2
     public const TESTDATA_USER_LOGINID_DEV_USERB = '6';  //dev-userB
     public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
+    public const TESTDATA_USER_LOGINID_DEV1_USERD = '8'; //dev1-userD
 
     public const TESTDATA_ORGANIZATION_COMPANY1 = '1'; // company1
     public const TESTDATA_ORGANIZATION_DEV = '2'; // dev
@@ -19,6 +20,7 @@ class TestDefine
     public const TESTDATA_TABLE_NAME_EDIT_ALL = 'custom_value_edit_all';
     public const TESTDATA_TABLE_NAME_EDIT = 'custom_value_edit';
     public const TESTDATA_TABLE_NAME_VIEW = 'custom_value_view';
+    public const TESTDATA_TABLE_NO_PERMISSION = 'no_permission';
     
     public const TESTDATA_TABLE_NAME_PARENT_TABLE = 'parent_table';
     public const TESTDATA_TABLE_NAME_CHILD_TABLE = 'child_table';

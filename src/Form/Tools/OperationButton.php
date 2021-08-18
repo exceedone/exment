@@ -61,6 +61,26 @@ class OperationButton
         });
 EOT;
     }
+    
+    protected function scriptModal($suuid)
+    {
+        $table_name = array_get($this->custom_table, 'table_name');
+        // create url
+        if (isset($this->id)) {
+            $url = admin_urls("data", $table_name, $this->id, "operationModal");
+        } else {
+            $url = admin_urls("data", $table_name, "operationModal");
+        }
+        return <<<EOT
+
+        $('#menu_button_$suuid').off('click').on('click', function(){
+            Exment.ModalEvent.ShowModal($("#modal-form-$suuid"), '$url', {
+                'suuid': '$suuid'
+            });
+            return;
+        });
+EOT;
+    }
 
     public function render()
     {
@@ -69,7 +89,15 @@ EOT;
 
         // get suuid
         $suuid = array_get($this->operation, 'suuid');
-        Admin::script($this->script($suuid, $label));
+
+        // get operation input fields
+        $operation_input_columns = $this->operation->custom_operation_input_columns ?? [];
+        if (count($operation_input_columns) > 0) {
+            $script = $this->scriptModal($suuid);
+        } else {
+            $script = $this->script($suuid, $label);
+        }
+        Admin::script($script);
 
         // get button_class
         $button_class = array_get($this->operation, 'options.button_class');

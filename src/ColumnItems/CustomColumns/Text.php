@@ -143,7 +143,7 @@ class Text extends CustomItem
             ->help(exmtrans("custom_column.help.suggest_input"));
 
         if (boolval(config('exment.expart_mode', false))) {
-            $manual_url = getManualUrl('column#'.exmtrans('custom_column.options.regex_validate'));
+            $manual_url = getManualUrl('column?id='.exmtrans('custom_column.options.regex_validate'));
             $form->text('regex_validate', exmtrans("custom_column.options.regex_validate"))
                 ->rules('regularExpression')
                 ->help(sprintf(exmtrans("custom_column.help.regex_validate"), $manual_url));

@@ -15,6 +15,7 @@ class PluginEventBase
     public function __construct($plugin, $custom_table, $custom_value, $options = [])
     {
         $this->_initEvent($plugin, $custom_table, $custom_value, $options);
+        $this->pluginOptions = new PluginOption\PluginOptionEvent($options);
     }
 
     public function execute()

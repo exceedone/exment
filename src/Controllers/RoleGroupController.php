@@ -694,6 +694,11 @@ class RoleGroupController extends AdminControllerBase
         }
     }
 
+    protected function getModel($id)
+    {
+        return RoleGroup::find($id);
+    }
+
     protected function widgetDestroy($id)
     {
         try {

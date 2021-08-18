@@ -7,6 +7,11 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 
+// cannot call PHPUnit\Framework\Constraint\ArraySubset.
+// use ArrayAccess;
+// use PHPUnit\Framework\InvalidArgumentException;
+// use PHPUnit\Framework\Constraint\ArraySubset;
+
 trait TestTrait
 {
     use ArraySubsetAsserts;
@@ -22,6 +27,13 @@ trait TestTrait
     public function assertJsonExment(array $data1, $data2, $strict = false)
     {
         self::assertArraySubset($data1, $data2, $strict);
+        // cannot call PHPUnit\Framework\Constraint\ArraySubset.
+        // if(function_exists($this, 'assertArraySubset')){
+        //     self::assertArraySubset($data1, $data2, $strict);
+        // }
+        // else{
+        //     self::assertArraySubsetExm($data1, $data2, $strict);
+        // }
 
         return $this;
     }
@@ -215,4 +227,36 @@ trait TestTrait
         $method->setAccessible(true);
         return $method->invokeArgs(null, $args);
     }
+
+    // /**
+    //  * Asserts that an array has a specified subset.
+    //  * (Moved method because it was removed in PHPUnit9)
+    //  *
+    //  * @param array|ArrayAccess|mixed[] $subset
+    //  * @param array|ArrayAccess|mixed[] $array
+    //  *
+    //  * @throws ExpectationFailedException
+    //  * @throws InvalidArgumentException
+    //  * @throws Exception
+    //  */
+    // public static function assertArraySubsetExm($subset, $array, bool $checkForObjectIdentity = false, string $message = ''): void
+    // {
+    //     if (!(is_array($subset) || $subset instanceof ArrayAccess)) {
+    //         throw InvalidArgumentException::create(
+    //             1,
+    //             'array or ArrayAccess'
+    //         );
+    //     }
+
+    //     if (!(is_array($array) || $array instanceof ArrayAccess)) {
+    //         throw InvalidArgumentException::create(
+    //             2,
+    //             'array or ArrayAccess'
+    //         );
+    //     }
+
+    //     $constraint = new ArraySubset($subset, $checkForObjectIdentity);
+
+    //     static::assertThat($array, $constraint, $message);
+    // }
 }

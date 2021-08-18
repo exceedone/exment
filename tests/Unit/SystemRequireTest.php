@@ -62,7 +62,7 @@ class SystemRequireTest extends UnitTestBase
             //$command = 'composer --version';
             $command = 'composer%s --version';
             
-            foreach (['', '.phar'] as $suffix) {
+            foreach ([''] as $suffix) {
                 $c = sprintf($command, $suffix);
                 exec($c, $output, $return_var);
                 if ($return_var == 0) {

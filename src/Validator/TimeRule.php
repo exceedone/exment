@@ -39,12 +39,15 @@ class TimeRule implements Rule
             return false;
         }
         
+        if ($value instanceof \Carbon\Carbon) {
+            return true;
+        }
+        
         foreach (static::TIME_FORMATS as $time_format) {
             if (preg_match("/{$time_format}/u", $value)) {
                 return true;
             }
         }
-        
         return false;
     }
 

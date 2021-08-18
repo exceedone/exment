@@ -655,7 +655,7 @@ class PublicForm extends ModelBase
         if (!\Exment::isAvailableGoogleRecaptcha()) {
             $message = exmtrans('login.message.not_install_library', [
                 'name' => 'Google reCaptcha',
-                'url' => getManualUrl('publicform#recaptcha'),
+                'url' => getManualUrl('publicform'),
             ]);
         }
         // check system setting

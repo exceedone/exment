@@ -2,10 +2,6 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-use Exceedone\Exment\Enums\SummaryCondition;
-use Exceedone\Exment\Enums\GroupCondition;
-use Exceedone\Exment\Model\CustomColumn;
-
 /**
  * text, textarea, editor common logic
  */
