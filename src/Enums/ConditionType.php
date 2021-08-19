@@ -35,7 +35,7 @@ class ConditionType extends EnumBase
      */
     public static function getEnumByTargetKey($target) : ?string
     {
-        $systemEnum = SystemColumn::getEnum($target);
+        $systemEnum = SystemColumn::getEnum($target, null, false);
         if ($systemEnum) {
             if (in_array($systemEnum, [SystemColumn::WORKFLOW_STATUS, SystemColumn::WORKFLOW_WORK_USERS])) {
                 return static::WORKFLOW;
