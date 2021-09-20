@@ -252,7 +252,7 @@ abstract class CustomValue extends ModelBase
      *
      * @param int $custom_relation_id
      * @param boolean $isCallAsParent
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany | \Illuminate\Database\Eloquent\Relations\MorphMany | \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany|\Illuminate\Database\Eloquent\Relations\MorphMany|\Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function getDynamicRelationValue(int $custom_relation_id, bool $isCallAsParent)
     {
