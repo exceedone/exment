@@ -453,7 +453,8 @@ class DefaultGrid extends GridBase
                     } else {
                         foreach ($this->custom_table->custom_operations as $custom_operation) {
                             if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
-                                $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                                $title = $custom_operation->getOption('button_label') ?? $custom_operation->operation_name;
+                                $batch->add($title, new GridTools\BatchUpdate($custom_operation));
                             }
                         }
                     }
