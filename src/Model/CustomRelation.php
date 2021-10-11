@@ -191,7 +191,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      *
      * @param CustomValue $custom_value
      * @param boolean $isCallAsParent
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany | \Illuminate\Database\Eloquent\Relations\MorphMany | \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany|\Illuminate\Database\Eloquent\Relations\MorphMany|\Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function getDynamicRelationValue(CustomValue $custom_value, bool $isCallAsParent)
     {

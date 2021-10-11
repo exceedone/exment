@@ -7,7 +7,6 @@ use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * For login saml controller
