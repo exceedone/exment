@@ -209,7 +209,7 @@ class DataImportExportService extends AbstractExporter
         if ($request instanceof Request) {
             $import_plugin = $request->get('import_plugin');
             if (isset($import_plugin)) {
-                return $this->customImport($import_plugin, $request->file('custom_table_file'));
+                return $this->customImport($import_plugin, $request->file('custom_table_file'), $request->get('custom_table_id'));
             }
         }
 
@@ -329,10 +329,15 @@ class DataImportExportService extends AbstractExporter
      * @param int|string $import_plugin
      * @param mixed $file
      */
-    protected function customImport($import_plugin, $file)
+    protected function customImport($import_plugin, $file, $custom_table_id = null)
     {
         $plugin = Plugin::find($import_plugin);
-        $batch = $plugin->getClass(PluginType::IMPORT, ['file' => $file]);
+        $options = ['file' => $file];
+        if (isset($custom_table_id)) {
+            $custom_table = CustomTable::getEloquent($custom_table_id);
+            $options['custom_table'] = $custom_table;
+        }
+        $batch = $plugin->getClass(PluginType::IMPORT, $options);
         $result = $batch->execute();
         if (gettype($result) == 'boolean') {
             if ($result === false) {
