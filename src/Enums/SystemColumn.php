@@ -65,16 +65,18 @@ class SystemColumn extends EnumBase
         return in_array($key, [static::WORKFLOW_STATUS, static::WORKFLOW_WORK_USERS]);
     }
     
-    public static function getEnum($value, $default = null)
+    public static function getEnum($value, $default = null, $include_id = true)
     {
         $enum = parent::getEnum($value, $default);
         if (isset($enum)) {
             return $enum;
         }
 
-        foreach (self::$options as $key => $v) {
-            if (array_get($v, 'id') == $value) {
-                return parent::getEnum($key);
+        if ($include_id) {
+            foreach (self::$options as $key => $v) {
+                if (array_get($v, 'id') == $value) {
+                    return parent::getEnum($key);
+                }
             }
         }
         return $default;
