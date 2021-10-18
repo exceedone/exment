@@ -35,7 +35,7 @@
     },
     "require-dev": {
         "symfony/css-selector": "~4.2",
-        "laravel/browser-kit-testing": "~5.2",
+        "laravel/browser-kit-testing": "~6.2",
         "dms/phpunit-arraysubset-asserts": "~0.1"
     },
     "autoload": {
