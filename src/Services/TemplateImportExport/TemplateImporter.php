@@ -438,6 +438,9 @@ class TemplateImporter
             foreach ($settings['custom_tables'] as &$custom_table) {
                 $custom_table = array_dot_reverse($custom_table);
 
+                if (!isset($custom_table['order']) || !is_numeric($custom_table['order'])) {
+                    array_set($custom_table, 'order', 0);
+                }
                 $form_action_disable_flg = array_get($custom_table, 'options.form_action_disable_flg');
                 if (!is_nullorempty($form_action_disable_flg)) {
                     array_set($custom_table, 'options.form_action_disable_flg', stringToArray($form_action_disable_flg));
@@ -457,6 +460,9 @@ class TemplateImporter
                     continue;
                 }
 
+                if (!isset($custom_column['order']) || !is_numeric($custom_column['order'])) {
+                    array_set($custom_column, 'order', 0);
+                }
                 // if contains select_import_column_name ans select_export_column_name, set
                 if (array_key_value_exists('options.select_import_column_name', $custom_column)) {
                     $custom_column['options.select_import_table_name'] = array_get($custom_column, 'options.select_target_table_name');
