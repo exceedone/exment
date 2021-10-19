@@ -2018,7 +2018,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $items->put($selected_custom_value->id, $selected_custom_value->label);
         });
 
-        return $items->unique();
+        return $items->unique(function ($item, $key) {
+            return $key;
+        });
     }
 
     /**
