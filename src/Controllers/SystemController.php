@@ -156,8 +156,13 @@ class SystemController extends AdminControllerBase
         $form->hidden('advanced')->default(1);
         $form->ignore('advanced');
 
+        $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
+        if (empty($grid_per_pages)) {
+            $grid_per_pages = Define::PAGER_GRID_COUNTS;
+        }
+
         $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
-        ->options(getPagerOptions())
+        ->options(getPagerOptions(false, $grid_per_pages))
         ->disableClear()
         ->default(20)
         ->help(exmtrans("system.help.grid_pager_count"));
