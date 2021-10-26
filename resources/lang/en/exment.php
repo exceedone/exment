@@ -176,6 +176,7 @@ return [
         'maintenance' => 'The site is currently under maintenance. This screen is mainly displayed during the Exment update.<br />* If this screen is displayed forever, follow the procedure at the URL below to cancel the maintenance.',
         'maintenance_id' => 'Release maintenance mode',
         'check_error_log' => 'The error details are output to the log file. Please contact the administrator.',
+        'class_load_error' => 'Failed to load the following code. Please review the description.<br />Target File: %s<br />Error Detail: %s',
     ],
 
     'install' => [
