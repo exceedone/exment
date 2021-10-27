@@ -193,7 +193,18 @@ class SystemController extends AdminControllerBase
             ->options(Enums\DataSubmitRedirect::transKeyArray("admin", false))
             ->help(exmtrans("system.help.data_submit_redirect"));
 
-  
+        $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))
+            ->help(exmtrans('system.help.header_user_info'))
+            ->config('maximumSelectionLength', 2)
+            ->options(function ($option) {
+                $options = CustomTable::getEloquent(SystemTableName::USER)->getColumnsSelectOptions([
+                    'include_system' => false,
+                    'ignore_attachment' => true
+                ]);
+                $options[SystemColumn::CREATED_AT] = exmtrans('common.created_at');
+                return $options;
+            });
+            
         $form->exmheader(exmtrans('system.publicform'))->hr();
         $form->switchbool('publicform_available', exmtrans("system.publicform_available"))
             ->default(0)
