@@ -54,8 +54,8 @@ class FileRule implements Rule
     {
         if (is_string($value)) {
             $ext = pathinfo($value, PATHINFO_EXTENSION);
-            return collect($this->extensions)->contains(function($val) use($ext) {
-                return strcasecmp($val, $ext) == 0; 
+            return collect($this->extensions)->contains(function ($val) use ($ext) {
+                return strcasecmp($val, $ext) == 0;
             });
         }
 
@@ -63,8 +63,8 @@ class FileRule implements Rule
             $original_name = $value->getClientOriginalName();
             if (!is_nullorempty($original_name)) {
                 $ext = pathinfo($original_name, PATHINFO_EXTENSION);
-                return collect($this->extensions)->contains(function($val) use($ext) {
-                    return strcasecmp($val, $ext) == 0; 
+                return collect($this->extensions)->contains(function ($val) use ($ext) {
+                    return strcasecmp($val, $ext) == 0;
                 });
             }
         }

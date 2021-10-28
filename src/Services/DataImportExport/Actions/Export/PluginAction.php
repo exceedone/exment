@@ -90,7 +90,7 @@ class PluginAction extends CustomTableAction
 
             $response->send();
             exit;
-    }
+        }
         // Delete if exception
         finally {
             if (isset($file) && is_string($file) && \File::exists($file)) {

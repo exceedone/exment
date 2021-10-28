@@ -699,7 +699,6 @@ class DefaultGrid extends GridBase
     public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
-            
             $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
             if (empty($grid_per_pages)) {
                 $grid_per_pages = Define::PAGER_GRID_COUNTS;
