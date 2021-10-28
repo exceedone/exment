@@ -675,6 +675,11 @@
                         {
                             "form_column_type": "0",
                             "options": null,
+                            "form_column_target_name": "mail_from_view_name"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
                             "form_column_target_name": "mail_subject"
                         },
                         {
