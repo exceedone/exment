@@ -5,6 +5,7 @@ namespace Exceedone\Exment\DataItems\Grid;
 use Encore\Admin\Grid;
 use Encore\Admin\Form;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
@@ -31,6 +32,12 @@ class SummaryGrid extends GridBase
 
         $this->setGrid($grid);
 
+        $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
+        if (empty($grid_per_pages)) {
+            $grid_per_pages = Define::PAGER_GRID_COUNTS;
+        }
+        $grid->perPages($grid_per_pages);
+
         $grid->disableCreateButton();
         $grid->disableFilter();
         //$grid->disableActions();
@@ -43,7 +50,7 @@ class SummaryGrid extends GridBase
         if (!$isShowViewSummaryDetail) {
             $grid->disableActions();
         }
-
+        
         $_this = $this;
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($_this, $isShowViewSummaryDetail, $custom_view, $table_name) {
             $actions->disableDelete();
