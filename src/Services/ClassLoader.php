@@ -56,8 +56,12 @@ class ClassLoader
             if (!$file) {
                 continue;
             }
-            
-            require_once $file;
+            try {
+                require_once $file;
+            } catch (\Throwable $th) {
+                admin_error(exmtrans('common.error'), exmtrans('error.class_load_error', $file, $th->getMessage()));
+                \Log::error($th);
+            }
         }
     }
 

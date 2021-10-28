@@ -83,7 +83,7 @@ class LoginService
     {
         // get custom login user
         $custom_login_user = System::requestSession(Define::SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER);
-        if (is_nullorempty($custom_login_user) || $custom_login_user != LoginType::OAUTH) {
+        if (is_nullorempty($custom_login_user) || $custom_login_user->login_type != LoginType::OAUTH) {
             return;
         }
 

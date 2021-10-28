@@ -176,6 +176,7 @@ return [
         'maintenance' => 'The site is currently under maintenance. This screen is mainly displayed during the Exment update.<br />* If this screen is displayed forever, follow the procedure at the URL below to cancel the maintenance.',
         'maintenance_id' => 'Release maintenance mode',
         'check_error_log' => 'The error details are output to the log file. Please contact the administrator.',
+        'class_load_error' => 'Failed to load the following code. Please review the description.<br />Target File: %s<br />Error Detail: %s',
     ],
 
     'install' => [
@@ -259,6 +260,7 @@ return [
         'filter_search_type' => 'Data search method',
         'grid_filter_disable_flg' => 'Disable Grid Filter',
         'data_submit_redirect' => 'Data Submit Redirect',
+        'header_user_info' => 'Header User Information',
         'api_available' => 'API Available',
         'outside_api' => 'Perform server external communication',
         'permission_available' => 'Use Role Management',
@@ -420,6 +422,7 @@ return [
             'filter_search_type' => 'Set the search method for registered data. *In the case of partial match, performance may be affected depending on the number of data.',
             'grid_filter_disable_flg' => 'The checked item will be hidden in the filter item of the data list page.',
             'data_submit_redirect' => 'You can set the default value for the page to redirect after saving custom data. When this item is set, the check box for the data transition destination after saving will be checked on the data entry page.',
+            'header_user_info' => 'You can set the content to be displayed in the user information in the header. If left blank, it will be hidden.',
             'api_available' => 'If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',

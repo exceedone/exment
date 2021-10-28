@@ -91,7 +91,7 @@
                     @foreach($custom_form_block['suggests'] as $suggest)
                     <div class="custom_form_column_block_inner">
                         <h5>{{$suggest['label']}}
-                            @if($suggest['form_column_type'] == 'column')
+                            @if($suggest['form_column_type'] == '0')
                                 <button type="button" class="btn-addallitems btn btn-xs btn-default"><i class="fa fa-arrow-left"></i>&nbsp;{{ exmtrans('custom_form.add_all_items') }}</button>
                             @endif
                         </h5>

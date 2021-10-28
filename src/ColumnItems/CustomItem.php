@@ -287,8 +287,10 @@ abstract class CustomItem implements ItemInterface
     {
         $default_type = array_get($this->form_column_options, 'default_type');
         $default = array_get($this->form_column_options, 'default');
-        $default_type = is_nullorempty($default_type)? array_get($this->custom_column->options, 'default_type'):$default_type;
-        $default = is_nullorempty($default)? array_get($this->custom_column->options, 'default'):$default;
+        if (is_nullorempty($default_type) && is_nullorempty($default)) {
+            $default_type = array_get($this->custom_column->options, 'default_type');
+            $default = array_get($this->custom_column->options, 'default');
+        }
 
         return [$default_type, $default];
     }

@@ -136,6 +136,12 @@ class DefaultGrid extends GridBase
             $grid->paginate(intval($pager_count));
         }
 
+        $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
+        if (empty($grid_per_pages)) {
+            $grid_per_pages = Define::PAGER_GRID_COUNTS;
+        }
+        $grid->perPages($grid_per_pages);
+        
         // set with
         $custom_table->setQueryWith($grid->model(), $this->custom_view);
     }
@@ -453,7 +459,8 @@ class DefaultGrid extends GridBase
                     } else {
                         foreach ($this->custom_table->custom_operations as $custom_operation) {
                             if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
-                                $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                                $title = $custom_operation->getOption('button_label') ?? $custom_operation->operation_name;
+                                $batch->add($title, new GridTools\BatchUpdate($custom_operation));
                             }
                         }
                     }
@@ -692,9 +699,14 @@ class DefaultGrid extends GridBase
     public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
+            $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
+            if (empty($grid_per_pages)) {
+                $grid_per_pages = Define::PAGER_GRID_COUNTS;
+            }
+
             $form->select('pager_count', exmtrans("common.pager_count"))
                 ->required()
-                ->options(getPagerOptions(true))
+                ->options(getPagerOptions(true, $grid_per_pages))
                 ->config('allowClear', false)
                 ->default(0);
         }

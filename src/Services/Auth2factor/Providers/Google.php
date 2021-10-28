@@ -6,7 +6,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Model\Define;
-use Illuminate\Http\Request;
 use Exceedone\Exment\Controllers\AuthTrait;
 use PragmaRX\Google2FA\Google2FA;
 use Carbon\Carbon;

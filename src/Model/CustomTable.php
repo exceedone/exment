@@ -2018,7 +2018,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $items->put($selected_custom_value->id, $selected_custom_value->label);
         });
 
-        return $items->unique();
+        return $items->unique(function ($item, $key) {
+            return $key;
+        });
     }
 
     /**
@@ -2732,7 +2734,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
             
             // check custom table permission(system and table)
-            elseif (array_key_exists(Permission::CUSTOM_TABLE, $permission_details)) {
+            elseif (RoleType::SYSTEM == $role_type
+                && array_key_exists(Permission::CUSTOM_TABLE, $permission_details)) {
                 return true;
             }
 
@@ -3027,7 +3030,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if (!$this->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_EXPORT])) {
             return ErrorCode::PERMISSION_DENY();
         }
 
@@ -3049,7 +3052,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if (!$this->hasPermission(Permission::CUSTOM_VALUE_IMPORT)) {
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_IMPORT])) {
             return ErrorCode::PERMISSION_DENY();
         }
 

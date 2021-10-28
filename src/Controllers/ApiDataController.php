@@ -901,8 +901,9 @@ class ApiDataController extends AdminControllerTableBase
         // get target ids
         $ids = \DB::query()->fromSub($query, 'sub')->pluck('id');
 
+        $result = clone $model;
         // return as eloquent
-        return $model->whereIn("$db_table_name.id", $ids);
+        return $result->whereIn("$db_table_name.id", $ids);
     }
 
     /**
