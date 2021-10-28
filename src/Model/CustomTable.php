@@ -3030,7 +3030,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if (!$this->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_EXPORT])) {
             return ErrorCode::PERMISSION_DENY();
         }
 
@@ -3052,7 +3052,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if (!$this->hasPermission(Permission::CUSTOM_VALUE_IMPORT)) {
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_IMPORT])) {
             return ErrorCode::PERMISSION_DENY();
         }
 

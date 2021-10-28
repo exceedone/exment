@@ -1779,7 +1779,7 @@ abstract class CustomValue extends ModelBase
         }
 
         // if not has share data, return false
-        if (!$custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+        if (!$custom_table->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_SHARE])) {
             return false;
         }
 
