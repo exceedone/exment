@@ -38,7 +38,7 @@ class CheckLangCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
@@ -52,6 +52,7 @@ class CheckLangCommand extends Command
 
             $this->checkTrans(['exment::exment'], $jaTrans, $lang);
         }
+        return 0;
     }
     
     protected function checkTrans(array $keys, $jat, $lang)

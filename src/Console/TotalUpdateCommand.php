@@ -38,7 +38,7 @@ class TotalUpdateCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
@@ -46,5 +46,6 @@ class TotalUpdateCommand extends Command
             'backup' => boolval($this->option('backup') ?? true),
             'publish' => boolval($this->option('publish') ?? true),
         ]);
+        return 0;
     }
 }

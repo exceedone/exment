@@ -44,7 +44,7 @@ class InstallCommand extends AdminInstallCommand
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
@@ -57,6 +57,7 @@ class InstallCommand extends AdminInstallCommand
         $this->initAdminDirectory();
 
         //$this->call('passport:keys');
+        return 0;
     }
 
     /**

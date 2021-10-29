@@ -72,7 +72,7 @@ class PatchDataCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
@@ -81,151 +81,152 @@ class PatchDataCommand extends Command
         switch ($name) {
             case 'convert_select_table_column':
                 $this->convertSelectTableColumn();
-                return;
+                return 0;
             case 'rmcomma':
                 $this->removeDecimalComma();
-                return;
+                return 0;
             case 'use_label_flg':
                 $this->modifyUseLabelFlg();
-                return;
+                return 0;
             case 'alter_index_hyphen':
                 $this->reAlterIndexContainsHyphen();
-                return;
+                return 0;
             case 'alter_index_all':
                 $this->reAlterIndexAll();
-                return;
+                return 0;
             case '2factor':
                 $this->import2factorTemplate();
-                return;
+                return 0;
             case 'zip_password':
                 $this->importZipPasswordTemplate();
-                return;
+                return 0;
             case 'workflow_mail_template':
                 $this->importWorkflowTemplate();
-                return;
+                return 0;
             case 'system_flg_column':
                 $this->patchSystemFlgColumn();
-                return;
+                return 0;
             case 'role_group':
                 $this->roleToRoleGroup();
-                return;
+                return 0;
             case 'notify_saved':
                 $this->updateSavedTemplate();
-                return;
+                return 0;
             case 'alldata_view':
                 $this->copyViewColumnAllDataView();
-                return;
+                return 0;
             case 'init_column':
                 $this->initOnlyCodeColumn();
-                return;
+                return 0;
             case 'move_plugin':
                 $this->movePluginFolder();
-                return;
+                return 0;
             case 'move_template':
                 //$this->moveTemplateFolder();
-                return;
+                return 0;
             case 'remove_deleted_table_notify':
                 $this->removeDeletedTableNotify();
-                return;
+                return 0;
             case 'revisionable_type':
                 $this->patchRevisionableType();
-                return;
+                return 0;
             case 'parent_org_type':
                 $this->patchParentOrg();
-                return;
+                return 0;
             case 'remove_deleted_column':
                 $this->removeDeletedColumn();
-                return;
+                return 0;
             case 'remove_deleted_relation':
                 $this->removeDeletedRelation();
-                return;
+                return 0;
             case 'chartitem_x_label':
                 $this->patchDashboardBoxSummaryX();
-                return;
+                return 0;
             case 'back_slash_replace':
                 $this->patchFileNameBackSlash();
-                return;
+                return 0;
             case 'remove_stored_revision':
                 $this->removeStoredRevision();
-                return;
+                return 0;
             case 'login_type_sso':
                 $this->setLoginTypeSso();
                 // no break
             case 'patch_log_opelation':
                 $this->patchLogOpelation();
-                return;
+                return 0;
             case 'plugin_all_user_enabled':
                 $this->patchAllUserEnabled();
-                return;
+                return 0;
             case 'view_column_suuid':
                 $this->patchViewColumnSuuid();
-                return;
+                return 0;
             case 'view_filter_suuid':
                 $this->patchViewFilterSuuid();
-                return;
+                return 0;
             case 'patch_form_column_relation':
                 $this->patchFormColumnRelation();
-                return;
+                return 0;
             case 'clear_form_column_relation':
                 $this->clearFormColumnRelation();
-                return;
+                return 0;
             case 'patch_freeword_search':
                 $this->setFreewordSearchOption();
-                return;
+                return 0;
             case 'init_custom_operation_type':
                 $this->initCustomOperationType();
-                return;
+                return 0;
             case 'set_env':
                 $this->setEnv();
-                return;
+                return 0;
             case 'patch_view_dashboard':
                 $this->patchViewDashboard();
-                return;
+                return 0;
             case 'update_notify_difinition':
                 $this->updateNotifyDifinition();
-                return;
+                return 0;
             case 'update_calc_formula':
                 $this->updateCalcFormula();
-                return;
+                return 0;
             case 'patch_view_only':
                 $this->patchViewOnly();
-                return;
+                return 0;
             case 'form_column_row_no':
                 $this->patchFormColumnRowNo();
-                return;
+                return 0;
             case 'patch_condition':
                 $this->updateCondition();
-                return;
+                return 0;
             case 'delete_junk_file':
                 $this->deleteJunkFile();
-                return;
+                return 0;
             case 'publicform_mail_template':
                 $this->importPublicformTemplate();
-                return;
+                return 0;
             case 'append_column_mail_from_view_name':
                 $this->appendColumnMailFromViewName();
-                return;
+                return 0;
             case 'notify_target_id':
                 $this->notifyTargetId();
-                return;
+                return 0;
             case 'select_table_user_org':
                 $this->patchSelectTableUserOrg();
-                return;
+                return 0;
             case 'set_file_type':
                 $this->setFileType();
-                return;
+                return 0;
             case 'patch_custom_view_summary_view_pivot':
                 $this->patchCustomViewSummaryViewPivot();
-                return;
+                return 0;
             case 'patch_notify_time':
                 $this->patchNotifyTime();
-                return;
+                return 0;
             case 'set_file_parent':
                 $this->setFileParent();
-                return;
+                return 0;
         }
 
         $this->error('patch name not found.');
+        return 1;
     }
 
     /**

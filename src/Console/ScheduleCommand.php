@@ -41,7 +41,7 @@ class ScheduleCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
@@ -49,6 +49,7 @@ class ScheduleCommand extends Command
         $this->notify();
         $this->backup();
         $this->pluginBatch();
+        return 0;
     }
 
     protected function backup()

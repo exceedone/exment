@@ -44,14 +44,14 @@ class RestoreCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle()
     {
         $message = preg_replace('/<br>/u', '', exmtrans('backup.message.restore_caution'));
 
         if (!boolval($this->option('yes')) && !$this->confirm($message)) {
-            return;
+            return 1;
         }
 
         try {
@@ -63,12 +63,13 @@ class RestoreCommand extends Command
             $result = $this->restore->execute($file, $tmp);
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
-            return;
+            return 1;
         } catch (\Exception $e) {
             throw $e;
         } finally {
             $this->restore->diskService()->deleteTmpDirectory();
         }
+        return 0;
     }
 
     protected function getFile()

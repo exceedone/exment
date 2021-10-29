@@ -38,7 +38,7 @@ class NotifyTestCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
@@ -67,5 +67,6 @@ class NotifyTestCommand extends Command
             return -1;
         } finally {
         }
+        return 0;
     }
 }
