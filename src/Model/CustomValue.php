@@ -579,7 +579,7 @@ abstract class CustomValue extends ModelBase
         // https://github.com/z-song/laravel-admin/issues/1024
         // because on value edit display, if before upload file and not upload again, don't post value.
         $value = $this->value;
-        $original = json_decode($this->getOriginal('value'), true);
+        $original = json_decode($this->getRawOriginal('value'), true);
         // get  columns
         $custom_columns = $this->custom_table->custom_columns_cache;
 

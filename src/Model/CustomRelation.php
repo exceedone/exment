@@ -316,7 +316,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     public function deletingChildren()
     {
         $target = $this->parent_custom_table;
-        $original_child_id = $this->getOriginal('child_custom_table_id');
+        $original_child_id = $this->getRawOriginal('child_custom_table_id');
 
         // delete child form block
         foreach ($target->custom_forms as $item) {

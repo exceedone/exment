@@ -404,7 +404,7 @@ class LoginSetting extends ModelBase
     protected function setBcrypt()
     {
         $keys = ['saml_sp_x509', 'saml_sp_privatekey', 'saml_idp_x509'];
-        $originals = jsonToArray($this->getOriginal('options'));
+        $originals = jsonToArray($this->getRawOriginal('options'));
 
         foreach ($keys as $key) {
             $value = $this->getOption($key);

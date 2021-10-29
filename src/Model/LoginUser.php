@@ -193,7 +193,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     protected function setBcryptPassword()
     {
         $password = $this->password;
-        $original = $this->getOriginal('password');
+        $original = $this->getRawOriginal('password');
 
         if (!isset($password)) {
             return;
