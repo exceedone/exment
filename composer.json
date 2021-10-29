@@ -2,7 +2,14 @@
     "name": "exceedone/exment",
     "description": "Management for Product, Client, Contracts, Subscription, ...",
     "type": "library",
-    "keywords": ["CMS", "SFA", "Dynamic Table", "Free", "Custom Database", "Custom Table"],
+    "keywords": [
+        "CMS",
+        "SFA",
+        "Dynamic Table",
+        "Free",
+        "Custom Database",
+        "Custom Table"
+    ],
     "homepage": "https://exment.net",
     "license": "GPL-3.0-or-later",
     "authors": [
@@ -29,11 +36,11 @@
         "laravel/slack-notification-channel": "^2.3",
         "lcobucci/jwt": "3.3.*",
         "composer/composer": "^2.0",
+        "exceedone/laravel-admin": "dev-feature/laravel7",
         "kylekatarnls/update-helper": "^1.2",
         "renatomarinho/laravel-page-speed": "^1.8.11"
     },
     "require-dev": {
-        "exceedone/laravel-admin": "dev-laravel7",
         "symfony/css-selector": "~5.2",
         "laravel/browser-kit-testing": "~6.2",
         "dms/phpunit-arraysubset-asserts": "~0.1"
@@ -56,11 +63,5 @@
                 "ExmentDB": "Exceedone\\Exment\\Facades\\ExmentDBFacade"
             }
         }
-    },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/oreno4649/laravel-admin.git"
-        }
-    ]
+    }
 }
