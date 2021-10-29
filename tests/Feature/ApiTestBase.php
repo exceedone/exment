@@ -44,7 +44,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get Password token
      *
-     * @return \Illuminate\Foundation\Testing\TestResponse
+     * @return Illuminate\Testing\TestResponse
      */
     protected function getPasswordToken($user_code, $password, $scope = [])
     {
@@ -68,7 +68,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get API Key
      *
-     * @return \Illuminate\Foundation\Testing\TestResponse
+     * @return \Illuminate\Testing\TestResponse
      */
     protected function getApiKey($scope = [])
     {
