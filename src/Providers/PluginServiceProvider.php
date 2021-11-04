@@ -96,6 +96,10 @@ class PluginServiceProvider extends ServiceProvider
                 $prefix = $pluginPage->getDashboardUri();
                 $defaultFunction = 'body';
                 break;
+            case PluginType::CRUD:
+                $prefix = $pluginPage->getRouteUri();
+                $defaultFunction = 'index';
+                break;
         }
         $isApi = $plugin_type == PluginType::API;
 

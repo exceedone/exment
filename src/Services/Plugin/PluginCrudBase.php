@@ -2,11 +2,12 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 use Encore\Admin\Widgets\Form;
+use Illuminate\Http\Request;
 
 /**
  * Plugin CRUD(and List)
  */
-abstract class PluginCrudBase
+abstract class PluginCrudBase extends PluginPublicBase
 {
     use PluginBase, PluginPageTrait;
     
@@ -14,7 +15,34 @@ abstract class PluginCrudBase
     {
         $this->plugin = $plugin;
         $this->pluginOptions = new PluginOption\PluginOptionBatch($options);
+        $this->setConnection();
     }
+    
+    public function _plugin()
+    {
+        return $this->plugin;
+    }
+    
+    /**
+     * Get route uri for page
+     *
+     * @return string
+     */
+    public function getRouteUri($endpoint = null)
+    {
+        if (!isset($this->plugin)) {
+            return null;
+        }
+
+        return $this->plugin->getRouteUri($endpoint);
+    }
+
+    /**
+     * Set external connection
+     *
+     * @return array
+     */
+    abstract public function setConnection();
 
     /**
      * Get fields definitions
@@ -49,12 +77,12 @@ abstract class PluginCrudBase
      *
      * @return mixed
      */
-    abstract public function postCreate(array $posts, array $options = []) : mixed;
+    abstract public function postCreate(array $posts, array $options = []);
 
     /**
      * edit posted value
      *
      * @return mixed
      */
-    abstract public function putEdit(Request $request, $primaryValue, array $posts, array $options = []) : mixed;
+    abstract public function putEdit(Request $request, $primaryValue, array $posts, array $options = []);
 }

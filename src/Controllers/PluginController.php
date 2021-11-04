@@ -257,6 +257,9 @@ class PluginController extends AdminControllerBase
                 if ($plugin->matchPluginType(PluginType::API)) {
                     $form->display('endpoint_api', exmtrans("plugin.options.endpoint_api"))->default($plugin->getRootUrl(PluginType::API))->help(exmtrans("plugin.help.endpoint"));
                 }
+                if ($plugin->matchPluginType(PluginType::CRUD)) {
+                    $form->display('endpoint_crud', exmtrans("plugin.options.endpoint_crud"))->default($plugin->getRootUrl(PluginType::CRUD))->help(exmtrans("plugin.help.endpoint"));
+                }
             } elseif ($plugin->matchPluginType(PluginType::BATCH) && !$command_only) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))

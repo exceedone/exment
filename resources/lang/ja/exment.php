@@ -618,6 +618,7 @@ return [
             'uri' => 'URI',
             'endpoint_page' => 'エンドポイント(ページ)',
             'endpoint_api' => 'エンドポイント(API)',
+            'endpoint_crud' => 'エンドポイント(CRUD)',
             'all_user_enabled' => 'すべてのユーザーが利用可能',
             'export_types' => 'エクスポートの種類',
             'export_description' => '説明文',
@@ -679,6 +680,7 @@ return [
             'event' => 'イベント',
             'button' => 'ボタン',
             'view' => 'ビュー',
+            'crud' => 'CRUDページ',
         ],
     ],
 

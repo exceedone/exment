@@ -22,6 +22,8 @@ use Exceedone\Exment\Services\Plugin\PluginPublicDefault;
  * @method static PluginType EXPORT()
  * @method static PluginType BUTTON()
  * @method static PluginType EVENT()
+ * @method static PluginType VIEW()
+ * @method static PluginType CRUD()
  */
 class PluginType extends EnumBase
 {
@@ -39,6 +41,7 @@ class PluginType extends EnumBase
     public const BUTTON = '11';
     public const EVENT = '12';
     public const VIEW = '13';
+    public const CRUD = '14';
     
     /**
      * Plugin type. Can call from endpoint.
@@ -53,6 +56,7 @@ class PluginType extends EnumBase
             static::STYLE,
             static::API,
             static::VIEW,
+            static::CRUD,
         ];
     }
 
@@ -67,6 +71,7 @@ class PluginType extends EnumBase
             static::DASHBOARD,
             static::API,
             static::VIEW,
+            static::CRUD,
         ];
     }
 
@@ -173,6 +178,7 @@ class PluginType extends EnumBase
         return [
             static::API,
             static::PAGE,
+            static::CRUD,
         ];
     }
 
@@ -236,6 +242,7 @@ class PluginType extends EnumBase
                     );
                 case PluginType::PAGE:
                 case PluginType::API:
+                case PluginType::CRUD:
                     return new $classname($plugin);
                 case PluginType::DASHBOARD:
                     return new $classname($plugin, array_get($options, 'dashboard_box'));
