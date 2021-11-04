@@ -6,7 +6,7 @@ use Encore\Admin\Widgets\Form;
 /**
  * Plugin CRUD(and List)
  */
-class PluginCrudBase
+abstract class PluginCrudBase
 {
     use PluginBase, PluginPageTrait;
     
@@ -17,105 +17,44 @@ class PluginCrudBase
     }
 
     /**
-     * GET fields definitions
+     * Get fields definitions
      *
      * @return array
      */
-    public function getFieldDefinitions() : array
-    {
-        // ToDo:テスト用
-        return [
-            'id' => ['label' => 'ID', 'primary' => true],
-            'name' => ['label' => '名前'],
-            'sex' => ['label' => '性別'],
-            'age' => ['label' => '年齢'],
-            'ikemen' => ['label' => 'イケメンかどうか'],
-        ];
-    }
+    abstract public function getFieldDefinitions() : array;
 
     /**
-     * GET data list
+     * Get data list
      *
      * @return array
      */
-    public function getList(array $options = []) : array
-    {
-        $values = \DB::table('members')->paginate();
-        return $values;
-        // ToDo:テスト用
-        // return [
-        //     ['name' => '佐藤', 'sex' => 'male'],
-        //     ['name' => '鈴木', 'sex' => 'female'],
-        // ];
-    }
+    abstract public function getList(array $options = []) : array;
 
     /**
      * read single data
      *
      * @return array
      */
-    public function getSingleData($primaryValue, array $options = []) : array
-    {
-        // ToDo:テスト用
-        $value = \DB::table('members')->find($primaryValue);
-        return $value;
-    }
+    abstract public function getSingleData($primaryValue, array $options = []) : array;
 
     /**
-     * get create form
+     * set form info
      *
      * @return Form
      */
-    public function setForm(Form $form, array $options = []) : Form
-    {
-        // ToDo:テスト用
-        $form->text('name');
-        $form->select('sex', ['make' => '男性', 'female' => '女性']);
-        $form->numver('age');
-        $form->switchbool('ikemen');
-
-        return $form;
-    }
+    abstract public function setForm(Form $form, bool $isCreate, array $options = []) : Form;
     
     /**
-     * post create form
+     * post create value
      *
      * @return mixed
      */
-    public function postCreate(array $posts, array $options = []) : mixed
-    {
-        // ToDo:テスト用
-        // 独自のデータベースに保存する。
-        $posts = array_only($posts, [
-            'name',
-            'sex',
-            'age',
-            'ikemen'
-        ]);
-        
-        $value = \DB::table('members')->create($posts);
-
-        // 主キーを戻す・・・が良いのかな。
-    }
+    abstract public function postCreate(array $posts, array $options = []) : mixed;
 
     /**
-     * post create form
+     * edit posted value
      *
      * @return mixed
      */
-    public function putEdit(Request $request, array $posts, array $options = []) : mixed
-    {
-        // ToDo:テスト用
-        // 独自のデータベースに保存する。
-        $posts = array_only($posts, [
-            'name',
-            'sex',
-            'age',
-            'ikemen'
-        ]);
-        
-        $value = \DB::table('members')->create($posts);
-
-        // 主キーを戻す・・・が良いのかな。
-    }
+    abstract public function putEdit(Request $request, $primaryValue, array $posts, array $options = []) : mixed;
 }
