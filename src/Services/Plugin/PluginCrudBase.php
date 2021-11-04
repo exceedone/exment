@@ -84,9 +84,6 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return mixed
      */
-<<<<<<< HEAD
-    abstract public function putEdit(Request $request, $primaryValue, array $posts, array $options = []);
-=======
     abstract public function putEdit($primaryValue, array $posts, array $options = []) : mixed;
     
     /**
@@ -151,5 +148,4 @@ abstract class PluginCrudBase extends PluginPublicBase
     {
         return true;
     }
->>>>>>> f8b991839309c5a5a626aec9607353fbf30a1b4d
 }
