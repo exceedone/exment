@@ -84,5 +84,72 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return mixed
      */
+<<<<<<< HEAD
     abstract public function putEdit(Request $request, $primaryValue, array $posts, array $options = []);
+=======
+    abstract public function putEdit($primaryValue, array $posts, array $options = []) : mixed;
+    
+    /**
+     * delete value
+     *
+     * @return mixed
+     */
+    abstract public function delete($primaryValue, array $posts, array $options = []);
+
+
+    /**
+     * Whether create data. If false, disable create button.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableCreate(array $options = []) : bool
+    {
+        return true;
+    }
+
+    /**
+     * Whether edit all data. If false, disable edit button and link.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableEdit(array $options = []) : bool
+    {
+        return true;
+    }
+
+    /**
+     * Whether edit target data. If false, disable edit button and link.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableEditData($primaryValue, array $options = []) : bool
+    {
+        return true;
+    }
+
+    /**
+     * Whether delete all data. If false, disable delete button and link.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableDelete(array $options = []) : bool
+    {
+        return true;
+    }
+
+    /**
+     * Whether delete target data. If false, disable delete button and link.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableDeleteData($primaryValue, array $options = []) : bool
+    {
+        return true;
+    }
+>>>>>>> f8b991839309c5a5a626aec9607353fbf30a1b4d
 }
