@@ -38,13 +38,6 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
-     * Set external connection
-     *
-     * @return array
-     */
-    abstract public function setConnection();
-
-    /**
      * Get fields definitions
      *
      * @return array

@@ -54,40 +54,4 @@ class PluginCrudController extends Controller
 
         return $content;
     }
-
-    public function _readPublicFile(Request $request, ...$args)
-    {
-        // get file path
-        $path = implode('/', $args);
-        
-        // get base path
-        $base_path = $this->plugin->getFullPath();
-        $filePath = path_join($base_path, 'public', $path);
-
-        // if not exists, return 404
-        if (!\File::exists($filePath)) {
-            abort(404);
-        }
-
-        $file = \File::get($filePath);
-        $extension = pathinfo($filePath)['extension'];
-
-        switch ($extension) {
-            case 'css':
-                $mimeType = 'text/css';
-                break;
-            case 'js':
-                $mimeType = 'text/javascript';
-                break;
-            default:
-                $mimeType = \File::mimeType($filePath);
-                break;
-        }
-        
-        // create response
-        $response = Response::make($file, 200);
-        $response->header("Content-Type", $mimeType);
-
-        return $response;
-    }
 }

@@ -108,7 +108,20 @@ class PluginServiceProvider extends ServiceProvider
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',
                 'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : ['adminweb', 'admin'],
-            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $json) {
+            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $plugin_type, $json) {
+                // if crud, set crud routing
+                if($plugin_type == PluginType::CRUD){
+                    $router->get("", "PluginCrudController@index");
+                    $router->get("create", "PluginCrudController@create");
+                    $router->post("", "PluginCrudController@store");
+                    $router->get("{id}/edit", "PluginCrudController@edit");
+                    $router->put("{id}", "PluginCrudController@update");
+                    $router->patch("{id}", "PluginCrudController@update");
+                    $router->delete("{id}", "PluginCrudController@destroy");
+                    $router->get("{id}", "PluginCrudController@show");
+                    return;
+                }
+    
                 $routes = array_get($json, 'route', []);
     
                 // if not has index endpoint, set.
@@ -119,7 +132,7 @@ class PluginServiceProvider extends ServiceProvider
                         'function' => $defaultFunction ?? 'index'
                     ];
                 }
-    
+
                 foreach ($routes as $route) {
                     $method = array_get($route, 'method');
                     $methods = is_string($method) ? [$method] : $method;
