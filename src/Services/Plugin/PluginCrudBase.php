@@ -3,37 +3,13 @@ namespace Exceedone\Exment\Services\Plugin;
 
 use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Grid\Grid;
-use Encore\Admin\Widgets\Table;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
-use Encore\Admin\Grid\Linker;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Services\Plugin\PluginCrud;
-use Exceedone\Exment\Model\CustomForm;
-use Exceedone\Exment\Model\CustomFormBlock;
-use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\CustomFormPriority;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\PublicForm;
-use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\FormLabelType;
-use Exceedone\Exment\Enums\FileType;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\FormBlockType;
-use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ShowGridType;
-use Exceedone\Exment\Services\FormSetting;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Plugin CRUD(and List)
@@ -74,7 +50,35 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @var string
      */
-    protected $gridClass = PluginCrud\CrudGrid::class;
+    public $gridClass = PluginCrud\CrudGrid::class;
+
+    /**
+     * Crud show class name. If customize, change class name.
+     *
+     * @var string
+     */
+    public $showClass = PluginCrud\CrudShow::class;
+
+    /**
+     * Crud create class name. If customize, change class name.
+     *
+     * @var string
+     */
+    public $createClass = PluginCrud\CrudForm::class;
+
+    /**
+     * Crud edit class name. If customize, change class name.
+     *
+     * @var string
+     */
+    public $editClass = PluginCrud\CrudForm::class;
+
+    /**
+     * Crud delete class name. If customize, change class name.
+     *
+     * @var string
+     */
+    public $deleteClass = PluginCrud\CrudForm::class;
 
     
     public function _plugin()
@@ -94,6 +98,19 @@ abstract class PluginCrudBase extends PluginPublicBase
         }
 
         return $this->plugin->getRouteUri($endpoint);
+    }
+
+    /**
+     * Get primary key
+     *
+     * @return string
+     */
+    public function getPrimaryKey() : string
+    {
+        $definitions = $this->getFieldDefinitions();
+        return array_get(collect($definitions)->first(function($definition, $key){
+            return array_boolval($definition, 'primary');
+        }), 'key');
     }
 
     /**
@@ -122,7 +139,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array|Collection
      */
-    abstract public function getSingleData($primaryValue, array $options = []);
+    abstract public function getData($id, array $options = []);
 
     /**
      * set form info
@@ -143,14 +160,15 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return mixed
      */
-    abstract public function putEdit($primaryValue, array $posts, array $options = []);
+    abstract public function putEdit($id, array $posts, array $options = []);
     
     /**
      * delete value
-     *
+     * 
+     * @param $id string|array target ids. If multiple check, calls as array.
      * @return mixed
      */
-    abstract public function delete($primaryValue, array $posts, array $options = []);
+    abstract public function delete($id, array $options = []);
 
 
     /**
@@ -207,6 +225,7 @@ abstract class PluginCrudBase extends PluginPublicBase
     {
         return true;
     }
+    
     /**
      * Whether export data. If false, disable export button and link.
      * Default: false
@@ -216,6 +235,124 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function enableExport(array $options = []) : bool
     {
         return false;
+    }
+
+    /**
+     * Whether freeword search. If true, show search box in grid.
+     * Default: false
+     *
+     * @return bool
+     */
+    public function enableFreewordSearch(array $options = []) : bool
+    {
+        return false;
+    }
+
+
+    /**
+     * Callback grid. If add event, definition.
+     *
+     * @param Grid $grid
+     * @return void
+     */
+    public function callbackGrid(Grid $grid)
+    {
+    }
+
+    /**
+     * Callback show. If add event, definition.
+     *
+     * @param WidgetForm $form
+     * @return void
+     */
+    public function callbackShow(WidgetForm $form, Box $box)
+    {
+    }
+
+    /**
+     * Callback create. If add event, definition.
+     *
+     * @param WidgetForm $form
+     * @return void
+     */
+    public function callbackCreate(WidgetForm $form, Box $box)
+    {
+    }
+
+    /**
+     * Callback edit. If add event, definition.
+     *
+     * @param WidgetForm $form
+     * @return void
+     */
+    public function callbackEdit(WidgetForm $form, Box $box)
+    {
+    }
+
+    /**
+     * Set column difinition for grid. If add event, definition.
+     *
+     * @param Grid $grid
+     * @return void
+     */
+    public function setGridColumnDifinition(Grid $grid, string $key, string $label)
+    {
+        $grid->column($key, $label);
+    }
+
+    /**
+     * Set column difinition for show. If add event, definition.
+     *
+     * @param WidgetForm $form
+     * @return void
+     */
+    public function setShowColumnDifinition(WidgetForm $form, string $key, string $label)
+    {
+        $form->display($key, $label);
+    }
+
+    /**
+     * Set column difinition for create. If add event, definition.
+     *
+     * @param WidgetForm $form
+     * @return void
+     */
+    public function setCreateColumnDifinition(WidgetForm $form, string $key, string $label)
+    {
+        $form->text($key, $label);
+    }
+
+    /**
+     * Set column difinition for edit. If add event, definition.
+     *
+     * @param WidgetForm $form
+     * @return void
+     */
+    public function setEditColumnDifinition(WidgetForm $form, string $key, string $label)
+    {
+        $form->text($key, $label);
+    }
+
+    /**
+     * Set column difinition for form's primary key. If add event, definition.
+     *
+     * @param WidgetForm $form
+     * @return void
+     */
+    public function setFormPrimaryDifinition(WidgetForm $form, string $key, string $label)
+    {
+        $form->display($key, $label);
+    }
+
+    /**
+     * Validate form
+     *
+     * @param WidgetForm $form
+     * @return void
+     */
+    public function validate(WidgetForm $form, array $values, bool $isCreate, $id)
+    {
+        return $form->validationMessageArray($values);
     }
 
     /**
@@ -237,18 +374,5 @@ abstract class PluginCrudBase extends PluginPublicBase
         }
 
         return $content;
-    }
-
-
-    /**
-     * Index. for grid.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function index()
-    {
-        $className = $this->gridClass;
-        return (new $className($this->plugin, $this))->index();
     }
 }

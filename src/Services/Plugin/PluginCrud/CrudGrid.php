@@ -77,14 +77,17 @@ class CrudGrid
             $this->setGridColumn($grid);
         });
 
-        $paginate = $this->pluginClass->getPaginate([
-            $grid->getPerPageName() => request()->get($grid->getPerPageName()),
-        ]);
+        $prms = [
+            'per_page' => request()->get($grid->getPerPageName()),
+        ];
+        if(!is_nullorempty(request()->get('query'))){
+            $prms['query'] = request()->get('query');
+        }
+
+        $paginate = $this->pluginClass->getPaginate($prms);
 
         // get primary key
-        $primary = array_get(collect($definitions)->first(function($definition, $key){
-            return array_boolval($definition, 'primary');
-        }), 'key');
+        $primary = $this->pluginClass->getPrimaryKey();
 
         $grid->setPaginator($paginate)
             ->setResource($this->plugin->getFullUrl());
@@ -96,7 +99,29 @@ class CrudGrid
             $grid->setKeyName($primary);
         }
 
+        $this->pluginClass->callbackGrid($grid);
+
         return $grid;
+    }
+
+
+    /**
+     * Set grid column definition.
+     *
+     * @param Grid $grid
+     * @return void
+     */
+    protected function setGridColumn(Grid $grid){
+        $definitions = $this->pluginClass->getFieldDefinitions();
+        // create table
+        $targets = collect($definitions)
+            ->filter(function($d){
+                return array_has($d, 'grid');
+            })->sortBy('grid');
+
+        foreach($targets as $target){
+            $this->pluginClass->setGridColumnDifinition($grid, array_get($target, 'key'), array_get($target, 'label'));
+        }
     }
 
     /**
@@ -107,13 +132,25 @@ class CrudGrid
      */
     protected function setGridTools(Grid $grid)
     {
-        if(!$this->pluginClass->enableCreate()){
-            $grid->disableCreateButton();
-        }
+        $grid->disableCreateButton();
 
+        if($this->pluginClass->enableFreewordSearch()){
+            $grid->quickSearch(function ($model, $input) {
+            }, 'left');
+        }
+        
         $plugin = $this->plugin;
         $pluginClass = $this->pluginClass;
         $grid->tools(function($tools) use($grid, $plugin, $pluginClass){
+            if($this->pluginClass->enableCreate()){
+                $tools->prepend(view('exment::tools.button', [
+                    'href' => admin_url($this->plugin->getFullUrl('create')),
+                    'label' => trans('admin.new'),
+                    'icon' => 'fa-plus',
+                    'btn_class' => 'btn-success',
+                ])->render(), 'right');
+            }
+            
             if($pluginClass->enableExport()){
                 $button = new Tools\ExportImportButton($plugin->getFullUrl(), $grid, false, true, false);
                 $button->setBaseKey('common');
@@ -140,24 +177,5 @@ class CrudGrid
                 $actions->disableDelete();
             }
         });
-    }
-
-
-    /**
-     * Set grid column definition.
-     *
-     * @param Grid $grid
-     * @return void
-     */
-    protected function setGridColumn(Grid $grid){
-        $definitions = $this->pluginClass->getFieldDefinitions();
-        // create table
-        $targets = collect($definitions)->filter(function($d){
-            return array_boolval($d, 'grid');
-        });
-
-        foreach($targets as $target){
-            $grid->column(array_get($target, 'key'), array_get($target, 'label'));
-        }
     }
 }
