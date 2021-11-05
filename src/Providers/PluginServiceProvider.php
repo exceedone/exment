@@ -111,14 +111,14 @@ class PluginServiceProvider extends ServiceProvider
             ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $plugin_type, $json) {
                 // if crud, set crud routing
                 if($plugin_type == PluginType::CRUD){
-                    $router->get("", "PluginCrudController@index");
-                    $router->get("create", "PluginCrudController@create");
-                    $router->post("", "PluginCrudController@store");
-                    $router->get("{id}/edit", "PluginCrudController@edit");
-                    $router->put("{id}", "PluginCrudController@update");
-                    $router->patch("{id}", "PluginCrudController@update");
-                    $router->delete("{id}", "PluginCrudController@destroy");
-                    $router->get("{id}", "PluginCrudController@show");
+                    $router->get("{endpoint}", "PluginCrudController@index");
+                    $router->get("{endpoint}/create", "PluginCrudController@create");
+                    $router->post("{endpoint}", "PluginCrudController@store");
+                    $router->get("{endpoint}/{id}/edit", "PluginCrudController@edit");
+                    $router->put("{endpoint}/{id}", "PluginCrudController@update");
+                    $router->patch("{endpoint}/{id}", "PluginCrudController@update");
+                    $router->delete("{endpoint}/{id}", "PluginCrudController@destroy");
+                    $router->get("{endpoint}/{id}", "PluginCrudController@show");
                     return;
                 }
     

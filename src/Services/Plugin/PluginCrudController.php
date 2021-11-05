@@ -23,10 +23,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function index()
+    public function index($endpoint)
     {
-        $className = $this->pluginPage->gridClass;
-        return (new $className($this->plugin, $this->pluginPage))->index();
+        $targetClass = $this->getClass($endpoint);
+
+        $className = $targetClass->gridClass;
+        return (new $className($this->plugin, $targetClass))->index();
     }
 
     /**
@@ -34,10 +36,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function show($id)
+    public function show($endpoint, $id)
     {
-        $className = $this->pluginPage->showClass;
-        return (new $className($this->plugin, $this->pluginPage))->show($id);
+        $targetClass = $this->getClass($endpoint);
+
+        $className = $targetClass->showClass;
+        return (new $className($this->plugin, $targetClass))->show($id);
     }
 
     /**
@@ -45,10 +49,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function create()
+    public function create($endpoint)
     {
-        $className = $this->pluginPage->createClass;
-        return (new $className($this->plugin, $this->pluginPage))->create();
+        $targetClass = $this->getClass($endpoint);
+
+        $className = $targetClass->createClass;
+        return (new $className($this->plugin, $targetClass))->create();
     }
 
 
@@ -57,10 +63,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function store()
+    public function store($endpoint)
     {
-        $className = $this->pluginPage->createClass;
-        return (new $className($this->plugin, $this->pluginPage))->store();
+        $targetClass = $this->getClass($endpoint);
+
+        $className = $targetClass->createClass;
+        return (new $className($this->plugin, $targetClass))->store();
     }
 
 
@@ -69,10 +77,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function edit($id)
+    public function edit($endpoint, $id)
     {
-        $className = $this->pluginPage->editClass;
-        return (new $className($this->plugin, $this->pluginPage))->edit($id);
+        $targetClass = $this->getClass($endpoint);
+
+        $className = $targetClass->editClass;
+        return (new $className($this->plugin, $targetClass))->edit($id);
     }
 
     /**
@@ -80,10 +90,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function update($id)
+    public function update($endpoint, $id)
     {
-        $className = $this->pluginPage->editClass;
-        return (new $className($this->plugin, $this->pluginPage))->update($id);
+        $targetClass = $this->getClass($endpoint);
+
+        $className = $targetClass->editClass;
+        return (new $className($this->plugin, $targetClass))->update($id);
     }
 
     /**
@@ -91,16 +103,38 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function destroy($id)
+    public function destroy($endpoint, $id)
     {
-        $className = $this->pluginPage->deleteClass;
-        $result = (new $className($this->plugin, $this->pluginPage))->delete($id);
+        $targetClass = $this->getClass($endpoint);
+
+        $className = $targetClass->deleteClass;
+        $result = (new $className($this->plugin, $targetClass))->delete($id);
 
         return getAjaxResponse([
             'status' => true,
             'message' => trans('admin.delete_succeeded'),
             'redirect' => $result,
         ]);
+    }
+
+
+    /**
+     * Get plugin target class.
+     * *If plugin supports multiple endpoint, get class using endpoint.*
+     *
+     * @param string|null $endpoint
+     * @return PluginCrudBase
+     */
+    protected function getClass(?string $endpoint)
+    {
+        $className = $this->pluginPage->getPluginClassName($endpoint);
+        if(!$className){
+            abort(404);
+        }
+        $class = new $className($this->plugin);
+        $class->setPluginOptions($this->pluginPage->getPluginOptions());
+
+        return $class;
     }
 
     // /**

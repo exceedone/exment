@@ -12,17 +12,8 @@ use Exceedone\Exment\Form\Tools;
 /**
  * Show for Plugin CRUD(and List)
  */
-class CrudShow
+class CrudShow extends CrudBase
 {
-    public function __construct($plugin, $pluginClass, $options = [])
-    {
-        $this->plugin = $plugin;
-        $this->pluginClass = $pluginClass;
-    }
-
-    protected $plugin;
-    protected $pluginClass;
-    
     /**
      * Show. for detil.
      *
@@ -91,13 +82,13 @@ class CrudShow
     {
         if($this->pluginClass->enableDelete() && $this->pluginClass->enableDeleteData($id))
         {
-            $box->tools((new Tools\DeleteButton(admin_url($this->plugin->getFullUrl($id))))->render());
+            $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }
 
         if($this->pluginClass->enableEdit() && $this->pluginClass->enableEditData($id))
         {
             $box->tools(view('exment::tools.button', [
-                'href' => admin_url($this->plugin->getFullUrl(url_join($id, 'edit'))),
+                'href' => admin_url($this->getFullUrl(url_join($id, 'edit'))),
                 'label' => trans('admin.edit'),
                 'icon' => 'fa-edit',
                 'btn_class' => 'btn-primary',
@@ -105,7 +96,7 @@ class CrudShow
         }
 
         $box->tools(view('exment::tools.button', [
-                'href' => admin_url($this->plugin->getFullUrl()),
+                'href' => admin_url($this->getFullUrl()),
                 'label' => trans('admin.list'),
                 'icon' => 'fa-list',
                 'btn_class' => 'btn-default',

@@ -3,51 +3,15 @@ namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Grid\Grid;
-use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
-use Encore\Admin\Grid\Linker;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Layout\Content;
-use Exceedone\Exment\Model\CustomForm;
-use Exceedone\Exment\Model\CustomFormBlock;
-use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\CustomFormPriority;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\PublicForm;
-use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\FormLabelType;
-use Exceedone\Exment\Enums\FileType;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\FormBlockType;
-use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ShowGridType;
-use Exceedone\Exment\Services\FormSetting;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Grid for Plugin CRUD(and List)
  */
-class CrudGrid
+class CrudGrid extends CrudBase
 {
-    public function __construct($plugin, $pluginClass, $options = [])
-    {
-        $this->plugin = $plugin;
-        $this->pluginClass = $pluginClass;
-    }
-
-    protected $plugin;
-    protected $pluginClass;
-    
     /**
      * Index. for grid.
      *
@@ -90,7 +54,7 @@ class CrudGrid
         $primary = $this->pluginClass->getPrimaryKey();
 
         $grid->setPaginator($paginate)
-            ->setResource($this->plugin->getFullUrl());
+            ->setResource($this->getFullUrl());
         
         $this->setGridTools($grid);
         $this->setGridActions($grid);
@@ -144,7 +108,7 @@ class CrudGrid
         $grid->tools(function($tools) use($grid, $plugin, $pluginClass){
             if($this->pluginClass->enableCreate()){
                 $tools->prepend(view('exment::tools.button', [
-                    'href' => admin_url($this->plugin->getFullUrl('create')),
+                    'href' => admin_url($this->getFullUrl('create')),
                     'label' => trans('admin.new'),
                     'icon' => 'fa-plus',
                     'btn_class' => 'btn-success',

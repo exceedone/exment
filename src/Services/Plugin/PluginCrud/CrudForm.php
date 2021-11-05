@@ -3,51 +3,17 @@ namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Grid\Grid;
-use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
-use Encore\Admin\Grid\Linker;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
-use Encore\Admin\Layout\Content;
-use Exceedone\Exment\Model\CustomForm;
-use Exceedone\Exment\Model\CustomFormBlock;
-use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\CustomFormPriority;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\PublicForm;
-use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\FormLabelType;
-use Exceedone\Exment\Enums\FileType;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\FormBlockType;
-use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ShowGridType;
-use Exceedone\Exment\Services\FormSetting;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Form for Plugin CRUD(and List)
  */
-class CrudForm
+class CrudForm extends CrudBase
 {
-    public function __construct($plugin, $pluginClass, $options = [])
-    {
-        $this->plugin = $plugin;
-        $this->pluginClass = $pluginClass;
-    }
-
-    protected $plugin;
-    protected $pluginClass;
-    
     /**
      * Create
      *
@@ -112,7 +78,7 @@ class CrudForm
         $ids = stringToArray($id);
         $this->pluginClass->delete($ids);
         
-        return $this->plugin->getFullUrl();
+        return $this->getFullUrl();
     }
 
     
@@ -167,7 +133,7 @@ class CrudForm
         }
 
         //ToDo:修正。配列かオブジェクトの場合
-        return redirect($this->plugin->getFullUrl($value));
+        return redirect($this->getFullUrl($value));
     }
 
     /**
@@ -209,7 +175,7 @@ class CrudForm
 
         $form = new WidgetForm((array)$data);
         $form->disableReset()
-            ->action($this->plugin->getFullUrl($isCreate ? '' : $id))
+            ->action($this->getFullUrl($isCreate ? '' : $id))
             ->method($isCreate ? 'POST' : 'PUT');
 
         
@@ -260,18 +226,18 @@ class CrudForm
     {
         if($this->pluginClass->enableDelete() && $this->pluginClass->enableDeleteData($id))
         {
-            $box->tools((new Tools\DeleteButton(admin_url($this->plugin->getFullUrl($id))))->render());
+            $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }
 
         $box->tools(view('exment::tools.button', [
-                'href' => admin_url($this->plugin->getFullUrl()),
+                'href' => admin_url($this->getFullUrl()),
                 'label' => trans('admin.list'),
                 'icon' => 'fa-list',
                 'btn_class' => 'btn-default',
             ])->render());
 
         $box->tools(view('exment::tools.button', [
-            'href' => admin_url($this->plugin->getFullUrl($id)),
+            'href' => admin_url($this->getFullUrl($id)),
             'label' => trans('admin.show'),
             'icon' => 'fa-eye',
             'btn_class' => 'btn-primary',

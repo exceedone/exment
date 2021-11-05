@@ -24,6 +24,8 @@ abstract class PluginCrudBase extends PluginPublicBase
         $this->pluginOptions = new PluginOption\PluginOptionCrud($options);
     }
 
+    protected $endpoint = 'crud';
+
     /**
      * content title
      *
@@ -79,39 +81,6 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @var string
      */
     public $deleteClass = PluginCrud\CrudForm::class;
-
-    
-    public function _plugin()
-    {
-        return $this->plugin;
-    }
-    
-    /**
-     * Get route uri for page
-     *
-     * @return string
-     */
-    public function getRouteUri($endpoint = null)
-    {
-        if (!isset($this->plugin)) {
-            return null;
-        }
-
-        return $this->plugin->getRouteUri($endpoint);
-    }
-
-    /**
-     * Get primary key
-     *
-     * @return string
-     */
-    public function getPrimaryKey() : string
-    {
-        $definitions = $this->getFieldDefinitions();
-        return array_get(collect($definitions)->first(function($definition, $key){
-            return array_boolval($definition, 'primary');
-        }), 'key');
-    }
 
     /**
      * Get fields definitions
@@ -169,6 +138,60 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @return mixed
      */
     abstract public function delete($id, array $options = []);
+
+    /**
+     * Get the value of endpoint
+     */ 
+    public function getEndpoint()
+    {
+        return $this->endpoint;
+    }
+
+    /**
+     * Get class name. Toggle using endpoint name.
+     *
+     * @param string|null $endpoint
+     * @return string|null class name
+     */
+    public function getPluginClassName(?string $endpoint)
+    {
+        if($endpoint == $this->endpoint){
+            return get_class($this);
+        }
+        return null;
+    }
+    
+    public function _plugin()
+    {
+        return $this->plugin;
+    }
+    
+    /**
+     * Get route uri for page
+     *
+     * @return string
+     */
+    public function getRouteUri($endpoint = null)
+    {
+        if (!isset($this->plugin)) {
+            return null;
+        }
+
+        return $this->plugin->getRouteUri($endpoint);
+    }
+
+    /**
+     * Get primary key
+     *
+     * @return string
+     */
+    public function getPrimaryKey() : string
+    {
+        $definitions = $this->getFieldDefinitions();
+        return array_get(collect($definitions)->first(function($definition, $key){
+            return array_boolval($definition, 'primary');
+        }), 'key');
+    }
 
 
     /**
