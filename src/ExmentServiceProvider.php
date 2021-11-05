@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Services\Plugin\PluginApiBase;
+use Exceedone\Exment\Services\Plugin\PluginCrudBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -324,6 +325,9 @@ class ExmentServiceProvider extends ServiceProvider
             return Plugin::getPluginPageModel();
         });
         $this->app->bind(PluginApiBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
+        });
+        $this->app->bind(PluginCrudBase::class, function ($app) {
             return Plugin::getPluginPageModel();
         });
         $this->app->bind(PublicForm::class, function ($app) {

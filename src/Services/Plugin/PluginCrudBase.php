@@ -2,7 +2,38 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 use Encore\Admin\Widgets\Form;
+use Encore\Admin\Widgets\Grid\Grid;
+use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Http\Controllers\Controller;
+use Encore\Admin\Facades\Admin;
+use Encore\Admin\Grid\Linker;
+use Encore\Admin\Widgets\Form as WidgetForm;
+use Encore\Admin\Widgets\Box;
+use Encore\Admin\Layout\Content;
+use Exceedone\Exment\Services\Plugin\PluginCrud;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomFormBlock;
+use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Model\CustomFormPriority;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\PublicForm;
+use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\FormLabelType;
+use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ShowGridType;
+use Exceedone\Exment\Services\FormSetting;
+use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Plugin CRUD(and List)
@@ -14,9 +45,37 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function __construct($plugin, $options = [])
     {
         $this->plugin = $plugin;
-        $this->pluginOptions = new PluginOption\PluginOptionBatch($options);
-        $this->setConnection();
+        $this->pluginOptions = new PluginOption\PluginOptionCrud($options);
     }
+
+    /**
+     * content title
+     *
+     * @var string
+     */
+    protected $title;
+
+    /**
+     * content description
+     *
+     * @var string
+     */
+    protected $description;
+
+    /**
+     * content icon
+     *
+     * @var string
+     */
+    protected $icon;
+
+    /**
+     * Crud grid class name. If customize, change class name.
+     *
+     * @var string
+     */
+    protected $gridClass = PluginCrud\CrudGrid::class;
+
     
     public function _plugin()
     {
@@ -40,23 +99,30 @@ abstract class PluginCrudBase extends PluginPublicBase
     /**
      * Get fields definitions
      *
-     * @return array
+     * @return array|Collection
      */
-    abstract public function getFieldDefinitions() : array;
+    abstract public function getFieldDefinitions();
 
     /**
      * Get data list
      *
-     * @return array
+     * @return Collection
      */
-    abstract public function getList(array $options = []) : array;
+    abstract public function getList(array $options = []) : Collection;
+
+    /**
+     * Get data paginate
+     *
+     * @return LengthAwarePaginator
+     */
+    abstract public function getPaginate(array $options = []) : LengthAwarePaginator;
 
     /**
      * read single data
      *
-     * @return array
+     * @return array|Collection
      */
-    abstract public function getSingleData($primaryValue, array $options = []) : array;
+    abstract public function getSingleData($primaryValue, array $options = []);
 
     /**
      * set form info
@@ -77,7 +143,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return mixed
      */
-    abstract public function putEdit($primaryValue, array $posts, array $options = []) : mixed;
+    abstract public function putEdit($primaryValue, array $posts, array $options = []);
     
     /**
      * delete value
@@ -115,7 +181,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableEditData($primaryValue, array $options = []) : bool
+    public function enableEditData($value, array $options = []) : bool
     {
         return true;
     }
@@ -137,8 +203,52 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableDeleteData($primaryValue, array $options = []) : bool
+    public function enableDeleteData($value, array $options = []) : bool
     {
         return true;
+    }
+    /**
+     * Whether export data. If false, disable export button and link.
+     * Default: false
+     *
+     * @return bool
+     */
+    public function enableExport(array $options = []) : bool
+    {
+        return false;
+    }
+
+    /**
+     * Get content
+     *
+     * @return Content
+     */
+    public function getContent() : Content
+    { 
+        $content = new Content();
+        if(!is_nullorempty($title = $this->plugin->getOption('title', $this->title))){
+            $content->header($title);
+        }
+        if(!is_nullorempty($description = $this->plugin->getOption('description', $this->description))){
+            $content->description($description);
+        }
+        if(!is_nullorempty($headericon = $this->plugin->getOption('icon', $this->icon))){
+            $content->headericon($headericon);
+        }
+
+        return $content;
+    }
+
+
+    /**
+     * Index. for grid.
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function index()
+    {
+        $className = $this->gridClass;
+        return (new $className($this->plugin, $this))->index();
     }
 }

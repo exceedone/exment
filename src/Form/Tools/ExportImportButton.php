@@ -28,7 +28,7 @@ class ExportImportButton extends ModalTileMenuButton
      */
     protected $custom_table;
 
-    public function __construct($endpoint, Grid $grid, $view_flg = false, $export_flg = true, $import_flg = true)
+    public function __construct($endpoint, $grid, $view_flg = false, $export_flg = true, $import_flg = true)
     {
         $this->grid = $grid;
         $this->endpoint = $endpoint;
@@ -63,7 +63,7 @@ class ExportImportButton extends ModalTileMenuButton
      *
      * @return $this
      */
-    public function setGrid(Grid $grid)
+    public function setGrid($grid)
     {
         $this->grid = $grid;
 

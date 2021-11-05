@@ -44,6 +44,9 @@ class PluginCrudController extends Controller
         if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
             return $result;
         }
+        if ($result instanceof Content) {
+            return $result;
+        }
 
         $content = new Content;
         $content->row($result);
