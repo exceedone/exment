@@ -224,7 +224,7 @@ class CrudForm extends CrudBase
      */
     protected function setFormTools($id, Box $box)
     {
-        if($this->pluginClass->enableDelete() && $this->pluginClass->enableDeleteData($id))
+        if($this->pluginClass->enableDelete($id))
         {
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }
@@ -236,30 +236,13 @@ class CrudForm extends CrudBase
                 'btn_class' => 'btn-default',
             ])->render());
 
-        $box->tools(view('exment::tools.button', [
-            'href' => admin_url($this->getFullUrl($id)),
-            'label' => trans('admin.show'),
-            'icon' => 'fa-eye',
-            'btn_class' => 'btn-primary',
-        ])->render());
-    }
-
-    /**
-     * Set grid actions.
-     *
-     * @param Grid $grid
-     * @return void
-     */
-    protected function setGridActions(Grid $grid)
-    {
-        $pluginClass = $this->pluginClass;
-        $grid->actions(function($actions) use($pluginClass){
-            if(!$pluginClass->enableEdit() || !$pluginClass->enableEditData($actions->row)){
-                $actions->disableEdit();
-            }
-            if(!$pluginClass->enableDelete() || !$pluginClass->enableDeleteData($actions->row)){
-                $actions->disableDelete();
-            }
-        });
+        if($this->pluginClass->enableShow($id)){
+            $box->tools(view('exment::tools.button', [
+                'href' => admin_url($this->getFullUrl($id)),
+                'label' => trans('admin.show'),
+                'icon' => 'fa-eye',
+                'btn_class' => 'btn-primary',
+            ])->render());
+        }
     }
 }

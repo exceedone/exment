@@ -131,8 +131,10 @@ class PluginCrudController extends Controller
         if(!$className){
             abort(404);
         }
+
         $class = new $className($this->plugin);
-        $class->setPluginOptions($this->pluginPage->getPluginOptions());
+        $class->setPluginOptions($this->pluginPage->getPluginOptions())
+            ->setEndpoint($endpoint);
 
         return $class;
     }

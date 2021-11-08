@@ -87,49 +87,60 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array|Collection
      */
-    abstract public function getFieldDefinitions();
+    public function getFieldDefinitions(){
+        return [];
+    }
 
     /**
      * Get data list
      *
      * @return Collection
      */
-    abstract public function getList(array $options = []) : Collection;
+    public function getList(array $options = []) : Collection{
+        return collect();
+    }
 
     /**
      * Get data paginate
      *
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator|null
      */
-    abstract public function getPaginate(array $options = []) : LengthAwarePaginator;
+    public function getPaginate(array $options = []) : ?LengthAwarePaginator
+    {
+        return null;
+    }
 
     /**
      * read single data
      *
      * @return array|Collection
      */
-    abstract public function getData($id, array $options = []);
+    public function getData($id, array $options = []){
+        return collect();
+    }
 
     /**
      * set form info
      *
-     * @return Form
+     * @return Form|null
      */
-    abstract public function setForm(Form $form, bool $isCreate, array $options = []) : Form;
+    public function setForm(Form $form, bool $isCreate, array $options = []) : ?Form{
+        return null;
+    }
     
     /**
      * post create value
      *
      * @return mixed
      */
-    abstract public function postCreate(array $posts, array $options = []);
+    public function postCreate(array $posts, array $options = []){}
 
     /**
      * edit posted value
      *
      * @return mixed
      */
-    abstract public function putEdit($id, array $posts, array $options = []);
+    public function putEdit($id, array $posts, array $options = []){}
     
     /**
      * delete value
@@ -137,7 +148,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param $id string|array target ids. If multiple check, calls as array.
      * @return mixed
      */
-    abstract public function delete($id, array $options = []);
+    public function delete($id, array $options = []){}
 
     /**
      * Get the value of endpoint
@@ -145,6 +156,18 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function getEndpoint()
     {
         return $this->endpoint;
+    }
+
+    /**
+     * Set the value of endpoint
+     *
+     * @return  self
+     */ 
+    public function setEndpoint($endpoint)
+    {
+        $this->endpoint = $endpoint;
+
+        return $this;
     }
 
     /**
@@ -181,6 +204,17 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
+     * Get full url
+     *
+     * @return string
+     */
+    public function getFullUrl(...$endpoint) : string
+    {
+        array_unshift($endpoint, $this->getEndpoint());
+        return $this->plugin->getFullUrl(...$endpoint);
+    }
+
+    /**
      * Get primary key
      *
      * @return string
@@ -195,6 +229,17 @@ abstract class PluginCrudBase extends PluginPublicBase
 
 
     /**
+     * Whether show data. If false, disable show link.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableShow($value) : bool
+    {
+        return true;
+    }
+
+    /**
      * Whether create data. If false, disable create button.
      * Default: true
      *
@@ -206,34 +251,12 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
-     * Whether edit all data. If false, disable edit button and link.
-     * Default: true
-     *
-     * @return bool
-     */
-    public function enableEdit(array $options = []) : bool
-    {
-        return true;
-    }
-
-    /**
      * Whether edit target data. If false, disable edit button and link.
      * Default: true
      *
      * @return bool
      */
-    public function enableEditData($value, array $options = []) : bool
-    {
-        return true;
-    }
-
-    /**
-     * Whether delete all data. If false, disable delete button and link.
-     * Default: true
-     *
-     * @return bool
-     */
-    public function enableDelete(array $options = []) : bool
+    public function enableEdit($value, array $options = []) : bool
     {
         return true;
     }
@@ -244,7 +267,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableDeleteData($value, array $options = []) : bool
+    public function enableDelete($value, array $options = []) : bool
     {
         return true;
     }
@@ -279,6 +302,17 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @return void
      */
     public function callbackGrid(Grid $grid)
+    {
+    }
+
+
+    /**
+     * Callback grid row action. If add event, definition.
+     *
+     * @param Grid $grid
+     * @return void
+     */
+    public function callbackGridAction($actions)
     {
     }
 
@@ -386,16 +420,46 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function getContent() : Content
     { 
         $content = new Content();
-        if(!is_nullorempty($title = $this->plugin->getOption('title', $this->title))){
+        if(!is_nullorempty($title = $this->plugin->getOption('title', $this->getTitle()))){
             $content->header($title);
         }
-        if(!is_nullorempty($description = $this->plugin->getOption('description', $this->description))){
+        if(!is_nullorempty($description = $this->plugin->getOption('description', $this->getDescription()))){
             $content->description($description);
         }
-        if(!is_nullorempty($headericon = $this->plugin->getOption('icon', $this->icon))){
+        if(!is_nullorempty($headericon = $this->plugin->getOption('icon', $this->getIcon()))){
             $content->headericon($headericon);
         }
 
         return $content;
+    }
+
+    /**
+     * Get content title
+     *
+     * @return  string
+     */ 
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * Get content description
+     *
+     * @return  string
+     */ 
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * Get content icon
+     *
+     * @return  string
+     */ 
+    public function getIcon()
+    {
+        return $this->icon;
     }
 }

@@ -41,9 +41,10 @@ class CrudGrid extends CrudBase
             $this->setGridColumn($grid);
         });
 
-        $prms = [
-            'per_page' => request()->get($grid->getPerPageName()),
-        ];
+        $prms = [];
+        if(!is_nullorempty(request()->get('per_page'))){
+            $prms['per_page'] = request()->get('per_page');
+        }
         if(!is_nullorempty(request()->get('query'))){
             $prms['query'] = request()->get('query');
         }
@@ -134,12 +135,17 @@ class CrudGrid extends CrudBase
     {
         $pluginClass = $this->pluginClass;
         $grid->actions(function($actions) use($pluginClass){
-            if(!$pluginClass->enableEdit() || !$pluginClass->enableEditData($actions->row)){
+            if(!$pluginClass->enableEdit($actions->row)){
                 $actions->disableEdit();
             }
-            if(!$pluginClass->enableDelete() || !$pluginClass->enableDeleteData($actions->row)){
+            if(!$pluginClass->enableDelete($actions->row)){
                 $actions->disableDelete();
             }
+            if(!$pluginClass->enableShow($actions->row)){
+                $actions->disableView();
+            }
+
+            $pluginClass->callbackGridAction($actions);
         });
     }
 }

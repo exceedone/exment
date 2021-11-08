@@ -22,7 +22,6 @@ abstract class CrudBase
      */
     public function getFullUrl(...$endpoint) : string
     {
-        array_unshift($endpoint, $this->pluginClass->getEndpoint());
-        return $this->plugin->getFullUrl(...$endpoint);
+        return $this->pluginClass->getFullUrl(...$endpoint);
     }
 }

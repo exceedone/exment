@@ -80,12 +80,12 @@ class CrudShow extends CrudBase
      */
     protected function setShowTools($id, Box $box)
     {
-        if($this->pluginClass->enableDelete() && $this->pluginClass->enableDeleteData($id))
+        if($this->pluginClass->enableDelete($id))
         {
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }
 
-        if($this->pluginClass->enableEdit() && $this->pluginClass->enableEditData($id))
+        if($this->pluginClass->enableEdit($id))
         {
             $box->tools(view('exment::tools.button', [
                 'href' => admin_url($this->getFullUrl(url_join($id, 'edit'))),
@@ -101,24 +101,5 @@ class CrudShow extends CrudBase
                 'icon' => 'fa-list',
                 'btn_class' => 'btn-default',
             ])->render());
-    }
-
-    /**
-     * Set grid actions.
-     *
-     * @param Grid $grid
-     * @return void
-     */
-    protected function setGridActions(Grid $grid)
-    {
-        $pluginClass = $this->pluginClass;
-        $grid->actions(function($actions) use($pluginClass){
-            if(!$pluginClass->enableEdit() || !$pluginClass->enableEditData($actions->row)){
-                $actions->disableEdit();
-            }
-            if(!$pluginClass->enableDelete() || !$pluginClass->enableDeleteData($actions->row)){
-                $actions->disableDelete();
-            }
-        });
     }
 }
