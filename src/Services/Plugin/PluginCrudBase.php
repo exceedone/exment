@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\Plugin;
 use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Grid\Grid;
 use Illuminate\Support\Collection;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
