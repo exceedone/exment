@@ -101,5 +101,7 @@ class CrudShow extends CrudBase
                 'icon' => 'fa-list',
                 'btn_class' => 'btn-default',
             ])->render());
+
+        $this->pluginClass->callbackShowTool($box);
     }
 }

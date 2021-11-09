@@ -318,6 +318,27 @@ abstract class PluginCrudBase extends PluginPublicBase
 
 
     /**
+     * Callback show page tools. If add event, definition.
+     *
+     * @param Box $box
+     * @return void
+     */
+    public function callbackShowTool(Box $box)
+    {
+    }
+
+    /**
+     * Callback form page tools. If add event, definition.
+     *
+     * @param Box $box
+     * @return void
+     */
+    public function callbackFormTool(Box $box)
+    {
+    }
+
+
+    /**
      * Callback grid row action. If add event, definition.
      *
      * @param Grid $grid

@@ -244,5 +244,7 @@ class CrudForm extends CrudBase
                 'btn_class' => 'btn-primary',
             ])->render());
         }
+
+        $this->pluginClass->callbackFormTool($box);
     }
 }
