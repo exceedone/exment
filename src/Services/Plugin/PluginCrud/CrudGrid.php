@@ -122,6 +122,8 @@ class CrudGrid extends CrudBase
                 
                 $tools->prepend($button, 'right');
             }
+
+            $pluginClass->callbackGridTool($tools);
         });
     }
 
