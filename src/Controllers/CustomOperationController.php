@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\Permission;
@@ -191,6 +192,7 @@ class CustomOperationController extends AdminControllerTableBase
                 'include_child' => false,
                 'include_system' => false,
                 'ignore_attachment' => true,
+                'ignore_autonumber' => true,
             ]),
             'custom_table' => $custom_table,
             'filterKind' => FilterKind::OPERATION,
@@ -232,7 +234,18 @@ class CustomOperationController extends AdminControllerTableBase
         });
         $hasManyTable->render();
 
-
+        ///// get input columns
+        $form->hasManyTable('custom_operation_input_columns', exmtrans("custom_operation.custom_operation_input_columns"), function ($form) use ($custom_table) {
+            $form->select('view_column_target', exmtrans("custom_operation.input_custom_column"))
+                ->options($custom_table->getColumnsSelectOptions([
+                    'append_table' => true,
+                    'include_system' => false,
+                    'ignore_attachment' => true,
+                    'ignore_autonumber' => true,
+                ]))->required();
+            $form->hidden('operation_column_type')->default(CopyColumnType::INPUT);
+        })->setTableWidth(10, 1)
+        ->descriptionHtml(exmtrans("custom_operation.input_column_description"));
 
         // filter setting
         $filterTable = new Tools\ConditionHasManyTable($form, [
@@ -257,6 +270,20 @@ class CustomOperationController extends AdminControllerTableBase
         $form->radio('condition_join', exmtrans("condition.condition_join"))
             ->options(exmtrans("condition.condition_join_options"))
             ->default('and');
+
+        // check inputs and operation_type before save
+        $form->saving(function (Form $form) {
+            if (!is_null($form->custom_operation_input_columns)) {
+                if (collect($form->custom_operation_input_columns)->contains(function ($val) {
+                    return array_get($val, Form::REMOVE_FLAG_NAME) != 1;
+                })) {
+                    if (array_intersect($form->operation_type, [CustomOperationType::CREATE, CustomOperationType::UPDATE])) {
+                        admin_toastr(exmtrans('custom_operation.message.invalid_operation_type'), 'error');
+                        return back()->withInput();
+                    }
+                }
+            }
+        });
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('operation', $custom_table));

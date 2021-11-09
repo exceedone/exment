@@ -30,9 +30,17 @@ trait DataShareTrait
         }
 
         foreach ($keys as $key) {
+            $selected_value = null;
+            if (isset($default)) {
+                $selected_value = collect(toArray($default))->filter(function ($s) use ($key) {
+                    return strpos($s, "{$key}_") === 0;
+                })->map(function ($s) use ($key) {
+                    return str_replace("{$key}_", "", $s);
+                })->toArray();
+            }
             list($optionItem, $ajaxItem) = CustomTable::getEloquent($key)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
-                'selected_value' => str_replace("{$key}_", "", $default),
+                'selected_value' => $selected_value,
                 'permission' => $permission,
                 'notAjax' => $all,
             ]);

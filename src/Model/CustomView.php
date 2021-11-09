@@ -253,6 +253,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         return $this->_search_service;
     }
+    
+    /**
+     * reset search service.
+     */
+    public function resetSearchService()
+    {
+        $this->_search_service = null;
+    }
 
     
     /**
@@ -1008,6 +1016,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             ->exists();
 
         return $hasEdit;
+    }
+
+    /**
+     * Get custom view data
+     *
+     * @return array
+     */
+    public function getQueryData()
+    {
+        $query = $this->custom_table->getValueQuery();
+        $this->filterSortModel($query);
+        return $query->get();
     }
 
     /**

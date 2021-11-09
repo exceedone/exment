@@ -5,16 +5,15 @@ namespace Exceedone\Exment\DataItems\Grid;
 use Encore\Admin\Grid;
 use Encore\Admin\Form;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\GroupCondition;
-use Exceedone\Exment\Enums\PluginEventTrigger;
 
 class SummaryGrid extends GridBase
 {
@@ -28,11 +27,16 @@ class SummaryGrid extends GridBase
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
 
         $this->setSummaryGrid($grid);
 
         $this->setGrid($grid);
+
+        $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
+        if (empty($grid_per_pages)) {
+            $grid_per_pages = Define::PAGER_GRID_COUNTS;
+        }
+        $grid->perPages($grid_per_pages);
 
         $grid->disableCreateButton();
         $grid->disableFilter();
@@ -46,7 +50,7 @@ class SummaryGrid extends GridBase
         if (!$isShowViewSummaryDetail) {
             $grid->disableActions();
         }
-
+        
         $_this = $this;
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($_this, $isShowViewSummaryDetail, $custom_view, $table_name) {
             $actions->disableDelete();
@@ -96,7 +100,6 @@ class SummaryGrid extends GridBase
             }
         });
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $grid;
     }
 

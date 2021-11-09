@@ -36,6 +36,17 @@ class CustomViewGridFilter extends ModelBase
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
             ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'view_pivot_table_name',
+                            'column_name' => 'view_pivot_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getPivotUniqueKeyValues',
+            ],
         ],
         'enums' => [
             'view_column_type' => ConditionType::class,

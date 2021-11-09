@@ -202,7 +202,8 @@ EOT;
         $this->script();
 
         if (isset($field)) {
-            if (!($field instanceof \Exceedone\Exment\Form\Field\SwitchField)) {
+            if (!($field instanceof \Exceedone\Exment\Form\Field\SwitchField) &&
+                !($field instanceof \Exceedone\Exment\Form\Field\Checkboxone)) {
                 // required if visible
                 $field->required();
             }

@@ -22,6 +22,7 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\RelationTable;
+use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -222,6 +223,9 @@ class PatchDataCommand extends Command
                 return 0;
             case 'set_file_parent':
                 $this->setFileParent();
+                return 0;
+            case 'add_import_export_permission':
+                $this->addImportExportPermission();
                 return 0;
         }
 
@@ -642,6 +646,45 @@ class PatchDataCommand extends Command
         $this->patchSystemAuthoritable();
         $this->patchValueAuthoritable();
         $this->updateRoleMenu();
+    }
+
+    /**
+     * Add import/export permission to role group
+     *
+     * @return void
+     */
+    protected function addImportExportPermission()
+    {
+        $role_group_permissions = RoleGroupPermission::where('role_group_permission_type', RoleType::TABLE)->get();
+        foreach ($role_group_permissions as $role_group_permission) {
+            if (!isset($role_group_permission->permissions)) {
+                continue;
+            }
+
+            $role_details = $role_group_permission->permissions;
+            $is_update = false;
+
+            if (array_intersect([Permission::CUSTOM_VALUE_EDIT_ALL, Permission::CUSTOM_VALUE_EDIT], $role_details)) {
+                if (!in_array(Permission::CUSTOM_VALUE_IMPORT, $role_details)) {
+                    $role_details[] = Permission::CUSTOM_VALUE_IMPORT;
+                    $is_update = true;
+                }
+                if (!in_array(Permission::CUSTOM_VALUE_EXPORT, $role_details)) {
+                    $role_details[] = Permission::CUSTOM_VALUE_EXPORT;
+                    $is_update = true;
+                }
+            }
+            if (array_intersect([Permission::CUSTOM_VALUE_VIEW_ALL, Permission::CUSTOM_VALUE_VIEW], $role_details)) {
+                if (!in_array(Permission::CUSTOM_VALUE_EXPORT, $role_details)) {
+                    $role_details[] = Permission::CUSTOM_VALUE_EXPORT;
+                    $is_update = true;
+                }
+            }
+            if ($is_update) {
+                $role_group_permission->permissions = $role_details;
+                $role_group_permission->save();
+            }
+        }
     }
 
     /**
@@ -1940,6 +1983,10 @@ class PatchDataCommand extends Command
                 ->each(function ($custom_view_summary) {
                     // get view and table info
                     $custom_view = $custom_view_summary->custom_view;
+                    // If not has custom view, continue
+                    if (!$custom_view) {
+                        return true;
+                    }
                     $custom_table_id = $custom_view->custom_table_id;
 
                     // if match column table's id and view's table id, continue.

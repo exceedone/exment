@@ -17,6 +17,8 @@ class Permission extends EnumBase
     //const CUSTOM_VALUE_ACCESS = 'custom_value_access';
     const CUSTOM_VALUE_SHARE = 'custom_value_share';
     const CUSTOM_VALUE_VIEW_TRASHED = 'custom_value_view_trashed';
+    const CUSTOM_VALUE_IMPORT = 'custom_value_import';
+    const CUSTOM_VALUE_EXPORT = 'custom_value_export';
     const PLUGIN_ALL = 'plugin_all';
     const PLUGIN_ACCESS = 'plugin_access';
     const PLUGIN_SETTING = 'plugin_setting';
@@ -46,6 +48,8 @@ class Permission extends EnumBase
     public const EDIT_CUSTOM_FORM = [self::CUSTOM_TABLE, self::CUSTOM_FORM];
     // edit custom form public
     public const EDIT_CUSTOM_FORM_PUBLIC = [self::CUSTOM_TABLE, self::CUSTOM_FORM_PUBLIC];
+    // import or expoert custom value
+    public const IMPORT_EXPORT = [self::CUSTOM_VALUE_IMPORT, self::CUSTOM_VALUE_EXPORT];
 
     public const SYSTEM_ROLE_PERMISSIONS = [
         self::CUSTOM_TABLE,
@@ -76,6 +80,8 @@ class Permission extends EnumBase
         self::CUSTOM_VIEW,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::CUSTOM_VALUE_VIEW_ALL,
+        self::CUSTOM_VALUE_IMPORT,
+        self::CUSTOM_VALUE_EXPORT,
     ];
     
     public const TABLE_ROLE_PERMISSION = [
@@ -89,6 +95,8 @@ class Permission extends EnumBase
         self::CUSTOM_VALUE_EDIT,
         self::CUSTOM_VALUE_VIEW,
         self::CUSTOM_VALUE_SHARE,
+        self::CUSTOM_VALUE_IMPORT,
+        self::CUSTOM_VALUE_EXPORT,
         self::CUSTOM_VALUE_VIEW_TRASHED,
     ];
 }

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Auth\HasPermissions;
 use Exceedone\Exment\Providers\LoginUserProvider;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Traits\AdminBuilder;
 use Laravel\Passport\HasApiTokens;
@@ -57,6 +58,31 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     public function getNameAttribute()
     {
         return $this->base_user->value['user_name'] ?? null;
+    }
+
+    /**
+     * Get header user info.
+     *
+     * @return string
+     */
+    public function getHeaderInfo()
+    {
+        $headers = [];
+        foreach (System::header_user_info() as $field) {
+            if ($field == SystemColumn::CREATED_AT) {
+                $title = exmtrans('common.created_at');
+                $value = $this->base_user->created_at;
+            } else {
+                $column = CustomColumn::find($field);
+                if (!isset($column)) {
+                    continue;
+                }
+                $title = $column->column_view_name;
+                $value = $this->base_user->getValue($column->column_name, true);
+            }
+            $headers[] = exmtrans('common.format_keyvalue', $title, $value);
+        }
+        return implode('<br />', $headers);
     }
 
     /**

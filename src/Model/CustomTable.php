@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
@@ -836,7 +837,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     }
     
                     // get value
-                    $value = array_get($input, $prefix . $column->column_name);
+                    $value = null;
+                    if (array_has($input, $prefix . $column->column_name)) {
+                        $value = array_get($input, $prefix . $column->column_name);
+                    } elseif (isset($custom_value)) {
+                        $value = $custom_value->getValue($column->column_name, ValueType::PURE_VALUE);
+                    }
                     if (is_array($value)) {
                         $value = json_encode(array_filter($value));
                     }
@@ -908,7 +914,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         foreach ($compare_columns as $compare_column) {
             // get two values
-            $compareResult = $compare_column->compareValue($input, $custom_value);
+            $compareResult = $compare_column->compareValue($input, $custom_value, $options);
             if ($compareResult === true) {
                 continue;
             }
@@ -1283,10 +1289,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
 
             // set pager items
-            $query = getModelName($this)::whereIn("id", $ids->toArray());
+            $query = getModelName($this)::whereIn("$dbTableName.id", $ids->toArray());
 
             // set custom view, sort again.
             if (isset($target_view)) {
+                $target_view->resetSearchService();
                 $target_view->setValueSort($query);
             }
 
@@ -1318,10 +1325,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // return default
         $ids = $mainQuery->select("$dbTableName.id")->take($maxCount)->get()->pluck('id');
         
-        $query = getModelName($this)::whereIn('id', $ids);
+        $query = getModelName($this)::whereIn("$dbTableName.id", $ids);
     
         // set custom view, sort again
         if (isset($target_view)) {
+            $target_view->resetSearchService();
             $target_view->setValueSort($query);
         }
         
@@ -1785,6 +1793,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Get all accessible users on this table. (get model)
+     * *Not check "loginuser"'s permission.
+     */
+    public function getAccessibleUsers()
+    {
+        $target_ids = $this->getAccessibleUserOrganizationIds(SystemTableName::USER);
+        return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->find($target_ids);
+    }
+
+    /**
      * Get all accessible organizations on this table. (only get id, consider performance)
      * *Not check "loginuser"'s permission.
      */
@@ -2000,7 +2018,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $items->put($selected_custom_value->id, $selected_custom_value->label);
         });
 
-        return $items->unique();
+        return $items->unique(function ($item, $key) {
+            return $key;
+        });
     }
 
     /**
@@ -2137,6 +2157,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_condition' => false,
                 'include_form_type' => false,
                 'ignore_attachment' => false,
+                'ignore_autonumber' => false,
                 'ignore_multiple' => false,
                 'ignore_multiple_refer' => false,
                 'ignore_many_to_many' => false,
@@ -2156,6 +2177,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
+        $ignore_autonumber = $selectOptions['ignore_autonumber'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
         $ignore_multiple_refer = $ignore_multiple || $selectOptions['ignore_multiple_refer'];
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
@@ -2200,6 +2222,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_workflow' => $include_workflow,
                     'include_workflow_work_users' => $include_workflow_work_users,
                     'ignore_attachment' => $ignore_attachment,
+                    'ignore_autonumber' => $ignore_autonumber,
                     'ignore_multiple' => $ignore_multiple,
                     'ignore_many_to_many' => $ignore_many_to_many,
                     'only_system_grid_filter' => $only_system_grid_filter,
@@ -2231,6 +2254,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_column' => SystemColumn::PARENT_ID,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_autonumber' => $ignore_autonumber,
                         'ignore_multiple' => $ignore_multiple,
                         'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
@@ -2262,6 +2286,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'view_pivot_column' => $select_table_column,
                         'view_pivot_table' => $this,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_autonumber' => $ignore_autonumber,
                         'ignore_multiple' => $ignore_multiple,
                         'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
@@ -2289,6 +2314,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_system' => true,
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_autonumber' => $ignore_autonumber,
                         'ignore_multiple' => $ignore_multiple,
                         'ignore_many_to_many' => $ignore_many_to_many,
                         'only_system_grid_filter' => $only_system_grid_filter,
@@ -2312,6 +2338,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_system' => true,
                         'table_view_name' => $tablename,
                         'ignore_attachment' => $ignore_attachment,
+                        'ignore_autonumber' => $ignore_autonumber,
                         'ignore_multiple' => $ignore_multiple,
                         'ignore_many_to_many' => $ignore_many_to_many,
                         'view_pivot_column' => $selected_table_column,
@@ -2343,6 +2370,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
                 'ignore_attachment' => false,
+                'ignore_autonumber' => false,
                 'ignore_multiple' => false,
                 'ignore_many_to_many' => false,
                 'only_system_grid_filter' => false,
@@ -2363,6 +2391,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $view_pivot_column = $selectOptions['view_pivot_column'];
         $view_pivot_table = $selectOptions['view_pivot_table'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
+        $ignore_autonumber = $selectOptions['ignore_autonumber'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
@@ -2429,6 +2458,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     continue;
                 }
                 if ($ignore_attachment && ColumnType::isAttachment($custom_column->column_type)) {
+                    continue;
+                }
+                if ($ignore_autonumber && $custom_column->column_type == ColumnType::AUTO_NUMBER) {
                     continue;
                 }
                 if ($column_type_filter && !$column_type_filter($custom_column)) {
@@ -2702,13 +2734,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
             
             // check custom table permission(system and table)
-            elseif (array_key_exists(Permission::CUSTOM_TABLE, $permission_details)) {
+            elseif (RoleType::SYSTEM == $role_type
+                && array_key_exists(Permission::CUSTOM_TABLE, $permission_details)) {
                 return true;
             }
 
             // if role type is system, and has key
             elseif (RoleType::SYSTEM == $role_type
                 && array_keys_exists($role_key, $permission_details)) {
+                return true;
+            }
+
+            // if role key is import or export, and has system custom_value_edit_all permisson
+            elseif (RoleType::SYSTEM == $role_type
+                && array_keys_exists(Permission::CUSTOM_VALUE_EDIT_ALL, $permission_details)
+                && array_intersect($role_key, Permission::IMPORT_EXPORT)) {
                 return true;
             }
 
@@ -2990,6 +3030,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_EXPORT])) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
         if ($this->formActionDisable(FormActionType::EXPORT)) {
             return ErrorCode::FORM_ACTION_DISABLED();
         }
@@ -3005,6 +3049,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function enableImport()
     {
         if (!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_IMPORT])) {
             return ErrorCode::PERMISSION_DENY();
         }
 

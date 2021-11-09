@@ -202,7 +202,7 @@ class CustomNotifyController extends AdminControllerTableBase
                 ->default(NotifyBeforeAfter::BEFORE)
                 ->required()
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
-                ->help(exmtrans("notify.help.notify_beforeafter") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))));
+                ->help(exmtrans("notify.help.notify_beforeafter") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))));
                 
             $form->number('notify_hour', exmtrans("notify.notify_hour"))
                 ->min(0)

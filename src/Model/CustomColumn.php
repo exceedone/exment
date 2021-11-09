@@ -127,6 +127,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
+    public function custom_view_grid_filters()
+    {
+        return $this->hasMany(CustomViewGridFilter::class, 'view_column_target_id')
+            ->where('view_column_type', ConditionType::COLUMN);
+    }
+
     public function custom_operation_columns()
     {
         return $this->hasMany(CustomOperationColumn::class, 'view_column_target_id')
@@ -240,8 +246,46 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $this->custom_view_filters()->delete();
         $this->custom_view_sorts()->delete();
         $this->custom_view_summaries()->delete();
+        $this->custom_view_grid_filters()->delete();
         $this->custom_operation_columns()->delete();
         $this->conditions()->delete();
+
+        // remove reference with pivot column
+        $items = CustomViewColumn::where(function ($query) {
+            $query->where('options->view_pivot_column_id', $this->id)
+                ->where('options->view_pivot_table_id', $this->custom_table_id);
+        })->get();
+        $items->each(function ($item) {
+            $item->delete();
+        });
+        $items = CustomViewSummary::where(function ($query) {
+            $query->where('options->view_pivot_column_id', $this->id)
+                ->where('options->view_pivot_table_id', $this->custom_table_id);
+        })->get();
+        $items->each(function ($item) {
+            $item->delete();
+        });
+        $items = CustomViewFilter::where(function ($query) {
+            $query->where('options->view_pivot_column_id', $this->id)
+                ->where('options->view_pivot_table_id', $this->custom_table_id);
+        })->get();
+        $items->each(function ($item) {
+            $item->delete();
+        });
+        $items = CustomViewSort::where(function ($query) {
+            $query->where('options->view_pivot_column_id', $this->id)
+                ->where('options->view_pivot_table_id', $this->custom_table_id);
+        })->get();
+        $items->each(function ($item) {
+            $item->delete();
+        });
+        $items = CustomViewGridFilter::where(function ($query) {
+            $query->where('options->view_pivot_column_id', $this->id)
+                ->where('options->view_pivot_table_id', $this->custom_table_id);
+        })->get();
+        $items->each(function ($item) {
+            $item->delete();
+        });
 
         // remove multisettings
         $items = CustomColumnMulti::where(function ($query) {

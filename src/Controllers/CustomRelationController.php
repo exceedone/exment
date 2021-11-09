@@ -150,7 +150,7 @@ class CustomRelationController extends AdminControllerTableBase
             ->attribute(['data-filtertrigger' =>true]);
         
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($custom_table) {
-            $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
+            $manual_url = getManualUrl('data_import_export?id='.exmtrans('custom_column.help.select_import_column_id_key'));
             $form->select('parent_import_column_id', exmtrans("custom_relation.parent_import_column_id"))
                 ->help(exmtrans("custom_relation.help.parent_import_column_id", $manual_url))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'relation_type', 'value' => [RelationType::ONE_TO_MANY]])])

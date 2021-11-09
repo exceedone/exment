@@ -156,8 +156,13 @@ class SystemController extends AdminControllerBase
         $form->hidden('advanced')->default(1);
         $form->ignore('advanced');
 
+        $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
+        if (empty($grid_per_pages)) {
+            $grid_per_pages = Define::PAGER_GRID_COUNTS;
+        }
+
         $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
-        ->options(getPagerOptions())
+        ->options(getPagerOptions(false, $grid_per_pages))
         ->disableClear()
         ->default(20)
         ->help(exmtrans("system.help.grid_pager_count"));
@@ -193,7 +198,18 @@ class SystemController extends AdminControllerBase
             ->options(Enums\DataSubmitRedirect::transKeyArray("admin", false))
             ->help(exmtrans("system.help.data_submit_redirect"));
 
-  
+        $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))
+            ->help(exmtrans('system.help.header_user_info'))
+            ->config('maximumSelectionLength', 2)
+            ->options(function ($option) {
+                $options = CustomTable::getEloquent(SystemTableName::USER)->getColumnsSelectOptions([
+                    'include_system' => false,
+                    'ignore_attachment' => true
+                ]);
+                $options[SystemColumn::CREATED_AT] = exmtrans('common.created_at');
+                return $options;
+            });
+            
         $form->exmheader(exmtrans('system.publicform'))->hr();
         $form->switchbool('publicform_available', exmtrans("system.publicform_available"))
             ->default(0)

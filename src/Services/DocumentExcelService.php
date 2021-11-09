@@ -113,6 +113,8 @@ class DocumentExcelService
         // first time, define loop value
         $loops = [];
         $this->callbackSheetCell($sheet, function ($cell, $val, $matches) use (&$loops, $sheet) {
+            // $matches - Results of searching with regular expressions ${XXXXX}
+            // $matches[0] - ${XXXXX} , $matches[1] - XXXXX
             foreach ($matches[1] as $index => $m) {
                 // split ":"
                 $splits = explode(":", $m);
@@ -150,9 +152,9 @@ class DocumentExcelService
                         ]);
                     }
                     $loops[$table_name]['columns'][$cell_column]['text'] = getCellValue($cell, $sheet);
-                    $loops[$splits[1]]['columns'][$cell_column]['formats'][] = [
+                    $loops[$table_name]['columns'][$cell_column]['formats'][] = [
                         'format_text' => $matches[0][$index],
-                        'column_name' => $column_name,
+                        'column_name' => '${value:'. $column_name . '}',
                     ];
                 }
             }
@@ -186,10 +188,11 @@ class DocumentExcelService
                     // loop formats
                     foreach ($column_item['formats'] as $format) {
                         // replace using format
-                        $text = str_replace($format['format_text'], $child->getValue($format['column_name'], true, [
-                            'disable_currency_symbol' => true,
-                            'disable_number_format' => true,
-                        ]), $text);
+                        $text = str_replace($format['format_text'], $this->getText(
+                            $format['column_name'],
+                            [],
+                            $child
+                        ), $text);
                     }
                     $sheet->setCellValue($cell_column . $row, $text);
                 }
@@ -246,7 +249,7 @@ class DocumentExcelService
     /**
      * get output text from document item
      */
-    protected function getText($text, $options = [])
+    protected function getText($text, $options = [], $model = null)
     {
         $options['disable_currency_symbol'] = true;
         $options['disable_number_format'] = true;
@@ -270,7 +273,7 @@ class DocumentExcelService
                 return $drawing;
             }
         };
-        return replaceTextFromFormat($text, $this->model, $options);
+        return replaceTextFromFormat($text, $model?? $this->model, $options);
     }
 
     /**

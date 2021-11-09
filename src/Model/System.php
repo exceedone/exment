@@ -40,6 +40,7 @@ use Cache;
 * @method static int|void datalist_pager_count($arg = null)
 * @method static array|void grid_filter_disable_flg($arg = null)
 * @method static string|void data_submit_redirect($arg = null)
+* @method static array|void header_user_info($arg = null)
 * @method static boolean|void complex_password($arg = null)
 * @method static int|void password_expiration_days($arg = null)
 * @method static boolean|void first_change_password($arg = null)

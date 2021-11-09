@@ -193,8 +193,7 @@ composer global require friendsofphp/php-cs-fixer
 # 不要な"use"を削除
 php-cs-fixer fix ./vendor/exceedone/exment --rules=no_unused_imports 
 # すべてのソースを整形
-php-cs-fixer fix ./vendor/exceedone/exment/src
-php-cs-fixer fix ./vendor/exceedone/exment/tests
+php-cs-fixer fix
 ~~~
 
 

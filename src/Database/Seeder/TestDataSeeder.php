@@ -274,7 +274,7 @@ class TestDataSeeder extends Seeder
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $child_table]);
 
             // get child table's view
-            $child_table_view = $child_table->custom_views->first(function ($view) use ($child_table) {
+            $child_table_view = $child_table->custom_views->first(function ($view) {
                 return $view->view_kind_type == ViewKindType::FILTER;
             });
 
@@ -310,7 +310,47 @@ class TestDataSeeder extends Seeder
                         $custom_columns[] = $custom_column;
                     }
                 },
-                'createValueCallback' => function ($custom_value) {
+                'createValueCallback' => function ($custom_table, $options) use ($users) {
+                    $custom_values = [];
+                    System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
+                    $index = 0;
+                    $max_parent = 10;
+                    $max_child = 100;
+                    foreach ($users as $key => $user) {
+                        \Auth::guard('admin')->attempt([
+                            'username' => $key,
+                            'password' => array_get($user, 'password')
+                        ]);
+            
+                        $user_id = array_get($user, 'id');
+
+                        for ($i = 1; $i <= 10; $i++) {
+                            $index++;
+                            $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+
+                            $custom_value = $custom_table->getValueModel();
+                            // only use rand
+                            $custom_value->setValue("child", rand(1, $max_child));
+                            $custom_value->setValue("parent", rand(1, $max_parent));
+                            $custom_value->setValue("child_view", rand(1, $max_child));
+                            $custom_value->setValue("child_ajax", rand(1, $max_child));
+                            $custom_value->setValue("child_ajax_view", rand(1, $max_child));
+                            $custom_value->setValue("child_relation_filter", rand(1, $max_child));
+                            $custom_value->setValue("child_relation_filter_view", rand(1, $max_child));
+                            $custom_value->setValue("child_relation_filter_ajax", rand(1, $max_child));
+                            $custom_value->setValue("child_relation_filter_ajax_view", rand(1, $max_child));
+                            $custom_value->setValue("parent_multi", $this->getMultipleSelectValue(range(1, 10), 5));
+                            $custom_value->setValue("child_relation_filter_multi", $this->getMultipleSelectValue(range(1, 100), 50));
+                            $custom_value->setValue("child_relation_filter_multi_ajax", $this->getMultipleSelectValue(range(1, 100), 50));
+                            $custom_value->created_user_id = $user_id;
+                            $custom_value->updated_user_id = $user_id;
+                            $custom_value->save();
+            
+                            $custom_values[] = $custom_value;
+                        }
+                    }
+        
+                    return $custom_values;
                 }
             ]);
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $pivot_table]);
@@ -867,8 +907,8 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
                 $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
-                $custom_value->setValue("odd_even", (rand(0, 1) == 0 ? 'even' : 'odd'));
-                $custom_value->setValue("multiples_of_3", ($count % 3 == 0 ? 1 : 0));
+                $custom_value->setValue("odd_even", (($i == 1 || rand(0, 1) == 0) ? 'even' : 'odd'));
+                $custom_value->setValue("multiples_of_3", (($i == 1 || $count % 3 == 0) ? 1 : 0));
                 $custom_value->setValue("date", \Carbon\Carbon::now()->addDays($count % 3));
                 $custom_value->setValue("init_text", 'init_text');
                 $custom_value->setValue("integer", $new_id * pow(10, ($new_id % 3) + 1));
@@ -1076,6 +1116,7 @@ class TestDataSeeder extends Seeder
         $notify->notify_trigger = 1;
         $notify->mail_template_id = 5;
         $notify->trigger_settings = [
+            "notify_target_table_id" => $custom_table->id,
             "notify_target_column" => $column->id,
             "notify_day" => '0',
             "notify_beforeafter" => '-1',

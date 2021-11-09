@@ -417,8 +417,10 @@ class Initialize
         Grid::init(function (Grid $grid) {
             $grid->disableColumnSelector();
 
-            if (!is_null($value = System::grid_pager_count())) {
-                $grid->paginate($value);
+            if ($grid->model() && ($grid->model()->eloquent() instanceof Model\CustomValue)) {
+                if (!is_null($value = System::grid_pager_count())) {
+                    $grid->paginate($value);
+                }
             }
         });
 

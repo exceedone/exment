@@ -176,6 +176,7 @@ return [
         'maintenance' => 'The site is currently under maintenance. This screen is mainly displayed during the Exment update.<br />* If this screen is displayed forever, follow the procedure at the URL below to cancel the maintenance.',
         'maintenance_id' => 'Release maintenance mode',
         'check_error_log' => 'The error details are output to the log file. Please contact the administrator.',
+        'class_load_error' => 'Failed to load the following code. Please review the description.<br />Target File: %s<br />Error Detail: %s',
     ],
 
     'install' => [
@@ -259,6 +260,7 @@ return [
         'filter_search_type' => 'Data search method',
         'grid_filter_disable_flg' => 'Disable Grid Filter',
         'data_submit_redirect' => 'Data Submit Redirect',
+        'header_user_info' => 'Header User Information',
         'api_available' => 'API Available',
         'outside_api' => 'Perform server external communication',
         'permission_available' => 'Use Role Management',
@@ -420,6 +422,7 @@ return [
             'filter_search_type' => 'Set the search method for registered data. *In the case of partial match, performance may be affected depending on the number of data.',
             'grid_filter_disable_flg' => 'The checked item will be hidden in the filter item of the data list page.',
             'data_submit_redirect' => 'You can set the default value for the page to redirect after saving custom data. When this item is set, the check box for the data transition destination after saving will be checked on the data entry page.',
+            'header_user_info' => 'You can set the content to be displayed in the user information in the header. If left blank, it will be hidden.',
             'api_available' => 'If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
@@ -1664,10 +1667,13 @@ return [
         'custom_operation_button_label' => 'Mass Update Setting',
         'custom_operation_columns' => 'Update Column Setting',
         'custom_operation_conditions' => 'Update Condition',
-        'description_custom_operation_columns' => 'Set the target column and update value for mass update.',
+        'custom_operation_input_columns' => 'Input dialog settings',
+        'input_custom_column' => 'Target table column',
         'view_column_target' => 'Target Column',
         'operation_update_type' => 'Update Type',
         'update_value_text' => 'Update Value',
+        'input_column_description' => 'When the data update timing is a button, a form (dialog) for setting the update value can be displayed. <br/> Please set the column to input.',
+        'dialog_description' => "Enter the value to update the data of %s.",
         
         'operation_type_options' => [
             'bulk_update' => 'Pressing button on the list page',
@@ -1676,6 +1682,7 @@ return [
             'update' => 'Updating data',
             //'notified' => 'Sending notification',
         ],
+
         'operation_type_options_short' => [
             'bulk_update' => 'List Button',
             'button' => 'Detail Button',
@@ -1689,6 +1696,7 @@ return [
         'operation_value_type_options' => [
             'execute_datetime' => 'Execute Datetime',
             'login_user' => 'Login User',
+            'created_user' => 'Created user',
             'berong_organizations' => 'Berong Organizations',
         ],
         'options' => [
@@ -1702,6 +1710,9 @@ return [
             'button_class' => 'The class to add to the button HTML.',
             'custom_operation_columns' => 'Set the target column of data update and update value.',
             'custom_operation_conditions' => 'Specify the condition of the data that can execute the registered update settings.',
+        ],
+        'message' => [
+            'invalid_operation_type' => 'The input dialog cannot be specified when creating a new data or updating.',
         ],
     ],
 
@@ -1919,6 +1930,8 @@ return [
             'custom_view' => ['label' => 'View', 'help' => 'You can add, change and delete system views.'],
             'custom_value_edit_all' => ['label' => 'Edit data', 'help' => 'You can add, edit and delete master data.'],
             'custom_value_view_all' => ['label' => 'View data', 'help' => 'You can view the master data.'],
+            'custom_value_import' => ['label' => 'Import', 'help' => 'You can import master data from an external file.<br />* Edit permission is required for the data.'],
+            'custom_value_export' => ['label' => 'Export', 'help' => 'You can export the master data to an external file.<br />* Browsing authority for the data is required.'],
         ], 
         'role_type_option_table' => [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
@@ -1932,6 +1945,8 @@ return [
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
             'custom_value_access' => ['label' => 'Access All Data', 'help' => 'Users can see personnel data in custom tables.<br />*It is not displayed on the menu or list page, it can be displayed only with internal data or reference from another table.'],
             'custom_value_share' => ['label' => 'Data sharing', 'help' => 'Data can be shared with other users.<br />* You need edit permission for the data.'],
+            'custom_value_import' => ['label' => 'Import', 'help' => 'You can import master data from an external file.<br />* Edit permission is required for the data.'],
+            'custom_value_export' => ['label' => 'Export', 'help' => 'You can export the master data to an external file.<br />* Browsing authority for the data is required.'],
             'custom_value_view_trashed' => ['label' => 'Show Trashed Data', 'help' => 'Users can restore data that has been deleted. <br /> *To restore data, you need to have edit authority for the data.'],
         ], 
         'role_type_option_value' => [

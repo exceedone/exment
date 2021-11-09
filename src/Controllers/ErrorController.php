@@ -63,7 +63,7 @@ class ErrorController extends Controller
     public function maintenance()
     {
         return response(view('exment::exception.maintenance', [
-            'manual_url' => \Exment::getManualUrl('troubleshooting') . '#' .exmtrans('error.maintenance_id'),
+            'manual_url' => \Exment::getManualUrl('troubleshooting') . '?id=' .exmtrans('error.maintenance_id'),
         ])->render(), 503);
     }
 }

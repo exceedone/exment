@@ -176,6 +176,7 @@ return [
         'maintenance' => 'サイトは現在、メンテナンス中です。この画面は、主にExmentのアップデート中に表示されます。<br />※この画面がいつまでも表示されている場合、以下のURLの手順で、メンテナンスを解除してください。',
         'maintenance_id' => 'メンテナンスモードの解除',
         'check_error_log' => 'エラー詳細はログファイルに出力されています。管理者にお問い合わせください。',
+        'class_load_error' => '以下のコードの読み込みに失敗しました。記述を見直してください。<br />該当ファイル：%s<br />エラー内容：%s',
     ],
 
     'install' => [
@@ -259,6 +260,7 @@ return [
         'filter_search_type' => 'データ検索方法',
         'grid_filter_disable_flg' => 'データ一覧のフィルタ非表示',
         'data_submit_redirect' => 'データ保存後の既定リダイレクト先',
+        'header_user_info' => 'ヘッダーのユーザー情報の表示内容',
         'api_available' => 'APIを使用する',
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
@@ -420,6 +422,7 @@ return [
             'filter_search_type' => '登録データの検索方法を設定します。※部分一致の場合、データ件数によって、パフォーマンスに影響がある場合があります。',
             'grid_filter_disable_flg' => 'チェックした項目が、データ一覧画面のフィルタ項目で、非表示になります。',
             'data_submit_redirect' => 'カスタムデータの保存後にリダイレクトする画面の既定値を設定することができます。この項目を設定すると、データ入力画面で、保存後のデータ遷移先チェックボックスにチェックが入ります。',
+            'header_user_info' => 'ヘッダーのユーザー情報に表示する内容を設定することができます。空欄にした場合は非表示になります。',
             'api_available' => 'YESにした場合、APIを使用することができます。',
             'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
@@ -1174,7 +1177,7 @@ return [
             'column_target' => '対象列',
             'priority' => '優先順位',
             'options_label' => 'オプション設定',
-            'table_label_format' => '見出しフォーマット文字列',
+            'table_label_format' => '見出しフォーマット設定',
             'table_label_format_string' => 'フォーマット文字列',
             'form_action_disable_flg' => '画面からの変更不可',
 
@@ -1664,9 +1667,13 @@ return [
         'custom_operation_button_label' => '一括更新設定',
         'custom_operation_columns' => '更新列設定',
         'custom_operation_conditions' => '更新条件',
+        'custom_operation_input_columns' => '入力ダイアログ設定',
+        'input_custom_column' => '対象テーブル列',
         'view_column_target' => '対象列',
         'operation_update_type' => '更新の種類',
         'update_value_text' => '更新値',
+        'input_column_description' => 'データ更新のタイミングがボタンの場合に、更新値を設定するフォーム(ダイアログ)を表示することができます。<br/>入力を行う列を設定してください。',
+        'dialog_description' => "%sのデータを更新する値を記入してください。",
 
         'operation_type_options' => [
             'bulk_update' => '一覧画面のチェックボタン選択時',
@@ -1689,6 +1696,7 @@ return [
         'operation_value_type_options' => [
             'execute_datetime' => '実行日時',
             'login_user' => 'ログインユーザー',
+            'created_user' => '作成者',
             'berong_organizations' => '所属組織',
         ],
         'options' => [
@@ -1702,6 +1710,9 @@ return [
             'button_class' => 'ボタンのHTMLに付加するclassです。',
             'custom_operation_columns' => 'データ更新の対象列と、更新値を設定します。',
             'custom_operation_conditions' => '登録した更新設定を実行することができるデータの、条件を指定します。',
+        ],
+        'message' => [
+            'invalid_operation_type' => 'データ新規作成時とデータ更新時は入力ダイアログを指定できません。',
         ],
     ],
 
@@ -1919,6 +1930,8 @@ return [
             'custom_view' => ['label' => 'システムビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'データの編集', 'help' => 'マスターデータを追加・編集・削除できます。'],
             'custom_value_view_all' => ['label' => 'データの閲覧', 'help' => 'マスターデータを閲覧できます。'],
+            'custom_value_import' => ['label' => 'インポート', 'help' => '外部ファイルからマスターデータをインポートすることができます。<br />※そのデータに対する編集権限が必要です。'],
+            'custom_value_export' => ['label' => 'エクスポート', 'help' => '外部ファイルにマスターデータをエクスポートすることができます。<br />※そのデータに対する閲覧権限が必要です。'],
         ], 
         'role_type_option_table' => [
             'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除、論理削除されたデータを再表示できます。'],
@@ -1932,6 +1945,8 @@ return [
             'custom_value_view' => ['label' => '担当データの閲覧', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを閲覧できます。'],
             'custom_value_access' => ['label' => '担当データの参照', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
             'custom_value_share' => ['label' => 'データの共有', 'help' => 'データを、他のユーザーに共有することができます。<br />※そのデータに対する編集権限が必要です。'],
+            'custom_value_import' => ['label' => 'インポート', 'help' => '外部ファイルからデータをインポートすることができます。<br />※そのデータに対する編集権限が必要です。'],
+            'custom_value_export' => ['label' => 'エクスポート', 'help' => '外部ファイルにデータをエクスポートすることができます。<br />※そのデータに対する閲覧権限が必要です。'],
             'custom_value_view_trashed' => ['label' => '削除データの表示', 'help' => '論理削除されたデータを再表示することができます。<br />※データの復元には、そのデータに対する編集権限が必要です。'],
         ], 
         'role_type_option_value' => [

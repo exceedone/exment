@@ -68,4 +68,22 @@ class Where extends BaseWhere
             $whereNull($query, $this);
         });
     }
+
+    /**
+     * Get query condition from filter.
+     *
+     * @param array $inputs
+     *
+     * @return array|mixed|null
+     */
+    public function getCondition($inputs)
+    {
+        $isnull = Arr::get($inputs, 'isnull-'. $this->column);
+
+        if (isset($isnull)) {
+            return $this->whereNullCondition();
+        }
+
+        return $this->condition($inputs);
+    }
 }

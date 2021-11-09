@@ -54,7 +54,19 @@ class FileRule implements Rule
     {
         if (is_string($value)) {
             $ext = pathinfo($value, PATHINFO_EXTENSION);
-            return in_array($ext, $this->extensions);
+            return collect($this->extensions)->contains(function ($val) use ($ext) {
+                return strcasecmp($val, $ext) == 0;
+            });
+        }
+
+        if ($value instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+            $original_name = $value->getClientOriginalName();
+            if (!is_nullorempty($original_name)) {
+                $ext = pathinfo($original_name, PATHINFO_EXTENSION);
+                return collect($this->extensions)->contains(function ($val) use ($ext) {
+                    return strcasecmp($val, $ext) == 0;
+                });
+            }
         }
 
         return $this->validateMimes($attribute, $value, $this->extensions);

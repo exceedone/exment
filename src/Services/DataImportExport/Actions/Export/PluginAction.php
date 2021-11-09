@@ -64,7 +64,7 @@ class PluginAction extends CustomTableAction
     {
         $this->plugin(request()->get('plugin_uuid'));
 
-        $pluginClass = $this->plugin->getClass(PluginType::EXPORT);
+        $pluginClass = $this->plugin->getClass(PluginType::EXPORT, ['custom_table' => $this->custom_table]);
 
         $pluginClass->defaultProvider(new Export\DefaultTableProvider([
             'custom_table' => $this->custom_table,
@@ -87,7 +87,7 @@ class PluginAction extends CustomTableAction
             if (is_string($file)) {
                 $response->deleteFileAfterSend(true);
             }
-    
+
             $response->send();
             exit;
         }

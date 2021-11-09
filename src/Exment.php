@@ -589,7 +589,7 @@ class Exment
         $url = $this->getManualUrl($uri);
 
         if ($id_transkey) {
-            $url .= '#' . exmtrans($id_transkey);
+            $url .= '?id=' . exmtrans($id_transkey);
         }
 
         return exmtrans('common.help.more_help_here', $url);

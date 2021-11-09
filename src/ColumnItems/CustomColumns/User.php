@@ -81,4 +81,20 @@ class User extends SelectTable
             ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_USER])])
             ;
     }
+
+    /**
+     * Get default type and value
+     *
+     * @return array offset 0: type, 1: value
+     */
+    protected function getDefaultSetting()
+    {
+        list($default_type, $default) = parent::getDefaultSetting();
+
+        if (is_nullorempty($default_type)) {
+            $default = null;
+        }
+
+        return [$default_type, $default];
+    }
 }

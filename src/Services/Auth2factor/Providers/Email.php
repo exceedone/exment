@@ -6,7 +6,6 @@ use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Enums\MailKeyName;
-use Illuminate\Http\Request;
 use Exceedone\Exment\Controllers\AuthTrait;
 use Carbon\Carbon;
 
