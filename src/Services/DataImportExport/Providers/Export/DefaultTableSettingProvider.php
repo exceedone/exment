@@ -6,7 +6,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomRelation;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 class DefaultTableSettingProvider extends ProviderBase
 {

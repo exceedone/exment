@@ -5,6 +5,7 @@ use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Grid\Grid;
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Form\Tools;
 
 /**
@@ -39,33 +40,47 @@ class CrudGrid extends CrudBase
 
         $grid = new Grid(function($grid){
             $this->setGridColumn($grid);
+        }, function($grid, ?array $options)
+        {
+            if(is_nullorempty($options)){
+                $options = [];
+            }
+
+            if(!is_nullorempty(request()->get('per_page'))){
+                $options['per_page'] = request()->get('per_page');
+            }
+            if(!is_nullorempty(request()->get('query'))){
+                $options['query'] = request()->get('query');
+            }
+
+            if(!is_nullorempty(request()->get('page'))){
+                $options['page'] = request()->get('page');
+            }
+            if(!isset($options['page'])){
+                $options['page'] = 1;
+            }
+
+            $paginate = $this->pluginClass->getPaginate($options);
+            return $paginate;
         });
 
-        $prms = [];
-        if(!is_nullorempty(request()->get('per_page'))){
-            $prms['per_page'] = request()->get('per_page');
-        }
-        if(!is_nullorempty(request()->get('query'))){
-            $prms['query'] = request()->get('query');
-        }
-
-        $paginate = $this->pluginClass->getPaginate($prms);
-
-        // get primary key
-        $primary = $this->pluginClass->getPrimaryKey();
-
-        $grid->setPaginator($paginate)
-            ->setResource($this->getFullUrl());
-        
+        $grid->setResource($this->getFullUrl())
+            ->setChunkCount($this->pluginClass->getChunkCount() ?? 1000);
         $this->setGridTools($grid);
         $this->setGridActions($grid);
 
+        // get primary key
+        $primary = $this->pluginClass->getPrimaryKey();
         if(!is_nullorempty($primary)){
             $grid->setKeyName($primary);
         }
 
         $this->pluginClass->callbackGrid($grid);
 
+        // create exporter
+        $service = $this->getImportExportService($grid);
+        $grid->exporter($service);
+        
         return $grid;
     }
 
@@ -149,5 +164,22 @@ class CrudGrid extends CrudBase
 
             $pluginClass->callbackGridAction($actions);
         });
+    }
+
+    
+    // create import and exporter
+    protected function getImportExportService(Grid $grid)
+    {
+        $service = (new DataImportExport\DataImportExportWidgetService())
+            ->exportAction(new DataImportExport\Actions\Export\PaginateAction(
+                [
+                    'isAll' => request()->get('_export_') == 'all',
+                    'grid' => $grid,
+                    'headers' => $this->pluginClass->getFieldDefinitions(),
+                    'filename' => date('YmdHis'),
+                ]
+            ))
+            ;
+        return $service;
     }
 }

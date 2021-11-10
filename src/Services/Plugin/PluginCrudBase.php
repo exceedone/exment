@@ -92,15 +92,6 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
-     * Get data list
-     *
-     * @return Collection
-     */
-    public function getList(array $options = []) : Collection{
-        return collect();
-    }
-
-    /**
      * Get data paginate
      *
      * @return LengthAwarePaginator|null
@@ -108,6 +99,16 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function getPaginate(array $options = []) : ?LengthAwarePaginator
     {
         return null;
+    }
+
+    /**
+     * Get max chunk count.
+     *
+     * @return int
+     */
+    public function getChunkCount() : int
+    {
+        return 1000;
     }
 
     /**
