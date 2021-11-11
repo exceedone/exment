@@ -106,7 +106,15 @@ class RelationPivotTableProvider extends ProviderBase
                 return $d->{$relation_name};
             });
             foreach ($datalist as $d) {
-                $records = $records->merge($d);
+                foreach ($d as $record) {
+                    if ($records->contains(function ($value) use($record) {
+                        return array_get($value, 'pivot.parent_id') == array_get($record, 'pivot.parent_id') &&
+                               array_get($value, 'pivot.child_id') == array_get($record, 'pivot.child_id'); 
+                    })) {
+                        continue;
+                    };
+                    $records->push($record);
+                }
             }
         }) ?? new Collection;
 
