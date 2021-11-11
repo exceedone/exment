@@ -140,11 +140,13 @@ trait OrganizationTrait
         if (!isset($target->children_organizations) || count($target->children_organizations) == 0) {
             return;
         }
+        if ($deep > $deeps) {
+            return;
+        }
+        $deep++;
         foreach ($target->children_organizations as $children_organization) {
             $organizations[] = $children_organization;
-            if ($deep < $deeps) {
-                static::setChildrenOrganizations(++$deep, $children_organization, $organizations);
-            }
+            static::setChildrenOrganizations($deep, $children_organization, $organizations);
         }
     }
     
