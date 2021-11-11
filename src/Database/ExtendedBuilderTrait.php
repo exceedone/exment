@@ -553,6 +553,12 @@ trait ExtendedBuilderTrait
             return $this->table;
         }
 
-        return $this->model->getTable();
+        if ($this instanceof \Illuminate\Database\Eloquent\Builder) {
+            return $this->model->getTable();
+        }
+
+        if ($this instanceof \Illuminate\Database\Query\Builder) {
+            return $this->from;
+        }
     }
 }
