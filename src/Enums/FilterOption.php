@@ -75,8 +75,6 @@ class FilterOption extends EnumBase
             case static::NUMBER_LT:
             case static::NUMBER_GTE:
             case static::NUMBER_LTE:
-            case static::WORKFLOW_EQ_STATUS:
-            case static::WORKFLOW_NE_STATUS:
                 return null;
             case static::DAY_LAST_X_DAY_OR_AFTER:
             case static::DAY_LAST_X_DAY_OR_BEFORE:
@@ -87,6 +85,8 @@ class FilterOption extends EnumBase
             case static::SELECT_NOT_EXISTS:
             case static::USER_EQ:
             case static::USER_NE:
+            case static::WORKFLOW_EQ_STATUS:
+            case static::WORKFLOW_NE_STATUS:
                 return FilterType::SELECT;
             // "none" is not showing condition value options
             default:
@@ -245,8 +245,8 @@ class FilterOption extends EnumBase
             case static::USER_NE_USER: return 'ne-user';
             case static::USER_NOT_NULL: return 'not-null';
             case static::USER_NULL: return 'null';
-            case static::WORKFLOW_EQ_STATUS: return 'eq';
-            case static::WORKFLOW_NE_STATUS: return 'ne';
+            case static::WORKFLOW_EQ_STATUS: return 'select-eq';
+            case static::WORKFLOW_NE_STATUS: return 'select-ne';
             case static::WORKFLOW_EQ_WORK_USER: return 'eq-user';
         }
     }

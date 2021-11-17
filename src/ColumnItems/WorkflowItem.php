@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
+use Encore\Admin\Form\Field\MultipleSelect;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
@@ -111,7 +112,7 @@ class WorkflowItem extends SystemItem
     
     public function getFilterField($value_type = null)
     {
-        $field = new Select($this->name(), [$this->label()]);
+        $field = new MultipleSelect($this->name(), [$this->label()]);
 
         // get workflow statuses
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
