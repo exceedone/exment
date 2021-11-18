@@ -1381,6 +1381,118 @@ class CustomViewFilterTest extends UnitTestBase
     }
 
     /**
+     * FilterOption = EQ(workflow status/multiple_select)
+     */
+    public function testFuncWorkflowStatusEqMulti()
+    {
+        $this->init();
+
+        $filter_settings = [[
+            'column_name' => 'workflow_status',
+            'condition_type' => ConditionType::WORKFLOW,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_STATUS,
+            'filter_value_text' => '["start","7"]'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $workflow_status = array_get($data, 'workflow_status');
+            if (empty($workflow_status)) {
+                return true;
+            }
+            return $workflow_status->id == '7';
+        }, ['target_table_name' => 'custom_value_edit']);
+    }
+
+    /**
+     * FilterOption = NE(workflow status/multiple_select)
+     */
+    public function testFuncWorkflowStatusNeMulti()
+    {
+        $this->init();
+
+        $filter_settings = [[
+            'column_name' => 'workflow_status',
+            'condition_type' => ConditionType::WORKFLOW,
+            'filter_condition' => FilterOption::WORKFLOW_NE_STATUS,
+            'filter_value_text' => '["start","7"]'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $workflow_status = array_get($data, 'workflow_status');
+            if (empty($workflow_status)) {
+                return false;
+            }
+            return $workflow_status->id != '7';
+        }, ['target_table_name' => 'custom_value_edit']);
+    }
+
+    /**
+     * FilterOption = workflow status join other condition and option
+     */
+    public function testFuncWorkflowStatusAnd()
+    {
+        $this->init();
+
+        $filter_settings = [];
+        $filter_settings[] = [
+            'column_name' => 'date',
+            'filter_condition' => FilterOption::DAY_TODAY_OR_AFTER,
+        ];
+        $filter_settings[] = [
+            'column_name' => 'workflow_status',
+            'condition_type' => ConditionType::WORKFLOW,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_STATUS,
+            'filter_value_text' => '["start","7"]'
+        ];
+        $today = \Carbon\Carbon::today();
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use($today) {
+            $date = array_get($data, 'value.date');
+            if (is_null($date)) {
+                return false;
+            }
+            $date = \Carbon\Carbon::parse($date);
+            if ($date < $today) {
+                return false;
+            }
+            $workflow_status = array_get($data, 'workflow_status');
+            if (empty($workflow_status) || $workflow_status->id == '7') {
+                return true;
+            }
+            return false;
+        }, ['target_table_name' => 'custom_value_edit']);
+    }
+
+    /**
+     * FilterOption = workflow status join other condition or option
+     */
+    public function testFuncWorkflowStatusOr()
+    {
+        $this->init();
+
+        $filter_settings = [];
+        $filter_settings[] = [
+            'column_name' => 'odd_even',
+            'filter_condition' => FilterOption::EQ,
+            'filter_value_text' => 'even'
+        ];
+        $filter_settings[] = [
+            'column_name' => 'workflow_status',
+            'condition_type' => ConditionType::WORKFLOW,
+            'filter_condition' => FilterOption::WORKFLOW_NE_STATUS,
+            'filter_value_text' => '["start","7"]'
+        ];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $odd_even = array_get($data, 'value.odd_even');
+            if ($odd_even == 'even') {
+                return true;
+            }
+            $workflow_status = array_get($data, 'workflow_status');
+            if (empty($workflow_status) || $workflow_status->id == '7') {
+                return false;
+            }
+            return true;
+        }, ['target_table_name' => 'custom_value_edit', 'condition_join' => 'or']);
+    }
+
+    /**
      * FilterOption = EQ(workflow user)
      */
     public function testFuncWorkflowUser()
