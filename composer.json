@@ -27,6 +27,7 @@
         "laravel/framework": "^7.30",
         "laravelcollective/html": "~6.2",
         "laravel/helpers": "~1.4",
+        "laravel/ui": "^2.0",
         "webpatser/laravel-uuid": "^3.0",
         "phpoffice/phpspreadsheet": "^1.5.0",
         "box/spout": "^3.1",
