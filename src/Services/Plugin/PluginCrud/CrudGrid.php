@@ -60,8 +60,14 @@ class CrudGrid extends CrudBase
                 $options['page'] = 1;
             }
 
-            $paginate = $this->pluginClass->getPaginate($options);
-            return $paginate;
+            // If support paginate, call as paginate values
+            if($this->pluginClass->enablePaginate()){
+                $paginate = $this->pluginClass->getPaginate($options);
+                return $paginate;
+            }
+
+            // get all values
+            return $this->pluginClass->getList($options);
         });
 
         $grid->setResource($this->getFullUrl())
@@ -73,6 +79,10 @@ class CrudGrid extends CrudBase
         $primary = $this->pluginClass->getPrimaryKey();
         if(!is_nullorempty($primary)){
             $grid->setKeyName($primary);
+        }
+
+        if(!$this->pluginClass->enablePaginate()){
+            $grid->disablePaginator();
         }
 
         $this->pluginClass->callbackGrid($grid);

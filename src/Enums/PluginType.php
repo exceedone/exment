@@ -138,6 +138,7 @@ class PluginType extends EnumBase
             static::EXPORT,
             static::IMPORT,
             static::BUTTON,
+            static::CRUD,
         ];
     }
 

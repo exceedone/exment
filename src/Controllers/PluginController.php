@@ -6,11 +6,13 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\PluginEventType;
@@ -280,6 +282,24 @@ class PluginController extends AdminControllerBase
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
             }
 
+            if ($plugin->matchPluginType(PluginType::CRUD)) {
+                $pluginClass = $this->getPluginClass($plugin);
+                if(isset($pluginClass) && !is_nullorempty($crudAuthType = $pluginClass->getAuthType())){
+                    if($crudAuthType == 'key'){
+                        $form->text('crud_auth_key', $pluginClass->getAuthSettingLabel())
+                            ->help($pluginClass->getAuthSettingHelp());
+                    }
+                    elseif($crudAuthType == 'oauth'){
+                        $form->select('crud_auth_oauth')
+                            ->options(function(){
+                                return Model\LoginSetting::where('login_type', LoginType::OAUTH)
+                                    ->pluck('login_view_name', 'id');
+                            })
+                            ->help($pluginClass->getAuthSettingHelp());
+                    }
+                }
+            }
+
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
                 $form->switchbool('all_user_enabled', exmtrans("plugin.options.all_user_enabled"))->help(exmtrans("plugin.help.all_user_enabled"));
             }
@@ -349,11 +369,7 @@ class PluginController extends AdminControllerBase
      */
     protected function setCustomOptionForm($plugin, &$form)
     {
-        if (!isset($plugin)) {
-            return;
-        }
-        
-        $pluginClass = $plugin->getClass(null, ['throw_ex' => false, 'as_setting' => true]);
+        $pluginClass = $this->getPluginClass($plugin);
         if (!isset($pluginClass)) {
             return;
         }
@@ -362,10 +378,30 @@ class PluginController extends AdminControllerBase
             return;
         }
 
-        
         $form->exmheader(exmtrans("plugin.options.custom_options_header"))->hr();
         $form->embeds('custom_options', exmtrans("plugin.options.custom_options_header"), function ($form) use ($pluginClass) {
             $pluginClass->setCustomOptionForm($form);
         })->disableHeader();
+    }
+
+
+    /**
+     * Get plguin class.
+     * Plugin class is that user defined.
+     *
+     * @return mixed
+     */
+    protected function getPluginClass($plugin)
+    {
+        if (!isset($plugin)) {
+            return;
+        }
+        
+        $pluginClass = $plugin->getClass(null, ['throw_ex' => false, 'as_setting' => true]);
+        if (!isset($pluginClass)) {
+            return null;
+        }
+        
+        return $pluginClass;
     }
 }

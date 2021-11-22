@@ -21,10 +21,10 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function __construct($plugin, $options = [])
     {
         $this->plugin = $plugin;
-        $this->pluginOptions = new PluginOption\PluginOptionCrud($options);
+        $this->pluginOptions = new PluginOption\PluginOptionCrud($plugin, $this, $options);
     }
 
-    protected $endpoint = 'crud';
+    protected $endpoint = null;
 
     /**
      * content title
@@ -172,6 +172,17 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
+     * Get target all endpoints
+     * If support multiple endpoints, override function, end return. 
+     *
+     * @return array|null
+     */
+    public function getAllEndpoints() : ?array
+    {
+        return null;
+    }
+
+    /**
      * Get class name. Toggle using endpoint name.
      *
      * @param string|null $endpoint
@@ -183,6 +194,59 @@ abstract class PluginCrudBase extends PluginPublicBase
             return get_class($this);
         }
         return null;
+    }
+    
+    /**
+     * Get auth type.
+     * Please set null or "key" or "oauth".
+     *
+     * @return string|null
+     */
+    public function getAuthType() : ?string
+    {
+        return null;
+    }
+    
+    /**
+     * Get auth setting label.
+     *
+     * @return string|null
+     */
+    public function getAuthSettingLabel() : ?string
+    {
+        return exmtrans('plugin.options.crud_auth_' . $this->getAuthType());
+    }
+
+    /**
+     * Get auth setting help.
+     *
+     * @return string|null
+     */
+    public function getAuthSettingHelp() : ?string
+    {
+        return exmtrans('plugin.help.crud_auth_' . $this->getAuthType(), [
+            'callback_url' => $this->getFullUrl('oauthcallback')
+        ]);
+    }
+
+    /**
+     * Get auth for key.
+     *
+     * @return string|null
+     */
+    public function getAuthKey() : ?string
+    {
+        return $this->plugin->getOption('crud_auth_key');
+    }
+    
+    /**
+     * Get auth for oauth.
+     *
+     * @return string|null
+     */
+    public function getOauthAccessToken() : ?string
+    {
+        return $this->pluginOptions->getOauthAccessToken();
     }
     
     public function _plugin()
@@ -228,6 +292,17 @@ abstract class PluginCrudBase extends PluginPublicBase
         }), 'key');
     }
 
+
+    /**
+     * Whether use paginate
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enablePaginate() : bool
+    {
+        return true;
+    }
 
     /**
      * Whether show data. If false, disable show link.

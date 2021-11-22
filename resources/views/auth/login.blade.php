@@ -40,22 +40,8 @@
                     <!-- /.col -->
                     <div class="col-xs-12 col-sm-8 col-sm-offset-2">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                
-                        @foreach($form_providers as $login_provider_name => $login_provider)
-                        @include('exment::auth.login_button_style')
-                        @endforeach
-
-                        @if($show_default_login_provider)
-                        <button type="submit" class="btn btn-primary btn-block btn-flat submit_disabled">{{ trans('admin.login') }}</button>
-                        @endif
-
-                        @foreach($form_providers as $login_provider_name => $login_provider)
-                        <button type="submit" class="btn btn-primary btn-block btn-flat submit_disabled {{ $login_provider['btn_name'] ?? '' }}" name="login_setting_{{$login_provider_name}}" value="1">
-                            {{ $login_provider['display_name'] }}
-                        </button>
-                        @endforeach
                         
-                        
+                        @include('exment::auth.login_providers')
                     </div>
                     <!-- /.col -->
                 </div>

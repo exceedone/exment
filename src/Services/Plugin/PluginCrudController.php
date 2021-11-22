@@ -1,11 +1,12 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 
+use Encore\Admin\Widgets\Box;
+use Exceedone\Exment\Enums\PluginCrudAuthType;
+use Exceedone\Exment\Exceptions\SsoLoginErrorException;
+use Exceedone\Exment\Services\Login\OAuth\OAuthService;
 use App\Http\Controllers\Controller;
-use Encore\Admin\Layout\Content;
-use Illuminate\Http\Request;
-use BadMethodCallException;
-use Response;
+use Symfony\Component\HttpFoundation\Response;
 
 class PluginCrudController extends Controller
 {
@@ -23,9 +24,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function index($endpoint)
+    public function index($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
 
         $className = $targetClass->gridClass;
         return (new $className($this->plugin, $targetClass))->index();
@@ -36,9 +40,17 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function show($endpoint, $id)
+    public function show($endpoint = null, $id = null)
     {
+        if(!is_nullorempty($endpoint) && is_nullorempty($id)){
+            $id = $endpoint;
+            $endpoint = null;
+        }
+
         $targetClass = $this->getClass($endpoint);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
 
         $className = $targetClass->showClass;
         return (new $className($this->plugin, $targetClass))->show($id);
@@ -49,9 +61,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function create($endpoint)
+    public function create($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
 
         $className = $targetClass->createClass;
         return (new $className($this->plugin, $targetClass))->create();
@@ -63,9 +78,12 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function store($endpoint)
+    public function store($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
 
         $className = $targetClass->createClass;
         return (new $className($this->plugin, $targetClass))->store();
@@ -77,9 +95,17 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function edit($endpoint, $id)
+    public function edit($endpoint = null, $id = null)
     {
+        if(!is_nullorempty($endpoint) && is_nullorempty($id)){
+            $id = $endpoint;
+            $endpoint = null;
+        }
+
         $targetClass = $this->getClass($endpoint);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
 
         $className = $targetClass->editClass;
         return (new $className($this->plugin, $targetClass))->edit($id);
@@ -90,9 +116,17 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function update($endpoint, $id)
+    public function update($endpoint = null, $id = null)
     {
+        if(!is_nullorempty($endpoint) && is_nullorempty($id)){
+            $id = $endpoint;
+            $endpoint = null;
+        }
+
         $targetClass = $this->getClass($endpoint);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
 
         $className = $targetClass->editClass;
         return (new $className($this->plugin, $targetClass))->update($id);
@@ -103,9 +137,17 @@ class PluginCrudController extends Controller
      *
      * @return void
      */
-    public function destroy($endpoint, $id)
+    public function destroy($endpoint = null, $id = null)
     {
+        if(!is_nullorempty($endpoint) && is_nullorempty($id)){
+            $id = $endpoint;
+            $endpoint = null;
+        }
+
         $targetClass = $this->getClass($endpoint);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
 
         $className = $targetClass->deleteClass;
         $result = (new $className($this->plugin, $targetClass))->delete($id);
@@ -117,6 +159,95 @@ class PluginCrudController extends Controller
         ]);
     }
 
+    
+    /**
+     * Execute login oauth
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function oauth($endpoint = null)
+    {
+        $targetClass = $this->getClass($endpoint, false);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
+
+        try {
+            return $targetClass->getPluginOptions()->loginOAuth();
+        } catch (SsoLoginErrorException $ex) {
+            //ToDO:修正
+            \Log::error($ex);
+
+            // if error, redirect edit page
+        } catch (\Exception $ex) {
+            //ToDO:修正
+            \Log::error($ex);
+        }
+    }
+
+    /**
+     * Execute login oauth callback
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function oauthcallback($endpoint = null)
+    {
+        $targetClass = $this->getClass($endpoint, false);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
+
+        try {
+            $targetClass->getPluginOptions()->setOauthAccessToken();
+
+            // redirect to root
+            return redirect($targetClass->getFullUrl());
+        } catch (SsoLoginErrorException $ex) {
+            //ToDO:修正
+            \Log::error($ex);
+
+            // if error, redirect edit page
+        } catch (\Exception $ex) {
+            //ToDO:修正
+            \Log::error($ex);
+        }
+    }
+
+    /**
+     * No Auth page. 
+     *
+     * @return void
+     */
+    public function noauth($endpoint = null)
+    {
+        $targetClass = $this->getClass($endpoint, false);
+        
+        $authType = $targetClass->getAuthType();
+        if(is_nullorempty($authType)){
+            abort(500);
+        }
+
+        $content = $targetClass->getContent();
+        if($authType == PluginCrudAuthType::KEY){
+            admin_error('エラーです', ' エラーです。');
+        }
+        elseif($authType == PluginCrudAuthType::OAUTH){
+            $login_provider = $targetClass->getPluginOptions()->getOauthSetting();
+            $box = new Box(exmtrans('plugin.error.crud_autherror_auth'), view('exment::auth.plugin_crud_login', [
+                'form_providers' => [
+                    $login_provider->login_provider_name => $login_provider->getLoginButton(),
+                ],
+                'formUrl' => $targetClass->getFullUrl('oauth'),
+            ]));
+            $box->style('danger');
+
+            $content->row($box);
+        }
+
+        return $content;
+    }
 
     /**
      * Get plugin target class.
@@ -125,7 +256,7 @@ class PluginCrudController extends Controller
      * @param string|null $endpoint
      * @return PluginCrudBase
      */
-    protected function getClass(?string $endpoint)
+    protected function getClass(?string $endpoint, bool $isCheckAuthorize = true)
     {
         $className = $this->pluginPage->getPluginClassName($endpoint);
         if(!$className){
@@ -136,32 +267,38 @@ class PluginCrudController extends Controller
         $class->setPluginOptions($this->pluginPage->getPluginOptions())
             ->setEndpoint($endpoint);
 
+        if($isCheckAuthorize && ($response = $this->authorizePlugin($endpoint, $class)) instanceof Response){
+            return $response;
+        }
+        
         return $class;
     }
 
-    // /**
-    //  * @param  string  $method
-    //  * @param  array   $parameters
-    //  * @return mixed
-    //  *
-    //  */
-    // public function __call($method, $parameters)
-    // {
-    //     if (!$this->pluginPage) {
-    //         abort(404);
-    //     }
+    /**
+     * Authorize plugin.
+     *
+     * @return true|
+     */
+    protected function authorizePlugin(?string $endpoint, $targetClass)
+    {
+        $authType = $targetClass->getAuthType();
+        if(is_nullorempty($authType)){
+            return true;
+        }
 
-    //     if (!method_exists($this->pluginPage, $method)) {
-    //         throw new BadMethodCallException(sprintf(
-    //             'Method %s::%s does not exist.',
-    //             static::class,
-    //             $method
-    //         ));
-    //     }
-
-    //     // create html
-    //     $result = call_user_func_array([$this->pluginPage, $method], $parameters);
-
-    //     return $result;
-    // }
+        if($authType == PluginCrudAuthType::KEY){
+            // get key
+            $key = $targetClass->getAuthKey();
+            if(is_nullorempty($key)){
+                return redirect($targetClass->getFullUrl('noauth'));
+            }
+        }
+        elseif($authType == PluginCrudAuthType::OAUTH){
+            // get token
+            $token = $targetClass->getPluginOptions()->getOauthAccessToken();
+            if(is_nullorempty($token)){
+                return redirect($targetClass->getFullUrl('noauth'));
+            }
+        }
+    }
 }

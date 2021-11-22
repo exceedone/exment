@@ -108,17 +108,23 @@ class PluginServiceProvider extends ServiceProvider
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',
                 'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : ['adminweb', 'admin'],
-            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $plugin_type, $json) {
+            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json) {
                 // if crud, set crud routing
                 if($plugin_type == PluginType::CRUD){
-                    $router->get("{endpoint}", "PluginCrudController@index");
-                    $router->get("{endpoint}/create", "PluginCrudController@create");
-                    $router->post("{endpoint}", "PluginCrudController@store");
-                    $router->get("{endpoint}/{id}/edit", "PluginCrudController@edit");
-                    $router->put("{endpoint}/{id}", "PluginCrudController@update");
-                    $router->patch("{endpoint}/{id}", "PluginCrudController@update");
-                    $router->delete("{endpoint}/{id}", "PluginCrudController@destroy");
-                    $router->get("{endpoint}/{id}", "PluginCrudController@show");
+                    $endpoints = $pluginPage->getAllEndpoints();
+                    $key = is_nullorempty($endpoints) ? "" : "{endpoint}";
+
+                    $router->get("{$key}", "PluginCrudController@index");
+                    $router->get("{$key}/create", "PluginCrudController@create");
+                    $router->post("{$key}", "PluginCrudController@store");
+                    $router->get("{$key}/{id}/edit", "PluginCrudController@edit");
+                    $router->put("{$key}/{id}", "PluginCrudController@update");
+                    $router->patch("{$key}/{id}", "PluginCrudController@update");
+                    $router->delete("{$key}/{id}", "PluginCrudController@destroy");
+                    $router->get("{$key}/oauth", "PluginCrudController@oauth");
+                    $router->get("{$key}/oauthcallback", "PluginCrudController@oauthcallback");
+                    $router->get("{$key}/noauth", "PluginCrudController@noauth");
+                    $router->get("{$key}/{id}", "PluginCrudController@show");
                     return;
                 }
     

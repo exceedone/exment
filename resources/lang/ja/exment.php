@@ -624,6 +624,8 @@ return [
             'export_description' => '説明文',
             'grid_menu_title' => 'メニューでのタイトル',
             'grid_menu_description' => 'メニューでの説明文',
+            'crud_auth_key' => 'アプリケーション認証キー',
+            'crud_auth_oauth' => 'OAuth種類',
 
             'event_trigger_options' => [
                 'saving' => '保存直前',
@@ -655,6 +657,8 @@ return [
             'endpoint' => 'このプラグインにアクセスするためのエンドポイントです。',
             'grid_menu_title' => 'ビューの設定時にダイアログで表示される、ビューのタイトルを設定してください。',
             'grid_menu_description' => 'ビューの設定時にダイアログで表示される、ビューの説明文を設定してください。',
+            'crud_auth_key' => 'このプラグインでデータ連携を実行するための、アプリケーション認証キーです。このキーの設定がない場合、ページにアクセスできません。',
+            'crud_auth_oauth' => 'このプラグインでデータ連携を実行するために使用する、OAuthプロバイダを選択してください。プラグインでアクセストークンを取得し、データ連携に使用します。<br/>※このプラグインでOAuthプロバイダで認証を実施するためには、以下のURLをプロバイダのコールバックURLに追加してください。<br/>:callback_url',
         ],
 
         'error' => [
@@ -663,6 +667,9 @@ return [
             'cannot_read' => 'プラグイン :plugin_view_name が正常に読み込めませんでした。プラグインファイル本体を一度ご確認いただくか、システム管理者にお問い合わせください。',
             'class_requirement' => '必須ライブラリがインストールされていませんでした。以下のライブラリを、composerでインストールしてください。 :composer',
             'class_wrongnamespace' => '以下のクラスのnamespaceが誤っている可能性があります。namespace記述を見直してください。 :classes',
+            'crud_autherror_setting' => '設定エラー',
+            'crud_autherror_auth' => '認証エラー',
+            'crud_autherror_auth_help' => '認証されていないか、認証の有効期限が切れています。<br/>このページを表示するためには、ログインを実施し、認証を行ってください。',
         ],
     
         'plugin_type_options' => [

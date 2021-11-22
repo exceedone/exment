@@ -131,6 +131,20 @@ class OAuthService implements LoginServiceInterface
         return $socialiteProvider->redirect();
     }
 
+    /**
+     * Execute login for plugin clud
+     *
+     * @param Request $request
+     * @return void
+     */
+    public static function loginPluginClud(Request $request, $login_setting, string $callbackUrl)
+    {
+        // provider get
+        $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, false, $callbackUrl);
+
+        return $socialiteProvider->redirect();
+    }
+
     
     /**
      * Execute login callback
@@ -178,7 +192,65 @@ class OAuthService implements LoginServiceInterface
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
+
+
+    /**
+     * Get auth for oauth.
+     *
+     * @return string|null
+     */
+    public static function getAccessTokenFromDB(LoginSetting $login_setting) : ?string
+    {
+        // get access token by user setting
+        $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
+        $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
+        $access_token = \Exment::user()->getSettingValue($key);
+        $expires_at = \Exment::user()->getSettingValue($key_expires_at);
+        if(!$access_token || !$expires_at){
+            return null;
+        }
+
+        // Check whether ex
+        $expiresAt = \Carbon\Carbon::parse($expires_at);
+        if($expiresAt <= \Carbon\Carbon::now()->addMinute(-1)){
+            return null;
+        }
+
+        return $access_token;
+    }
     
+
+    /**
+     * Set database and callback auth for oauth.
+     *
+     * @return self
+     */
+    public static function callbackAccessTokenToDB(LoginSetting $login_setting, ?string $callbackUrl) : ?string
+    {
+        try{
+            $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, false, $callbackUrl);
+            // get user
+            $user = $socialiteProvider->user();
+            $token = $user->token;
+            $expiresIn = $user->expiresIn;
+
+            // get Expired at
+            $now = \Carbon\Carbon::now();
+            $expiresAt = $now->addSecond($expiresIn);
+    
+            // get access token by user setting
+            $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
+            $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
+            \Exment::user()->setSettingValue($key, $token);
+            \Exment::user()->setSettingValue($key_expires_at, $expiresAt);
+            return $token;
+        }
+        catch(\Exception $ex){
+            return null;
+        }
+    }
+
+
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting)
     {
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
