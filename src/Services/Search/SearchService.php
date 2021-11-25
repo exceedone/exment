@@ -826,9 +826,15 @@ class SearchService
                 array_get($column, 'options.view_pivot_column_id') ?? $column->view_column_target_id,
             ];
         } elseif ($column instanceof Notify) {
+            $notify_target_table_id = array_get($column, 'trigger_settings.notify_target_table_id');
+            $notify_target_column = array_get($column, 'trigger_settings.notify_target_column');
+            if (empty($notify_target_table_id) && isset($notify_target_column)) {
+                $custom_column = CustomColumn::getEloquent($notify_target_column);
+                $notify_target_table_id = $custom_column->custom_table_id;
+            }
             return [
-                array_get($column, 'trigger_settings.notify_target_table_id'),
-                array_get($column, 'trigger_settings.notify_target_column'),
+                $notify_target_table_id,
+                $notify_target_column,
                 array_get($column, 'trigger_settings.view_pivot_table_id'),
                 array_get($column, 'trigger_settings.view_pivot_column_id'),
             ];
