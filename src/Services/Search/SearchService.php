@@ -857,4 +857,11 @@ class SearchService
 
         return $column->column_item;
     }
+
+    /**
+     * Pass the names of the variables that should be serialised here
+     */
+    public function __sleep() {
+        return [];
+    }
 }
