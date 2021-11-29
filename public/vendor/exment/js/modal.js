@@ -42,7 +42,7 @@ var Exment;
             getdataKeys = $target.data('widgetmodal_getdata_fieldsgroup');
             if (hasValue(getdataKeys)) {
                 for (var key in getdataKeys) {
-                    data[key] = $target.closest('.fields-group').find('.' + getdataKeys[key]).val();
+                    data[key] = $target.closest('.form-group').find('.' + getdataKeys[key]).val();
                 }
             }
             // set uuid
