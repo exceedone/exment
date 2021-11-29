@@ -235,6 +235,9 @@ class WorkflowAction extends ModelBase
         }
         
         foreach ($this->work_condition_headers as $work_condition_header) {
+            if (array_get($work_condition_header, 'enabled_flg') != '1') {
+                continue;
+            }
             $work_condition_header['workflow_action_id'] = $this->id;
 
             $conditions = array_pull($work_condition_header, 'workflow_conditions', []);
