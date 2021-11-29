@@ -861,7 +861,8 @@ class SearchService
     /**
      * Pass the names of the variables that should be serialised here
      */
-    public function __sleep() {
+    public function __sleep()
+    {
         return [];
     }
 }
