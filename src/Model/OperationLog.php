@@ -25,4 +25,15 @@ class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
         $user = $this->user;
         return $user ? $user->user_name : null;
     }
+
+    /**
+     * Prepare a date for array / JSON serialization.
+     *
+     * @param  \DateTimeInterface  $date
+     * @return string
+     */
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format($this->getDateFormat());
+    }
 }
