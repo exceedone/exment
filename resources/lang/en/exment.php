@@ -1256,6 +1256,7 @@ return [
             'placeholder' => 'PlaceHolder',
             'help' => 'Help',
             'min_max_width' => 'Column Min / Max Width',
+            'text_align' => 'Align of custom view',
             'string_length' => 'Max Length',
             'rows' => 'Rows',
             'available_characters' => 'Available Characters',
@@ -1299,6 +1300,11 @@ return [
             'accept_extensions' => 'Extensions that allow uploading',
             'required_yes' => 'Required YES',
         ],
+        'align_type_options' => [
+            "left" => "Left",
+            "center" => "Center",
+            "right" => "Right",
+        ],
         'column_type_options' => [
             "text" => "One-Line Text",
             "textarea" => "Multiple-Line Text",
@@ -1334,6 +1340,7 @@ return [
             'placeholder' => 'A string that is displayed in a light color as guidance in the field before input.',
             'help' => 'Help string displayed below the field.',
             'min_max_width' => 'Enter the minimum and maximum values ​​of the column width when displaying the list as integers(px).',
+            'text_align' => 'Please select the layout when displaying the list.',
             'number_format' => 'If set to YES, the text field will be displayed as a comma value.',
             'percent_format' => 'If set to YES, the list page and display page are displayed as percentages.',
             'rows' => 'Set input form height.',
