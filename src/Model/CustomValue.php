@@ -53,6 +53,12 @@ abstract class CustomValue extends ModelBase
     protected $disable_saved_event = false;
 
     /**
+     * set value directly without processing.
+     * if true, skip saving event without revision.
+     */
+    protected $restore_revision = false;
+
+    /**
      * saved notify.
      * if false, don't notify
      */
@@ -397,6 +403,11 @@ abstract class CustomValue extends ModelBase
         $this->disable_saved_event = $disable_saved_event;
         return $this;
     }
+    public function restore_revision($restore_revision = true)
+    {
+        $this->restore_revision = $restore_revision;
+        return $this;
+    }
 
     protected static function boot()
     {
@@ -407,18 +418,20 @@ abstract class CustomValue extends ModelBase
                 return;
             }
             
-            $events = $model->exists ? CustomOperationType::UPDATE : CustomOperationType::CREATE;
-            // call create or update trigger operations
-            CustomOperation::operationExecuteEvent($events, $model);
+            if (!$model->restore_revision) {
+                $events = $model->exists ? CustomOperationType::UPDATE : CustomOperationType::CREATE;
+                // call create or update trigger operations
+                CustomOperation::operationExecuteEvent($events, $model);
 
-            // call saving trigger plugins
-            Plugin::pluginExecuteEvent(PluginEventTrigger::SAVING, $model->custom_table, [
-                'custom_table' => $model->custom_table,
-                'custom_value' => $model,
-            ]);
+                // call saving trigger plugins
+                Plugin::pluginExecuteEvent(PluginEventTrigger::SAVING, $model->custom_table, [
+                    'custom_table' => $model->custom_table,
+                    'custom_value' => $model,
+                ]);
 
-            // re-get field data --------------------------------------------------
-            $model->prepareValue();
+                // re-get field data --------------------------------------------------
+                $model->prepareValue();
+            }
 
             // prepare revision
             $model->preSave();
