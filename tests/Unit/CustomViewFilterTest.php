@@ -164,7 +164,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_condition' => FilterOption::DAY_ON_OR_BEFORE,
             'filter_value_text' => '2021-01-01'
         ]];
-        
+
         $base_date = \Carbon\Carbon::parse($filter_settings[0]['filter_value_text']);
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($base_date) {
             $date = array_get($data, 'value.date');
@@ -357,7 +357,7 @@ class CustomViewFilterTest extends UnitTestBase
             }
             $date = \Carbon\Carbon::parse($date);
             $today = \Carbon\Carbon::today();
-            return $today->firstOfMonth()->addMonths(-1)->format('Y-m') == $date->format('Y-m');
+            return $today->firstOfMonth()->subMonthNoOverflow(1)->format('Y-m') == $date->format('Y-m');
         });
     }
 
@@ -379,7 +379,7 @@ class CustomViewFilterTest extends UnitTestBase
             }
             $date = \Carbon\Carbon::parse($date);
             $today = \Carbon\Carbon::today();
-            return $today->addMonths(1)->format('Y-m') == $date->format('Y-m');
+            return $today->addMonthsNoOverflow(1)->format('Y-m') == $date->format('Y-m');
         });
     }
 
@@ -423,7 +423,7 @@ class CustomViewFilterTest extends UnitTestBase
             }
             $date = \Carbon\Carbon::parse($date);
             $today = \Carbon\Carbon::today();
-            return $today->addYears(-1)->format('Y') == $date->format('Y');
+            return $today->subYearNoOverflow(1)->format('Y') == $date->format('Y');
         });
     }
 
@@ -445,7 +445,7 @@ class CustomViewFilterTest extends UnitTestBase
             }
             $date = \Carbon\Carbon::parse($date);
             $today = \Carbon\Carbon::today();
-            return $today->addYears(1)->format('Y') == $date->format('Y');
+            return $today->addYearNoOverflow(1)->format('Y') == $date->format('Y');
         });
     }
 
@@ -852,7 +852,7 @@ class CustomViewFilterTest extends UnitTestBase
     public function testFuncFilterOrganizationNullMulti()
     {
         //$this->skipTempTestIfTrue(true, 'Now multi and not null filter is bug.');
-        
+
         $this->init();
 
         $filter_settings = [[
@@ -1558,17 +1558,17 @@ class CustomViewFilterTest extends UnitTestBase
         // get filter matched count.
         foreach ($collection as $data) {
             $matchResult = $testCallback($data, $filter_settings);
-            
+
             $this->assertTrue($matchResult, 'matchResult is false. Target id is ' . $data->id);
         }
 
         // check not getted values.
         $custom_table = CustomTable::getEloquent($options['target_table_name']);
         $notMatchedValues = $custom_table->getValueQuery()->whereNotIn('id', $collection->pluck('id')->toArray())->get();
-        
+
         foreach ($notMatchedValues as $data) {
             $matchResult = $testCallback($data, $filter_settings);
-            
+
             $this->assertTrue(!$matchResult, 'Expect matchResult is false, but matched. Target id is ' . $data->id);
         }
     }
