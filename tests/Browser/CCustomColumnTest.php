@@ -62,7 +62,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'string_length' => 256,
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -123,7 +123,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'string_length' => 512,
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -181,7 +181,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => 'テキストエディタのヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -235,7 +235,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => 'URLのヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -289,7 +289,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => 'Emailのヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -346,7 +346,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'number_max' => 12345,
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -422,7 +422,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'decimal_digit' => 3,
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -492,7 +492,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'decimal_digit' => 3,
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -566,7 +566,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'default' => '2019/02/19',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -623,7 +623,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'default' => '12:34:56',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -680,7 +680,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'default' => '2019/02/19 11:22:33',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -737,7 +737,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'select_item' => '選択1'."\n".'選択2'."\n".'選択3',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -756,7 +756,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '選択肢のヘルプ')
             ->seeInField('options[default]', 0)
-            ->seeInField('options[select_item]', '選択1'."\n".'選択2'."\n".'選択3')
+            ->seeInField('options[select_item]', '選択1 選択2 選択3')
 ;
         $form = [
             'column_view_name' => 'Select Column Update',
@@ -795,7 +795,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'select_item_valtext' => '0,低い'."\n".'1,通常'."\n".'2,高い',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -815,7 +815,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[help]', '選択肢（値と見出し）のヘルプ')
             ->seeInField('options[default]', 0)
             ->seeInField('options[multiple_enabled]', 0)
-            ->seeInField('options[select_item_valtext]', '0,低い'."\n".'1,通常'."\n".'2,高い')
+            ->seeInField('options[select_item_valtext]', '0,低い 1,通常 2,高い')
 ;
         $form = [
             'column_view_name' => 'Select Value Text Column Update',
@@ -858,7 +858,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'select_target_table' => $table_id,
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -918,7 +918,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => 'YES・Noのヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -978,7 +978,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => '2値の選択のヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -1038,7 +1038,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => '採番種類のヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -1093,7 +1093,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => '画像のヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
@@ -1147,7 +1147,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => 'ファイルのヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test?per_page=100'))
             ->seePageIs(admin_url('column/test?per_page=100'))
             ->matchStatusCode(200)
@@ -1201,7 +1201,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => 'ユーザーのヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test?per_page=100'))
             ->seePageIs(admin_url('column/test?per_page=100'))
             ->matchStatusCode(200)
@@ -1258,7 +1258,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 'help' => '組織のヘルプ',
             ],
         ]);
-        
+
         $response = $this->visit(admin_url('column/test?per_page=100'))
             ->seePageIs(admin_url('column/test?per_page=100'))
             ->matchStatusCode(200)

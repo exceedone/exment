@@ -135,7 +135,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 ->seeInField('value[dateandtime]', '2019-02-27 10:45:03')
                 ->seeIsSelected('value[selectfromstaticvalue][]', 'Option 1')
                 ->seeIsSelected('value[selectsavevalueandlabel][]', '1')
-                ->seeInField('value[multiplelinetext]', 'EXMENT Test' . "\n" . 'Data Multiline Text')
+                ->seeInField('value[multiplelinetext]', 'EXMENT Test Data Multiline Text')
                 ->seeInField('value[decimal]', 99.99)
                 ->seeInField('value[url]', 'https://google.com')
                 ->seeInField('value[email]', 'admin@admin.com')
