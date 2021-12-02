@@ -239,6 +239,12 @@ class MailInfo
     }
 
 
+    public function clearAttachments()
+    {
+        $this->attachments = [];
+    }
+
+
     protected function convertArray($value)
     {
         if ($value instanceof \Illuminate\Database\Eloquent\Model || $value instanceof \Exceedone\Exment\Model\NotifyTarget) {
