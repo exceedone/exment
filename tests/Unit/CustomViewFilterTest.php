@@ -1522,6 +1522,90 @@ class CustomViewFilterTest extends UnitTestBase
         }, ['condition_join' => 'or']);
     }
 
+    /**
+     * FilterOption = SELECT_EXISTS(multiple select unicode)
+     */
+    public function testFuncFilterSelectUnicodeExists()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select_multiple',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => unicode_encode('["イタリア", "中国"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select_multiple');
+            return in_array('イタリア', $actual) || in_array('中国', $actual);
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(multiple select unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExists()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select_multiple',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => unicode_encode('["アメリカ", "日本"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select_multiple');
+            return !in_array('アメリカ', $actual) || !in_array('日本', $actual);
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_EXISTS(multiple select_valtext unicode)
+     */
+    public function testFuncFilterSelectUnicodeExistsVal()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select_valtext_multiple',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => unicode_encode('["ろ", "と"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select_valtext_multiple');
+            return in_array('ろ', $actual) || in_array('と', $actual);
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(multiple select_valtext unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExistsVal()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select_valtext_multiple',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => unicode_encode('["い", "ち"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select_valtext_multiple');
+            return !in_array('い', $actual) || !in_array('ち', $actual);
+        }, $options);
+    }
+
 
 
     protected function init()
