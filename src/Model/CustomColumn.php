@@ -273,7 +273,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $item->delete();
         });
         $items = CustomViewSort::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
+            $query->where('options->view_pivot_column_id', strval($this->id))
                 ->where('options->view_pivot_table_id', $this->custom_table_id);
         })->get();
         $items->each(function ($item) {
