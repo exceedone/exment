@@ -568,6 +568,7 @@ return [
             'news' => 'Exment new arrival information list',
             'editor' => 'Editor',
             'html' => 'HTML',
+            'notify_navbar' => 'Notify list',
         ],
 
         'dashboard_menulist' => [

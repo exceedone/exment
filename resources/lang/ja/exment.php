@@ -568,6 +568,7 @@ return [
             'news' => 'Exment新着情報一覧',
             'editor' => 'エディター',
             'html' => 'HTML',
+            'notify_navbar' => '通知一覧',
         ],
 
         'dashboard_menulist' => [
