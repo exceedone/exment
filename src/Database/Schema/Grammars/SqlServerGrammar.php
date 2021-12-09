@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Database\Schema\Grammars;
 
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Fluent;
 use Exceedone\Exment\Model\CustomColumn;
 use Illuminate\Database\Schema\Grammars\SqlServerGrammar as BaseGrammar;
 
@@ -122,7 +124,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         return "SELECT 
             OBJECT_NAME([default_object_id]) AS name 
         FROM 
-            SYS.COLUMNS 
+            sys.columns 
         WHERE 
             [object_id] = OBJECT_ID('{$this->wrapTable($tableName)}') 
         AND 
@@ -137,5 +139,27 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     {
         $tableName = $this->wrapTable($tableName);
         return "ALTER TABLE $tableName DROP CONSTRAINT $contraintName";
+    }
+
+    /**
+     * Compile a drop default constraint command.
+     *
+     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
+     * @param  \Illuminate\Support\Fluent  $command
+     * @return string
+     */
+    public function compileDropDefaultConstraint(Blueprint $blueprint, Fluent $command)
+    {
+        $columns = "'".implode("','", $command->columns)."'";
+
+        $tableName = $this->getTablePrefix().$blueprint->getTable();
+
+        $sql = "DECLARE @sql NVARCHAR(MAX) = '';";
+        $sql .= "SELECT @sql += 'ALTER TABLE [dbo].[{$tableName}] DROP CONSTRAINT ' + OBJECT_NAME([default_object_id]) + ';' ";
+        $sql .= 'FROM sys.columns ';
+        $sql .= "WHERE [object_id] = OBJECT_ID('[dbo].[{$tableName}]') AND [name] in ({$columns}) AND [default_object_id] <> 0;";
+        $sql .= 'EXEC(@sql)';
+
+        return $sql;
     }
 }
