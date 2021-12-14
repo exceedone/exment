@@ -219,7 +219,11 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
                     ->where('authority_related_type', ConditionTypeDetail::COLUMN()->lowerkey());
                     
                 if ($custom_column->column_type == ColumnType::USER) {
-                    $query->where($tableName . '.' . $indexName, \Exment::getUserId());
+                    if ($custom_column->isMultipleEnabled()) {
+                        $query->whereInArrayString($tableName . '.' . $indexName, \Exment::getUserId());
+                    } else {
+                        $query->where($tableName . '.' . $indexName, \Exment::getUserId());
+                    }
                 } else {
                     $query->whereIn($tableName . '.' . $indexName, $ids);
                 }

@@ -189,7 +189,7 @@ trait ExtendedBuilderTrait
      */
     public function whereNotInArrayString($column, $values)
     {
-        return $this->_whereInArrayString($column, $values, true, true);
+        return $this->_whereInArrayString($column, $values, false, true);
     }
     
     /**
@@ -203,7 +203,7 @@ trait ExtendedBuilderTrait
      */
     public function orWhereNotInArrayString($column, $values)
     {
-        return $this->_whereInArrayString($column, $values, true, false);
+        return $this->_whereInArrayString($column, $values, true, true);
     }
     
 
@@ -553,6 +553,12 @@ trait ExtendedBuilderTrait
             return $this->table;
         }
 
-        return $this->model->getTable();
+        if ($this instanceof \Illuminate\Database\Eloquent\Builder) {
+            return $this->model->getTable();
+        }
+
+        if ($this instanceof \Illuminate\Database\Query\Builder) {
+            return $this->from;
+        }
     }
 }

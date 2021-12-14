@@ -17,7 +17,12 @@ abstract class UserEqUserBase extends ViewFilterBase
         $user_id = \Exment::getUserId();
         if ($user_id) {
             $mark = $this->getMark();
-            $query->{$method_name}($query_column, $mark, $user_id);
+            if ($this->column_item->isMultipleEnabled()) {
+                $method_name_suffix = $mark == '=' ? 'InArrayString' : 'NotInArrayString';
+                $query->{$method_name.$method_name_suffix}($query_column, $user_id);
+            } else {
+                $query->{$method_name}($query_column, $mark, $user_id);
+            }
         } else {
             $query->{$method_name . 'NotMatch'}();
         }
