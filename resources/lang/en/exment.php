@@ -2318,6 +2318,7 @@ return [
             'created_user' => 'Create User',
             'work_user' => 'Next Work User',
             'fixed_email' => 'Specified email address',
+            'action_user' => 'Action execution user',
         ],
 
         'message' => [
