@@ -2326,6 +2326,7 @@ return [
             'created_user' => '作成者',
             'work_user' => '次の作業ユーザー',
             'fixed_email' => '指定のメールアドレス',
+            'action_user' => '作業実施者',
         ],
 
         'message' => [
