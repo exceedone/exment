@@ -1560,7 +1560,7 @@ class CustomViewFilterTest extends UnitTestBase
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select_multiple');
-            return !in_array('アメリカ', $actual) || !in_array('日本', $actual);
+            return !in_array('アメリカ', $actual) && !in_array('日本', $actual);
         }, $options);
     }
 
@@ -1602,7 +1602,7 @@ class CustomViewFilterTest extends UnitTestBase
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select_valtext_multiple');
-            return !in_array('い', $actual) || !in_array('ち', $actual);
+            return !in_array('い', $actual) && !in_array('ち', $actual);
         }, $options);
     }
 
