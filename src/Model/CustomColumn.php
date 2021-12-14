@@ -252,36 +252,36 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         // remove reference with pivot column
         $items = CustomViewColumn::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
-                ->where('options->view_pivot_table_id', $this->custom_table_id);
+            $query->where('options->view_pivot_column_id', (string)$this->id)
+                ->where('options->view_pivot_table_id', (string)$this->custom_table_id);
         })->get();
         $items->each(function ($item) {
             $item->delete();
         });
         $items = CustomViewSummary::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
-                ->where('options->view_pivot_table_id', $this->custom_table_id);
+            $query->where('options->view_pivot_column_id', (string)$this->id)
+                ->where('options->view_pivot_table_id', (string)$this->custom_table_id);
         })->get();
         $items->each(function ($item) {
             $item->delete();
         });
         $items = CustomViewFilter::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
-                ->where('options->view_pivot_table_id', $this->custom_table_id);
+            $query->where('options->view_pivot_column_id', (string)$this->id)
+                ->where('options->view_pivot_table_id', (string)$this->custom_table_id);
         })->get();
         $items->each(function ($item) {
             $item->delete();
         });
         $items = CustomViewSort::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
-                ->where('options->view_pivot_table_id', $this->custom_table_id);
+            $query->where('options->view_pivot_column_id', (string) $this->id)
+                ->where('options->view_pivot_table_id',(string) $this->custom_table_id);
         })->get();
         $items->each(function ($item) {
             $item->delete();
         });
         $items = CustomViewGridFilter::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
-                ->where('options->view_pivot_table_id', $this->custom_table_id);
+            $query->where('options->view_pivot_column_id', (string)$this->id)
+                ->where('options->view_pivot_table_id', (string)$this->custom_table_id);
         })->get();
         $items->each(function ($item) {
             $item->delete();
@@ -302,14 +302,14 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected static function boot()
     {
         parent::boot();
-                
+
         // add default order
         static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
             $model->prepareJson('options');
         });
-        
+
         static::saved(function ($model) {
             // create or drop index --------------------------------------------------
             $model->alterColumn();
@@ -348,11 +348,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         if ($column_obj instanceof \stdClass) {
             $column_obj = array_get((array)$column_obj, 'id');
         }
-        
+
         if (is_array($column_obj)) {
             $column_obj = array_get($column_obj, 'id');
         }
-        
+
         if (is_numeric($column_obj)) {
             return static::allRecordsCache(function ($record) use ($column_obj) {
                 return $record->id == $column_obj;
@@ -366,14 +366,14 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             if (!isset($table_obj)) {
                 return null;
             }
-            
+
             return static::allRecordsCache(function ($record) use ($table_obj, $column_obj) {
                 return $record->column_name == $column_obj && $record->custom_table_id == $table_obj->id;
             })->first();
         }
         return null;
     }
-    
+
     /**
      * Alter table column
      * For add table virtual column
@@ -395,7 +395,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         // get whether index_enabled column
         $index_enabled = $this->index_enabled;
-        
+
         // check table column field exists.
         $exists = hasColumn($db_table_name, $db_column_name);
 
@@ -421,7 +421,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             }
         }
     }
-    
+
     /**
      * Get index column column name. This function uses only search-enabled column.
      * @param boolean $alterColumn if not exists column on db, execute alter column. if false, only get name
@@ -534,7 +534,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $array_get_key = $column_type == 'select' ? 'select_item' : 'select_item_valtext';
         $select_item = array_get($column_options, $array_get_key);
         $isValueText = ($column_type == 'select_valtext');
-        
+
         $options = [];
         if (is_null($select_item)) {
             return $options;
@@ -557,7 +557,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         return $options;
     }
-    
+
     /**
      * Create laravel-admin select box option item.
      */
@@ -592,7 +592,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         //return expects array
         return ['options.available_characters'];
     }
-    
+
     public function importSaved($json, $options = [])
     {
         if (!$this->index_enabled) {
@@ -615,7 +615,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             'custom_table_id' => $custom_table->id,
             'column_name' => $column_name
         ]);
-        
+
         // importReplaceJsonCustomColumn using import and update column
         $update_flg = false;
         if (static::importReplaceJsonCustomColumn($json, 'options.select_import_column_id', 'options.select_import_column_name', 'options.select_import_table_name', $options)) {
