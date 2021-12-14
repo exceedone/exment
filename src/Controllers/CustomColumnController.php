@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\TextAlignType;
 use Exceedone\Exment\Validator;
 use Illuminate\Validation\Rule;
 
@@ -280,6 +281,10 @@ class CustomColumnController extends AdminControllerTableBase
             $form->numberRange('min_width', 'max_width', exmtrans("custom_column.options.min_max_width"))
                 ->help(exmtrans("custom_column.help.min_max_width"))
                 ;
+
+            $form->select('text_align', exmtrans("custom_column.options.text_align"))
+                ->help(exmtrans("custom_column.help.text_align"))
+                ->options(TextAlignType::transArray('custom_column.align_type_options'));
 
             // setting for each settings of column_type. --------------------------------------------------
             // Form options area -- start
