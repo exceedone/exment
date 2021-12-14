@@ -252,21 +252,21 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         // remove reference with pivot column
         $items = CustomViewColumn::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
+            $query->where('options->view_pivot_column_id', strval($this->id))
                 ->where('options->view_pivot_table_id', $this->custom_table_id);
         })->get();
         $items->each(function ($item) {
             $item->delete();
         });
         $items = CustomViewSummary::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
+            $query->where('options->view_pivot_column_id', strval($this->id))
                 ->where('options->view_pivot_table_id', $this->custom_table_id);
         })->get();
         $items->each(function ($item) {
             $item->delete();
         });
         $items = CustomViewFilter::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
+            $query->where('options->view_pivot_column_id', strval($this->id))
                 ->where('options->view_pivot_table_id', $this->custom_table_id);
         })->get();
         $items->each(function ($item) {
@@ -280,7 +280,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $item->delete();
         });
         $items = CustomViewGridFilter::where(function ($query) {
-            $query->where('options->view_pivot_column_id', $this->id)
+            $query->where('options->view_pivot_column_id', strval($this->id))
                 ->where('options->view_pivot_table_id', $this->custom_table_id);
         })->get();
         $items->each(function ($item) {
@@ -289,10 +289,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         // remove multisettings
         $items = CustomColumnMulti::where(function ($query) {
-            $query->where('options->table_label_id', $this->id)
-                ->orWhere('options->unique1_id', $this->id)
-                ->orWhere('options->unique2_id', $this->id)
-                ->orWhere('options->unique3_id', $this->id);
+            $query->where('options->table_label_id', strval($this->id))
+                ->orWhere('options->unique1_id', strval($this->id))
+                ->orWhere('options->unique2_id', strval($this->id))
+                ->orWhere('options->unique3_id', strval($this->id));
         })->get();
         $items->each(function ($item) {
             $item->delete();
