@@ -219,10 +219,11 @@ class WorkflowNotifyController extends Controller
     }
 
 
-    public function notify_action_target(Request $request)
+    public function notify_action_target(Request $request, $workflow_id)
     {
         $options = NotifyService::getNotifyTargetColumns(null, $request->get('q'), [
             'as_workflow' => true,
+            'workflow' => Workflow::find($workflow_id) 
         ]);
 
         return $options;

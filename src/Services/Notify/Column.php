@@ -9,6 +9,8 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\NotifyTarget;
+use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\WorkflowValue;
 
 class Column extends NotifyTargetBase
 {
@@ -82,5 +84,16 @@ class Column extends NotifyTargetBase
         }
 
         return $result;
+    }
+
+    /**
+     * Get notify target model for workflow
+     *
+     * @param CustomValue $custom_value
+     * @return Collection
+     */
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    {
+        return $this->getModels($custom_value, null);
     }
 }

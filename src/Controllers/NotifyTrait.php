@@ -98,6 +98,7 @@ trait NotifyTrait
             ->options(function ($val, $field, $notify) use ($custom_table, $workflow_id, $options) {
                 $options = array_merge([
                     'as_workflow' => !is_nullorempty($workflow_id),
+                    'workflow' => $workflow_id,
                     'get_realtion_email' => true,
                 ], $options);
                 return collect(NotifyService::getNotifyTargetColumns(
