@@ -274,6 +274,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getPriorityForm($id = null)
     {
+        // get request
+        $request = request();
+        if (!is_null($request->input('formid'))) {
+            $suuid = $request->input('formid');
+            // if query has form id, set form.
+            return CustomForm::findBySuuid($suuid);
+        }
+
         $custom_value = $this->getValueModel($id);
 
         if (isset($custom_value)) {
