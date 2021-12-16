@@ -26,6 +26,9 @@ class SystemRequireForm
 
         try {
             $inputs = InstallService::getInputParams();
+            if (is_null(array_get($inputs, 'APP_URL')) && !is_null($url = asset(''))) {
+                $inputs['APP_URL'] = $url;
+            }
             $this->setEnv($inputs);
             InstallService::forgetInputParams();
         } catch (\Exception $ex) {
