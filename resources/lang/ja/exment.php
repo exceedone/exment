@@ -2270,6 +2270,8 @@ return [
         'notify_button_name' => 'ボタン表示名',
         'notify_select' => '送信先選択',
         'target_emails' => '送信先メールアドレス',
+        'target_users' => '送信先ユーザー',
+        'target_organizations' => '送信先の組織',
         'message_input' => 'メッセージ入力',
         'webhook_url' => 'Webhook URL',
         'mention_here' => 'メンバー全員に通知を実施',
@@ -2293,6 +2295,8 @@ return [
             'mention_here' => '指定のチャンネルで、ステータスがアクティブになっているメンバー全員に通知を行う、「@here」メンションを送ります。※個別のメンションを行うには、下の「通知対象」項目を設定してください。',
             'slack_user_column_not_setting' => '※システム設定の「Slack ID設定列(ユーザー)」が登録されていません。Slack IDを登録する列を指定後、通知対象を設定できます。',
             'target_emails' => '通知を送信するメールアドレスを入力してください。複数指定する場合、改行区切りで入力してください。',
+            'target_users' => '通知を送信するユーザーを選択してください。',
+            'target_organizations' => '通知を送信する組織を選択してください。',
         ],
 
         'notify_trigger_options' => [
@@ -2318,6 +2322,7 @@ return [
             'created_user' => '作成者',
             'work_user' => '次の作業ユーザー',
             'fixed_email' => '指定のメールアドレス',
+            'fixed_user' => '指定のユーザー',
         ],
 
         'message' => [

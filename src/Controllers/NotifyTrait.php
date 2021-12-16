@@ -126,6 +126,22 @@ trait NotifyTrait
                     ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_EMAIL]],
                 ])
             ]);
+ 
+        list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
+            'display_table' => $custom_table,
+            // 'selected_value' => array_get($value, SystemTableName::USER),
+        ]);
+    
+        $form->multipleSelect('target_users', exmtrans('notify.target_users'))
+            ->options($users)
+            ->ajax($ajax)
+            ->help(exmtrans("notify.help.target_users"))
+            ->attribute([
+                'data-filter' => json_encode([
+                    ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_USER]],
+                ])
+                ]);
+//            ->default(array_get($value, SystemTableName::USER));
             
         if (!isset($system_slack_user_column)) {
             $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
