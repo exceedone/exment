@@ -645,6 +645,12 @@ class NotifyService
         if (is_nullorempty($params['body'])) {
             $params['body'] = array_get($mail_template->value, 'mail_body');
         }
+        if (array_key_exists('attach_files', $params)) {
+            $attachments = array_get($mail_template->value, 'attachments');
+            $params['attach_files'] = collect($attachments)->filter()->map(function ($attachment) {
+                return ExmentFile::getData($attachment);
+            })->merge($params['attach_files'])->filter();
+        }
     }
 
     /**

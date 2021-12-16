@@ -637,21 +637,29 @@ class ConditionTest extends UnitTestBase
     {
         $this->_testColumnSelectMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_EXISTS, true);
         $this->_testColumnSelectMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_EXISTS, true);
+        $this->_testColumnSelectMulti(['イタリア', 'カナダ'], [
+            'イタリア', 'カナダ', ['日本', 'カナダ']], FilterOption::SELECT_EXISTS, true, TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA);
     }
     public function testColumnSelectMultiExistsFalse()
     {
         $this->_testColumnSelectMulti(['foo', 'bar'], ['baz', null, 0], FilterOption::SELECT_EXISTS, false);
         $this->_testColumnSelectMulti([123, 456, 789], [234, '567', [777]], FilterOption::SELECT_EXISTS, false);
+        $this->_testColumnSelectMulti(['イタリア', 'カナダ'], [
+            '日本', ['アメリカ', '中国']], FilterOption::SELECT_EXISTS, false, TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA);
     }
     public function testColumnSelectMultiNotExistsTrue()
     {
         $this->_testColumnSelectMulti(['foo', 'bar'], ['baz', null, 0], FilterOption::SELECT_NOT_EXISTS, true);
         $this->_testColumnSelectMulti([123, 456, 789], [234, '567', [777]], FilterOption::SELECT_NOT_EXISTS, true);
+        $this->_testColumnSelectMulti(['イタリア', 'カナダ'], [
+            '日本', ['イタリア', '中国'], ['アメリカ', 'カナダ']], FilterOption::SELECT_NOT_EXISTS, true, TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA);
     }
     public function testColumnSelectMultiNotExistsFalse()
     {
         $this->_testColumnSelectMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_NOT_EXISTS, false);
         $this->_testColumnSelectMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
+        $this->_testColumnSelectMulti(['イタリア', 'カナダ'], [
+            ['イタリア', 'カナダ']], FilterOption::SELECT_NOT_EXISTS, false, TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA);
     }
     public function testColumnSelectMultiNotNullTrue()
     {
@@ -665,11 +673,15 @@ class ConditionTest extends UnitTestBase
     {
         $this->_testColumnSelectMultiNullCheck(null, FilterOption::NOT_NULL, false);
         $this->_testColumnSelectMultiNullCheck('', FilterOption::NOT_NULL, false);
+        $this->markTestSkipped('現状空配列はNULLと見なされない');
+        $this->_testColumnSelectMultiNullCheck([], FilterOption::NOT_NULL, false);
     }
     public function testColumnSelectMultiNullTrue()
     {
         $this->_testColumnSelectMultiNullCheck(null, FilterOption::NULL, true);
         $this->_testColumnSelectMultiNullCheck('', FilterOption::NULL, true);
+        $this->markTestSkipped('現状空配列はNULLと見なされない');
+        $this->_testColumnSelectMultiNullCheck([], FilterOption::NULL, true);
     }
     public function testColumnSelectMultiNullFalse()
     {
@@ -679,9 +691,9 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectMultiNullCheck(['0'], FilterOption::NULL, false);
         $this->_testColumnSelectMultiNullCheck([0], FilterOption::NULL, false);
     }
-    protected function _testColumnSelectMulti($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnSelectMulti($target_value, array $values, string $filterOption, bool $result, string $tableName = null)
     {
-        $this->__testColumn('select_multiple', $target_value, $values, $filterOption, $result);
+        $this->__testColumn('select_multiple', $target_value, $values, $filterOption, $result, $tableName);
     }
     protected function _testColumnSelectMultiNullCheck($target_value, string $filterOption, bool $result)
     {
@@ -1435,7 +1447,7 @@ class ConditionTest extends UnitTestBase
      * @param boolean $result
      * @return void
      */
-    protected function __testColumn(string $column_name, $target_value, array $values, string $filterOption, bool $result)
+    protected function __testColumn(string $column_name, $target_value, array $values, string $filterOption, bool $result, string $tableName = null)
     {
         $this->initAllTest();
 

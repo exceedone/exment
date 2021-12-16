@@ -1700,4 +1700,42 @@ if (!function_exists('admin_exclusion_path')) {
 
         return $path?? '/';
     }
+
+    if (!function_exists('unicode_decode')) {
+        /**
+         * Get admin exclusion url.
+         * Ex. admin/data/testtable to data/testtable
+         *
+         * @param string $path
+         *
+         * @return string
+         */
+        function unicode_decode($str) {
+            return preg_replace_callback("/\\\\u([0-9a-zA-Z]{4})/", function($matches) {
+                $char = mb_convert_encoding(pack("H*", $matches[1]), "UTF-8", "UTF-16");
+                return $char;
+            }, $str);
+        }
+    }
+
+    if (!function_exists('unicode_encode')) {
+        /**
+         * Get admin exclusion url.
+         * Ex. admin/data/testtable to data/testtable
+         *
+         * @param string $path
+         *
+         * @return string
+         */
+        function unicode_encode($str) {
+            return preg_replace_callback("/((?:[^\x09\x0A\x0D\x20-\x7E]{3})+)/", function($matches) {
+                $char = mb_convert_encoding($matches[1], "UTF-16", "UTF-8");
+                $escaped = "";
+                for ($i = 0, $l = strlen($char); $i < $l; $i += 2) {
+                  $escaped .=  "\u" . sprintf("%02x%02x", ord($char[$i]), ord($char[$i+1]));
+                }
+                return $escaped;
+            }, $str);
+        }
+    }
 }
