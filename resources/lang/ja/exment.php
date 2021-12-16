@@ -2331,6 +2331,7 @@ return [
             'work_user' => '次の作業ユーザー',
             'fixed_email' => '指定のメールアドレス',
             'fixed_user' => '指定のユーザー',
+            'fixed_organization' => '指定の組織',
             'action_user' => '作業実施者',
         ],
 

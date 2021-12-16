@@ -2278,6 +2278,8 @@ return [
         'notify_button_name' => 'Button display name',
         'notify_select' => 'Select Notify Target',
         'target_emails' => 'Destination email address',
+        'target_users' => 'E-mail destination user',
+        'target_organizations' => 'E-mail destination organization',
         'message_input' => 'Input Message',
         'webhook_url' => 'Webhook URL',
         'mention_here' => 'Notify all members',
@@ -2301,6 +2303,8 @@ return [
             'mention_here' => 'Sends an @here mention that notifies all members with active status on the specified channel. * To perform individual mentions, set the "Notification target" item below.',
             'slack_user_column_not_setting' => '*The "Slack ID setting column (user)" in the system settings is not registered. After specifying the column to register Slack ID, you can set the notification target.',
             'target_emails' => 'Please enter the email address to which you want to send the notification. If you specify more than one, enter them separated by line breaks.',
+            'target_users' => 'Select users to send the notification to.',
+            'target_organizations' => 'Select organizations to send the notification to.',
         ],
 
         'notify_trigger_options' => [
@@ -2326,6 +2330,8 @@ return [
             'created_user' => 'Create User',
             'work_user' => 'Next Work User',
             'fixed_email' => 'Specified email address',
+            'fixed_user' => 'Specified user',
+            'fixed_organization' => 'Specified organization',
             'action_user' => 'Action execution user',
         ],
 

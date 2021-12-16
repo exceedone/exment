@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Http\Request;
 
@@ -77,8 +78,12 @@ trait NotifyTrait
     }
 
 
-    protected function setActionForm($form, ?Notify $notify, $custom_table = null, $workflow_id = null, array $options = [])
+    protected function setActionForm($form, ?Notify $notify, $custom_table = null, $workflow = null, array $options = [])
     {
+        if ($workflow) {
+            $custom_table = $workflow->target_table;
+        }
+
         $form->url('webhook_url', exmtrans("notify.webhook_url"))
             ->required()
             ->rules(["max:300"])
@@ -95,10 +100,10 @@ trait NotifyTrait
         $system_slack_user_column = CustomColumn::getEloquent(System::system_slack_user_column());
         $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE];
         $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-            ->options(function ($val, $field, $notify) use ($custom_table, $workflow_id, $options) {
+            ->options(function ($val, $field, $notify) use ($custom_table, $workflow, $options) {
                 $options = array_merge([
-                    'as_workflow' => !is_nullorempty($workflow_id),
-                    'workflow' => $workflow_id,
+                    'as_workflow' => !is_nullorempty($workflow),
+                    'workflow' => $workflow,
                     'get_realtion_email' => true,
                 ], $options);
                 return collect(NotifyService::getNotifyTargetColumns(
@@ -129,7 +134,6 @@ trait NotifyTrait
  
         list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
             'display_table' => $custom_table,
-            // 'selected_value' => array_get($value, SystemTableName::USER),
         ]);
     
         $form->multipleSelect('target_users', exmtrans('notify.target_users'))
@@ -140,9 +144,28 @@ trait NotifyTrait
                 'data-filter' => json_encode([
                     ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_USER]],
                 ])
-                ]);
-//            ->default(array_get($value, SystemTableName::USER));
-            
+            ]);
+
+        if (System::organization_available()) {
+            list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
+                'display_table' => $custom_table,
+            ]);
+                
+            $field = $form->multipleSelect('target_organizations', exmtrans('notify.target_organizations'))
+                ->options($organizations)
+                ->ajax($ajax)
+                ->attribute(['data-filter' => json_encode(['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_ORGANIZATION]])])
+            ;
+        
+            // Set help if has $custom_table
+            if ($custom_table) {
+                $field->help(exmtrans('workflow.help.target_user_org', [
+                    'table_view_name' => esc_html($custom_table->table_view_name),
+                    'type' => exmtrans('menu.system_definitions.organization'),
+                ]));
+            }
+        }
+                
         if (!isset($system_slack_user_column)) {
             $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
                 ->displayText(exmtrans('notify.help.slack_user_column_not_setting') . \Exment::getMoreTag('notify_webhook', 'notify.mention_setting_manual_id'))
