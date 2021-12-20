@@ -594,7 +594,7 @@ class TestDataSeeder extends Seeder
             'count' => 0,
             'createCustomView' => false,
             'createColumnCallback' => function ($custom_table, &$custom_columns) use ($select_array, $select_valtext_array) {
-                $select_valtext_array = collect($select_valtext_array)->map(function($item, $key) {
+                $select_valtext_array = collect($select_valtext_array)->map(function ($item, $key) {
                     return "$key,$item";
                 });
                 // creating relation column

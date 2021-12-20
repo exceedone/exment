@@ -70,8 +70,7 @@ class NotifyNavbar
             $parent_type = array_get($item, 'parent_type');
             if (is_null($parent_type) || is_null($custom_table = CustomTable::getEloquent($parent_type))) {
                 $body[] = null;
-            }
-            else{
+            } else {
                 $body[] =  $custom_table->table_view_name;
             }
 
@@ -81,7 +80,7 @@ class NotifyNavbar
 
             // reference target data
             $html = '';
-            if(array_key_value_exists('parent_id', $item)){
+            if (array_key_value_exists('parent_id', $item)) {
                 $linker = (new Linker)
                     ->url(admin_url("notify_navbar/rowdetail/{$item->id}"))
                     ->icon('fa-list')

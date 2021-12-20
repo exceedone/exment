@@ -36,7 +36,7 @@ abstract class WorkflowStatusBase extends ViewFilterBase
         $include_start = false;
 
         if (in_array(Define::WORKFLOW_START_KEYNAME, $status)) {
-            $status = array_filter($status, function($val) {
+            $status = array_filter($status, function ($val) {
                 return $val != Define::WORKFLOW_START_KEYNAME;
             });
             $include_start = true;

@@ -212,11 +212,10 @@ class Select extends CustomItem
     public function convertFilterValue($value)
     {
         if (is_array($value)) {
-            return collect($value)->map(function($val) {
+            return collect($value)->map(function ($val) {
                 return unicode_encode($val);
             })->toArray();
         }
         return unicode_encode($value);
     }
-     
 }
