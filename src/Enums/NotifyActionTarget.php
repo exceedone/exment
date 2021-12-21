@@ -10,6 +10,7 @@ class NotifyActionTarget extends EnumBase
     const WORK_USER = 'work_user';
     const FIXED_EMAIL = 'fixed_email';
     const CUSTOM_COLUMN = 'custom_column';
+    const ACTION_USER = 'action_user';
 
     public static function ACTION_TARGET_CUSTOM_TABLE()
     {
@@ -26,6 +27,7 @@ class NotifyActionTarget extends EnumBase
             static::ADMINISTRATOR,
             static::CREATED_USER,
             static::WORK_USER,
+            static::ACTION_USER,
         ];
     }
 }
