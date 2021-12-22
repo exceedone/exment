@@ -224,28 +224,42 @@ class PluginCrudController extends Controller
     {
         $targetClass = $this->getClass($endpoint, false);
         
-        $authType = $targetClass->getAuthType();
-        if(is_nullorempty($authType)){
-            abort(500);
-        }
-
         $content = $targetClass->getContent();
-        if($authType == PluginCrudAuthType::KEY){
-            admin_error('エラーです', ' エラーです。');
+       
+        if(!$targetClass->enableAccessCrud()){
+            admin_error($targetClass->getCannotAccessTitle(), $targetClass->getCannotAccessMessage());
         }
-        elseif($authType == PluginCrudAuthType::OAUTH){
-            $login_provider = $targetClass->getPluginOptions()->getOauthSetting();
-            $box = new Box(exmtrans('plugin.error.crud_autherror_auth'), view('exment::auth.plugin_crud_login', [
-                'form_providers' => [
-                    $login_provider->login_provider_name => $login_provider->getLoginButton(),
-                ],
-                'formUrl' => $targetClass->getFullUrl('oauth'),
-            ]));
-            $box->style('danger');
+        else{
 
-            $content->row($box);
+            $authType = $targetClass->getAuthType();
+            if(is_nullorempty($authType)){
+                return $content;
+            }
+
+            if($authType == PluginCrudAuthType::KEY){
+                admin_error(exmtrans('plugin.error.crud_autherror_setting_auth'), exmtrans('plugin.error.crud_autherror_setting_auth_help'));
+            }
+            elseif($authType == PluginCrudAuthType::ID_PASSWORD){
+                admin_error(exmtrans('plugin.error.crud_autherror_setting_auth'), exmtrans('plugin.error.crud_autherror_setting_auth_help'));
+            }
+            elseif($authType == PluginCrudAuthType::OAUTH){
+                // Get Oauth provider
+                $login_provider = $targetClass->getPluginOptions()->getOauthSetting();
+                if(is_nullorempty($login_provider)){
+                    admin_error(exmtrans('plugin.error.crud_autherror_setting_auth'), exmtrans('plugin.error.crud_autherror_setting_auth_help'));
+                }
+                else{
+                    $box = new Box(exmtrans('plugin.error.crud_autherror_auth'), view('exment::auth.plugin_crud_login', [
+                        'form_providers' => [
+                            $login_provider->login_provider_name => $login_provider->getLoginButton(),
+                        ],
+                        'formUrl' => $targetClass->getFullUrl('oauth'),
+                    ]));
+                    $box->style('danger');
+                    $content->row($box);
+                }
+            }
         }
-
         return $content;
     }
 
@@ -281,6 +295,10 @@ class PluginCrudController extends Controller
      */
     protected function authorizePlugin(?string $endpoint, $targetClass)
     {
+        if(!$targetClass->enableAccessCrud()){
+            return redirect($targetClass->getFullUrl('noauth'));
+        }
+
         $authType = $targetClass->getAuthType();
         if(is_nullorempty($authType)){
             return true;
@@ -290,6 +308,13 @@ class PluginCrudController extends Controller
             // get key
             $key = $targetClass->getAuthKey();
             if(is_nullorempty($key)){
+                return redirect($targetClass->getFullUrl('noauth'));
+            }
+        }
+        if($authType == PluginCrudAuthType::ID_PASSWORD){
+            // get id and password
+            $id_password = $targetClass->getAuthIdPassword();
+            if(is_nullorempty(array_get($id_password, 'id')) || is_nullorempty(array_get($id_password, 'password'))){
                 return redirect($targetClass->getFullUrl('noauth'));
             }
         }

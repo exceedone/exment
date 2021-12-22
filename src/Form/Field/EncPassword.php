@@ -30,6 +30,6 @@ class EncPassword extends Password
      */
     protected function formatValue()
     {
-        $this->value = null;
+        $this->value = trydecrypt($this->value);
     }
 }

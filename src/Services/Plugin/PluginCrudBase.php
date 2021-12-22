@@ -146,10 +146,23 @@ abstract class PluginCrudBase extends PluginPublicBase
     /**
      * delete value
      * 
-     * @param $id string|array target ids. If multiple check, calls as array.
+     * @param $id string
      * @return mixed
      */
     public function delete($id, array $options = []){}
+
+    /**
+     * delete value
+     * 
+     * @param $ids array
+     * @return mixed
+     */
+    public function deletes(array $ids, array $options = [])
+    {
+        foreach($ids as $id){
+            $this->delete($id, $options);
+        }
+    }
 
     /**
      * Get the value of endpoint
@@ -177,7 +190,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array|null
      */
-    public function getAllEndpoints() : ?array
+    public function getAllEndpoints() : ?Collection
     {
         return null;
     }
@@ -198,7 +211,7 @@ abstract class PluginCrudBase extends PluginPublicBase
     
     /**
      * Get auth type.
-     * Please set null or "key" or "oauth".
+     * Please set null or "key" pr "id_password" or "oauth".
      *
      * @return string|null
      */
@@ -218,6 +231,16 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
+     * Get auth setting label.
+     *
+     * @return string|null
+     */
+    public function getAuthSettingPasswordLabel() : ?string
+    {
+        return exmtrans('plugin.options.crud_auth_id_password_password');
+    }
+
+    /**
      * Get auth setting help.
      *
      * @return string|null
@@ -230,6 +253,16 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
+     * Get auth setting help.
+     *
+     * @return string|null
+     */
+    public function getAuthSettingPasswordHelp() : ?string
+    {
+        return exmtrans('plugin.help.crud_auth_id_password_password');
+    }
+
+    /**
      * Get auth for key.
      *
      * @return string|null
@@ -237,6 +270,19 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function getAuthKey() : ?string
     {
         return $this->plugin->getOption('crud_auth_key');
+    }
+    
+    /**
+     * Get auth for id and password.
+     *
+     * @return array
+     */
+    public function getAuthIdPassword() : array
+    {
+        return [
+            'id' => $this->plugin->getOption('crud_auth_id'),
+            'password' => trydecrypt($this->plugin->getOption('crud_auth_password')),
+        ];
     }
     
     /**
@@ -370,6 +416,35 @@ abstract class PluginCrudBase extends PluginPublicBase
         return false;
     }
 
+    /**
+     * Whether access all CRUD page. If false, cannot access all page.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableAccessCrud(array $options = []) : bool
+    {
+        return true;
+    }
+
+    /**
+     * Get cannot access title
+     * @return string
+     */
+    public function getCannotAccessTitle(array $options = []) : ?string
+    {
+        return exmtrans('plugin.error.crud_autherror_setting');
+    }
+
+    /**
+     * Get cannot access message
+     * @return string
+     */
+    public function getCannotAccessMessage(array $options = []) : ?string
+    {
+        return exmtrans('plugin.error.crud_autherror_common_help');
+    }
+
 
     /**
      * Callback grid. If add event, definition.
@@ -399,7 +474,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param Box $box
      * @return void
      */
-    public function callbackShowTool(Box $box)
+    public function callbackShowTool($id, Box $box)
     {
     }
 
@@ -409,7 +484,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param Box $box
      * @return void
      */
-    public function callbackFormTool(Box $box)
+    public function callbackFormTool($id, Box $box)
     {
     }
 
@@ -430,7 +505,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param WidgetForm $form
      * @return void
      */
-    public function callbackShow(WidgetForm $form, Box $box)
+    public function callbackShow($id, WidgetForm $form, Box $box)
     {
     }
 
@@ -450,7 +525,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param WidgetForm $form
      * @return void
      */
-    public function callbackEdit(WidgetForm $form, Box $box)
+    public function callbackEdit($id, WidgetForm $form, Box $box)
     {
     }
 
@@ -546,7 +621,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return  string
      */ 
-    public function getTitle()
+    public function getTitle() : ?string
     {
         return $this->title;
     }
@@ -556,7 +631,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return  string
      */ 
-    public function getDescription()
+    public function getDescription() : ?string
     {
         return $this->description;
     }
@@ -566,7 +641,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return  string
      */ 
-    public function getIcon()
+    public function getIcon() : ?string
     {
         return $this->icon;
     }

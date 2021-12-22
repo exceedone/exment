@@ -76,7 +76,7 @@ class CrudForm extends CrudBase
     public function delete($id)
     {
         $ids = stringToArray($id);
-        $this->pluginClass->delete($ids);
+        $this->pluginClass->deletes($ids);
         
         return $this->getFullUrl();
     }
@@ -99,7 +99,7 @@ class CrudForm extends CrudBase
             $this->pluginClass->callbackCreate($form, $box);
         }
         else{
-            $this->pluginClass->callbackEdit($form, $box);
+            $this->pluginClass->callbackEdit($id, $form, $box);
         }
 
         return $box;
@@ -178,7 +178,6 @@ class CrudForm extends CrudBase
             ->action($this->getFullUrl($isCreate ? '' : $id))
             ->method($isCreate ? 'POST' : 'PUT');
 
-        
         $this->setFormColumn($isCreate, $form);
 
         return $form;
@@ -193,25 +192,30 @@ class CrudForm extends CrudBase
      */
     protected function setFormColumn(bool $isCreate, Form $form)
     {
-        $key = $isCreate ? 'create' : 'edit';
-        $definitions = collect($this->pluginClass->getFieldDefinitions())
-            ->filter(function($d) use($key){
-                return array_has($d, $key);
-            })->sortBy($key);
-
-        // get primary key
-        $primary = $this->pluginClass->getPrimaryKey();
-
-        foreach($definitions as $target){
-            // if primary key, only show.
-            if($primary == array_get($target, 'key')){
-                $this->pluginClass->setFormPrimaryDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
-            }
-            elseif($isCreate){
-                $this->pluginClass->setCreateColumnDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
-            }
-            else{
-                $this->pluginClass->setEditColumnDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
+        $customForm = $this->pluginClass->setForm($form, $isCreate);
+        if(!is_nullorempty($customForm)){
+            $form = $customForm;
+        }else{
+            $key = $isCreate ? 'create' : 'edit';
+            $definitions = collect($this->pluginClass->getFieldDefinitions())
+                ->filter(function($d) use($key){
+                    return array_has($d, $key);
+                })->sortBy($key);
+    
+            // get primary key
+            $primary = $this->pluginClass->getPrimaryKey();
+    
+            foreach($definitions as $target){
+                // if primary key, only show.
+                if($primary == array_get($target, 'key')){
+                    $this->pluginClass->setFormPrimaryDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
+                }
+                elseif($isCreate){
+                    $this->pluginClass->setCreateColumnDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
+                }
+                else{
+                    $this->pluginClass->setEditColumnDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
+                }
             }
         }
     }
@@ -245,6 +249,6 @@ class CrudForm extends CrudBase
             ])->render());
         }
 
-        $this->pluginClass->callbackFormTool($box);
+        $this->pluginClass->callbackFormTool($id, $box);
     }
 }

@@ -49,7 +49,7 @@ class CrudShow extends CrudBase
         $box->style('info');
         $this->setShowTools($id, $box);
 
-        $this->pluginClass->callbackShow($form, $box);
+        $this->pluginClass->callbackShow($id, $form, $box);
 
         return $box;
     }
@@ -102,6 +102,6 @@ class CrudShow extends CrudBase
                 'btn_class' => 'btn-default',
             ])->render());
 
-        $this->pluginClass->callbackShowTool($box);
+        $this->pluginClass->callbackShowTool($id, $box);
     }
 }
