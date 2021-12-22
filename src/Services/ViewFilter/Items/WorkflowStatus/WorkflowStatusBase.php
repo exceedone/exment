@@ -27,29 +27,47 @@ abstract class WorkflowStatusBase extends ViewFilterBase
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
         // if $status is start
-        $status = $query_value;
+        $status = jsonToArray($query_value);
+        if (!is_array($status)) {
+            $status = [$status];
+        }
         $condition = static::getFilterOption();
         $or_option = $this->or_option;
+        $include_start = false;
 
-        if ($status == Define::WORKFLOW_START_KEYNAME) {
-            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
-                $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
-            } else {
-                $func = $or_option ? 'orWhereNull': 'whereNull';
-            }
-            $query->{$func}('workflow_status_to_id');
-        } else {
-            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
-                $func = $or_option ? 'orWhere': 'where';
-                $query->{$func}(function ($query) use ($status) {
-                    $query->where('workflow_status_to_id', '<>', $status)
-                        ->orWhereNull('workflow_status_to_id');
-                });
-            } else {
-                $func = $or_option ? 'orWhere': 'where';
-                $query->{$func}('workflow_status_to_id', $status);
-            }
+        if (in_array(Define::WORKFLOW_START_KEYNAME, $status)) {
+            $status = array_filter($status, function ($val) {
+                return $val != Define::WORKFLOW_START_KEYNAME;
+            });
+            $include_start = true;
         }
+
+        $func = $or_option ? 'orWhere': 'where';
+        $query->{$func}(function ($query) use ($condition, $status, $include_start) {
+            if ($condition == FilterOption::WORKFLOW_NE_STATUS) {
+                if (!empty($status)) {
+                    if ($include_start) {
+                        $query->whereNotInArrayString('workflow_status_to_id', $status)
+                            ->whereNotNull('workflow_status_to_id');
+                    } else {
+                        $query->whereNotInArrayString('workflow_status_to_id', $status);
+                    }
+                } elseif ($include_start) {
+                    $query->whereNotNull('workflow_status_to_id');
+                }
+            } else {
+                if (!empty($status)) {
+                    if ($include_start) {
+                        $query->whereInArrayString('workflow_status_to_id', $status)
+                            ->orWhereNull('workflow_status_to_id');
+                    } else {
+                        $query->whereInArrayString('workflow_status_to_id', $status);
+                    }
+                } elseif ($include_start) {
+                    $query->whereNull('workflow_status_to_id');
+                }
+            }
+        });
 
         return $query;
     }

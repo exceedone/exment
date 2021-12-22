@@ -201,4 +201,21 @@ class Select extends CustomItem
             ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_check_radio_enabled', 'value' => '0'])])
             ->help(exmtrans("custom_column.help.free_input"));
     }
+
+    /**
+     * Convert filter value.
+     * Ex. If value is decimal and Column Type is decimal, return floatval.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function convertFilterValue($value)
+    {
+        if (is_array($value)) {
+            return collect($value)->map(function ($val) {
+                return unicode_encode($val);
+            })->toArray();
+        }
+        return unicode_encode($value);
+    }
 }

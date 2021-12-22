@@ -34,6 +34,7 @@ class TestDefine
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG = 'pivot_table_user_org';
     public const TESTDATA_TABLE_NAME_ALL_COLUMNS = 'all_columns_table';
     public const TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST = 'all_columns_table_fortest';
+    public const TESTDATA_TABLE_NAME_UNICODE_DATA = 'unicode_data_table';
 
     public const TESTDATA_COLUMN_NAME_PARENT = 'parent';
     public const TESTDATA_COLUMN_NAME_CHILD = 'child';

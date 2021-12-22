@@ -134,20 +134,36 @@ class CustomRelationController extends AdminControllerTableBase
 
         $custom_table = $this->custom_table;
         $custom_table_id = $this->custom_table->id;
-        $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function ($child_custom_table_id) use ($custom_table_id) {
-            return CustomTable::filterList()
-                ->where('id', '<>', $custom_table_id)
-                ->pluck('table_view_name', 'id')
-                ->toArray();
-        })
-        ->required()
-        ->rules("loopRelation:{$custom_table_id},{$id}");
 
-        $relation_type_options = RelationType::transKeyArray("custom_relation.relation_type_options");
-        $form->select('relation_type', exmtrans("custom_relation.relation_type"))
-            ->options($relation_type_options)
+        if (isset($id)) {
+            $custom_relation = CustomRelation::find($id);
+            $child_table = $custom_relation->child_custom_table_cache;
+            $relation_type = $custom_relation->relation_type;
+            $form->display('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))
+                ->displayText($child_table->table_view_name);
+            $form->display('relation_type', exmtrans("custom_relation.relation_type"))
+                ->displayText(function ($val) use ($relation_type) {
+                    $relation_type = RelationType::getEnum($val?? $relation_type);
+                    return $relation_type->transKey('custom_relation.relation_type_options');
+                });
+            $form->hidden('child_custom_table_id')->default($child_table->id);
+            $form->hidden('relation_type')->default($relation_type);
+        } else {
+            $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function ($child_custom_table_id) use ($custom_table_id) {
+                return CustomTable::filterList()
+                    ->where('id', '<>', $custom_table_id)
+                    ->pluck('table_view_name', 'id')
+                    ->toArray();
+            })
             ->required()
-            ->attribute(['data-filtertrigger' =>true]);
+            ->rules("loopRelation:{$custom_table_id},{$id}");
+
+            $relation_type_options = RelationType::transKeyArray("custom_relation.relation_type_options");
+            $form->select('relation_type', exmtrans("custom_relation.relation_type"))
+                ->options($relation_type_options)
+                ->required()
+                ->attribute(['data-filtertrigger' =>true]);
+        }
         
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($custom_table) {
             $manual_url = getManualUrl('data_import_export?id='.exmtrans('custom_column.help.select_import_column_id_key'));

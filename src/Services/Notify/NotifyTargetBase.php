@@ -58,6 +58,8 @@ abstract class NotifyTargetBase
                 return new FixedEmail($notify, $action_setting);
             case NotifyActionTarget::CUSTOM_COLUMN:
                 return new Column($notify, $action_setting, $notify_action_target);
+            case NotifyActionTarget::ACTION_USER:
+                return new ActionUser($notify, $action_setting);
         }
 
         // If contains "view_pivot_column_id", return as RelationColumn

@@ -568,6 +568,7 @@ return [
             'news' => 'Exment新着情報一覧',
             'editor' => 'エディター',
             'html' => 'HTML',
+            'notify_navbar' => '通知一覧',
         ],
 
         'dashboard_menulist' => [
@@ -1265,6 +1266,7 @@ return [
             'placeholder' => 'プレースホルダー',
             'help' => 'ヘルプ',
             'min_max_width' => '列の幅',
+            'text_align' => '一覧の配置',
             'string_length' => '最大文字数',
             'rows' => '高さ',
             'available_characters' => '使用可能文字',
@@ -1308,6 +1310,11 @@ return [
             'accept_extensions' => 'アップロード許可する拡張子',
             'required_yes' => 'YES必須',
         ],
+        'align_type_options' => [
+            "left" => "左寄せ",
+            "center" => "中央寄せ",
+            "right" => "右寄せ",
+        ],
         'column_type_options' => [
             "text" => "1行テキスト",
             "textarea" => "複数行テキスト",
@@ -1343,6 +1350,7 @@ return [
             'placeholder' => '入力前のフィールドにガイダンスとして薄い色で表示される文字列です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'min_max_width' => '一覧表示する時の、列の幅の最小値と最大値を、整数(px)で入力してください。',
+            'text_align' => '一覧表示する時の配置を選択してください。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
             'percent_format' => 'YESにすることで、一覧画面や表示画面でパーセント表示になります。',
             'rows' => '入力フォームの高さを設定してください。',
@@ -2297,6 +2305,7 @@ return [
             'notify_myself' => 'YESにすることで、通知対象が、作業を実施したログインユーザーであっても、そのログインユーザーに通知を実行します。',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
             'notify_action_target' => '通知先の対象を選択します。※実施アクションが「Eメール」「システム内アラート」の場合、必須になります。',
+            'notify_action_target_add_workflow' => '※「作業実施者」に通知を行う場合、「通知条件設定」の「作業実施者にも通知する」をYESにしてください。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前に通知テンプレート画面にて、新規テンプレートを作成してください。',
             'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 ',
             'mention_here' => '指定のチャンネルで、ステータスがアクティブになっているメンバー全員に通知を行う、「@here」メンションを送ります。※個別のメンションを行うには、下の「通知対象」項目を設定してください。',
@@ -2327,6 +2336,7 @@ return [
             'created_user' => '作成者',
             'work_user' => '次の作業ユーザー',
             'fixed_email' => '指定のメールアドレス',
+            'action_user' => '作業実施者',
         ],
 
         'message' => [

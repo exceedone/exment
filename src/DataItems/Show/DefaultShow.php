@@ -717,7 +717,7 @@ EOT;
      */
     public function restoreRevision($revision_suuid)
     {
-        $this->custom_value->setRevision($revision_suuid)->save();
+        $this->custom_value->setRevision($revision_suuid)->restore_revision()->save();
         return redirect($this->custom_value->getUrl());
     }
   

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Support\Facades\Storage;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 
 class DCustomDataTest extends ExmentKitTestCase
@@ -237,5 +238,43 @@ class DCustomDataTest extends ExmentKitTestCase
     public function testAddRelationManyToManyWithOrganizationTable()
     {
         $this->createCustomRelation('exmenttest_data', 'organization', 2);
+    }
+
+    /**
+     * Check filtered custom data grid display.
+     */
+    public function testDisplayGridFilter()
+    {
+        $colname1 = CustomColumn::getEloquent('select_multiple', 'unicode_data_table')->getIndexColumnName();
+        $colname2 = CustomColumn::getEloquent('select_valtext_multiple', 'unicode_data_table')->getIndexColumnName();
+        
+        // Check custom view data
+        $this->visit(admin_url("data/unicode_data_table?$colname1=日本&$colname2=い&$colname2=ち"))
+            ->seeInElement('h1', 'unicode_data_table')
+            ->seeInElement('th', 'select_multiple')
+            ->seeInElement('th', 'select_valtext_multiple')
+            ->seeInElement('td.column-select_multiple', '日本')
+            ->seeInElement('td.column-select_valtext_multiple', '北海道')
+            ->seeInElement('td.column-select_valtext_multiple', '四国')
+        ;
+    }
+
+    /**
+     * Check filtered custom data grid display(encode params).
+     */
+    public function testDisplayGridFilterEncode()
+    {
+        $colname1 = CustomColumn::getEloquent('select_multiple', 'unicode_data_table')->getIndexColumnName();
+        $colname2 = CustomColumn::getEloquent('select_valtext_multiple', 'unicode_data_table')->getIndexColumnName();
+        $filter = urlencode("$colname1=日本&$colname2=い&$colname2=ち");
+        // Check custom view data
+        $this->visit(admin_url("data/unicode_data_table?$filter"))
+            ->seeInElement('h1', 'unicode_data_table')
+            ->seeInElement('th', 'select_multiple')
+            ->seeInElement('th', 'select_valtext_multiple')
+            ->seeInElement('td.column-select_multiple', '日本')
+            ->seeInElement('td.column-select_valtext_multiple', '北海道')
+            ->seeInElement('td.column-select_valtext_multiple', '四国')
+        ;
     }
 }

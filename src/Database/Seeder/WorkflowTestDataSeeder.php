@@ -452,6 +452,7 @@ class WorkflowTestDataSeeder extends Seeder
                     $custom_value = CustomTable::getEloquent($table['custom_table'])->getValueModel();
                     $custom_value->setValue("text", "test_$userKey");
                     $custom_value->setValue("index_text", "index_$userKey");
+                    $custom_value->setValue("date", \Carbon\Carbon::today());
                     $custom_value->id = 1000;
                     $custom_value->save();
 

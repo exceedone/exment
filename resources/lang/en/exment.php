@@ -568,6 +568,7 @@ return [
             'news' => 'Exment new arrival information list',
             'editor' => 'Editor',
             'html' => 'HTML',
+            'notify_navbar' => 'Notify list',
         ],
 
         'dashboard_menulist' => [
@@ -1256,6 +1257,7 @@ return [
             'placeholder' => 'PlaceHolder',
             'help' => 'Help',
             'min_max_width' => 'Column Min / Max Width',
+            'text_align' => 'Align of custom view',
             'string_length' => 'Max Length',
             'rows' => 'Rows',
             'available_characters' => 'Available Characters',
@@ -1299,6 +1301,11 @@ return [
             'accept_extensions' => 'Extensions that allow uploading',
             'required_yes' => 'Required YES',
         ],
+        'align_type_options' => [
+            "left" => "Left",
+            "center" => "Center",
+            "right" => "Right",
+        ],
         'column_type_options' => [
             "text" => "One-Line Text",
             "textarea" => "Multiple-Line Text",
@@ -1334,6 +1341,7 @@ return [
             'placeholder' => 'A string that is displayed in a light color as guidance in the field before input.',
             'help' => 'Help string displayed below the field.',
             'min_max_width' => 'Enter the minimum and maximum values ​​of the column width when displaying the list as integers(px).',
+            'text_align' => 'Please select the layout when displaying the list.',
             'number_format' => 'If set to YES, the text field will be displayed as a comma value.',
             'percent_format' => 'If set to YES, the list page and display page are displayed as percentages.',
             'rows' => 'Set input form height.',
@@ -2288,6 +2296,7 @@ return [
             'notify_hour' => 'The time to execute the notification. Enter from 0 to 23. Ex: When entering "6", execute notification at 6:00',
             'notify_action' => 'Please select the notification action to be done when the conditions are met.',
             'notify_action_target' => 'Select the target of notification destination.',
+            'notify_action_target_add_workflow' => '*When notifying the "worker", set "Notify the worker" in "Notification condition settings" to YES.',
             'mail_template_id' => 'Select the template of the mail to send. When creating a new one, please create a new template in the mail template page beforehand.',
             'webhook_url' => 'To make Slack or Teams notifications, you need to get a webhook URL. <a href="%s" target="_blank">Learn more</a> <br/>Slack and Teams are not compatible.',
             'mention_here' => 'Sends an @here mention that notifies all members with active status on the specified channel. * To perform individual mentions, set the "Notification target" item below.',
@@ -2318,6 +2327,7 @@ return [
             'created_user' => 'Create User',
             'work_user' => 'Next Work User',
             'fixed_email' => 'Specified email address',
+            'action_user' => 'Action execution user',
         ],
 
         'message' => [
