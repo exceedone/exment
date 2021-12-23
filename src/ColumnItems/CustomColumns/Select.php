@@ -213,9 +213,9 @@ class Select extends CustomItem
     {
         if (is_array($value)) {
             return collect($value)->map(function ($val) {
-                return unicode_encode($val);
+                return $this->isMultipleEnabled()? unicode_encode($val): $val;
             })->toArray();
         }
-        return unicode_encode($value);
+        return $this->isMultipleEnabled()? unicode_encode($value): $value;
     }
 }
