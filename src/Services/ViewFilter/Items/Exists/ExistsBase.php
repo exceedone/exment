@@ -16,7 +16,7 @@ abstract class ExistsBase extends ViewFilterBase
     {
         $isMultiple = $this->column_item->isMultipleEnabled();
         $query_value = jsonToArray($query_value);
-        $query_value = collect($query_value)->map(function ($val) use($isMultiple) {
+        $query_value = collect($query_value)->map(function ($val) use ($isMultiple) {
             return $isMultiple? unicode_encode($val): $val;
         })->toArray();
         if ($isMultiple) {

@@ -96,7 +96,7 @@ trait NotifyTrait
         $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE];
 
         $help = exmtrans("notify.help.notify_action_target");
-        if(!is_nullorempty($workflow_id)){
+        if (!is_nullorempty($workflow_id)) {
             $help .= exmtrans("notify.help.notify_action_target_add_workflow");
         }
         $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
