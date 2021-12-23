@@ -49,7 +49,7 @@ class PluginPageController extends Controller
         $content->row($result);
         if (method_exists($this->pluginPage, '_showHeader') && $this->pluginPage->_showHeader()) {
             $content->header($this->plugin->plugin_view_name)
-            ->headericon($this->plugin->getOption('icon'));
+            ->headericon($this->plugin->getOption('icon')?? 'fa-pencil');
         }
 
         return $content;
