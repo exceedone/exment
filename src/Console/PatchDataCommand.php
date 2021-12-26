@@ -206,6 +206,9 @@ class PatchDataCommand extends Command
             case 'append_column_mail_from_view_name':
                 $this->appendColumnMailFromViewName();
                 return 0;
+            case 'append_column_mail_attachments':
+                $this->appendColumnMailAttachments();
+                return 0;
             case 'notify_target_id':
                 $this->notifyTargetId();
                 return 0;
@@ -267,7 +270,7 @@ class PatchDataCommand extends Command
             ->format($format);
         $service->import($path);
     }
-    
+
     /**
      * append custom column
      *
@@ -292,10 +295,10 @@ class PatchDataCommand extends Command
                     if (!$obj_table) {
                         continue;
                     }
-    
+
                     // get all custom columns
                     $current_columns = $obj_table->custom_columns;
-    
+
                     // get columns. --------------------------------------------------
                     if (array_key_exists('custom_columns', $table)) {
                         foreach (array_get($table, 'custom_columns') as $column) {
@@ -304,19 +307,19 @@ class PatchDataCommand extends Command
                             if (!isMatchString($target_column_name, $column_name)) {
                                 continue;
                             }
-    
+
                             // Check already exists, if already setted, continue
                             $obj_column = CustomColumn::getEloquent($column_name, $obj_table);
                             if (isset($obj_column)) {
                                 continue;
                             }
-    
+
                             // Import column
                             $obj_column = CustomColumn::importTemplate($column, false, [
                                 'system_flg' => true,
                                 'parent' => $obj_table,
                             ]);
-    
+
                             // Append custom folumn column
                             // get custom form
                             $custom_form = CustomForm::where('custom_table_id', $obj_table->id)->first();
@@ -348,7 +351,7 @@ class PatchDataCommand extends Command
             \Log::error($ex);
         }
     }
-    
+
 
 
 
@@ -422,7 +425,7 @@ class PatchDataCommand extends Command
                                 $isUpdate = true;
                                 $custom_value->setValue($custom_column->column_name, $v);
                             }
-                        
+
                             if ($isUpdate) {
                                 // disable each event
                                 $custom_value->saving_users = false;
@@ -440,7 +443,7 @@ class PatchDataCommand extends Command
             throw $ex;
         }
     }
-    
+
     /**
      * Modify Use Label Flg
      *
@@ -484,7 +487,7 @@ class PatchDataCommand extends Command
         //     $column->save();
         // }
     }
-    
+
     /**
      * re-alter Index Contains Hyphen
      *
@@ -522,7 +525,7 @@ class PatchDataCommand extends Command
             \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $index_custom_column);
         }
     }
-    
+
     /**
      * set freeword_search option true, if index-column
      *
@@ -532,13 +535,13 @@ class PatchDataCommand extends Command
     {
         // get index columns
         $index_custom_columns = CustomColumn::indexEnabled()->get();
-        
+
         foreach ($index_custom_columns as  $index_custom_column) {
             $index_custom_column->setOption('freeword_search', '1');
             $index_custom_column->save();
         }
     }
-    
+
     /**
      * import mail template for 2factor
      *
@@ -552,7 +555,7 @@ class PatchDataCommand extends Command
             'verify_2factor_system',
         ]);
     }
-    
+
     /**
      * import mail template for Zip Password
      *
@@ -565,7 +568,7 @@ class PatchDataCommand extends Command
             'password_notify_header',
         ]);
     }
-    
+
     /**
      * import mail template for workflow
      *
@@ -577,7 +580,7 @@ class PatchDataCommand extends Command
             'workflow_notify',
         ]);
     }
-    
+
     /**
      * update mail template for 2factor
      *
@@ -590,7 +593,7 @@ class PatchDataCommand extends Command
         // add Notify update options
         $notifies = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)
             ->get();
-        
+
         foreach ($notifies as $notify) {
             $notify_saved_trigger = array_get($notify, 'trigger_settings.notify_saved_trigger');
             if (!isset($notify_saved_trigger)) {
@@ -602,7 +605,7 @@ class PatchDataCommand extends Command
             }
         }
     }
-    
+
     /**
      * system flg patch
      *
@@ -773,19 +776,19 @@ class PatchDataCommand extends Command
         $system_admin_users = array_merge($system_admin_users, $users);
         System::system_admin_users(array_unique($system_admin_users));
     }
-    
+
     protected function patchValueAuthoritable()
     {
         if (!\Schema::hasTable('roles') || !\Schema::hasTable('value_authoritable') || !\Schema::hasTable(CustomValueAuthoritable::getTableName())) {
             return;
         }
-        
+
         ///// value_auth to custom_value_auth
         // get role info
         $valueRoles = \DB::table('roles')
             ->where('role_type', RoleType::VALUE)
             ->get();
-        
+
         $editRoles = [];
         $viewRoles = [];
         foreach ($valueRoles as $valueRole) {
@@ -797,7 +800,7 @@ class PatchDataCommand extends Command
                 $viewRoles[] = $val['id'];
             }
         }
-        
+
         //get value_auth
         $value_authoritable = \DB::table('value_authoritable')
             ->get();
@@ -868,7 +871,7 @@ class PatchDataCommand extends Command
             $custom_column->save();
         }
     }
-    
+
     /**
      * remove deleted table notify
      *
@@ -880,7 +883,7 @@ class PatchDataCommand extends Command
         $custom_table_ids = CustomTable::pluck('id');
         Notify::whereNotIn('custom_table_id', $custom_table_ids)->delete();
     }
-    
+
     /**
      * move plugin folder
      *
@@ -890,7 +893,7 @@ class PatchDataCommand extends Command
     {
         $this->moveAppToStorageFolder('Plugins', Define::DISKNAME_PLUGIN_LOCAL);
     }
-    
+
     // /**
     //  * move template folder
     //  *
@@ -900,7 +903,7 @@ class PatchDataCommand extends Command
     // {
     //     return $this->moveAppToStorageFolder('Templates', Define::DISKNAME_TEMPLATE_SYNC);
     // }
-    
+
     /**
      * move folder
      *
@@ -913,7 +916,7 @@ class PatchDataCommand extends Command
         if (!\File::isDirectory($beforeFolder)) {
             return;
         }
-        
+
         $befores = scandir($beforeFolder);
         if (!is_array($befores)) {
             return;
@@ -927,7 +930,7 @@ class PatchDataCommand extends Command
             \File::move($oldPath, getFullpath($before, $diskName));
         }
     }
-    
+
     /**
      * patch revisionable type
      *
@@ -989,7 +992,7 @@ class PatchDataCommand extends Command
         $parent_organization->column_type = ColumnType::ORGANIZATION;
         $parent_organization->save();
     }
-    
+
     protected function removeDeletedColumn()
     {
         $classes = [
@@ -1171,7 +1174,7 @@ class PatchDataCommand extends Command
                         ->orderBy('revision_no')
                         ->select(['id', 'revision_no'])
                         ->get();
-                    
+
                     foreach ($reset_revisions as $index => $reset_revision) {
                         $reset_r = (array)$reset_revision;
                         \DB::table(SystemTableName::REVISION)->where('id', $reset_r['id'])->update(['revision_no' => ($index + 1)]);
@@ -1180,7 +1183,7 @@ class PatchDataCommand extends Command
             });
         });
     }
-    
+
     /**
      * setLoginType
      *
@@ -1191,7 +1194,7 @@ class PatchDataCommand extends Command
         // patch login provider already logined.
         \DB::table('login_users')->whereNotNull('login_provider')->where('login_type', LoginType::PURE)->update(['login_type' => LoginType::OAUTH]);
 
-        
+
         // update system value
         System::show_default_login_provider(config('exment.show_default_login_provider', true));
 
@@ -1207,7 +1210,7 @@ class PatchDataCommand extends Command
             $oauth_provider_type = Enums\LoginProviderType::getEnum($provider);
             $oauth_provider_name = !isset($oauth_provider_type) ? $provider : null;
             $oauth_provider_type = isset($oauth_provider_type) ? $oauth_provider_type->getValue() : Enums\LoginProviderType::OTHER;
-            
+
             // check has already executed
             if (Model\LoginSetting::where('login_type', Enums\LoginType::OAUTH)
             ->where('options->oauth_provider_type', $oauth_provider_type)
@@ -1246,7 +1249,7 @@ class PatchDataCommand extends Command
             $login_setting->save();
         }
     }
-    
+
     /**
      * removeStoredRevision
      *
@@ -1282,7 +1285,7 @@ class PatchDataCommand extends Command
                     if ($value == '***') {
                         continue;
                     }
-                    
+
                     $value = '***';
                     $isUpdate = true;
                 }
@@ -1296,7 +1299,7 @@ class PatchDataCommand extends Command
             }
         });
     }
-    
+
     /**
      * removeStoredRevision
      *
@@ -1317,7 +1320,7 @@ class PatchDataCommand extends Command
             $plugin->save();
         });
     }
-    
+
     /**
      * patchFormColumnRelation
      *
@@ -1331,7 +1334,7 @@ class PatchDataCommand extends Command
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
             return;
         }
-        
+
         CustomFormColumn::all()->each(function ($custom_form_column) {
             if ($custom_form_column->form_column_type != FormColumnType::COLUMN) {
                 return true;
@@ -1399,7 +1402,7 @@ class PatchDataCommand extends Command
         ];
         $this->patchViewSuuid($classes);
     }
-    
+
     /**
      * patchViewColumnSuuid
      *
@@ -1413,7 +1416,7 @@ class PatchDataCommand extends Command
         ];
         $this->patchViewSuuid($classes);
     }
-    
+
     /**
      * patchViewColumnSuuid
      *
@@ -1424,7 +1427,7 @@ class PatchDataCommand extends Command
         if (!canConnection() || !hasTable('custom_view_columns')) {
             return;
         }
-        
+
         \DB::transaction(function () use ($classes) {
             foreach ($classes as $c) {
                 $c::all()->each(function ($v) {
@@ -1438,7 +1441,7 @@ class PatchDataCommand extends Command
             }
         });
     }
-    
+
     /**
      * setEnv
      *
@@ -1486,7 +1489,7 @@ class PatchDataCommand extends Command
                 });
             });
     }
-        
+
     /**
      * setLoginType
      *
@@ -1768,7 +1771,7 @@ class PatchDataCommand extends Command
                         }
                     }
                 }
-                
+
                 // for workflow ----------------------------------------------------
                 elseif (isMatchString($condition_type_value, Enums\ConditionType::WORKFLOW)) {
                     // $target_column_id_value is not check.
@@ -1795,7 +1798,7 @@ class PatchDataCommand extends Command
             });
         }
     }
-    
+
 
     /**
      * Delete junk file
@@ -1809,15 +1812,15 @@ class PatchDataCommand extends Command
             $this->error('Please input argument Table name.');
             return;
         }
-        
+
         $custom_table = CustomTable::getEloquent($table_name);
         if (!$custom_table) {
             $this->error("Table name {$table_name} is not found.");
             return;
         }
-        
+
         $disk = \Storage::disk(config('admin.upload.disk'));
-        
+
         // Remove file eloquent, If not contains custom value data.
         Model\File::where('parent_type', $custom_table->table_name)
             ->chunk(1000, function ($files) use ($custom_table) {
@@ -1830,7 +1833,7 @@ class PatchDataCommand extends Command
                     if ($exists) {
                         continue;
                     }
-        
+
                     Model\File::deleteFileInfo($file);
                 }
             });
@@ -1853,7 +1856,7 @@ class PatchDataCommand extends Command
         }
     }
 
-    
+
     /**
      * import mail template for workflow
      *
@@ -1867,7 +1870,7 @@ class PatchDataCommand extends Command
             MailKeyName::PUBLICFORM_ERROR,
         ]);
     }
-    
+
     /**
      * appendColumnMailFromViewName
      *
@@ -1877,7 +1880,17 @@ class PatchDataCommand extends Command
     {
         $this->appendCustomColumn('mail_template', 'mail_from_view_name');
     }
-    
+
+    /**
+     * append attachments column to mail_template
+     *
+     * @return void
+     */
+    protected function appendColumnMailAttachments()
+    {
+        $this->appendCustomColumn('mail_template', 'attachments');
+    }
+
 
     public function notifyTargetId()
     {
@@ -1890,12 +1903,12 @@ class PatchDataCommand extends Command
                 if (is_null($target_id) || isMatchString($target_id, 0)) {
                     return;
                 }
-                
+
                 $notify->target_id = $target_id;
                 $notify->save();
             });
     }
-    
+
     /**
      * Convert select table and user-organization, convert type to USER and ORGANIZATION
      *
@@ -1932,7 +1945,7 @@ class PatchDataCommand extends Command
             });
         });
     }
-    
+
     /**
      * Set file type for update.
      *
@@ -1967,7 +1980,7 @@ class PatchDataCommand extends Command
         });
     }
 
-    
+
     /**
      * Set summary view pivot.
      *
@@ -2025,7 +2038,7 @@ class PatchDataCommand extends Command
             }
         });
     }
-    
+
     /**
      * Set notify time view pivot.
      *
@@ -2084,7 +2097,7 @@ class PatchDataCommand extends Command
             });
         });
     }
-    
+
     /**
      * Set file parent_type and parent_id for bugfix.
      *

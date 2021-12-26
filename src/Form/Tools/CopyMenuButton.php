@@ -96,7 +96,7 @@ EOT;
         Admin::script($script);
 
         // get button_class
-        $button_class = array_get($this->copy, 'button_class');
+        $button_class = array_get($this->copy, 'options.button_class');
         if (!isset($button_class)) {
             $button_class = 'btn-default';
         }

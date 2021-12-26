@@ -75,9 +75,10 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         
         if (is_list($values)) {
             $func = $isOr ? 'orWhere' : 'where';
-            $builder->{$func}(function ($query) use ($queryStr, $values) {
+            $builder->{$func}(function ($query) use ($queryStr, $values, $isNot) {
+                $subfunc = $isNot ? 'whereRaw' : 'orWhereRaw';
                 foreach ($values as $i) {
-                    $query->orWhereRaw($queryStr, $i);
+                    $query->{$subfunc}($queryStr, $i);
                 }
             });
         } else {

@@ -135,10 +135,15 @@ abstract class CustomItem implements ItemInterface
      */
     public function gridStyle()
     {
-        return $this->getStyleString([
+        $array = [
             'min-width' => $this->custom_column->getOption('min_width', config('exment.grid_min_width', 100)) . 'px',
             'max-width' => $this->custom_column->getOption('max_width', config('exment.grid_max_width', 300)) . 'px',
-        ]);
+        ];
+        $text_align = $this->custom_column->getOption('text_align');
+        if (isset($text_align)) {
+            $array['text-align'] = $text_align;
+        }
+        return $this->getStyleString($array);
     }
 
     /**

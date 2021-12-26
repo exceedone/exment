@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Database\Schema\Grammars;
 
-use Exceedone\Exment\Model\CustomColumn;
-use Illuminate\Database\Schema\Grammars\SqlServerGrammar as BaseGrammar;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
+use Exceedone\Exment\Model\CustomColumn;
+use Illuminate\Database\Schema\Grammars\SqlServerGrammar as BaseGrammar;
 
 class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 {

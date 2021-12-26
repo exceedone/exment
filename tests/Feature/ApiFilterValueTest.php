@@ -1165,7 +1165,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $workflow = Model\Workflow::getWorkflowByTable(Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT));
         $options = $workflow->getStatusOptions()->toArray();
-        $this->__testConditionApiWorkflow('workflow_status', $filterOption, $hasHtml, new ExactSelectOption('select', $options));
+        $this->__testConditionApiWorkflow('workflow_status', $filterOption, $hasHtml, new ExactSelectOption('select', $options), true);
     }
 
     public function testConditionValueWorkflowWorkUser()
@@ -1270,7 +1270,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
      * @param string|null $table_name
      * @return void
      */
-    protected function __testConditionApiWorkflow(string $type, string $cond_key, bool $hasHtml, $selector)
+    protected function __testConditionApiWorkflow(string $type, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         // workflow table
         $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
@@ -1287,7 +1287,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
             'show_condition_key' => '1',
         ]);
 
-        $this->checkTestResult($url, $hasHtml, $selector, false);
+        $this->checkTestResult($url, $hasHtml, $selector, $multiple);
     }
 
 

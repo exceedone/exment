@@ -455,6 +455,16 @@
                     "options": {
                         "help": "Enter the text of the email you want to send. You can use variables."
                     }
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "Attachments",
+                    "column_type": "file",
+                    "system_flg": "1",
+                    "options": {
+                        "help": "Add the file you want to attach to the email.",
+                        "multiple_enabled": "1"
+                    }
                 }
             ]
         },

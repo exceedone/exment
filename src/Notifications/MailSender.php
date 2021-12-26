@@ -197,7 +197,7 @@ class MailSender extends SenderBase
     public function send()
     {
         $this->sendMail();
-        $this->sendPosswordMail();
+        $this->sendPasswordMail();
     }
     
     protected function sendMail()
@@ -229,7 +229,7 @@ class MailSender extends SenderBase
     }
 
 
-    protected function sendPosswordMail()
+    protected function sendPasswordMail()
     {
         if (!boolval($this->getUsePassword())) {
             return;
@@ -257,7 +257,7 @@ class MailSender extends SenderBase
             ->setBody($body)
             ->setFromName($fromName)
             ->setBodyType($bodyType)
-            ->setAttachments([]);
+            ->clearAttachments();
         $mailHistory
             ->setMailTemplate($mail_template)
             ->setHistory(false);

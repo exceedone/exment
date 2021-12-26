@@ -94,6 +94,11 @@ trait NotifyTrait
         
         $system_slack_user_column = CustomColumn::getEloquent(System::system_slack_user_column());
         $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE];
+
+        $help = exmtrans("notify.help.notify_action_target");
+        if (!is_nullorempty($workflow_id)) {
+            $help .= exmtrans("notify.help.notify_action_target_add_workflow");
+        }
         $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
             ->options(function ($val, $field, $notify) use ($custom_table, $workflow_id, $options) {
                 $options = array_merge([
@@ -112,7 +117,7 @@ trait NotifyTrait
                     ['key' => 'notify_action', 'requiredValue' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE]],
                 ])
             ])
-            ->help(exmtrans("notify.help.notify_action_target"));
+            ->help($help);
 
         $form->textarea('target_emails', exmtrans("notify.target_emails"))
             ->required()

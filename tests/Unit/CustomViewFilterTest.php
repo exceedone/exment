@@ -1381,6 +1381,118 @@ class CustomViewFilterTest extends UnitTestBase
     }
 
     /**
+     * FilterOption = EQ(workflow status/multiple_select)
+     */
+    public function testFuncWorkflowStatusEqMulti()
+    {
+        $this->init();
+
+        $filter_settings = [[
+            'column_name' => 'workflow_status',
+            'condition_type' => ConditionType::WORKFLOW,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_STATUS,
+            'filter_value_text' => '["start","7"]'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $workflow_status = array_get($data, 'workflow_status');
+            if (empty($workflow_status)) {
+                return true;
+            }
+            return $workflow_status->id == '7';
+        }, ['target_table_name' => 'custom_value_edit']);
+    }
+
+    /**
+     * FilterOption = NE(workflow status/multiple_select)
+     */
+    public function testFuncWorkflowStatusNeMulti()
+    {
+        $this->init();
+
+        $filter_settings = [[
+            'column_name' => 'workflow_status',
+            'condition_type' => ConditionType::WORKFLOW,
+            'filter_condition' => FilterOption::WORKFLOW_NE_STATUS,
+            'filter_value_text' => '["start","7"]'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $workflow_status = array_get($data, 'workflow_status');
+            if (empty($workflow_status)) {
+                return false;
+            }
+            return $workflow_status->id != '7';
+        }, ['target_table_name' => 'custom_value_edit']);
+    }
+
+    /**
+     * FilterOption = workflow status join other condition and option
+     */
+    public function testFuncWorkflowStatusAnd()
+    {
+        $this->init();
+
+        $filter_settings = [];
+        $filter_settings[] = [
+            'column_name' => 'date',
+            'filter_condition' => FilterOption::DAY_TODAY_OR_AFTER,
+        ];
+        $filter_settings[] = [
+            'column_name' => 'workflow_status',
+            'condition_type' => ConditionType::WORKFLOW,
+            'filter_condition' => FilterOption::WORKFLOW_EQ_STATUS,
+            'filter_value_text' => '["start","7"]'
+        ];
+        $today = \Carbon\Carbon::today();
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use($today) {
+            $date = array_get($data, 'value.date');
+            if (is_null($date)) {
+                return false;
+            }
+            $date = \Carbon\Carbon::parse($date);
+            if ($date < $today) {
+                return false;
+            }
+            $workflow_status = array_get($data, 'workflow_status');
+            if (empty($workflow_status) || $workflow_status->id == '7') {
+                return true;
+            }
+            return false;
+        }, ['target_table_name' => 'custom_value_edit']);
+    }
+
+    /**
+     * FilterOption = workflow status join other condition or option
+     */
+    public function testFuncWorkflowStatusOr()
+    {
+        $this->init();
+
+        $filter_settings = [];
+        $filter_settings[] = [
+            'column_name' => 'odd_even',
+            'filter_condition' => FilterOption::EQ,
+            'filter_value_text' => 'even'
+        ];
+        $filter_settings[] = [
+            'column_name' => 'workflow_status',
+            'condition_type' => ConditionType::WORKFLOW,
+            'filter_condition' => FilterOption::WORKFLOW_NE_STATUS,
+            'filter_value_text' => '["start","7"]'
+        ];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $odd_even = array_get($data, 'value.odd_even');
+            if ($odd_even == 'even') {
+                return true;
+            }
+            $workflow_status = array_get($data, 'workflow_status');
+            if (empty($workflow_status) || $workflow_status->id == '7') {
+                return false;
+            }
+            return true;
+        }, ['target_table_name' => 'custom_value_edit', 'condition_join' => 'or']);
+    }
+
+    /**
      * FilterOption = EQ(workflow user)
      */
     public function testFuncWorkflowUser()
@@ -1520,6 +1632,216 @@ class CustomViewFilterTest extends UnitTestBase
 
             return $cnt > 0;
         }, ['condition_join' => 'or']);
+    }
+
+    /**
+     * FilterOption = SELECT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeExists1()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => unicode_encode('["ドトール", "珈琲館"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual == 'ドトール' || $actual == '珈琲館';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeExistsOld1()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => 'コメダ珈琲'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual == 'コメダ珈琲';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeExistsOld2()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => '["コメダ珈琲", "スターバックス"]'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual == 'コメダ珈琲' || $actual == 'スターバックス';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExists()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => unicode_encode('["コメダ珈琲", "スターバックス"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual != 'コメダ珈琲' && $actual != 'スターバックス';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExistsOld1()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => '上島珈琲店'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual != '上島珈琲店';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExistsOld2()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => '["上島珈琲店", "珈琲館"]'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual != '上島珈琲店' && $actual != '珈琲館';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_EXISTS(multiple select unicode)
+     */
+    public function testFuncFilterSelectUnicodeExistsMulti()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select_multiple',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => unicode_encode('["イタリア", "中国"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select_multiple');
+            return in_array('イタリア', $actual) || in_array('中国', $actual);
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(multiple select unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExistsMulti()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select_multiple',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => unicode_encode('["アメリカ", "日本"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select_multiple');
+            return !in_array('アメリカ', $actual) && !in_array('日本', $actual);
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_EXISTS(multiple select_valtext unicode)
+     */
+    public function testFuncFilterSelectUnicodeExistsVal()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select_valtext_multiple',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => unicode_encode('["ろ", "と"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select_valtext_multiple');
+            return in_array('ろ', $actual) || in_array('と', $actual);
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(multiple select_valtext unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExistsVal()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select_valtext_multiple',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => unicode_encode('["い", "ち"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select_valtext_multiple');
+            return !in_array('い', $actual) && !in_array('ち', $actual);
+        }, $options);
     }
 
 
