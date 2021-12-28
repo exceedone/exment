@@ -868,7 +868,8 @@ class WorkflowController extends AdminControllerBase
                 if ($index > 0) {
                     $options = [
                         WorkflowWorkTargetType::ACTION_SELECT => WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options'),
-                        WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options')
+                        WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options'),
+                        WorkflowWorkTargetType::GET_BY_USERINFO => WorkflowWorkTargetType::GET_BY_USERINFO()->transKey('workflow.work_target_type_options'),
                     ];
                     $help = exmtrans('workflow.help.work_targets2');
                     $default = WorkflowWorkTargetType::FIX;
@@ -877,6 +878,18 @@ class WorkflowController extends AdminControllerBase
                         ->attribute(['data-filtertrigger' =>true])
                         ->default(array_get($value, 'work_target_type') ?? $default)
                         ->options($options);
+                    
+                    ///// Select by userinfo
+                    $options = CustomTable::getEloquent(SystemTableName::USER)->custom_columns()
+                        ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+                        ->indexEnabled()
+                        ->pluck('column_view_name', 'id');
+
+                    $form->multipleSelect('modal_' . ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey() , exmtrans('common.custom_column'))
+                        ->options($options)
+                        ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::GET_BY_USERINFO])])
+                        ->help(exmtrans('workflow.help.target_column_get_by_userinfo'))
+                        ->default(array_get($value, ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey()));
                 } else {
                     $form->hidden('work_target_type')->default(WorkflowWorkTargetType::FIX);
                 }

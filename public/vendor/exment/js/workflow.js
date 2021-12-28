@@ -9,7 +9,7 @@ var Exment;
         static AddEvent() {
         }
         static GetSettingValText() {
-            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system'];
+            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system', 'modal_login_user_column'];
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_targets"] form');
             // get value

@@ -68,7 +68,7 @@ class WorkflowAction extends ModelBase
             $result['work_target_type'] = $work_target_type;
         }
 
-        if ($work_target_type == WorkflowWorkTargetType::FIX) {
+        if ($work_target_type == WorkflowWorkTargetType::FIX || $work_target_type == WorkflowWorkTargetType::GET_BY_USERINFO) {
             $authorities = WorkflowAuthority::where('workflow_action_id', $this->id)->get();
             $authorities->each(function ($v) use (&$result) {
                 $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
@@ -193,6 +193,7 @@ class WorkflowAction extends ModelBase
             ConditionTypeDetail::ORGANIZATION()->lowerKey(),
             ConditionTypeDetail::COLUMN()->lowerKey(),
             ConditionTypeDetail::SYSTEM()->lowerKey(),
+            ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerKey(),
         ];
         foreach ($keys as $key) {
             $ids = array_get($this->work_targets, $key, []);
@@ -273,9 +274,9 @@ class WorkflowAction extends ModelBase
         \DB::transaction(function () use ($custom_value, $data, $is_edit, &$workflow_value, &$status_to) {
             $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
-            // if contains next_work_users, set workflow_value_authorities
+            // if contains next_work_users, or action is GET_BY_USERINFO, set workflow_value_authorities
             if (array_key_value_exists('next_work_users', $data)) {
-                $user_organizations = $data['next_work_users'];
+                $user_organizations = array_get($data, 'next_work_users');
                 $user_organizations = collect($user_organizations)->filter()->map(function ($user_organization) use ($workflow_value) {
                     list($authoritable_user_org_type, $authoritable_target_id) = explode('_', $user_organization);
                     return [
@@ -291,7 +292,39 @@ class WorkflowAction extends ModelBase
                 CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
 
                 $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            } else {
+            } 
+            // If call as get_by_userinfo
+            elseif (array_key_value_exists('get_by_userinfo_action', $data)) {
+                $user_organizations = collect();
+
+                // get nexe workflow action
+                $nextAction = WorkflowAction::getEloquent($data['get_by_userinfo_action']);
+                // get target user or orgs
+                foreach($nextAction->workflow_authorities as $workflow_authority){
+                    $userAndOrgs = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $workflow_value, true, false);
+                    foreach(array_get($userAndOrgs, 'users', []) as $user){
+                        $user_organizations->push([
+                            'related_id' => $user,
+                            'related_type' => 'user',
+                            'workflow_value_id' => $workflow_value->id,
+                        ]);
+                    }
+                    foreach(array_get($userAndOrgs, 'organizations', []) as $user){
+                        $user_organizations->push([
+                            'related_id' => $user,
+                            'related_type' => 'organization',
+                            'workflow_value_id' => $workflow_value->id,
+                        ]);
+                    }
+                }
+                
+                WorkflowValueAuthority::insert($user_organizations->toArray());
+
+                // set Custom Value Authoritable
+                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
+
+                $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+            }else {
                 // get this getAuthorityTargets
                 $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
                 CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
@@ -442,51 +475,15 @@ class WorkflowAction extends ModelBase
         $workflow_authorities = $this->workflow_authorities_cache;
 
         foreach ($workflow_authorities as $workflow_authority) {
-            $type = ConditionTypeDetail::getEnum($workflow_authority->related_type);
-            switch ($type) {
-                case ConditionTypeDetail::USER:
-                    $userIds[] = $workflow_authority->related_id;
-                    break;
-
-                case ConditionTypeDetail::ORGANIZATION:
-                    $organizationIds[] = $workflow_authority->related_id;
-                    break;
-
-                case ConditionTypeDetail::SYSTEM:
-                    if ($getAsDefine) {
-                        $labels[] = exmtrans('common.' . WorkflowTargetSystem::getEnum($workflow_authority->related_id)->lowerKey());
-                        break;
-                    }
-
-                    if ($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER) {
-                        $userIds[] = $custom_value->created_user_id;
-                    }
-                    break;
-                    
-                case ConditionTypeDetail::COLUMN:
-                    $column = CustomColumn::getEloquent($workflow_authority->related_id);
-
-                    if ($getAsDefine) {
-                        $labels[] = $column->column_view_name ?? null;
-                        break;
-                    }
-
-                    $column_values = $custom_value->getValue($column->column_name);
-                    if (is_nullorempty($column_values)) {
-                        break;
-                    }
-                    if ($column_values instanceof CustomValue) {
-                        $column_values = [$column_values];
-                    }
-
-                    foreach ($column_values as $column_value) {
-                        if ($column->column_type == ColumnType::USER) {
-                            $userIds[] = $column_value->id;
-                        } else {
-                            $organizationIds[] = $column_value->id;
-                        }
-                    }
-                    break;
+            $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $custom_value->workflow_value, false, $getAsDefine);
+            if(array_key_value_exists('users', $results)){
+                foreach($results['users'] as $id){$userIds[] = $id;}
+            }
+            if(array_key_value_exists('organizations', $results)){
+                foreach($results['organizations'] as $id){$organizationIds[] = $id;}
+            }
+            if(array_key_value_exists('labels', $results)){
+                foreach($results['labels'] as $id){$labels[] = $id;}
             }
         }
 
@@ -675,6 +672,10 @@ class WorkflowAction extends ModelBase
             $select = $nextActions->contains(function ($nextAction) {
                 return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
             });
+            // select hidden items
+            $select_hidden = $nextActions->first(function ($nextAction) {
+                return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO;
+            });
 
             // if select, show options
             if ($select) {
@@ -683,15 +684,21 @@ class WorkflowAction extends ModelBase
                     ->options($options)
                     ->ajax($ajax)
                     ->required();
-            } else {
+            }
+            else {
                 // only display
-                $form->display('next_work_users', exmtrans('workflow.next_work_users'))
+                $form->display('next_work_users_display', exmtrans('workflow.next_work_users'))
                     ->displayText($toActionAuthorities->map(function ($toActionAuthority) {
                         return $toActionAuthority->getUrl([
                             'tag' => true,
                             'only_avatar' => true,
                         ]);
                     })->implode(exmtrans('common.separate_word')))->escape(false);
+
+                // if has $select_hidden, set as hidden item
+                if(!is_nullorempty($select_hidden)){
+                    $form->hidden('get_by_userinfo_action')->default($select_hidden->id);
+                }
             }
         }
         
