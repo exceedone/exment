@@ -129,6 +129,22 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    public function testReplaceCustomTableName()
+    {
+        $custom_table = CustomTable::getEloquent('information');
+        $info = $custom_table->getValueModel(1);
+        $text = ReplaceFormatService::replaceTextFromFormat('${table_name}', $info);
+        $this->assertMatch($custom_table->table_name, $text);
+    }
+
+    public function testReplaceCustomTableViewName()
+    {
+        $custom_table = CustomTable::getEloquent('information');
+        $info = $custom_table->getValueModel(1);
+        $text = ReplaceFormatService::replaceTextFromFormat('${table_view_name}', $info);
+        $this->assertMatch($custom_table->table_view_name, $text);
+    }
+
     public function testReplaceUuid()
     {
         $keys = ['uuid'];
