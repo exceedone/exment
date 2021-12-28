@@ -67,7 +67,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
      *
      * @return array
      */
-    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, ?WorkflowValue $workflow_value, bool $callByExecute, $getAsDefine = false) : array
+    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, ?WorkflowValue $workflow_value, bool $getAsLoginUser = false, $getAsDefine = false) : array
     {
         $type = ConditionTypeDetail::getEnum($this->related_type);
         switch ($type) {
@@ -133,13 +133,10 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 }
 
                 // if $callByExecute is true, Get by action executed user
-                $getAsLoginUser = false;
-                if($callByExecute){
-                    $getAsLoginUser = true;
-                }elseif(is_nullorempty($workflow_value)){
+                // If $workflow_value is empty, this flow is first. So get as login user
+                if(is_nullorempty($workflow_value)){
                     $getAsLoginUser = true;
                 }
-
                 if($getAsLoginUser){
                     $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(\Exment::getUserId());
                 }

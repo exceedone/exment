@@ -446,7 +446,7 @@ class WorkflowAction extends ModelBase
      * @param boolean $getValueAutorities if true, get value authority
      * @return \Illuminate\Support\Collection
      */
-    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false, $getValueAutorities = true)
+    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false, $getValueAutorities = true, bool $asNextAction = false)
     {
         // get users and organizations
         $userIds = [];
@@ -475,7 +475,7 @@ class WorkflowAction extends ModelBase
         $workflow_authorities = $this->workflow_authorities_cache;
 
         foreach ($workflow_authorities as $workflow_authority) {
-            $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $custom_value->workflow_value, false, $getAsDefine);
+            $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $custom_value->workflow_value, $asNextAction, $getAsDefine);
             if(array_key_value_exists('users', $results)){
                 foreach($results['users'] as $id){$userIds[] = $id;}
             }
@@ -677,6 +677,7 @@ class WorkflowAction extends ModelBase
                 return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO;
             });
 
+            $isDisableForm = false;
             // if select, show options
             if ($select) {
                 list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
@@ -684,20 +685,30 @@ class WorkflowAction extends ModelBase
                     ->options($options)
                     ->ajax($ajax)
                     ->required();
+
+                // If not ajax and $options is empty, disable form.
+                if(is_nullorempty($options) && is_nullorempty($ajax)){
+                    $showSubmit = false;
+                }
             }
             else {
                 // only display
+                $displayText = $toActionAuthorities->count() == 0 ? "<span class='red bold'>" .exmtrans('workflow.message.nextuser_not_found') . "</span>" : $toActionAuthorities->map(function ($toActionAuthority) {
+                    return $toActionAuthority->getUrl([
+                        'tag' => true,
+                        'only_avatar' => true,
+                    ]);
+                })->implode(exmtrans('common.separate_word'));
                 $form->display('next_work_users_display', exmtrans('workflow.next_work_users'))
-                    ->displayText($toActionAuthorities->map(function ($toActionAuthority) {
-                        return $toActionAuthority->getUrl([
-                            'tag' => true,
-                            'only_avatar' => true,
-                        ]);
-                    })->implode(exmtrans('common.separate_word')))->escape(false);
+                    ->displayText($displayText)->escape(false);
 
                 // if has $select_hidden, set as hidden item
                 if(!is_nullorempty($select_hidden)){
                     $form->hidden('get_by_userinfo_action')->default($select_hidden->id);
+                }
+
+                if(is_nullorempty($toActionAuthorities)){
+                    $showSubmit = false;
                 }
             }
         }
@@ -749,7 +760,7 @@ class WorkflowAction extends ModelBase
         }
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, false, false, false)
+            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, false, false, false, true)
                     ->merge($toActionAuthorities);
         });
         

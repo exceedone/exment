@@ -323,10 +323,15 @@ class ApiWorkflowController extends AdminControllerBase
         }
         $statusTo = $workflow_action->getStatusToId($custom_value);
         $currentTo = isset($custom_value->workflow_value)? $custom_value->workflow_value->workflow_status_to_id: null;
+
+        $next_get_by_userinfo = null;
         if ($currentTo != $statusTo) {
             $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow);
             $need_next = $nextActions->contains(function ($workflow_action) {
                 return $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+            });
+            $next_get_by_userinfo = $nextActions->first(function ($workflow_action) {
+                return $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO;
             });
             if ($need_next) {
                 $rules['next_users'] = 'required_without:next_organizations';
@@ -344,6 +349,11 @@ class ApiWorkflowController extends AdminControllerBase
 
         if (($params = $this->getExecuteParams($request)) instanceof Response) {
             return $params;
+        }
+
+        // If has $next_get_by_userinfo, set get_by_userinfo_action
+        if(!is_nullorempty($next_get_by_userinfo)){
+            $params['get_by_userinfo_action'] = $next_get_by_userinfo->id;
         }
 
         // execute workflow action
