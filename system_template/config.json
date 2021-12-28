@@ -668,31 +668,37 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
+                            "suuid": "wzfXn9Bcg6EMBzQBgaw7",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_key_name"
                         },
                         {
+                            "suuid": "3zSnP6M9jwPpiJeXA4Vt",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_view_name"
                         },
                         {
+                            "suuid": "cekJbstSuBbJw5kdUyDT",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_template_type"
                         },
                         {
+                            "suuid": "89Di5UGHKgCkBRb75ata",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_from_view_name"
                         },
                         {
+                            "suuid": "gcfrb5hTpgZZ8J4cBTYy",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_subject"
                         },
                         {
+                            "suuid": "HaWexXa9VM3fiN8uNbZm",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_body"
@@ -713,46 +719,55 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
+                            "suuid": "6Ls7rPspG9WUc4Yp6Z4f",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_from"
                         },
                         {
+                            "suuid": "3d4RseS24y2U9X2cKiFU",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_to"
                         },
                         {
+                            "suuid": "4eJzUJrccgYihD6QMGGw",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_cc"
                         },
                         {
+                            "suuid": "SfEpEgRwsxfGFWHTcLgH",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_bcc"
                         },
                         {
+                            "suuid": "PBJBSYEhyc84fVyyGF6z",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_subject"
                         },
                         {
+                            "suuid": "BbLmiS67XYrHbGwBsWts",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_body"
                         },
                         {
+                            "suuid": "aigX8zr6uB9RAjKuagQx",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "user"
                         },
                         {
+                            "suuid": "Ff3LRVLFxBmjMmFcbtAK",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_template"
                         },
                         {
+                            "suuid": "XyrDziJdLw9rYcsURHjQ",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "send_datetime"
@@ -773,61 +788,73 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
+                            "suuid": "cAPSbRSdnebBBZBmXhQ7",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "company_name"
                         },
                         {
+                            "suuid": "jfbiCfVWFUcE2bi5aFCz",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "company_kana"
                         },
                         {
+                            "suuid": "MVhc6MmeDCTFVczKcYKy",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "zip01"
                         },
                         {
+                            "suuid": "VEpUHfuLtpi6Crau63Az",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "zip02"
                         },
                         {
+                            "suuid": "DCVVuxbHiVHzMEJwPwFJ",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "pref"
                         },
                         {
+                            "suuid": "B6fWnCFeVdmjUCQVtHAj",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "addr01"
                         },
                         {
+                            "suuid": "QpDMnMPn8DVzQyDjKdBW",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "addr02"
                         },
                         {
+                            "suuid": "K3BphQicAeDSBgspKFer",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "tel01"
                         },
                         {
+                            "suuid": "HsFZinakaQsSzsgfCag7",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "tel02"
                         },
                         {
+                            "suuid": "u6Qkt6JjpuCrTSegVKGL",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "tel03"
                         },
                         {
+                            "suuid": "5452hX8M9hakwGKUHFhF",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "company_logo"
                         },
                         {
+                            "suuid": "MdZdi7wf7CRLtx5w3YKS",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "company_stamp"
@@ -848,16 +875,19 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
+                            "suuid": "KnBgrn4UHTFfM9SiPnrp",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "parent_organization"
                         },
                         {
+                            "suuid": "xW6UjZdyxbZJkHkM6DgR",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "organization_code"
                         },
                         {
+                            "suuid": "8zaa5TaiNdhLFjfTLn4y",
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "organization_name"
@@ -886,26 +916,31 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
+                            "suuid": "5Qjw7c3ssMEA5QYHeSTw",
                             "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "title"
                         },
                         {
+                            "suuid": "jYBND2mAD4ryAfiwRmGu",
                             "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "body"
                         },
                         {
+                            "suuid": "B6nw5WesJAGh5bjDpAE6",
                             "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "priority"
                         },
                         {
+                            "suuid": "dG2uRxGDpkHayUnWMAU8",
                             "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "view_flg"
                         },
                         {
+                            "suuid": "VNj8GUNjAXNKgTW7CYPJ",
                             "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "order"
