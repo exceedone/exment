@@ -1057,8 +1057,8 @@ return [
         'flow_executed_user_count_format' => '%s / %s 人',
         'has_condition' => '(条件あり)',
         'get_by_userinfo_base' => '基準ユーザー',
-        'first_executed_user' => '最初のアクション実行ユーザー',
-        'executed_user' => 'アクション実行ユーザー',
+        'first_executed_user' => '最初のアクションを実行したユーザー',
+        'executed_user' => 'アクションを実行したユーザー',
         
 
         'help' => [

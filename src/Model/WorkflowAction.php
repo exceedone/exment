@@ -69,14 +69,16 @@ class WorkflowAction extends ModelBase
             if (isset($val)) {
                 $result[$key] = $val;
             }
+                
+            if ($key == 'work_target_type' && ($val == WorkflowWorkTargetType::FIX || $val == WorkflowWorkTargetType::GET_BY_USERINFO))
+            {
+                $authorities = WorkflowAuthority::where('workflow_action_id', $this->id)->get();
+                $authorities->each(function ($v) use (&$result) {
+                    $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
+                });
+            }
         }
 
-        if ($work_target_type == WorkflowWorkTargetType::FIX || $work_target_type == WorkflowWorkTargetType::GET_BY_USERINFO) {
-            $authorities = WorkflowAuthority::where('workflow_action_id', $this->id)->get();
-            $authorities->each(function ($v) use (&$result) {
-                $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
-            });
-        }
         return collect($result);
     }
     public function setWorkTargetsAttribute($work_targets)

@@ -806,6 +806,7 @@ class WorkflowController extends AdminControllerBase
 
 
             // validate workflow targets
+            $work_target_type = array_get($work_targets, 'work_target_type');
             $work_targets = jsonToArray(array_get($workflow_action, 'work_targets'));
             if (is_nullorempty($work_targets)) {
                 $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
@@ -816,7 +817,7 @@ class WorkflowController extends AdminControllerBase
                 })) {
                     $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
                 }
-            } elseif (array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT) {
+            } elseif ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT || $work_target_type == WorkflowWorkTargetType::GET_BY_USERINFO) {
                 // if contains other FIX action in same acthion
                 foreach ($workflow_actions as $validateIndex => $workflow_action_validate) {
                     if ($key == $validateIndex) {
@@ -833,7 +834,7 @@ class WorkflowController extends AdminControllerBase
                         continue;
                     }
         
-                    $errors->add("$errorKey.work_targets", exmtrans("workflow.message.fix_and_action_select"));
+                    $errors->add("$errorKey.work_targets", exmtrans("workflow.message.{$work_target_type}_and_action_select"));
                     break;
                 }
             }
