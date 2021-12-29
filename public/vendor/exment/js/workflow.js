@@ -24,6 +24,11 @@ var Exment;
                 values[key.replace('modal_', '')] = val[key];
             }
             let texts = [];
+            let label = $('.work_target_type:checked').closest('label').text().trim();
+            if ($('.work_target_type:checked').val() == 'get_by_userinfo') {
+                label += ':' + $('.get_by_userinfo_base option:selected').text();
+            }
+            texts.push('[' + label + ']');
             $.each(targetKeys, function (index, value) {
                 let target = form.find('.' + value + '.form-control');
                 if (!hasValue(target)) {
@@ -45,9 +50,6 @@ var Exment;
                 //     texts.push(escHtml(target.closest('.radio-inline').text().trim()));
                 // }
             });
-            if ($('.work_target_type:checked').val() == 'action_select') {
-                texts.push($('.work_target_type:checked').closest('label').text().trim());
-            }
             return { value: JSON.stringify(values), text: texts.join('<br />') };
         }
         static GetConditionSettingValText() {

@@ -54,6 +54,8 @@ class ValueModal extends Field
      */
     protected $ajax;
 
+    protected $escape = true;
+
     /**
      * @var array modal ajax posting names
      */
@@ -147,6 +149,13 @@ class ValueModal extends Field
     public function buttonClass($buttonClass)
     {
         $this->buttonClass = $buttonClass;
+        return $this;
+    }
+
+    public function escape(bool $escape = true)
+    {
+        $this->escape = $escape;
+
         return $this;
     }
 
@@ -255,10 +264,10 @@ EOT;
 
         if (is_array($this->text) || $this->text instanceof \Illuminate\Support\Collection) {
             $this->text = collect($this->text)->map(function ($t) {
-                return esc_html($t);
+                return $this->escape ? esc_html($t) : $t;
             })->implode('<br />');
         } else {
-            $this->text = esc_html($this->text);
+            $this->text = $this->escape ? esc_html($this->text) : $this->text;
         }
 
         // convert value

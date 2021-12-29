@@ -334,14 +334,14 @@ class WorkflowController extends AdminControllerBase
                 'value' => 'action_2',
                 'label' => exmtrans('common.redirect_to', exmtrans('workflow.workflow_actions')),
                 'redirect' => function ($resourcesPath, $key) {
-                    return redirect(admin_urls('workflow', $key, 'edit?action=2'));
+                    return redirect(admin_urls('workflow', $key, 'edit?action=2&after-save=action_2'));
                 },
             ])->submitRedirect([
                 'key' => 'continue_editing',
                 'value' => 1,
                 'label' => trans('admin.continue_editing'),
                 'redirect' => function ($resourcesPath, $key) {
-                    return redirect(admin_urls('workflow', $key, 'edit?action=1'));
+                    return redirect(admin_urls('workflow', $key, 'edit?action=1&after-save=1'));
                 },
             ]);
         }
@@ -451,16 +451,26 @@ class WorkflowController extends AdminControllerBase
 
                     $value = jsonToArray($value);
 
+                    $label = null;
                     if (array_get($value, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT) {
-                        return WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options');
+                        $label = WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options');
                     }
+                    elseif (array_get($value, 'work_target_type') == WorkflowWorkTargetType::FIX){
+                        $label = WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options');
+                    }
+                    elseif (array_get($value, 'work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO){
+                        $label = WorkflowWorkTargetType::GET_BY_USERINFO()->transKey('workflow.work_target_type_options') . ' : ' . exmtrans('workflow.' . array_get($value, 'get_by_userinfo_base', 'executed_user')) ;
+                    }
+                    $label = "[{$label}]";
 
-                    $texts = collect(WorkflowAuthority::getAuhoritiesFromValue($value))
-                        ->filter()->map(function ($authority) {
-                            return $authority->authority_text;
-                        });
-
-                    return $texts;
+                    if (array_get($value, 'work_target_type') != WorkflowWorkTargetType::ACTION_SELECT) {
+                        $text = collect(WorkflowAuthority::getAuhoritiesFromValue($value))
+                            ->filter()->map(function ($authority) {
+                                return esc_html($authority->authority_text);
+                            })->implode('<br/>');
+                        return $label . (!is_nullorempty($text) ? "<br/>" : "" ) . $text;
+                    }
+                    return $label;
 
                     // $action = WorkflowAction::getEloquentDefault($field->data()['id']);
                     // if (!isset($action)) {
@@ -473,6 +483,7 @@ class WorkflowController extends AdminControllerBase
                 ->nullValue(function ($value, $field) {
                     return WorkflowWorkTargetType::getTargetTypeDefault($field->getIndex());
                 })
+                ->escape(false)
             ;
 
             $form->workflowOptions('options', exmtrans("workflow.option"));
@@ -503,14 +514,14 @@ class WorkflowController extends AdminControllerBase
             'value' => 'action_1',
             'label' => exmtrans('common.redirect_to', exmtrans('workflow.workflow_statuses')),
             'redirect' => function ($resourcesPath, $key) {
-                return redirect(admin_urls('workflow', $key, 'edit?action=1'));
+                return redirect(admin_urls('workflow', $key, 'edit?action=1&after-save=action_1'));
             },
         ])->submitRedirect([
             'key' => 'continue_editing',
             'value' => 1,
             'label' => trans('admin.continue_editing'),
             'redirect' => function ($resourcesPath, $key) {
-                return redirect(admin_urls('workflow', $key, 'edit?action=2'));
+                return redirect(admin_urls('workflow', $key, 'edit?action=2&after-save=1'));
             },
         ]);
 
