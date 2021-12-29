@@ -1056,6 +1056,10 @@ return [
         'flow_executed_user_count' => '現在のアクション実行者数',
         'flow_executed_user_count_format' => '%s / %s 人',
         'has_condition' => '(条件あり)',
+        'get_by_userinfo_base' => '基準ユーザー',
+        'first_executed_user' => '最初のアクション実行ユーザー',
+        'executed_user' => 'アクション実行ユーザー',
+        
 
         'help' => [
             'saved_redirect_column' => '保存しました！次はアクションを設定してください。',
@@ -1079,6 +1083,7 @@ return [
             'target_column' => 'カスタム列種類が「ユーザー」「組織」の列が、選択肢に表示されます。',
             'target_column_get_by_userinfo' => 'ユーザー列に設定されている、カスタム列種類が「ユーザー」「組織」の列が、選択肢に表示されます。',
             'target_user_org' => 'テーブル「:table_view_name」にアクセスする権限をもつ:typeのみ、選択肢に表示されます。追加したい:typeが表示されない場合、役割グループ設定より権限を追加してください。',
+            'get_by_userinfo_base' => 'どのユーザーを基準にして、次のアクションを実行するユーザー・組織を取得するかどうかを選択します。<br />「最初のアクション実行ユーザー」:フローの最初のアクションを実行したユーザーを基準にします。<br />「アクション実行ユーザー」：該当のアクションを実行したユーザーを基準にします。',
         ],
 
         'message' => [

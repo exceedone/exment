@@ -67,7 +67,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
      *
      * @return array
      */
-    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, ?WorkflowValue $workflow_value, bool $getAsLoginUser = false, $getAsDefine = false) : array
+    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, WorkflowAction $next_workflow_action, ?WorkflowValue $workflow_value, bool $getAsLoginUser = false, $getAsDefine = false) : array
     {
         $type = ConditionTypeDetail::getEnum($this->related_type);
         switch ($type) {
@@ -132,16 +132,29 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                     ];
                 }
 
+                // get target workflow value. By workflow_action's "get_by_userinfo_base".
+                $wv = null;
+                switch($next_workflow_action->getOption('get_by_userinfo_base')){
+                    // If 'first executed user', get first workflow value.
+                    case 'first_executed_user':
+                        $wv = WorkflowValue::GetFirstExecutedWorkflowValue($custom_value);
+                        $getAsLoginUser = false;
+                        break;
+                    // else, get setted workflow value
+                    default:
+                        $wv = $workflow_value;
+                        break;
+                }
                 // if $callByExecute is true, Get by action executed user
                 // If $workflow_value is empty, this flow is first. So get as login user
-                if(is_nullorempty($workflow_value)){
+                if(is_nullorempty($wv)){
                     $getAsLoginUser = true;
                 }
                 if($getAsLoginUser){
                     $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(\Exment::getUserId());
                 }
                 else{
-                    $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($workflow_value->created_user_id);
+                    $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($wv->created_user_id);
                 }
 
                 $column_values = $user->getValue($column);

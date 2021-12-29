@@ -885,11 +885,21 @@ class WorkflowController extends AdminControllerBase
                         ->indexEnabled()
                         ->pluck('column_view_name', 'id');
 
+                    $form->select('get_by_userinfo_base', exmtrans('workflow.get_by_userinfo_base'))
+                        ->options(['first_executed_user' => exmtrans('workflow.first_executed_user'), 'executed_user' => exmtrans('workflow.executed_user')])
+                        ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::GET_BY_USERINFO])])
+                        ->help(exmtrans('workflow.help.get_by_userinfo_base'))
+                        ->config('allowClear', false)
+                        ->required()
+                        ->default(array_get($value, 'get_by_userinfo_base', 'executed_user'));
+                        
                     $form->multipleSelect('modal_' . ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey() , exmtrans('common.custom_column'))
                         ->options($options)
                         ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::GET_BY_USERINFO])])
                         ->help(exmtrans('workflow.help.target_column_get_by_userinfo'))
+                        ->required()
                         ->default(array_get($value, ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey()));
+                        
                 } else {
                     $form->hidden('work_target_type')->default(WorkflowWorkTargetType::FIX);
                 }

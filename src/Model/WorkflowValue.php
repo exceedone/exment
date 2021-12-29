@@ -125,6 +125,23 @@ class WorkflowValue extends ModelBase
             ->count() > 0;
     }
 
+
+    /**
+     * Get first executed workflow value.
+     * *Filtered workflow_status_from_id is NULL or first status name.
+     * *Sorted created_at desc. (First action... but last executed.)
+     *
+     * @return WorkflowValue
+     */
+    public static function GetFirstExecutedWorkflowValue($custom_value)
+    {
+        // get first status name 
+        return static::where('morph_type', $custom_value->custom_table->table_name)
+            ->where('morph_id', $custom_value->id)
+            ->whereNull('workflow_status_from_id')
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
     
     public function deletingChildren()
     {
