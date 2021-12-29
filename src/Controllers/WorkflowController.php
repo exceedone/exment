@@ -40,7 +40,10 @@ use Carbon\Carbon;
 
 class WorkflowController extends AdminControllerBase
 {
-    use HasResourceActions, WorkflowTrait;
+    use WorkflowTrait;
+    use HasResourceActions{
+        HasResourceActions::destroy as destroyTrait;
+    }
 
     protected $exists = false;
 
@@ -100,12 +103,37 @@ class WorkflowController extends AdminControllerBase
                     ->url(admin_urls('workflow', $actions->getKey(), 'notify'))
                     ->icon('fa-bell')
                     ->tooltip(exmtrans('notify.header'));
-                $actions->prepend($linker);
+                $actions->append($linker);
+            }
+                
+            if ($actions->row->canActivate()) {
+                $actions->append((new Tools\ModalLink(
+                    admin_urls('workflow', $actions->row->id, 'activateModal'),
+                    [
+                        'icon' => 'fa-check-square',
+                        'modal_title' => exmtrans('workflow.setting_complete'),
+                        'attributes' => [
+                            'data-toggle' => "tooltip",
+                        ],
+                    ]
+                ))->render());
             }
 
-            if ($actions->row->disabled_delete) {
+            if ($actions->row->setting_completed_flg) {
                 $actions->disableDelete();
+                $actions->append((new Tools\ModalLink(
+                    admin_url("workflow/{$actions->row->id}/deactivateModal"),
+                    [
+                        'icon' => 'fa-trash',
+                        'modal_title' => trans('admin.delete'),
+                        'attributes' => [
+                            'data-toggle' => "tooltip",
+                        ],
+                    ]
+                ))->render());
+
             }
+                
         });
 
         $grid->tools(function ($tools) {
@@ -166,6 +194,19 @@ class WorkflowController extends AdminControllerBase
     public function action(Request $request, Content $content, $id)
     {
         return $this->AdminContent($content)->body($this->actionForm($id)->edit($id));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $this->isDeleteForce = true;
+        return $this->destroyTrait($id);
     }
 
     /**
@@ -688,8 +729,22 @@ class WorkflowController extends AdminControllerBase
     {
         if (isset($workflow) && $workflow->disabled_delete) {
             $tools->disableDelete();
+            
+            $tools->prepend((new Tools\ModalMenuButton(
+                admin_url("workflow/{$workflow->id}/deactivateModal"),
+                [
+                    'icon' => 'fa-trash',
+                    'label' => trans('admin.delete'),
+                    'button_class' => 'btn-danger',
+                    'modal_title' => trans('admin.delete'),
+                    'attributes' => [
+                        'data-toggle' => "tooltip",
+                    ]
+                ]
+            ))->render());
         }
     }
+
     /**
      * Activate workflow
      *
@@ -728,6 +783,44 @@ class WorkflowController extends AdminControllerBase
             'result'  => true,
             'toastr' => trans('admin.save_succeeded'),
             'redirect' => admin_url('workflow/beginning'),
+        ]);
+    }
+
+    /**
+     * deactivate workflow
+     *
+     * @param Request $request
+     * @param string|int $id
+     * @return void
+     */
+    public function deactivate(Request $request, $id)
+    {
+        $workflow = Workflow::getEloquent($id);
+        if (!$workflow || !$workflow->setting_completed_flg) {
+            return back();
+        }
+
+        $validator = \Validator::make($request->all(), [
+            'activate_keyword' => Rule::in([Define::YES_KEYWORD]),
+        ]);
+
+        if (!$validator->passes()) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => exmtrans('error.mistake_keyword'),
+                'errors' => [],
+            ]);
+        }
+
+        // Set deleted_at directrly. Because cannot delete if has children columns (ex. worlflow_statuses) 
+        $workflow->update([
+            'deleted_at' => \Carbon\Carbon::now(),
+        ]);
+
+        return response()->json([
+            'result'  => true,
+            'toastr' => trans('admin.save_succeeded'),
+            'redirect' => admin_url('workflow'),
         ]);
     }
 
@@ -806,8 +899,8 @@ class WorkflowController extends AdminControllerBase
 
 
             // validate workflow targets
-            $work_target_type = array_get($work_targets, 'work_target_type');
             $work_targets = jsonToArray(array_get($workflow_action, 'work_targets'));
+            $work_target_type = array_get($work_targets, 'work_target_type');
             if (is_nullorempty($work_targets)) {
                 $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
             } elseif (array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::FIX) {
@@ -828,13 +921,27 @@ class WorkflowController extends AdminControllerBase
                         continue;
                     }
 
+                    // It's ok if ignore_work
+                    if (array_boolval($workflow_action_validate, 'ignore_work')) {
+                        continue;
+                    }
+
                     $work_targets_validate = jsonToArray(array_get($workflow_action_validate, 'work_targets'));
             
                     if (array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')) {
                         continue;
                     }
         
-                    $errors->add("$errorKey.work_targets", exmtrans("workflow.message.{$work_target_type}_and_action_select"));
+                    $errors->add("$errorKey.ignore_work", exmtrans("workflow.message.ignore_work_and_action_select"));
+                    break;
+                }
+            }
+            
+            // Cannnot select ACTION_SELECT and ignore_work
+            if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT) {
+                // It's ok if ignore_work
+                if (array_boolval($workflow_action, 'ignore_work')) {
+                    $errors->add("$errorKey.work_targets", exmtrans("workflow.message.ignore_work_and_action_select"));
                     break;
                 }
             }
@@ -1073,6 +1180,34 @@ class WorkflowController extends AdminControllerBase
             'body'  => $form->render(),
             'script' => $form->getScript(),
             'title' => exmtrans('workflow.setting_complete')
+        ]);
+    }
+
+    /**
+     * Render deactivate modal form.
+     *
+     * @return Content
+     */
+    public function deactivateModal(Request $request, $id)
+    {
+        $workflow = Workflow::getEloquent($id);
+        $activatePath = admin_urls('workflow', $id, 'deactivate');
+        // create form fields
+        $form = new ModalForm();
+        $form->action($activatePath);
+
+        $form->descriptionHtml(exmtrans('workflow.help.deactivate_complete'));
+
+        $form->text('activate_keyword', exmtrans('common.keyword'))
+            ->required()
+            ->help(exmtrans('common.message.input_keyword', Define::YES_KEYWORD));
+
+        $form->setWidth(9, 2);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('workflow.delete_complete')
         ]);
     }
 
