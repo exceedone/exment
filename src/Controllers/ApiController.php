@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\OperationLog;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -51,6 +52,23 @@ class ApiController extends AdminControllerBase
             $base_user = array_dot($base_user);
         }
         return $base_user;
+    }
+
+    /**
+     * get login user avatar
+     * @param Request $request
+     * @return null|\Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function avatar(Request $request)
+    {
+        $avatar = \Exment::user()->avatar ?? null;
+        if (!isset($avatar)) {
+            if ($request->has('default') && boolval($request->get('default'))) {
+                return response()->download(base_path(path_join('public', Define::USER_IMAGE_LINK)));
+            }
+            return null;
+        }
+        return \Storage::disk(config('admin.upload.disk'))->response($avatar);
     }
 
     /**
