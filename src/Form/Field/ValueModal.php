@@ -176,6 +176,9 @@ class ValueModal extends Field
                 ev.preventDefault();
 
                 let valText = {$valueTextScript};
+                if(!hasValue(valText)){
+                    return;
+                }
                 
                 // set value and text
                 let target = getValueModalTarget();

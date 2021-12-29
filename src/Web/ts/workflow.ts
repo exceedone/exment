@@ -15,7 +15,10 @@ namespace Exment {
 
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_targets"] form');
-
+            if(!(form.get(0) as HTMLFormElement).reportValidity()){
+                return;
+            }
+            
             // get value
             let val:any = serializeFromArray(form);
             // filter
