@@ -131,7 +131,6 @@ class WorkflowController extends AdminControllerBase
                         ],
                     ]
                 ))->render());
-
             }
                 
         });

@@ -462,6 +462,7 @@ class WorkflowAction extends ModelBase
      * @param boolean $orgAsUser if true, convert organization to users
      * @param boolean $getAsDefine if true, contains label "created_user", etc
      * @param boolean $getValueAutorities if true, get value authority
+     * @param boolean $asNextAction if true, get as next action. If false, get as current action. For use WorkflowWorkTargetType::GET_BY_USERINFO
      * @return \Illuminate\Support\Collection
      */
     public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false, $getValueAutorities = true, bool $asNextAction = false)

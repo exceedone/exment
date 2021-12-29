@@ -353,6 +353,12 @@ class ApiWorkflowController extends AdminControllerBase
 
         // If has $next_get_by_userinfo, set get_by_userinfo_action
         if(!is_nullorempty($next_get_by_userinfo)){
+            // if WorkflowWorkTargetType::GET_BY_USERINFO, check has next user. If not has, throw error.
+            $nextUserAndOrgs = $next_get_by_userinfo->getAuthorityTargets($custom_value, false, false, false, true);
+            if(is_nullorempty($nextUserAndOrgs) && $next_get_by_userinfo->isActionNext($custom_value)){
+                return abortJson(400, ErrorCode::WORKFLOW_NOT_HAS_NEXT_USER());
+            }
+            
             $params['get_by_userinfo_action'] = $next_get_by_userinfo->id;
         }
 
