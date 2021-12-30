@@ -222,6 +222,10 @@ class WorkflowController extends AdminControllerBase
 
         $form->descriptionHtml(exmtrans('common.help.more_help'));
 
+        if(!is_nullorempty($id)){
+            $form->display('id', 'ID');
+        }
+
         $form->text('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->required()
             ->rules("max:40");
@@ -264,13 +268,23 @@ class WorkflowController extends AdminControllerBase
             ->help(exmtrans("workflow.help.start_status_name"))
             ->rules("max:30");
 
-        $field = $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {
+        $isShowId = boolval(config('exment.show_workflow_id', false));
+        $field = $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) use($isShowId) {
+            if($isShowId){
+                $form->display('id', 'ID')->displayClass('p-0 text-center');
+            }
             $form->text('status_name', exmtrans("workflow.status_name"))->help(exmtrans('workflow.help.status_name'));
             $form->switchbool('datalock_flg', exmtrans("workflow.datalock_flg"))->help(exmtrans('workflow.help.datalock_flg'));
             $form->hidden('order')->default(0);
         })->setTableWidth(8, 2)
-        ->required()
-        ->setTableColumnWidth(6, 2, 2);
+        ->required();
+
+        if($isShowId){
+            $field->setTableColumnWidth(1, 5, 2, 2);
+        }else{
+            $field->setTableColumnWidth(6, 2, 2);
+        }
+
         if (isset($workflow) && boolval($workflow->setting_completed_flg)) {
             $field->disableOptions();
         } else {

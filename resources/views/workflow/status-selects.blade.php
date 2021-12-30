@@ -4,7 +4,15 @@
 
     <div class="{{array_get($viewClass, 'field')}}">
 
-
+        @if(isset($action_id))
+        <div class="workflow_table_item">
+            <label class="control-label small">ID</label>
+            <span style="padding-left: 1em; padding-top:7px; margin-bottom:0;">
+                {{$action_id}}
+            </span>
+        </div>
+        @endif
+        
         <div class="workflow_table_item {!! !$errors->has($errorKey['action_name']) ?: 'has-error' !!}">
             @include('exment::form.field.error', ['errorKeyFix' => $errorKey['action_name']])
 
