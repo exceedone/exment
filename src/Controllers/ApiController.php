@@ -62,11 +62,29 @@ class ApiController extends AdminControllerBase
     public function avatar(Request $request)
     {
         $avatar = \Exment::user()->avatar ?? null;
+        $isBase64 = $request->has('base64') && boolval($request->get('base64'));
+        $isdefault = $request->has('default') && boolval($request->get('default'));
+
+        // Is not has avatar
         if (!isset($avatar)) {
-            if ($request->has('default') && boolval($request->get('default'))) {
-                return response()->download(base_path(path_join('public', Define::USER_IMAGE_LINK)));
+            // If download default instead of avatar
+            if ($isdefault) {
+                $defaultPath = base_path(path_join('public', Define::USER_IMAGE_LINK));
+                if($isBase64){
+                    return response()->json(['base64' => base64_encode(\File::get($defaultPath))]);
+                }
+                return response()->download($defaultPath);
+            }
+
+            // not download default, return as null
+            if($isBase64){
+                return response()->json(['base64' => null]);
             }
             return null;
+        }
+
+        if($isBase64){
+            return response()->json(['base64' => base64_encode(\Storage::disk(config('admin.upload.disk'))->get($avatar))]);
         }
         return \Storage::disk(config('admin.upload.disk'))->response($avatar);
     }
