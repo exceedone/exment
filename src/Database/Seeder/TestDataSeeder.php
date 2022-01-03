@@ -97,6 +97,17 @@ class TestDataSeeder extends Seeder
 
     protected function createUserOrg()
     {
+        // First, create "boss" column.
+        CustomColumn::create([
+            'custom_table_id' => CustomTable::getEloquent(SystemTableName::USER)->id,
+            'column_name' => 'boss',
+            'column_view_name' => 'Boss',
+            'column_type' => ColumnType::USER,
+            'options' => [
+                'index_enabled' => 1,
+            ],
+        ]);
+
         \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
             'user' => ltrim(getModelName('user', true), "\\"),
             'organization' => ltrim(getModelName('organization', true), "\\"),

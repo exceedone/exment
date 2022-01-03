@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 
 class WorkflowTestDataSeeder extends Seeder
 {
@@ -41,6 +42,9 @@ class WorkflowTestDataSeeder extends Seeder
      */
     protected function createWorkflow($users)
     {
+        // get user's "boss" column.
+        $boss = CustomColumn::getEloquent('boss', 'user');
+
         // create workflows
         $workflows = [
             [
@@ -238,7 +242,7 @@ class WorkflowTestDataSeeder extends Seeder
                     'options' => [
                         'workflow_edit_flg' => '1',
                     ],
-            ],
+                ],
     
                 'statuses' => [
                     [
@@ -339,6 +343,85 @@ class WorkflowTestDataSeeder extends Seeder
                 'tables' => [
                     [
                         'custom_table' => 'custom_value_edit',
+                    ],
+                ],
+            ],
+
+            [
+                'items' => [
+                    'workflow_view_name' => 'workflow_common_get_for_userinfo',
+                    'workflow_type' => 0,
+                    'setting_completed_flg' => 1,
+                ],
+    
+                'statuses' => [
+                    [
+                        'status_name' => 'waiting',
+                        'datalock_flg' => 0,
+                    ],
+                    [
+                        'status_name' => 'completed',
+                        'datalock_flg' => 1,
+                        'completed_flg' => 1,
+                    ],
+                ],
+    
+                'actions' => [
+                    [
+                        'status_from' => 'start',
+                        'action_name' => 'send',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 0,
+                                'enabled_flg' => true,
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 0,
+                                'related_type' => 'system',
+                            ]
+                        ],
+                    ],
+    
+                    [
+                        'status_from' => 0,
+                        'action_name' => 'complete',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::GET_BY_USERINFO,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 1,
+                                'enabled_flg' => true,
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => $boss->id,
+                                'related_type' => ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerKey(),
+                            ]
+                        ],
+                    ],
+                ],
+                'tables' => [
+                    [
+                        'custom_table' => 'workflow1',
                     ],
                 ],
             ],
