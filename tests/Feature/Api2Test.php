@@ -9,12 +9,11 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\NotifyNavbar;
-use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Tests\TestDefine;
 use Carbon\Carbon;
 
-class ApiTest extends ApiTestBase
+class Api2Test extends ApiTestBase
 {
     public function testOkAuthorize()
     {

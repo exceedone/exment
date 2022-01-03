@@ -4,14 +4,10 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\ErrorCode;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\WorkflowValueAuthority;
-use Exceedone\Exment\Model\OperationLog;
-use Exceedone\Exment\Tests\TestDefine;
 use Carbon\Carbon;
 
-class ApiWorkflowTest extends ApiTestBase
+class Api3WorkflowTest extends ApiTestBase
 {
     public function testGetWorkflowList()
     {
@@ -22,7 +18,7 @@ class ApiWorkflowTest extends ApiTestBase
         ])->get(admin_urls('api', 'wf', 'workflow'))
             ->assertStatus(200)
             ->assertDontSeeText('workflow_common_no_complete')
-            ->assertJsonCount(2, 'data');
+            ->assertJsonCount(3, 'data');
     }
 
     public function testGetWorkflowListAll()
@@ -34,7 +30,7 @@ class ApiWorkflowTest extends ApiTestBase
         ])->get(admin_urls('api', 'wf', 'workflow') . '?all=1')
             ->assertStatus(200)
             ->assertSeeText('workflow_common_no_complete')
-            ->assertJsonCount(3, 'data');
+            ->assertJsonCount(4, 'data');
     }
 
     public function testGetWorkflowListWithCount()
@@ -454,6 +450,9 @@ class ApiWorkflowTest extends ApiTestBase
             ]);
     }
     
+
+    // Execute action 1 - Fix user ----------------------------------------------------
+
     public function testGetWorkflowExecAction()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -502,6 +501,60 @@ class ApiWorkflowTest extends ApiTestBase
             ]);
     }
     
+
+    // Execute action 2 - Get by userinfo ----------------------------------------------------
+    // dev1-userC → dev-userB
+
+    public function testGetWorkflow2ExecAction()
+    {
+        $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'actions'))
+            ->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertSeeText('action3');
+    }
+    
+    public function testGetWorkflow2ExecActionAll()
+    {
+        $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'actions') . '?all=1')
+            ->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertSeeText('action2');
+    }
+    
+    public function testGetWorkflow2ExecActionZero()
+    {
+        $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'workflow2', '1', 'actions'))
+            ->assertStatus(200)
+            ->assertJsonCount(0);
+    }
+    
+    public function testGetWorkflow2ExecActionNotFound()
+    {
+        $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'workflow2', '99999', 'actions'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
+    
+
+
     public function testGetWorkflowExecActionNoTable()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -859,5 +912,94 @@ class ApiWorkflowTest extends ApiTestBase
             ->assertJsonFragment([
                 'code' => ErrorCode::WRONG_SCOPE
             ]);
+    }
+
+
+    
+    // post value (!!! test execute workflow at once !!!)-------------------------------------
+    // Execute action 2 - Get by userinfo ----------------------------------------------------
+    // dev1-userC → dev-userB
+
+    public function testExecuteWorkflow2WithNext()
+    {
+        $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $comment = 'comment' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'value'), [
+            'workflow_action_id' => 9,
+            'comment' => $comment
+        ])
+        ->assertStatus(201)
+        ->assertJsonFragment([
+            'workflow_action_id' => 9,
+            'workflow_status_to_id' => '9',
+            'comment' => $comment,
+            'created_user_id' => "7" //dev1-userC
+        ]);
+
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $id = array_get($json, 'id');
+        
+        $authorities = WorkflowValueAuthority::where('workflow_value_id', $id)->get();
+        $this->assertTrue(!\is_nullorempty($authorities));
+        $this->assertTrue(count($authorities) === 3);
+        foreach ($authorities as $authority) {
+            $this->assertTrue(
+                ($authority->related_id == '6' && $authority->related_type == 'user')
+            );
+        }
+    }
+
+    public function testExecuteWorkflow2WrongAction()
+    {
+        $token = $this->getDevUserBAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'value'), [
+            'workflow_action_id' => 1
+        ])
+        ->assertStatus(400)
+        ->assertJsonFragment([
+            'code' => ErrorCode::WORKFLOW_ACTION_DISABLED
+        ]);
+    }
+    
+    public function testExecuteWorkflow2WrongUser()
+    {
+        $token = $this->getUserAccessToken('dev2-userE', 'dev2-userE', [ApiScope::WORKFLOW_EXECUTE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'value'), [
+            'workflow_action_id' => 10
+        ])
+        ->assertStatus(400)
+        ->assertJsonFragment([
+            'code' => ErrorCode::WORKFLOW_ACTION_DISABLED
+        ]);
+    }
+    
+    public function testExecute2Workflow()
+    {
+        $token = $this->getDevUserBAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $comment = 'comment' . date('YmdHis');
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'value'), [
+            'workflow_action_id' => 10,
+            'comment' => $comment
+        ])
+        ->assertStatus(201)
+        ->assertJsonFragment([
+            'workflow_action_id' => 10,
+            'workflow_status_to_id' => '9',
+            'created_user_id' => "6", //dev-userB
+            'comment' => $comment
+        ]);
     }
 }
