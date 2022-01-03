@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomOperationColumn;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Tests\TestDefine;
+use Carbon\Carbon;
 
 class CCustomOperationTest extends ExmentKitTestCase
 {
@@ -536,16 +537,19 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
+        // get last year's date
+        $today = Carbon::today();
+        $lastYearDate = Carbon::createFromDate($today->year, 1, 1)->addDay(-1)->format('Y-m-d');
         $this->visit(admin_url("data/$target_table_name/create"))
                 ->type('operation multiple type', 'value[text]')
-                ->type('2020-12-31', 'value[date]')
+                ->type($lastYearDate, 'value[date]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
         $custom_value = $target_table->getValueModel()->orderBy('created_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type');
-        $this->assertEquals($custom_value->getValue('date'), '2020-12-31');
+        $this->assertEquals($custom_value->getValue('date'), $lastYearDate);
         $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
 
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
@@ -555,13 +559,14 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get updated data row
+        $thisYearDate = Carbon::createFromDate($today->year, 1, 31)->addDay(-1)->format('Y-m-d');
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type update');
         $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
 
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation multiple type change date', 'value[text]')
-                ->type('2021-01-31', 'value[date]')
+                ->type($thisYearDate, 'value[date]')
                 ->type(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC, 'value[user]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url("/data/$target_table_name"));
@@ -569,7 +574,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         // Get new data row
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type change date');
-        $this->assertEquals($custom_value->getValue('date'), '2021-01-31');
+        $this->assertEquals($custom_value->getValue('date'), $thisYearDate);
         $this->assertEquals($custom_value->getValue('user')->id, TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC);
     }
 
