@@ -514,7 +514,7 @@ class Api3WorkflowTest extends ApiTestBase
         ])->get(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'actions'))
             ->assertStatus(200)
             ->assertJsonCount(1)
-            ->assertSeeText('action3');
+            ->assertSeeText('send');
     }
     
     public function testGetWorkflow2ExecActionAll()
@@ -526,7 +526,7 @@ class Api3WorkflowTest extends ApiTestBase
         ])->get(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'actions') . '?all=1')
             ->assertStatus(200)
             ->assertJsonCount(1)
-            ->assertSeeText('action2');
+            ->assertSeeText('send');
     }
     
     public function testGetWorkflow2ExecActionZero()
@@ -934,7 +934,7 @@ class Api3WorkflowTest extends ApiTestBase
         ->assertStatus(201)
         ->assertJsonFragment([
             'workflow_action_id' => 9,
-            'workflow_status_to_id' => '9',
+            'workflow_status_to_id' => '8',
             'comment' => $comment,
             'created_user_id' => "7" //dev1-userC
         ]);

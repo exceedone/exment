@@ -593,6 +593,7 @@ class WorkflowTestDataSeeder extends Seeder
         ]);
 
         // add for organization work user
+        $workflowObj = Workflow::getEloquent(3); // workflow_for_individual_table
         $wfValue = new WorkflowValue;
         $wfValue->workflow_id = $workflowObj->id;
         $wfValue->morph_type = 'custom_value_edit';

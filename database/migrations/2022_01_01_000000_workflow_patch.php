@@ -25,8 +25,12 @@ class WorkflowPatch extends Migration
      */
     public function down()
     {
-        Schema::table('workflows', function($table) {
-            $table->dropColumn('deleted_at');
-        });
+        if (Schema::hasTable('workflows')) {
+            Schema::table('workflows', function ($table) {
+                if (Schema::hasColumn('workflows', 'deleted_at')) {
+                    $table->dropColumn('deleted_at');
+                }
+            });
+        }
     }
 }
