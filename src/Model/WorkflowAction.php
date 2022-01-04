@@ -22,7 +22,7 @@ class WorkflowAction extends ModelBase
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\ClearCacheTrait;
 
-    protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count'];
+    protected $appends = ['work_targets', 'comment_type', 'flow_next_type', 'flow_next_count'];
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
@@ -125,6 +125,37 @@ class WorkflowAction extends ModelBase
         $work_conditions = Condition::getWorkConditions($work_conditions);
 
         $this->work_condition_headers = $work_conditions;
+        
+        return $this;
+    }
+
+    /**
+     * Get work condition select(for common action). Only return first item's status_to
+     *
+     * @return void
+     */
+    public function getWorkConditionSelectAttribute()
+    {
+        $headers = $this->workflow_condition_headers;
+        if(count($headers) == 0){
+            return [];
+        }
+        return $headers->first()->status_to;
+    }
+
+    public function setWorkConditionSelectAttribute($work_condition)
+    {
+        // Whether contains header check.
+        $headers = $this->workflow_condition_headers;
+        $header = $headers->first() ?? new WorkflowConditionHeader([
+            'enabled_flg' => 1,
+        ]);
+        
+        $this->work_condition_headers = [[
+            'id' => array_get($header, 'id'),
+            'status_to' => $work_condition,
+            'enabled_flg' => 1,
+        ]];
         
         return $this;
     }

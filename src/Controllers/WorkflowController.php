@@ -399,48 +399,58 @@ class WorkflowController extends AdminControllerBase
                     return $workflow->getStatusOptions($field->getIndex() === 0);
                 });
 
-            $form->valueModal('work_conditions', exmtrans("workflow.work_conditions"))
-                ->ajax(admin_urls('workflow', $id, 'modal', 'condition'))
-                ->modalContentname('workflow_actions_work_conditions')
-                ->setElementClass('workflow_actions_work_conditions')
-                ->buttonClass('btn-sm btn-default')
-                ->help(exmtrans("workflow.help.work_conditions"))
-                ->required()
-                ->valueTextScript('Exment.WorkflowEvent.GetConditionSettingValText();')
-                ->hiddenFormat(function ($value) {
-                    if (is_nullorempty($value)) {
-                        return null;
-                    }
-
-                    $value = Condition::getWorkConditions($value);
-
-                    return collect($value)->toJson();
-                })
-                ->text(function ($value, $field) use ($workflow) {
-                    if (is_nullorempty($value)) {
-                        return null;
-                    }
-
-                    $work_conditions = Condition::getWorkConditions($value);
-
-                    // set text
-                    $texts = [];
-                    foreach ($work_conditions as $work_condition) {
-                        if (!boolval(array_get($work_condition, 'enabled_flg'))) {
-                            continue;
-                        }
-                        $text = WorkflowStatus::getWorkflowStatusName(array_get($work_condition, "status_to"), $workflow);
-
-                        if (!is_nullorempty(array_get($work_condition, 'workflow_conditions'))) {
-                            $text .= exmtrans('workflow.has_condition');
+            if($workflow->workflow_type == WorkflowType::TABLE)
+            {
+                $form->valueModal('work_conditions', exmtrans("workflow.work_conditions"))
+                    ->ajax(admin_urls('workflow', $id, 'modal', 'condition'))
+                    ->modalContentname('workflow_actions_work_conditions')
+                    ->setElementClass('workflow_actions_work_conditions')
+                    ->buttonClass('btn-sm btn-default')
+                    ->help(exmtrans("workflow.help.work_conditions"))
+                    ->required()
+                    ->valueTextScript('Exment.WorkflowEvent.GetConditionSettingValText();')
+                    ->hiddenFormat(function ($value) {
+                        if (is_nullorempty($value)) {
+                            return null;
                         }
 
-                        $texts[] = $text;
-                    }
-                    return $texts;
-                })
-                ->nullText(exmtrans("common.no_setting"))
-            ;
+                        $value = Condition::getWorkConditions($value);
+
+                        return collect($value)->toJson();
+                    })
+                    ->text(function ($value, $field) use ($workflow) {
+                        if (is_nullorempty($value)) {
+                            return null;
+                        }
+
+                        $work_conditions = Condition::getWorkConditions($value);
+
+                        // set text
+                        $texts = [];
+                        foreach ($work_conditions as $work_condition) {
+                            if (!boolval(array_get($work_condition, 'enabled_flg'))) {
+                                continue;
+                            }
+                            $text = WorkflowStatus::getWorkflowStatusName(array_get($work_condition, "status_to"), $workflow);
+
+                            if (!is_nullorempty(array_get($work_condition, 'workflow_conditions'))) {
+                                $text .= exmtrans('workflow.has_condition');
+                            }
+
+                            $texts[] = $text;
+                        }
+                        return $texts;
+                    })
+                    ->nullText(exmtrans("common.no_setting"))
+                ;
+            }
+            else{
+                $form->select('work_condition_select', exmtrans('workflow.status_to'))
+                    ->options($workflow->getStatusOptions())
+                    ->help(exmtrans('workflow.help.status_to'))
+                    ->config('allowClear', false)
+                    ->required();
+            }
 
             $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
                 ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
@@ -519,6 +529,12 @@ class WorkflowController extends AdminControllerBase
             $result = $this->validateData($form);
             if ($result instanceof Response) {
                 return $result;
+            }
+        });
+
+        $form->editing(function ($form, $arr) use($workflow) {
+            foreach($form->model()->workflow_actions as $workflow_action){
+                $workflow_action->append([$workflow->workflow_type == WorkflowType::TABLE ? 'work_conditions' : 'work_condition_select']);
             }
         });
 
@@ -885,12 +901,20 @@ class WorkflowController extends AdminControllerBase
         $keys = collect([
             "action_name" => 'required|max:30',
             "status_from" => 'required',
-            "work_conditions" => 'required',
             "work_targets" => 'required',
             "flow_next_type" => 'required',
             "flow_next_count" => 'required|numeric|min:0|max:10',
             "comment_type" => 'required',
         ]);
+
+        $isWorkflowTypeTable = $form->model()->workflow_type == WorkflowType::TABLE;
+        if($isWorkflowTypeTable){
+            $keys->put("work_conditions", "required");
+        }
+        else{
+            $keys->put("work_condition_select", "required");
+        }
+
         $validation = $keys->mapWithKeys(function ($v, $k) {
             return ["workflow_actions.*.$k" => $v];
         })->toArray();
@@ -914,13 +938,20 @@ class WorkflowController extends AdminControllerBase
             // validate action conditions
             $workflow_conditions = Condition::getWorkConditions(array_get($workflow_action, 'work_conditions'));
             
-            foreach ($workflow_conditions as $workflow_condition) {
-                if (array_get($workflow_condition, 'status_to') == array_get($workflow_action, 'status_from')) {
+            if($isWorkflowTypeTable){
+                foreach ($workflow_conditions as $workflow_condition) {
+                    if (array_get($workflow_condition, 'status_to') == array_get($workflow_action, 'status_from')) {
+                        $errors->add("$errorKey.status_from", exmtrans("workflow.message.same_action"));
+                        break;
+                    }
+                }    
+            }
+            else{
+                if (array_get($workflow_action, 'work_condition_select') == array_get($workflow_action, 'status_from')) {
                     $errors->add("$errorKey.status_from", exmtrans("workflow.message.same_action"));
                     break;
                 }
             }
-
 
             // validate workflow targets
             $work_targets = jsonToArray(array_get($workflow_action, 'work_targets'));
