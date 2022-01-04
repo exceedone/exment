@@ -90,24 +90,24 @@ class WorkflowController extends AdminControllerBase
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
+            $actions->disableEdit();
 
-            // add new edit link
-            $linker = (new Linker)
-                ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=2'))
-                ->icon('fa-exchange')
-                ->tooltip(exmtrans('workflow.action'));
-            $actions->prepend($linker);
-            
             if ($actions->row->setting_completed_flg) {
-                $linker = (new Linker)
-                    ->url(admin_urls('workflow', $actions->getKey(), 'notify'))
-                    ->icon('fa-bell')
-                    ->tooltip(exmtrans('notify.header'));
-                $actions->append($linker);
+                $actions->disableDelete();
+                $actions->prepend((new Tools\ModalLink(
+                    admin_url("workflow/{$actions->row->id}/deactivateModal"),
+                    [
+                        'icon' => 'fa-trash',
+                        'modal_title' => trans('admin.delete'),
+                        'attributes' => [
+                            'data-toggle' => "tooltip",
+                        ],
+                    ]
+                ))->render());
             }
                 
             if ($actions->row->canActivate()) {
-                $actions->append((new Tools\ModalLink(
+                $actions->prepend((new Tools\ModalLink(
                     admin_urls('workflow', $actions->row->id, 'activateModal'),
                     [
                         'icon' => 'fa-check-square',
@@ -120,19 +120,25 @@ class WorkflowController extends AdminControllerBase
             }
 
             if ($actions->row->setting_completed_flg) {
-                $actions->disableDelete();
-                $actions->append((new Tools\ModalLink(
-                    admin_url("workflow/{$actions->row->id}/deactivateModal"),
-                    [
-                        'icon' => 'fa-trash',
-                        'modal_title' => trans('admin.delete'),
-                        'attributes' => [
-                            'data-toggle' => "tooltip",
-                        ],
-                    ]
-                ))->render());
+                $linker = (new Linker)
+                    ->url(admin_urls('workflow', $actions->getKey(), 'notify'))
+                    ->icon('fa-bell')
+                    ->tooltip(exmtrans('notify.header'));
+                $actions->prepend($linker);
             }
-                
+               
+            $linker = (new Linker)
+                ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=2'))
+                ->icon('fa-exchange')
+                ->tooltip(exmtrans('workflow.action'));
+            $actions->prepend($linker);
+
+            // add new edit link
+            $linker = (new Linker)
+                ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=1'))
+                ->icon('fa-edit')
+                ->tooltip(trans('admin.edit'));
+            $actions->prepend($linker);
         });
 
         $grid->tools(function ($tools) {
@@ -222,7 +228,9 @@ class WorkflowController extends AdminControllerBase
 
         $form->descriptionHtml(exmtrans('common.help.more_help'));
 
-        if(!is_nullorempty($id)){
+        $isShowId = boolval(config('exment.show_workflow_id', false));
+
+        if($isShowId && !is_nullorempty($id)){
             $form->display('id', 'ID');
         }
 
@@ -268,7 +276,6 @@ class WorkflowController extends AdminControllerBase
             ->help(exmtrans("workflow.help.start_status_name"))
             ->rules("max:30");
 
-        $isShowId = boolval(config('exment.show_workflow_id', false));
         $field = $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) use($isShowId) {
             if($isShowId){
                 $form->display('id', 'ID')->displayClass('p-0 text-center');
