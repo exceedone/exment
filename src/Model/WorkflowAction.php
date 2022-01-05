@@ -716,49 +716,51 @@ class WorkflowAction extends ModelBase
             $normalActions = $nextActions->filter(function ($action) {
                 return !boolval($action->ignore_work);
             });
-            $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $normalActions);
+            if ($normalActions->count() > 0) {
+                $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $normalActions);
 
-            // show target users text
-            $select = $nextActions->contains(function ($nextAction) {
-                return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
-            });
-            // select hidden items
-            $select_hidden = $nextActions->first(function ($nextAction) {
-                return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO;
-            });
-
-            $isDisableForm = false;
-            // if select, show options
-            if ($select) {
-                list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
-                $form->multipleSelect('next_work_users', exmtrans('workflow.next_work_users'))
-                    ->options($options)
-                    ->ajax($ajax)
-                    ->required();
-
-                // If not ajax and $options is empty, disable form.
-                if(is_nullorempty($options) && is_nullorempty($ajax)){
-                    $showSubmit = false;
+                // show target users text
+                $select = $nextActions->contains(function ($nextAction) {
+                    return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+                });
+                // select hidden items
+                $select_hidden = $nextActions->first(function ($nextAction) {
+                    return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO;
+                });
+    
+                $isDisableForm = false;
+                // if select, show options
+                if ($select) {
+                    list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
+                    $form->multipleSelect('next_work_users', exmtrans('workflow.next_work_users'))
+                        ->options($options)
+                        ->ajax($ajax)
+                        ->required();
+    
+                    // If not ajax and $options is empty, disable form.
+                    if(is_nullorempty($options) && is_nullorempty($ajax)){
+                        $showSubmit = false;
+                    }
                 }
-            }
-            else {
-                // only display
-                $displayText = $toActionAuthorities->count() == 0 ? "<span class='red bold'>" .exmtrans('workflow.message.nextuser_not_found') . "</span>" : $toActionAuthorities->map(function ($toActionAuthority) {
-                    return $toActionAuthority->getUrl([
-                        'tag' => true,
-                        'only_avatar' => true,
-                    ]);
-                })->implode(exmtrans('common.separate_word'));
-                $form->display('next_work_users_display', exmtrans('workflow.next_work_users'))
-                    ->displayText($displayText)->escape(false);
-
-                // if has $select_hidden, set as hidden item
-                if(!is_nullorempty($select_hidden)){
-                    $form->hidden('get_by_userinfo_action')->default($select_hidden->id);
-                }
-
-                if(is_nullorempty($toActionAuthorities)){
-                    $showSubmit = false;
+                else {
+                    // only display
+                    $displayText = $toActionAuthorities->count() == 0 ? "<span class='red bold'>" .exmtrans('workflow.message.nextuser_not_found') . "</span>" : $toActionAuthorities->map(function ($toActionAuthority) {
+                        return $toActionAuthority->getUrl([
+                            'tag' => true,
+                            'only_avatar' => true,
+                        ]);
+                    })->implode(exmtrans('common.separate_word'));
+                    $form->display('next_work_users_display', exmtrans('workflow.next_work_users'))
+                        ->displayText($displayText)->escape(false);
+    
+                    // if has $select_hidden, set as hidden item
+                    if(!is_nullorempty($select_hidden)){
+                        $form->hidden('get_by_userinfo_action')->default($select_hidden->id);
+                    }
+    
+                    if(is_nullorempty($toActionAuthorities)){
+                        $showSubmit = false;
+                    }
                 }
             }
         }
