@@ -296,9 +296,16 @@ class LoginSetting extends ModelBase
         config(["services.$provider_name" => array_merge(config("services.$provider_name", []), $config)]);
 
         $scope = $provider->getOption('oauth_scope', []);
-        return \Socialite::with($provider_name)
+        $socialiteProvider = \Socialite::with($provider_name)
             ->scopes($scope)
             ;
+
+        // If has custom setting, call custom config.
+        if(!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class)){
+            $socialiteProvider->setLoginCustomConfig($provider);
+        }
+
+        return $socialiteProvider;
     }
 
     /**

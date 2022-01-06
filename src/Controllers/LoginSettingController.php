@@ -232,7 +232,7 @@ class LoginSettingController extends AdminControllerBase
                 $provider_name = array_get($request->old(), 'options.oauth_provider_type') == 'other' ? array_get($request->old(), 'options.oauth_provider_name') : array_get($request->old(), 'options.oauth_provider_type');
             } 
             if (!is_nullorempty($provider_name)) {
-                LoginServiceBase\OAuth\OAuthService::setLoginCustomConfig($provider_name, $form);
+                LoginServiceBase\OAuth\OAuthService::setLoginSettingForm($provider_name, $form);
             }
             // Form options area -- End
             $form->html('</div>')->plain();
@@ -740,7 +740,7 @@ class LoginSettingController extends AdminControllerBase
         $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("login.options"), function ($form) use($val) {
             // Form options area -- start
             $form->html('<div class="form_dynamic_options_response">')->plain();
-            LoginServiceBase\OAuth\OAuthService::setLoginCustomConfig($val, $form);
+            LoginServiceBase\OAuth\OAuthService::setLoginSettingForm($val, $form);
             $form->html('</div>')->plain();
         });
 

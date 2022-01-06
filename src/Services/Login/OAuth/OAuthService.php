@@ -297,7 +297,7 @@ class OAuthService implements LoginServiceInterface
      * @param Form $form
      * @return void
      */
-    public static function setLoginCustomConfig($provider_name, $form)
+    public static function setLoginSettingForm($provider_name, $form)
     {
         if(is_nullorempty($provider_name)){
             return;
@@ -318,7 +318,7 @@ class OAuthService implements LoginServiceInterface
             {
                 $form->exmheader(exmtrans('login.custom_setting'))->hr();
             
-                $socialiteProvider->setLoginCustomConfig($form);
+                $socialiteProvider->setLoginSettingForm($form);
             }
         }
         catch(\Exception $ex){
