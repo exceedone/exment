@@ -459,12 +459,13 @@ class WorkflowController extends AdminControllerBase
                     ->required();
             }
 
+            $default = exmtrans("workflow.work_target_type_options.fix");
             $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
                 ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
                 ->modalContentname('workflow_actions_work_targets')
                 ->setElementClass('workflow_actions_work_targets')
                 ->buttonClass('btn-sm btn-default')
-                ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
+                ->valueTextScript("Exment.WorkflowEvent.GetSettingValText('$default');")
                 ->help(exmtrans("workflow.help.work_targets"))
                 ->required()
                 ->hiddenFormat(function ($value, $field) {
