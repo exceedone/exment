@@ -2,11 +2,10 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
-use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Enums\WorkflowNextType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
@@ -490,14 +489,17 @@ class WorkflowAction extends ModelBase
      * Get users or organzations on this action authority
      *
      * @param CustomValue $custom_value
-     * @param boolean $orgAsUser if true, convert organization to users
-     * @param boolean $getAsDefine if true, contains label "created_user", etc
-     * @param boolean $getValueAutorities if true, get value authority
-     * @param boolean $asNextAction if true, get as next action. If false, get as current action. For use WorkflowWorkTargetType::GET_BY_USERINFO
      * @return \Illuminate\Support\Collection
      */
-    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false, $getValueAutorities = true, bool $asNextAction = false)
+    public function getAuthorityTargets($custom_value, string $workflowGetAuthorityType)
     {
+        // Convert options
+        $options = $this->getAuthorityTargetOption($workflowGetAuthorityType);
+        $orgAsUser = array_boolval($options, 'orgAsUser', false);
+        $asNextAction = array_boolval($options, 'asNextAction', false);
+        $getValueAutorities = array_boolval($options, 'getValueAutorities', false);
+        $getAutorities = array_boolval($options, 'getAutorities', false);
+
         // get users and organizations
         $userIds = [];
         $organizationIds = [];
@@ -522,18 +524,20 @@ class WorkflowAction extends ModelBase
         }
 
         // add as workflow_authorities
-        $workflow_authorities = $this->workflow_authorities_cache;
+        if($getAutorities){
+            $workflow_authorities = $this->workflow_authorities_cache;
 
-        foreach ($workflow_authorities as $workflow_authority) {
-            $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this, $custom_value->workflow_value, $asNextAction, $getAsDefine);
-            if(array_key_value_exists('users', $results)){
-                foreach($results['users'] as $id){$userIds[] = $id;}
-            }
-            if(array_key_value_exists('organizations', $results)){
-                foreach($results['organizations'] as $id){$organizationIds[] = $id;}
-            }
-            if(array_key_value_exists('labels', $results)){
-                foreach($results['labels'] as $id){$labels[] = $id;}
+            foreach ($workflow_authorities as $workflow_authority) {
+                $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this, $custom_value->workflow_value, $asNextAction);
+                if(array_key_value_exists('users', $results)){
+                    foreach($results['users'] as $id){$userIds[] = $id;}
+                }
+                if(array_key_value_exists('organizations', $results)){
+                    foreach($results['organizations'] as $id){$organizationIds[] = $id;}
+                }
+                if(array_key_value_exists('labels', $results)){
+                    foreach($results['labels'] as $id){$labels[] = $id;}
+                }
             }
         }
 
@@ -557,13 +561,59 @@ class WorkflowAction extends ModelBase
             }
         }
 
-        if ($getAsDefine) {
-            return $result->map(function ($r) {
-                return $r->label;
-            })->merge(collect($labels));
-        }
-        
         return $result->unique();
+    }
+
+    /**
+     * getAuthorityTargetOption by WorkflowGetAuthorityType
+     *
+     * @param string $workflowGetAuthorityType
+     * @return array
+     *     $orgAsUser if true, convert organization to users
+     *     $getValueAutorities if true, get by value authority
+     *     $getAutorities if true, get by authority
+     *     $asNextAction if true, get as next action. If false, get as current action. For use WorkflowWorkTargetType::GET_BY_USERINFO
+     */
+    protected function getAuthorityTargetOption(string $workflowGetAuthorityType) : array
+    {
+        $work_target_type = $this->getOption('work_target_type');
+        switch($workflowGetAuthorityType){
+            case WorkflowGetAuthorityType::CURRENT_WORK_USER:
+                return [
+                    'orgAsUser' => false,
+                    'asNextAction' => false,
+                    // Whether getting value autorities, only $work_target_type is not FIX
+                    'getValueAutorities' => !isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
+                    // Whether getting autorities, only $work_target_type is FIX
+                    'getAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
+                ];
+            case WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL:
+                return [
+                    'orgAsUser' => false,
+                    'asNextAction' => true,
+                    'getValueAutorities' => false,
+                    // Whether getting autorities, $work_target_type is FIX or GET_BY_USERINFO
+                    'getAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::FIX) || isMatchString($work_target_type, WorkflowWorkTargetType::GET_BY_USERINFO),
+                ];
+            case WorkflowGetAuthorityType::EXEXCUTE:
+                return [
+                    'orgAsUser' => false,
+                    'asNextAction' => true,
+                    'getValueAutorities' => false,
+                    // Whether getting autorities, $work_target_type is FIX or GET_BY_USERINFO
+                    'getAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::FIX) || isMatchString($work_target_type, WorkflowWorkTargetType::GET_BY_USERINFO),
+                ];
+            case WorkflowGetAuthorityType::NOTIFY:
+                return [
+                    'orgAsUser' => true,
+                    'asNextAction' => false,
+                    // Whether getting value autorities, only $work_target_type is not FIX
+                    'getValueAutorities' => !isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
+                    // Whether getting autorities, $work_target_type is FIX
+                    'getAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
+                ];
+        }
+        return [];
     }
 
     /**
@@ -665,7 +715,7 @@ class WorkflowAction extends ModelBase
             return [false, $flow_next_count];
         }
 
-        return [false, $this->getAuthorityTargets($custom_value, true)->count()];
+        return [false, $this->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)->count()];
     }
 
     /**
@@ -812,8 +862,7 @@ class WorkflowAction extends ModelBase
         }
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, false, false, false, true)
-                    ->merge($toActionAuthorities);
+            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)->merge($toActionAuthorities);
         });
         
         return $toActionAuthorities;

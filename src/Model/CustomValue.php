@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 abstract class CustomValue extends ModelBase
@@ -209,7 +210,7 @@ abstract class CustomValue extends ModelBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = $workflow_action->getAuthorityTargets($this)->merge($result);
+            $result = $workflow_action->getAuthorityTargets($this, WorkflowGetAuthorityType::CURRENT_WORK_USER)->merge($result);
         }
 
         return $result;

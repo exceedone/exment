@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Validator;
 
 /**
@@ -212,7 +213,7 @@ class ApiWorkflowController extends AdminControllerBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = $workflow_action->getAuthorityTargets($custom_value, $orgAsUser)->merge($result);
+            $result = $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::CURRENT_WORK_USER)->merge($result);
         }
 
         return $result->unique();
@@ -354,7 +355,7 @@ class ApiWorkflowController extends AdminControllerBase
         // If has $next_get_by_userinfo, set get_by_userinfo_action
         if(!is_nullorempty($next_get_by_userinfo)){
             // if WorkflowWorkTargetType::GET_BY_USERINFO, check has next user. If not has, throw error.
-            $nextUserAndOrgs = $next_get_by_userinfo->getAuthorityTargets($custom_value, false, false, false, true);
+            $nextUserAndOrgs = $next_get_by_userinfo->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::EXEXCUTE);
             if(is_nullorempty($nextUserAndOrgs) && $next_get_by_userinfo->isActionNext($custom_value)){
                 return abortJson(400, ErrorCode::WORKFLOW_NOT_HAS_NEXT_USER());
             }

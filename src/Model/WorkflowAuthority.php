@@ -67,7 +67,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
      *
      * @return array
      */
-    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, WorkflowAction $next_workflow_action, ?WorkflowValue $workflow_value, bool $getAsLoginUser = false, $getAsDefine = false) : array
+    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, WorkflowAction $next_workflow_action, ?WorkflowValue $workflow_value, bool $getAsLoginUser = false) : array
     {
         $type = ConditionTypeDetail::getEnum($this->related_type);
         switch ($type) {
@@ -80,12 +80,6 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                     'organizations' => [$this->related_id],
                 ];
             case ConditionTypeDetail::SYSTEM:
-                if ($getAsDefine) {
-                    return [
-                        'labels' => [exmtrans('common.' . WorkflowTargetSystem::getEnum($this->related_id)->lowerKey())],
-                    ];
-                }
-
                 if ($this->related_id == WorkflowTargetSystem::CREATED_USER) {
                     return [
                         'users' => [$custom_value->created_user_id],
@@ -94,13 +88,6 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 break;
             case ConditionTypeDetail::COLUMN:
                 $column = CustomColumn::getEloquent($this->related_id);
-
-                if ($getAsDefine) {
-                    return [
-                        'labels' => [$column->column_view_name ?? null],
-                    ];
-                }
-
                 $column_values = $custom_value->getValue($column);
                 if (is_nullorempty($column_values)) {
                     return [];
@@ -125,13 +112,6 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 
             case ConditionTypeDetail::LOGIN_USER_COLUMN:
                 $column = CustomColumn::getEloquent($this->related_id);
-
-                if ($getAsDefine) {
-                    return [
-                        'labels' => [$column->column_view_name ?? null],
-                    ];
-                }
-
                 // get target workflow value. By workflow_action's "get_by_userinfo_base".
                 $wv = null;
                 switch($next_workflow_action->getOption('get_by_userinfo_base')){

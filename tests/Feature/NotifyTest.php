@@ -13,6 +13,7 @@ use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Jobs;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Carbon\Carbon;
@@ -275,7 +276,7 @@ class NotifyTest extends TestCase
         Model\WorkflowStatus::getActionsByFrom($status_to, $workflow, true)
             ->each(function ($workflow_action) use (&$users, $custom_value) {
                 $users = $users->merge(
-                    $workflow_action->getAuthorityTargets($custom_value, true),
+                    $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NOTIFY),
                     $users
                 );
             });
