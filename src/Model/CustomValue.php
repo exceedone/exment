@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 abstract class CustomValue extends ModelBase
@@ -209,7 +210,8 @@ abstract class CustomValue extends ModelBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = $workflow_action->getAuthorityTargets($this)->merge($result);
+            $is_fix = $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::FIX;
+            $result = $workflow_action->getAuthorityTargets($this, false, false, $is_fix, !$is_fix)->merge($result);
         }
 
         return $result;

@@ -314,63 +314,67 @@ class WorkflowAction extends ModelBase
 
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
-        \DB::transaction(function () use ($custom_value, $data, $is_edit, &$workflow_value, &$status_to) {
+
+        \DB::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
+            
             $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
-            // if contains next_work_users, or action is GET_BY_USERINFO, set workflow_value_authorities
-            if (array_key_value_exists('next_work_users', $data)) {
-                $user_organizations = array_get($data, 'next_work_users');
-                $user_organizations = collect($user_organizations)->filter()->map(function ($user_organization) use ($workflow_value) {
-                    list($authoritable_user_org_type, $authoritable_target_id) = explode('_', $user_organization);
-                    return [
-                        'related_id' => $authoritable_target_id,
-                        'related_type' => $authoritable_user_org_type,
-                        'workflow_value_id' => $workflow_value->id,
-                    ];
-                });
-
-                WorkflowValueAuthority::insert($user_organizations->toArray());
-
-                // set Custom Value Authoritable
-                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
-
-                $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            } 
-            // If call as get_by_userinfo
-            elseif (array_key_value_exists('get_by_userinfo_action', $data)) {
-                $user_organizations = collect();
-
-                // get next workflow action
-                $nextAction = WorkflowAction::getEloquent($data['get_by_userinfo_action']);
-                // get target user or orgs
-                foreach($nextAction->workflow_authorities as $workflow_authority){
-                    $userAndOrgs = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $nextAction, $workflow_value, true, false);
-                    foreach(array_get($userAndOrgs, 'users', []) as $user){
-                        $user_organizations->push([
-                            'related_id' => $user,
-                            'related_type' => 'user',
+            if ($next === true) {
+                // if contains next_work_users, or action is GET_BY_USERINFO, set workflow_value_authorities
+                if (array_key_value_exists('next_work_users', $data)) {
+                    $user_organizations = array_get($data, 'next_work_users');
+                    $user_organizations = collect($user_organizations)->filter()->map(function ($user_organization) use ($workflow_value) {
+                        list($authoritable_user_org_type, $authoritable_target_id) = explode('_', $user_organization);
+                        return [
+                            'related_id' => $authoritable_target_id,
+                            'related_type' => $authoritable_user_org_type,
                             'workflow_value_id' => $workflow_value->id,
-                        ]);
+                        ];
+                    });
+
+                    WorkflowValueAuthority::insert($user_organizations->toArray());
+
+                    // set Custom Value Authoritable
+                    CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
+
+                    $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+                } 
+                // If call as get_by_userinfo
+                elseif (array_key_value_exists('get_by_userinfo_action', $data)) {
+                    $user_organizations = collect();
+
+                    // get next workflow action
+                    $nextAction = WorkflowAction::getEloquent($data['get_by_userinfo_action']);
+                    // get target user or orgs
+                    foreach($nextAction->workflow_authorities as $workflow_authority){
+                        $userAndOrgs = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $nextAction, $workflow_value, true, false);
+                        foreach(array_get($userAndOrgs, 'users', []) as $user){
+                            $user_organizations->push([
+                                'related_id' => $user,
+                                'related_type' => 'user',
+                                'workflow_value_id' => $workflow_value->id,
+                            ]);
+                        }
+                        foreach(array_get($userAndOrgs, 'organizations', []) as $user){
+                            $user_organizations->push([
+                                'related_id' => $user,
+                                'related_type' => 'organization',
+                                'workflow_value_id' => $workflow_value->id,
+                            ]);
+                        }
                     }
-                    foreach(array_get($userAndOrgs, 'organizations', []) as $user){
-                        $user_organizations->push([
-                            'related_id' => $user,
-                            'related_type' => 'organization',
-                            'workflow_value_id' => $workflow_value->id,
-                        ]);
-                    }
+                    
+                    WorkflowValueAuthority::insert($user_organizations->toArray());
+
+                    // set Custom Value Authoritable
+                    CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
+
+                    $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+                }else {
+                    // get this getAuthorityTargets
+                    $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
+                    CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
                 }
-                
-                WorkflowValueAuthority::insert($user_organizations->toArray());
-
-                // set Custom Value Authoritable
-                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
-
-                $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            }else {
-                // get this getAuthorityTargets
-                $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
-                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
             }
         });
 
@@ -496,7 +500,7 @@ class WorkflowAction extends ModelBase
      * @param boolean $asNextAction if true, get as next action. If false, get as current action. For use WorkflowWorkTargetType::GET_BY_USERINFO
      * @return \Illuminate\Support\Collection
      */
-    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false, $getValueAutorities = true, bool $asNextAction = false)
+    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false, $getAutorities = true, $getValueAutorities = true, bool $asNextAction = false)
     {
         // get users and organizations
         $userIds = [];
@@ -521,19 +525,21 @@ class WorkflowAction extends ModelBase
             }
         }
 
-        // add as workflow_authorities
-        $workflow_authorities = $this->workflow_authorities_cache;
+        if ($getAutorities) {
+            // add as workflow_authorities
+            $workflow_authorities = $this->workflow_authorities_cache;
 
-        foreach ($workflow_authorities as $workflow_authority) {
-            $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this, $custom_value->workflow_value, $asNextAction, $getAsDefine);
-            if(array_key_value_exists('users', $results)){
-                foreach($results['users'] as $id){$userIds[] = $id;}
-            }
-            if(array_key_value_exists('organizations', $results)){
-                foreach($results['organizations'] as $id){$organizationIds[] = $id;}
-            }
-            if(array_key_value_exists('labels', $results)){
-                foreach($results['labels'] as $id){$labels[] = $id;}
+            foreach ($workflow_authorities as $workflow_authority) {
+                $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this, $custom_value->workflow_value, $asNextAction, $getAsDefine);
+                if(array_key_value_exists('users', $results)){
+                    foreach($results['users'] as $id){$userIds[] = $id;}
+                }
+                if(array_key_value_exists('organizations', $results)){
+                    foreach($results['organizations'] as $id){$organizationIds[] = $id;}
+                }
+                if(array_key_value_exists('labels', $results)){
+                    foreach($results['labels'] as $id){$labels[] = $id;}
+                }
             }
         }
 
@@ -811,8 +817,9 @@ class WorkflowAction extends ModelBase
             $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
         }
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
+            $is_select = $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, false, false, false, true)
+            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, false, false, !$is_select, false, true)
                     ->merge($toActionAuthorities);
         });
         
