@@ -894,6 +894,8 @@ return [
         'login_button_background_color_hover' => '背景色(オンマウス)',
         'login_button_font_color' => '文字色',
         'login_button_font_color_hover' => '文字色(オンマウス)',
+
+        'custom_setting' => '独自設定',
         
         'login_test' => 'ログインテスト',
         'login_test_redirect' => 'テスト用リダイレクトURL',

@@ -105,6 +105,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/2factor-verify', 'LoginSettingController@auth_2factor_verify')->name('exment.2factor_verify');
             $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
+            $router->get("login_setting/loginOptionHtml", 'LoginSettingController@loginOptionHtml');
 
             $router->get('plugin/edit_code/{id}/getTree', 'PluginCodeController@getTreeData');
             $router->get('plugin/edit_code/{id}/selectFile', 'PluginCodeController@getFileEditForm');

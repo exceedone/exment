@@ -78,21 +78,54 @@ class OAuthService implements LoginServiceInterface
             return;
         }
 
-        $form->select('oauth_provider_type', exmtrans('login.oauth_provider_type'))
-        ->options(LoginProviderType::transKeyArray('login.oauth_provider_type_options'))
-        ->required()
-        ->attribute(['data-filtertrigger' => true, 'data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
+        if(!isset($login_setting)){
+            $form->select('oauth_provider_type', exmtrans('login.oauth_provider_type'))
+                ->options(LoginProviderType::transKeyArray('login.oauth_provider_type_options'))
+                ->required()
+                ->attribute(['data-filtertrigger' => true, 
+                    'data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]]),
 
-        $login_provider_caution = '<span class="red">' . exmtrans('login.message.oauth_provider_caution', [
-            'url' => getManualUrl('sso'),
-        ]) . '</span>';
-        $form->descriptionHtml($login_provider_caution)
-        ->attribute(['data-filter' => json_encode(['key' => 'options_provider_type', 'value' => [LoginProviderType::OTHER]])]);
+                    'data-changehtml' => json_encode([
+                        [
+                            'url' => admin_urls('login_setting', 'loginOptionHtml'),
+                            'target' => '.form_dynamic_options',
+                            'response' => '.form_dynamic_options_response',
+                            'form_type' => 'option',
+                        ],
+                    ]),
+                ]);
+        
+            $login_provider_caution = '<span class="red">' . exmtrans('login.message.oauth_provider_caution', [
+                'url' => getManualUrl('sso'),
+            ]) . '</span>';
+            $form->descriptionHtml($login_provider_caution)
+            ->attribute(['data-filter' => json_encode(['key' => 'options_provider_type', 'value' => [LoginProviderType::OTHER]])]);
+    
+            $form->text('oauth_provider_name', exmtrans('login.oauth_provider_name'))
+                ->required()
+                ->help(exmtrans('login.help.login_provider_name'))
+                ->attribute([
+                    'data-filtertrigger' => true, 
+                    'data-filter' => json_encode(['key' => 'options_oauth_provider_type', 'value' => [LoginProviderType::OTHER]]),
+                    'data-changehtml' => json_encode([
+                        [
+                            'url' => admin_urls('login_setting', 'loginOptionHtml'),
+                            'target' => '.form_dynamic_options',
+                            'response' => '.form_dynamic_options_response',
+                            'form_type' => 'option',
+                        ],
+                    ]),
+                ]);
+        }
+        else{
+            $form->display('oauth_provider_type_text', exmtrans('login.oauth_provider_type'))
+                ->displayText(exmtrans('login.oauth_provider_type_options.' . $login_setting->getOption('oauth_provider_type')));
+            $form->hidden('oauth_provider_type');
 
-        $form->text('oauth_provider_name', exmtrans('login.oauth_provider_name'))
-        ->required()
-        ->help(exmtrans('login.help.login_provider_name'))
-        ->attribute(['data-filter' => json_encode(['key' => 'options_oauth_provider_type', 'value' => [LoginProviderType::OTHER]])]);
+            $form->display('oauth_provider_name_text', exmtrans('login.oauth_provider_name'))
+                ->displayText($login_setting->getOption('oauth_provider_name'));
+            $form->hidden('oauth_provider_name');
+        }
 
         $form->text('oauth_client_id', exmtrans('login.oauth_client_id'))
         ->required()
@@ -255,4 +288,42 @@ class OAuthService implements LoginServiceInterface
     {
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
     }
+
+    
+
+    /**
+     * Set custom config for login setting controller.
+     *
+     * @param Form $form
+     * @return void
+     */
+    public static function setLoginCustomConfig($provider_name, $form)
+    {
+        if(is_nullorempty($provider_name)){
+            return;
+        }
+
+        // set dummy client id, secret, redirect
+        config(["services.{$provider_name}" => [
+            'client_id' => 'dummy',
+            'client_secret' => 'dummy',
+            'redirect' => 'https://foobar.com',
+        ]]);
+
+        try{
+            $socialiteProvider = \Socialite::with($provider_name);
+        
+            // has instance of
+            if(!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class))
+            {
+                $form->exmheader(exmtrans('login.custom_setting'))->hr();
+            
+                $socialiteProvider->setLoginCustomConfig($form);
+            }
+        }
+        catch(\Exception $ex){
+            // if not found provider_name in Socialite, nothing.
+        }
+    }
+
 }
