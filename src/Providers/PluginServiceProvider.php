@@ -111,6 +111,11 @@ class PluginServiceProvider extends ServiceProvider
             ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json) {
                 // if crud, set crud routing
                 if($plugin_type == PluginType::CRUD){
+                    $router->get("oauth", "PluginCrudController@oauth");
+                    $router->get("oauthcallback", "PluginCrudController@oauthcallback");
+                    $router->get("oauthlogout", "PluginCrudController@oauthlogout");
+                    $router->get("noauth", "PluginCrudController@noauth");
+
                     $endpoints = $pluginPage->getAllEndpoints();
                     $key = is_nullorempty($endpoints) ? "" : "{endpoint}";
 
@@ -121,9 +126,6 @@ class PluginServiceProvider extends ServiceProvider
                     $router->put("{$key}/{id}", "PluginCrudController@update");
                     $router->patch("{$key}/{id}", "PluginCrudController@update");
                     $router->delete("{$key}/{id}", "PluginCrudController@destroy");
-                    $router->get("{$key}/oauth", "PluginCrudController@oauth");
-                    $router->get("{$key}/oauthcallback", "PluginCrudController@oauthcallback");
-                    $router->get("{$key}/noauth", "PluginCrudController@noauth");
                     $router->get("{$key}/{id}", "PluginCrudController@show");
                     return;
                 }

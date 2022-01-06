@@ -228,6 +228,12 @@ class CrudForm extends CrudBase
      */
     protected function setFormTools($id, Box $box)
     {
+        // get oauth logout view 
+        $oauthLogoutView = $this->getOAuthLogoutView();
+        if($oauthLogoutView){
+            $box->tools($oauthLogoutView->render());
+        }
+        
         if($this->pluginClass->enableDelete($id))
         {
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());

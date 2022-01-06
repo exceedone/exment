@@ -148,6 +148,12 @@ class CrudGrid extends CrudBase
                 $tools->prepend($button, 'right');
             }
 
+            // get oauth logout view 
+            $oauthLogoutView = $this->getOAuthLogoutView();
+            if($oauthLogoutView){
+                $tools->prepend($oauthLogoutView, 'right');
+            }
+
             $pluginClass->callbackGridTool($tools);
         });
     }

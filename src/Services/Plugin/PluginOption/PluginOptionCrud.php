@@ -89,4 +89,22 @@ class PluginOptionCrud extends PluginOptionBase
 
         return $this;
     }
+
+    /**
+     * Clear auth for oauth.
+     *
+     * @return self
+     */
+    public function clearOauthAccessToken()
+    {
+        $login_setting = $this->getOauthSetting();
+        if(!$login_setting){
+            return $this;
+        }
+
+        OAuthService::clearAccessTokenFromDB($login_setting);
+        $this->access_token = null;
+
+        return $this;
+    }
 }

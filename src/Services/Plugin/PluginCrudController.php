@@ -168,7 +168,7 @@ class PluginCrudController extends Controller
      */
     public function oauth($endpoint = null)
     {
-        $targetClass = $this->getClass($endpoint, false);
+        $targetClass = $this->getClass($endpoint, false, true);
         if($targetClass instanceof Response){
             return $targetClass;
         }
@@ -194,7 +194,7 @@ class PluginCrudController extends Controller
      */
     public function oauthcallback($endpoint = null)
     {
-        $targetClass = $this->getClass($endpoint, false);
+        $targetClass = $this->getClass($endpoint, false, true);
         if($targetClass instanceof Response){
             return $targetClass;
         }
@@ -202,8 +202,39 @@ class PluginCrudController extends Controller
         try {
             $targetClass->getPluginOptions()->setOauthAccessToken();
 
-            // redirect to root
-            return redirect($targetClass->getFullUrl());
+            // redirect to root if not multi endpoint.
+            $endpoints = $targetClass->getAllEndpoints();
+            if(is_nullorempty($endpoints) || $endpoints->count() == 1){
+                return redirect($targetClass->getFullUrl());
+            }
+            return redirect($targetClass->getFullUrl($endpoints->first()));
+        } catch (SsoLoginErrorException $ex) {
+            //ToDO:修正
+            \Log::error($ex);
+
+            // if error, redirect edit page
+        } catch (\Exception $ex) {
+            //ToDO:修正
+            \Log::error($ex);
+        }
+    }
+
+    /**
+     * Execute oauth logout
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function oauthlogout($endpoint = null)
+    {
+        $targetClass = $this->getClass($endpoint, false, true);
+        if($targetClass instanceof Response){
+            return $targetClass;
+        }
+
+        try {
+            $targetClass->getPluginOptions()->clearOauthAccessToken();
+            return redirect($targetClass->getFullUrl('noauth'));
         } catch (SsoLoginErrorException $ex) {
             //ToDO:修正
             \Log::error($ex);
@@ -222,7 +253,7 @@ class PluginCrudController extends Controller
      */
     public function noauth($endpoint = null)
     {
-        $targetClass = $this->getClass($endpoint, false);
+        $targetClass = $this->getClass($endpoint, false, true);
         
         $content = $targetClass->getContent();
        
@@ -270,9 +301,9 @@ class PluginCrudController extends Controller
      * @param string|null $endpoint
      * @return PluginCrudBase
      */
-    protected function getClass(?string $endpoint, bool $isCheckAuthorize = true)
+    protected function getClass(?string $endpoint, bool $isCheckAuthorize = true, bool $isEmptyEndpoint = false)
     {
-        $className = $this->pluginPage->getPluginClassName($endpoint);
+        $className = $this->pluginPage->getPluginClassName($endpoint, $isEmptyEndpoint);
         if(!$className){
             abort(404);
         }

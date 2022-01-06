@@ -284,6 +284,21 @@ class OAuthService implements LoginServiceInterface
     }
 
 
+    /**
+     * Clear auth for oauth.
+     *
+     * @return string|null
+     */
+    public static function clearAccessTokenFromDB(LoginSetting $login_setting)
+    {
+        // get access token by user setting
+        $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
+        $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
+        \Exment::user()->forgetSettingValue($key);
+        \Exment::user()->forgetSettingValue($key_expires_at);
+    }
+
+
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting)
     {
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);

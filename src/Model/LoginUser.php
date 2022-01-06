@@ -216,6 +216,28 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         System::clearRequestSession("user_setting");
     }
 
+    /**
+     * Clear setting value
+     *
+     * @param string $key
+     * @return UserSetting
+     */
+    public function forgetSettingValue($key)
+    {
+        if (is_null($this->base_user)) {
+            return null;
+        }
+        // set User Setting table
+        $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->getUserId()]);
+        $usersetting->forgetSetting($key);
+        $usersetting->saveOrFail();
+
+        // set settings from settion
+        System::clearRequestSession("user_setting");
+
+        return $usersetting;
+    }
+
     protected function setBcryptPassword()
     {
         $password = $this->password;

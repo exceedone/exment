@@ -15,7 +15,7 @@ interface ProviderLoginConfig
 
     /**
      * Append login setting to Socialite.
-     * If append parameter to Socialite, please set $this->parameters.
+     * If append parameter to Socialite, please set $this->config.
      * If get custom setting from Exmednt setting. please get $login_setting->getOption('[option key]');
      *
      * @param LoginSetting $login_setting

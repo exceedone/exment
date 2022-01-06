@@ -24,8 +24,6 @@ abstract class PluginCrudBase extends PluginPublicBase
         $this->pluginOptions = new PluginOption\PluginOptionCrud($plugin, $this, $options);
     }
 
-    protected $endpoint = null;
-
     /**
      * content title
      *
@@ -81,6 +79,8 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @var string
      */
     public $deleteClass = PluginCrud\CrudForm::class;
+
+    protected $endpoint = null;
 
     /**
      * Get fields definitions
@@ -199,16 +199,29 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Get class name. Toggle using endpoint name.
      *
      * @param string|null $endpoint
+     * @param bool $isEmptyEndpoint
      * @return string|null class name
      */
-    public function getPluginClassName(?string $endpoint)
+    public function getPluginClassName(?string $endpoint, bool $isEmptyEndpoint)
     {
-        if($endpoint == $this->endpoint){
+        if($isEmptyEndpoint){
             return get_class($this);
         }
+
+        $allEndpoints = $this->getAllEndpoints();
+        if(is_nullorempty($allEndpoints)){
+            return get_class($this);
+        }
+
+        foreach($allEndpoints as $allEndpoint){
+            if($allEndpoint == $endpoint){
+                return get_class($this);
+            }
+        }
+
         return null;
     }
-    
+
     /**
      * Get auth type.
      * Please set null or "key" pr "id_password" or "oauth".
@@ -326,6 +339,17 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
+     * Get Root full url
+     * For use oauth login, logout, etc...
+     *
+     * @return string
+     */
+    public function getRootFullUrl(...$endpoint) : string
+    {
+        return $this->plugin->getFullUrl(...$endpoint);
+    }
+
+    /**
      * Get primary key
      *
      * @return string
@@ -426,6 +450,18 @@ abstract class PluginCrudBase extends PluginPublicBase
     {
         return true;
     }
+    
+    /**
+     * Whether show logout button if oauth
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableOAuthLogoutButton(array $options = []) : bool
+    {
+        return true;
+    }
+    
 
     /**
      * Get cannot access title
