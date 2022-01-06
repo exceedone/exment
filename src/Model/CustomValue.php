@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
+use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 abstract class CustomValue extends ModelBase
