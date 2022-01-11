@@ -15,6 +15,11 @@ class WorkflowGetAuthorityType extends EnumBase
     public const NEXT_USER_ON_EXECUTING_MODAL = 'next_user_on_executing_modal';
 
     /**
+     * Getting next user count on executing workflow modal.
+     */
+    public const CALC_NEXT_USER_COUNT = 'calc_next_user_count';
+
+    /**
      * Getting tageting user Real execute workflow 
      */
     public const EXEXCUTE = 'exexcute';

@@ -591,6 +591,13 @@ class WorkflowAction extends ModelBase
                     // Whether getting autorities, only $work_target_type is FIX
                     'getAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
                 ];
+            case WorkflowGetAuthorityType::CALC_NEXT_USER_COUNT:
+                return [
+                    'orgAsUser' => true,
+                    'asNextAction' => false,
+                    'getValueAutorities' => false,
+                    'getAutorities' => true,
+                ];
             case WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL:
                 return [
                     'orgAsUser' => false,
@@ -640,20 +647,6 @@ class WorkflowAction extends ModelBase
         } else {
             return $this->status_from;
         }
-    }
-
-    /**
-     * Get status_to name. Filtering value
-     *
-     * @return void
-     */
-    public function getStatusToName($custom_value)
-    {
-        if (is_null($statusTo = $this->getStatusToId($custom_value))) {
-            return null;
-        }
-
-        return esc_html(WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow));
     }
 
     /**
@@ -719,7 +712,7 @@ class WorkflowAction extends ModelBase
             return [false, $flow_next_count];
         }
 
-        return [false, $this->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)->count()];
+        return [false, $this->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::CALC_NEXT_USER_COUNT)->count()];
     }
 
     /**
