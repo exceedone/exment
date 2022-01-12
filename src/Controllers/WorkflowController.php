@@ -916,12 +916,8 @@ class WorkflowController extends AdminControllerBase
         ]);
 
         $isWorkflowTypeTable = $form->model()->workflow_type == WorkflowType::TABLE;
-        if($isWorkflowTypeTable){
-            $keys->put("work_conditions", "required");
-        }
-        else{
-            $keys->put("work_condition_select", "required");
-        }
+        $key_condition = $isWorkflowTypeTable ? "work_conditions" : "work_condition_select";
+        $keys->put($key_condition, "required");
 
         $validation = $keys->mapWithKeys(function ($v, $k) {
             return ["workflow_actions.*.$k" => $v];
@@ -966,40 +962,48 @@ class WorkflowController extends AdminControllerBase
             $work_target_type = array_get($work_targets, 'work_target_type');
             if (is_nullorempty($work_targets)) {
                 $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
-            } elseif (array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::FIX) {
-                array_forget($work_targets, 'work_target_type');
-                if (is_nullorempty($work_targets) || !collect($work_targets)->contains(function ($work_target) {
-                    return !is_nullorempty($work_target);
-                })) {
-                    $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
-                }
-            } elseif ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT || $work_target_type == WorkflowWorkTargetType::GET_BY_USERINFO) {
-                // if contains other FIX action in same acthion
-                foreach ($workflow_actions as $validateIndex => $workflow_action_validate) {
-                    if ($key == $validateIndex) {
-                        continue;
-                    }
-
-                    if (array_get($workflow_action, 'status_from') != array_get($workflow_action_validate, 'status_from')) {
-                        continue;
-                    }
-
-                    // It's ok if ignore_work
-                    if (array_boolval($workflow_action_validate, 'ignore_work')) {
-                        continue;
-                    }
-
-                    $work_targets_validate = jsonToArray(array_get($workflow_action_validate, 'work_targets'));
-            
-                    if (array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')) {
-                        continue;
-                    }
-        
-                    $errors->add("$errorKey.ignore_work", exmtrans("workflow.message.ignore_work_and_action_select"));
-                    break;
-                }
             }
+            else{
+                // Check work target type
+                if ($work_target_type == WorkflowWorkTargetType::FIX || $work_target_type == WorkflowWorkTargetType::GET_BY_USERINFO) {
+                    // Check validation required
+                    array_forget($work_targets, 'work_target_type');
+                    if (is_nullorempty($work_targets) || !collect($work_targets)->contains(function ($work_target) {
+                        return !is_nullorempty($work_target);
+                    })) {
+                        $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
+                    }
+                } 
+                
+                if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT) {
+                    // if contains other FIX action in same acthion
+                    foreach ($workflow_actions as $validateIndex => $workflow_action_validate) {
+                        if ($key == $validateIndex) {
+                            continue;
+                        }
+    
+                        if (array_get($workflow_action, 'status_from') != array_get($workflow_action_validate, 'status_from')) {
+                            continue;
+                        }
+    
+                        // It's ok if ignore_work
+                        if (array_boolval($workflow_action_validate, 'ignore_work')) {
+                            continue;
+                        }
+    
+                        $work_targets_validate = jsonToArray(array_get($workflow_action_validate, 'work_targets'));
+                
+                        if (array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')) {
+                            continue;
+                        }
             
+                        $errors->add("$errorKey.{$key_condition}", exmtrans("workflow.message." . array_get($work_targets_validate, 'work_target_type') . "_and_action_select"));
+                        break;
+                    }
+                }
+                
+            }
+
             // Cannnot select ACTION_SELECT and ignore_work
             if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT) {
                 // It's ok if ignore_work
