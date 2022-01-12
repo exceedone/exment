@@ -23,6 +23,7 @@ class ReplaceFormatService
                 'matchBeforeCallbackForce' => null,
                 'afterCallBack' => null,
                 'escapeValue' => false, // escape html value
+                'getReplaceValue' => false, // get replace value
             ],
             $options
         );
@@ -95,6 +96,10 @@ class ReplaceFormatService
 
                     if (array_key_value_exists('link', $matchOptions) && isset($item)) {
                         $str = $item->getLink($str);
+                    }
+
+                    if ($options['getReplaceValue']) {
+                        return $str;
                     }
 
                     // replace
