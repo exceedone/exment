@@ -155,8 +155,8 @@ class ApiUserTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'avatar'));
         
-        $fullPath = $response->baseResponse->getFile()->getPathName();
-        $this->assertMatch(base64_encode(\File::get($fullPath)), TestDefine::FILE_USER_BASE64);
+        $content = $response->streamedContent();
+        $this->assertMatch(base64_encode($content), TestDefine::FILE_USER_BASE64);
     }
 
     public function testGetAvatar2()
@@ -168,8 +168,8 @@ class ApiUserTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls_query('api', 'avatar', ['default' => '1']));
         
-        $fullPath = $response->baseResponse->getFile()->getPathName();
-        $this->assertMatch(base64_encode(\File::get($fullPath)), TestDefine::FILE_USER_BASE64);
+        $content = $response->streamedContent();
+        $this->assertMatch(base64_encode($content), TestDefine::FILE_USER_BASE64);
     }
 
     public function testGetAvatarDefault()
@@ -181,8 +181,8 @@ class ApiUserTest extends ApiTestBase
             'Authorization' => "Bearer $token",
             ])->get(admin_urls_query('api', 'avatar', ['default' => '1']));
         
-        $fullPath = $response->baseResponse->getFile()->getPathName();
-        $this->assertMatch(base64_encode(\File::get($fullPath)), TestDefine::FILE_USERDEFALUT_BASE64);
+        $content = $response->streamedContent();
+        $this->assertMatch(base64_encode($content), TestDefine::FILE_USERDEFALUT_BASE64);
     }
     
     public function testGetAvatarNotHas()

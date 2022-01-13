@@ -73,7 +73,9 @@ class ApiController extends AdminControllerBase
                 if($isBase64){
                     return response()->json(['base64' => base64_encode(\File::get($defaultPath))]);
                 }
-                return response()->file($defaultPath);
+                return response()->stream(function() use($defaultPath){
+                    echo \File::get($defaultPath);
+                }, 200, ['Content-Type' => 'image/png']);
             }
 
             // not download default, return as null
@@ -86,7 +88,7 @@ class ApiController extends AdminControllerBase
         if($isBase64){
             return response()->json(['base64' => base64_encode(\Storage::disk(config('admin.upload.disk'))->get($avatar))]);
         }
-        return response()->file(getFullpath($avatar, config('admin.upload.disk')));
+        return \Storage::disk(config('admin.upload.disk'))->response($avatar);
     }
 
     /**
