@@ -70,22 +70,22 @@ class ApiController extends AdminControllerBase
             // If download default instead of avatar
             if ($isdefault) {
                 $defaultPath = base_path(path_join('public', Define::USER_IMAGE_LINK));
-                if($isBase64){
+                if ($isBase64) {
                     return response()->json(['base64' => base64_encode(\File::get($defaultPath))]);
                 }
-                return response()->stream(function() use($defaultPath){
+                return response()->stream(function () use ($defaultPath) {
                     echo \File::get($defaultPath);
                 }, 200, ['Content-Type' => 'image/png']);
             }
 
             // not download default, return as null
-            if($isBase64){
+            if ($isBase64) {
                 return response()->json(['base64' => null]);
             }
             return null;
         }
 
-        if($isBase64){
+        if ($isBase64) {
             return response()->json(['base64' => base64_encode(\Storage::disk(config('admin.upload.disk'))->get($avatar))]);
         }
         return \Storage::disk(config('admin.upload.disk'))->response($avatar);

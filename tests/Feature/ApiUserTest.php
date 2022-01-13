@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Tests\Feature;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Tests\TestDefine;
-use Carbon\Carbon;
 
 class ApiUserTest extends ApiTestBase
 {
