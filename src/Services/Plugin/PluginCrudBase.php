@@ -102,6 +102,16 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
+     * Get data list
+     *
+     * @return Collection
+     */
+    public function getList(array $options = []) : Collection
+    {
+        return collect();
+    }
+
+    /**
      * Get max chunk count.
      *
      * @return int
