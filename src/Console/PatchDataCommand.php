@@ -209,6 +209,9 @@ class PatchDataCommand extends Command
             case 'append_column_mail_attachments':
                 $this->appendColumnMailAttachments();
                 return;
+            case 'append_column_mail_custom_attachments':
+                $this->appendColumnMailCustomAttachments();
+                return;
             case 'notify_target_id':
                 $this->notifyTargetId();
                 return;
@@ -1888,6 +1891,16 @@ class PatchDataCommand extends Command
     protected function appendColumnMailAttachments()
     {
         $this->appendCustomColumn('mail_template', 'attachments');
+    }
+    
+    /**
+     * append custom attachments column to mail_template
+     *
+     * @return void
+     */
+    protected function appendColumnMailCustomAttachments()
+    {
+        $this->appendCustomColumn('mail_template', 'custom_attachments');
     }
     
 

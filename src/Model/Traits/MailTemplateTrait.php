@@ -6,6 +6,7 @@ use Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\File as ExmentFile;
 
 trait MailTemplateTrait
 {
@@ -64,5 +65,31 @@ trait MailTemplateTrait
         });
 
         return !is_nullorempty($notify);
+    }
+
+    public function getCustomAttachments($custom_value)
+    {
+        if ($custom_value instanceof Model\CustomValue) {
+            $attachments = $this->getValue('custom_attachments');
+            if (is_string($attachments)) {
+                $str = str_replace(array("\r\n","\r","\n"), "\n", $attachments);
+                if (!is_nullorempty($str) && mb_strlen($str) > 0) {
+                    // loop for split new line
+                    $attachments = explode("\n", $str);
+                }
+            }
+
+            $files = collect();
+            collect($attachments)->filter()->map(function ($attachment) use($custom_value, &$files) {
+                $files = $files->merge(replaceTextFromFormat($attachment, $custom_value, [
+                    'getReplaceValue' => true
+                ]));
+            });
+
+            return $files->filter()->map(function ($attachment) {
+                return ExmentFile::getData($attachment);
+            });
+        }
+        return null;
     }
 }
