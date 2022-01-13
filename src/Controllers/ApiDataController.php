@@ -189,7 +189,7 @@ class ApiDataController extends AdminControllerTableBase
 
         $paramInfos = [];
         foreach ($params as $param) {
-            $values = preg_split("/\s+/", trim($param));
+            $values = preg_split("/\s+/", trim($param), 3);
             $column_name = $values[0];
 
             if (count($values) < 3 || !preg_match('/^eq|ne|gt|gte|lt|lte|like$/i', $values[1])) {

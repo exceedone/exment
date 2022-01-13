@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\DataImportExport;
@@ -46,9 +47,14 @@ class LoginUserController extends AdminControllerBase
         $classname = getModelName(SystemTableName::USER);
         $grid = new Grid(new $classname);
         $table = CustomTable::getEloquent(SystemTableName::USER);
-        $grid->column($table->getIndexColumnName('user_code'), exmtrans('user.user_code'));
-        $grid->column($table->getIndexColumnName('user_name'), exmtrans('user.user_name'));
-        $grid->column($table->getIndexColumnName('email'), exmtrans('user.email'));
+        
+        foreach(['user_code', 'user_name', 'email'] as $key){
+            $column = CustomColumn::getEloquent($key, $table);
+            if(!$column){
+                continue;
+            }
+            $grid->column($column->getQueryKey(), exmtrans('user.' . $key));
+        }
         
         $controller = $this;
         $grid->column('login_user_id', exmtrans('user.login_user'))->display(function ($login_user_id) use ($controller) {
@@ -63,9 +69,13 @@ class LoginUserController extends AdminControllerBase
         });
 
         $grid->filter(function ($filter) use ($table) {
-            $filter->like($table->getIndexColumnName('user_code'), exmtrans('user.user_code'));
-            $filter->like($table->getIndexColumnName('user_name'), exmtrans('user.user_name'));
-            $filter->like($table->getIndexColumnName('email'), exmtrans('user.email'));
+            foreach(['user_code', 'user_name', 'email'] as $key){
+                $column = CustomColumn::getEloquent($key, $table);
+                if(!$column){
+                    continue;
+                }
+                $filter->like($column->getQueryKey(), exmtrans('user.' . $key));
+            }
         });
         
         // create exporter
