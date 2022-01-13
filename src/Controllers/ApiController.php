@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\OperationLog;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -51,6 +52,43 @@ class ApiController extends AdminControllerBase
             $base_user = array_dot($base_user);
         }
         return $base_user;
+    }
+
+    /**
+     * get login user avatar
+     * @param Request $request
+     * @return null|\Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function avatar(Request $request)
+    {
+        $avatar = \Exment::user()->avatar ?? null;
+        $isBase64 = $request->has('base64') && boolval($request->get('base64'));
+        $isdefault = $request->has('default') && boolval($request->get('default'));
+
+        // Is not has avatar
+        if (!isset($avatar)) {
+            // If download default instead of avatar
+            if ($isdefault) {
+                $defaultPath = base_path(path_join('public', Define::USER_IMAGE_LINK));
+                if($isBase64){
+                    return response()->json(['base64' => base64_encode(\File::get($defaultPath))]);
+                }
+                return response()->stream(function() use($defaultPath){
+                    echo \File::get($defaultPath);
+                }, 200, ['Content-Type' => 'image/png']);
+            }
+
+            // not download default, return as null
+            if($isBase64){
+                return response()->json(['base64' => null]);
+            }
+            return null;
+        }
+
+        if($isBase64){
+            return response()->json(['base64' => base64_encode(\Storage::disk(config('admin.upload.disk'))->get($avatar))]);
+        }
+        return \Storage::disk(config('admin.upload.disk'))->response($avatar);
     }
 
     /**
