@@ -465,6 +465,15 @@
                         "help": "Add the file you want to attach to the email.",
                         "multiple_enabled": "1"
                     }
+                },
+                {
+                    "column_name": "custom_attachments",
+                    "column_view_name": "Custom Attachments",
+                    "column_type": "textarea",
+                    "system_flg": "1",
+                    "options": {
+                        "help": "Add the file column or documents you want to attach to the email."
+                    }
                 }
             ]
         },
@@ -696,6 +705,16 @@
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_body"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "attachments"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "custom_attachments"
                         }
                     ],
                     "form_block_target_table_name": "mail_template"
