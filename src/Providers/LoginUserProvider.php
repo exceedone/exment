@@ -95,9 +95,9 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
 
             $query = LoginUser::whereHas('base_user', function ($query) use ($key, $credentials) {
                 $column = CustomColumn::getEloquent($key, SystemTableName::USER);
-                if(!$column){
+                if (!$column) {
                     $query->whereNotMatch();
-                }else{
+                } else {
                     $query->where($column->getQueryKey(), array_get($credentials, 'username'));
                 }
             });

@@ -33,11 +33,10 @@ class ZipService
             }
 
             // If has $disk, copy using disk
-            if(!is_nullorempty($disk)){
+            if (!is_nullorempty($disk)) {
                 $f = \Storage::disk($disk)->get($file);
                 \File::put(path_join($tmpFolderPath, $tmpfile), $f);
-            }
-            else{
+            } else {
                 \File::copy($file, path_join($tmpFolderPath, $tmpfile));
             }
         }

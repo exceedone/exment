@@ -80,7 +80,7 @@ trait MailTemplateTrait
             }
 
             $files = collect();
-            collect($attachments)->filter()->map(function ($attachment) use($custom_value, &$files) {
+            collect($attachments)->filter()->map(function ($attachment) use ($custom_value, &$files) {
                 $files = $files->merge(replaceTextFromFormat($attachment, $custom_value, [
                     'getReplaceValue' => true
                 ]));

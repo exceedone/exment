@@ -1,8 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
-use Exceedone\Exment\Enums\SystemTableName;
-
 /**
  * replace value
  */
@@ -17,8 +15,8 @@ class File extends ItemBase
 
         if (!isset($target_value)) {
             $str = '';
-        } else if ($this->key == 'documents') {
-            $str = $target_value->getDocuments()->map(function($document) {
+        } elseif ($this->key == 'documents') {
+            $str = $target_value->getDocuments()->map(function ($document) {
                 return $document->file_uuid;
             });
         } else {

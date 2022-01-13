@@ -48,9 +48,9 @@ class LoginUserController extends AdminControllerBase
         $grid = new Grid(new $classname);
         $table = CustomTable::getEloquent(SystemTableName::USER);
         
-        foreach(['user_code', 'user_name', 'email'] as $key){
+        foreach (['user_code', 'user_name', 'email'] as $key) {
             $column = CustomColumn::getEloquent($key, $table);
-            if(!$column){
+            if (!$column) {
                 continue;
             }
             $grid->column($column->getQueryKey(), exmtrans('user.' . $key));
@@ -69,9 +69,9 @@ class LoginUserController extends AdminControllerBase
         });
 
         $grid->filter(function ($filter) use ($table) {
-            foreach(['user_code', 'user_name', 'email'] as $key){
+            foreach (['user_code', 'user_name', 'email'] as $key) {
                 $column = CustomColumn::getEloquent($key, $table);
-                if(!$column){
+                if (!$column) {
                     continue;
                 }
                 $filter->like($column->getQueryKey(), exmtrans('user.' . $key));
