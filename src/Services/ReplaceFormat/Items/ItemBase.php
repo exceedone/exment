@@ -32,6 +32,8 @@ abstract class ItemBase
             $classname = SystemValue::class;
         } elseif ($key == "value_url") {
             $classname = ValueUrl::class;
+        } elseif (in_array($key, ["table_name", 'table_view_name'])) {
+            $classname = CustomTable::class;
         } elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
             $classname = Value::class;
         } elseif ($key == "select_table") {
@@ -50,6 +52,8 @@ abstract class ItemBase
             $classname = System::class;
         } elseif ($key == "now") {
             $classname = Now::class;
+        } elseif (in_array($key, ["file", 'documents'])) {
+            $classname = File::class;
         }
 
         // if has $datestrings, conbert using date string

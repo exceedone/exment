@@ -616,11 +616,13 @@ class NotifyService
             [
                 'mail_template' => null,
                 'notify' => null,
+                'custom_value' => null,
             ],
             $params
         );
         $notify = $params['notify'];
         $mail_template = $params['mail_template'];
+        $custom_value = $params['custom_value'];
 
         // get template
         if (!isset($mail_template) && isset($notify)) {
@@ -647,7 +649,9 @@ class NotifyService
             $attachments = array_get($mail_template->value, 'attachments');
             $params['attach_files'] = collect($attachments)->filter()->map(function ($attachment) {
                 return ExmentFile::getData($attachment);
-            })->merge($params['attach_files'])->filter();
+            })
+            ->merge($params['attach_files'])
+            ->merge($mail_template->getCustomAttachments($custom_value))->filter();
         }
     }
 
