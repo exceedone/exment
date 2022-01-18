@@ -36,6 +36,7 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Storage\Disk\TestPluginDiskService;
@@ -133,10 +134,18 @@ class TestDataSeeder extends Seeder
 
                 $model->save();
 
+                $avatar = null;
+                if (array_has($user, 'avatar')) {
+                    $file_data = base64_decode(array_get($user, 'avatar'));
+                    $file = ExmentFile::storeAs(FileType::AVATAR, $file_data, 'avatar', 'avatar.png');
+                    $avatar = $file->path;
+                }
+
                 if (array_has($user, 'password')) {
                     $loginUser = new LoginUser;
                     $loginUser->base_user_id = $model->id;
                     $loginUser->password = $user['password'];
+                    $loginUser->avatar = $avatar;
                     $loginUser->save();
                 }
 
@@ -588,17 +597,19 @@ class TestDataSeeder extends Seeder
     {
         $select_array = ['日本', 'アメリカ', '中国', 'イタリア', 'カナダ'];
         $select_valtext_array = ['い' => '北海道', 'ろ' => '東北', 'は' => '関東', 'に' => '甲信越', 'ほ' => '中部', 'へ' => '近畿', 'と' => '中国', 'ち' => '四国', 'り' => '九州'];
+        $select_array_2 = ['コメダ珈琲', 'ドトール', 'スターバックス', '珈琲館', '上島珈琲店'];
         // create table
         $custom_table = $this->createTable(TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA, [
             'menuParentId' => $menu->id,
             'count' => 0,
             'createCustomView' => false,
-            'createColumnCallback' => function ($custom_table, &$custom_columns) use ($select_array, $select_valtext_array) {
-                $select_valtext_array = collect($select_valtext_array)->map(function($item, $key) {
+            'createColumnCallback' => function ($custom_table, &$custom_columns) use ($select_array, $select_array_2, $select_valtext_array) {
+                $select_valtext_array = collect($select_valtext_array)->map(function ($item, $key) {
                     return "$key,$item";
                 });
                 // creating relation column
                 $columns = [
+                    ['column_name' => 'select', 'column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => $select_array_2]],
                     ['column_name' => 'select_multiple', 'column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => $select_array,'multiple_enabled' => '1']],
                     ['column_name' => 'select_valtext_multiple', 'column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => $select_valtext_array,'multiple_enabled' => '1']],
                 ];
@@ -614,7 +625,7 @@ class TestDataSeeder extends Seeder
                     $custom_columns[] = $custom_column;
                 }
             },
-            'createValueCallback' => function ($custom_table, $options) use ($users, $select_array, $select_valtext_array) {
+            'createValueCallback' => function ($custom_table, $options) use ($users, $select_array, $select_array_2, $select_valtext_array) {
                 $custom_values = [];
                 System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
                 $index = 0;
@@ -642,6 +653,7 @@ class TestDataSeeder extends Seeder
                             $custom_value->setValue("select_multiple", $this->getMultipleSelectValue($select_array, 5));
                             $custom_value->setValue("select_valtext_multiple", $this->getMultipleSelectValue(array_keys($select_valtext_array), 8));
                         }
+                        $custom_value->setValue("select", $select_array_2[($i-1) % 5]);
                         $custom_value->created_user_id = $user_id;
                         $custom_value->updated_user_id = $user_id;
                         $custom_value->save();

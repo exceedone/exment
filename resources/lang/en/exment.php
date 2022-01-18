@@ -2296,6 +2296,7 @@ return [
             'notify_hour' => 'The time to execute the notification. Enter from 0 to 23. Ex: When entering "6", execute notification at 6:00',
             'notify_action' => 'Please select the notification action to be done when the conditions are met.',
             'notify_action_target' => 'Select the target of notification destination.',
+            'notify_action_target_add_workflow' => '*When notifying the "worker", set "Notify the worker" in "Notification condition settings" to YES.',
             'mail_template_id' => 'Select the template of the mail to send. When creating a new one, please create a new template in the mail template page beforehand.',
             'webhook_url' => 'To make Slack or Teams notifications, you need to get a webhook URL. <a href="%s" target="_blank">Learn more</a> <br/>Slack and Teams are not compatible.',
             'mention_here' => 'Sends an @here mention that notifies all members with active status on the specified channel. * To perform individual mentions, set the "Notification target" item below.',

@@ -6,7 +6,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Plugin as PluginModel;
 
 /**
- * Plugin (Trigger) base class
+ * Plugin (Validator) base class
  */
 class PluginValidatorBase
 {

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Database\Seeder;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
+use Exceedone\Exment\Tests\TestDefine;
 
 trait TestDataTrait
 {
@@ -39,6 +40,7 @@ trait TestDataTrait
                         'email' => 'user2@user.foobar.test',
                     ],
                     'password' => 'user2user2',
+                    'avatar' => TestDefine::FILE_USER_BASE64,
                 ],
                 'user3' => [
                     'id' => 4,
