@@ -975,7 +975,7 @@ class WorkflowController extends AdminControllerBase
                     }
                 } 
                 
-                if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT) {
+                if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT || WorkflowWorkTargetType::GET_BY_USERINFO) {
                     // if contains other FIX action in same acthion
                     foreach ($workflow_actions as $validateIndex => $workflow_action_validate) {
                         if ($key == $validateIndex) {
@@ -993,15 +993,21 @@ class WorkflowController extends AdminControllerBase
     
                         $work_targets_validate = jsonToArray(array_get($workflow_action_validate, 'work_targets'));
                 
-                        if (array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')) {
-                            continue;
+                        if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT) {
+                            if (array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')) {
+                                continue;
+                            }
+                            $errors->add("$errorKey.{$key_condition}", exmtrans("workflow.message." . array_get($work_targets_validate, 'work_target_type') . "_and_action_select"));
+                        } else {
+                            if (array_get($work_targets_validate, 'work_target_type') == $work_target_type) {
+                                if (array_get($work_targets_validate, 'get_by_userinfo_base') != array_get($work_targets, 'get_by_userinfo_base')) {
+                                    $errors->add("$errorKey.{$key_condition}", exmtrans("workflow.message.get_by_userinfo_base_discrepancy"));
+                                }
+                            }
                         }
-            
-                        $errors->add("$errorKey.{$key_condition}", exmtrans("workflow.message." . array_get($work_targets_validate, 'work_target_type') . "_and_action_select"));
                         break;
                     }
                 }
-                
             }
 
             // Cannnot select ACTION_SELECT and ignore_work
