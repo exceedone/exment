@@ -101,7 +101,7 @@ trait NotifyTrait
         $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE];
 
         $help = exmtrans("notify.help.notify_action_target");
-        if (!is_nullorempty($workflow_id)) {
+        if (!is_nullorempty($workflow)) {
             $help .= exmtrans("notify.help.notify_action_target_add_workflow");
         }
         $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
@@ -144,7 +144,10 @@ trait NotifyTrait
         $form->multipleSelect('target_users', exmtrans('notify.target_users'))
             ->options($users)
             ->ajax($ajax)
-            ->help(exmtrans("notify.help.target_users"))
+            ->help(exmtrans('workflow.help.target_user_org', [
+                'table_view_name' => esc_html($custom_table->table_view_name),
+                'type' => exmtrans('menu.system_definitions.user'),
+            ]))
             ->attribute([
                 'data-filter' => json_encode([
                     ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_USER]],
