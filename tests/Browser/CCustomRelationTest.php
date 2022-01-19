@@ -75,8 +75,8 @@ class CCustomRelationTest extends ExmentKitTestCase
 
         // Edit custom relation
         $this->visit(admin_url('relation/exmenttest_contract/'. $id . '/edit'))
-                ->seeIsSelected('child_custom_table_id', $child_id)
-                ->seeIsSelected('relation_type', '1')
+                ->seeInElement('span[class=child_custom_table_id]', 'Exmenttest Contract Relation')
+                ->seeInElement('span[class=relation_type]', '1対多')
                 ->select('2', 'relation_type')
                 ->press('admin-submit')
                 ->seePageIs(admin_url('relation/exmenttest_contract'))
@@ -111,8 +111,8 @@ class CCustomRelationTest extends ExmentKitTestCase
 
         // Check custom relation
         $this->visit(admin_url('relation/exmenttest_contract/'. $id . '/edit'))
-                ->seeIsSelected('child_custom_table_id', $child_id)
-                ->seeIsSelected('relation_type', '2')
+                ->seeInElement('span[class=child_custom_table_id]', 'ユーザー')
+                ->seeInElement('span[class=relation_type]', '多対多')
         ;
     }
 

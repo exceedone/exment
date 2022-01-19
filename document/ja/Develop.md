@@ -66,7 +66,7 @@ git clone https://github.com/hirossyi73/exment.git
         ],
         "psr-4": {
             "App\\": "app/",
-            // 行追加
+            // 行追加。また、"hirossyi73"部分は書き換えてください
             "Exceedone\\Exment\\": "packages/hirossyi73/exment/src/"
         }
     },

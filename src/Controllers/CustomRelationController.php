@@ -142,7 +142,7 @@ class CustomRelationController extends AdminControllerTableBase
             $form->display('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))
                 ->displayText($child_table->table_view_name);
             $form->display('relation_type', exmtrans("custom_relation.relation_type"))
-                ->displayText(function ($val) use($relation_type) {
+                ->displayText(function ($val) use ($relation_type) {
                     $relation_type = RelationType::getEnum($val?? $relation_type);
                     return $relation_type->transKey('custom_relation.relation_type_options');
                 });

@@ -1635,9 +1635,135 @@ class CustomViewFilterTest extends UnitTestBase
     }
 
     /**
+     * FilterOption = SELECT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeExists1()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => unicode_encode('["ドトール", "珈琲館"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual == 'ドトール' || $actual == '珈琲館';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeExistsOld1()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => 'コメダ珈琲'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual == 'コメダ珈琲';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeExistsOld2()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_EXISTS,
+            'filter_value_text' => '["コメダ珈琲", "スターバックス"]'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual == 'コメダ珈琲' || $actual == 'スターバックス';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExists()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => unicode_encode('["コメダ珈琲", "スターバックス"]')
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual != 'コメダ珈琲' && $actual != 'スターバックス';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExistsOld1()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => '上島珈琲店'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual != '上島珈琲店';
+        }, $options);
+    }
+
+    /**
+     * FilterOption = SELECT_NOT_EXISTS(select unicode)
+     */
+    public function testFuncFilterSelectUnicodeNotExistsOld2()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
+        ];
+        $filter_settings = [[
+            'column_name' => 'select',
+            'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+            'filter_value_text' => '["上島珈琲店", "珈琲館"]'
+        ]];
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $actual = array_get($data, 'value.select');
+            return $actual != '上島珈琲店' && $actual != '珈琲館';
+        }, $options);
+    }
+
+    /**
      * FilterOption = SELECT_EXISTS(multiple select unicode)
      */
-    public function testFuncFilterSelectUnicodeExists()
+    public function testFuncFilterSelectUnicodeExistsMulti()
     {
         $this->init();
 
@@ -1658,7 +1784,7 @@ class CustomViewFilterTest extends UnitTestBase
     /**
      * FilterOption = SELECT_NOT_EXISTS(multiple select unicode)
      */
-    public function testFuncFilterSelectUnicodeNotExists()
+    public function testFuncFilterSelectUnicodeNotExistsMulti()
     {
         $this->init();
 
