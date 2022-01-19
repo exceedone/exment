@@ -11,7 +11,7 @@ namespace Exment {
         }
 
         public static GetSettingValText(){
-            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system', 'modal_login_user_column', 'get_by_userinfo_base'];
+            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system', 'modal_login_user_column'];
 
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_targets"] form');
@@ -35,9 +35,6 @@ namespace Exment {
             let texts = [];
 
             let label = $('.work_target_type:checked').closest('label').text().trim();
-            if($('.work_target_type:checked').val() == 'get_by_userinfo'){
-                label += ' : ' + $('.get_by_userinfo_base option:selected').text();
-            }
             texts.push('[' + label + ']');
 
             $.each(targetKeys, function(index, value){

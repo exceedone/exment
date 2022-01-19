@@ -1058,7 +1058,7 @@ return [
         'flow_executed_user_count' => 'Current Action Executed User',
         'flow_executed_user_count_format' => '%s / %s User',
         'has_condition' => '(Conditional)',
-        'get_by_userinfo_base' => 'Base User',
+        'get_by_userinfo_base' => 'Execution User - Base User',
         'first_executed_user' => 'First Execution User',
         'executed_user' => 'Execution User',
 

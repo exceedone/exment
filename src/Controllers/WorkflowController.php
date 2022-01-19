@@ -399,6 +399,16 @@ class WorkflowController extends AdminControllerBase
             ->default("0")
         ;
 
+        $form->embeds('options', function($form){
+            $form->select('get_by_userinfo_base', exmtrans('workflow.get_by_userinfo_base'))
+                ->options(['first_executed_user' => exmtrans('workflow.first_executed_user'), 'executed_user' => exmtrans('workflow.executed_user')])
+                ->help(exmtrans('workflow.help.get_by_userinfo_base'))
+                ->config('allowClear', false)
+                ->required()
+                ->default('executed_user')
+                ;
+        })->disableHeader();
+
         $field = $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use ($id, $workflow) {
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
                 ->config('allowClear', false)
@@ -490,7 +500,7 @@ class WorkflowController extends AdminControllerBase
                         $label = WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options');
                     }
                     elseif (array_get($value, 'work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO){
-                        $label = WorkflowWorkTargetType::GET_BY_USERINFO()->transKey('workflow.work_target_type_options') . ' : ' . exmtrans('workflow.' . array_get($value, 'get_by_userinfo_base', 'executed_user')) ;
+                        $label = WorkflowWorkTargetType::GET_BY_USERINFO()->transKey('workflow.work_target_type_options') ;
                     }
                     $label = "[{$label}]";
 
@@ -998,12 +1008,6 @@ class WorkflowController extends AdminControllerBase
                                 continue;
                             }
                             $errors->add("$errorKey.{$key_condition}", exmtrans("workflow.message." . array_get($work_targets_validate, 'work_target_type') . "_and_action_select"));
-                        } else {
-                            if (array_get($work_targets_validate, 'work_target_type') == $work_target_type) {
-                                if (array_get($work_targets_validate, 'get_by_userinfo_base') != array_get($work_targets, 'get_by_userinfo_base')) {
-                                    $errors->add("$errorKey.{$key_condition}", exmtrans("workflow.message.get_by_userinfo_base_discrepancy"));
-                                }
-                            }
                         }
                         break;
                     }
@@ -1066,14 +1070,6 @@ class WorkflowController extends AdminControllerBase
                         ->indexEnabled()
                         ->pluck('column_view_name', 'id');
 
-                    $form->select('get_by_userinfo_base', exmtrans('workflow.get_by_userinfo_base'))
-                        ->options(['first_executed_user' => exmtrans('workflow.first_executed_user'), 'executed_user' => exmtrans('workflow.executed_user')])
-                        ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::GET_BY_USERINFO])])
-                        ->help(exmtrans('workflow.help.get_by_userinfo_base'))
-                        ->config('allowClear', false)
-                        ->required()
-                        ->default(array_get($value, 'get_by_userinfo_base', 'executed_user'));
-                        
                     $form->multipleSelect('modal_' . ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey() , exmtrans('common.custom_column'))
                         ->options($options)
                         ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::GET_BY_USERINFO])])

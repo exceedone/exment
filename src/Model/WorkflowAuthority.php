@@ -119,7 +119,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 $column = CustomColumn::getEloquent($this->related_id);
                 // get target workflow value. By workflow_action's "get_by_userinfo_base".
                 $wv = null;
-                switch($next_workflow_action->getOption('get_by_userinfo_base')){
+                switch($next_workflow_action->workflow->getOption('get_by_userinfo_base')){
                     // If 'first executed user', get first workflow value.
                     case 'first_executed_user':
                         $wv = WorkflowValue::GetFirstExecutedWorkflowValue($custom_value);

@@ -62,7 +62,7 @@ class WorkflowAction extends ModelBase
     {
         $result = [];
 
-        $keys = ['work_target_type', 'get_by_userinfo_base'];
+        $keys = ['work_target_type'];
         foreach ($keys as $key) {
             $val = $this->getOption($key);
             if (isset($val)) {
@@ -216,7 +216,7 @@ class WorkflowAction extends ModelBase
     {
         $this->syncOriginal();
         
-        $keys = ['work_target_type', 'get_by_userinfo_base'];
+        $keys = ['work_target_type'];
         $isSave = false;
         foreach ($keys as $key) {
             $val = array_get($this->work_targets, $key);
@@ -338,38 +338,7 @@ class WorkflowAction extends ModelBase
 
                     $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
                 } 
-                // If call as get_by_userinfo
-                elseif (array_key_value_exists('get_by_userinfo_action', $data)) {
-                    $user_organizations = collect();
-
-                    // get next workflow action
-                    $nextAction = WorkflowAction::getEloquent($data['get_by_userinfo_action']);
-                    // get target user or orgs
-                    foreach($nextAction->workflow_authorities as $workflow_authority){
-                        $userAndOrgs = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $nextAction, $workflow_value, true, false);
-                        foreach(array_get($userAndOrgs, 'users', []) as $user){
-                            $user_organizations->push([
-                                'related_id' => $user,
-                                'related_type' => 'user',
-                                'workflow_value_id' => $workflow_value->id,
-                            ]);
-                        }
-                        foreach(array_get($userAndOrgs, 'organizations', []) as $user){
-                            $user_organizations->push([
-                                'related_id' => $user,
-                                'related_type' => 'organization',
-                                'workflow_value_id' => $workflow_value->id,
-                            ]);
-                        }
-                    }
-                    
-                    WorkflowValueAuthority::insert($user_organizations->toArray());
-
-                    // set Custom Value Authoritable
-                    CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
-
-                    $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-                }else {
+                else {
                     // get this getAuthorityTargets
                     $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
                     CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
@@ -460,8 +429,8 @@ class WorkflowAction extends ModelBase
         }
 
         // check as workflow_value_authorities
-        // ignore WorkflowWorkTargetType::FIX
-        if($this->getOption('work_target_type') != WorkflowWorkTargetType::FIX){
+        // only execute WorkflowWorkTargetType::ACTION_SELECT
+        if($this->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT){
             if (isset($custom_value) && isset($custom_value->workflow_value)) {
                 $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
                 $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
@@ -473,10 +442,8 @@ class WorkflowAction extends ModelBase
                 }
             }
         }
-
-        // check as workflow_authorities
-        // Ignore WorkflowWorkTargetType::GET_BY_USERINFO.
-        if($this->getOption('work_target_type') != WorkflowWorkTargetType::GET_BY_USERINFO){
+        else{
+            // check as workflow_authorities
             $workflow_authorities = $this->workflow_authorities_cache;
             foreach ($workflow_authorities as $workflow_authority) {
                 $item = ConditionItemBase::getDetailItemByAuthority($custom_value->custom_table, $workflow_authority);
@@ -586,10 +553,10 @@ class WorkflowAction extends ModelBase
                 return [
                     'orgAsUser' => false,
                     'asNextAction' => false,
-                    // Whether getting value autorities, only $work_target_type is not FIX
-                    'getValueAutorities' => !isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
-                    // Whether getting autorities, only $work_target_type is FIX
-                    'getAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
+                    // Whether getting value autorities, only $work_target_type is ACTION_SELECT
+                    'getValueAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::ACTION_SELECT),
+                    // Whether getting autorities, only $work_target_type is not ACTION_SELECT
+                    'getAutorities' => !isMatchString($work_target_type, WorkflowWorkTargetType::ACTION_SELECT)
                 ];
             case WorkflowGetAuthorityType::CALC_NEXT_USER_COUNT:
                 return [
@@ -618,10 +585,10 @@ class WorkflowAction extends ModelBase
                 return [
                     'orgAsUser' => true,
                     'asNextAction' => false,
-                    // Whether getting value autorities, only $work_target_type is not FIX
-                    'getValueAutorities' => !isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
-                    // Whether getting autorities, $work_target_type is FIX
-                    'getAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::FIX),
+                    // Whether getting value autorities, only $work_target_type is ACTION_SELECT
+                    'getValueAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::ACTION_SELECT),
+                    // Whether getting autorities, only $work_target_type is not ACTION_SELECT
+                    'getAutorities' => !isMatchString($work_target_type, WorkflowWorkTargetType::ACTION_SELECT)
                 ];
         }
         return [];
