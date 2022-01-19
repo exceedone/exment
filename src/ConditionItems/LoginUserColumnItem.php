@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class LoginUserColumnItem extends ColumnItem
 {
@@ -93,7 +94,7 @@ class LoginUserColumnItem extends ColumnItem
      * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
+    public function hasAuthorityOld(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $custom_column = CustomColumn::find($workflow_authority->related_id);
         if (!ColumnType::isUserOrganization($custom_column->column_type)) {
@@ -120,26 +121,28 @@ class LoginUserColumnItem extends ColumnItem
     }
     
 
-    public static function aa(CustomValue $custom_value, WorkflowAction $next_workflow_action, ?WorkflowValue $workflow_value, bool $getAsLoginUser = false){
-        $column = CustomColumn::getEloquent($custom_column_id);
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
+    {
+        $workflow_action = WorkflowAction::find($workflow_authority->workflow_action_id);
+        $custom_column = CustomColumn::find($workflow_authority->related_id);
+        if (!ColumnType::isUserOrganization($custom_column->column_type)) {
+            return false;
+        }
         // get target workflow value. By workflow_action's "get_by_userinfo_base".
         $wv = null;
-        switch($next_workflow_action->workflow->getOption('get_by_userinfo_base')){
+        switch($workflow_action->workflow->getOption('get_by_userinfo_base')){
             // If 'first executed user', get first workflow value.
             case 'first_executed_user':
                 $wv = WorkflowValue::GetFirstExecutedWorkflowValue($custom_value);
-                $getAsLoginUser = false;
                 break;
             // else, get setted workflow value
             default:
-                $wv = $workflow_value;
+                $wv = $custom_value->workflow_value;
                 break;
         }
-        // if $callByExecute is true, Get by action executed user
         // If $workflow_value is empty, this flow is first. So get as login user
-        if(is_nullorempty($wv)){
-            $getAsLoginUser = true;
-        }
+        $getAsLoginUser = is_nullorempty($wv);
+
         if($getAsLoginUser){
             $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(\Exment::getUserId());
         }
@@ -147,22 +150,24 @@ class LoginUserColumnItem extends ColumnItem
             $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($wv->created_user_id);
         }
 
-        $column_values = $user->getValue($column);
-        if (is_nullorempty($column_values)) {
+        $auth_values = $user->getValue($custom_column->column_name);
+        if (is_nullorempty($auth_values)) {
             return [];
         }
-        if ($column_values instanceof CustomValue) {
-            $column_values = [$column_values];
+        if ($auth_values instanceof CustomValue) {
+            $auth_values = [$auth_values];
         }
 
-        $userIds = [];
-        $organizationIds = [];
-        foreach ($column_values as $column_value) {
-            if ($column->column_type == ColumnType::USER) {
-                $userIds[] = $column_value->id;
-            } else {
-                $organizationIds[] = $column_value->id;
-            }
+        switch ($custom_column->column_type) {
+            case ColumnType::USER:
+                return collect($auth_values)->contains(function($auth_value) use($targetUser) {
+                    return $auth_value->id == $targetUser->id;
+                });
+            case ColumnType::ORGANIZATION:
+                $ids = $targetUser->belong_organizations->pluck('id')->toArray();
+                return collect($auth_values)->contains(function ($auth_value) use ($ids) {
+                    return collect($ids)->contains($auth_value->id);
+                });
         }
 
     }
