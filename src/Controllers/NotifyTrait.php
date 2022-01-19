@@ -16,7 +16,6 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\MailKeyName;
-use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Http\Request;
 
