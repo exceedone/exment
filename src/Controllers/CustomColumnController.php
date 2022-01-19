@@ -27,6 +27,8 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\TextAlignType;
+use Exceedone\Exment\Enums\EditableUserInfoType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator;
 use Illuminate\Validation\Rule;
 
@@ -285,6 +287,12 @@ class CustomColumnController extends AdminControllerTableBase
             $form->select('text_align', exmtrans("custom_column.options.text_align"))
                 ->help(exmtrans("custom_column.help.text_align"))
                 ->options(TextAlignType::transArray('custom_column.align_type_options'));
+
+            if ($this->custom_table->table_name == SystemTableName::USER) {
+                $form->select('editable_userinfo', exmtrans("custom_column.editable_userinfo"))
+                    ->help(exmtrans("custom_column.help.editable_userinfo"))
+                    ->options(EditableUserInfoType::transArray('custom_column.editable_userinfo_options'));
+            }
 
             // setting for each settings of column_type. --------------------------------------------------
             // Form options area -- start

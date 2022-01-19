@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
@@ -15,8 +16,10 @@ use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Encore\Admin\Form;
+use Encore\Admin\Show\Field as ShowField;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
@@ -259,10 +262,29 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     {
         $login_user = LoginUser::class;
         return $login_user::form(function (Form $form) {
-            $form->display('base_user.value.user_code', exmtrans('user.user_code'));
-            $form->display('base_user.value.email', exmtrans('user.email'));
+            // $form->display('base_user.value.user_code', exmtrans('user.user_code'));
+            // $form->display('base_user.value.email', exmtrans('user.email'));
             
-            $form->text('base_user.value.user_name', exmtrans('user.user_name'));
+            // $form->text('base_user.value.user_name', exmtrans('user.user_name'));
+
+            $user_table = CustomTable::getEloquent(SystemTableName::USER);
+            foreach ($user_table->custom_columns as $custom_column) {
+                $editable_userinfo = $custom_column->getOption('editable_userinfo');
+                if (EditableUserInfoType::showSettingForm($editable_userinfo)) {
+                    $column_item = $custom_column->column_item;
+                    if (is_null($column_item)) {
+                        continue;
+                    }
+                    if ($editable_userinfo == EditableUserInfoType::VIEW) {
+                        $column_item->setFormColumnOptions(['view_only' => true]);
+                    }
+                    $field = $column_item
+                        ->setCustomValue(\Exment::user()->base_user)
+                        ->getAdminField(null, 'base_user.value.');
+
+                    $form->pushField($field);
+                }
+            }
 
             $fileOption = array_merge(
                 Define::FILE_OPTION(),
@@ -332,20 +354,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             });
             
             $form->saved(function ($form) {
-                // saving user info
-                DB::transaction(function () use ($form) {
-                    $req = Req::all();
-
-                    // login_user id
-                    $user_id = $form->model()->base_user->id;
-                    // save user name and email
-                    $user = getModelName(SystemTableName::USER)::find($user_id);
-                    $user->setValue([
-                        'user_name' => array_get($req, 'base_user.value.user_name'),
-                    ]);
-                    $user->save();
-                });
-                
                 admin_toastr(trans('admin.update_succeeded'));
     
                 return redirect(admin_url('auth/setting'));
