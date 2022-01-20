@@ -67,7 +67,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
      *
      * @return array
      */
-    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, WorkflowAction $next_workflow_action, ?WorkflowValue $workflow_value, bool $getAsLoginUser = false) : array
+    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, Workflow $workflow, bool $getAsLoginUser = false) : array
     {
         $type = ConditionTypeDetail::getEnum($this->related_type);
         switch ($type) {
@@ -116,59 +116,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 ];
                 
             case ConditionTypeDetail::LOGIN_USER_COLUMN:
-                $column = CustomColumn::getEloquent($this->related_id);
-                // get target workflow value. By workflow_action's "get_by_userinfo_base".
-                $wv = null;
-                switch($next_workflow_action->workflow->getOption('get_by_userinfo_base')){
-                    // If 'first executed user', get first workflow value.
-                    case 'first_executed_user':
-                        $wv = WorkflowValue::GetFirstExecutedWorkflowValue($custom_value);
-                        $getAsLoginUser = false;
-                        break;
-                    // else, get setted workflow value
-                    default:
-                        $wv = $workflow_value;
-                        break;
-                }
-                // if $callByExecute is true, Get by action executed user
-                // If $workflow_value is empty, this flow is first. So get as login user
-                if(is_nullorempty($wv)){
-                    $getAsLoginUser = true;
-                }
-                if($getAsLoginUser){
-                    $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(\Exment::getUserId());
-                }
-                else{
-                    $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($wv->created_user_id);
-                }
-
-                $column_values = $user->getValue($column);
-                if (is_nullorempty($column_values)) {
-                    return [];
-                }
-                if ($column_values instanceof CustomValue) {
-                    $column_values = [$column_values];
-                }
-
-                $userIds = [];
-                $organizationIds = [];
-                foreach ($column_values as $column_value) {
-                    if ($column->column_type == ColumnType::USER) {
-                        $userIds[] = $column_value->id;
-                    } else {
-                        $organizationIds[] = $column_value->id;
-                    }
-                }
-
-                // Filter user and org by target table
-                $custom_table = $custom_value->custom_table;
-                $userIds = $custom_table->filterAccessibleUsers($userIds)->toArray();
-                $organizationIds = $custom_table->filterAccessibleOrganizations($organizationIds)->toArray();
-
-                return [
-                    'users' => $userIds,
-                    'organizations' => $organizationIds,
-                ];
+                return \Exceedone\Exment\ConditionItems\LoginUserColumnItem::getTargetUserAndOrg($custom_value, $workflow, $this->related_id, $getAsLoginUser);
         }
 
         return [];
