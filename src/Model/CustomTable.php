@@ -1803,6 +1803,52 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Filter all accessible users on this table.
+     */
+    public function filterAccessibleUsers($userIds) : \Illuminate\Support\Collection
+    {
+        if(is_nullorempty($userIds)){
+            return collect();
+        }
+        
+        $accessibleUsers = $this->getAccessibleUserIds();
+ 
+        $result = collect();
+        foreach($userIds as $user){
+            if($accessibleUsers->contains(function($accessibleUser) use($user){
+                return $accessibleUser == $user;
+            })){
+                $result->push($user); 
+            }
+        }
+ 
+        return $result;
+    }
+
+    /**
+     * Filter all accessible orgs on this table.
+     */
+    public function filterAccessibleOrganizations($organizationIds) : \Illuminate\Support\Collection
+    {
+        if(is_nullorempty($organizationIds)){
+            return collect();
+        }
+        
+        $accessibleOrganizations = $this->getAccessibleOrganizationIds();
+ 
+        $result = collect();
+        foreach($organizationIds as $org){
+            if($accessibleOrganizations->contains(function($accessibleOrganization) use($org){
+                return $accessibleOrganization == $org;
+            })){
+                $result->push($org); 
+            }
+        }
+ 
+        return $result;
+    } 
+
+    /**
      * Get all accessible organizations on this table. (only get id, consider performance)
      * *Not check "loginuser"'s permission.
      */
