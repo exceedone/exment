@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
@@ -61,7 +62,7 @@ class LoginUserColumnItem extends ColumnItem
                         }
         
                         // get key
-                        $queryKey = $workflow->getOption('get_by_userinfo_base') == 'first_executed_user' ? 'first_executed_user.value->' : 'executed_user.value->'; 
+                        $queryKey = $workflow->getOption('get_by_userinfo_base') == 'first_executed_user' ? 'first_executed_user.value->' : 'last_executed_user.value->'; 
         
                         $query->orWhere(function($query) use($orgids, $custom_column, $workflow_action, $queryKey){
                                         
@@ -123,52 +124,19 @@ class LoginUserColumnItem extends ColumnItem
 
     public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
-        return \Exceedone\Exment\ConditionItems\LoginUserColumnItem::getTargetUserAndOrg($custom_value, $workflow, $this->related_id, $getAsLoginUser);
-        
-        $workflow_action = WorkflowAction::find($workflow_authority->workflow_action_id);
-        $custom_column = CustomColumn::find($workflow_authority->related_id);
-        if (!ColumnType::isUserOrganization($custom_column->column_type)) {
-            return false;
-        }
-        // get target workflow value. By workflow_action's "get_by_userinfo_base".
-        $wv = null;
-        switch($workflow_action->workflow->getOption('get_by_userinfo_base')){
-            // If 'first executed user', get first workflow value.
-            case 'first_executed_user':
-                $wv = WorkflowValue::getFirstExecutedWorkflowValue($custom_value);
-                break;
-            // else, get setted workflow value
-            default:
-                $wv = $custom_value->workflow_value;
-                break;
-        }
-        // If $workflow_value is empty, this flow is first. So get as login user
-        $getAsLoginUser = is_nullorempty($wv);
-
-        if($getAsLoginUser){
-            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(\Exment::getUserId());
-        }
-        else{
-            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($wv->created_user_id);
-        }
-
-        $auth_values = $user->getValue($custom_column->column_name);
-        if (is_nullorempty($auth_values)) {
-            return [];
-        }
-        if ($auth_values instanceof CustomValue) {
-            $auth_values = [$auth_values];
-        }
+        $custom_column = CustomColumn::getEloquent($workflow_authority->related_id);
+        $workflow_action = WorkflowAction::getEloquent($workflow_authority->workflow_action_id);
+        $userAndOrgs = static::getTargetUserAndOrg($custom_value, $workflow_action->workflow_cache, $workflow_authority->related_id);
 
         switch ($custom_column->column_type) {
             case ColumnType::USER:
-                return collect($auth_values)->contains(function($auth_value) use($targetUser) {
-                    return $auth_value->id == $targetUser->id;
+                return collect($userAndOrgs['users'])->contains(function($auth_value) use($targetUser) {
+                    return $auth_value == $targetUser->id;
                 });
             case ColumnType::ORGANIZATION:
                 $ids = $targetUser->belong_organizations->pluck('id')->toArray();
-                return collect($auth_values)->contains(function ($auth_value) use ($ids) {
-                    return collect($ids)->contains($auth_value->id);
+                return collect($userAndOrgs['organizations'])->contains(function ($auth_value) use ($ids) {
+                    return collect($ids)->contains($auth_value);
                 });
         }
     }
@@ -179,7 +147,7 @@ class LoginUserColumnItem extends ColumnItem
      *
      * @param CustomValue $custom_value
      * @param Workflow $workflow
-     * @param [type] $custom_column_id
+     * @param mixed $custom_column_id
      * @param boolean $getAsLoginUser
      * @return array
      */
