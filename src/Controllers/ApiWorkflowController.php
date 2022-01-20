@@ -213,7 +213,10 @@ class ApiWorkflowController extends AdminControllerBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::CURRENT_WORK_USER)->merge($result);
+            $result = \Exment::uniqueCustomValues($result, $workflow_action->getAuthorityTargets(
+                $custom_value, WorkflowGetAuthorityType::CURRENT_WORK_USER, [
+                    'orgAsUser' => $orgAsUser
+                ]));
         }
 
         return $result->unique();

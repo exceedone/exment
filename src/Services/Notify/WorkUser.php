@@ -34,7 +34,8 @@ class WorkUser extends NotifyTargetBase
         if (!isset($workflow_value) || !$workflow_value->isCompleted()) {
             WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
                 ->each(function ($workflow_action) use (&$users, $custom_value) {
-                    $users = $users->merge($workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NOTIFY));
+                    $users = \Exment::uniqueCustomValues($users, 
+                        $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NOTIFY));
                 });
         }
 
