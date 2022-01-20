@@ -512,27 +512,26 @@ class WorkflowAction extends ModelBase
             }
         }
 
-        $result = collect();
-
+        $users = collect();
         if (count($userIds) > 0) {
-            $result = getModelName(SystemTableName::USER)::find(array_unique($userIds))
-                ->merge($result);
+            $users = getModelName(SystemTableName::USER)::find(array_unique($userIds));
         }
         
+        $orgs = collect();
         if (System::organization_available() && count($organizationIds) > 0) {
             $orgs = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds));
-
-            if ($orgAsUser) {
-                $result = $orgs->load('users')->map(function ($org) {
-                    return $org->users;
-                })->flatten()->merge($result);
-            //$result = $orgs_users->count() > 0 ? $orgs_users->users->merge($result): $result;
-            } else {
-                $result = $orgs->merge($result);
-            }
         }
 
-        return $result->unique();
+        $result = collect();
+        if ($orgAsUser) {
+            $result = \Exment::uniqueCustomValues($users, $orgs->load('users')->map(function ($org) {
+                return $org->users;
+            })->flatten());
+        } else {
+            $result = \Exment::uniqueCustomValues($users, $orgs);
+        }
+
+        return $result;
     }
 
     /**
