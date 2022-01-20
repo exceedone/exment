@@ -123,6 +123,8 @@ class LoginUserColumnItem extends ColumnItem
 
     public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
+        return \Exceedone\Exment\ConditionItems\LoginUserColumnItem::getTargetUserAndOrg($custom_value, $workflow, $this->related_id, $getAsLoginUser);
+        
         $workflow_action = WorkflowAction::find($workflow_authority->workflow_action_id);
         $custom_column = CustomColumn::find($workflow_authority->related_id);
         if (!ColumnType::isUserOrganization($custom_column->column_type)) {
@@ -133,7 +135,7 @@ class LoginUserColumnItem extends ColumnItem
         switch($workflow_action->workflow->getOption('get_by_userinfo_base')){
             // If 'first executed user', get first workflow value.
             case 'first_executed_user':
-                $wv = WorkflowValue::GetFirstExecutedWorkflowValue($custom_value);
+                $wv = WorkflowValue::getFirstExecutedWorkflowValue($custom_value);
                 break;
             // else, get setted workflow value
             default:
@@ -169,6 +171,73 @@ class LoginUserColumnItem extends ColumnItem
                     return collect($ids)->contains($auth_value->id);
                 });
         }
+    }
 
+
+    /**
+     * Get Action target user and orgs
+     *
+     * @param CustomValue $custom_value
+     * @param Workflow $workflow
+     * @param [type] $custom_column_id
+     * @param boolean $getAsLoginUser
+     * @return array
+     */
+    public static function getTargetUserAndOrg(CustomValue $custom_value, Workflow $workflow, $custom_column_id, bool $getAsLoginUser = false) : array
+    {
+        $column = CustomColumn::getEloquent($custom_column_id);
+        // get target workflow value. By workflow_action's "get_by_userinfo_base".
+        $wv = null;
+        switch($workflow->getOption('get_by_userinfo_base')){
+            // If 'first executed user', get first workflow value.
+            case 'first_executed_user':
+                $wv = WorkflowValue::getFirstExecutedWorkflowValue($custom_value);
+                $getAsLoginUser = false;
+                break;
+            // else, get setted last workflow value
+            default:
+                $wv = WorkflowValue::getLastExecutedWorkflowValue($custom_value);
+                break;
+        }
+
+        // if $callByExecute is true, Get by action executed user
+        // If $workflow_value is empty, this flow is first. So get as login user
+        if(is_nullorempty($wv)){
+            $getAsLoginUser = true;
+        }
+        if($getAsLoginUser){
+            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(\Exment::getUserId());
+        }
+        else{
+            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($wv->created_user_id);
+        }
+
+        $column_values = $user->getValue($column);
+        if (is_nullorempty($column_values)) {
+            return [];
+        }
+        if ($column_values instanceof CustomValue) {
+            $column_values = [$column_values];
+        }
+
+        $userIds = [];
+        $organizationIds = [];
+        foreach ($column_values as $column_value) {
+            if ($column->column_type == ColumnType::USER) {
+                $userIds[] = $column_value->id;
+            } else {
+                $organizationIds[] = $column_value->id;
+            }
+        }
+
+        // Filter user and org by target table
+        $custom_table = $custom_value->custom_table;
+        $userIds = $custom_table->filterAccessibleUsers($userIds)->toArray();
+        $organizationIds = $custom_table->filterAccessibleOrganizations($organizationIds)->toArray();
+
+        return [
+            'users' => $userIds,
+            'organizations' => $organizationIds,
+        ];
     }
 }
