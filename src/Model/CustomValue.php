@@ -211,7 +211,8 @@ abstract class CustomValue extends ModelBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = $workflow_action->getAuthorityTargets($this, WorkflowGetAuthorityType::CURRENT_WORK_USER)->merge($result);
+            $result = \Exment::uniqueCustomValues($result, 
+                $workflow_action->getAuthorityTargets($this, WorkflowGetAuthorityType::CURRENT_WORK_USER));
         }
 
         return $result;

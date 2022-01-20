@@ -462,10 +462,11 @@ class WorkflowAction extends ModelBase
      * @param CustomValue $custom_value
      * @return \Illuminate\Support\Collection
      */
-    public function getAuthorityTargets($custom_value, string $workflowGetAuthorityType)
+    public function getAuthorityTargets($custom_value, string $workflowGetAuthorityType, $params = [])
     {
         // Convert options
         $options = $this->getAuthorityTargetOption($workflowGetAuthorityType);
+        $options = array_merge($options, $params);
         $orgAsUser = array_boolval($options, 'orgAsUser', false);
         $asNextAction = array_boolval($options, 'asNextAction', false);
         $getValueAutorities = array_boolval($options, 'getValueAutorities', false);
@@ -524,9 +525,13 @@ class WorkflowAction extends ModelBase
 
         $result = collect();
         if ($orgAsUser) {
-            $result = \Exment::uniqueCustomValues($users, $orgs->load('users')->map(function ($org) {
-                return $org->users;
-            })->flatten());
+            $org_users = collect();
+            if ($orgs->count() > 0) {
+                $org_users = $orgs->load('users')->map(function ($org) {
+                    return $org->users;
+                })->flatten();
+            }
+            $result = \Exment::uniqueCustomValues($users, $org_users);
         } else {
             $result = \Exment::uniqueCustomValues($users, $orgs);
         }
@@ -826,8 +831,8 @@ class WorkflowAction extends ModelBase
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
             $is_select = $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)
-                ->merge($toActionAuthorities);
+            $toActionAuthorities = \Exment::uniqueCustomValues($toActionAuthorities, 
+                $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL));
         });
         
         return $toActionAuthorities;
