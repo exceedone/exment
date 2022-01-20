@@ -1001,6 +1001,9 @@ class Exment
     public static function uniqueCustomValues(...$collections) : Collection
     {
         $result = collect();
+        if(is_nullorempty($collections)){
+            return $result; 
+        }
 
         // Add collection if unique.
         $fulterFunc = function($col) use(&$result){

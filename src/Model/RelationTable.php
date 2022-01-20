@@ -883,8 +883,8 @@ class RelationTable
                     ;
             })
             // join user table
-            ->leftJoin($userTableName . ' AS executed_user', function ($join) {
-                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.executed_user_id',"executed_user.id")
+            ->leftJoin($userTableName . ' AS last_executed_user', function ($join) {
+                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.last_executed_user_id',"last_executed_user.id")
                     ;
             })
             ->leftJoin($userTableName . ' AS first_executed_user', function ($join) {

@@ -500,7 +500,7 @@ class WorkflowAction extends ModelBase
             $workflow_authorities = $this->workflow_authorities_cache;
 
             foreach ($workflow_authorities as $workflow_authority) {
-                $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this, $custom_value->workflow_value, $asNextAction);
+                $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this->workflow_cache, $asNextAction);
                 if(array_key_value_exists('users', $results)){
                     foreach($results['users'] as $id){$userIds[] = $id;}
                 }
@@ -518,7 +518,7 @@ class WorkflowAction extends ModelBase
             $users = getModelName(SystemTableName::USER)::find(array_unique($userIds));
         }
         
-        $orgs = collect();
+        $orgs = new \Illuminate\Database\Eloquent\Collection;
         if (System::organization_available() && count($organizationIds) > 0) {
             $orgs = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds));
         }
