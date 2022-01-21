@@ -104,6 +104,12 @@ class WorkflowNotifyController extends Controller
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->prepend(new Tools\SystemChangePageMenu());
+            $tools->prepend(view('exment::tools.button', [
+                'href' => admin_urls('workflow'),
+                'label' => exmtrans('workflow.header') . trans('admin.list'),
+                'icon' => 'fa-list',
+                'btn_class' => 'btn-default',
+            ]));
         });
 
         $grid->model()->where('target_id', $this->workflow->id)
@@ -219,10 +225,11 @@ class WorkflowNotifyController extends Controller
     }
 
 
-    public function notify_action_target(Request $request)
+    public function notify_action_target(Request $request, $workflow_id)
     {
         $options = NotifyService::getNotifyTargetColumns(null, $request->get('q'), [
             'as_workflow' => true,
+            'workflow' => Workflow::find($workflow_id)
         ]);
 
         return $options;

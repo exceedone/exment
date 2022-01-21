@@ -75,6 +75,16 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
         throw new BackupRestoreNotSupportedException(exmtrans('backup.message.not_support_driver', $this->getDatabaseDriverName()));
     }
     
+    /**
+     * Whether use unicode if search multiple column
+     *
+     * @return boolean
+     */
+    public function isUseUnicodeMultipleColumn() : bool
+    {
+        return true;
+    }
+
     public function backupDatabase($tempDir)
     {
     }

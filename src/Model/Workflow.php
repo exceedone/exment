@@ -275,6 +275,22 @@ class Workflow extends ModelBase
     {
         return boolval($this->setting_completed_flg);
     }
+    
+    /**
+     * Target Custom Table
+     *
+     * @return boolean
+     */
+    public function getTargetTableAttribute()
+    {
+        if ($this->workflow_type == WorkflowType::TABLE) {
+            $workflow_tables = $this->workflow_tables;
+            if (!is_nullorempty($workflow_tables)) {
+                return $workflow_tables->first()->custom_table;
+            }
+        }
+        return null;
+    }
 
     /**
      * append workflow status

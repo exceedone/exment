@@ -1580,12 +1580,13 @@ abstract class CustomValue extends ModelBase
                 'mark' => null,
                 'value' => null,
                 'q' => $q,
+                'isApi' => false,
             ],
             $options
         );
 
         // if selected target column,
-        if (!isset($options['searchColumns'])) {
+        if (!isset($options['searchColumns']) && !$options['isApi']) {
             $options['searchColumns'] = $this->custom_table->getFreewordSearchColumns();
         }
 
