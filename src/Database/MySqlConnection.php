@@ -154,6 +154,16 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         return true;
     }
 
+    /**
+     * Whether use unicode if search multiple column
+     *
+     * @return boolean
+     */
+    public function isUseUnicodeMultipleColumn() : bool
+    {
+        return false;
+    }
+
     
     /**
      * Restore database

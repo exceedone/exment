@@ -60,4 +60,15 @@ class MariaDBConnection extends MySqlConnection
     {
         return 'MariaDB';
     }
+
+    /**
+     * Whether use unicode if search multiple column
+     *
+     * @return boolean
+     */
+    public function isUseUnicodeMultipleColumn() : bool
+    {
+        return true;
+    }
+
 }
