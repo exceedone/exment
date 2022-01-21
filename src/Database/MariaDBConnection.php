@@ -70,5 +70,4 @@ class MariaDBConnection extends MySqlConnection
     {
         return true;
     }
-
 }

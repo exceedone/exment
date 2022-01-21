@@ -213,11 +213,11 @@ class Select extends CustomItem
     {
         $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
 
-        if(is_json($value)){
+        if (is_json($value)) {
             $value = json_decode($value, true);
         }
         if (is_array($value)) {
-            return collect($value)->map(function ($val) use($isUseUnicode) {
+            return collect($value)->map(function ($val) use ($isUseUnicode) {
                 return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($val): $val;
             })->toArray();
         }
