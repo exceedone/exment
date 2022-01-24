@@ -130,12 +130,12 @@ class LoginUserColumnItem extends ColumnItem
 
         switch ($custom_column->column_type) {
             case ColumnType::USER:
-                return collect($userAndOrgs['users'])->contains(function($auth_value) use($targetUser) {
+                return collect(array_get($userAndOrgs, 'users', []))->contains(function($auth_value) use($targetUser) {
                     return $auth_value == $targetUser->id;
                 });
             case ColumnType::ORGANIZATION:
                 $ids = $targetUser->belong_organizations->pluck('id')->toArray();
-                return collect($userAndOrgs['organizations'])->contains(function ($auth_value) use ($ids) {
+                return collect(array_get($userAndOrgs, 'organizations', []))->contains(function ($auth_value) use ($ids) {
                     return collect($ids)->contains($auth_value);
                 });
         }
