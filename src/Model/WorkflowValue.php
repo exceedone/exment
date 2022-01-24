@@ -139,6 +139,7 @@ class WorkflowValue extends ModelBase
         return static::where('morph_type', $custom_value->custom_table_name)
             ->where('morph_id', $custom_value->id)
             ->whereNull('workflow_status_from_id')
+            ->where('action_executed_flg', 0) //Ignore multiple approve
             ->orderBy('id', 'desc')
             ->first();
     }
