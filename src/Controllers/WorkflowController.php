@@ -394,12 +394,12 @@ class WorkflowController extends AdminControllerBase
                 ->default($custom_table->table_view_name ?? null);
         }
 
-        $form->switchbool('workflow_edit_flg', exmtrans("workflow.workflow_edit_flg"))
-            ->help(exmtrans("workflow.help.workflow_edit_flg"))
-            ->default("0")
-        ;
-
         $form->embeds('options', function($form){
+            $form->switchbool('workflow_edit_flg', exmtrans("workflow.workflow_edit_flg"))
+                ->help(exmtrans("workflow.help.workflow_edit_flg"))
+                ->default("0")
+            ;
+            
             $form->select('get_by_userinfo_base', exmtrans('workflow.get_by_userinfo_base'))
                 ->options(['first_executed_user' => exmtrans('workflow.first_executed_user'), 'executed_user' => exmtrans('workflow.executed_user')])
                 ->help(exmtrans('workflow.help.get_by_userinfo_base'))
