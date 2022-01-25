@@ -62,10 +62,20 @@ class LoginUserColumnItem extends ColumnItem
                         }
         
                         // get key
-                        $queryKey = $workflow->getOption('get_by_userinfo_base') == 'first_executed_user' ? 'first_executed_user.value->' : 'last_executed_user.value->'; 
+                        $queryKey = null;
+                        switch($workflow->getOption('get_by_userinfo_base')){
+                            case 'first_executed_user':
+                                $queryKey = 'first_executed_user.value->';
+                                break;
+                            case 'created_user':
+                                $queryKey = 'created_user.value->';
+                                break;
+                            default:
+                                $queryKey = 'last_executed_user.value->';
+                                break;
+                        }
         
                         $query->orWhere(function($query) use($orgids, $custom_column, $workflow_action, $queryKey){
-                                        
                             $query->where('authority_related_id', $custom_column->id)
                                 ->where('authority_related_type', ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey())
                                 ->where('workflow_action_id', $workflow_action->id);
@@ -156,11 +166,15 @@ class LoginUserColumnItem extends ColumnItem
         $column = CustomColumn::getEloquent($custom_column_id);
         // get target workflow value. By workflow_action's "get_by_userinfo_base".
         $wv = null;
+        $created_user_id = null;
         switch($workflow->getOption('get_by_userinfo_base')){
             // If 'first executed user', get first workflow value.
             case 'first_executed_user':
                 $wv = WorkflowValue::getFirstExecutedWorkflowValue($custom_value);
-                $getAsLoginUser = false;
+                break;
+            // If 'created user', get as custom_value's created_user_id
+            case 'created_user':
+                $created_user_id = $custom_value->created_user_id;
                 break;
             // else, get setted last workflow value
             default:
@@ -168,18 +182,22 @@ class LoginUserColumnItem extends ColumnItem
                 break;
         }
 
-        // if $callByExecute is true, Get by action executed user
-        // If $workflow_value is empty, this flow is first. So get as login user
-        if(is_nullorempty($wv)){
-            $getAsLoginUser = true;
-        }
-        if($getAsLoginUser){
-            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(\Exment::getUserId());
-        }
-        else{
-            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($wv->created_user_id);
+        if(is_nullorempty($created_user_id)){
+            // if $callByExecute is true, Get by action executed user
+            // If $workflow_value is empty, this flow is first. So get as login user
+            if(is_nullorempty($wv)){
+                $getAsLoginUser = true;
+            }
+    
+            if($getAsLoginUser){
+                $created_user_id = \Exment::getUserId();
+            }
+            else{
+                $created_user_id = $wv->created_user_id;
+            }
         }
 
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($created_user_id);
         $column_values = $user->getValue($column);
         if (is_nullorempty($column_values)) {
             return [];

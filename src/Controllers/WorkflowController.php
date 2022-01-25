@@ -401,7 +401,11 @@ class WorkflowController extends AdminControllerBase
             ;
             
             $form->select('get_by_userinfo_base', exmtrans('workflow.get_by_userinfo_base'))
-                ->options(['first_executed_user' => exmtrans('workflow.first_executed_user'), 'executed_user' => exmtrans('workflow.executed_user')])
+                ->options([
+                    'first_executed_user' => exmtrans('workflow.first_executed_user'), 
+                    'executed_user' => exmtrans('workflow.executed_user'),
+                    'created_user' => exmtrans('workflow.created_user'),
+                ])
                 ->help(exmtrans('workflow.help.get_by_userinfo_base'))
                 ->config('allowClear', false)
                 ->required()

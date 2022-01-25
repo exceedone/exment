@@ -891,6 +891,10 @@ class RelationTable
                 $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.first_executed_user_id',"first_executed_user.id")
                     ;
             })
+            ->leftJoin($userTableName . ' AS created_user', function ($join) use($tableName) {
+                $join->on($tableName . '.created_user_id', "created_user.id")
+                    ;
+            })
             ///// add authority function for user or org
             ->where(function ($query) use ($tableName, $custom_table) {
                 $classes = [

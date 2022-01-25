@@ -1061,6 +1061,7 @@ return [
         'get_by_userinfo_base' => 'Execution User - Base User',
         'first_executed_user' => 'First Execution User',
         'executed_user' => 'Execution User',
+        'created_user' => 'Created Data User',
 
         'help' => [
             'saved_redirect_column' => 'Saved! Next, set the action.',
@@ -1086,7 +1087,7 @@ return [
             'target_column' => 'Columns with custom column types "User" and "Organization" are displayed in the choices.',
             'target_column_get_by_userinfo' => 'Of the columns with the custom column type "User" and "Organization" set in the "User" table, the column set in the search index is displayed in the selection.',
             'target_user_org' => 'Only :type that has permission to access the table ":table_view_name" will be displayed in the choices. If you don\'t see the :type you want to add, add permissions from the role group settings.',
-            'get_by_userinfo_base' => 'Select which users you want to use as the basis for getting the users / organizations to perform the following actions.<br />[First Performing User] Based on the user who performed the first action in the flow.<br />[Execution user] Based on the user who performed the action.',
+            'get_by_userinfo_base' => 'Select which users you want to use as the basis for getting the users / organizations to perform the following actions.<br />[First Performing User] Based on the user who performed the first action in the flow.<br />[Execution user] Based on the user who performed the action.<br />[Created user] Based on the user who created data.',
         ],
 
         'message' => [
