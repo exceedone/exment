@@ -1083,6 +1083,8 @@ class WorkflowController extends AdminControllerBase
                         
                 } else {
                     $form->hidden('work_target_type')->default(WorkflowWorkTargetType::FIX);
+                    $work_target_type_label = exmtrans('workflow.work_target_type_options.'. WorkflowWorkTargetType::FIX);
+                    $form->hidden('work_target_type_label')->default($work_target_type_label);
                 }
             }
         ]);

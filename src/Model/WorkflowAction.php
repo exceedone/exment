@@ -566,8 +566,10 @@ class WorkflowAction extends ModelBase
                 return [
                     'orgAsUser' => true,
                     'asNextAction' => false,
-                    'getValueAutorities' => false,
-                    'getAutorities' => true,
+                    // Whether getting value autorities, only $work_target_type is ACTION_SELECT
+                    'getValueAutorities' => isMatchString($work_target_type, WorkflowWorkTargetType::ACTION_SELECT),
+                    // Whether getting autorities, only $work_target_type is not ACTION_SELECT
+                    'getAutorities' => !isMatchString($work_target_type, WorkflowWorkTargetType::ACTION_SELECT)
                 ];
             case WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL:
                 return [
