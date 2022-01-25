@@ -161,7 +161,7 @@ class LoginUserColumnItem extends ColumnItem
      * @param boolean $getAsLoginUser
      * @return array
      */
-    public static function getTargetUserAndOrg(CustomValue $custom_value, Workflow $workflow, $custom_column_id, bool $getAsLoginUser = false) : array
+    public static function getTargetUserAndOrg(CustomValue $custom_value, Workflow $workflow, $custom_column_id) : array
     {
         $column = CustomColumn::getEloquent($custom_column_id);
         // get target workflow value. By workflow_action's "get_by_userinfo_base".
@@ -185,10 +185,7 @@ class LoginUserColumnItem extends ColumnItem
         if(is_nullorempty($created_user_id)){
             // if $callByExecute is true, Get by action executed user
             // If $workflow_value is empty, this flow is first. So get as login user
-            if(is_nullorempty($wv)){
-                $getAsLoginUser = true;
-            }
-    
+            $getAsLoginUser = is_nullorempty($wv);
             if($getAsLoginUser){
                 $created_user_id = \Exment::getUserId();
             }
