@@ -662,7 +662,13 @@ class WorkflowAction extends ModelBase
             'action_executed_flg' => true,
         ])->count();
 
-        if ($flow_next_count - 1 <= $action_executed_count) {
+        $need_next_count = $flow_next_count;
+
+        if (!WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exment::user()->base_user)) {
+            $need_next_count -= 1;           
+        }
+
+        if ($need_next_count <= $action_executed_count) {
             return true;
         }
         return [$flow_next_count, $action_executed_count];
@@ -784,7 +790,7 @@ class WorkflowAction extends ModelBase
         }
         
         // not next, showing message
-        elseif ($showSubmit && $next !== true) {
+        elseif ($next !== true) {
             list($flow_next_count, $action_executed_count) = $next;
 
             $form->display('flow_executed_user_count', exmtrans('workflow.flow_executed_user_count'))
