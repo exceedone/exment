@@ -4,9 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 

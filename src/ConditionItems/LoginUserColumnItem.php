@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
@@ -10,7 +9,6 @@ use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
-use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
@@ -30,17 +28,17 @@ class LoginUserColumnItem extends ColumnItem
     {
         // get workflow
         $workflow = Workflow::getWorkflowByTable($custom_table);
-        if(!$workflow){
+        if (!$workflow) {
             $query->whereNotMatch();
             return;
         }
 
         ///// get workflow actions.
         // Filtering "get by userinfo".
-        // 
+        //
         $workflow_actions = $workflow->workflow_actions
-            ->filter(function($workflow_action){
-                if($workflow_action->getOption("work_target_type") != WorkflowWorkTargetType::GET_BY_USERINFO){
+            ->filter(function ($workflow_action) {
+                if ($workflow_action->getOption("work_target_type") != WorkflowWorkTargetType::GET_BY_USERINFO) {
                     return false;
                 }
 
@@ -49,21 +47,21 @@ class LoginUserColumnItem extends ColumnItem
 
         $orgids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
         $query->orWhere(function ($query) use ($orgids, $workflow, $workflow_actions) {
-            foreach($workflow_actions as $workflow_action){
-                foreach($workflow_action->work_targets as $work_target_key => $work_target){
-                    if($work_target_key != ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey()){
+            foreach ($workflow_actions as $workflow_action) {
+                foreach ($workflow_action->work_targets as $work_target_key => $work_target) {
+                    if ($work_target_key != ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey()) {
                         continue;
                     }
 
-                    foreach($work_target as $login_user_column){
+                    foreach ($work_target as $login_user_column) {
                         $custom_column = CustomColumn::getEloquent($login_user_column);
-                        if(!$custom_column){
+                        if (!$custom_column) {
                             continue;
                         }
         
                         // get key
                         $queryKey = null;
-                        switch($workflow->getOption('get_by_userinfo_base')){
+                        switch ($workflow->getOption('get_by_userinfo_base')) {
                             case 'first_executed_user':
                                 $queryKey = 'first_executed_user.value->';
                                 break;
@@ -75,7 +73,7 @@ class LoginUserColumnItem extends ColumnItem
                                 break;
                         }
         
-                        $query->orWhere(function($query) use($orgids, $custom_column, $workflow_action, $queryKey){
+                        $query->orWhere(function ($query) use ($orgids, $custom_column, $workflow_action, $queryKey) {
                             $query->where('authority_related_id', $custom_column->id)
                                 ->where('authority_related_type', ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey())
                                 ->where('workflow_action_id', $workflow_action->id);
@@ -140,7 +138,7 @@ class LoginUserColumnItem extends ColumnItem
 
         switch ($custom_column->column_type) {
             case ColumnType::USER:
-                return collect(array_get($userAndOrgs, 'users', []))->contains(function($auth_value) use($targetUser) {
+                return collect(array_get($userAndOrgs, 'users', []))->contains(function ($auth_value) use ($targetUser) {
                     return $auth_value == $targetUser->id;
                 });
             case ColumnType::ORGANIZATION:
@@ -167,7 +165,7 @@ class LoginUserColumnItem extends ColumnItem
         // get target workflow value. By workflow_action's "get_by_userinfo_base".
         $wv = null;
         $created_user_id = null;
-        switch($workflow->getOption('get_by_userinfo_base')){
+        switch ($workflow->getOption('get_by_userinfo_base')) {
             // If 'first executed user', get first workflow value.
             case 'first_executed_user':
                 $wv = WorkflowValue::getFirstExecutedWorkflowValue($custom_value);
@@ -182,14 +180,13 @@ class LoginUserColumnItem extends ColumnItem
                 break;
         }
 
-        if(is_nullorempty($created_user_id)){
+        if (is_nullorempty($created_user_id)) {
             // if $callByExecute is true, Get by action executed user
             // If $workflow_value is empty, this flow is first. So get as login user
             $getAsLoginUser = is_nullorempty($wv);
-            if($getAsLoginUser){
+            if ($getAsLoginUser) {
                 $created_user_id = \Exment::getUserId();
-            }
-            else{
+            } else {
                 $created_user_id = $wv->created_user_id;
             }
         }

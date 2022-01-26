@@ -1816,18 +1816,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function filterAccessibleUsers($userIds) : \Illuminate\Support\Collection
     {
-        if(is_nullorempty($userIds)){
+        if (is_nullorempty($userIds)) {
             return collect();
         }
         
         $accessibleUsers = $this->getAccessibleUserIds();
  
         $result = collect();
-        foreach($userIds as $user){
-            if($accessibleUsers->contains(function($accessibleUser) use($user){
+        foreach ($userIds as $user) {
+            if ($accessibleUsers->contains(function ($accessibleUser) use ($user) {
                 return $accessibleUser == $user;
-            })){
-                $result->push($user); 
+            })) {
+                $result->push($user);
             }
         }
  
@@ -1839,23 +1839,23 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function filterAccessibleOrganizations($organizationIds) : \Illuminate\Support\Collection
     {
-        if(is_nullorempty($organizationIds)){
+        if (is_nullorempty($organizationIds)) {
             return collect();
         }
         
         $accessibleOrganizations = $this->getAccessibleOrganizationIds();
  
         $result = collect();
-        foreach($organizationIds as $org){
-            if($accessibleOrganizations->contains(function($accessibleOrganization) use($org){
+        foreach ($organizationIds as $org) {
+            if ($accessibleOrganizations->contains(function ($accessibleOrganization) use ($org) {
                 return $accessibleOrganization == $org;
-            })){
-                $result->push($org); 
+            })) {
+                $result->push($org);
             }
         }
  
         return $result;
-    } 
+    }
 
     /**
      * Get all accessible organizations on this table. (only get id, consider performance)

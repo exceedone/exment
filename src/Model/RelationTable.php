@@ -884,14 +884,14 @@ class RelationTable
             })
             // join user table
             ->leftJoin($userTableName . ' AS last_executed_user', function ($join) {
-                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.last_executed_user_id',"last_executed_user.id")
+                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.last_executed_user_id', "last_executed_user.id")
                     ;
             })
             ->leftJoin($userTableName . ' AS first_executed_user', function ($join) {
-                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.first_executed_user_id',"first_executed_user.id")
+                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.first_executed_user_id', "first_executed_user.id")
                     ;
             })
-            ->leftJoin($userTableName . ' AS created_user', function ($join) use($tableName) {
+            ->leftJoin($userTableName . ' AS created_user', function ($join) use ($tableName) {
                 $join->on($tableName . '.created_user_id', "created_user.id")
                     ;
             })

@@ -46,18 +46,18 @@ class WorkflowClearCommand extends Command
         $table_name = $this->argument("table_name");
         $id = $this->argument("id");
         
-        if(is_nullorempty($table_name) || is_nullorempty($id)){
+        if (is_nullorempty($table_name) || is_nullorempty($id)) {
             return;
         }
 
         $custom_table = CustomTable::getEloquent($table_name);
-        if(is_nullorempty($custom_table)){
+        if (is_nullorempty($custom_table)) {
             $this->error('table is not found.');
             return;
         }
 
         $custom_value = $custom_table->getValueModel($id);
-        if(is_nullorempty($custom_value)){
+        if (is_nullorempty($custom_value)) {
             $this->error('id ' . $id . ' is not found.');
             return;
         }

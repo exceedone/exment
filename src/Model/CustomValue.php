@@ -20,7 +20,6 @@ use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
-use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 abstract class CustomValue extends ModelBase
@@ -211,8 +210,10 @@ abstract class CustomValue extends ModelBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = \Exment::uniqueCustomValues($result, 
-                $workflow_action->getAuthorityTargets($this, WorkflowGetAuthorityType::CURRENT_WORK_USER));
+            $result = \Exment::uniqueCustomValues(
+                $result,
+                $workflow_action->getAuthorityTargets($this, WorkflowGetAuthorityType::CURRENT_WORK_USER)
+            );
         }
 
         return $result;
@@ -1834,18 +1835,18 @@ abstract class CustomValue extends ModelBase
      */
     public function filterAccessibleUsers($userIds) : \Illuminate\Support\Collection
     {
-        if(is_nullorempty($userIds)){
+        if (is_nullorempty($userIds)) {
             return collect();
         }
         
         $accessibleUsers = $this->getAccessibleUsers();
 
         $result = collect();
-        foreach($userIds as $user){
-            if($accessibleUsers->contains(function($accessibleUser) use($user){
+        foreach ($userIds as $user) {
+            if ($accessibleUsers->contains(function ($accessibleUser) use ($user) {
                 return $accessibleUser->id == $user;
-            })){
-                $result->push($user); 
+            })) {
+                $result->push($user);
             }
         }
 
@@ -1884,22 +1885,21 @@ abstract class CustomValue extends ModelBase
      */
     public function filterAccessibleOrganizations($organizationIds) : \Illuminate\Support\Collection
     {
-        if(is_nullorempty($organizationIds)){
+        if (is_nullorempty($organizationIds)) {
             return collect();
         }
         
         $accessibleOrganizations = $this->getAccessibleOrganizations();
 
         $result = collect();
-        foreach($organizationIds as $org){
-            if($accessibleOrganizations->contains(function($accessibleOrganization) use($org){
+        foreach ($organizationIds as $org) {
+            if ($accessibleOrganizations->contains(function ($accessibleOrganization) use ($org) {
                 return $accessibleOrganization->id == $org;
-            })){
-                $result->push($org); 
+            })) {
+                $result->push($org);
             }
         }
 
         return $result;
     }
-    
 }

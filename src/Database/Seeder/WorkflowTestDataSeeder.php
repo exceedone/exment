@@ -675,8 +675,10 @@ class WorkflowTestDataSeeder extends Seeder
         }
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = \Exment::uniqueCustomValues($toActionAuthorities, 
-                $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL));
+            $toActionAuthorities = \Exment::uniqueCustomValues(
+                $toActionAuthorities,
+                $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)
+            );
         });
         
         return $toActionAuthorities;

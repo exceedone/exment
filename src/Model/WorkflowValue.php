@@ -135,7 +135,7 @@ class WorkflowValue extends ModelBase
      */
     public static function getFirstExecutedWorkflowValue($custom_value)
     {
-        // get first status name 
+        // get first status name
         return static::where('morph_type', $custom_value->custom_table_name)
             ->where('morph_id', $custom_value->id)
             ->whereNull('workflow_status_from_id')

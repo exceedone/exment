@@ -20,7 +20,7 @@ class WorkflowGetAuthorityType extends EnumBase
     public const CALC_NEXT_USER_COUNT = 'calc_next_user_count';
 
     /**
-     * Getting tageting user Real execute workflow 
+     * Getting tageting user Real execute workflow
      */
     public const EXEXCUTE = 'exexcute';
 

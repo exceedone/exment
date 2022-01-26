@@ -76,7 +76,7 @@ class StatusSelects extends Select
 
         // Whether is show id
         $action_id = null;
-        if(boolval(config('exment.show_workflow_id', false))){
+        if (boolval(config('exment.show_workflow_id', false))) {
             $action_id = array_get($this->data, 'id');
         }
 

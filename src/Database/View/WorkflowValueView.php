@@ -13,14 +13,14 @@ class WorkflowValueView
      */
     public static function createWorkflowValueUnionView()
     {
-        // get sub query for first executed workflow value's id. 
+        // get sub query for first executed workflow value's id.
         $subqueryFirstWorkflowValueId = \DB::table(SystemTableName::WORKFLOW_VALUE)
             ->whereNull('workflow_status_from_id')
             ->groupBy(['morph_id', 'morph_type'])
             ->select('morph_id', 'morph_type', \DB::raw('max(' . SystemTableName::WORKFLOW_VALUE . '.id) AS workflow_value_first_id'))
             ;
 
-        // get sub query for executed workflow value's id. 
+        // get sub query for executed workflow value's id.
         $subqueryLastWorkflowValueId = \DB::table(SystemTableName::WORKFLOW_VALUE)
             ->where('action_executed_flg', 0)
             ->groupBy(['morph_id', 'morph_type'])
@@ -60,23 +60,23 @@ class WorkflowValueView
                 ;
         })
         // join for first executed user id
-        ->joinSub($subqueryFirstWorkflowValueId, 'workflow_values_first_group', function($join) {
+        ->joinSub($subqueryFirstWorkflowValueId, 'workflow_values_first_group', function ($join) {
             $join->on('workflow_values_first_group.morph_id', '=', SystemTableName::WORKFLOW_VALUE . '.morph_id')
                 ->on('workflow_values_first_group.morph_type', '=', SystemTableName::WORKFLOW_VALUE . '.morph_type')
                 ;
         })
         ->join(SystemTableName::WORKFLOW_VALUE . ' AS workflow_values_first', function ($join) {
-            $join->on('workflow_values_first.id',"workflow_values_first_group.workflow_value_first_id")
+            $join->on('workflow_values_first.id', "workflow_values_first_group.workflow_value_first_id")
                 ;
         })
         // join for last executed user id
-        ->joinSub($subqueryLastWorkflowValueId, 'workflow_values_last_group', function($join) {
+        ->joinSub($subqueryLastWorkflowValueId, 'workflow_values_last_group', function ($join) {
             $join->on('workflow_values_last_group.morph_id', '=', SystemTableName::WORKFLOW_VALUE . '.morph_id')
                 ->on('workflow_values_last_group.morph_type', '=', SystemTableName::WORKFLOW_VALUE . '.morph_type')
                 ;
         })
         ->join(SystemTableName::WORKFLOW_VALUE . ' AS workflow_values_last', function ($join) {
-            $join->on('workflow_values_last.id',"workflow_values_last_group.workflow_value_last_id")
+            $join->on('workflow_values_last.id', "workflow_values_last_group.workflow_value_last_id")
                 ;
         })
         ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1)
@@ -131,23 +131,23 @@ class WorkflowValueView
                 ;
         })
         // join for first executed user id
-        ->joinSub($subqueryFirstWorkflowValueId, 'workflow_values_first_group', function($join) {
+        ->joinSub($subqueryFirstWorkflowValueId, 'workflow_values_first_group', function ($join) {
             $join->on('workflow_values_first_group.morph_id', '=', SystemTableName::WORKFLOW_VALUE . '.morph_id')
                 ->on('workflow_values_first_group.morph_type', '=', SystemTableName::WORKFLOW_VALUE . '.morph_type')
                 ;
         })
         ->join(SystemTableName::WORKFLOW_VALUE . ' AS workflow_values_first', function ($join) {
-            $join->on('workflow_values_first.id',"workflow_values_first_group.workflow_value_first_id")
+            $join->on('workflow_values_first.id', "workflow_values_first_group.workflow_value_first_id")
                 ;
         })
         // join for last executed user id
-        ->joinSub($subqueryLastWorkflowValueId, 'workflow_values_last_group', function($join) {
+        ->joinSub($subqueryLastWorkflowValueId, 'workflow_values_last_group', function ($join) {
             $join->on('workflow_values_last_group.morph_id', '=', SystemTableName::WORKFLOW_VALUE . '.morph_id')
                 ->on('workflow_values_last_group.morph_type', '=', SystemTableName::WORKFLOW_VALUE . '.morph_type')
                 ;
         })
         ->join(SystemTableName::WORKFLOW_VALUE . ' AS workflow_values_last', function ($join) {
-            $join->on('workflow_values_last.id',"workflow_values_last_group.workflow_value_last_id")
+            $join->on('workflow_values_last.id', "workflow_values_last_group.workflow_value_last_id")
                 ;
         })
         ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1)

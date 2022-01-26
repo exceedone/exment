@@ -69,8 +69,7 @@ class WorkflowAction extends ModelBase
                 $result[$key] = $val;
             }
                 
-            if ($key == 'work_target_type' && ($val == WorkflowWorkTargetType::FIX || $val == WorkflowWorkTargetType::GET_BY_USERINFO))
-            {
+            if ($key == 'work_target_type' && ($val == WorkflowWorkTargetType::FIX || $val == WorkflowWorkTargetType::GET_BY_USERINFO)) {
                 $authorities = WorkflowAuthority::where('workflow_action_id', $this->id)->get();
                 $authorities->each(function ($v) use (&$result) {
                     $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
@@ -136,7 +135,7 @@ class WorkflowAction extends ModelBase
     public function getWorkConditionSelectAttribute()
     {
         $headers = $this->workflow_condition_headers;
-        if(count($headers) == 0){
+        if (count($headers) == 0) {
             return [];
         }
         return $headers->first()->status_to;
@@ -226,7 +225,7 @@ class WorkflowAction extends ModelBase
                 $isSave = true;
             }
         }
-        if($isSave){
+        if ($isSave) {
             $this->save();
         }
 
@@ -315,7 +314,6 @@ class WorkflowAction extends ModelBase
         $status_to = $this->getStatusToId($custom_value);
 
         \DB::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
-            
             $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
             if ($next === true) {
@@ -337,8 +335,7 @@ class WorkflowAction extends ModelBase
                     CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
 
                     $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-                } 
-                else {
+                } else {
                     // get this getAuthorityTargets
                     $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
                     CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
@@ -430,7 +427,7 @@ class WorkflowAction extends ModelBase
 
         // check as workflow_value_authorities
         // only execute WorkflowWorkTargetType::ACTION_SELECT
-        if($this->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT){
+        if ($this->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT) {
             if (isset($custom_value) && isset($custom_value->workflow_value)) {
                 $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
                 $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
@@ -441,8 +438,7 @@ class WorkflowAction extends ModelBase
                     }
                 }
             }
-        }
-        else{
+        } else {
             // check as workflow_authorities
             $workflow_authorities = $this->workflow_authorities_cache;
             foreach ($workflow_authorities as $workflow_authority) {
@@ -496,19 +492,25 @@ class WorkflowAction extends ModelBase
         }
 
         // add as workflow_authorities
-        if($getAutorities){
+        if ($getAutorities) {
             $workflow_authorities = $this->workflow_authorities_cache;
 
             foreach ($workflow_authorities as $workflow_authority) {
                 $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this->workflow_cache, $asNextAction);
-                if(array_key_value_exists('users', $results)){
-                    foreach($results['users'] as $id){$userIds[] = $id;}
+                if (array_key_value_exists('users', $results)) {
+                    foreach ($results['users'] as $id) {
+                        $userIds[] = $id;
+                    }
                 }
-                if(array_key_value_exists('organizations', $results)){
-                    foreach($results['organizations'] as $id){$organizationIds[] = $id;}
+                if (array_key_value_exists('organizations', $results)) {
+                    foreach ($results['organizations'] as $id) {
+                        $organizationIds[] = $id;
+                    }
                 }
-                if(array_key_value_exists('labels', $results)){
-                    foreach($results['labels'] as $id){$labels[] = $id;}
+                if (array_key_value_exists('labels', $results)) {
+                    foreach ($results['labels'] as $id) {
+                        $labels[] = $id;
+                    }
                 }
             }
         }
@@ -552,7 +554,7 @@ class WorkflowAction extends ModelBase
     protected function getAuthorityTargetOption(string $workflowGetAuthorityType) : array
     {
         $work_target_type = $this->getOption('work_target_type');
-        switch($workflowGetAuthorityType){
+        switch ($workflowGetAuthorityType) {
             case WorkflowGetAuthorityType::CURRENT_WORK_USER:
                 return [
                     'orgAsUser' => false,
@@ -667,7 +669,7 @@ class WorkflowAction extends ModelBase
         $need_next_count = $flow_next_count;
 
         if (!WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exment::user()->base_user)) {
-            $need_next_count -= 1;           
+            $need_next_count -= 1;
         }
 
         if ($need_next_count <= $action_executed_count) {
@@ -764,11 +766,10 @@ class WorkflowAction extends ModelBase
                         ->required();
     
                     // If not ajax and $options is empty, disable form.
-                    if(is_nullorempty($options) && is_nullorempty($ajax)){
+                    if (is_nullorempty($options) && is_nullorempty($ajax)) {
                         $showSubmit = false;
                     }
-                }
-                else {
+                } else {
                     // only display
                     $displayText = $toActionAuthorities->count() == 0 ? "<span class='red bold'>" .exmtrans('workflow.message.nextuser_not_found') . "</span>" : $toActionAuthorities->map(function ($toActionAuthority) {
                         return $toActionAuthority->getUrl([
@@ -780,11 +781,11 @@ class WorkflowAction extends ModelBase
                         ->displayText($displayText)->escape(false);
     
                     // if has $select_hidden, set as hidden item
-                    if(!is_nullorempty($select_hidden)){
+                    if (!is_nullorempty($select_hidden)) {
                         $form->hidden('get_by_userinfo_action')->default($select_hidden->id);
                     }
     
-                    if(is_nullorempty($toActionAuthorities)){
+                    if (is_nullorempty($toActionAuthorities)) {
                         $showSubmit = false;
                     }
                 }
@@ -839,8 +840,10 @@ class WorkflowAction extends ModelBase
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
             $is_select = $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = \Exment::uniqueCustomValues($toActionAuthorities, 
-                $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL));
+            $toActionAuthorities = \Exment::uniqueCustomValues(
+                $toActionAuthorities,
+                $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)
+            );
         });
         
         return $toActionAuthorities;

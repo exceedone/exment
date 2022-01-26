@@ -1001,18 +1001,18 @@ class Exment
     public static function uniqueCustomValues(...$collections) : Collection
     {
         $result = collect();
-        if(is_nullorempty($collections)){
-            return $result; 
+        if (is_nullorempty($collections)) {
+            return $result;
         }
 
         // Add collection if unique.
-        $fulterFunc = function($col) use(&$result){
-            foreach($col as $custom_value){
+        $fulterFunc = function ($col) use (&$result) {
+            foreach ($col as $custom_value) {
                 // Check contains same table and id
-                if($result->contains(function($r) use($custom_value){
+                if ($result->contains(function ($r) use ($custom_value) {
                     return isMatchString($custom_value->custom_table_name, $r->custom_table_name)
                         && isMatchString($custom_value->id, $r->id);
-                })){
+                })) {
                     continue;
                 }
 
@@ -1021,8 +1021,8 @@ class Exment
             }
         };
 
-        foreach($collections as $collection){
-            if(!is_nullorempty($collection)){
+        foreach ($collections as $collection) {
+            if (!is_nullorempty($collection)) {
                 $fulterFunc($collection);
             }
         }

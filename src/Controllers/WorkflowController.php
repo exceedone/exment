@@ -230,7 +230,7 @@ class WorkflowController extends AdminControllerBase
 
         $isShowId = boolval(config('exment.show_workflow_id', false));
 
-        if($isShowId && !is_nullorempty($id)){
+        if ($isShowId && !is_nullorempty($id)) {
             $form->display('id', 'ID');
         }
 
@@ -276,8 +276,8 @@ class WorkflowController extends AdminControllerBase
             ->help(exmtrans("workflow.help.start_status_name"))
             ->rules("max:30");
 
-        $field = $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) use($isShowId) {
-            if($isShowId){
+        $field = $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) use ($isShowId) {
+            if ($isShowId) {
                 $form->display('id', 'ID')->displayClass('p-0 text-center');
             }
             $form->text('status_name', exmtrans("workflow.status_name"))->help(exmtrans('workflow.help.status_name'));
@@ -286,9 +286,9 @@ class WorkflowController extends AdminControllerBase
         })->setTableWidth(8, 2)
         ->required();
 
-        if($isShowId){
+        if ($isShowId) {
             $field->setTableColumnWidth(1, 5, 2, 2);
-        }else{
+        } else {
             $field->setTableColumnWidth(6, 2, 2);
         }
 
@@ -394,7 +394,7 @@ class WorkflowController extends AdminControllerBase
                 ->default($custom_table->table_view_name ?? null);
         }
 
-        $form->embeds('options', function($form){
+        $form->embeds('options', function ($form) {
             $form->switchbool('workflow_edit_flg', exmtrans("workflow.workflow_edit_flg"))
                 ->help(exmtrans("workflow.help.workflow_edit_flg"))
                 ->default("0")
@@ -402,7 +402,7 @@ class WorkflowController extends AdminControllerBase
             
             $form->select('get_by_userinfo_base', exmtrans('workflow.get_by_userinfo_base'))
                 ->options([
-                    'first_executed_user' => exmtrans('workflow.first_executed_user'), 
+                    'first_executed_user' => exmtrans('workflow.first_executed_user'),
                     'executed_user' => exmtrans('workflow.executed_user'),
                     'created_user' => exmtrans('workflow.created_user'),
                 ])
@@ -420,8 +420,7 @@ class WorkflowController extends AdminControllerBase
                     return $workflow->getStatusOptions($field->getIndex() === 0);
                 });
 
-            if($workflow->workflow_type == WorkflowType::TABLE)
-            {
+            if ($workflow->workflow_type == WorkflowType::TABLE) {
                 $form->valueModal('work_conditions', exmtrans("workflow.work_conditions"))
                     ->ajax(admin_urls('workflow', $id, 'modal', 'condition'))
                     ->modalContentname('workflow_actions_work_conditions')
@@ -464,8 +463,7 @@ class WorkflowController extends AdminControllerBase
                     })
                     ->nullText(exmtrans("common.no_setting"))
                 ;
-            }
-            else{
+            } else {
                 $form->select('work_condition_select', exmtrans('workflow.status_to'))
                     ->options($workflow->getStatusOptions())
                     ->help(exmtrans('workflow.help.status_to'))
@@ -499,11 +497,9 @@ class WorkflowController extends AdminControllerBase
                     $label = null;
                     if (array_get($value, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT) {
                         $label = WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options');
-                    }
-                    elseif (array_get($value, 'work_target_type') == WorkflowWorkTargetType::FIX){
+                    } elseif (array_get($value, 'work_target_type') == WorkflowWorkTargetType::FIX) {
                         $label = WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options');
-                    }
-                    elseif (array_get($value, 'work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO){
+                    } elseif (array_get($value, 'work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO) {
                         $label = WorkflowWorkTargetType::GET_BY_USERINFO()->transKey('workflow.work_target_type_options') ;
                     }
                     $label = "[{$label}]";
@@ -513,7 +509,7 @@ class WorkflowController extends AdminControllerBase
                             ->filter()->map(function ($authority) {
                                 return esc_html($authority->authority_text);
                             })->implode('<br/>');
-                        return $label . (!is_nullorempty($text) ? "<br/>" : "" ) . $text;
+                        return $label . (!is_nullorempty($text) ? "<br/>" : "") . $text;
                     }
                     return $label;
 
@@ -554,8 +550,8 @@ class WorkflowController extends AdminControllerBase
             }
         });
 
-        $form->editing(function ($form, $arr) use($workflow) {
-            foreach($form->model()->workflow_actions as $workflow_action){
+        $form->editing(function ($form, $arr) use ($workflow) {
+            foreach ($form->model()->workflow_actions as $workflow_action) {
                 $workflow_action->append([$workflow->workflow_type == WorkflowType::TABLE ? 'work_conditions' : 'work_condition_select']);
             }
         });
@@ -874,7 +870,7 @@ class WorkflowController extends AdminControllerBase
             ]);
         }
 
-        // Set deleted_at directrly. Because cannot delete if has children columns (ex. worlflow_statuses) 
+        // Set deleted_at directrly. Because cannot delete if has children columns (ex. worlflow_statuses)
         $workflow->update([
             'deleted_at' => \Carbon\Carbon::now(),
         ]);
@@ -956,15 +952,14 @@ class WorkflowController extends AdminControllerBase
             // validate action conditions
             $workflow_conditions = Condition::getWorkConditions(array_get($workflow_action, 'work_conditions'));
             
-            if($isWorkflowTypeTable){
+            if ($isWorkflowTypeTable) {
                 foreach ($workflow_conditions as $workflow_condition) {
                     if (array_get($workflow_condition, 'status_to') == array_get($workflow_action, 'status_from')) {
                         $errors->add("$errorKey.status_from", exmtrans("workflow.message.same_action"));
                         break;
                     }
-                }    
-            }
-            else{
+                }
+            } else {
                 if (array_get($workflow_action, 'work_condition_select') == array_get($workflow_action, 'status_from')) {
                     $errors->add("$errorKey.status_from", exmtrans("workflow.message.same_action"));
                     break;
@@ -976,8 +971,7 @@ class WorkflowController extends AdminControllerBase
             $work_target_type = array_get($work_targets, 'work_target_type');
             if (is_nullorempty($work_targets)) {
                 $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
-            }
-            else{
+            } else {
                 // Check work target type
                 if ($work_target_type == WorkflowWorkTargetType::FIX || $work_target_type == WorkflowWorkTargetType::GET_BY_USERINFO) {
                     // Check validation required
@@ -987,7 +981,7 @@ class WorkflowController extends AdminControllerBase
                     })) {
                         $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
                     }
-                } 
+                }
                 
                 if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT || WorkflowWorkTargetType::GET_BY_USERINFO) {
                     // if contains other FIX action in same acthion
@@ -1074,13 +1068,12 @@ class WorkflowController extends AdminControllerBase
                         ->indexEnabled()
                         ->pluck('column_view_name', 'id');
 
-                    $form->multipleSelect('modal_' . ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey() , exmtrans('common.custom_column'))
+                    $form->multipleSelect('modal_' . ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey(), exmtrans('common.custom_column'))
                         ->options($options)
                         ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => WorkflowWorkTargetType::GET_BY_USERINFO])])
                         ->help(exmtrans('workflow.help.target_column_get_by_userinfo'))
                         ->required()
                         ->default(array_get($value, ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerkey()));
-                        
                 } else {
                     $form->hidden('work_target_type')->default(WorkflowWorkTargetType::FIX);
                     $work_target_type_label = exmtrans('workflow.work_target_type_options.'. WorkflowWorkTargetType::FIX);
