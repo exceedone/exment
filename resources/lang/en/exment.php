@@ -1247,6 +1247,7 @@ return [
         'add_custom_view_flg' => 'Add to the Default View',
         'add_table_label_flg' => 'Add to the Table Label',
         'auto_number_format_rule' => 'Auto Number format of the role',
+        'editable_userinfo' => 'Viewing / Editing personal information',
         'symbols' => [
             'plus' => '+',
             'minus' => '-',
@@ -1319,6 +1320,11 @@ return [
             "left" => "Left",
             "center" => "Center",
             "right" => "Right",
+        ],
+        'editable_userinfo_options' => [
+            "none" => "None",
+            "view" => "View Only",
+            "edit" => "Editable",
         ],
         'column_type_options' => [
             "text" => "One-Line Text",
@@ -1393,6 +1399,7 @@ return [
             'checkbox_enabled' => 'If set to YES, it will be displayed in a check box format.',
             'free_input' => 'By setting to YES, you can freely enter options that are not registered.',
             'required_yes' => 'By setting this setting to YES, it is mandatory to set it to YES on the input screen. * In the case of check box format, it is essential that it is checked.',
+            'editable_userinfo' => 'Set whether the logged-in user can view and edit his / her information on the user setting screen.<br/>*If an option such as "Enter only once" is set, that will be given priority.',
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 
