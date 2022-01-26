@@ -991,4 +991,42 @@ class Exment
             return $key . '=' . $val;
         })->toArray());
     }
+
+    
+    /**
+     * Unique and merge custom value. Check same id and table.
+     *
+     * @return Collection
+     */
+    public static function uniqueCustomValues(...$collections) : Collection
+    {
+        $result = collect();
+        if(is_nullorempty($collections)){
+            return $result; 
+        }
+
+        // Add collection if unique.
+        $fulterFunc = function($col) use(&$result){
+            foreach($col as $custom_value){
+                // Check contains same table and id
+                if($result->contains(function($r) use($custom_value){
+                    return isMatchString($custom_value->custom_table_name, $r->custom_table_name)
+                        && isMatchString($custom_value->id, $r->id);
+                })){
+                    continue;
+                }
+
+                // Add target value
+                $result->push($custom_value);
+            }
+        };
+
+        foreach($collections as $collection){
+            if(!is_nullorempty($collection)){
+                $fulterFunc($collection);
+            }
+        }
+
+        return $result;
+    }
 }

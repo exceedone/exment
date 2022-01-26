@@ -26,6 +26,7 @@ class ConditionTypeDetail extends EnumBase
     const ROLE = "3";
     const SYSTEM = "4";
     const FORM = "5";
+    const LOGIN_USER_COLUMN = "8";
     const COLUMN = "9";
 
     public static function CONDITION_OPTIONS()

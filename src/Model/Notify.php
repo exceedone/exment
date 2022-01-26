@@ -361,6 +361,8 @@ class Notify extends ModelBase
     {
         $workflow = $workflow_action->workflow_cache;
 
+        $custom_value->refresh();
+
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
             $users = $this->getNotifyTargetUsersWorkflow($custom_value, $action_setting, $workflow_action, $workflow_value, $statusTo);

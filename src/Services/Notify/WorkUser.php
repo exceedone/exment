@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\NotifyTarget;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 
 class WorkUser extends NotifyTargetBase
 {
@@ -33,7 +34,8 @@ class WorkUser extends NotifyTargetBase
         if (!isset($workflow_value) || !$workflow_value->isCompleted()) {
             WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
                 ->each(function ($workflow_action) use (&$users, $custom_value) {
-                    $users = $users->merge($workflow_action->getAuthorityTargets($custom_value, true));
+                    $users = \Exment::uniqueCustomValues($users, 
+                        $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NOTIFY));
                 });
         }
 

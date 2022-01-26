@@ -29,6 +29,7 @@ trait TestDataTrait
                         'user_name' => 'user1',
                         'user_code' => 'user1',
                         'email' => 'user1@user.foobar.test',
+                        'boss' => 1,
                     ],
                     'password' => 'user1user1',
                 ],
@@ -38,6 +39,7 @@ trait TestDataTrait
                         'user_name' => 'user2',
                         'user_code' => 'user2',
                         'email' => 'user2@user.foobar.test',
+                        'boss' => 1,
                     ],
                     'password' => 'user2user2',
                     'avatar' => TestDefine::FILE_USER_BASE64,
@@ -48,6 +50,7 @@ trait TestDataTrait
                         'user_name' => 'user3',
                         'user_code' => 'user3',
                         'email' => 'user3@user.foobar.test',
+                        'boss' => 2, //user1
                     ],
                     'password' => 'user3user3',
                 ],
@@ -57,6 +60,7 @@ trait TestDataTrait
                         'user_name' => 'company1-userA',
                         'user_code' => 'company1-userA',
                         'email' => 'company1-userA@user.foobar.test',
+                        'boss' => 1,
                     ],
                     'password' => 'company1-userA',
                 ],
@@ -66,6 +70,7 @@ trait TestDataTrait
                         'user_name' => 'dev-userB',
                         'user_code' => 'dev-userB',
                         'email' => 'dev-userB@user.foobar.test',
+                        'boss' => 3, // userB
                     ],
                     'password' => 'dev-userB',
                 ],
@@ -75,6 +80,7 @@ trait TestDataTrait
                         'user_name' => 'dev1-userC',
                         'user_code' => 'dev1-userC',
                         'email' => 'dev1-userC@user.foobar.test',
+                        'boss' => 6, // dev-userB
                     ],
                     'password' => 'dev1-userC',
                 ],
@@ -84,6 +90,7 @@ trait TestDataTrait
                         'user_name' => 'dev1-userD',
                         'user_code' => 'dev1-userD',
                         'email' => 'dev1-userD@user.foobar.test',
+                        'boss' => 6, // dev-userB
                     ],
                     'password' => 'dev1-userD',
                 ],
@@ -93,6 +100,7 @@ trait TestDataTrait
                         'user_name' => 'dev2-userE',
                         'user_code' => 'dev2-userE',
                         'email' => 'dev2-userE@user.foobar.test',
+                        'boss' => 6, // dev-userB
                     ],
                     'password' => 'dev2-userE',
                 ],

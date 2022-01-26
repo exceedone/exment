@@ -11,6 +11,7 @@ class Workflow extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $appends = ['workflow_edit_flg'];
     protected $casts = ['options' => 'json'];
@@ -183,7 +184,7 @@ class Workflow extends ModelBase
             }
 
             $workflow = Workflow::getEloquent($record->workflow_id);
-            if (!boolval($workflow->setting_completed_flg)) {
+            if (!$workflow || !boolval($workflow->setting_completed_flg)) {
                 return false;
             }
             

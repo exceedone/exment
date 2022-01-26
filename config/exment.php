@@ -1045,4 +1045,15 @@ return [
     |
     */
     'form_column_option_group' => env('EXMENT_FORM_COLUMN_OPTION_GROUP', false),
+
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Workflow show id
+    |--------------------------------------------------------------------------
+    |
+    | If true, show wofkflow's id.
+    |
+    */
+    'show_workflow_id' => env('EXMENT_SHOW_WORKFLOW_ID', false),
 ];

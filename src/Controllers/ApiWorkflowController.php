@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Validator;
 
 /**
@@ -212,7 +213,10 @@ class ApiWorkflowController extends AdminControllerBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = $workflow_action->getAuthorityTargets($custom_value, $orgAsUser)->merge($result);
+            $result = \Exment::uniqueCustomValues($result, $workflow_action->getAuthorityTargets(
+                $custom_value, WorkflowGetAuthorityType::CURRENT_WORK_USER, [
+                    'orgAsUser' => $orgAsUser
+                ]));
         }
 
         return $result->unique();
@@ -323,10 +327,15 @@ class ApiWorkflowController extends AdminControllerBase
         }
         $statusTo = $workflow_action->getStatusToId($custom_value);
         $currentTo = isset($custom_value->workflow_value)? $custom_value->workflow_value->workflow_status_to_id: null;
+
+        $next_get_by_userinfo = null;
         if ($currentTo != $statusTo) {
             $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow);
             $need_next = $nextActions->contains(function ($workflow_action) {
                 return $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+            });
+            $next_get_by_userinfo = $nextActions->first(function ($workflow_action) {
+                return $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::GET_BY_USERINFO;
             });
             if ($need_next) {
                 $rules['next_users'] = 'required_without:next_organizations';
@@ -344,6 +353,17 @@ class ApiWorkflowController extends AdminControllerBase
 
         if (($params = $this->getExecuteParams($request)) instanceof Response) {
             return $params;
+        }
+
+        // If has $next_get_by_userinfo, set get_by_userinfo_action
+        if(!is_nullorempty($next_get_by_userinfo)){
+            // if WorkflowWorkTargetType::GET_BY_USERINFO, check has next user. If not has, throw error.
+            $nextUserAndOrgs = $next_get_by_userinfo->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::EXEXCUTE);
+            if(is_nullorempty($nextUserAndOrgs) && $next_get_by_userinfo->isActionNext($custom_value)){
+                return abortJson(400, ErrorCode::WORKFLOW_NOT_HAS_NEXT_USER());
+            }
+            
+            $params['get_by_userinfo_action'] = $next_get_by_userinfo->id;
         }
 
         // execute workflow action

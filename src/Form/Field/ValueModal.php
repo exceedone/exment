@@ -54,6 +54,8 @@ class ValueModal extends Field
      */
     protected $ajax;
 
+    protected $escape = true;
+
     /**
      * @var array modal ajax posting names
      */
@@ -150,6 +152,13 @@ class ValueModal extends Field
         return $this;
     }
 
+    public function escape(bool $escape = true)
+    {
+        $this->escape = $escape;
+
+        return $this;
+    }
+
     protected function script()
     {
         $classname = $this->getElementClassSelector();
@@ -167,6 +176,9 @@ class ValueModal extends Field
                 ev.preventDefault();
 
                 let valText = {$valueTextScript};
+                if(!hasValue(valText)){
+                    return;
+                }
                 
                 // set value and text
                 let target = getValueModalTarget();
@@ -255,10 +267,10 @@ EOT;
 
         if (is_array($this->text) || $this->text instanceof \Illuminate\Support\Collection) {
             $this->text = collect($this->text)->map(function ($t) {
-                return esc_html($t);
+                return $this->escape ? esc_html($t) : $t;
             })->implode('<br />');
         } else {
-            $this->text = esc_html($this->text);
+            $this->text = $this->escape ? esc_html($this->text) : $this->text;
         }
 
         // convert value
