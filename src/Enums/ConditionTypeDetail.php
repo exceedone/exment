@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\RoleGroup;
  * @method static ConditionTypeDetail ROLE()
  * @method static ConditionTypeDetail SYSTEM()
  * @method static ConditionTypeDetail FORM()
+ * @method static ConditionTypeDetail LOGIN_USER_COLUMN()
  * @method static ConditionTypeDetail COLUMN()
  */
 class ConditionTypeDetail extends EnumBase

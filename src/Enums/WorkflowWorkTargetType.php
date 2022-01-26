@@ -6,7 +6,7 @@ namespace Exceedone\Exment\Enums;
  * Workflow target Difinition.
  *
  * @method static WorkflowWorkTargetType ACTION_SELECT()
- * @method static WorkflowWorkTargetType USER_OR_ORG()
+ * @method static WorkflowWorkTargetType GET_BY_USERINFO()
  * @method static WorkflowWorkTargetType FIX()
  */
 class WorkflowWorkTargetType extends EnumBase
