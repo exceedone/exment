@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Feature;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\WorkflowValueAuthority;
+use Exceedone\Exment\Model\CustomTable;
 
 class Api3WorkflowTest extends ApiTestBase
 {
@@ -941,14 +942,15 @@ class Api3WorkflowTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
         
-        $authorities = WorkflowValueAuthority::where('workflow_value_id', $id)->get();
-        $this->assertTrue(!\is_nullorempty($authorities));
-        $this->assertTrue(count($authorities) === 3);
-        foreach ($authorities as $authority) {
-            $this->assertTrue(
-                ($authority->related_id == '6' && $authority->related_type == 'user')
-            );
-        }
+        // get workflow value
+        $custom_table = CustomTable::getEloquent('workflow1');
+        $custom_value = $custom_table->getValueModel(61);
+        $workflow_value = $custom_value->workflow_value;
+        $this->assertTrue(!is_nullorempty($workflow_value));
+
+        $this->assertMatch($workflow_value->morph_id, 61);
+        $this->assertMatch($workflow_value->workflow_action_id, 9);
+        $this->assertMatch($workflow_value->workflow_status_to_id, 8);
     }
 
     public function testExecuteWorkflow2WrongAction()
