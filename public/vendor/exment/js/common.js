@@ -336,9 +336,9 @@ var Exment;
          * if click grid row, move page
          */
         static tableHoverLink() {
-            $('table').find('[data-id]').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
+            $('table').find('[data-id],.rowclick').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
                 // if e.target closest"a" is length > 0, return
-                if ($(ev.target).closest('a').length > 0) {
+                if ($(ev.target).closest('a,.rowclick').length > 0) {
                     return;
                 }
                 if ($(ev.target).closest('.popover').length > 0) {
@@ -368,7 +368,7 @@ var Exment;
                 if (!hasValue(linkElem)) {
                     return;
                 }
-                linkElem.closest('a').click();
+                linkElem.closest('a,.rowclick').trigger('click');
             }).addClass('tableHoverLinkEvent');
         }
         /**

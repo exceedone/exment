@@ -333,7 +333,8 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     }
 
     .modal-body{
-        height: calc(100vh - 140px);
+        height: calc(90vh - 130px);
+        max-height: none;
     }
 }
 
