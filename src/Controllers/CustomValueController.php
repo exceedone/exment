@@ -632,6 +632,7 @@ class CustomValueController extends AdminControllerTableBase
         $action->executeAction($custom_value, [
             'comment' => $request->get('comment'),
             'next_work_users' => $request->get('next_work_users'),
+            'get_by_userinfo_action' => $request->get('get_by_userinfo_action'),
         ]);
 
         return ([

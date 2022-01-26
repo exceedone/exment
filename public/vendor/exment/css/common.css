@@ -40,6 +40,10 @@
   display: inline-block;
 }
 
+.p-0 {
+  padding: 0 !important;
+}
+
 .pt-0 {
   padding-top: 0 !important;
 }
@@ -3771,7 +3775,8 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 }
 
 .modal-heightfix .modal-body {
-  height: calc(100vh - 140px);
+  height: calc(90vh - 130px);
+  max-height: none;
 }
 
 .modal-tile .groupheader {

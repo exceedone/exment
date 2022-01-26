@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\RoleGroup;
  * @method static ConditionTypeDetail ROLE()
  * @method static ConditionTypeDetail SYSTEM()
  * @method static ConditionTypeDetail FORM()
+ * @method static ConditionTypeDetail LOGIN_USER_COLUMN()
  * @method static ConditionTypeDetail COLUMN()
  */
 class ConditionTypeDetail extends EnumBase
@@ -26,6 +27,7 @@ class ConditionTypeDetail extends EnumBase
     const ROLE = "3";
     const SYSTEM = "4";
     const FORM = "5";
+    const LOGIN_USER_COLUMN = "8";
     const COLUMN = "9";
 
     public static function CONDITION_OPTIONS()

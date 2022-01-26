@@ -129,6 +129,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
             $router->post('workflow/{id}/activate', 'WorkflowController@activate');
             $router->get('workflow/{id}/activateModal', 'WorkflowController@activateModal');
+            $router->post('workflow/{id}/deactivate', 'WorkflowController@deactivate');
+            $router->get('workflow/{id}/deactivateModal', 'WorkflowController@deactivateModal');
 
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');

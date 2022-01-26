@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Tests\TestDefine;
@@ -90,7 +91,7 @@ class PluginTest extends TestCase
 
         // get action
         $action = $custom_value->getWorkflowActions()->first();
-        $action_user = $action->getAuthorityTargets($custom_value)->first();
+        $action_user = $action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::CURRENT_WORK_USER)->first();
         $this->be(LoginUser::find($action_user->id));
         
         $action->executeAction($custom_value, [
