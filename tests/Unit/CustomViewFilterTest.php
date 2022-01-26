@@ -1443,7 +1443,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => '["start","7"]'
         ];
         $today = \Carbon\Carbon::today();
-        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use($today) {
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($today) {
             $date = array_get($data, 'value.date');
             if (is_null($date)) {
                 return false;
