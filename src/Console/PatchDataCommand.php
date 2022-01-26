@@ -2147,12 +2147,12 @@ class PatchDataCommand extends Command
     protected function patchEditableUserInfo()
     {
         $user_table = CustomTable::getEloquent(SystemTableName::USER);
-        if(!$user_table){
+        if (!$user_table) {
             return;
         }
-        \DB::transaction(function () use($user_table) {
+        \DB::transaction(function () use ($user_table) {
             foreach ($user_table->custom_columns as $custom_column) {
-                switch($custom_column->column_name) {
+                switch ($custom_column->column_name) {
                     case 'user_code':
                     case 'email':
                         $custom_column->setOption('editable_userinfo', EditableUserInfoType::VIEW);
