@@ -107,8 +107,9 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 }
 
                 // Filter user and org by target table
-                $userIds = $custom_value->filterAccessibleUsers($userIds)->toArray();
-                $organizationIds = $custom_value->filterAccessibleOrganizations($organizationIds)->toArray();
+                $custom_table = $custom_value->custom_table;
+                $userIds = $custom_table->filterAccessibleUsers($userIds)->toArray();
+                $organizationIds = $custom_table->filterAccessibleOrganizations($organizationIds)->toArray();
 
                 return [
                     'users' => $userIds,
