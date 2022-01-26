@@ -1248,6 +1248,7 @@ return [
         'add_custom_view_flg' => '既定のビューに追加する',
         'add_table_label_flg' => '見出し列に追加する',
         'auto_number_format_rule' => '自動採番フォーマットのルール',
+        'editable_userinfo' => '本人情報の閲覧・編集',
         'symbols' => [
             'plus' => '＋',
             'minus' => '－',
@@ -1320,6 +1321,11 @@ return [
             "left" => "左寄せ",
             "center" => "中央寄せ",
             "right" => "右寄せ",
+        ],
+        'editable_userinfo_options' => [
+            "none" => "表示しない",
+            "view" => "参照のみ",
+            "edit" => "編集可能",
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -1394,6 +1400,7 @@ return [
             'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
             'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
             'required_yes' => 'この設定をYESにすることで、入力画面でYESに設定することが必須となります。※チェックボックス形式の場合、チェックされていることが必須となります。',
+            'editable_userinfo' => 'ログインユーザーがユーザー設定画面で自身の情報を閲覧・編集できるかどうかを設定します。<br/>※「1度のみ入力可能」などのオプションが設定されている場合はそちらが優先されます。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 
