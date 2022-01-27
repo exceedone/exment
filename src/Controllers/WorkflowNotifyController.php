@@ -167,7 +167,7 @@ class WorkflowNotifyController extends Controller
         $form->display('notify_trigger', exmtrans("notify.notify_trigger"))
             ->displayText(exmtrans("notify.notify_trigger_options.workflow"));
        
-        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use($workflow){
+        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($workflow) {
             $form->switchbool('notify_myself', exmtrans("notify.notify_myself"))
                 ->default(false)
                 ->help(exmtrans("notify.help.notify_myself"));

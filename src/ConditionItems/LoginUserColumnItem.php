@@ -172,9 +172,9 @@ class LoginUserColumnItem extends ColumnItem
             case 'first_executed_user':
                 $wv = WorkflowValue::getFirstExecutedWorkflowValue($custom_value);
                 // If as next action, check last workflow value action. if not has $lastWv or $lastWv->workflow_status_to_id is null, $wv is null.
-                if(!is_nullorempty($wv) && $asNextAction){
+                if (!is_nullorempty($wv) && $asNextAction) {
                     $lastWv = WorkflowValue::getLastExecutedWorkflowValue($custom_value);
-                    if(!$lastWv || is_nullorempty($lastWv->workflow_status_to_id)){
+                    if (!$lastWv || is_nullorempty($lastWv->workflow_status_to_id)) {
                         $wv = null;
                     }
                 }
@@ -186,10 +186,9 @@ class LoginUserColumnItem extends ColumnItem
             // else, get setted last workflow value
             default:
                 // If as next action, call login user id as next user.
-                if($asNextAction){
+                if ($asNextAction) {
                     $wv = null;
-                }
-                else{
+                } else {
                     $wv = WorkflowValue::getLastExecutedWorkflowValue($custom_value);
                 }
                 break;
