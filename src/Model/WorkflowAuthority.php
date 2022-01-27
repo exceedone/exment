@@ -116,9 +116,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 ];
                 
             case ConditionTypeDetail::LOGIN_USER_COLUMN:
-                // get whether flow is next.
-                list($isNext, $flow_next_count) = $workflow_action->getActionNextParams($custom_value);
-                return \Exceedone\Exment\ConditionItems\LoginUserColumnItem::getTargetUserAndOrg($custom_value, $workflow, $this->related_id, $asNextAction, $isNext);
+                return \Exceedone\Exment\ConditionItems\LoginUserColumnItem::getTargetUserAndOrg($custom_value, $workflow, $this->related_id, $asNextAction);
         }
 
         return [];
