@@ -135,7 +135,7 @@ class LoginUserColumnItem extends ColumnItem
         $custom_column = CustomColumn::getEloquent($workflow_authority->related_id);
         $workflow_action = WorkflowAction::getEloquent($workflow_authority->workflow_action_id);
         
-        $userAndOrgs = static::getTargetUserAndOrg($custom_value, $workflow_action->workflow_cache, $workflow_authority->related_id);
+        $userAndOrgs = static::getTargetUserAndOrg($custom_value, $workflow_action, $workflow_authority->related_id);
 
         switch ($custom_column->column_type) {
             case ColumnType::USER:
@@ -160,8 +160,9 @@ class LoginUserColumnItem extends ColumnItem
      * @param boolean $asNextAction This action calls as next action. Actually, this is showing dialog.
      * @return array
      */
-    public static function getTargetUserAndOrg(CustomValue $custom_value, Workflow $workflow, $custom_column_id, bool $asNextAction = false) : array
+    public static function getTargetUserAndOrg(CustomValue $custom_value, WorkflowAction $workflow_action, $custom_column_id, bool $asNextAction = false) : array
     {
+        $workflow = $workflow_action->workflow_cache;
         $column = CustomColumn::getEloquent($custom_column_id);
         // get target workflow value. By workflow_action's "get_by_userinfo_base".
         $wv = null;
@@ -170,6 +171,13 @@ class LoginUserColumnItem extends ColumnItem
             // If 'first executed user', get first workflow value.
             case 'first_executed_user':
                 $wv = WorkflowValue::getFirstExecutedWorkflowValue($custom_value);
+                // If as next action, check last workflow value action. if not has $lastWv or $lastWv->workflow_status_to_id is null, $wv is null.
+                if(!is_nullorempty($wv) && $asNextAction){
+                    $lastWv = WorkflowValue::getLastExecutedWorkflowValue($custom_value);
+                    if(!$lastWv || is_nullorempty($lastWv->workflow_status_to_id)){
+                        $wv = null;
+                    }
+                }
                 break;
             // If 'created user', get as custom_value's created_user_id
             case 'created_user':
@@ -177,7 +185,7 @@ class LoginUserColumnItem extends ColumnItem
                 break;
             // else, get setted last workflow value
             default:
-                // If as next action and move next, call login user id as next user.
+                // If as next action, call login user id as next user.
                 if($asNextAction){
                     $wv = null;
                 }
