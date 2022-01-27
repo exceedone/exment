@@ -496,7 +496,7 @@ class WorkflowAction extends ModelBase
             $workflow_authorities = $this->workflow_authorities_cache;
 
             foreach ($workflow_authorities as $workflow_authority) {
-                $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this->workflow_cache, $asNextAction);
+                $results = $workflow_authority->getWorkflowAuthorityUserOrgLabels($custom_value, $this, $asNextAction);
                 if (array_key_value_exists('users', $results)) {
                     foreach ($results['users'] as $id) {
                         $userIds[] = $id;

@@ -134,7 +134,10 @@ class LoginUserColumnItem extends ColumnItem
     {
         $custom_column = CustomColumn::getEloquent($workflow_authority->related_id);
         $workflow_action = WorkflowAction::getEloquent($workflow_authority->workflow_action_id);
-        $userAndOrgs = static::getTargetUserAndOrg($custom_value, $workflow_action->workflow_cache, $workflow_authority->related_id);
+        
+        // get whether flow is next.
+        list($isNext, $flow_next_count) = $workflow_action->getActionNextParams($custom_value);
+        $userAndOrgs = static::getTargetUserAndOrg($custom_value, $workflow_action->workflow_cache, $workflow_authority->related_id, false, $isNext);
 
         switch ($custom_column->column_type) {
             case ColumnType::USER:
@@ -156,10 +159,11 @@ class LoginUserColumnItem extends ColumnItem
      * @param CustomValue $custom_value
      * @param Workflow $workflow
      * @param mixed $custom_column_id
-     * @param boolean $getAsLoginUser
+     * @param boolean $asNextAction This action calls as next action. Actually, this is showing dialog.
+     * @param boolean $isNext This action expects moving next. If false, needs multiple applove, and not need applove.
      * @return array
      */
-    public static function getTargetUserAndOrg(CustomValue $custom_value, Workflow $workflow, $custom_column_id) : array
+    public static function getTargetUserAndOrg(CustomValue $custom_value, Workflow $workflow, $custom_column_id, bool $asNextAction = false, bool $isNext = true) : array
     {
         $column = CustomColumn::getEloquent($custom_column_id);
         // get target workflow value. By workflow_action's "get_by_userinfo_base".
@@ -176,7 +180,13 @@ class LoginUserColumnItem extends ColumnItem
                 break;
             // else, get setted last workflow value
             default:
-                $wv = WorkflowValue::getLastExecutedWorkflowValue($custom_value);
+                // If as next action and move next, call login user id as next user.
+                if($asNextAction && $isNext){
+                    $wv = null;
+                }
+                else{
+                    $wv = WorkflowValue::getLastExecutedWorkflowValue($custom_value);
+                }
                 break;
         }
 
