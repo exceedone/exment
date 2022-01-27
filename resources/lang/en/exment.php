@@ -2305,6 +2305,8 @@ return [
         'webhook_url' => 'Webhook URL',
         'mention_here' => 'Notify all members',
         'mention_setting_manual_id' => 'slack-idsettingmethod',
+        'filter_status_to' => 'Executed Status',
+        'filter_actions' => 'Execute Action',
 
         'help' => [
             'active_flg' => 'If you want to temporarily disable notifications, set it to NO.',
@@ -2327,6 +2329,8 @@ return [
             'target_emails' => 'Please enter the email address to which you want to send the notification. If you specify more than one, enter them separated by line breaks.',
             'target_users' => 'Select users to send the notification to.',
             'target_organizations' => 'Select organizations to send the notification to.',
+            'filter_status_to' => 'Select the status for which you want to send notifications. Refers to the status after executing the action. *If it is empty, all will be covered.',
+            'filter_actions' => 'Select the action to send the notification to. *If it is empty, all will be covered.',
         ],
 
         'notify_trigger_options' => [

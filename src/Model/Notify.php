@@ -436,7 +436,7 @@ class Notify extends ModelBase
         $filter_status_to = array_get($this->trigger_settings, 'filter_status_to');
         $filter_actions = array_get($this->trigger_settings, 'filter_actions');
 
-        if (!empty($filter_status_to)) {
+        if (!is_nullorempty($filter_status_to)) {
             if (!is_array($filter_status_to)) {
                 $filter_status_to = [$filter_status_to];
             }
@@ -445,7 +445,7 @@ class Notify extends ModelBase
             }
         }
 
-        if (!empty($filter_actions)) {
+        if (!is_nullorempty($filter_actions)) {
             if (!is_array($filter_actions)) {
                 $filter_actions = [$filter_actions];
             }
