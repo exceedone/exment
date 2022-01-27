@@ -144,6 +144,18 @@ class Workflow extends ModelBase
     }
 
     /**
+     * Get action options.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getActionOptions()
+    {
+        $actions = $this->workflow_actions_cache->pluck('action_name', 'id');
+
+        return $actions;
+    }
+
+    /**
      * Get workflow filtering active using custom table
      *
      * @param CustomTable $custom_table
