@@ -2306,6 +2306,8 @@ return [
         'webhook_url' => 'Webhook URL',
         'mention_here' => 'メンバー全員に通知を実施',
         'mention_setting_manual_id' => 'slack-id設定方法',
+        'filter_status_to' => '実行後ステータス',
+        'filter_actions' => '実施アクション',
 
         'help' => [
             'active_flg' => '通知を一時的に無効にする場合、NOにしてください。',
@@ -2328,6 +2330,8 @@ return [
             'target_emails' => '通知を送信するメールアドレスを入力してください。複数指定する場合、改行区切りで入力してください。',
             'target_users' => '通知を送信するユーザーを選択してください。',
             'target_organizations' => '通知を送信する組織を選択してください。',
+            'filter_status_to' => '通知を送信するステータスを選択してください。アクション実行後のステータスを参照します。※空の場合はすべてが対象となります。',
+            'filter_actions' => '通知を送信するアクションを選択してください。※空の場合はすべてが対象となります。',
         ],
 
         'notify_trigger_options' => [

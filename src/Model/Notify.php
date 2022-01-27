@@ -361,6 +361,10 @@ class Notify extends ModelBase
     {
         $workflow = $workflow_action->workflow_cache;
 
+        if (!$this->isNotifyWorkflowTarget($workflow_action, $statusTo)) {
+            return;
+        }
+
         $custom_value->refresh();
 
         // loop action setting
@@ -418,6 +422,38 @@ class Notify extends ModelBase
                 }
             }
         }
+    }
+    
+    /**
+     * check if notify workflow target data
+     *
+     * @param WorkflowAction $workflow_action
+     * @param string $statusTo
+     * @return boolean
+     */
+    public function isNotifyWorkflowTarget(WorkflowAction $workflow_action, $statusTo)
+    {
+        $filter_status_to = array_get($this->trigger_settings, 'filter_status_to');
+        $filter_actions = array_get($this->trigger_settings, 'filter_actions');
+
+        if (!is_nullorempty($filter_status_to)) {
+            if (!is_array($filter_status_to)) {
+                $filter_status_to = [$filter_status_to];
+            }
+            if (!in_array($statusTo, $filter_status_to)) {
+                return false;
+            }
+        }
+
+        if (!is_nullorempty($filter_actions)) {
+            if (!is_array($filter_actions)) {
+                $filter_actions = [$filter_actions];
+            }
+            if (!in_array($workflow_action->id, $filter_actions)) {
+                return false;
+            }
+        }
+        return true;
     }
     
     /**

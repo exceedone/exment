@@ -65,8 +65,9 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
      *
      * @return array
      */
-    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, Workflow $workflow, bool $getAsLoginUser = false) : array
+    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, WorkflowAction $workflow_action, bool $asNextAction = false) : array
     {
+        $workflow = $workflow_action->workflow_cache;
         $type = ConditionTypeDetail::getEnum($this->related_type);
         switch ($type) {
             case ConditionTypeDetail::USER:
@@ -115,7 +116,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 ];
                 
             case ConditionTypeDetail::LOGIN_USER_COLUMN:
-                return \Exceedone\Exment\ConditionItems\LoginUserColumnItem::getTargetUserAndOrg($custom_value, $workflow, $this->related_id);
+                return \Exceedone\Exment\ConditionItems\LoginUserColumnItem::getTargetUserAndOrg($custom_value, $workflow_action, $this->related_id, $asNextAction);
         }
 
         return [];
