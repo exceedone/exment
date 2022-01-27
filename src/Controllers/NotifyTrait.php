@@ -140,18 +140,21 @@ trait NotifyTrait
             'display_table' => $custom_table,
         ]);
     
-        $form->multipleSelect('target_users', exmtrans('notify.target_users'))
+        $field = $form->multipleSelect('target_users', exmtrans('notify.target_users'))
             ->options($users)
             ->ajax($ajax)
-            ->help(exmtrans('workflow.help.target_user_org', [
-                'table_view_name' => esc_html($custom_table->table_view_name),
-                'type' => exmtrans('menu.system_definitions.user'),
-            ]))
             ->attribute([
                 'data-filter' => json_encode([
                     ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_USER]],
                 ])
             ]);
+
+        if ($custom_table) {
+            $field->help(exmtrans('workflow.help.target_user_org', [
+                'table_view_name' => esc_html($custom_table->table_view_name),
+                'type' => exmtrans('menu.system_definitions.user'),
+            ]));
+        }
 
         if (System::organization_available()) {
             list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
