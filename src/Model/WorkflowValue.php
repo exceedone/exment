@@ -125,6 +125,40 @@ class WorkflowValue extends ModelBase
             ->count() > 0;
     }
 
+
+    /**
+     * Get first executed workflow value.
+     * *Filtered workflow_status_from_id is NULL or first status name.
+     * *Sorted id desc. (First action... but last executed.)
+     *
+     * @return WorkflowValue
+     */
+    public static function getFirstExecutedWorkflowValue($custom_value)
+    {
+        // get first status name
+        return static::where('morph_type', $custom_value->custom_table_name)
+            ->where('morph_id', $custom_value->id)
+            ->whereNull('workflow_status_from_id')
+            ->where('action_executed_flg', 0) //Ignore multiple approve
+            ->orderBy('id', 'desc')
+            ->first();
+    }
+    
+    /**
+     * Get last executed workflow value.
+     * *Filtered action_executed_flg
+     * *Sorted id desc. (First action... but last executed.)
+     *
+     * @return WorkflowValue
+     */
+    public static function getLastExecutedWorkflowValue($custom_value)
+    {
+        return static::where('morph_type', $custom_value->custom_table_name)
+            ->where('morph_id', $custom_value->id)
+            ->where('action_executed_flg', 0)
+            ->orderBy('id', 'desc')
+            ->first();
+    }
     
     public function deletingChildren()
     {

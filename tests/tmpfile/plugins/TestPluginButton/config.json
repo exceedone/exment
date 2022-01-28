@@ -6,6 +6,6 @@
     "author": "Kajitori",
     "version": "1.0.0",
     "plugin_type": "button",
-    "event_triggers": "grid_menubutton",
+    "event_triggers": "form_menubutton_show",
     "target_tables": "custom_value_edit_all"
 }

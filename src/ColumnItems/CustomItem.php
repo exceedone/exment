@@ -397,8 +397,8 @@ abstract class CustomItem implements ItemInterface
 
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
-        $form_column_options = $form_column->options ?? null;
-        $this->form_column_options = $form_column_options;
+        $form_column_options = $form_column->options ?? [];
+        $this->form_column_options = array_merge($this->form_column_options, $form_column_options);
 
         // if hidden setting, add hidden field
         if ($this->hidden()) {

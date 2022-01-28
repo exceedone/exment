@@ -11,11 +11,14 @@ namespace Exment {
         }
 
         public static GetSettingValText(){
-            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system'];
+            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system', 'modal_login_user_column'];
 
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_targets"] form');
-
+            if(!(form.get(0) as HTMLFormElement).reportValidity()){
+                return;
+            }
+            
             // get value
             let val:any = serializeFromArray(form);
             // filter
@@ -30,6 +33,10 @@ namespace Exment {
             }
             
             let texts = [];
+
+            let label = $('.work_target_type:checked').closest('label').text().trim();
+            texts.push('[' + label + ']');
+
             $.each(targetKeys, function(index, value){
                 let target = form.find('.' + value + '.form-control');
                 if(!hasValue(target)){
@@ -53,10 +60,6 @@ namespace Exment {
                 //     texts.push(escHtml(target.closest('.radio-inline').text().trim()));
                 // }
             });
-
-            if($('.work_target_type:checked').val() == 'action_select'){
-                texts.push($('.work_target_type:checked').closest('label').text().trim());
-            }
 
             return {value: JSON.stringify(values), text: texts.join('<br />')};
         }

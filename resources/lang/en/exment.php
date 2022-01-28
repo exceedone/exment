@@ -1037,11 +1037,13 @@ return [
         'datalock_flg' => 'Cannot Edit Data',
         'setting_complete' => 'Setting Complete',
         'setting_completed_flg' => 'Setting Complete',
+        'delete_complete' => 'Delete Workflow',
         'add_notify_flg' => 'Add Notify',
         'option' => 'Option Setting',
         'work_targets' => 'Work User',
         'work_targets_select' => 'Select Work User',
         'work_conditions' => 'Action Setting',
+        'work_condition_select' => 'After Status',
         'condition' => 'Condition',
         'flow_next_type' => 'Condition to advance to next status',
         'upper_user' => 'more than people',
@@ -1056,6 +1058,10 @@ return [
         'flow_executed_user_count' => 'Current Action Executed User',
         'flow_executed_user_count_format' => '%s / %s User',
         'has_condition' => '(Conditional)',
+        'get_by_userinfo_base' => 'Execution User - Base User',
+        'first_executed_user' => 'First Execution User',
+        'executed_user' => 'Execution User',
+        'created_user' => 'Created Data User',
 
         'help' => [
             'saved_redirect_column' => 'Saved! Next, set the action.',
@@ -1066,18 +1072,22 @@ return [
             'workflow_edit_flg' => 'If YES, edit permission is granted to the next working user when the action is executed. (If NO, browse authority is given.)',
             'work_conditions' => 'Set the status after executing the action. Click the “Change” button to change the settings. The settings vary depending on the workflow type.',
             'work_targets' => 'Select the users and organizations that can perform this action. Click the “Change” button to change the settings.',
-            'work_targets2' => 'Select the types of users who can perform this action.<br />Select user to perform previous action selects the user who performed this action from the user who performed the previous action. “Pre-configuration” can only be performed by specific users or organizations.',
+            'work_targets2' => 'Select the type of user who can perform this action.<br />[Select by user to perform previous action] The user who performed the previous action selects the user to perform this action.<br/>[Preconfigured] Can only be run by specific users or organizations.<br/>[Get from execution user information] Only the user or organization set in the custom column of the execution user can be executed.',
             'work_conditions_common' => 'Sets the status after this action is executed.',
             'work_conditions_table' => 'Set the conditions for executing this action and the status after execution. Up to three conditions can be set.<br />*When executing a fixed action at all times, only set [Condition 1] [Post-execution status].',
             'flow_next_type' => 'Sets the number of people to progress to the next status when this action is executed.',
             'beginning' => 'Select up to one workflow to use for each table. <br /> * Even if the workflow to be used is changed, the workflow currently in progress is executed in the workflow before the change.',
             'status_from' => 'Set the status state to perform that action.',
+            'status_to' => 'Sets the status status after executing an action. * Select a status different from the pre-execution status.',
             'setting_complete' => 'Complete the setup for this workflow. When the setting is completed, the following contents cannot be implemented.<br />Delete workflow<br />Add, delete, order status',
+            'deactivate_complete' => '<span class="red bold">Delete this workflow.</span>Please note the following points when deleting.<br />*You will not be able to restore the workflow.<br />*The workflow in progress is disabled.<br />*Even if the "Uneditable data" setting is set to YES in the status settings, the uneditable data can be edited again.<br /><br />Only do this if you really want to remove it.',
             'ignore_work' => 'By checking, "executable user" set in this action is not included in the work user. <br /> Please check this when you want to return to the previous status, such as "Reject" or "Return", or when the administrator approves with a special exception.',
             'flow_executed_user_count' => 'The status will not change until the required number of people perform the action.',
             'add_notify_flg' => 'Add a setting to notify in the system for the "next work user" when the workflow is executed. Set to YES to add. <br/> * Can only be set when workflow settings are complete. Please set from the "Notification" page when updating.',
             'target_column' => 'Columns with custom column types "User" and "Organization" are displayed in the choices.',
+            'target_column_get_by_userinfo' => 'Of the columns with the custom column type "User" and "Organization" set in the "User" table, the column set in the search index is displayed in the selection.',
             'target_user_org' => 'Only :type that has permission to access the table ":table_view_name" will be displayed in the choices. If you don\'t see the :type you want to add, add permissions from the role group settings.',
+            'get_by_userinfo_base' => 'Select which users you want to use as the basis for getting the users / organizations to perform the following actions.<br />[First Performing User] Based on the user who performed the first action in the flow.<br />[Execution user] Based on the user who performed the action.<br />[Created user] Based on the user who created data.',
         ],
 
         'message' => [
@@ -1088,7 +1098,10 @@ return [
             'same_custom_table' => 'Duplicate workflow.',
             'same_action' => 'Set the pre-execution status and post-execution status to different statuses.',
             'fix_and_action_select' => 'In the same pre-execution status, "Set in advance" and "Select the user who executed the previous action" cannot be set at the same time.',
+            'ignore_work_and_action_select' => 'If the executable user is "Get from Execution User Information", "Special Action" cannot be set.',
+            'get_by_userinfo_and_action_select' => 'In the same pre-execution status, "Get from execution user information" and "Select by execution user of previous action" cannot be set at the same time.',
             'action_execute' => 'Perform the following actions:',
+            'nextuser_not_found' => 'The following working user does not exist. Please contact the administrator.',
         ],
         
         'comment_options' => [
@@ -1105,6 +1118,7 @@ return [
             'all' => 'Executable by all users',
             'action_select' => 'Selected by the user who executed the previous action',
             'fix' => 'Set in advance',
+            'get_by_userinfo' => 'Obtained from execution user information',
         ],
     ],
 
@@ -1233,6 +1247,7 @@ return [
         'add_custom_view_flg' => 'Add to the Default View',
         'add_table_label_flg' => 'Add to the Table Label',
         'auto_number_format_rule' => 'Auto Number format of the role',
+        'editable_userinfo' => 'Viewing / Editing personal information',
         'symbols' => [
             'plus' => '+',
             'minus' => '-',
@@ -1305,6 +1320,11 @@ return [
             "left" => "Left",
             "center" => "Center",
             "right" => "Right",
+        ],
+        'editable_userinfo_options' => [
+            "none" => "None",
+            "view" => "View Only",
+            "edit" => "Editable",
         ],
         'column_type_options' => [
             "text" => "One-Line Text",
@@ -1379,6 +1399,7 @@ return [
             'checkbox_enabled' => 'If set to YES, it will be displayed in a check box format.',
             'free_input' => 'By setting to YES, you can freely enter options that are not registered.',
             'required_yes' => 'By setting this setting to YES, it is mandatory to set it to YES on the input screen. * In the case of check box format, it is essential that it is checked.',
+            'editable_userinfo' => 'Set whether the logged-in user can view and edit his / her information on the user setting screen.<br/>*If an option such as "Enter only once" is set, that will be given priority.',
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 
@@ -2278,10 +2299,14 @@ return [
         'notify_button_name' => 'Button display name',
         'notify_select' => 'Select Notify Target',
         'target_emails' => 'Destination email address',
+        'target_users' => 'E-mail destination user',
+        'target_organizations' => 'E-mail destination organization',
         'message_input' => 'Input Message',
         'webhook_url' => 'Webhook URL',
         'mention_here' => 'Notify all members',
         'mention_setting_manual_id' => 'slack-idsettingmethod',
+        'filter_status_to' => 'Executed Status',
+        'filter_actions' => 'Execute Action',
 
         'help' => [
             'active_flg' => 'If you want to temporarily disable notifications, set it to NO.',
@@ -2302,6 +2327,10 @@ return [
             'mention_here' => 'Sends an @here mention that notifies all members with active status on the specified channel. * To perform individual mentions, set the "Notification target" item below.',
             'slack_user_column_not_setting' => '*The "Slack ID setting column (user)" in the system settings is not registered. After specifying the column to register Slack ID, you can set the notification target.',
             'target_emails' => 'Please enter the email address to which you want to send the notification. If you specify more than one, enter them separated by line breaks.',
+            'target_users' => 'Select users to send the notification to.',
+            'target_organizations' => 'Select organizations to send the notification to.',
+            'filter_status_to' => 'Select the status for which you want to send notifications. Refers to the status after executing the action. *If it is empty, all will be covered.',
+            'filter_actions' => 'Select the action to send the notification to. *If it is empty, all will be covered.',
         ],
 
         'notify_trigger_options' => [
@@ -2327,6 +2356,8 @@ return [
             'created_user' => 'Create User',
             'work_user' => 'Next Work User',
             'fixed_email' => 'Specified email address',
+            'fixed_user' => 'Specified user',
+            'fixed_organization' => 'Specified organization',
             'action_user' => 'Action execution user',
         ],
 

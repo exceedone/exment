@@ -70,7 +70,7 @@ class MailChannel
         } else {
             // attach each files
             foreach ($mailMessage->getAttachments() as $attachment) {
-                $message->attach($attachment->path, ['as' => $attachment->filename]);
+                $message->attachData($attachment->getFile(), $attachment->filename, ['as' => $attachment->filename]);
             }
         }
     }
@@ -92,7 +92,7 @@ class MailChannel
             return $attachment->path;
         })->toArray();
         
-        ZipService::createPasswordZip($files, $zippath, $tmpFolderPath, $password);
+        ZipService::createPasswordZip($files, $zippath, $tmpFolderPath, $password, Define::DISKNAME_ADMIN);
 
         return [$zippath, $filename];
     }

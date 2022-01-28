@@ -19,6 +19,12 @@ interface ConnectionInterface
      */
     public function checkBackup() : bool;
 
+    /**
+     * Whether use unicode if search multiple column
+     *
+     * @return boolean
+     */
+    public function isUseUnicodeMultipleColumn() : bool;
     
     /**
      * Restore database

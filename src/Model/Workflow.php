@@ -11,6 +11,7 @@ class Workflow extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $appends = ['workflow_edit_flg'];
     protected $casts = ['options' => 'json'];
@@ -143,6 +144,18 @@ class Workflow extends ModelBase
     }
 
     /**
+     * Get action options.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getActionOptions()
+    {
+        $actions = $this->workflow_actions_cache->pluck('action_name', 'id');
+
+        return $actions;
+    }
+
+    /**
      * Get workflow filtering active using custom table
      *
      * @param CustomTable $custom_table
@@ -183,7 +196,7 @@ class Workflow extends ModelBase
             }
 
             $workflow = Workflow::getEloquent($record->workflow_id);
-            if (!boolval($workflow->setting_completed_flg)) {
+            if (!$workflow || !boolval($workflow->setting_completed_flg)) {
                 return false;
             }
             
@@ -274,6 +287,22 @@ class Workflow extends ModelBase
     public function getDisabledDeleteAttribute()
     {
         return boolval($this->setting_completed_flg);
+    }
+    
+    /**
+     * Target Custom Table
+     *
+     * @return boolean
+     */
+    public function getTargetTableAttribute()
+    {
+        if ($this->workflow_type == WorkflowType::TABLE) {
+            $workflow_tables = $this->workflow_tables;
+            if (!is_nullorempty($workflow_tables)) {
+                return $workflow_tables->first()->custom_table;
+            }
+        }
+        return null;
     }
 
     /**

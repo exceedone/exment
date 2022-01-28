@@ -16,6 +16,8 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 
 class WorkflowTestDataSeeder extends Seeder
 {
@@ -41,6 +43,9 @@ class WorkflowTestDataSeeder extends Seeder
      */
     protected function createWorkflow($users)
     {
+        // get user's "boss" column.
+        $boss = CustomColumn::getEloquent('boss', 'user');
+
         // create workflows
         $workflows = [
             [
@@ -238,7 +243,7 @@ class WorkflowTestDataSeeder extends Seeder
                     'options' => [
                         'workflow_edit_flg' => '1',
                     ],
-            ],
+                ],
     
                 'statuses' => [
                     [
@@ -339,6 +344,113 @@ class WorkflowTestDataSeeder extends Seeder
                 'tables' => [
                     [
                         'custom_table' => 'custom_value_edit',
+                    ],
+                ],
+            ],
+
+            [
+                'items' => [
+                    'workflow_view_name' => 'workflow_common_get_for_userinfo',
+                    'workflow_type' => 0,
+                    'setting_completed_flg' => 1,
+                ],
+    
+                'statuses' => [
+                    [
+                        'status_name' => 'waiting',
+                        'datalock_flg' => 0,
+                    ],
+                    [
+                        'status_name' => 'waiting2',
+                        'datalock_flg' => 1,
+                    ],
+                    [
+                        'status_name' => 'completed',
+                        'datalock_flg' => 1,
+                        'completed_flg' => 1,
+                    ],
+                ],
+    
+                'actions' => [
+                    [
+                        'status_from' => 'start',
+                        'action_name' => 'send',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 0,
+                                'enabled_flg' => true,
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 0,
+                                'related_type' => 'system',
+                            ]
+                        ],
+                    ],
+                    [
+                        'status_from' => 0,
+                        'action_name' => 'send2',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::GET_BY_USERINFO,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 1,
+                                'enabled_flg' => true,
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => $boss->id,
+                                'related_type' => ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerKey(),
+                            ]
+                        ],
+                    ],
+                    [
+                        'status_from' => 1,
+                        'action_name' => 'complete',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::GET_BY_USERINFO,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 2,
+                                'enabled_flg' => true,
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => $boss->id,
+                                'related_type' => ConditionTypeDetail::LOGIN_USER_COLUMN()->lowerKey(),
+                            ]
+                        ],
+                    ],
+                ],
+                'tables' => [
+                    [
+                        'custom_table' => 'workflow1',
                     ],
                 ],
             ],
@@ -510,6 +622,7 @@ class WorkflowTestDataSeeder extends Seeder
         ]);
 
         // add for organization work user
+        $workflowObj = Workflow::getEloquent(3); // workflow_for_individual_table
         $wfValue = new WorkflowValue;
         $wfValue->workflow_id = $workflowObj->id;
         $wfValue->morph_type = 'custom_value_edit';
@@ -562,8 +675,10 @@ class WorkflowTestDataSeeder extends Seeder
         }
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, false, false, false)
-                    ->merge($toActionAuthorities);
+            $toActionAuthorities = \Exment::uniqueCustomValues(
+                $toActionAuthorities,
+                $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)
+            );
         });
         
         return $toActionAuthorities;

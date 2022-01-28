@@ -176,6 +176,8 @@ abstract class ConditionItemBase implements ConditionItemInterface
                 return new RoleGroupItem($custom_table, $target);
             case ConditionTypeDetail::SYSTEM:
                 return new SystemItem($custom_table, $target);
+            case ConditionTypeDetail::LOGIN_USER_COLUMN:
+                return new LoginUserColumnItem($custom_table, $target);
             case ConditionTypeDetail::COLUMN:
                 return new ColumnItem($custom_table, $target);
             case ConditionTypeDetail::FORM:

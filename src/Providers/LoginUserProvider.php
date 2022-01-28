@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Providers;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\LoginType;
 
@@ -94,8 +94,12 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
             }
 
             $query = LoginUser::whereHas('base_user', function ($query) use ($key, $credentials) {
-                $user = CustomTable::getEloquent(SystemTableName::USER);
-                $query->where($user->getIndexColumnName($key), array_get($credentials, 'username'));
+                $column = CustomColumn::getEloquent($key, SystemTableName::USER);
+                if (!$column) {
+                    $query->whereNotMatch();
+                } else {
+                    $query->where($column->getQueryKey(), array_get($credentials, 'username'));
+                }
             });
 
             $query->where('login_type', array_get($credentials, 'login_type'));

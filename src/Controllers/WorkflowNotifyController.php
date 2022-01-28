@@ -104,6 +104,12 @@ class WorkflowNotifyController extends Controller
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->prepend(new Tools\SystemChangePageMenu());
+            $tools->prepend(view('exment::tools.button', [
+                'href' => admin_urls('workflow'),
+                'label' => exmtrans('workflow.header') . trans('admin.list'),
+                'icon' => 'fa-list',
+                'btn_class' => 'btn-default',
+            ]));
         });
 
         $grid->model()->where('target_id', $this->workflow->id)
@@ -161,10 +167,16 @@ class WorkflowNotifyController extends Controller
         $form->display('notify_trigger', exmtrans("notify.notify_trigger"))
             ->displayText(exmtrans("notify.notify_trigger_options.workflow"));
        
-        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) {
+        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($workflow) {
             $form->switchbool('notify_myself', exmtrans("notify.notify_myself"))
-            ->default(false)
-            ->help(exmtrans("notify.help.notify_myself"));
+                ->default(false)
+                ->help(exmtrans("notify.help.notify_myself"));
+            $form->multipleSelect('filter_status_to', exmtrans('notify.filter_status_to'))
+                ->options($workflow->getStatusOptions())
+                ->help(exmtrans('notify.help.filter_status_to'));
+            $form->multipleSelect('filter_actions', exmtrans('notify.filter_actions'))
+                ->options($workflow->getActionOptions())
+                ->help(exmtrans('notify.help.filter_actions'));
         })->disableHeader();
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();
@@ -219,10 +231,11 @@ class WorkflowNotifyController extends Controller
     }
 
 
-    public function notify_action_target(Request $request)
+    public function notify_action_target(Request $request, $workflow_id)
     {
         $options = NotifyService::getNotifyTargetColumns(null, $request->get('q'), [
             'as_workflow' => true,
+            'workflow' => Workflow::find($workflow_id)
         ]);
 
         return $options;

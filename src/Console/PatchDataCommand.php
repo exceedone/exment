@@ -34,6 +34,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\EnvService;
 use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
@@ -209,6 +210,9 @@ class PatchDataCommand extends Command
             case 'append_column_mail_attachments':
                 $this->appendColumnMailAttachments();
                 return;
+            case 'append_column_mail_custom_attachments':
+                $this->appendColumnMailCustomAttachments();
+                return;
             case 'notify_target_id':
                 $this->notifyTargetId();
                 return;
@@ -229,6 +233,9 @@ class PatchDataCommand extends Command
                 return;
             case 'add_import_export_permission':
                 $this->addImportExportPermission();
+                return;
+            case 'patch_editable_userinfo':
+                $this->patchEditableUserInfo();
                 return;
         }
 
@@ -1890,6 +1897,16 @@ class PatchDataCommand extends Command
         $this->appendCustomColumn('mail_template', 'attachments');
     }
     
+    /**
+     * append custom attachments column to mail_template
+     *
+     * @return void
+     */
+    protected function appendColumnMailCustomAttachments()
+    {
+        $this->appendCustomColumn('mail_template', 'custom_attachments');
+    }
+    
 
     public function notifyTargetId()
     {
@@ -2119,6 +2136,35 @@ class PatchDataCommand extends Command
                     $file->save();
                 }
             });
+        });
+    }
+
+    /**
+     * patch user table column's setting (editable_userinfo)
+     *
+     * @return void
+     */
+    protected function patchEditableUserInfo()
+    {
+        $user_table = CustomTable::getEloquent(SystemTableName::USER);
+        if (!$user_table) {
+            return;
+        }
+        \DB::transaction(function () use ($user_table) {
+            foreach ($user_table->custom_columns as $custom_column) {
+                switch ($custom_column->column_name) {
+                    case 'user_code':
+                    case 'email':
+                        $custom_column->setOption('editable_userinfo', EditableUserInfoType::VIEW);
+                        break;
+                    case 'user_name':
+                        $custom_column->setOption('editable_userinfo', EditableUserInfoType::EDIT);
+                        break;
+                    default:
+                        continue 2;
+                }
+                $custom_column->save();
+            }
         });
     }
 }

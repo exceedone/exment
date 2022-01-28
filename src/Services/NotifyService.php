@@ -11,12 +11,14 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Notifications;
 use Exceedone\Exment\Enums\NotifyActionTarget;
@@ -616,11 +618,13 @@ class NotifyService
             [
                 'mail_template' => null,
                 'notify' => null,
+                'custom_value' => null,
             ],
             $params
         );
         $notify = $params['notify'];
         $mail_template = $params['mail_template'];
+        $custom_value = $params['custom_value'];
 
         // get template
         if (!isset($mail_template) && isset($notify)) {
@@ -647,7 +651,9 @@ class NotifyService
             $attachments = array_get($mail_template->value, 'attachments');
             $params['attach_files'] = collect($attachments)->filter()->map(function ($attachment) {
                 return ExmentFile::getData($attachment);
-            })->merge($params['attach_files'])->filter();
+            })
+            ->merge($params['attach_files'])
+            ->merge($mail_template->getCustomAttachments($custom_value))->filter();
         }
     }
 
@@ -707,6 +713,7 @@ class NotifyService
         $options = array_merge(NotifyAction::getColumnGettingOptions($notify_action), $options);
         $options = array_merge([
             'as_workflow' => false,
+            'workflow' => null,
             'as_default' => true,
             'as_administrator' => false, // Only use "as_default" is false
             'as_has_roles' => false, // Only use "as_default" is false
@@ -751,13 +758,22 @@ class NotifyService
             $items[] = ['id' => $k, 'text' => $v];
         }
 
+        $custom_table = CustomTable::getEloquent($custom_table);
+
         if ($options['as_workflow']) {
-            return $items;
+            if ($options['workflow'] instanceof Workflow) {
+                $workflow = $options['workflow'];
+                if ($workflow->workflow_type == WorkflowType::TABLE) {
+                    $workflow_tables = $workflow->workflow_tables;
+                    if (!is_nullorempty($workflow_tables)) {
+                        $custom_table = $workflow_tables->first()->custom_table;
+                    }
+                }
+            }
         }
         
-        $custom_table = CustomTable::getEloquent($custom_table);
         if (!isset($custom_table)) {
-            return [];
+            return $items;
         }
 
         if ($options['get_custom_columns']) {

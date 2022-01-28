@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 abstract class CustomValue extends ModelBase
@@ -209,7 +210,10 @@ abstract class CustomValue extends ModelBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = $workflow_action->getAuthorityTargets($this)->merge($result);
+            $result = \Exment::uniqueCustomValues(
+                $result,
+                $workflow_action->getAuthorityTargets($this, WorkflowGetAuthorityType::CURRENT_WORK_USER)
+            );
         }
 
         return $result;
@@ -1580,12 +1584,13 @@ abstract class CustomValue extends ModelBase
                 'mark' => null,
                 'value' => null,
                 'q' => $q,
+                'isApi' => false,
             ],
             $options
         );
 
         // if selected target column,
-        if (!isset($options['searchColumns'])) {
+        if (!isset($options['searchColumns']) && !$options['isApi']) {
             $options['searchColumns'] = $this->custom_table->getFreewordSearchColumns();
         }
 
@@ -1823,5 +1828,78 @@ abstract class CustomValue extends ModelBase
             ->whereIn('id', $ids)
             ->get()
             ->unique();
+    }
+    
+    /**
+     * Filter all accessible users on this value.
+     */
+    public function filterAccessibleUsers($userIds) : \Illuminate\Support\Collection
+    {
+        if (is_nullorempty($userIds)) {
+            return collect();
+        }
+        
+        $accessibleUsers = $this->getAccessibleUsers();
+
+        $result = collect();
+        foreach ($userIds as $user) {
+            if ($accessibleUsers->contains(function ($accessibleUser) use ($user) {
+                return $accessibleUser->id == $user;
+            })) {
+                $result->push($user);
+            }
+        }
+
+        return $result;
+    }
+    
+
+    /**
+     * Get all accessible organization on this value. (get model)
+     */
+    public function getAccessibleOrganizations()
+    {
+        $custom_table = $this->custom_table;
+        $ids = $this->value_authoritable_organizations()->pluck('authoritable_target_id')->toArray();
+
+        // get custom table's organization ids(contains all table and permission role group)
+        $queryTable = AuthUserOrgHelper::getRoleOrganizationQueryTable($custom_table, Permission::AVAILABLE_ALL_CUSTOM_VALUE);
+
+        if (!is_nullorempty($queryTable)) {
+            $queryTable->withoutGlobalScope(CustomValueModelScope::class);
+
+            $tablename = getDBTableName(SystemTableName::ORGANIZATION);
+            $ids = array_merge($queryTable->pluck("$tablename.id")->toArray(), $ids);
+        }
+
+        // get real value
+        return getModelName(SystemTableName::ORGANIZATION)::query()
+            ->withoutGlobalScope(CustomValueModelScope::class)
+            ->whereIn('id', $ids)
+            ->get()
+            ->unique();
+    }
+    
+    /**
+     * Filter all accessible orgs on this value.
+     */
+    public function filterAccessibleOrganizations($organizationIds) : \Illuminate\Support\Collection
+    {
+        if (is_nullorempty($organizationIds)) {
+            return collect();
+        }
+        
+        $accessibleOrganizations = $this->getAccessibleOrganizations();
+
+        $result = collect();
+        foreach ($organizationIds as $org) {
+            if ($accessibleOrganizations->contains(function ($accessibleOrganization) use ($org) {
+                return $accessibleOrganization->id == $org;
+            })) {
+                $result->push($org);
+            }
+        }
+
+        return $result;
     }
 }

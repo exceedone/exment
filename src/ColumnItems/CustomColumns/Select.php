@@ -211,11 +211,16 @@ class Select extends CustomItem
      */
     public function convertFilterValue($value)
     {
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
+        if (is_json($value)) {
+            $value = json_decode($value, true);
+        }
         if (is_array($value)) {
-            return collect($value)->map(function ($val) {
-                return unicode_encode($val);
+            return collect($value)->map(function ($val) use ($isUseUnicode) {
+                return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($val): $val;
             })->toArray();
         }
-        return unicode_encode($value);
+        return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($value): $value;
     }
 }
