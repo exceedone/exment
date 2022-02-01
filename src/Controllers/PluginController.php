@@ -314,6 +314,7 @@ class PluginController extends AdminControllerBase
                         $form->text('crud_auth_id', $pluginClass->getAuthSettingLabel())
                             ->help($pluginClass->getAuthSettingHelp());
                         $form->encpassword('crud_auth_password', $pluginClass->getAuthSettingPasswordLabel())
+                        ->updateIfEmpty()
                         ->help($pluginClass->getAuthSettingPasswordHelp());
                     }
                     elseif($crudAuthType == PluginCrudAuthType::OAUTH){
