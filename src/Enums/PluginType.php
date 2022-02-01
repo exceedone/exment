@@ -76,6 +76,18 @@ class PluginType extends EnumBase
     }
 
     /**
+     * plugin show menu. Needs Page's endpoint.
+     * @return array
+     */
+    public static function PLUGIN_TYPE_SHOW_MENU()
+    {
+        return [
+            static::PAGE,
+            static::CRUD,
+        ];
+    }
+
+    /**
      * Get plugin scripts and styles. Needs script and css endpoint, and read public file.
      * @return array
      */
