@@ -74,7 +74,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     {
         return "if object_id('{$this->wrapTable($tableName)}') is null select * into {$this->wrapTable($tableName)} from custom_relation_values";
     }
-    
+
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         // ALTER TABLE
@@ -89,12 +89,12 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
             //"alter table {$db_table_name} add index {$index_name}({$db_column_name})",
         ];
     }
-    
+
     public function compileGetIndex($tableName)
     {
         return $this->_compileGetIndex($tableName, false);
     }
-    
+
     public function compileGetUnique($tableName)
     {
         return $this->_compileGetIndex($tableName, true);
@@ -121,13 +121,13 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
     public function compileGetConstraint($tableName)
     {
-        return "SELECT 
-            OBJECT_NAME([default_object_id]) AS name 
-        FROM 
-            sys.columns 
-        WHERE 
-            [object_id] = OBJECT_ID('{$this->wrapTable($tableName)}') 
-        AND 
+        return "SELECT
+            OBJECT_NAME([default_object_id]) AS name
+        FROM
+            sys.columns
+        WHERE
+            [object_id] = OBJECT_ID('{$this->wrapTable($tableName)}')
+        AND
             [name] = :column_name";
     }
 
@@ -162,4 +162,37 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
         return $sql;
     }
+
+    // change correct name. sp_msforeachtable => sp_MSforeachtable
+
+    /**
+     * Compile the command to enable foreign key constraints.
+     *
+     * @return string
+     */
+    public function compileEnableForeignKeyConstraints()
+    {
+        return 'EXEC sp_MSforeachtable @command1="print \'?\'", @command2="ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all";';
+    }
+
+    /**
+     * Compile the command to disable foreign key constraints.
+     *
+     * @return string
+     */
+    public function compileDisableForeignKeyConstraints()
+    {
+        return 'EXEC sp_MSforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all";';
+    }
+
+    /**
+     * Compile the SQL needed to drop all tables.
+     *
+     * @return string
+     */
+    public function compileDropAllTables()
+    {
+        return "EXEC sp_MSforeachtable 'DROP TABLE ?'";
+    }
+
 }

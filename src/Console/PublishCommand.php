@@ -44,12 +44,14 @@ class PublishCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
         $this->publishStaticFiles();
 
         $this->createExmentBootstrapFile();
+        
+        return 0;
     }
 }

@@ -48,7 +48,7 @@ class HPluginPageTest extends ExmentKitTestCase
 
         $pre_cnt = Dashboard::count();
         $pre_cnt_box = DashboardBox::count();
-        // Create dashbord
+        // Create dashboard
         $response = $this->visit(admin_url('dashboard/create'))
                 ->seePageIs(admin_url('dashboard/create'))
                 ->type('unit test', 'dashboard_view_name')
@@ -61,7 +61,7 @@ class HPluginPageTest extends ExmentKitTestCase
         $suuid = array_get($row, 'suuid');
         $param = "?column_no=1&dashboard_box_type=plugin&dashboard_suuid=$suuid&row_no=1";
 
-        // Create dashbord box
+        // Create dashboard box
         $response = $this->visit(admin_url('dashboardbox/create' . $param))
                 ->seePageIs(admin_url('dashboardbox/create' . $param))
                 ->type('unit test box', 'dashboard_box_view_name')
@@ -103,7 +103,7 @@ class HPluginPageTest extends ExmentKitTestCase
         $pre_cnt = Dashboard::count();
         $pre_cnt_box = DashboardBox::count();
         $dashboard = Dashboard::where('dashboard_view_name', 'unit test')->first();
-        // delete dashbord
+        // delete dashboard
         $this->delete('/admin/dashboard/'. $dashboard->id);
         $this->assertEquals($pre_cnt - 1, Dashboard::count());
         $this->assertEquals($pre_cnt_box - 1, DashboardBox::count());

@@ -10,7 +10,7 @@ trait HasResourceActions
     use ParentResourceActions;
 
     protected $isDeleteForce = false;
-    
+
     /**
      * Update the specified resource in storage.
      *
@@ -28,7 +28,7 @@ trait HasResourceActions
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
@@ -40,7 +40,7 @@ trait HasResourceActions
         }
 
         $rows = collect(explode(',', $id))->filter();
-            
+
         // check row's disabled_delete
         $disabled_delete = false;
         $rows->each(function ($id) use (&$disabled_delete) {

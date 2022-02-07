@@ -2,11 +2,14 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Model\Traits\SerializeDateTrait;
 use Illuminate\Database\Eloquent\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class ModelBase extends Model
 {
+    use SerializeDateTrait;
+
     protected $guarded = ['id'];
 
     /**
@@ -15,7 +18,7 @@ class ModelBase extends Model
      * @var boolean
      */
     public $saving_users = true;
-    
+
     /**
      * Get CreatedUser. Only name.
      *
@@ -29,7 +32,7 @@ class ModelBase extends Model
     {
         return $this->getUser('updated_user_id');
     }
-    
+
     /**
      * Get CreatedUser. As custom value object
      *
@@ -43,7 +46,7 @@ class ModelBase extends Model
     {
         return $this->getUserValue('updated_user_id');
     }
-    
+
     /**
      * Get CreatedUser. As HTML
      *
@@ -58,7 +61,7 @@ class ModelBase extends Model
         return $this->getUser('updated_user_id', true);
     }
 
-    
+
     /**
      * Get CreatedUser. Append avatar
      *
@@ -103,7 +106,7 @@ class ModelBase extends Model
         static::updating(function ($model) {
             static::setUser($model, ['updated_user_id']);
         });
-        
+
         static::saved(function ($model) {
             static::callClearCache();
         });
@@ -172,11 +175,11 @@ class ModelBase extends Model
             return null;
         }
 
-        
+
         if (is_object($obj) && get_class($obj) == get_called_class()) {
             return $obj;
         }
-        
+
         // get table
         $obj = static::{$fucnName}(function ($table) use ($query_key, $obj) {
             return array_get($table, $query_key) == $obj;

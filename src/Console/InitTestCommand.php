@@ -39,7 +39,7 @@ class InitTestCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle()
     {
@@ -58,5 +58,6 @@ class InitTestCommand extends Command
         
         $this->call('db:seed', ['--class' => Seeder\TestDataSeeder::class]);
         $this->call('db:seed', ['--class' => Seeder\WorkflowTestDataSeeder::class]);
+        return 0;
     }
 }
