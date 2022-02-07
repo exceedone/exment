@@ -1777,7 +1777,7 @@ return [
         'view_summary_condition' => 'Summary type',
         'default_view_name' => 'Default View',
        	'alldata_view_name' => 'All Data View',
-        'custom_view_grid_filters' => 'View "filter" item setting',
+        'custom_view_grid_filters' => 'View filter item setting',
         'description_custom_view_columns' => 'Select display columns.',
         'description_custom_view_calendar_columns' => 'Select the date column to display in the calendar.<br/>* If custom columns do not appear in Target column, no <a href="%s" target="_blank">search index columns<i class="fa fa-external-link"></i></a> has been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_groups' => 'Sets the grouping key columns displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
