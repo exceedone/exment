@@ -336,9 +336,9 @@ var Exment;
          * if click grid row, move page
          */
         static tableHoverLink() {
-            $('table').find('[data-id]').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
+            $('table').find('[data-id],.rowclick').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
                 // if e.target closest"a" is length > 0, return
-                if ($(ev.target).closest('a').length > 0) {
+                if ($(ev.target).closest('a,.rowclick').length > 0) {
                     return;
                 }
                 if ($(ev.target).closest('.popover').length > 0) {
@@ -368,7 +368,7 @@ var Exment;
                 if (!hasValue(linkElem)) {
                     return;
                 }
-                linkElem.closest('a').click();
+                linkElem.closest('a,.rowclick').trigger('click');
             }).addClass('tableHoverLinkEvent');
         }
         /**
@@ -1042,15 +1042,4 @@ const getUuid = function () {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
-};
-const getFormData = function (form) {
-    var formData = new FormData(form);
-    if (tinymce.activeEditor) {
-        tinymce.activeEditor.save();
-    }
-    $('textarea[data-column_type="editor"]').each(function (index, elem) {
-        let $elem = $(elem);
-        formData.append($elem.attr('name'), $elem.val());
-    });
-    return formData;
 };

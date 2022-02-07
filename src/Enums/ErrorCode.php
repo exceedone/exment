@@ -25,6 +25,7 @@ namespace Exceedone\Exment\Enums;
  * @method static ErrorCode WORKFLOW_ACTION_DISABLED()
  * @method static ErrorCode DISAPPROVAL_IP()
  * @method static ErrorCode NOT_CONTAINS_CUSTOM_FORM()
+ * @method static ErrorCode WORKFLOW_NOT_HAS_NEXT_USER()
  */
 class ErrorCode extends EnumBase
 {
@@ -46,6 +47,7 @@ class ErrorCode extends EnumBase
     const WORKFLOW_NOSTART = '202';
     const WORKFLOW_END = '203';
     const WORKFLOW_ACTION_DISABLED = '204';
+    const WORKFLOW_NOT_HAS_NEXT_USER = '205';
     const DISAPPROVAL_IP = '301';
     const NOT_CONTAINS_CUSTOM_FORM = '401';
 
@@ -56,6 +58,9 @@ class ErrorCode extends EnumBase
         }
         if ($this == static::WORKFLOW_LOCK) {
             return exmtrans('workflow.message.locked');
+        }
+        if ($this == static::WORKFLOW_NOT_HAS_NEXT_USER) {
+            return exmtrans('workflow.message.nextuser_not_found');
         }
 
         $key = $this->lowerKey();

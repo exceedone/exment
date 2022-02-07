@@ -312,6 +312,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             'target_view' => $this,
             'query' => null,
             'grid' => null,
+            'isApi' => false,
         ], $options);
 
         if ($this->view_kind_type == ViewKindType::AGGREGATE) {

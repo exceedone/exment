@@ -34,7 +34,7 @@ use Webpatser\Uuid\Uuid;
 
 class ExmentServiceProvider extends ServiceProvider
 {
-    
+
     /**
      * Application Policy Map
      *
@@ -89,9 +89,10 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\TotalUpdateCommand::class,
         \Exceedone\Exment\Console\FileColumnImportCommand::class,
         \Exceedone\Exment\Console\DocumentImportCommand::class,
+        \Exceedone\Exment\Console\WorkflowClearCommand::class,
     ];
 
-    
+
     /**
      * The application's global HTTP middleware stack.
      *
@@ -129,14 +130,14 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.permission' => AdminMiddleware\Permission::class,
         'admin.bootstrap'  => AdminMiddleware\Bootstrap::class,
         'admin.session'    => AdminMiddleware\Session::class,
-        
+
         'pluginapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePluginApi::class,
-        
+
         'publicform.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicForm::class,
         'publicform.bootstrap'       => \Exceedone\Exment\Middleware\BootstrapPublicForm::class,
         'publicformapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicFormApi::class,
         'publicform.session'    => \Exceedone\Exment\Middleware\PublicFormSession::class,
-        
+
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
         'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
@@ -295,7 +296,7 @@ class ExmentServiceProvider extends ServiceProvider
             __DIR__.'/../config/exment.php',
             'exment'
         );
-        
+
         // register global middleware.
         $kernel = $this->app->make(Kernel::class);
         foreach ($this->middleware as $middleware) {
@@ -332,7 +333,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->bind(CustomTable::class, function ($app) {
             return CustomTable::findByEndpoint();
         });
-        
+
         // guard provider
         Auth::extend('publicformtoken', function ($app, $name, array $config) {
             return tap($this->makeGuard($config), function ($guard) {
@@ -385,7 +386,7 @@ class ExmentServiceProvider extends ServiceProvider
         foreach ($this->serviceProviders as $serviceProvider) {
             $this->app->register($serviceProvider);
         }
-        
+
         $this->commands($this->commands);
 
         if (!$this->app->runningInConsole()) {
@@ -411,7 +412,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
-                
+
             // set cron event
             try {
                 if (hasTable(SystemTableName::PLUGIN)) {
@@ -456,7 +457,7 @@ class ExmentServiceProvider extends ServiceProvider
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
             return new Providers\PublicFormUserProvider($app['hash'], LoginUser::class);
         });
-        
+
         \Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {
             return new ExmentCustomValidator($translator, $data, $rules, $messages, $customAttributes);
         });
@@ -468,7 +469,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
 
         Initialize::initializeConfig(false);
-        
+
         if (method_exists("\Encore\Admin\Admin", "registered")) {
             Admin::registered(function () {
                 Initialize::registeredLaravelAdmin();
@@ -479,7 +480,7 @@ class ExmentServiceProvider extends ServiceProvider
             });
         }
     }
-    
+
     /**
      * Boot database for extend
      *
@@ -509,7 +510,7 @@ class ExmentServiceProvider extends ServiceProvider
             Gate::policy($key, $value);
         }
     }
-    
+
     /**
      * Get the policies defined on the provider.
      *
@@ -562,7 +563,7 @@ class ExmentServiceProvider extends ServiceProvider
         return $middlewareGroups;
     }
 
-    
+
     /**
      * Make an instance of the token guard.
      *

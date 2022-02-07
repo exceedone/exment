@@ -74,8 +74,15 @@ class StatusSelects extends Select
 
         $this->options = array_filter($this->options, 'strlen');
 
+        // Whether is show id
+        $action_id = null;
+        if (boolval(config('exment.show_workflow_id', false))) {
+            $action_id = array_get($this->data, 'id');
+        }
+
         return parent::render()->with([
-            'options' => $this->options
+            'options' => $this->options,
+            'action_id' => $action_id,
         ]);
     }
 }

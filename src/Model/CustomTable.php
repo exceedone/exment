@@ -274,6 +274,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getPriorityForm($id = null)
     {
+        // get request
+        $request = request();
+        if (!is_null($request->input('formid'))) {
+            $suuid = $request->input('formid');
+            // if query has form id, set form.
+            return CustomForm::findBySuuid($suuid);
+        }
+
         $custom_value = $this->getValueModel($id);
 
         if (isset($custom_value)) {
@@ -1254,6 +1262,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'executeSearch' => true, // if true, search $q . If false,  not filter.
                 'relationColumn' => null, // Linkage object. if has, filtering value.
                 'searchDocument' => false, // is search document.
+                'isApi' => false, // called from API
             ],
             $options
         );
@@ -1800,6 +1809,52 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $target_ids = $this->getAccessibleUserOrganizationIds(SystemTableName::USER);
         return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->find($target_ids);
+    }
+
+    /**
+     * Filter all accessible users on this table.
+     */
+    public function filterAccessibleUsers($userIds) : \Illuminate\Support\Collection
+    {
+        if (is_nullorempty($userIds)) {
+            return collect();
+        }
+        
+        $accessibleUsers = $this->getAccessibleUserIds();
+ 
+        $result = collect();
+        foreach ($userIds as $user) {
+            if ($accessibleUsers->contains(function ($accessibleUser) use ($user) {
+                return $accessibleUser == $user;
+            })) {
+                $result->push($user);
+            }
+        }
+ 
+        return $result;
+    }
+
+    /**
+     * Filter all accessible orgs on this table.
+     */
+    public function filterAccessibleOrganizations($organizationIds) : \Illuminate\Support\Collection
+    {
+        if (is_nullorempty($organizationIds)) {
+            return collect();
+        }
+        
+        $accessibleOrganizations = $this->getAccessibleOrganizationIds();
+ 
+        $result = collect();
+        foreach ($organizationIds as $org) {
+            if ($accessibleOrganizations->contains(function ($accessibleOrganization) use ($org) {
+                return $accessibleOrganization == $org;
+            })) {
+                $result->push($org);
+            }
+        }
+ 
+        return $result;
     }
 
     /**

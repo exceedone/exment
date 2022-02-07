@@ -1443,7 +1443,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => '["start","7"]'
         ];
         $today = \Carbon\Carbon::today();
-        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use($today) {
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($today) {
             $date = array_get($data, 'value.date');
             if (is_null($date)) {
                 return false;
@@ -1641,13 +1641,17 @@ class CustomViewFilterTest extends UnitTestBase
     {
         $this->init();
 
+        // Whther use unicode
+        $searchArray = '["ドトール", "珈琲館"]';
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
         ];
         $filter_settings = [[
             'column_name' => 'select',
             'filter_condition' => FilterOption::SELECT_EXISTS,
-            'filter_value_text' => unicode_encode('["ドトール", "珈琲館"]')
+            'filter_value_text' => $isUseUnicode ? unicode_encode($searchArray) : $searchArray,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select');
@@ -1683,13 +1687,17 @@ class CustomViewFilterTest extends UnitTestBase
     {
         $this->init();
 
+        // Whther use unicode
+        $searchArray = '["コメダ珈琲", "スターバックス"]';
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
         ];
         $filter_settings = [[
             'column_name' => 'select',
             'filter_condition' => FilterOption::SELECT_EXISTS,
-            'filter_value_text' => '["コメダ珈琲", "スターバックス"]'
+            'filter_value_text' => $isUseUnicode ? unicode_encode($searchArray) : $searchArray,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select');
@@ -1704,13 +1712,17 @@ class CustomViewFilterTest extends UnitTestBase
     {
         $this->init();
 
+        // Whther use unicode
+        $searchArray = '["コメダ珈琲", "スターバックス"]';
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
         ];
         $filter_settings = [[
             'column_name' => 'select',
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
-            'filter_value_text' => unicode_encode('["コメダ珈琲", "スターバックス"]')
+            'filter_value_text' => $isUseUnicode ? unicode_encode($searchArray) : $searchArray,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select');
@@ -1746,13 +1758,17 @@ class CustomViewFilterTest extends UnitTestBase
     {
         $this->init();
 
+        // Whther use unicode
+        $searchArray = '["上島珈琲店", "珈琲館"]';
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
         ];
         $filter_settings = [[
             'column_name' => 'select',
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
-            'filter_value_text' => '["上島珈琲店", "珈琲館"]'
+            'filter_value_text' => $isUseUnicode ? unicode_encode($searchArray) : $searchArray,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select');
@@ -1770,10 +1786,15 @@ class CustomViewFilterTest extends UnitTestBase
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
         ];
+
+        // Whther use unicode
+        $searchArray = '["イタリア", "中国"]';
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
         $filter_settings = [[
             'column_name' => 'select_multiple',
             'filter_condition' => FilterOption::SELECT_EXISTS,
-            'filter_value_text' => unicode_encode('["イタリア", "中国"]')
+            'filter_value_text' => $isUseUnicode ? unicode_encode($searchArray) : $searchArray,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select_multiple');
@@ -1788,13 +1809,17 @@ class CustomViewFilterTest extends UnitTestBase
     {
         $this->init();
 
+        // Whther use unicode
+        $searchArray = '["アメリカ", "日本"]';
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
         ];
         $filter_settings = [[
             'column_name' => 'select_multiple',
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
-            'filter_value_text' => unicode_encode('["アメリカ", "日本"]')
+            'filter_value_text' => $isUseUnicode ? unicode_encode($searchArray) : $searchArray,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select_multiple');
@@ -1809,13 +1834,17 @@ class CustomViewFilterTest extends UnitTestBase
     {
         $this->init();
 
+        // Whther use unicode
+        $searchArray = '["ろ", "と"]';
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
         ];
         $filter_settings = [[
             'column_name' => 'select_valtext_multiple',
             'filter_condition' => FilterOption::SELECT_EXISTS,
-            'filter_value_text' => unicode_encode('["ろ", "と"]')
+            'filter_value_text' => $isUseUnicode ? unicode_encode($searchArray) : $searchArray,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select_valtext_multiple');
@@ -1830,13 +1859,17 @@ class CustomViewFilterTest extends UnitTestBase
     {
         $this->init();
 
+        // Whther use unicode
+        $searchArray = '["い", "ち"]';
+        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
         ];
         $filter_settings = [[
             'column_name' => 'select_valtext_multiple',
             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
-            'filter_value_text' => unicode_encode('["い", "ち"]')
+            'filter_value_text' => $isUseUnicode ? unicode_encode($searchArray) : $searchArray,
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
             $actual = array_get($data, 'value.select_valtext_multiple');

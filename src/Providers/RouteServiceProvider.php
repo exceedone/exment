@@ -129,6 +129,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
             $router->post('workflow/{id}/activate', 'WorkflowController@activate');
             $router->get('workflow/{id}/activateModal', 'WorkflowController@activateModal');
+            $router->post('workflow/{id}/deactivate', 'WorkflowController@deactivate');
+            $router->get('workflow/{id}/deactivateModal', 'WorkflowController@deactivateModal');
 
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
@@ -419,6 +421,7 @@ class RouteServiceProvider extends ServiceProvider
     
                     // User, LoginUser --------------------------------------------------
                     $router->get("me", 'ApiController@me')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));
+                    $router->get("avatar", 'ApiController@avatar')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));
     
                     // User, Organization --------------------------------------------------
                     $router->get("user_organization/select", 'ApiController@userOrganizationSelect')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));

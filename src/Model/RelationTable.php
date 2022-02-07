@@ -871,6 +871,8 @@ class RelationTable
     public static function setWorkflowWorkUsersSubQuery($query, $custom_table, $or_option = false)
     {
         $tableName = getDBTableName($custom_table);
+        // get user table name
+        $userTableName = getDBTableName(SystemTableName::USER);
 
         /////// first query. has workflow value's custom value
         $subquery = \DB::table($tableName)
@@ -880,6 +882,19 @@ class RelationTable
                     ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.workflow_table_id', $custom_table->id)
                     ;
             })
+            // join user table
+            ->leftJoin($userTableName . ' AS last_executed_user', function ($join) {
+                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.last_executed_user_id', "last_executed_user.id")
+                    ;
+            })
+            ->leftJoin($userTableName . ' AS first_executed_user', function ($join) {
+                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.first_executed_user_id', "first_executed_user.id")
+                    ;
+            })
+            ->leftJoin($userTableName . ' AS created_user', function ($join) use ($tableName) {
+                $join->on($tableName . '.created_user_id', "created_user.id")
+                    ;
+            })
             ///// add authority function for user or org
             ->where(function ($query) use ($tableName, $custom_table) {
                 $classes = [
@@ -887,6 +902,7 @@ class RelationTable
                     \Exceedone\Exment\ConditionItems\OrganizationItem::class,
                     \Exceedone\Exment\ConditionItems\ColumnItem::class,
                     \Exceedone\Exment\ConditionItems\SystemItem::class,
+                    \Exceedone\Exment\ConditionItems\LoginUserColumnItem::class,
                 ];
 
                 foreach ($classes as $class) {

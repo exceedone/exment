@@ -36,6 +36,7 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Storage\Disk\TestPluginDiskService;
@@ -97,6 +98,17 @@ class TestDataSeeder extends Seeder
 
     protected function createUserOrg()
     {
+        // First, create "boss" column.
+        CustomColumn::create([
+            'custom_table_id' => CustomTable::getEloquent(SystemTableName::USER)->id,
+            'column_name' => 'boss',
+            'column_view_name' => 'Boss',
+            'column_type' => ColumnType::USER,
+            'options' => [
+                'index_enabled' => 1,
+            ],
+        ]);
+
         \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
             'user' => ltrim(getModelName('user', true), "\\"),
             'organization' => ltrim(getModelName('organization', true), "\\"),
@@ -133,10 +145,18 @@ class TestDataSeeder extends Seeder
 
                 $model->save();
 
+                $avatar = null;
+                if (array_has($user, 'avatar')) {
+                    $file_data = base64_decode(array_get($user, 'avatar'));
+                    $file = ExmentFile::storeAs(FileType::AVATAR, $file_data, 'avatar', 'avatar.png');
+                    $avatar = $file->path;
+                }
+
                 if (array_has($user, 'password')) {
                     $loginUser = new LoginUser;
                     $loginUser->base_user_id = $model->id;
                     $loginUser->password = $user['password'];
+                    $loginUser->avatar = $avatar;
                     $loginUser->save();
                 }
 

@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Response;
 trait HasResourceActions
 {
     use ParentResourceActions;
+
+    protected $isDeleteForce = false;
     
     /**
      * Update the specified resource in storage.
@@ -46,7 +48,7 @@ trait HasResourceActions
                 if (method_exists($this, 'getModel')) {
                     $model = $this->getModel($id);
                 } else {
-                    $model = $this->form($id)->model()->find($id);
+                    $model = $this->form($id)->setIsForceDelete($this->isDeleteForce)->model()->find($id);
                 }
 
                 if (boolval(array_get($model, 'disabled_delete'))) {
@@ -71,7 +73,7 @@ trait HasResourceActions
                     return;
                 }
             } else {
-                $response = $this->form($id)->destroy($id);
+                $response = $this->form($id)->setIsForceDelete($this->isDeleteForce)->destroy($id);
                 if ($response === false) {
                     $result = false;
                     return;

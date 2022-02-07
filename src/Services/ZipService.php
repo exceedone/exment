@@ -14,7 +14,7 @@ class ZipService
      *
      * @return void
      */
-    public static function createPasswordZip($files, $zipFullPath, $tmpFolderPath, $password)
+    public static function createPasswordZip($files, $zipFullPath, $tmpFolderPath, $password, ?string $disk = null)
     {
         if (!\File::exists($tmpFolderPath)) {
             \File::makeDirectory($tmpFolderPath);
@@ -32,7 +32,13 @@ class ZipService
                 $tmpfile = $dbFile->filename;
             }
 
-            \File::copy($file, path_join($tmpFolderPath, $tmpfile));
+            // If has $disk, copy using disk
+            if (!is_nullorempty($disk)) {
+                $f = \Storage::disk($disk)->get($file);
+                \File::put(path_join($tmpFolderPath, $tmpfile), $f);
+            } else {
+                \File::copy($file, path_join($tmpFolderPath, $tmpfile));
+            }
         }
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {

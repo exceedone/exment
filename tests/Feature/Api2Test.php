@@ -9,12 +9,11 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\NotifyNavbar;
-use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Tests\TestDefine;
 use Carbon\Carbon;
 
-class ApiTest extends ApiTestBase
+class Api2Test extends ApiTestBase
 {
     public function testOkAuthorize()
     {
@@ -47,7 +46,7 @@ class ApiTest extends ApiTestBase
     public function testErrorAuthorize()
     {
         $response = $this->getPasswordToken('adjfjke', 'adjfjkeadjfjkeadjfjkeadjfjke');
-        
+
         $response
             ->assertStatus(401);
     }
@@ -81,82 +80,6 @@ class ApiTest extends ApiTestBase
             ->assertStatus(200)
             ->assertJson([
                 'version' => \Exment::getExmentCurrentVersion()
-            ]);
-    }
-
-    public function testWrongScopeMe()
-    {
-        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
-
-        $this->withHeaders([
-            'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'me'))
-            ->assertStatus(403)
-            ->assertJsonFragment([
-                'code' => ErrorCode::WRONG_SCOPE
-            ]);
-    }
-
-    public function testGetMe()
-    {
-        $token = $this->getAdminAccessToken([ApiScope::ME]);
-
-        $this->withHeaders([
-            'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'me'))
-            ->assertStatus(200)
-            ->assertJsonFragment([
-                'value' => [
-                    "email"=> "admin@admin.foobar.test",
-                    "user_code"=> "admin",
-                    "user_name"=> "admin"
-                ]
-            ])
-            ->assertJsonStructure([
-                'id',
-                'suuid',
-                'created_at',
-                'updated_at',
-                'created_user_id',
-                'updated_user_id',
-            ]);
-    }
-
-    public function testWrongScopeMeApiKey()
-    {
-        $token = $this->getAdminAccessTokenAsApiKey([ApiScope::VALUE_READ]);
-
-        $this->withHeaders([
-            'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'me'))
-            ->assertStatus(403)
-            ->assertJsonFragment([
-                'code' => ErrorCode::WRONG_SCOPE
-            ]);
-    }
-
-    public function testGetMeApiKey()
-    {
-        $token = $this->getAdminAccessTokenAsApiKey([ApiScope::ME]);
-
-        $this->withHeaders([
-            'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'me'))
-            ->assertStatus(200)
-            ->assertJsonFragment([
-                'value' => [
-                    "email"=> "admin@admin.foobar.test",
-                    "user_code"=> "admin",
-                    "user_name"=> "admin"
-                ]
-            ])
-            ->assertJsonStructure([
-                'id',
-                'suuid',
-                'created_at',
-                'updated_at',
-                'created_user_id',
-                'updated_user_id',
             ]);
     }
 
@@ -2129,11 +2052,6 @@ class ApiTest extends ApiTestBase
             ->assertStatus(204);
     }
 
-
-
-
-
-
     // post notify -------------------------------------
 
     public function testCreateNotify()
@@ -3079,7 +2997,6 @@ class ApiTest extends ApiTestBase
                 'code' => ErrorCode::WRONG_SCOPE
             ]);
     }
-
 
     // Log ----------------------------------------------------
     public function testGetLogs()

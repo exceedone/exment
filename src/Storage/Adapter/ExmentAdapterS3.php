@@ -17,7 +17,8 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = static::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
 
-        $client = new S3Client([
+        // create client config
+        $clientConfig = [
             'credentials' => [
                 'key'    => array_get($mergeConfig, 'key'),
                 'secret' => array_get($mergeConfig, 'secret'),
@@ -25,7 +26,15 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
             'region' => array_get($mergeConfig, 'region'),
             'version' => 'latest',
             'bucket' => array_get($mergeConfig, 'bucket'),
-        ]);
+        ];
+
+        foreach (['endpoint', 'url'] as $key) {
+            if (array_key_value_exists($key, $mergeConfig)) {
+                $clientConfig[$key] = $mergeConfig[$key];
+            }
+        }
+
+        $client = new S3Client($clientConfig);
         return new self($client, array_get($mergeConfig, 'bucket'));
     }
 

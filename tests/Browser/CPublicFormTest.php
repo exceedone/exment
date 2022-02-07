@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Tests\Browser;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
-
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Notification;
 use Exceedone\Exment\Model\PublicForm;
@@ -124,12 +124,16 @@ class CPublicFormTest extends ExmentKitTestCase
 
         $email = CustomColumn::where('custom_table_id', $table->id)->where('column_type', 'email')->first();
 
+        $today = Carbon::today();
+        $start = Carbon::createFromDate($today->year, 1, 1)->format('Y-m-d');
+        $end = Carbon::createFromDate($today->year, 12, 31)->format('Y-m-d');
+
         $form = [
             'custom_form_id' => $target_form->id,
             'public_form_view_name' => 'Public Form Unit Test',
             'basic_setting' => [
-                'validity_period_start' => '2021-01-01 01:02:03',
-                'validity_period_end' => '2021-12-31 11:22:33',
+                'validity_period_start' => "{$start} 01:02:03",
+                'validity_period_end' => "{$end} 11:22:33",
             ],
             'design_setting' => [
                 'use_header' => '1',
@@ -201,7 +205,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seePageIs(admin_url('form/custom_value_edit_all'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'Public Form Unit Test')
-            ->seeInElement('td', '2021-01-01 01:02:03 ～ 2021-12-31 11:22:33')
+            ->seeInElement('td', "{$start} 01:02:03 ～ {$end} 11:22:33")
             ->assertEquals($pre_cnt + 1, PublicForm::count());
 
         $pform = $this->getNewestForm();
@@ -228,8 +232,8 @@ class CPublicFormTest extends ExmentKitTestCase
         // Check Public Form updated value
         $this->visit(admin_url('formpublic/custom_value_edit_all/'. $pform->id . '/edit'))
             ->seeInField('public_form_view_name', 'Public Form Unit Test')
-            ->seeInField('basic_setting[validity_period_start]', '2021-01-01 01:02:03')
-            ->seeInField('basic_setting[validity_period_end]', '2021-12-31 11:22:33')
+            ->seeInField('basic_setting[validity_period_start]', "{$start} 01:02:03")
+            ->seeInField('basic_setting[validity_period_end]', "{$end} 11:22:33")
             ->seeInField('design_setting[use_header]', '1')
             ->seeInField('header_background_color', '#FF9999')
             ->seeInField('header_label', 'ユニットテストのヘッダ')
@@ -407,10 +411,14 @@ class CPublicFormTest extends ExmentKitTestCase
 
         $email = CustomColumn::where('custom_table_id', $table->id)->where('column_type', 'email')->first();
 
+        $today = Carbon::today();
+        $start = Carbon::createFromDate($today->year, 1, 1)->format('Y-m-d');
+        $end = Carbon::createFromDate($today->year, 12, 31)->format('Y-m-d');
+        
         $form = [
             'public_form_view_name' => 'Public Form Unit Test Update',
-            'basic_setting[validity_period_start]' => '2021-01-01',
-            'basic_setting[validity_period_end]' => '2021-12-31',
+            'basic_setting[validity_period_start]' => $start,
+            'basic_setting[validity_period_end]' => $end,
             'design_setting[use_header]' => '0',
             'design_setting[background_color_outer]' => '#0066CC',
             'design_setting[background_color]' => '#00CCCC',
@@ -441,7 +449,7 @@ class CPublicFormTest extends ExmentKitTestCase
                 ->submitForm('admin-submit', $form)
                 ->seePageIs(admin_url('form/custom_value_edit_all'))
                 ->seeInElement('td', 'Public Form Unit Test Update')
-                ->seeInElement('td', '2021-01-01 ～ 2021-12-31')
+                ->seeInElement('td', "{$start} ～ {$end}")
         ;
 
         // Update Public Form Direct
