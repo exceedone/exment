@@ -22,6 +22,10 @@ class CustomViewSummary extends ModelBase
         'excepts' => ['custom_table', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
         'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
         'parent' => 'custom_view_id',
+        'langs' => [
+            'keys' => ['view_column_table_name', 'view_column_target_name'],
+            'values' => ['view_column_name'],
+        ],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
