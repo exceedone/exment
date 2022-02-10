@@ -32,11 +32,12 @@ mkdir packages
 cd packages
 ~~~
 
-- Create "exceedone" directory.  
+- Create a directory with your GitHub username.  
+(ex. hirossyi73)
 
 ~~~
-mkdir exceedone
-cd exceedone
+mkdir hirossyi73
+cd hirossyi73
 ~~~
 
 - Clone your repository.
@@ -75,7 +76,7 @@ git clone https://github.com/hirossyi73/exment.git
     "repositories": [
         {
             "type": "path",
-            "url": "packages/exceedone/exment",
+            "url": "packages/hirossyi73/exment",
             "options": {
                 "symlink": true
             }
@@ -122,7 +123,7 @@ npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/
 
 - Download *.d.ts files that not contains npm packages.  
 And set *.d.ts files to node_modules/@types/(package name folder - Please create folder).  
-[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts) please  
+[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts)   
 [exment/index.d.ts](https://exment.net/downloads/develop/exment/index.d.ts)
 
 - Open packages.json's dependencies block and append downloaded files.
@@ -135,11 +136,11 @@ And set *.d.ts files to node_modules/@types/(package name folder - Please create
 ~~~
 
 - Copy the "tasks.json" file directly under the project folder to the ".vscode" folder in the project root folder.  
-* If the "tasks.json" file does not exist, download it from [here](https://exment.net/downloads/develop/tasks.json).  
-* If the ".vscode" folder does not exist, create it yourself.  
+    - If the "tasks.json" file does not exist, download it from [here](https://exment.net/downloads/develop/tasks.json).  
+    - If the ".vscode" folder does not exist, create it yourself.  
 
 - If you update *.ts file in "exment" package and you want to compile, please execute this command "Ctrl + Shift + B" on VSCode.  
-Update .js file in packages/exceedone/exment/public/vendor/exment/js.
+Update .js file in packages/hirossyi73/exment/public/vendor/exment/js.
 
 
 - If you want to publish js file for web, please execute this command on project root directory.
@@ -154,10 +155,10 @@ php artisan exment:publish
 [EasySass](https://marketplace.visualstudio.com/items?itemName=spook.easysass)
 
 - Open the VS Code settings page. Select Extensions → Easy Sass from the submenu.  
-In the "Target Dir" field, enter "packages/exceedone/exment/public/vendor/exment/css".  
-* Please convert the "hirossyi73" part to your own owner name.
+In the "Target Dir" field, enter "packages/hirossyi73/exment/public/vendor/exment/css".  
+    - Please convert the "hirossyi73" part to your own owner name.  
 
-- When you edit .scss file and save, update .css file to packages/exceedone/exment/public/vendor/exment/css.
+- When you edit .scss file and save, update .css file to packages/hirossyi73/exment/public/vendor/exment/css.
 
 - If you want to publish css file, please execute this command on project root directory.
 
@@ -197,7 +198,7 @@ composer global require friendsofphp/php-cs-fixer
 
 ```
 #Remove unused use
-php-cs-fixer fix ./vendor/exceedone/exment --rules=no_unused_imports
+php-cs-fixer fix ./vendor/hirossyi73/exment --rules=no_unused_imports
 #Fix all source
 php-cs-fixer fix
 ```
