@@ -4,11 +4,12 @@ This page explains how to set up developing Exment engine.
 ## First
 - We suggest using Visual Studio Code for developing.
 - This page is beta version. If you cannot set up, please write issue.
-- Please install first.
+- The following applications must be installed in advance.
     - Visual Studio Code
     - git
     - composer
-    - node.js
+    - node.js(npm)
+- Please prepare the WEB server, database, etc. required to operate Exment locally according to your environment.[Reference site](https://exment.net/docs/#/server)  
 
 ## Fork repository
 - Access [https://github.com/exceedone/exment] and click "fork" right-top button on page.
@@ -99,6 +100,19 @@ php artisan passport:keys
 - Download tsconfig.json from this site and put on root project.  
 [tsconfig.json](https://exment.net/downloads/develop/tsconfig.json)
 
+- Open tsconfig.json and edit lines 5 and 10 to your own owner name.  
+
+```
+  "compilerOptions": {
+    ...
+    "outDir": "./packages/hirossyi73/exment/public/vendor/exment/js",
+    ...
+  },
+  "include": [
+    "packages/hirossyi73/exment/src/Web/ts/*.ts"
+  ]
+```
+
 - Install npm packages on root project.  
 
 ~~~
@@ -120,8 +134,9 @@ And set *.d.ts files to node_modules/@types/(package name folder - Please create
 }
 ~~~
 
-- Download tasks.json file and set ".vscode" folder on project root folder. (If doesn't have ".vscode", please create it.)
-[tasks.json](https://exment.net/downloads/develop/tasks.json)
+- Copy the "tasks.json" file directly under the project folder to the ".vscode" folder in the project root folder.  
+* If the "tasks.json" file does not exist, download it from [here](https://exment.net/downloads/develop/tasks.json).  
+* If the ".vscode" folder does not exist, create it yourself.  
 
 - If you update *.ts file in "exment" package and you want to compile, please execute this command "Ctrl + Shift + B" on VSCode.  
 Update .js file in packages/exceedone/exment/public/vendor/exment/js.
@@ -138,8 +153,9 @@ php artisan exment:publish
 - Install VsCode plugin "EasySass".
 [EasySass](https://marketplace.visualstudio.com/items?itemName=spook.easysass)
 
-- Open VsCode setting and open EasySass setting.  
-Set "Target Dir" setting "packages/exceedone/exment/public/vendor/exment/css".  
+- Open the VS Code settings page. Select Extensions → Easy Sass from the submenu.  
+In the "Target Dir" field, enter "packages/exceedone/exment/public/vendor/exment/css".  
+* Please convert the "hirossyi73" part to your own owner name.
 
 - When you edit .scss file and save, update .css file to packages/exceedone/exment/public/vendor/exment/css.
 
@@ -173,7 +189,7 @@ Before pushing to GitHub, execute php-cs-fixer and format the source code.
 ~~~
 composer global require friendsofphp/php-cs-fixer
 
-# Add user environment. Change "%USERPROFILE%" to machine user name. ex:「C:\Users\XXXX」
+# Add the following path to your environment variables. ("%USERPROFILE%" is a variable that points to your user directory. ex:「C:\Users\XXXX」)
 %USERPROFILE%\AppData\Roaming\Composer\vendor\bin 
 ~~~
 
