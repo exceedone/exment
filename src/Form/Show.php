@@ -48,6 +48,18 @@ class Show extends AdminShow
         $this->gridShows = true;
         return $this;
     }
+
+    /**
+     * get max row
+     *
+     * @return int max row
+     */
+    public function getMaxRow()
+    {
+        return collect($this->fieldAndOptions)->map(function($fieldOption) {
+            return array_get($fieldOption, 'options.row', 0);
+        })->max();
+    }
     
     /**
      * Push field and set for grid

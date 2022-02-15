@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\Calc\CalcService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
@@ -49,7 +50,9 @@ class DefaultForm extends FormBase
 
         $form->setHorizontal(boolval($this->custom_form->getOption('form_label_type') ?? true));
 
-        if (isset($this->id)) {
+        $system_values_pos = $this->custom_table->getSystemValuesPosition();
+
+        if (isset($this->id) && $system_values_pos == ShowPositionType::TOP) {
             $form->systemValues()->setWidth(12, 0);
         }
 
@@ -156,6 +159,10 @@ class DefaultForm extends FormBase
         }
 
         PartialCrudService::setAdminFormOptions($this->custom_table, $form, $this->id);
+
+        if (isset($this->id) && $system_values_pos == ShowPositionType::BOTTOM) {
+            $form->systemValues()->setWidth(12, 0);
+        }
 
         // add calc_formula_array and changedata_array info
         if (count($calc_formula_array) > 0) {

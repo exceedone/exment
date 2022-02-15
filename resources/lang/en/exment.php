@@ -259,6 +259,7 @@ return [
         'default_date_format' => 'Date and time display format',
         'filter_search_type' => 'Data search method',
         'grid_filter_disable_flg' => 'Disable Grid Filter',
+        'system_values_pos' => 'System values display position',
         'data_submit_redirect' => 'Data Submit Redirect',
         'header_user_info' => 'Header User Information',
         'api_available' => 'API Available',
@@ -362,6 +363,13 @@ return [
             'all' => 'All',
         ],
         
+        'system_values_pos_options' => [
+            'default' => 'Adjust to system settings',
+            'top' => 'Displayed at the top',
+            'bottom' => 'Displayed at the bottom',
+            'hide' => 'Hide',
+        ],
+        
         'date_format_list' => [
             'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
@@ -421,6 +429,7 @@ return [
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
             'filter_search_type' => 'Set the search method for registered data. *In the case of partial match, performance may be affected depending on the number of data.',
             'grid_filter_disable_flg' => 'The checked item will be hidden in the filter item of the data list page.',
+            'system_values_pos' => 'Set the position to display system values on the data edit screen and data details screen.',
             'data_submit_redirect' => 'You can set the default value for the page to redirect after saving custom data. When this item is set, the check box for the data transition destination after saving will be checked on the data entry page.',
             'header_user_info' => 'You can set the content to be displayed in the user information in the header. If left blank, it will be hidden.',
             'api_available' => 'If set to YES, you can use the API.',
