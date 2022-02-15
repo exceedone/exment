@@ -686,9 +686,7 @@ class Exment
             return $path;
         }
         $tmppath = getFullpath($path, Define::DISKNAME_ADMIN_TMP);
-        if (!\File::exists($tmppath)) {
-            \File::makeDirectory($tmppath, 0755, true);
-        }
+        \Exment::makeDirectory($tmppath);
 
         return $tmppath;
     }
@@ -770,6 +768,37 @@ class Exment
             $val = str_replace('g', '', $val) * 1024;
         }
         return intval($val);
+    }
+
+    /**
+     * make directory(0775)
+     *
+     * @param string|null $path
+     * @return void
+     */
+    public function makeDirectory(?string $path, int $mode = 0775)
+    {
+        if (\File::exists($path)) {
+            return;
+        }
+        \File::makeDirectory($path, $mode, true);
+    }
+    
+    /**
+     * make directory for disk(0775)
+     *
+     * @param string|null $path
+     * @return void
+     */
+    public function makeDirectoryDisk($disk, ?string $path, int $mode = 0775)
+    {
+        if(!$disk){
+            return;
+        }
+        if ($disk->exists($path)) {
+            return;
+        }
+        $disk->makeDirectory($path, $mode, true);
     }
     
 
