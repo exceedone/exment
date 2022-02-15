@@ -141,9 +141,32 @@ And set *.d.ts files to node_modules/@types/(package name folder - Please create
     - If the "tasks.json" file does not exist, download it from [here](https://exment.net/downloads/develop/tasks.json).  
     - If the ".vscode" folder does not exist, create it yourself.  
 
+- In index.d.ts, there is a conflict between bootstrap and jquery definition files, so fix them individually.
+Open node_modules\@types\bootstrap\index.d.ts and modify it as follows: *Near the 27th line.
+
+``` typescript
+declare global {
+    interface JQuery {
+        alert: Alert.jQueryInterface;
+        // Comment
+        //button: Button.jQueryInterface;
+        carousel: Carousel.jQueryInterface;
+        collapse: Collapse.jQueryInterface;
+        dropdown: Dropdown.jQueryInterface;
+        tab: Tab.jQueryInterface;
+        modal: Modal.jQueryInterface;
+        offcanvas: Offcanvas.jQueryInterface;
+        [Popover.NAME]: Popover.jQueryInterface;
+        scrollspy: ScrollSpy.jQueryInterface;
+        toast: Toast.jQueryInterface;
+        // Comment
+        //[Tooltip.NAME]: Tooltip.jQueryInterface;
+    }
+}
+```
+
 - If you update *.ts file in "exment" package and you want to compile, please execute this command "Ctrl + Shift + B" on VSCode.  
 Update .js file in packages/hirossyi73/exment/public/vendor/exment/js.
-
 
 - If you want to publish js file for web, please execute this command on project root directory.
 
@@ -167,6 +190,11 @@ In the "Target Dir" field, enter "packages/hirossyi73/exment/public/vendor/exmen
 ~~~
 php artisan exment:publish
 ~~~
+
+## others
+
+- By setting the symbolic link, the files of the Exment package exist in both the 'packages' folder and the 'vendor' folder.  
+When modifying the program, please edit the 'packages' folder.
 
 ## GitHub
 

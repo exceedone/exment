@@ -143,6 +143,32 @@ npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/
 ※"tasks.json"ファイルがなければ、[こちら](https://exment.net/downloads/develop/tasks.json)からダウンロードしてください。  
 ※".vscode"フォルダがなければ、ご自身で作成してください。  
 
+- index.d.tsで、bootstrapとjqueryの定義ファイルで競合が発生しているので、個別に修正します。  
+node_modules\@types\bootstrap\index.d.tsを開き、以下のように修正します。※27行目付近です。
+
+``` typescript
+declare global {
+    interface JQuery {
+        alert: Alert.jQueryInterface;
+        // コメントアウト
+        //button: Button.jQueryInterface;
+        carousel: Carousel.jQueryInterface;
+        collapse: Collapse.jQueryInterface;
+        dropdown: Dropdown.jQueryInterface;
+        tab: Tab.jQueryInterface;
+        modal: Modal.jQueryInterface;
+        offcanvas: Offcanvas.jQueryInterface;
+        [Popover.NAME]: Popover.jQueryInterface;
+        scrollspy: ScrollSpy.jQueryInterface;
+        toast: Toast.jQueryInterface;
+        // コメントアウト
+        //[Tooltip.NAME]: Tooltip.jQueryInterface;
+    }
+}
+
+```
+
+
 - あなたが "exment" パッケージ内の.tsファイルを編集した後、コンパイルする場合は、"Ctrl + Shift + B" コマンドをVSCodeで実行してください。（おそらくMacでは、"Command + Shift + B"です）  
 コンパイルされたjsファイルが、 packages/hirossyi73/exment/public/vendor/exment/js に配置されます。
 
@@ -168,6 +194,12 @@ php artisan exment:publish
 ~~~
 php artisan exment:publish
 ~~~
+
+## その他
+
+- シンボリックリンクの設定により、Exmentのパッケージのファイルは、packagesフォルダとvendorフォルダの両方に存在します。  
+プログラムを修正する際は、packagesフォルダを編集するようにお願いします。
+
 
 ## GitHub
 
