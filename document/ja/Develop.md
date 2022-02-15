@@ -118,8 +118,10 @@ php artisan passport:keys
 - 以下のコマンドを実施し、npmパッケージをインストールしてください。
 
 ~~~
+npm init
+# そのままEnterで初期設定完了
 npm install -g typescript
-npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2
+npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2 @types/jquery.validation
 ~~~
 
 - 以下の"\*.d.ts"ファイルをダウンロードしてください。これらのファイルは、npmに含まれていないファイルです。  

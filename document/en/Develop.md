@@ -117,8 +117,10 @@ php artisan passport:keys
 - Install npm packages on root project.  
 
 ~~~
+npm init
+# Please input 'Enter' and finish install.
 npm install -g typescript
-npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2
+npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2 @types/jquery.validation
 ~~~
 
 - Download *.d.ts files that not contains npm packages.  
