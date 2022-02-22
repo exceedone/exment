@@ -59,17 +59,38 @@ class SetupDirCommand extends AdminInstallCommand
                 }
             }
 
-            $group = $this->option('group');
+            $group = $this->getGroup();
             if(!$group){
-                $current_group = filegroup(base_path(path_join('public', 'index.php')));
-                $group = $this->ask("Please input group name. [{$current_group}]");
-                if(!$group){
-                    $group = $current_group;
-                }
+                return;
             }
         }
 
         static::createSystemFolder($user ?? null, $group ?? null);
+    }
+
+
+    protected function getGroup()
+    {
+        $group = $this->option('group');
+        if(!$group){
+            // get current group
+            $current_group = null;
+            if(function_exists('posix_getgrgid')){
+                $current_group = array_get(posix_getgrgid(filegroup(base_path(path_join('public', 'index.php')))), 'name');
+            }
+            
+            $ask = !is_nullorempty($current_group) ? "Please input group name. [{$current_group}]" : "Please input group name.";
+            $group = $this->ask($ask);
+            if(!$group){
+                $group = $current_group;
+            }
+
+            if(!$group){
+                $this->error('Please input group name.');
+            }
+        }
+
+        return $group;
     }
 
 
@@ -126,4 +147,6 @@ class SetupDirCommand extends AdminInstallCommand
             }
         }
     }
+
+
 }
