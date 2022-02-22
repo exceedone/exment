@@ -176,6 +176,8 @@ class SetupDirCommand extends AdminInstallCommand
             }
         }
         elseif(\File::exists($path)){
+            chown($path, $user);
+            chgrp($path, $group);
             chmod($path, 0664);
         }
     }
