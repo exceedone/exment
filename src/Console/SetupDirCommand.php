@@ -142,7 +142,7 @@ class SetupDirCommand extends AdminInstallCommand
             chown($dir, $user);
             chgrp($dir, $group);
             if($isMod){
-                chmod($dir, 0775);
+                chmod($dir, 02775);
             }
         }
         
