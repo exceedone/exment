@@ -97,11 +97,13 @@ class CustomNotifyController extends AdminControllerTableBase
             $tools->append(new Tools\CustomTableMenuButton('notify', $this->custom_table));
         });
 
-        $grid->actions(function (Grid\Displayers\Actions $actions) {
+        $custom_table = $this->custom_table;
+
+        $grid->actions(function (Grid\Displayers\Actions $actions) use($custom_table) {
             $actions->disableView();
             
             $linker = (new Linker)
-                ->url(admin_urls("notify/create?copy_id={$actions->row->id}"))
+                ->url(admin_urls("notify/{$custom_table->table_name}/create?copy_id={$actions->row->id}"))
                 ->icon('fa-copy')
                 ->tooltip(exmtrans('common.copy_item', exmtrans('notify.notify')));
             $actions->prepend($linker);
