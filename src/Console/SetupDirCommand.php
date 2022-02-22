@@ -13,7 +13,7 @@ class SetupDirCommand extends AdminInstallCommand
      *
      * @var string
      */
-    protected $signature = 'exment:setup-dir {--user=} {--group=}';
+    protected $signature = 'exment:setup-dir {--user=} {--group=} {--easy=0}';
 
     /**
      * The console command description.
@@ -65,7 +65,7 @@ class SetupDirCommand extends AdminInstallCommand
             }
         }
 
-        static::createSystemFolder($user ?? null, $group ?? null);
+        static::createSystemFolder($user ?? null, $group ?? null, boolval($this->option('easy')));
     }
 
 
@@ -101,7 +101,7 @@ class SetupDirCommand extends AdminInstallCommand
      * @param string|null $group
      * @return void
      */
-    public static function createSystemFolder(?string $user, ?string $group){
+    public static function createSystemFolder(?string $user, ?string $group, bool $easy = false){
         // create storage/app/purifier
         \Exment::makeDirectory(base_path(path_join('storage', 'app', 'purifier')));
         \Exment::makeDirectory(base_path(path_join('storage', 'app', 'purifier', 'HTML')));
@@ -114,6 +114,14 @@ class SetupDirCommand extends AdminInstallCommand
 
             static::addPermission('storage', $user, $group);
             static::addPermission('bootstrap/cache', $user, $group);
+            
+            // If easy install, set permission to dir
+            if($easy){
+                static::addPermission('app', $user, $group);
+                static::addPermission('config', $user, $group);
+                static::addPermission('public', $user, $group);
+                static::addPermission('.env', $user, $group);
+            }
         }
     }
 
