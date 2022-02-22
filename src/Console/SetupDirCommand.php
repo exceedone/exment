@@ -13,7 +13,7 @@ class SetupDirCommand extends AdminInstallCommand
      *
      * @var string
      */
-    protected $signature = 'exment:setup-dir {--user=} {--group=} {--easy=0}';
+    protected $signature = 'exment:setup-dir {--user=} {--group=} {--easy=0} {--easy_clear=0}';
 
     /**
      * The console command description.
@@ -48,6 +48,11 @@ class SetupDirCommand extends AdminInstallCommand
      */
     public function handle()
     {
+        if(boolval($this->option('easy_clear'))){
+            static::revertEasyInstall();
+            return;
+        }
+
         // If not Windows, get user and group
         if(!\Exment::isWindows()){
             $user = $this->option('user');
@@ -126,6 +131,20 @@ class SetupDirCommand extends AdminInstallCommand
     }
 
     /**
+     * Revert permission 
+     *
+     * @param string|null $user
+     * @param string|null $group
+     * @return void
+     */
+    public static function revertEasyInstall(){
+        static::revertPermission('app');
+        static::revertPermission('config');
+        static::revertPermission('public');
+        static::revertPermission('.env');
+    }
+
+    /**
      * Set all permission
      *
      * @param string $path
@@ -137,24 +156,55 @@ class SetupDirCommand extends AdminInstallCommand
     protected static function addPermission(string $path, ?string $user, ?string $group, bool $isMod = true){
         $path = base_path($path);
 
-        $dirs = \Exment::allDirectories($path);
-        foreach($dirs as $dir){
-            chown($dir, $user);
-            chgrp($dir, $group);
-            if($isMod){
-                chmod($dir, 02775);
+        if (\File::isDirectory($path)) {
+            $dirs = \Exment::allDirectories($path);
+            foreach ($dirs as $dir) {
+                chown($dir, $user);
+                chgrp($dir, $group);
+                if ($isMod) {
+                    chmod($dir, 02775);
+                }
+            }
+            
+            $files = \File::allFiles($path);
+            foreach($files as $file){
+                chown($file, $user);
+                chgrp($file, $group);
+                if($isMod){
+                    chmod($file, 0664);
+                }
             }
         }
-        
-        $files = \File::allFiles($path);
-        foreach($files as $file){
-            chown($file, $user);
-            chgrp($file, $group);
-            if($isMod){
-                chmod($file, 0664);
-            }
+        elseif(\File::exists($path)){
+            chmod($path, 0664);
         }
     }
 
+    /**
+     * Set all permission
+     *
+     * @param string $path
+     * @param string|null $user
+     * @param string|null $group
+     * @param bool $isMod is execute chmod
+     * @return void
+     */
+    protected static function revertPermission(string $path){
+        $path = base_path($path);
 
+        if(\File::isDirectory($path)){
+            $dirs = \Exment::allDirectories($path);
+            foreach($dirs as $dir){
+                chmod($dir, 02755);
+            }
+        
+            $files = \File::allFiles($path);
+            foreach($files as $file){
+                chmod($file, 0644);
+            }
+        }
+        elseif(\File::exists($path)){
+            chmod($path, 0644);
+        }
+    }
 }
