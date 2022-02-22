@@ -129,7 +129,7 @@ class SetupDirCommand extends AdminInstallCommand
     protected static function addPermission(string $path, ?string $user, ?string $group, bool $isMod = true){
         $path = base_path($path);
 
-        $dirs = \File::allDirectories($path);
+        $dirs = \Exment::allDirectories($path);
         foreach($dirs as $dir){
             chown($dir, $user);
             chgrp($dir, $group);

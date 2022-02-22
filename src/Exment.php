@@ -27,6 +27,7 @@ use Encore\Admin\Admin;
 use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Class Admin.
@@ -801,6 +802,23 @@ class Exment
         $disk->makeDirectory($path, $mode, true);
     }
     
+
+    /**
+     * Get all of the directories within a given directory.
+     *
+     * @param  string  $directory
+     * @return array
+     */
+    public function allDirectories($directory)
+    {
+        $directories = [];
+
+        foreach (Finder::create()->in($directory)->directories()->sortByName() as $dir) {
+            $directories[] = $dir->getPathname();
+        }
+
+        return $directories;
+    }
 
     /**
      * Whether db is sqlserver.
