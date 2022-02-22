@@ -90,6 +90,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\FileColumnImportCommand',
         'Exceedone\Exment\Console\DocumentImportCommand',
         'Exceedone\Exment\Console\WorkflowClearCommand',
+        'Exceedone\Exment\Console\SetupDirCommand',
     ];
 
     
