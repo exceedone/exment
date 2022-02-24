@@ -230,7 +230,7 @@ composer global require friendsofphp/php-cs-fixer
 #Remove unused use
 php-cs-fixer fix ./vendor/hirossyi73/exment --rules=no_unused_imports
 #Fix all source
-php-cs-fixer fix
+php-cs-fixer fix ./vendor/hirossyi73/exment
 ```
 
 

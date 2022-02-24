@@ -15,11 +15,11 @@ class SupportForV21 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(!\Schema::hasTable('custom_operations')){
+        if (!\Schema::hasTable('custom_operations')) {
             $schema->create('custom_operations', function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->string('suuid', 20)->index();

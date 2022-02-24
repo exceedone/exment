@@ -132,7 +132,7 @@ return [
     'attributes' => [
         'action_settings' => [
             'notify_action_target' => '通知対象'
-        ] 
+        ]
     ],
 
 ];

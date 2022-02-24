@@ -14,7 +14,7 @@ class SupportForV14 extends Migration
      */
     public function up()
     {
-        if(!\Schema::hasTable(SystemTableName::EMAIL_CODE_VERIFY)){
+        if (!\Schema::hasTable(SystemTableName::EMAIL_CODE_VERIFY)) {
             Schema::create(SystemTableName::EMAIL_CODE_VERIFY, function (Blueprint $table) {
                 $table->increments('id');
                 $table->integer('login_user_id')->unsigned()->nullable();
@@ -26,7 +26,7 @@ class SupportForV14 extends Migration
             });
         }
 
-        if(\Schema::hasTable('login_users') && !\Schema::hasColumn('login_users', 'auth2fa_key')){
+        if (\Schema::hasTable('login_users') && !\Schema::hasColumn('login_users', 'auth2fa_key')) {
             Schema::table('login_users', function (Blueprint $table) {
                 $table->text('auth2fa_key')->nullable()->after('avatar');
                 $table->boolean('auth2fa_available')->default(false)->after('auth2fa_key');

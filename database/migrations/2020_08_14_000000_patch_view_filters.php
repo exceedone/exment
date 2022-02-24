@@ -13,7 +13,7 @@ class PatchViewFilters extends Migration
      */
     public function up()
     {
-        if(!Schema::hasColumn('custom_view_filters', 'options')){
+        if (!Schema::hasColumn('custom_view_filters', 'options')) {
             Schema::table('custom_view_filters', function (Blueprint $table) {
                 $table->json('options')->after('view_filter_condition_value_id')->nullable();
             });

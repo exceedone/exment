@@ -235,7 +235,7 @@ composer global require friendsofphp/php-cs-fixer
 # 不要な"use"を削除
 php-cs-fixer fix ./vendor/hirossyi73/exment --rules=no_unused_imports 
 # すべてのソースを整形
-php-cs-fixer fix
+php-cs-fixer fix ./vendor/hirossyi73/exment
 ~~~
 
 

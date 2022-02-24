@@ -13,7 +13,7 @@ class AddOptionsToWorkflows extends Migration
      */
     public function up()
     {
-        if(!Schema::hasColumn('workflows', 'options')){
+        if (!Schema::hasColumn('workflows', 'options')) {
             Schema::table('workflows', function (Blueprint $table) {
                 $table->json('options')->after('setting_completed_flg')->nullable();
             });
@@ -27,8 +27,8 @@ class AddOptionsToWorkflows extends Migration
      */
     public function down()
     {
-        Schema::table('workflows', function($table) {
-            if(Schema::hasColumn('workflows', 'options')){
+        Schema::table('workflows', function ($table) {
+            if (Schema::hasColumn('workflows', 'options')) {
                 $table->dropColumn('options');
             }
         });

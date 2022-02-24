@@ -14,9 +14,9 @@ class UpdateNotifyLogic extends Migration
      */
     public function up()
     {
-        if(Schema::hasTable('notifies')){
+        if (Schema::hasTable('notifies')) {
             Schema::table('notifies', function (Blueprint $table) {
-                if(!Schema::hasColumn('notifies', 'mail_template_id')){
+                if (!Schema::hasColumn('notifies', 'mail_template_id')) {
                     $table->integer('mail_template_id')->after('action_settings')->nullable();
                     $table->boolean('active_flg')->after('notify_view_name')->default(true);
                 }
@@ -34,16 +34,16 @@ class UpdateNotifyLogic extends Migration
     public function down()
     {
         $schema = DB::connection()->getSchemaBuilder();
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(Schema::hasTable('notifies')){
+        if (Schema::hasTable('notifies')) {
             $schema->table('notifies', function (ExtendedBlueprint $table) {
-                if(Schema::hasColumn('notifies', 'mail_template_id')){
+                if (Schema::hasColumn('notifies', 'mail_template_id')) {
                     $table->dropColumn('mail_template_id');
                 }
-                if(Schema::hasColumn('notifies', 'active_flg')){
+                if (Schema::hasColumn('notifies', 'active_flg')) {
                     $table->dropColumn('active_flg');
                 }
             });

@@ -51,7 +51,7 @@ class SupportForV12 extends Migration
         $this->dropExmTables();
         
         // hard delete if already deleted record
-        foreach(static::SOFT_DELETED_ARRAY as $table_name => $classname){
+        foreach (static::SOFT_DELETED_ARRAY as $table_name => $classname) {
             $this->deleteRecord($table_name, $classname);
         }
 
@@ -64,7 +64,7 @@ class SupportForV12 extends Migration
         }
 
         //
-        if(!Schema::hasColumn('custom_view_columns', 'options')){
+        if (!Schema::hasColumn('custom_view_columns', 'options')) {
             Schema::table('custom_view_columns', function (Blueprint $table) {
                 $table->json('options')->after('order')->nullable();
             });
@@ -79,15 +79,15 @@ class SupportForV12 extends Migration
     public function down()
     {
         //
-        if(Schema::hasTable('custom_view_columns') && Schema::hasColumn('custom_view_columns', 'options')){
+        if (Schema::hasTable('custom_view_columns') && Schema::hasColumn('custom_view_columns', 'options')) {
             Schema::table('custom_view_columns', function (Blueprint $table) {
                 $table->dropColumn('options');
             });
         }
         
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
-            if(Schema::hasTable($table_name)){
-                Schema::table($table_name, function (Blueprint $table) use($column_name) {
+            if (Schema::hasTable($table_name)) {
+                Schema::table($table_name, function (Blueprint $table) use ($column_name) {
                     $table->dropIndex([$column_name]);
                 });
             }
@@ -97,8 +97,9 @@ class SupportForV12 extends Migration
     /**
      * drop custom table's table
      */
-    protected function dropExmTables(){
-        if(!Schema::hasColumn('custom_tables', 'deleted_at')){
+    protected function dropExmTables()
+    {
+        if (!Schema::hasColumn('custom_tables', 'deleted_at')) {
             return;
         }
 
@@ -109,14 +110,15 @@ class SupportForV12 extends Migration
     }
 
     /**
-     * hard delete 
+     * hard delete
      */
-    protected function deleteRecord($table_name, $classname){
-        if(!Schema::hasColumn($table_name, 'deleted_at')){
+    protected function deleteRecord($table_name, $classname)
+    {
+        if (!Schema::hasColumn($table_name, 'deleted_at')) {
             return;
         }
 
-        $classname::whereNotNull('deleted_at')->get()->each(function($row){
+        $classname::whereNotNull('deleted_at')->get()->each(function ($row) {
             $row->delete();
         });
     }
@@ -124,15 +126,16 @@ class SupportForV12 extends Migration
     /**
      * add key's index
      */
-    protected function addIndex(){
+    protected function addIndex()
+    {
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
             $columns = \Schema::getIndexDefinitions($table_name, $column_name);
  
-            if(count($columns) > 0){
+            if (count($columns) > 0) {
                 continue;
             }
 
-            Schema::table($table_name, function (Blueprint $t) use($column_name) {
+            Schema::table($table_name, function (Blueprint $t) use ($column_name) {
                 $t->index([$column_name]);
             });
         }
@@ -141,12 +144,13 @@ class SupportForV12 extends Migration
     /**
      * add deleted_at key's index
      */
-    protected function addDeletedIndex(){
+    protected function addDeletedIndex()
+    {
         // add deleted_at index in custom values table
-        if(count(Schema::getIndexDefinitions('custom_values', 'deleted_at')) == 0){
+        if (count(Schema::getIndexDefinitions('custom_values', 'deleted_at')) == 0) {
             Schema::table('custom_values', function (Blueprint $t) {
                 $t->index(['deleted_at']);
-            });   
+            });
         }
         
         $tables = \Schema::getTableListing();
@@ -155,44 +159,44 @@ class SupportForV12 extends Migration
                 continue;
             }
 
-            $columns = collect(\Schema::getColumnListing($table))->filter(function($row){
+            $columns = collect(\Schema::getColumnListing($table))->filter(function ($row) {
                 return $row == 'deleted_at';
             });
 
-            if(count($columns) == 0){
+            if (count($columns) == 0) {
                 continue;
             }
 
             // check index
-            if(count(Schema::getIndexDefinitions($table, 'deleted_at')) > 0){
+            if (count(Schema::getIndexDefinitions($table, 'deleted_at')) > 0) {
                 continue;
             }
 
             Schema::table($table, function (Blueprint $t) {
                 $t->index(['deleted_at'], 'custom_values_deleted_at_index');
-            });  
+            });
         }
     }
 
     /**
      * drop deleted record
      */
-    protected function dropDeletedRecord($table){
+    protected function dropDeletedRecord($table)
+    {
         if (stripos($table, 'exm__') === 0 || $table == 'custom_values') {
             return;
         }
 
-        $columns = collect(\Schema::getColumnListing($table))->filter(function($row){
+        $columns = collect(\Schema::getColumnListing($table))->filter(function ($row) {
             return in_array($row, ['deleted_at', 'deleted_user_id']);
         });
 
-        if(count($columns) == 0){
+        if (count($columns) == 0) {
             return;
         }
 
-        foreach($columns as $column){
-            
-            Schema::table($table, function (Blueprint $t) use($column) {
+        foreach ($columns as $column) {
+            Schema::table($table, function (Blueprint $t) use ($column) {
                 $t->dropColumn($column);
             });
         }
@@ -201,21 +205,22 @@ class SupportForV12 extends Migration
     /**
      * drop deleted record
      */
-    protected function dropSuuidUnique($table){
+    protected function dropSuuidUnique($table)
+    {
         $columns = \Schema::getUniqueDefinitions($table, 'suuid');
-        if(count($columns) == 0){
+        if (count($columns) == 0) {
             return;
         }
 
-        foreach($columns as $column){
+        foreach ($columns as $column) {
             $keyName = array_get($column, 'key_name');
             
-            Schema::table($table, function (Blueprint $t) use($keyName, $table) {
+            Schema::table($table, function (Blueprint $t) use ($keyName, $table) {
                 $t->dropUnique($keyName);
 
                 if (stripos($table, 'exm__') === 0 || $table == 'custom_values') {
                     $t->index(['suuid'], 'custom_values_suuid_index');
-                }else{
+                } else {
                     $t->index(['suuid']);
                 }
             });
