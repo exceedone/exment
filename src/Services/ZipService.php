@@ -16,10 +16,7 @@ class ZipService
      */
     public static function createPasswordZip($files, $zipFullPath, $tmpFolderPath, $password, ?string $disk = null)
     {
-        if (!\File::exists($tmpFolderPath)) {
-            \File::makeDirectory($tmpFolderPath);
-        }
-
+        \Exment::makeDirectory($tmpFolderPath);
         foreach ($files as $file) {
             $tmpfile = pathinfo($file)['basename'];
             if (empty($tmpfile) || $tmpfile == '.' || $tmpfile == '..') {

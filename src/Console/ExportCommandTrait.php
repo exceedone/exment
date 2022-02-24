@@ -57,7 +57,7 @@ trait ExportCommandTrait
 
         if (isset($options['dirpath'])) {
             if (!\File::exists($options['dirpath'])) {
-                \File::makeDirectory($options['dirpath'], 0755, true);
+                \Exment::makeDirectory($options['dirpath']);
             } elseif (!\File::isDirectory($options['dirpath'])) {
                 throw new \Exception('optional parameter dirpath error : ' . $options['dirpath']);
             }
@@ -65,9 +65,7 @@ trait ExportCommandTrait
             // get default directory full path
             $options['dirpath'] = storage_path(path_join_os('app', 'export', date('YmdHis')));
             // if default is not exists, make directory
-            if (!\File::exists($options['dirpath'])) {
-                \File::makeDirectory($options['dirpath'], 0755, true);
-            }
+            \Exment::makeDirectory($options['dirpath']);
         }
 
         return $options;

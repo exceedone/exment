@@ -169,9 +169,7 @@ trait TestTrait
     protected function getTextDirPath() : string
     {
         $dir = storage_path('app/tests');
-        if (!\File::exists($dir)) {
-            \File::makeDirectory($dir);
-        }
+        \Exment::makeDirectory($dir);
 
         return $dir;
     }

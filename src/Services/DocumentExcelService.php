@@ -337,9 +337,7 @@ class DocumentExcelService
     {
         // create directory
         $dir_fullpath = getFullpath('document', config('admin.upload.disk'));
-        if (!\File::exists($dir_fullpath)) {
-            \File::makeDirectory($dir_fullpath);
-        }
+        \Exment::makeDirectory($dir_fullpath);
         //return getFullpath('document', config('admin.upload.disk'));
         return 'document';
     }

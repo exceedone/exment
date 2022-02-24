@@ -37,13 +37,13 @@ class ImportExportTest extends TestCase
                 if (\File::exists($this->dirpath)) {
                     \File::deleteDirectory($this->dirpath);
                 }
-                \File::makeDirectory($this->dirpath, 0755, true);
+                \Exment::makeDirectory($this->dirpath);
             } else {
                 $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
                 if (\File::exists($import_path)) {
                     \File::deleteDirectory($import_path);
                 }
-                \File::makeDirectory($import_path, 0755, true);
+                \Exment::makeDirectory($import_path);
                 $source_path = exment_package_path("tests/tmpfile/Feature/$target_name");
                 \File::copyDirectory($source_path, $import_path);
                 $this->dirpath = 'unittest';
