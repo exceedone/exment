@@ -99,7 +99,6 @@ if (!function_exists('html_clean')) {
         try {
             // default setting for exment
             $config = HTMLPurifier_Config::createDefault();
-            $config->set('Cache.SerializerPermissions', 0775);
             $config->set('HTML.Allowed', Define::HTML_ALLOWED_DEFAULT);
             $config->set('HTML.AllowedAttributes', Define::HTML_ALLOWED_ATTRIBUTES_DEFAULT);
             $config->set('CSS.AllowedProperties', Define::CSS_ALLOWED_PROPERTIES_DEFAULT);
