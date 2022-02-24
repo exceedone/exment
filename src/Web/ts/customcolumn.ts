@@ -100,7 +100,7 @@ namespace Exment {
                     if(!hasValue($target)){
                         result = false;
                     }
-                    return 1;
+                    return '1';
                 });
                     
                 if(result){

@@ -4,11 +4,12 @@
 ## はじめに
 - Visual Studio Codeによる開発を推奨しています。また、この記事はWindows向けに作成しています。Mac端末だと相違点がある可能性がありますが、ご了承ください。
 - このページは作成中です。もしセットアップがうまくいかない場合、issueに記載してください。
-- はじめに、これらのアプリケーションをインストールしてください。
+- 事前に、以下のアプリケーションがインストールされている必要があります。
     - Visual Studio Code
     - git
     - composer
-    - node.js
+    - node.js(npm)
+- ローカルでExmentを動作させる為に必要なWEBサーバー、データベース等は、ご自身の環境に合わせてご用意ください。[参考サイト](https://exment.net/docs/#/ja/server)
 
 ## リポジトリのフォーク
 - GitHubの [https://github.com/exceedone/exment] にアクセスし、ページ右上の「Fork」ボタンをクリックしてください。
@@ -100,9 +101,14 @@ php artisan passport:keys
 - 以下のサイトから、tsconfig.jsonファイルをダウンロードし、Laravelプロジェクトフォルダ直下に配置してください。  
 [tsconfig.json](https://exment.net/downloads/develop/tsconfig.json)
 
-- tsconfig.jsonを開き、10行目を、自分のオーナー名に編集してください。
+- tsconfig.jsonを開き、5行目と10行目を、自分のオーナー名に編集してください。
 
 ```
+  "compilerOptions": {
+    ～ 省略 ～
+    "outDir": "./packages/hirossyi73/exment/public/vendor/exment/js",
+    ～ 省略 ～
+  },
   "include": [
     "packages/hirossyi73/exment/src/Web/ts/*.ts"
   ]
@@ -112,8 +118,10 @@ php artisan passport:keys
 - 以下のコマンドを実施し、npmパッケージをインストールしてください。
 
 ~~~
+npm init
+# そのままEnterで初期設定完了
 npm install -g typescript
-npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2
+npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2 @types/jquery.validation
 ~~~
 
 - 以下の"\*.d.ts"ファイルをダウンロードしてください。これらのファイルは、npmに含まれていないファイルです。  
@@ -131,10 +139,37 @@ npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/
 }
 ~~~
 
-- プロジェクトフォルダ直下の"tasks.json"ファイルを開き、プロジェクトルートフォルダの".vscode"フォルダに配置します。(".vscode"フォルダがなければ、作成してください)
-[tasks.json](https://exment.net/downloads/develop/tasks.json)
+- プロジェクトフォルダ直下の"tasks.json"ファイルを、プロジェクトルートフォルダの".vscode"フォルダにコピーします。  
+※"tasks.json"ファイルがなければ、[こちら](https://exment.net/downloads/develop/tasks.json)からダウンロードしてください。  
+※".vscode"フォルダがなければ、ご自身で作成してください。  
 
-- あなたが "exment" パッケージ内の.tsファイルを編集した後、コンパイルしたい場合、"Ctrl + Shift + B" コマンドをVSCodeで実行してください。（おそらくMacでは、"Command + Shift + B"です）  
+- index.d.tsで、bootstrapとjqueryの定義ファイルで競合が発生しているので、個別に修正します。  
+node_modules\@types\bootstrap\index.d.tsを開き、以下のように修正します。※27行目付近です。
+
+``` typescript
+declare global {
+    interface JQuery {
+        alert: Alert.jQueryInterface;
+        // コメントアウト
+        //button: Button.jQueryInterface;
+        carousel: Carousel.jQueryInterface;
+        collapse: Collapse.jQueryInterface;
+        dropdown: Dropdown.jQueryInterface;
+        tab: Tab.jQueryInterface;
+        modal: Modal.jQueryInterface;
+        offcanvas: Offcanvas.jQueryInterface;
+        [Popover.NAME]: Popover.jQueryInterface;
+        scrollspy: ScrollSpy.jQueryInterface;
+        toast: Toast.jQueryInterface;
+        // コメントアウト
+        //[Tooltip.NAME]: Tooltip.jQueryInterface;
+    }
+}
+
+```
+
+
+- あなたが "exment" パッケージ内の.tsファイルを編集した後、コンパイルする場合は、"Ctrl + Shift + B" コマンドをVSCodeで実行してください。（おそらくMacでは、"Command + Shift + B"です）  
 コンパイルされたjsファイルが、 packages/hirossyi73/exment/public/vendor/exment/js に配置されます。
 
 - コンパイルしたjsファイルをWebに反映したい場合、以下のコマンドを実行してください。
@@ -148,16 +183,23 @@ php artisan exment:publish
 - VsCodeの拡張機能"EasySass"をインストールしてください。  
 [EasySass](https://marketplace.visualstudio.com/items?itemName=spook.easysass)
 
-- VSCodeの設定を開き、EasySassの設定を開きます。  
-"Target Dir"の設定を開き、"packages/hirossyi73/exment/public/vendor/exment/css"をセットします。
+- VSCodeの設定画面を開きます。サブメニューの拡張機能→EasySassを選択します。  
+"Target Dir"の欄に、"packages/hirossyi73/exment/public/vendor/exment/css"を入力します。  
+※"hirossyi73"の部分はご自身のオーナー名に変換してください。  
 
-- あなたが.scssファイルを編集し、保存時、自動的に.cssファイルが packages/hirossyi73/exment/public/vendor/exment/cssに配置されます。
+- あなたが.scssファイルを編集して、保存した際、.cssファイルが自動的に packages/hirossyi73/exment/public/vendor/exment/cssに配置されます。
 
-- cssファイルをWebに反映したい場合、以下のコマンドを実行してください。
+- cssファイルをWebに反映する場合は、以下のコマンドを実行してください。
 
 ~~~
 php artisan exment:publish
 ~~~
+
+## その他
+
+- シンボリックリンクの設定により、Exmentのパッケージのファイルは、packagesフォルダとvendorフォルダの両方に存在します。  
+プログラムを修正する際は、packagesフォルダを編集するようにお願いします。
+
 
 ## GitHub
 
@@ -184,14 +226,14 @@ GitHubにpushする前に、以下のコマンドを実行し、ソースを整�
 ```
 composer global require friendsofphp/php-cs-fixer
 
-# あなたの環境変数を追加してください。"%USERPROFILE%"は、あなたのマシン名です。 ex:「C:\Users\XXXX」
+# 環境変数に以下のパスを追加してください。（"%USERPROFILE%"は、ご自身のユーザーディレクトリを指す変数です。 ex:「C:\Users\XXXX」）
 %USERPROFILE%\AppData\Roaming\Composer\vendor\bin 
 ```
 
 #### ソース整形
 ~~~
 # 不要な"use"を削除
-php-cs-fixer fix ./vendor/exceedone/exment --rules=no_unused_imports 
+php-cs-fixer fix ./vendor/hirossyi73/exment --rules=no_unused_imports 
 # すべてのソースを整形
 php-cs-fixer fix
 ~~~

@@ -28,9 +28,6 @@ var Exment;
             }
             let texts = [];
             let label = $('.work_target_type:checked').closest('label').text().trim();
-            if (!label) {
-                label = $('.work_target_type_label').val().trim();
-            }
             texts.push('[' + label + ']');
             $.each(targetKeys, function (index, value) {
                 let target = form.find('.' + value + '.form-control');
