@@ -99,7 +99,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $custom_table = $this->custom_table;
 
-        $grid->actions(function (Grid\Displayers\Actions $actions) use($custom_table) {
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
             $actions->disableView();
             
             $linker = (new Linker)
