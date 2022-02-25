@@ -19,7 +19,7 @@ class SupportForV217 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
@@ -37,7 +37,7 @@ class SupportForV217 extends Migration
 
         // insert password_histories
         $loginUsers = LoginUser::whereNull('login_provider')->get();
-        foreach($loginUsers as $loginUser){
+        foreach ($loginUsers as $loginUser) {
             $passwordHistory = new PasswordHistory;
             $passwordHistory->password = $loginUser->password;
             $passwordHistory->login_user_id = $loginUser->id;

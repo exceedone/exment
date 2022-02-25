@@ -20,8 +20,8 @@ class PatchAuthoritable extends Migration
 
         foreach ($prms as $prm) {
             // foreach each authoritable table
-            foreach(['system_authoritables', 'value_authoritables'] as $table){
-                if(!\Schema::hasTable($table)){
+            foreach (['system_authoritables', 'value_authoritables'] as $table) {
+                if (!\Schema::hasTable($table)) {
                     continue;
                 }
                 

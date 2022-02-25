@@ -793,7 +793,7 @@ class Exment
      */
     public function makeDirectoryDisk($disk, ?string $path, int $mode = 0775)
     {
-        if(!$disk){
+        if (!$disk) {
             return;
         }
         if ($disk->exists($path)) {

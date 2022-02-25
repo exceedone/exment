@@ -16,7 +16,7 @@ class AddOptionsToCustomViewSort extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
@@ -64,24 +64,24 @@ class AddOptionsToCustomViewSort extends Migration
     public function down()
     {
         $schema = DB::connection()->getSchemaBuilder();
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(Schema::hasTable('custom_view_sorts')){
+        if (Schema::hasTable('custom_view_sorts')) {
             $schema->table('custom_view_sorts', function (ExtendedBlueprint $table) {
-                if(Schema::hasColumn('custom_view_sorts', 'options')){
+                if (Schema::hasColumn('custom_view_sorts', 'options')) {
                     $table->dropColumn('options');
                 }
-                if(Schema::hasColumn('custom_view_sorts', 'suuid')){
+                if (Schema::hasColumn('custom_view_sorts', 'suuid')) {
                     $table->dropIndex(['suuid']);
                     $table->dropColumn('suuid');
                 }
             });
         }
-        if(Schema::hasTable('custom_view_filters')){
+        if (Schema::hasTable('custom_view_filters')) {
             $schema->table('custom_view_filters', function (ExtendedBlueprint $table) {
-                if(Schema::hasColumn('custom_view_filters', 'suuid')){
+                if (Schema::hasColumn('custom_view_filters', 'suuid')) {
                     $table->dropIndex(['suuid']);
                     $table->dropColumn('suuid');
                 }

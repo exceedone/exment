@@ -48,24 +48,24 @@ class SetupDirCommand extends AdminInstallCommand
      */
     public function handle()
     {
-        if(boolval($this->option('easy_clear'))){
+        if (boolval($this->option('easy_clear'))) {
             static::revertEasyInstall();
             return;
         }
 
         // If not Windows, get user and group
-        if(!\Exment::isWindows()){
+        if (!\Exment::isWindows()) {
             $user = $this->option('user');
-            if(!$user){
+            if (!$user) {
                 $current_user = get_current_user();
                 $user = $this->ask("Please input user name. [{$current_user}]");
-                if(!$user){
+                if (!$user) {
                     $user = $current_user;
                 }
             }
 
             $group = $this->getGroup();
-            if(!$group){
+            if (!$group) {
                 return;
             }
         }
@@ -77,20 +77,20 @@ class SetupDirCommand extends AdminInstallCommand
     protected function getGroup()
     {
         $group = $this->option('group');
-        if(!$group){
+        if (!$group) {
             // get current group
             $current_group = null;
-            if(function_exists('posix_getgrgid')){
+            if (function_exists('posix_getgrgid')) {
                 $current_group = array_get(posix_getgrgid(filegroup(base_path(path_join('public', 'index.php')))), 'name');
             }
             
             $ask = !is_nullorempty($current_group) ? "Please input group name. [{$current_group}]" : "Please input group name.";
             $group = $this->ask($ask);
-            if(!$group){
+            if (!$group) {
                 $group = $current_group;
             }
 
-            if(!$group){
+            if (!$group) {
                 $this->error('Please input group name.');
             }
         }
@@ -100,13 +100,14 @@ class SetupDirCommand extends AdminInstallCommand
 
 
     /**
-     * Create and add permission 
+     * Create and add permission
      *
      * @param string|null $user
      * @param string|null $group
      * @return void
      */
-    public static function createSystemFolder(?string $user, ?string $group, bool $easy = false){
+    public static function createSystemFolder(?string $user, ?string $group, bool $easy = false)
+    {
         // create storage/app/purifier
         \Exment::makeDirectory(base_path(path_join('storage', 'app', 'purifier')));
         \Exment::makeDirectory(base_path(path_join('storage', 'app', 'purifier', 'HTML')));
@@ -121,7 +122,7 @@ class SetupDirCommand extends AdminInstallCommand
             static::addPermission('bootstrap/cache', $user, $group);
             
             // If easy install, set permission to dir
-            if($easy){
+            if ($easy) {
                 static::addPermission('app', $user, $group);
                 static::addPermission('config', $user, $group);
                 static::addPermission('public', $user, $group);
@@ -131,13 +132,14 @@ class SetupDirCommand extends AdminInstallCommand
     }
 
     /**
-     * Revert permission 
+     * Revert permission
      *
      * @param string|null $user
      * @param string|null $group
      * @return void
      */
-    public static function revertEasyInstall(){
+    public static function revertEasyInstall()
+    {
         static::revertPermission('app');
         static::revertPermission('config');
         static::revertPermission('public');
@@ -153,7 +155,8 @@ class SetupDirCommand extends AdminInstallCommand
      * @param bool $isMod is execute chmod
      * @return void
      */
-    protected static function addPermission(string $path, ?string $user, ?string $group, bool $isMod = true){
+    protected static function addPermission(string $path, ?string $user, ?string $group, bool $isMod = true)
+    {
         $path = base_path($path);
 
         if (\File::isDirectory($path)) {
@@ -167,15 +170,14 @@ class SetupDirCommand extends AdminInstallCommand
             }
             
             $files = \File::allFiles($path, true);
-            foreach($files as $file){
+            foreach ($files as $file) {
                 chown($file, $user);
                 chgrp($file, $group);
-                if($isMod){
+                if ($isMod) {
                     chmod($file, 0664);
                 }
             }
-        }
-        elseif(\File::exists($path)){
+        } elseif (\File::exists($path)) {
             chown($path, $user);
             chgrp($path, $group);
             if ($isMod) {
@@ -193,21 +195,21 @@ class SetupDirCommand extends AdminInstallCommand
      * @param bool $isMod is execute chmod
      * @return void
      */
-    protected static function revertPermission(string $path){
+    protected static function revertPermission(string $path)
+    {
         $path = base_path($path);
 
-        if(\File::isDirectory($path)){
+        if (\File::isDirectory($path)) {
             $dirs = \Exment::allDirectories($path);
-            foreach($dirs as $dir){
+            foreach ($dirs as $dir) {
                 chmod($dir, 02755);
             }
         
             $files = \File::allFiles($path);
-            foreach($files as $file){
+            foreach ($files as $file) {
                 chmod($file, 0644);
             }
-        }
-        elseif(\File::exists($path)){
+        } elseif (\File::exists($path)) {
             chmod($path, 0644);
         }
     }

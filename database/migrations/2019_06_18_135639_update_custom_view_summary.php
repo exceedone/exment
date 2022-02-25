@@ -13,7 +13,7 @@ class UpdateCustomViewSummary extends Migration
      */
     public function up()
     {
-        if(!Schema::hasColumn('custom_view_summaries', 'options')){
+        if (!Schema::hasColumn('custom_view_summaries', 'options')) {
             Schema::table('custom_view_summaries', function (Blueprint $table) {
                 $table->json('options')->after('view_column_name')->nullable();
             });
@@ -27,7 +27,7 @@ class UpdateCustomViewSummary extends Migration
      */
     public function down()
     {
-        Schema::table('custom_view_summaries', function($table) {
+        Schema::table('custom_view_summaries', function ($table) {
             if (Schema::hasColumn('custom_view_summaries', 'options')) {
                 $table->dropColumn('options');
             }

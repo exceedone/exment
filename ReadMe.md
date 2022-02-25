@@ -150,6 +150,9 @@ Please write issues using English or Japanese.  / issuesには英語または日
 
 # Other repositories
 
+- **[laravel-admin](https://github.com/exceedone/laravel-admin)**  
+Based Exment's framework. Forked from [z-song/laravel-admin](https://github.com/z-song/laravel-admin).
+
 - **[Manual](https://github.com/exceedone/exment-manual)**  
 For exment manual page.
 

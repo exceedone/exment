@@ -14,14 +14,14 @@ class ApiAuthApiKey extends Migration
      */
     public function up()
     {
-        if(Schema::hasTable('oauth_clients')){
+        if (Schema::hasTable('oauth_clients')) {
             Schema::table('oauth_clients', function (Blueprint $table) {
-                if(!Schema::hasColumn('oauth_clients', 'api_key_client')){
+                if (!Schema::hasColumn('oauth_clients', 'api_key_client')) {
                     $table->boolean('api_key_client')->default(false)->after('password_client');
                 }
             });
         }
-        if(!Schema::hasTable('oauth_api_keys')){
+        if (!Schema::hasTable('oauth_api_keys')) {
             Schema::create('oauth_api_keys', function (Blueprint $table) {
                 $table->uuid('id', 100)->primary();
                 $table->uuid('client_id');
@@ -40,13 +40,13 @@ class ApiAuthApiKey extends Migration
     public function down()
     {
         $schema = DB::connection()->getSchemaBuilder();
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(Schema::hasTable('oauth_clients')){
+        if (Schema::hasTable('oauth_clients')) {
             $schema->table('oauth_clients', function (ExtendedBlueprint $table) {
-                if(Schema::hasColumn('oauth_clients', 'api_key_client')){
+                if (Schema::hasColumn('oauth_clients', 'api_key_client')) {
                     $table->dropColumn('api_key_client');
                 }
             });

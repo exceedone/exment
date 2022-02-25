@@ -18,7 +18,7 @@ class SupportForV300 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
@@ -44,7 +44,7 @@ class SupportForV300 extends Migration
             $table->index(['morph_type', 'morph_id']);
         });
 
-        if(!Schema::hasColumn('admin_menu', 'options')){
+        if (!Schema::hasColumn('admin_menu', 'options')) {
             Schema::table('admin_menu', function (Blueprint $table) {
                 $table->json('options')->after('uri')->nullable();
             });
@@ -159,8 +159,7 @@ class SupportForV300 extends Migration
             $table->index(['related_id', 'related_type']);
         });
 
-        Schema::table('notifies', function($table)
-        {
+        Schema::table('notifies', function ($table) {
             $table->integer('workflow_id')->unsigned()->nullable()->after('custom_table_id');
         });
 
@@ -183,7 +182,7 @@ class SupportForV300 extends Migration
         Schema::dropIfExists('workflow_tables');
         Schema::dropIfExists('workflows');
 
-        Schema::table('admin_menu', function($table) {
+        Schema::table('admin_menu', function ($table) {
             $table->dropColumn('options');
         });
 
