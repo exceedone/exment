@@ -28,7 +28,7 @@ class AddColumnTypeToOperation extends Migration
     public function down()
     {
         Schema::table('custom_operation_columns', function (Blueprint $table) {
-            if(Schema::hasColumn('custom_operation_columns', 'operation_column_type')){
+            if (Schema::hasColumn('custom_operation_columns', 'operation_column_type')) {
                 $table->dropColumn('operation_column_type');
             }
         });

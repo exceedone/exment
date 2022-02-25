@@ -15,11 +15,11 @@ class CreateCustomColumnMulti extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(!\Schema::hasTable('custom_column_multisettings')){
+        if (!\Schema::hasTable('custom_column_multisettings')) {
             $schema->create('custom_column_multisettings', function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->string('suuid', 20)->index();

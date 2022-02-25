@@ -81,6 +81,13 @@ vendor/exceedone/exment/phpstan.neon.dist
 ./vendor/bin/phpstan analyse
 ```
 
+## Language file creation omission check
+Execute the following command and check that there are no omissions in the translation file settings of the language file.
+*If nothing is displayed as a result of execution, the process ends normally. If there is a translation omission, the translation target will be listed.
+
+```
+php artisan exment: checklang
+```
 
 ## About Testdata
 

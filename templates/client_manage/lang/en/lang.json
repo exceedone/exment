@@ -1,0 +1,141 @@
+{
+    "template_view_name": "Client management",
+    "description": "Simple client management. By registering the major and minor categories of the target clients, you can search for clients by category.",
+    "custom_tables": [
+        {
+            "table_name": "major_class",
+            "table_view_name": "Major classification",
+            "description": "Major classification",
+            "custom_columns": [
+                {
+                    "column_name": "major_class_code",
+                    "column_view_name": "Major classification code"
+                },
+                {
+                    "column_name": "major_class_name",
+                    "column_view_name": "Major classification name"
+                }
+            ]
+        },
+        {
+            "table_name": "minor_class",
+            "table_view_name": "Minor classification",
+            "description": "Minor classification",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "Major classification"
+                },
+                {
+                    "column_name": "minor_class_code",
+                    "column_view_name": "Minor classification code"
+                },
+                {
+                    "column_name": "minor_class_name",
+                    "column_view_name": "Minor classification name"
+                }
+            ]
+        },
+        {
+            "table_name": "client_manage",
+            "table_view_name": "Client infomation",
+            "description": "Client infomation",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "Major classification"
+                },
+                {
+                    "column_name": "minor_class",
+                    "column_view_name": "Minor classification"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "Client name"
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "Post code"
+                },
+                {
+                    "column_name": "street_address",
+                    "column_view_name": "Street address"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "TEL"
+                },
+                {
+                    "column_name": "fax",
+                    "column_view_name": "FAX"
+                },
+                {
+                    "column_name": "mail",
+                    "column_view_name": "Email address"
+                },
+                {
+                    "column_name": "hp",
+                    "column_view_name": "HP"
+                },
+                {
+                    "column_name": "available_flg",
+                    "column_view_name": "Available flag"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "9b7cdef69121669e53f3",
+            "form_view_name": "Form"
+        },
+        {
+            "suuid": "874049a23fa54616587e",
+            "form_view_name": "Form"
+        },
+        {
+            "suuid": "d72abe95f6a2bd472bee",
+            "form_view_name": "Form"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "901117b47cad43291ed6",
+            "view_view_name": "Default view"
+        },
+        {
+            "suuid": "58c28b1a750f81b6621a",
+            "view_view_name": "Default view"
+        },
+        {
+            "suuid": "1e425a576a67c5d993f2",
+            "view_view_name": "All client information"
+        },
+        {
+            "suuid": "bc5692520c4d124b4815",
+            "view_view_name": "Valid client information"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Client management",
+            "menu_type": "parent_node",
+            "menu_name": "client_manage_parent"
+        },
+        {
+            "title": "Major classification",
+            "menu_type": "table",
+            "menu_name": "major_class"
+        },
+        {
+            "title": "Minor classification",
+            "menu_type": "table",
+            "menu_name": "minor_class"
+        },
+        {
+            "title": "Client infomation",
+            "menu_type": "table",
+            "menu_name": "client_manage"
+        }
+    ]
+}

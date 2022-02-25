@@ -17,11 +17,11 @@ class SupportForV330 extends Migration
     public function up()
     {
         $schema = \DB::connection()->getSchemaBuilder();
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(!Schema::hasTable('login_settings')){
+        if (!Schema::hasTable('login_settings')) {
             $schema->create('login_settings', function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('login_view_name');
@@ -34,21 +34,22 @@ class SupportForV330 extends Migration
             });
         }
         
-        if(Schema::hasTable('login_users')){
+        if (Schema::hasTable('login_users')) {
             Schema::table('login_users', function (Blueprint $table) {
-                if(!Schema::hasColumn('login_users', 'login_type')){
+                if (!Schema::hasColumn('login_users', 'login_type')) {
                     $table->string('login_type')->index()->default(LoginType::PURE)->after('base_user_id');
                 }
-                if(!Schema::hasColumn('login_users', 'password_reset_flg')){
+                if (!Schema::hasColumn('login_users', 'password_reset_flg')) {
                     $table->boolean('password_reset_flg')->default(false)->after('login_provider');
                 }
                 if (!Schema::hasColumn('login_users', 'remember_token')) {
-                    $table->string('remember_token', 100)->nullable()->after('password');;
+                    $table->string('remember_token', 100)->nullable()->after('password');
+                    ;
                 }
             });
         }
 
-        if(!$schema->hasTable(SystemTableName::DATA_SHARE_AUTHORITABLE)){
+        if (!$schema->hasTable(SystemTableName::DATA_SHARE_AUTHORITABLE)) {
             $schema->create(SystemTableName::DATA_SHARE_AUTHORITABLE, function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->nullableMorphs('parent');
@@ -71,13 +72,13 @@ class SupportForV330 extends Migration
     public function down()
     {
         $schema = DB::connection()->getSchemaBuilder();
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(Schema::hasTable('login_users')){
+        if (Schema::hasTable('login_users')) {
             $schema->table('login_users', function (ExtendedBlueprint $table) {
-                if(Schema::hasColumn('login_users', 'login_type')){
+                if (Schema::hasColumn('login_users', 'login_type')) {
                     $table->dropIndex(['login_type']);
                     $table->dropColumn('login_type');
                 }

@@ -2,7 +2,7 @@ declare var toastr: any;
 declare var math: any;
 declare var LA: any;
 declare var BigNumber: any;
-declare function swal(...x:any): any;
+declare var swal: any;
 
 namespace Exment {
     export class ChangeFieldEvent {

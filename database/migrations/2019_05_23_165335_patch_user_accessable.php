@@ -14,9 +14,9 @@ class PatchUserAccessable extends Migration
     public function up()
     {
         // update user and autority accessable
-        foreach([SystemTableName::USER, SystemTableName::ORGANIZATION] as $tableName){
+        foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $tableName) {
             $table = CustomTable::getEloquent($tableName);
-            if(!isset($table)){
+            if (!isset($table)) {
                 continue;
             }
 

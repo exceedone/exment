@@ -22,12 +22,10 @@ class WorkflowPatch extends Migration
         });
         
         Schema::table('workflow_values', function (Blueprint $table) {
-                $table->index('created_user_id');
+            $table->index('created_user_id');
         });
 
         \ExmentDB::createView(SystemTableName::VIEW_WORKFLOW_VALUE_UNION, View\WorkflowValueView::createWorkflowValueUnionView());
-
-
     }
 
     /**

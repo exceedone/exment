@@ -20,11 +20,11 @@ class SupportForV11 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(!Schema::hasTable('custom_view_summaries')){
+        if (!Schema::hasTable('custom_view_summaries')) {
             $schema->create('custom_view_summaries', function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->integer('custom_view_id')->unsigned();
@@ -40,37 +40,37 @@ class SupportForV11 extends Migration
             });
         }
 
-        if(!Schema::hasColumn('custom_view_columns', 'view_column_name')){
-            $schema->table('custom_view_columns', function($table) {
+        if (!Schema::hasColumn('custom_view_columns', 'view_column_name')) {
+            $schema->table('custom_view_columns', function ($table) {
                 $table->string('view_column_name', 40)->nullable();
             });
         }
 
-        if(!Schema::hasColumn('custom_view_columns', 'view_column_table_id')){
+        if (!Schema::hasColumn('custom_view_columns', 'view_column_table_id')) {
             Schema::table('custom_view_columns', function (Blueprint $table) {
                 $table->integer('view_column_table_id')->after('view_column_type')->unsigned();
             });
         }
 
-        if(!Schema::hasColumn('custom_view_summaries', 'view_column_table_id')){
+        if (!Schema::hasColumn('custom_view_summaries', 'view_column_table_id')) {
             Schema::table('custom_view_summaries', function (Blueprint $table) {
                 $table->integer('view_column_table_id')->after('view_column_type')->unsigned();
             });
         }
 
-        if(!Schema::hasColumn('custom_view_filters', 'view_column_table_id')){
+        if (!Schema::hasColumn('custom_view_filters', 'view_column_table_id')) {
             Schema::table('custom_view_filters', function (Blueprint $table) {
                 $table->integer('view_column_table_id')->after('view_column_type')->unsigned();
             });
         }
 
-        if(!Schema::hasColumn('custom_view_sorts', 'view_column_table_id')){
+        if (!Schema::hasColumn('custom_view_sorts', 'view_column_table_id')) {
             Schema::table('custom_view_sorts', function (Blueprint $table) {
                 $table->integer('view_column_table_id')->after('view_column_type')->unsigned();
             });
         }
 
-        if(!Schema::hasColumn('custom_copy_columns', 'from_column_table_id')){
+        if (!Schema::hasColumn('custom_copy_columns', 'from_column_table_id')) {
             Schema::table('custom_copy_columns', function (Blueprint $table) {
                 $table->integer('from_column_table_id')->nullable()->after('from_column_type')->unsigned();
                 $table->integer('to_column_table_id')->after('to_column_type')->unsigned();
@@ -84,14 +84,14 @@ class SupportForV11 extends Migration
             Model\CustomViewFilter::class,
             Model\CustomViewSort::class,
         ];
-        foreach($updateClasses as $updateClass){
+        foreach ($updateClasses as $updateClass) {
             $results = $updateClass::with(['custom_column', 'custom_view'])
             ->get();
 
-            foreach($results as $result){
-                if(array_get($result, 'view_column_type') == 0){
+            foreach ($results as $result) {
+                if (array_get($result, 'view_column_type') == 0) {
                     $result->view_column_table_id = array_get($result, 'custom_column.custom_table_id');
-                }else{
+                } else {
                     $result->view_column_table_id = array_get($result, 'custom_view.custom_table_id');
                 }
                 $result->save();
@@ -101,37 +101,37 @@ class SupportForV11 extends Migration
         $results = Model\CustomCopyColumn::with(['from_custom_column', 'to_custom_column', 'custom_copy'])
             ->get();
 
-        foreach($results as $result){
-            if(array_get($result, 'from_column_type') == 0){
+        foreach ($results as $result) {
+            if (array_get($result, 'from_column_type') == 0) {
                 $result->from_column_table_id = array_get($result, 'from_custom_column.custom_table_id');
-            }else{
+            } else {
                 $result->from_column_table_id = array_get($result, 'custom_copy.custom_table_id');
             }
 
-            if(array_get($result, 'to_column_type') == 0){
+            if (array_get($result, 'to_column_type') == 0) {
                 $result->to_column_table_id = array_get($result, 'to_custom_column.custom_table_id');
-            }else{
+            } else {
                 $result->to_column_table_id = array_get($result, 'custom_copy.custom_table_id');
-            }    
+            }
 
             $result->save();
         }
 
         // drop table name unique index from custom table
-        if(count(Schema::getUniqueDefinitions('custom_tables', 'table_name')) > 0){
+        if (count(Schema::getUniqueDefinitions('custom_tables', 'table_name')) > 0) {
             Schema::table('custom_tables', function (Blueprint $table) {
                 $table->dropUnique(['table_name']);
-            });    
+            });
         }
 
         // add order column to custom_tables and custom_columns
-        if(!Schema::hasColumn('custom_tables', 'order')){
+        if (!Schema::hasColumn('custom_tables', 'order')) {
             Schema::table('custom_tables', function (Blueprint $table) {
                 $table->integer('order')->after('showlist_flg')->default(0);
             });
         }
 
-        if(!Schema::hasColumn('custom_columns', 'order')){
+        if (!Schema::hasColumn('custom_columns', 'order')) {
             Schema::table('custom_columns', function (Blueprint $table) {
                 $table->integer('order')->after('system_flg')->default(0);
             });
@@ -139,10 +139,10 @@ class SupportForV11 extends Migration
         
         // Change Custom Column options.currency_symbol
         $columns = CustomColumn::whereNotNull('options->currency_symbol')->get();
-        foreach($columns as $column){
+        foreach ($columns as $column) {
             // update options->currency_symbol
             $symbol = CurrencySymbol::getEnum($column->getOption('currency_symbol'));
-            if(!isset($symbol)){
+            if (!isset($symbol)) {
                 continue;
             }
 
@@ -160,7 +160,7 @@ class SupportForV11 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
@@ -183,9 +183,8 @@ class SupportForV11 extends Migration
         
         Schema::dropIfExists('custom_view_summaries');
 
-        $schema->table('custom_view_columns', function($table) {
+        $schema->table('custom_view_columns', function ($table) {
             $table->dropColumn('view_column_name');
         });
-        
     }
 }

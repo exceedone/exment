@@ -22,7 +22,7 @@ class SupportForV214 extends Migration
                 $table->string('plugin_types')->after('plugin_type')->nullable();
             });
                 
-            foreach(Plugin::all() as $plugin){
+            foreach (Plugin::all() as $plugin) {
                 $plugin->plugin_types = $plugin->plugin_type;
                 $plugin->save();
             }
@@ -31,7 +31,6 @@ class SupportForV214 extends Migration
                 $table->dropColumn('plugin_type');
             });
         }
-
     }
 
     /**
