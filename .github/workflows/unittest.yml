@@ -1,0 +1,31 @@
+name: Laravel Testing
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'infrastructure/**'
+      - 'docker-compose.yml'
+
+jobs:
+  laravel-testing:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: oreno4649/docker-exment
+
+      - uses: actions/checkout@v2
+        with:
+          repository: oreno4649/exment-boilerplate
+          path: docker-exment/exment-boilerplate
+
+      - name: Docker Compose Version
+        run: docker-compose --version
+
+      - name: makefile init
+        working-directory: docker-exment/exment-boilerplate
+        run: |
+          make mysql-up
+          docker-compose -T -f docker-compose.yml exec php cp composer.dev.json composer.json
+          make init
