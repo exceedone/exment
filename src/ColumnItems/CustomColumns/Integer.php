@@ -84,19 +84,16 @@ class Integer extends CustomItem
     protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
+
+        $max_size_number = Define::MAX_SIZE_NUMBER;
+        $min_size_number = -1 * $max_size_number;
+
+        $number_min = max(array_get($options, 'number_min')?? $min_size_number, $min_size_number);
+        $number_max = min(array_get($options, 'number_max')?? $max_size_number, $max_size_number);
         
         // value size
-        if (array_get($options, 'number_min')) {
-            $validates[] = new Validator\NumberMinRule(array_get($options, 'number_min'));
-        } else {
-            $validates[] = new Validator\NumberMinRule(-1 * Define::MAX_SIZE_NUMBER);
-        }
-
-        if (array_get($options, 'number_max')) {
-            $validates[] = new Validator\NumberMaxRule(array_get($options, 'number_max'));
-        } else {
-            $validates[] = new Validator\NumberMaxRule(Define::MAX_SIZE_NUMBER);
-        }
+        $validates[] = new Validator\NumberMinRule($number_min);
+        $validates[] = new Validator\NumberMaxRule($number_max);
 
         $validates[] = new Validator\IntegerCommaRule;
     }
