@@ -132,19 +132,14 @@ class Decimal extends CustomItem
         $decimal_digit = intval(array_get($options, 'decimal_digit')?? 2);
         $integer_digit =  Define::MAX_FLOAT_PRECISION - $decimal_digit;
         $max_size_number = floatval(str_repeat(9, $integer_digit) . '.' . str_repeat(9, $decimal_digit));
+        $min_size_number = -1 * $max_size_number;
         
-        // value size
-        if (array_get($options, 'number_min')) {
-            $validates[] = new Validator\NumberMinRule(array_get($options, 'number_min'));
-        } else {
-            $validates[] = new Validator\NumberMinRule(-1 * $max_size_number);
-        }
+        $number_min = max(array_get($options, 'number_min')?? $min_size_number, $min_size_number);
+        $number_max = min(array_get($options, 'number_max')?? $max_size_number, $max_size_number);
 
-        if (array_get($options, 'number_max')) {
-            $validates[] = new Validator\NumberMaxRule(array_get($options, 'number_max'));
-        } else {
-            $validates[] = new Validator\NumberMaxRule($max_size_number);
-        }
+        // value size
+        $validates[] = new Validator\NumberMinRule($number_min);
+        $validates[] = new Validator\NumberMaxRule($number_max);
 
         $validates[] = new Validator\DecimalCommaRule;
     }
