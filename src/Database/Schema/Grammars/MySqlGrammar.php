@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Database\Schema\Grammars;
 
 use Illuminate\Database\Schema\Grammars\MySqlGrammar as BaseGrammar;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Enums\ColumnType;
 
 class MySqlGrammar extends BaseGrammar implements GrammarInterface
 {
@@ -59,11 +60,42 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
+        $cast_type = null;
+        $column_type = null;
+        switch($custom_column->column_type) {
+            case ColumnType::INTEGER:
+                $cast_type = 'SIGNED';
+                $column_type = 'BIGINT';
+                break;
+            case ColumnType::DECIMAL:
+            case ColumnType::CURRENCY:
+                $decimal_digit = $custom_column->getOption('decimal_digit') ?? 2;
+                $number_digit = 12 + $decimal_digit;
+                $cast_type = "DECIMAL($number_digit, $decimal_digit)";
+                break;
+            case ColumnType::DATE:
+                $cast_type = 'DATE';
+                break;
+            case ColumnType::DATETIME:
+                $cast_type = 'DATETIME';
+                break;
+            case ColumnType::TIME:
+                $cast_type = 'TIME';
+                break;
+        }
         // ALTER TABLE
         $as_value = "json_unquote(json_extract({$this->wrap('value')},'$.\"{$json_column_name}\"'))";
+        
+        if (isset($cast_type)) {
+            $as_value = "CAST({$as_value} AS {$cast_type})";
+        }
+
+        if (!isset($column_type)) {
+            $column_type = $cast_type ?? 'nvarchar(768)';
+        }
 
         return [
-            "alter table {$db_table_name} add {$db_column_name} nvarchar(768) generated always as ({$as_value}) virtual",
+            "alter table {$db_table_name} add {$db_column_name} {$column_type} generated always as ({$as_value}) virtual",
             "alter table {$db_table_name} add index {$index_name}({$db_column_name})",
         ];
     }

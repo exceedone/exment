@@ -129,18 +129,21 @@ class Decimal extends CustomItem
     protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
+        $decimal_digit = intval(array_get($options, 'decimal_digit')?? 2);
+        $integer_digit =  Define::MAX_FLOAT_PRECISION - $decimal_digit;
+        $max_size_number = floatval(str_repeat(9, $integer_digit) . '.' . str_repeat(9, $decimal_digit));
         
         // value size
         if (array_get($options, 'number_min')) {
             $validates[] = new Validator\NumberMinRule(array_get($options, 'number_min'));
         } else {
-            $validates[] = new Validator\NumberMinRule(-1 * Define::MAX_SIZE_NUMBER);
+            $validates[] = new Validator\NumberMinRule(-1 * $max_size_number);
         }
 
         if (array_get($options, 'number_max')) {
             $validates[] = new Validator\NumberMaxRule(array_get($options, 'number_max'));
         } else {
-            $validates[] = new Validator\NumberMaxRule(Define::MAX_SIZE_NUMBER);
+            $validates[] = new Validator\NumberMaxRule($max_size_number);
         }
 
         $validates[] = new Validator\DecimalCommaRule;
