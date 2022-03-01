@@ -1,11 +1,11 @@
 name: Laravel Testing
 
-on:
-  pull_request:
-    paths:
-      - 'backend/**'
-      - 'infrastructure/**'
-      - 'docker-compose.yml'
+on: [push]
+#  pull_request:
+#    paths:
+#      - 'backend/**'
+#      - 'infrastructure/**'
+#      - 'docker-compose.yml'
 
 jobs:
   laravel-testing:
@@ -14,18 +14,34 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: oreno4649/docker-exment
+          path: ./docker-exment
 
       - uses: actions/checkout@v2
         with:
           repository: oreno4649/exment-boilerplate
-          path: docker-exment/exment-boilerplate
+          path: ./docker-exment/exment-boilerplate
+
+      - uses: actions/checkout@v2
+        with:
+          path: ./docker-exment/exment-boilerplate/exment
 
       - name: Docker Compose Version
         run: docker-compose --version
 
-      - name: makefile init
-        working-directory: docker-exment/exment-boilerplate
+      - name: Make mysql up
+        working-directory: docker-exment
         run: |
+          ls -al
           make mysql-up
-          docker-compose -T -f docker-compose.yml exec php cp composer.dev.json composer.json
+
+      - name: copy compose.dev.json
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
+      - name: Make init
+        working-directory: docker-exment
+        run: |
           make init
+          docker-compose -f docker-compose.yml exec -T php composer run exment:test:browser
+          docker-compose -f docker-compose.yml exec -T php composer run exment:test:feature
+          docker-compose -f docker-compose.yml exec -T php composer run exment:test:unit
