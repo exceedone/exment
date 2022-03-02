@@ -350,7 +350,7 @@ class WorkflowTestDataSeeder extends Seeder
 
             [
                 'items' => [
-                    'workflow_view_name' => 'workflow_common_get_for_userinfo',
+                    'workflow_view_name' => 'workflow_common_userinfo',
                     'workflow_type' => 0,
                     'setting_completed_flg' => 1,
                 ],
