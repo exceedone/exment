@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Database\Schema\Grammars;
 
 use Illuminate\Database\Schema\Grammars\MySqlGrammar as BaseGrammar;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ColumnType;
 
 class MySqlGrammar extends BaseGrammar implements GrammarInterface
@@ -70,7 +71,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
             case ColumnType::DECIMAL:
             case ColumnType::CURRENCY:
                 $decimal_digit = $custom_column->getOption('decimal_digit') ?? 2;
-                $number_digit = 12 + $decimal_digit;
+                $number_digit = Define::MAX_FLOAT_PRECISION;
                 $cast_type = "DECIMAL($number_digit, $decimal_digit)";
                 break;
             case ColumnType::DATE:

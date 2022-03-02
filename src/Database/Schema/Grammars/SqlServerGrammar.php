@@ -4,7 +4,9 @@ namespace Exceedone\Exment\Database\Schema\Grammars;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Define;
 use Illuminate\Database\Schema\Grammars\SqlServerGrammar as BaseGrammar;
 
 class SqlServerGrammar extends BaseGrammar implements GrammarInterface
@@ -77,11 +79,35 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
+        $cast_type = null;
+        switch($custom_column->column_type) {
+            case ColumnType::INTEGER:
+                $cast_type = 'bigint';
+                break;
+            case ColumnType::DECIMAL:
+            case ColumnType::CURRENCY:
+                $decimal_digit = $custom_column->getOption('decimal_digit') ?? 2;
+                $number_digit = Define::MAX_FLOAT_PRECISION;
+                $cast_type = "decimal($number_digit, $decimal_digit)";
+                break;
+            case ColumnType::DATE:
+                $cast_type = 'date';
+                break;
+            case ColumnType::DATETIME:
+                $cast_type = 'datetime2(0)';
+                break;
+            case ColumnType::TIME:
+                $cast_type = 'time(0)';
+                break;
+        }
         // ALTER TABLE
         if (boolval($custom_column->getOption('multiple_enabled'))) {
             $as_value = "JSON_QUERY(\"value\",'$.$json_column_name')";
         } else {
             $as_value = "JSON_VALUE(\"value\",'$.$json_column_name')";
+        }
+        if (isset($cast_type)) {
+            $as_value = "CONVERT($cast_type, $as_value)";
         }
 
         return [

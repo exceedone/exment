@@ -514,7 +514,7 @@ trait ItemTrait
      */
     protected function getCastColumn(?string $column_name = null, bool $wrap = true, bool $appendDatabaseTable = true) : string
     {
-        $cast = $this->getCastName();
+        $cast = $this->indexEnabled() ? null: $this->getCastName();
 
         if (is_nullorempty($column_name)) {
             $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
