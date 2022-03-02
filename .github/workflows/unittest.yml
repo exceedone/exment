@@ -38,6 +38,7 @@ jobs:
         working-directory: docker-exment
         run: |
           docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
+          docker-compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
       - name: Make MySQL Initialize
         working-directory: docker-exment
         run: |
