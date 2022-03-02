@@ -38,10 +38,10 @@ jobs:
         working-directory: docker-exment
         run: |
           docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
-      - name: Make init
+      - name: Make MySQL Initialize
         working-directory: docker-exment
         run: |
-          make init
+          make mysql-init
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:browser
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:feature
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:unit
