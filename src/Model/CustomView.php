@@ -218,6 +218,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
         });
 
+        static::saved(function ($model) {
+            // create or drop index --------------------------------------------------
+            $model->alterIndex();
+        });
+
         // add global scope
         static::addGlobalScope('showableViews', function (Builder $builder) {
             return static::showableViews($builder);
@@ -821,6 +826,23 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         return $query;
+    }
+
+    
+    /**
+     * Alter index using view
+     */
+    public function alterIndex()
+    {
+        \Schema::alterCustomViewIndexColumn($this);
+    }
+    
+    public function getIndexNameFilter(){
+        return "index_{$this->suuid}_filter";
+    }
+
+    public function getIndexNameSort(){
+        return "index_{$this->suuid}_sort";
     }
 
 

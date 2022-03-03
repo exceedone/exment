@@ -5,10 +5,13 @@ namespace Exceedone\Exment\Database\Schema\Grammars;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Fluent;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomView;
 use Illuminate\Database\Schema\Grammars\SqlServerGrammar as BaseGrammar;
 
 class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 {
+    use GrammarTrait;
+
     /**
      * Compile the query to get version
      *
@@ -88,6 +91,40 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
             "alter table {$db_table_name} add {$db_column_name} as {$as_value}",
             //"alter table {$db_table_name} add index {$index_name}({$db_column_name})",
         ];
+    }
+    
+    /**
+     * Create custom view's index
+     *
+     * @param CustomView $custom_view
+     * @return array
+     */
+    public function compileCustomViewIndexColumn(CustomView $custom_view) : array
+    {
+        $info = $this->getCustomViewIndexColumnInfo($custom_view);
+        $db_table_name = $info['db_table_name'];
+        $pure_db_table_name = $info['pure_db_table_name'];
+        $custom_view_filter_columns = $info['custom_view_filter_columns'];
+        $custom_view_sort_columns = $info['custom_view_sort_columns'];
+        $custom_view_filter_indexname = $info['custom_view_filter_indexname'];
+        $custom_view_sort_indexname = $info['custom_view_sort_indexname'];
+        $has_filter_columns = $info['has_filter_columns'];
+        $has_sort_columns = $info['has_sort_columns'];
+
+        $custom_view_filter_column = $custom_view_filter_columns->implode(',');
+        $custom_view_sort_column = $custom_view_sort_columns->implode(',');
+
+        $result = [];
+        if(boolval($has_filter_columns)){
+            $result[] = "drop index if exists {$custom_view_filter_indexname} on {$db_table_name}";
+            $result[] = "create index {$custom_view_filter_indexname} on {$db_table_name} ({$custom_view_filter_column})";
+        }
+        if(boolval($has_sort_columns)){
+            $result[] = "drop index if exists {$custom_view_sort_indexname} on {$db_table_name}";
+            $result[] = "create index {$custom_view_sort_indexname} on {$db_table_name} ({$custom_view_sort_column})";
+        }
+
+        return $result;
     }
     
     public function compileGetIndex($tableName)

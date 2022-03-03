@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Database\Schema;
 
 use Illuminate\Database\Schema\Blueprint;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomView;
 
 trait BuilderTrait
 {
@@ -268,6 +269,26 @@ trait BuilderTrait
         $db_table_name = $this->connection->getTablePrefix().$db_table_name;
 
         $sqls = $this->grammar->compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $custom_column);
+
+        foreach ($sqls as $sql) {
+            $this->connection->statement($sql);
+        }
+    }
+
+    /**
+     *  Add CustomView's index
+     *
+     * @param string $db_table_name
+     * @param string $db_column_name
+     * @param string $index_name
+     * @param string $json_column_name
+     * @param CustomView $custom_view
+     * @return void
+     */
+    public function alterCustomViewIndexColumn(CustomView $custom_view)
+    {
+        // get whether has index.
+        $sqls = $this->grammar->compileCustomViewIndexColumn($custom_view);
 
         foreach ($sqls as $sql) {
             $this->connection->statement($sql);
