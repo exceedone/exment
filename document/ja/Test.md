@@ -82,6 +82,14 @@ vendor/exceedone/exment/phpstan.neon.dist
 ./vendor/bin/phpstan analyse
 ```
 
+## 言語ファイル作成漏れチェック
+以下のコマンドを実施し、言語ファイルの翻訳ファイル設定漏れが無いことを確認する。  
+※実行結果、何も表示されなければ正常終了です。翻訳漏れがある場合、その翻訳対象が一覧表示されます。
+
+```
+php artisan exment:checklang
+```
+
 
 ## テストデータ
 

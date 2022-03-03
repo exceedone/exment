@@ -537,9 +537,7 @@ if (!function_exists('getFullpath')) {
 
         if ($mkdir) {
             $dirPath = pathinfo($path)['dirname'];
-            if (!\File::exists($dirPath)) {
-                \File::makeDirectory($dirPath, 0755, true);
-            }
+            \Exment::makeDirectory($dirPath);
         }
         return $path;
     }

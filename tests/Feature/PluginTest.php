@@ -188,7 +188,7 @@ class PluginTest extends TestCase
         if (\File::exists($import_path)) {
             \File::deleteDirectory($import_path);
         }
-        \File::makeDirectory($import_path, 0755, true);
+        \Exment::makeDirectory($import_path);
         $source_path = exment_package_path("tests/tmpfile/Feature/plugin_import");
         \File::copyDirectory($source_path, $import_path);
         $files = \File::files($import_path);

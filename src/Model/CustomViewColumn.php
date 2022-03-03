@@ -22,11 +22,15 @@ class CustomViewColumn extends ModelBase
 
     public static $templateItems = [
         'excepts' => [
-            'import' => ['custom_table', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_group_condition', 'view_pivot_column_name', 'view_pivot_table_name'],
-            'export' => ['custom_table', 'custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_column_table_id', 'view_column_target_id', 'view_pivot_column_id', 'view_pivot_table_id', 'view_group_condition'],
+            'import' => ['custom_table', 'view_column_target', 'custom_column', 'target_view_name', 'view_group_condition', 'view_pivot_column_name', 'view_pivot_table_name'],
+            'export' => ['custom_table', 'custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_table_id', 'view_column_target_id', 'view_pivot_column_id', 'view_pivot_table_id', 'view_group_condition'],
         ],
         'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
         'parent' => 'custom_view_id',
+        'langs' => [
+            'keys' => ['view_column_table_name', 'view_column_target_name'],
+            'values' => ['view_column_name'],
+        ],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [

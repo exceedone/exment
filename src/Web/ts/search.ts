@@ -98,7 +98,7 @@ namespace Exment {
          * Get Search Navi data for List
          */
         private static getListNaviData() {
-            const tables = JSON.parse($('.tables').val());
+            const tables = JSON.parse($('.tables').val() as string);
             const search_execute_count = $('#search_execute_count');
             const url = admin_url('search/lists&' + $.param({query : $('.base_query').val()}));
 
@@ -127,7 +127,7 @@ namespace Exment {
         
 
         private static getRelationNaviData() {
-            var tables = JSON.parse($('.tables').val());
+            var tables = JSON.parse($('.tables').val() as string);
             for (var i = 0; i < tables.length; i++) {
                 var table = tables[i];
                 if(!hasValue(table)){
