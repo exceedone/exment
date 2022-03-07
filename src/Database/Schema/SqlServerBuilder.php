@@ -46,4 +46,21 @@ class SqlServerBuilder extends BaseBuilder
 
         return $this->connection->getPostProcessor()->processColumnDefinitions($baseTable, $results);
     }
+    
+    /**
+     * Create Value Table if it not exists.
+     *
+     * @param  string  $table
+     * @return void
+     */
+    public function createValueTable($table)
+    {
+        $table = $this->connection->getTablePrefix().$table;
+        $this->connection->statement(
+            $this->grammar->compileCreateValueTable($table)
+        );
+        $this->connection->statement(
+            $this->grammar->compileAlterPrimaryKey($table)
+        );
+    }
 }

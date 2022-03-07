@@ -64,15 +64,15 @@ trait TestDataTrait
                     ],
                     'password' => 'company1-userA',
                 ],
-                'dev-userB' => [
+                'dev0-userB' => [
                     'id' => 6,
                     'value' => [
-                        'user_name' => 'dev-userB',
-                        'user_code' => 'dev-userB',
-                        'email' => 'dev-userB@user.foobar.test',
+                        'user_name' => 'dev0-userB',
+                        'user_code' => 'dev0-userB',
+                        'email' => 'dev0-userB@user.foobar.test',
                         'boss' => 3, // userB
                     ],
-                    'password' => 'dev-userB',
+                    'password' => 'dev0-userB',
                 ],
                 'dev1-userC' => [
                     'id' => 7,
@@ -80,7 +80,7 @@ trait TestDataTrait
                         'user_name' => 'dev1-userC',
                         'user_code' => 'dev1-userC',
                         'email' => 'dev1-userC@user.foobar.test',
-                        'boss' => 6, // dev-userB
+                        'boss' => 6, // dev0-userB
                     ],
                     'password' => 'dev1-userC',
                 ],
@@ -90,7 +90,7 @@ trait TestDataTrait
                         'user_name' => 'dev1-userD',
                         'user_code' => 'dev1-userD',
                         'email' => 'dev1-userD@user.foobar.test',
-                        'boss' => 6, // dev-userB
+                        'boss' => 6, // dev0-userB
                     ],
                     'password' => 'dev1-userD',
                 ],
@@ -100,7 +100,7 @@ trait TestDataTrait
                         'user_name' => 'dev2-userE',
                         'user_code' => 'dev2-userE',
                         'email' => 'dev2-userE@user.foobar.test',
-                        'boss' => 6, // dev-userB
+                        'boss' => 6, // dev0-userB
                     ],
                     'password' => 'dev2-userE',
                 ],

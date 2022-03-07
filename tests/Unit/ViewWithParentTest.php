@@ -268,7 +268,7 @@ class ViewWithParentTest extends TestCase
 
         $options['target_table_name'] = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
         $filter_column = 'index_text';
-        $filter_value = 'index_1_7';
+        $filter_value = 'index_001_007';
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 
@@ -300,7 +300,7 @@ class ViewWithParentTest extends TestCase
 
         $options['target_table_name'] = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
         $filter_column = 'index_text';
-        $filter_value = 'index_1_5';
+        $filter_value = 'index_001_005';
         $options['filter_settings'][0]['filter_condition'] = FilterOption::EQ;
         $options['filter_settings'][0]['filter_value_text'] = $filter_value;
 

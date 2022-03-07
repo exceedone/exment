@@ -146,7 +146,7 @@ class SomeTest extends UnitTestBase
      */
     public function testSearchQueryIndexed()
     {
-        $this->__testSearchQueryIndexed("index_text", true, "index_1_1");
+        $this->__testSearchQueryIndexed("index_text", true, "index_001_001");
     }
 
 

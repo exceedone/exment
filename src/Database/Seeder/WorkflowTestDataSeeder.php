@@ -118,7 +118,7 @@ class WorkflowTestDataSeeder extends Seeder
     
                         'authorities' => [
                             [
-                                'related_id' => 6, // dev-userB
+                                'related_id' => 6, // dev0-userB
                                 'related_type' => 'user',
                             ]
                         ],
@@ -221,7 +221,7 @@ class WorkflowTestDataSeeder extends Seeder
     
                         'authorities' => [
                             [
-                                'related_id' => 6, // dev-userB
+                                'related_id' => 6, // dev0-userB
                                 'related_type' => 'user',
                             ]
                         ],
@@ -550,7 +550,7 @@ class WorkflowTestDataSeeder extends Seeder
 
                 $wfUserKeys = [
                     'dev1-userD',
-                    'dev-userB',
+                    'dev0-userB',
                     'dev1-userC',
                 ];
 

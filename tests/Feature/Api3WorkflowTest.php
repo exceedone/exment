@@ -395,7 +395,7 @@ class Api3WorkflowTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'wf', 'data', 'custom_value_edit', '1', 'work_users') . '?as_user=1')
             ->assertStatus(200)
-            ->assertSeeText('dev-userB');
+            ->assertSeeText('dev0-userB');
     }
 
     public function testGetWorkflowUserNotFound()
@@ -503,7 +503,7 @@ class Api3WorkflowTest extends ApiTestBase
     
 
     // Execute action 2 - Get by userinfo ----------------------------------------------------
-    // dev1-userC → dev-userB
+    // dev1-userC → dev0-userB
 
     public function testGetWorkflow2ExecAction()
     {
@@ -686,7 +686,7 @@ class Api3WorkflowTest extends ApiTestBase
 
     public function testExecuteWorkflowNoNext()
     {
-        $token = $this->getUserAccessToken('dev-userB', 'dev-userB', [ApiScope::WORKFLOW_EXECUTE]);
+        $token = $this->getUserAccessToken('dev0-userB', 'dev0-userB', [ApiScope::WORKFLOW_EXECUTE]);
 
         $comment = 'comment' . date('YmdHis');
         
@@ -704,7 +704,7 @@ class Api3WorkflowTest extends ApiTestBase
 
     public function testExecuteWorkflowWithNext()
     {
-        $token = $this->getUserAccessToken('dev-userB', 'dev-userB', [ApiScope::WORKFLOW_EXECUTE]);
+        $token = $this->getUserAccessToken('dev0-userB', 'dev0-userB', [ApiScope::WORKFLOW_EXECUTE]);
 
         $comment = 'comment' . date('YmdHis');
         $response = $this->withHeaders([
@@ -719,7 +719,7 @@ class Api3WorkflowTest extends ApiTestBase
         ->assertJsonFragment([
             'workflow_action_id' => 2,
             'comment' => $comment,
-            'created_user_id' => "6" //dev-userB
+            'created_user_id' => "6" //dev0-userB
         ]);
 
         $json = json_decode($response->baseResponse->getContent(), true);
@@ -790,7 +790,7 @@ class Api3WorkflowTest extends ApiTestBase
 
     public function testExecuteWorkflowMultiUser()
     {
-        $token = $this->getUserAccessToken('dev-userB', 'dev-userB', [ApiScope::WORKFLOW_EXECUTE]);
+        $token = $this->getUserAccessToken('dev0-userB', 'dev0-userB', [ApiScope::WORKFLOW_EXECUTE]);
 
         $comment = 'comment' . date('YmdHis');
 
@@ -918,7 +918,7 @@ class Api3WorkflowTest extends ApiTestBase
     
     // post value (!!! test execute workflow at once !!!)-------------------------------------
     // Execute action 2 - Get by userinfo ----------------------------------------------------
-    // dev1-userC → dev-userB
+    // dev1-userC → dev0-userB
 
     public function testExecuteWorkflow2WithNext()
     {
@@ -999,7 +999,7 @@ class Api3WorkflowTest extends ApiTestBase
         ->assertJsonFragment([
             'workflow_action_id' => 10,
             'workflow_status_to_id' => '9',
-            'created_user_id' => "6", //dev-userB
+            'created_user_id' => "6", //dev0-userB
             'comment' => $comment
         ]);
     }
