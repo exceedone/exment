@@ -2183,12 +2183,13 @@ class PatchDataCommand extends Command
         }
 
         \DB::transaction(function () {
-            // get index contains hyphen
+            // get index column
             $index_custom_columns = CustomColumn::indexEnabled()->get();
 
             foreach ($index_custom_columns as  $index_custom_column) {
                 $column_type = $index_custom_column->column_type;
                 if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
+                    // remake virtual column for number and date type
                     $db_table_name = getDBTableName($index_custom_column->custom_table);
                     $db_column_name = $index_custom_column->getIndexColumnName(false);
                     $index_name = "index_$db_column_name";
@@ -2198,7 +2199,7 @@ class PatchDataCommand extends Command
                 }
             }
 
-            // modify custom table file column
+            // create primary key
             CustomTable::all()->each(function ($custom_table) {
                 $db_table_name = getDBTableName($custom_table);
                 if (!hasTable($db_table_name)) {
