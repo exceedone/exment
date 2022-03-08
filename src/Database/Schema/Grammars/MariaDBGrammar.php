@@ -31,4 +31,9 @@ class MariaDBGrammar extends MySqlGrammar
             );
         }
     }
+    
+    public function compileAlterPrimaryKey($db_table_name, $db_column_name = 'id')
+    {
+        return null;
+    }
 }

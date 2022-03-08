@@ -120,4 +120,9 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     {
         return null;
     }
+    
+    public function compileAlterPrimaryKey($db_table_name, $db_column_name = 'id')
+    {
+        return null;
+    }
 }

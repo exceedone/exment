@@ -237,6 +237,9 @@ class PatchDataCommand extends Command
             case 'patch_editable_userinfo':
                 $this->patchEditableUserInfo();
                 return;
+            case 'patch_index_column_type':
+                $this->patchIndexColumnType();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -2165,6 +2168,51 @@ class PatchDataCommand extends Command
                 }
                 $custom_column->save();
             }
+        });
+    }
+
+    /**
+     * convert index column type and add primary key to custom table
+     *
+     * @return void
+     */
+    protected function patchIndexColumnType()
+    {
+        if (!canConnection() || !hasTable(SystemTableName::CUSTOM_TABLE)) {
+            return;
+        }
+
+        \DB::transaction(function () {
+            // get index contains hyphen
+            $index_custom_columns = CustomColumn::indexEnabled()->get();
+
+            foreach ($index_custom_columns as  $index_custom_column) {
+                $column_type = $index_custom_column->column_type;
+                if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
+                    $db_table_name = getDBTableName($index_custom_column->custom_table);
+                    $db_column_name = $index_custom_column->getIndexColumnName(false);
+                    $index_name = "index_$db_column_name";
+                    $column_name = $index_custom_column->column_name;
+                    \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+                    \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $index_custom_column);
+                }
+            }
+
+            // modify custom table file column
+            CustomTable::all()->each(function ($custom_table) {
+                $db_table_name = getDBTableName($custom_table);
+                if (!hasTable($db_table_name)) {
+                    return;
+                }
+
+                $indexes = \DB::connection()->getDoctrineSchemaManager()->listTableIndexes($db_table_name);
+
+                if (array_has($indexes, 'primary')) {
+                    return true;
+                }
+
+                \Schema::alterPrimaryKey($db_table_name);
+            });
         });
     }
 }

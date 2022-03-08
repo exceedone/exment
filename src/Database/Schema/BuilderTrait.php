@@ -250,6 +250,20 @@ trait BuilderTrait
     }
 
     /**
+     *  Add Primary Key
+     *
+     * @param string $db_table_name
+     * @param string $db_column_name
+     * @return void
+     */
+    public function alterPrimaryKey($db_table_name, $db_column_name = 'id')
+    {
+        $this->connection->statement(
+            $this->grammar->compileAlterPrimaryKey($db_table_name, $db_column_name)
+        );
+    }
+
+    /**
      *  Add Virtual Column and Index
      *
      * @param string $db_table_name

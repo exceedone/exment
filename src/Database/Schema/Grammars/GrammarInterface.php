@@ -46,4 +46,6 @@ interface GrammarInterface
     public function compileGetIndex($tableName);
 
     public function compileGetUnique($tableName);
+
+    public function compileAlterPrimaryKey($db_table_name, $db_column_name = 'id');
 }
