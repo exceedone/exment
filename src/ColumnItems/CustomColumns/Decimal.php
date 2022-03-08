@@ -87,13 +87,6 @@ class Decimal extends CustomItem
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
-        
-        if (!is_null(array_get($options, 'number_min'))) {
-            $field->attribute(['min' => array_get($options, 'number_min')]);
-        }
-        if (!is_null(array_get($options, 'number_max'))) {
-            $field->attribute(['max' => array_get($options, 'number_max')]);
-        }
         if (!is_null(array_get($options, 'decimal_digit'))) {
             $field->attribute(['decimal_digit' => array_get($options, 'decimal_digit')]);
         }
@@ -105,7 +98,23 @@ class Decimal extends CustomItem
 
             // convert $digit digit. if $digit is 2, 0.01
             $step = ($digit <= 0 ? "0" : "0." . str_repeat("0", $digit - 1) . "1");
-            $field->attribute(['type' => 'number', 'step' => $step]);
+
+            $int_digit =  Define::MAX_FLOAT_PRECISION - $digit;
+            $max_number = floatval(str_repeat(9, $int_digit) . '.' . str_repeat(9, $digit));
+            $min_number = -1 * $max_number;
+
+            $field->attribute([
+                'type' => 'number',
+                'min' => $min_number,
+                'max' => $max_number,
+                'step' => $step]);
+        }
+        
+        if (!is_null(array_get($options, 'number_min'))) {
+            $field->attribute(['min' => array_get($options, 'number_min')]);
+        }
+        if (!is_null(array_get($options, 'number_max'))) {
+            $field->attribute(['max' => array_get($options, 'number_max')]);
         }
     }
    
