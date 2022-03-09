@@ -413,15 +413,13 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
         else {
             $original = jsonToArray($this->getOriginal('options'));
-            // checking multiple enabled change
-            if (boolval(array_get($original, 'multiple_enabled')) !== boolval(array_get($this, 'options.multiple_enabled'))) {
+            // checking multiple enabled change or decimal digit change
+            if (boolval(array_get($original, 'multiple_enabled')) !== boolval(array_get($this, 'options.multiple_enabled')) ||
+                (array_get($original, 'decimal_digit')?? 2) != (array_get($this, 'options.decimal_digit')?? 2)) {
                 \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
-                \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
-                System::clearCache();
-            // checking decimal digit change
-            } elseif ((array_get($original, 'decimal_digit')?? 2) != (array_get($this, 'options.decimal_digit')?? 2)) {
-                \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
-                \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
+                if (boolval($index_enabled)) {
+                    \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
+                }
                 System::clearCache();
             }
         }
