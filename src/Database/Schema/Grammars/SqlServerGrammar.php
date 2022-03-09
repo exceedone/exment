@@ -112,7 +112,8 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
         return [
             "alter table {$db_table_name} add {$db_column_name} as {$as_value}",
-            //"alter table {$db_table_name} add index {$index_name}({$db_column_name})",
+            // comment out because an error occurs when indexing a date type virtual column
+            //"create index {$index_name} on {$db_table_name} ({$db_column_name})",
         ];
     }
     
@@ -120,6 +121,17 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     {
         // ALTER TABLE
         return "alter table {$db_table_name} add primary key ({$db_column_name})";
+    }
+    
+    public function compileIndexColumn($db_table_name, $index_name, $db_column_name)
+    {
+        if (is_string($db_column_name)) {
+            $db_column_name = [$db_column_name];
+        }
+        $db_column_names = implode(',', $db_column_name);
+
+        // create index
+        return "create index {$index_name} on {$db_table_name} ({$db_column_names})";
     }
     
     public function compileGetIndex($tableName)

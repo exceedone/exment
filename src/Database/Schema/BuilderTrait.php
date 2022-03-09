@@ -264,6 +264,21 @@ trait BuilderTrait
     }
 
     /**
+     *  Add Index Column
+     *
+     * @param string $db_table_name
+     * @param string $index_name
+     * @param array|string $db_column_name
+     * @return void
+     */
+    public function createIndexColumn($db_table_name, $index_name, $db_column_name)
+    {
+        $this->connection->statement(
+            $this->grammar->compileIndexColumn($db_table_name, $index_name, $db_column_name)
+        );
+    }
+
+    /**
      *  Add Virtual Column and Index
      *
      * @param string $db_table_name

@@ -62,5 +62,14 @@ class SqlServerBuilder extends BaseBuilder
         $this->connection->statement(
             $this->grammar->compileAlterPrimaryKey($table)
         );
+        $this->connection->statement(
+            $this->grammar->compileIndexColumn($table, 'custom_values_parent_type_parent_id_index', ['parent_type', 'parent_id'])
+        );
+        $this->connection->statement(
+            $this->grammar->compileIndexColumn($table, 'custom_values_suuid_index', 'suuid')
+        );
+        $this->connection->statement(
+            $this->grammar->compileIndexColumn($table, 'custom_values_deleted_at_index', 'deleted_at')
+        );
     }
 }

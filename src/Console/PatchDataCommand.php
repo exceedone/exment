@@ -2208,11 +2208,18 @@ class PatchDataCommand extends Command
 
                 $indexes = \DB::connection()->getDoctrineSchemaManager()->listTableIndexes($db_table_name);
 
-                if (array_has($indexes, 'primary')) {
-                    return true;
+                if (!array_has($indexes, 'primary')) {
+                    \Schema::alterPrimaryKey($db_table_name);
                 }
-
-                \Schema::alterPrimaryKey($db_table_name);
+                if (!array_has($indexes, 'custom_values_parent_type_parent_id_index')) {
+                    \Schema::createIndexColumn($db_table_name, 'custom_values_parent_type_parent_id_index', ['parent_type', 'parent_id']);
+                }
+                if (!array_has($indexes, 'custom_values_suuid_index')) {
+                    \Schema::createIndexColumn($db_table_name, 'custom_values_suuid_index', 'suuid');
+                }
+                if (!array_has($indexes, 'custom_values_deleted_at_index')) {
+                    \Schema::createIndexColumn($db_table_name, 'custom_values_deleted_at_index', 'deleted_at');
+                }
             });
         });
     }
