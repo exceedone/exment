@@ -58,17 +58,15 @@ class PublicForm extends ModelBase
             ->where('active_flg', 1);
     }
 
+    public function notify_all()
+    {
+        return $this->hasMany(Notify::class, 'target_id')
+            ->whereIn('notify_trigger', NotifyTrigger::PUBLIC_FORMS());
+    }
+
     public function deletingChildren()
     {
-        $notify_complete_user = $this->notify_complete_user;
-        if($notify_complete_user){
-            $notify_complete_user->delete();
-        }
-
-        $notify_error = $this->notify_error;
-        if($notify_error){
-            $notify_error->delete();
-        }
+        $this->notify_all()->delete();
     }
 
     public function getCustomFormCacheAttribute()
