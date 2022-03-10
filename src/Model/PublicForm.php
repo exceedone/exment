@@ -60,6 +60,15 @@ class PublicForm extends ModelBase
 
     public function deletingChildren()
     {
+        $notify_complete_user = $this->notify_complete_user;
+        if($notify_complete_user){
+            $notify_complete_user->delete();
+        }
+
+        $notify_error = $this->notify_error;
+        if($notify_error){
+            $notify_error->delete();
+        }
     }
 
     public function getCustomFormCacheAttribute()
