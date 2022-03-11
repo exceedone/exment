@@ -169,7 +169,7 @@ class SetupDirCommand extends AdminInstallCommand
                 }
             }
             
-            $files = \File::allFiles($path);
+            $files = \File::allFiles($path, true);
             foreach ($files as $file) {
                 chown($file, $user);
                 chgrp($file, $group);

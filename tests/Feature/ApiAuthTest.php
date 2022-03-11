@@ -185,7 +185,7 @@ class ApiAuthTest extends ApiTestBase
     {
         $uri = $this->getPublicFormApiUri(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
-        $this->get(url_join($uri, 'data', 'custom_value_edit', 'select?q=index_1_2'))
+        $this->get(url_join($uri, 'data', 'custom_value_edit', 'select?q=index_001_002'))
             ->assertStatus(200)
             ->assertJsonCount(1, 'data');
 

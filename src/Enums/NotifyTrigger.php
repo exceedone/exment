@@ -21,6 +21,15 @@ class NotifyTrigger extends EnumBase
         ];
     }
 
+    public static function PUBLIC_FORMS()
+    {
+        return [
+            static::PUBLIC_FORM_COMPLETE_USER,
+            static::PUBLIC_FORM_COMPLETE_ADMIN,
+            static::PUBLIC_FORM_ERROR,
+        ];
+    }
+
     public function getDefaultMailKeyName()
     {
         switch ($this->getValue()) {

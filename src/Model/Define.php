@@ -37,6 +37,7 @@ class Define
     public const API_FEATURE_TEST_APIKEY = 'API_FEATURE_TEST_APIKEY';
 
     public const MAX_SIZE_NUMBER = 1000000000000;
+    public const MAX_FLOAT_PRECISION = 14;
 
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],
