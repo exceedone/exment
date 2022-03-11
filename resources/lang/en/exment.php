@@ -1098,7 +1098,7 @@ return [
             'same_custom_table' => 'Duplicate workflow.',
             'same_action' => 'Set the pre-execution status and post-execution status to different statuses.',
             'fix_and_action_select' => 'In the same pre-execution status, "Set in advance" and "Select the user who executed the previous action" cannot be set at the same time.',
-            'ignore_work_and_action_select' => 'If the executable user is "Get from Execution User Information", "Special Action" cannot be set.',
+            'ignore_work_and_action_select' => 'If the executable user is "Selected by the user who executed the previous action", "Special Action" cannot be set.',
             'get_by_userinfo_and_action_select' => 'In the same pre-execution status, "Get from execution user information" and "Select by execution user of previous action" cannot be set at the same time.',
             'action_execute' => 'Perform the following actions:',
             'nextuser_not_found' => 'The following working user does not exist. Please contact the administrator.',
