@@ -306,7 +306,7 @@ class SummaryGrid extends GridBase
             $form->select('sort_type', exmtrans("custom_view.sort"))
             ->help(exmtrans('custom_view.help.sort_type'))
                 ->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
-                ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
+                ->disableClear()->default(Enums\ViewColumnSort::ASC);
                 
             $form->hidden('order')->default(0);
         })->required()->rowUpDown('order')->setTableColumnWidth(4, 2, 2, 1, 2, 1)
@@ -353,7 +353,7 @@ class SummaryGrid extends GridBase
             $form->select('sort_type', exmtrans("custom_view.sort"))
                 ->help(exmtrans('custom_view.help.sort_type'))
                 ->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
-                ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
+                ->disableClear()->default(Enums\ViewColumnSort::ASC);
         })->setTableColumnWidth(4, 2, 2, 1, 2, 1)
         ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_summaries"), $manualUrl));
 

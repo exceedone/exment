@@ -324,7 +324,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
                 $form->select('login_2factor_provider', exmtrans("2factor.login_2factor_provider_user"))
                     ->options(Login2FactorProviderType::transKeyArray('2factor.2factor_provider_options'))
-                    ->config('allowClear', false)
+                    ->disableClear()
                     ->default($login_2factor_provider)
                     ->help(exmtrans("2factor.help.login_2factor_provider_user"));
             }

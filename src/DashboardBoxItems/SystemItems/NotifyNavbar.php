@@ -142,7 +142,7 @@ class NotifyNavbar
         $form->select('pager_count', trans("admin.show"))
             ->required()
             ->options(getPagerOptions(true, $grid_per_pages))
-            ->config('allowClear', false)
+            ->disableClear()
             ->default(0);
     }
 }

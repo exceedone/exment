@@ -243,7 +243,7 @@ class WorkflowController extends AdminControllerBase
             $form->select('workflow_type', exmtrans('workflow.workflow_type'))
                 ->options(WorkflowType::transKeyArray('workflow.workflow_type_options'))
                 ->attribute(['data-filtertrigger' =>true])
-                ->config('allowClear', false)
+                ->disableClear()
                 ->help(exmtrans('common.help.init_flg') . exmtrans('workflow.help.workflow_type'))
                 ->required();
                 
@@ -407,7 +407,7 @@ class WorkflowController extends AdminControllerBase
                     'created_user' => exmtrans('workflow.created_user'),
                 ])
                 ->help(exmtrans('workflow.help.get_by_userinfo_base'))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->required()
                 ->default('executed_user')
                 ;
@@ -415,7 +415,7 @@ class WorkflowController extends AdminControllerBase
 
         $field = $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use ($id, $workflow) {
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->options(function ($value, $field, $workflow) {
                     return $workflow->getStatusOptions($field->getIndex() === 0);
                 });
@@ -467,7 +467,7 @@ class WorkflowController extends AdminControllerBase
                 $form->select('work_condition_select', exmtrans('workflow.status_to'))
                     ->options($workflow->getStatusOptions())
                     ->help(exmtrans('workflow.help.status_to'))
-                    ->config('allowClear', false)
+                    ->disableClear()
                     ->required();
             }
 
