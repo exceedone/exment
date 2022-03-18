@@ -153,7 +153,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
             ->options(NotifyTrigger::transKeyArrayFilter("notify.notify_trigger_options", NotifyTrigger::CUSTOM_TABLES()))
             ->required()
-            ->config('allowClear', false)
+            ->disableClear()
             ->attribute([
                 'data-filtertrigger' =>true,
                 'data-changedata' => json_encode([
@@ -239,7 +239,7 @@ class CustomNotifyController extends AdminControllerTableBase
             $form->select('notify_action', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
             ->required()
-            ->config('allowClear', false)
+            ->disableClear()
             ->attribute([
                 'data-filtertrigger' =>true,
                 'data-linkage' => json_encode([

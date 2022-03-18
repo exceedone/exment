@@ -456,7 +456,7 @@ class DataImportExportService extends AbstractExporter
             ->default('id')
             ->setWidth(8, 3)
             ->required()
-            ->config('allowClear', false)
+            ->disableClear()
             ->addElementClass('select_primary_key')
             ->help(exmtrans('custom_value.import.help.primary_key'));
 

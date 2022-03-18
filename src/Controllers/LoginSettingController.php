@@ -164,7 +164,7 @@ class LoginSettingController extends AdminControllerBase
             // showing "user"'s Custom column and unique
             $form->select('mapping_user_column', exmtrans("login.mapping_user_column"))
             ->required()
-            ->config('allowClear', false)
+            ->disableClear()
             ->help(exmtrans('login.help.mapping_user_column'))
             ->options(function ($column) use ($user_custom_columns) {
                 return $user_custom_columns->filter(function ($custom_column) {
@@ -352,7 +352,7 @@ class LoginSettingController extends AdminControllerBase
             
         $form->select('login_page_image_type', exmtrans("system.login_page_image_type"))
             ->help(exmtrans("system.help.login_page_image_type"))
-            ->config('allowClear', false)
+            ->disableClear()
             ->options(Enums\LoginBgImageType::transArray('system.login_page_image_type_options'))
         ;
 
@@ -578,7 +578,7 @@ class LoginSettingController extends AdminControllerBase
 
         $form->select('login_2factor_provider', exmtrans("2factor.login_2factor_provider"))
             ->options(Login2FactorProviderType::transKeyArray('2factor.2factor_provider_options'))
-            ->config('allowClear', false)
+            ->disableClear()
             ->default(Login2FactorProviderType::EMAIL)
             ->help(exmtrans("2factor.help.login_2factor_provider"))
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);

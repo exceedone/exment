@@ -30,6 +30,7 @@ use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\CompareColumnType;
+use Exceedone\Exment\Enums\ShowPositionType;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -424,6 +425,12 @@ HTML;
                 ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
                 ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
             ;
+            $form->select('system_values_pos', exmtrans("system.system_values_pos"))
+                ->default(ShowPositionType::DEFAULT)
+                ->options(ShowPositionType::transArray("system.system_values_pos_options"))
+                ->help(exmtrans("system.help.system_values_pos"))
+            ;
+
             if (boolval(config('exment.expart_mode', false))) {
                 $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format"))
                 ->rules("max:200")

@@ -77,11 +77,11 @@ trait InitializeFormTrait
     
         $form->select('site_skin', exmtrans("system.site_skin"))
             ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
-            ->config('allowClear', false)
+            ->disableClear()
             ->help(exmtrans("system.help.site_skin"));
         $form->select('site_layout', exmtrans("system.site_layout"))
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
-            ->config('allowClear', false)
+            ->disableClear()
             ->help(exmtrans("system.help.site_layout"));
                     
         $form->switchbool('api_available', exmtrans("system.api_available"))
@@ -159,7 +159,7 @@ trait InitializeFormTrait
         }
         $form->select('system_mail_body_type', exmtrans("system.system_mail_body_type"))
             ->help(exmtrans("system.help.system_mail_body_type"))
-            ->config('allowClear', false)
+            ->disableClear()
             ->options(Enums\MailBodyType::transArray('system.system_mail_body_type_options'));
        
         $form->exmheader(exmtrans('system.system_slack'))->hr();

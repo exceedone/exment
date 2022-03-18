@@ -263,7 +263,7 @@ EOT;
         } elseif (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->default(DashboardType::SYSTEM);
         } else {
             $form->internal('dashboard_type')->default(DashboardType::USER);
