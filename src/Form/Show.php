@@ -56,7 +56,7 @@ class Show extends AdminShow
      */
     public function getMaxRow()
     {
-        return collect($this->fieldAndOptions)->map(function($fieldOption) {
+        return collect($this->fieldAndOptions)->map(function ($fieldOption) {
             return array_get($fieldOption, 'options.row', 0);
         })->max();
     }

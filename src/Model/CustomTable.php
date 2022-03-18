@@ -3178,7 +3178,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * get show positon for system values 
+     * get show positon for system values
      */
     public function getSystemValuesPosition()
     {

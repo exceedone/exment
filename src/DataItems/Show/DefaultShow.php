@@ -74,7 +74,7 @@ class DefaultShow extends ShowBase
     }
     
     /**
-     * set system values 
+     * set system values
      * @param Show $show
      */
     protected function setSystemValues($show)
