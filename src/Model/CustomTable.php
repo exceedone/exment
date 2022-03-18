@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ValueType;
+use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
@@ -3174,5 +3175,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function isOneRecord()
     {
         return $this->getOption('one_record_flg', false);
+    }
+
+    /**
+     * get show positon for system values 
+     */
+    public function getSystemValuesPosition()
+    {
+        $positon = $this->getOption('system_values_pos', ShowPositionType::DEFAULT);
+        if ($positon == ShowPositionType::DEFAULT) {
+            $positon = System::system_values_pos() ?? ShowPositionType::TOP;
+        }
+        return $positon;
     }
 }

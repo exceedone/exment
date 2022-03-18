@@ -69,6 +69,8 @@ class Define
         // name is "flg", but array is OK.
         'grid_filter_disable_flg' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
 
+        'system_values_pos' => ['default' => 'top', 'group' => 'advanced'],
+
         'web_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
         'api_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
 
