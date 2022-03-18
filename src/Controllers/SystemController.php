@@ -197,11 +197,14 @@ class SystemController extends AdminControllerBase
 
         $form->select('system_values_pos', exmtrans("system.system_values_pos"))
             ->default(ShowPositionType::TOP)
+            ->disableClear()
             ->options(ShowPositionType::transKeyArrayFilter("system.system_values_pos_options", ShowPositionType::SYSTEM_SETTINGS()))
             ->help(exmtrans("system.help.system_values_pos"));
 
         $form->select('data_submit_redirect', exmtrans("system.data_submit_redirect"))
             ->options(Enums\DataSubmitRedirect::transKeyArray("admin", false))
+            ->default(Enums\DataSubmitRedirect::LIST)
+            ->disableClear()
             ->help(exmtrans("system.help.data_submit_redirect"));
 
         $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))
