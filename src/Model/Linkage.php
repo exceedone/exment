@@ -44,7 +44,7 @@ class Linkage
         $parent_columns = $custom_table->getSelectTableColumns();
         
         ///// re-loop for relation
-        $checkedSelectTableIds = [];
+        // $checkedSelectTableIds = [];
         foreach ($parent_columns as $parent_column) {
             // get custom table
             $select_target_table = $parent_column->select_target_table;
@@ -57,11 +57,11 @@ class Linkage
                 continue;
             }
 
-            // If already getting select_target_table, continue.
-            if (in_array($select_target_table->id, $checkedSelectTableIds)) {
-                continue;
-            }
-            $checkedSelectTableIds[] = $select_target_table->id;
+            // // If already getting select_target_table, continue.
+            // if (in_array($select_target_table->id, $checkedSelectTableIds)) {
+            //     continue;
+            // }
+            // $checkedSelectTableIds[] = $select_target_table->id;
 
             // get RelationTable children tables
             $relations = $select_target_table->getRelationTables($checkPermission, ['search_enabled_only' => false]);
