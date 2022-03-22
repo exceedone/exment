@@ -472,8 +472,10 @@ class Notify extends ModelBase
         if (isset($custom_view_id)) {
             $custom_view = CustomView::getEloquent($custom_view_id);
             if (isset($custom_view)) {
-                $query = $custom_value->custom_table->getValueQuery();
-                return $custom_view->setValueFilters($query)->where('id', $custom_value->id)->exists();
+                $custom_table = $custom_value->custom_table;
+                $query = $custom_table->getValueQuery();
+                $table_name = getDBTableName($custom_table);
+                return $custom_view->setValueFilters($query)->where("$table_name.id", $custom_value->id)->exists();
             }
         }
         return true;
