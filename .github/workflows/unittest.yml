@@ -7,9 +7,13 @@ on: [push]
 #      - 'infrastructure/**'
 #      - 'docker-compose.yml'
 
+
 jobs:
   laravel-testing:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        db: ["mysql", "mariadb", "sqlsrv"]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -28,21 +32,30 @@ jobs:
       - name: Docker Compose Version
         run: docker-compose --version
 
-      - name: Make mysql up
+      - name: Make ${{ matrix.db }} up
         working-directory: docker-exment
         run: |
           ls -al
-          make mysql-up
+          make ${{ matrix.db }}-up
 
       - name: copy compose.dev.json
         working-directory: docker-exment
         run: |
           docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
           docker-compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
-      - name: Make MySQL Initialize
+      - name: Make ${{ matrix.db }} Initialize
         working-directory: docker-exment
         run: |
-          make mysql-init
+          make ${{ matrix.db }}-init
+      - name: Test browser
+        working-directory: docker-exment
+        run: |
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:browser
+      - name: Test feature
+        working-directory: docker-exment
+        run: |
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:feature
+      - name: Test unit
+        working-directory: docker-exment
+        run: |
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:unit
