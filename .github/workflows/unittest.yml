@@ -1,4 +1,4 @@
-name: Laravel Testing
+name: ExecutExmentUnittest
 
 on: [push]
 #  pull_request:
@@ -9,7 +9,7 @@ on: [push]
 
 
 jobs:
-  laravel-testing:
+  exment-testing:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -43,18 +43,22 @@ jobs:
         run: |
           docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
           docker-compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
+
       - name: Make ${{ matrix.db }} Initialize
         working-directory: docker-exment
         run: |
           make ${{ matrix.db }}-init
+
       - name: Test browser
         working-directory: docker-exment
         run: |
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:browser
+
       - name: Test feature
         working-directory: docker-exment
         run: |
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:feature
+
       - name: Test unit
         working-directory: docker-exment
         run: |
