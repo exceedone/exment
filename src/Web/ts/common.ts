@@ -1175,7 +1175,7 @@ const getFormData = function (form) {
     }
     $('textarea[data-column_type="editor"]').each(function (index, elem) {
         let $elem = $(elem);
-        formData.append($elem.attr('name'), $elem.val());
+        formData.append($elem.attr('name'), $elem.val() as string);
     });
     return formData;
 }
