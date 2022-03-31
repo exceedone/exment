@@ -494,6 +494,7 @@ class Initialize
             'tinymce'        => Field\Tinymce::class,
             'codeEditor'          => Field\CodeEditor::class,
             'image'        => Field\Image::class,
+            'icon'        => Field\Icon::class,
             'link'           => Field\Link::class,
             'exmheader'           => Field\Header::class,
             'radio'           => Field\RadioButton::class,

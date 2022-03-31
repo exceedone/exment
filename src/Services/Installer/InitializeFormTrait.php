@@ -68,7 +68,7 @@ trait InitializeFormTrait
             ->attribute(['accept' => "image/*"])
             ;
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_favicon');
-        $form->image('site_favicon', exmtrans("system.site_favicon"))
+        $form->icon('site_favicon', exmtrans("system.site_favicon"))
             ->help(exmtrans("system.help.site_favicon"))
             ->options($fileOption)
             ->removable()
