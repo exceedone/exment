@@ -29,4 +29,28 @@ trait SelectTrait
 
         return [$default_type, $default];
     }
+
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param Builder $mark
+     * @param string $mark
+     * @param string $value
+     * @param string|null $q
+     * @return void
+     */
+    public function setSearchOrWhere(&$query, $mark, $value, $q)
+    {
+        if ($this->isMultipleEnabled()) {
+            $pureValue = $this->getPureValue($q)?? $q;
+            $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+            $query_value = collect($pureValue)->map(function ($val) use ($isUseUnicode) {
+                return $isUseUnicode? unicode_encode($val): $val;
+            })->toArray();
+            $query->orWhereInArrayString($this->custom_column->getIndexColumnName(), $query_value);
+            return $this;
+        }
+
+        return parent::setSearchOrWhere($query, $mark, $value, $q);
+    }
 }
