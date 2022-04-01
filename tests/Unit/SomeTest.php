@@ -167,7 +167,7 @@ class SomeTest extends UnitTestBase
         $target_table_id = $parent_column->getOption('select_target_table');
 
         // check if exists diffrent column that reference the same table
-        $other_column_exists = collect($linkages)->contains(function ($linkage) use($parent_column_id, $target_table_id) {
+        $other_column_exists = collect($linkages)->contains(function ($linkage) use ($parent_column_id, $target_table_id) {
             $parent_column = array_get($linkage, 'parent_column');
             $select_target_table = $parent_column->getOption('select_target_table');
             return $parent_column_id != $parent_column->id && $select_target_table == $target_table_id;
