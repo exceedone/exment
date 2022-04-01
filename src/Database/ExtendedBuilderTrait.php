@@ -523,12 +523,14 @@ trait ExtendedBuilderTrait
             $value = Carbon::parse($value);
         }
 
+        $boolean = $isOr? 'or' : 'and';
+
         if ($isDatetime) {
             $date = (in_array($mark, ['<', '<=']) ? $value->copy()->addDay(1) : $value);
-            return $this->where($column, $mark, $date->format('Y-m-d'));
+            return $this->where($column, $mark, $date->format('Y-m-d'), $boolean);
         }
 
-        return $this->where($column, $mark, $value->format('Y-m-d'));
+        return $this->where($column, $mark, $value->format('Y-m-d'), $boolean);
     }
 
     /**
