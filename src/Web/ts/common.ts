@@ -1168,6 +1168,18 @@ const getUuid = function() : string{
     });
 }
 
+const getFormData = function (form) {
+    var formData = new FormData(form);
+    if (tinyMCE.activeEditor) {
+        tinyMCE.activeEditor.save();
+    }
+    $('textarea[data-column_type="editor"]').each(function (index, elem) {
+        let $elem = $(elem);
+        formData.append($elem.attr('name'), $elem.val() as string);
+    });
+    return formData;
+}
+
 /**
  * Convert base64 to blob
  * @param b64Data base64 string

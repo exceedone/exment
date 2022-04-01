@@ -50,7 +50,7 @@ namespace Exment {
             getdataKeys = $target.data('widgetmodal_getdata_fieldsgroup');
             if(hasValue(getdataKeys)){
                 for(var key in getdataKeys){
-                    data[key] = $target.closest('.fields-group').find('.' + getdataKeys[key]).val();
+                    data[key] = $target.closest('.form-group').find('.' + getdataKeys[key]).val();
                 }
             }
 
@@ -229,7 +229,7 @@ namespace Exment {
             }
 
             // Create FormData Object
-            var formData = new FormData( form ); 
+            var formData = getFormData(form); 
                 
             $.ajax({
                 url: formurl,
@@ -522,7 +522,7 @@ namespace Exment {
 
             // set based select item
             let widgetmodal_uuid = $target.data('selectitem-widgetmodal_uuid');
-            let $baseSelect = $('[data-widgetmodal_uuid="' + widgetmodal_uuid + '"]').closest('.fields-group').find('.' + $target.data('selectitem-target_class'));
+            let $baseSelect = $('[data-widgetmodal_uuid="' + widgetmodal_uuid + '"]').closest('.form-group').find('.' + $target.data('selectitem-target_class'));
             $baseSelect.val(null);
             for(let i = 0; i < values.length; i++){
                 let v = values[i];
