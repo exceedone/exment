@@ -2,9 +2,9 @@
 namespace Exceedone\Exment\Validator;
 
 /**
- * IconRule.
+ * FaviconRule.
  */
-class IconRule extends FileRule
+class FaviconRule extends FileRule
 {
     public function __construct(array $extensions = [])
     {

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class Icon extends \Encore\Admin\Form\Field\Image
+class Favicon extends \Encore\Admin\Form\Field\Image
 {
     /**
      *  Validation rules.
@@ -14,7 +14,7 @@ class Icon extends \Encore\Admin\Form\Field\Image
     protected function getRules()
     {
         $rules = parent::getRules();
-        $rules[] = new \Exceedone\Exment\Validator\IconRule;
+        $rules[] = new \Exceedone\Exment\Validator\FaviconRule;
         return $rules;
     }
 }
