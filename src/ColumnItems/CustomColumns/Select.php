@@ -223,4 +223,26 @@ class Select extends CustomItem
         }
         return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($value): $value;
     }
+
+    /**
+     * Get pure value. If you want to change the search value, change it with this function.
+     *
+     * @param string $label
+     * @return ?array array:matched, null:not matched
+     */
+    public function getPureValue($label)
+    {
+        $result = [];
+
+        foreach ($this->custom_column->createSelectOptions() as $q) {
+            if (isMatchStringPartial($q, $label)) {
+                $result[] = $q;
+            }
+        }
+
+        if (count($result) === 0) {
+            return null;
+        }
+        return $result;
+    }
 }

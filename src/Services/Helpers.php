@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\FilterSearchType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
@@ -989,6 +990,24 @@ if (!function_exists('isMatchString')) {
             return false;
         }
         return strcmp($v1, $v2) == 0;
+    }
+}
+
+if (!function_exists('isMatchStringPartial')) {
+    /**
+     * compare string with filter search type option
+     *
+     * @param string $v1
+     * @param string $v2
+     * @return bool
+     */
+    function isMatchStringPartial(string $v1, string $v2) : bool
+    {
+        if (System::filter_search_type() == FilterSearchType::ALL) {
+            return strpos($v1, $v2) !== false;
+        } else {
+            return strncmp($v1, $v2, strlen($v2)) === 0;
+        }
     }
 }
 

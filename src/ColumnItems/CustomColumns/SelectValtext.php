@@ -53,17 +53,22 @@ class SelectValtext extends Select
      * Get pure value. If you want to change the search value, change it with this function.
      *
      * @param string $label
-     * @return ?string string:matched, null:not matched
+     * @return ?array array:matched, null:not matched
      */
     public function getPureValue($label)
     {
+        $result = [];
+
         foreach ($this->custom_column->createSelectOptions() as $key => $q) {
-            if ($label == $q) {
-                return $key;
+            if (isMatchStringPartial($q, $label)) {
+                $result[] = $key;
             }
         }
 
-        return null;
+        if (count($result) === 0) {
+            return null;
+        }
+        return $result;
     }
     
 
