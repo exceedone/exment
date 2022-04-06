@@ -12,6 +12,7 @@ jobs:
   exment-testing:
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         db: ["mysql", "mariadb", "sqlsrv"]
     steps:
