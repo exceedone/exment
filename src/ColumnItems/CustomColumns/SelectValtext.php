@@ -33,9 +33,12 @@ class SelectValtext extends Select
 
     public function saving()
     {
-        $v = $this->getPureValue($this->value);
-        if (!is_null($v)) {
-            return $v;
+        $v = $this->_getPureValue($this->value, true);
+        if (!is_nullorempty($v)) {
+            if ($this->isMultipleEnabled()) {
+                return is_list($v) ? $v : [$v];
+            }
+            return is_list($v) ? $v[0] : $v;
         }
     }
 
@@ -51,16 +54,34 @@ class SelectValtext extends Select
 
     /**
      * Get pure value. If you want to change the search value, change it with this function.
+     * Call from freeword search.
      *
      * @param string $label
      * @return ?array array:matched, null:not matched
      */
     public function getPureValue($label)
     {
+        return $this->_getPureValue($label, false);
+    }
+
+    /**
+     * Get pure value. If you want to change the search value, change it with this function.
+     *
+     * @param string $label
+     * @param bool $isCallFromSaving if true, called from saving function.
+     * @return ?array array:matched, null:not matched
+     */
+    protected function _getPureValue($label, bool $isCallFromSaving)
+    {
         $result = [];
 
         foreach ($this->custom_column->createSelectOptions() as $key => $q) {
-            if (isMatchStringPartial($q, $label)) {
+            // If called from saving, check as exact match.
+            if($isCallFromSaving && $q == $label){
+                $result[] = $key;
+            }
+            // If called from freeword search, check as partial match.
+            elseif (!$isCallFromSaving && isMatchStringPartial($q, $label)) {
                 $result[] = $key;
             }
         }
