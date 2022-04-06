@@ -635,7 +635,7 @@ class SelectTable extends CustomItem
 
         return [$query];
     }
-    
+       
     public function isMultipleEnabled()
     {
         return $this->isMultipleEnabledTrait();
@@ -807,5 +807,22 @@ class SelectTable extends CustomItem
             'index_enabled_only' => $isImport,
             'include_system' => false,
         ]) ?? [];
+    }
+
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param Builder $mark
+     * @param string $mark
+     * @param string $value
+     * @param string|null $q
+     * @return void
+     */
+    public function setSearchOrWhere(&$query, $mark, $value, $q)
+    {
+        if (!$this->isMultipleEnabled()) {
+            return parent::setSearchOrWhere($query, '=', $q, $q);
+        }
+        return $this->_setSearchOrWhere($query, $mark, $value, $q);
     }
 }

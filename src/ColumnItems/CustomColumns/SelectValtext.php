@@ -116,4 +116,21 @@ class SelectValtext extends Select
         $form->switchbool('check_radio_enabled', exmtrans("custom_column.options.check_radio_enabled"))
             ->help(exmtrans("custom_column.help.check_radio_enabled"));
     }
+
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param Builder $mark
+     * @param string $mark
+     * @param string $value
+     * @param string|null $q
+     * @return void
+     */
+    public function setSearchOrWhere(&$query, $mark, $value, $q)
+    {
+        if (!$this->isMultipleEnabled()) {
+            return parent::setSearchOrWhere($query, '=', $q, $q);
+        }
+        return $this->_setSearchOrWhere($query, $mark, $value, $q);
+    }
 }

@@ -41,6 +41,20 @@ trait SelectTrait
      */
     public function setSearchOrWhere(&$query, $mark, $value, $q)
     {
+        return $this->_setSearchOrWhere($query, $mark, $value, $q);
+    }
+
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param Builder $mark
+     * @param string $mark
+     * @param string $value
+     * @param string|null $q
+     * @return void
+     */
+    protected function _setSearchOrWhere(&$query, $mark, $value, $q)
+    {
         if ($this->isMultipleEnabled()) {
             $pureValue = $this->getPureValue($q)?? $q;
             $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
