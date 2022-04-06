@@ -498,6 +498,9 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('sqlsrv', function (...$parameters) {
             return new ExmentDatabase\SqlServerConnection(...$parameters);
         });
+        Connection::resolverFor('postgres', function (...$parameters) {
+            return new ExmentDatabase\PostgresConnection(...$parameters);
+        });
     }
 
     /**
