@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Tests\TestDefine;
 
 /**
@@ -146,7 +147,32 @@ class SomeTest extends UnitTestBase
      */
     public function testSearchQueryIndexed()
     {
-        $this->__testSearchQueryIndexed("index_text", true, "index_1_1");
+        $this->__testSearchQueryIndexed("index_text", true, "index_001_001");
+    }
+
+    /**
+     * test linkages when table columns reference same parent table.
+     *
+     * @return void
+     */
+    public function testSelectTableLinkages()
+    {
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_SELECT);
+        $linkages = Linkage::getSelectTableLinkages($custom_table, false);
+        // check linkage count (2 parent column * 10 child column)
+        $this->assertEquals(count($linkages), 20);
+
+        $parent_column = array_get($linkages[0], 'parent_column');
+        $parent_column_id = $parent_column->id;
+        $target_table_id = $parent_column->getOption('select_target_table');
+
+        // check if exists diffrent column that reference the same table
+        $other_column_exists = collect($linkages)->contains(function ($linkage) use ($parent_column_id, $target_table_id) {
+            $parent_column = array_get($linkage, 'parent_column');
+            $select_target_table = $parent_column->getOption('select_target_table');
+            return $parent_column_id != $parent_column->id && $select_target_table == $target_table_id;
+        });
+        $this->assertTrue($other_column_exists);
     }
 
 

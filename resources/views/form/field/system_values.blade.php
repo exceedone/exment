@@ -1,3 +1,6 @@
+@if ($positon == 'bottom')
+<hr />
+@endif
 <div class="system-values">
     <div class="system-values-flows">
     @foreach($workflows as $item)
@@ -17,4 +20,6 @@
     @endforeach
     </ul>
 </div>
+@if ($positon == 'top')
 <hr />
+@endif

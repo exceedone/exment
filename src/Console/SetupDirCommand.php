@@ -126,6 +126,7 @@ class SetupDirCommand extends AdminInstallCommand
                 static::addPermission('app', $user, $group);
                 static::addPermission('config', $user, $group);
                 static::addPermission('public', $user, $group);
+                static::addPermission('resources', $user, $group);
                 static::addPermission('.env', $user, $group);
             }
         }
@@ -143,6 +144,7 @@ class SetupDirCommand extends AdminInstallCommand
         static::revertPermission('app');
         static::revertPermission('config');
         static::revertPermission('public');
+        static::revertPermission('resources');
         static::revertPermission('.env');
     }
 
@@ -168,8 +170,11 @@ class SetupDirCommand extends AdminInstallCommand
                     chmod($dir, 02775);
                 }
             }
+
+            // Change mod self
+            chmod($path, 02775);
             
-            $files = \File::allFiles($path);
+            $files = \File::allFiles($path, true);
             foreach ($files as $file) {
                 chown($file, $user);
                 chgrp($file, $group);
@@ -204,6 +209,9 @@ class SetupDirCommand extends AdminInstallCommand
             foreach ($dirs as $dir) {
                 chmod($dir, 02755);
             }
+
+            // Change mod self
+            chmod($path, 02755);
         
             $files = \File::allFiles($path);
             foreach ($files as $file) {

@@ -99,7 +99,7 @@ php artisan exment: checklang
 | 3 | user2 | user2user2 |
 | 4 | user3 | user3user3 |
 | 5 | company1-userA | company1-userA |
-| 6 | dev-userB | dev-userB |
+| 6 | dev0-userB | dev0-userB |
 | 7 | dev1-userC | dev1-userC |
 | 8 | dev1-userD | dev1-userD |
 | 9 | dev2-userE | dev2-userE |
@@ -109,7 +109,7 @@ php artisan exment: checklang
 | id | organization_code | parent_organization_code | users |
 | ---- | ---- | ---- | ---- |
 | 1 | company1 | - | company1-userA |
-| 2 | dev | company1 | dev-userB |
+| 2 | dev | company1 | dev0-userB |
 | 3 | manage | company1 | - |
 | 4 | dev1 | dev | dev1-userC,dev1-userD |
 | 5 | dev2 | dev | dev2-userE |

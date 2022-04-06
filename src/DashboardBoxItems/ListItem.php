@@ -113,7 +113,7 @@ class ListItem implements ItemInterface
         $form->select('pager_count', trans("admin.show"))
             ->required()
             ->options(getPagerOptions(true, Define::PAGER_DATALIST_COUNTS))
-            ->config('allowClear', false)
+            ->disableClear()
             ->default(0);
 
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))

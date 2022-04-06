@@ -118,7 +118,7 @@ class WorkflowTestDataSeeder extends Seeder
     
                         'authorities' => [
                             [
-                                'related_id' => 6, // dev-userB
+                                'related_id' => 6, // dev0-userB
                                 'related_type' => 'user',
                             ]
                         ],
@@ -221,7 +221,7 @@ class WorkflowTestDataSeeder extends Seeder
     
                         'authorities' => [
                             [
-                                'related_id' => 6, // dev-userB
+                                'related_id' => 6, // dev0-userB
                                 'related_type' => 'user',
                             ]
                         ],
@@ -350,7 +350,7 @@ class WorkflowTestDataSeeder extends Seeder
 
             [
                 'items' => [
-                    'workflow_view_name' => 'workflow_common_get_for_userinfo',
+                    'workflow_view_name' => 'workflow_common_userinfo',
                     'workflow_type' => 0,
                     'setting_completed_flg' => 1,
                 ],
@@ -550,7 +550,7 @@ class WorkflowTestDataSeeder extends Seeder
 
                 $wfUserKeys = [
                     'dev1-userD',
-                    'dev-userB',
+                    'dev0-userB',
                     'dev1-userC',
                 ];
 

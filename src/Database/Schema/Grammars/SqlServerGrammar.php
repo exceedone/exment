@@ -90,6 +90,12 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         ];
     }
     
+    public function compileAlterPrimaryKey($db_table_name, $db_column_name = 'id')
+    {
+        // ALTER TABLE
+        return "alter table {$db_table_name} add primary key ({$db_column_name})";
+    }
+    
     public function compileGetIndex($tableName)
     {
         return $this->_compileGetIndex($tableName, false);

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
+use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -194,8 +195,16 @@ class SystemController extends AdminControllerBase
             })
             ->help(exmtrans("system.help.grid_filter_disable_flg"));
 
+        $form->select('system_values_pos', exmtrans("system.system_values_pos"))
+            ->default(ShowPositionType::TOP)
+            ->disableClear()
+            ->options(ShowPositionType::transKeyArrayFilter("system.system_values_pos_options", ShowPositionType::SYSTEM_SETTINGS()))
+            ->help(exmtrans("system.help.system_values_pos"));
+
         $form->select('data_submit_redirect', exmtrans("system.data_submit_redirect"))
             ->options(Enums\DataSubmitRedirect::transKeyArray("admin", false))
+            ->default(Enums\DataSubmitRedirect::LIST)
+            ->disableClear()
             ->help(exmtrans("system.help.data_submit_redirect"));
 
         $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))

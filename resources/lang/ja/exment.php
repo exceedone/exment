@@ -259,6 +259,7 @@ return [
         'default_date_format' => '日時表示書式',
         'filter_search_type' => 'データ検索方法',
         'grid_filter_disable_flg' => 'データ一覧のフィルタ非表示',
+        'system_values_pos' => 'データ画面のシステム項目表示位置',
         'data_submit_redirect' => 'データ保存後の既定リダイレクト先',
         'header_user_info' => 'ヘッダーのユーザー情報の表示内容',
         'api_available' => 'APIを使用する',
@@ -362,6 +363,13 @@ return [
             'all' => '部分一致',
         ],
         
+        'system_values_pos_options' => [
+            'default' => 'システム設定に合わせる',
+            'top' => '上部',
+            'bottom' => '下部',
+            'hide' => '非表示',
+        ],
+        
         'date_format_list' => [
             'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
@@ -421,6 +429,7 @@ return [
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
             'filter_search_type' => '登録データの検索方法を設定します。※部分一致の場合、データ件数によって、パフォーマンスに影響がある場合があります。',
             'grid_filter_disable_flg' => 'チェックした項目が、データ一覧画面のフィルタ項目で、非表示になります。',
+            'system_values_pos' => 'データ編集画面及びデータ詳細画面でシステム項目を表示する位置を設定します。',
             'data_submit_redirect' => 'カスタムデータの保存後にリダイレクトする画面の既定値を設定することができます。この項目を設定すると、データ入力画面で、保存後のデータ遷移先チェックボックスにチェックが入ります。',
             'header_user_info' => 'ヘッダーのユーザー情報に表示する内容を設定することができます。空欄にした場合は非表示になります。',
             'api_available' => 'YESにした場合、APIを使用することができます。',
@@ -1100,7 +1109,7 @@ return [
             'same_action' => '実行前ステータスと実行後ステータスは、異なるステータスに設定してください。',
             'fix_and_action_select' => '同じ実行前ステータスで、「事前に設定」と「前アクションの実行ユーザーが選択」を同時に設定できません。',
             'get_by_userinfo_and_action_select' => '同じ実行前ステータスで、「実行ユーザー情報から取得」と「前アクションの実行ユーザーが選択」を同時に設定できません。',
-            'ignore_work_and_action_select' => '実行可能ユーザーが「実行ユーザー情報から取得」の場合、「特殊なアクション」を設定できません。',
+            'ignore_work_and_action_select' => '実行可能ユーザーが「前アクションの実行ユーザーが選択」の場合、「特殊なアクション」を設定できません。',
             'action_execute' => '以下のアクションを実行します。',
             'nextuser_not_found' => '次の作業ユーザーが存在しません。管理者に問い合わせください。',
         ],

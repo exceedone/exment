@@ -298,7 +298,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 $form->select('notify_action', exmtrans("notify.notify_action"))
                     ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
                     ->required()
-                    ->config('allowClear', false)
+                    ->disableClear()
                     ->attribute([
                         'data-filtertrigger' =>true,
                         'data-linkage' => json_encode([
@@ -350,7 +350,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 $form->select('notify_action', exmtrans("notify.notify_action"))
                     ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
                     ->required()
-                    ->config('allowClear', false)
+                    ->disableClear()
                     ->attribute([
                         'data-filtertrigger' =>true,
                         'data-linkage' => json_encode([
