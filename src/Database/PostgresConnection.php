@@ -61,7 +61,17 @@ class PostgresConnection extends BaseConnection implements ConnectionInterface
 
     public function getDatabaseDriverName() : string
     {
-        return 'SQL Server';
+        return 'PostgreSQL';
+    }
+
+    /**
+     * Is enable execute backup driver
+     *
+     * @return bool
+     */
+    public function isEnableBackup() : bool
+    {
+        return false;
     }
 
     /**
@@ -112,7 +122,7 @@ class PostgresConnection extends BaseConnection implements ConnectionInterface
     public function createView($viewName, $query)
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
-        $sql = "CREATE OR ALTER VIEW $viewName AS " . $query->toSql();
+        $sql = "CREATE OR REPLACE VIEW $viewName AS " . $query->toSql();
 
         ///// maybe sql server cannot replace bindings... so replace
         foreach ($query->getBindings() as $binding) {

@@ -17,11 +17,11 @@ class PostgresProcessor extends BasePostgresProcessor
         $string = collect((array)$results[0])->first();
 
         // match regex
-        preg_match('/\d+\.\d+\.\d+\.\d+/u', $string, $m);
+        preg_match('/PostgreSQL (?<first>\d+)\.(?<second>\d+),/u', $string, $m);
         if (!$m) {
             return null;
         }
-        return $m[0];
+        return "{$m['first']}.{$m['second']}";
     }
 
     /**
@@ -62,14 +62,29 @@ class PostgresProcessor extends BasePostgresProcessor
      * @param  array  $results
      * @return array
      */
-    public function processIndexDefinitions($tableName, $results)
+    public function processIndexDefinitions($tableName, $columnName, bool $unique, $results)
     {
-        return collect($results)->map(function ($result) use ($tableName) {
+        // Filtering whether unique and column_name, because cannot filter is unique using sql.
+        return collect($results)->filter(function($result) use($unique, $columnName){
+            // Check column name
+            $indexdef = strtolower($result->indexdef);
+            if(strpos($indexdef, "btree ({$columnName})") === false && strpos($indexdef, "btree({$columnName})") === false){
+                return false;
+            }
+            if($unique && strpos($indexdef, "crfeate unique index") === false){
+                return false;
+            }
+            if(!$unique && strpos($indexdef, "crfeate index") === false){
+                return false;
+            }
+            
+            return true;
+        })->map(function ($result) use ($tableName, $columnName, $unique) {
             return [
                 'table_name' => $tableName,
-                'column_name' => $result->column_name,
+                'column_name' => $columnName,
                 'key_name' => $result->key_name,
-                'unique' => boolval($result->is_unique),
+                'unique' => $unique,
             ];
         })->toArray();
     }

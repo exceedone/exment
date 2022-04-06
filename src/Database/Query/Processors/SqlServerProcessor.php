@@ -62,7 +62,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      * @param  array  $results
      * @return array
      */
-    public function processIndexDefinitions($tableName, $results)
+    public function processIndexDefinitions($tableName, $columnName, bool $unique, $results)
     {
         return collect($results)->map(function ($result) use ($tableName) {
             return [

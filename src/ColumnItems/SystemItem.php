@@ -93,7 +93,7 @@ class SystemItem implements ItemInterface
             $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, false);
         }
         // if sql server and created_at, set datetime cast
-        elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
+        elseif (\ExmentDB::isCastColumnCompare() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
             $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
         } else {
             $result = \Exment::wrapColumn($table_column_name);
@@ -122,7 +122,7 @@ class SystemItem implements ItemInterface
             $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, !$asSelect);
         }
         // if sql server and created_at, set datetime cast
-        elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
+        elseif (\ExmentDB::isCastColumnCompare() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
             $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, !$asSelect);
         } else {
             $result = \Exment::wrapColumn($table_column_name);

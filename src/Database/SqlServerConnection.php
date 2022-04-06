@@ -65,6 +65,16 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     }
 
     /**
+     * Is enable execute backup driver
+     *
+     * @return bool
+     */
+    public function isEnableBackup() : bool
+    {
+        return false;
+    }
+
+    /**
      * Check execute backup database
      *
      * @return bool

@@ -39,13 +39,13 @@ trait ConnectionTrait
     }
 
     /**
-     * Check SqlServer
+     * Check whether casting column compare
      *
      * @return bool
      */
-    public function isSqlServer()
+    public function isCastColumnCompare() : bool
     {
-        return $this->getSchemaBuilder()->isSqlServer();
+        return $this->getSchemaBuilder()->isCastColumnCompare();
     }
 
     public function canConnection()

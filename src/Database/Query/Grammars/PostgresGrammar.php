@@ -126,7 +126,7 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
 
         $column = $this->wrap($column);
 
-        return "convert($cast, $column)";
+        return "cast($column as $cast)";
     }
 
     /**
@@ -138,20 +138,20 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
     {
         switch ($type) {
             case DatabaseDataType::TYPE_INTEGER:
-                return 'int';
+                return 'integer';
             case DatabaseDataType::TYPE_DECIMAL:
                 return 'decimal';
             case DatabaseDataType::TYPE_STRING:
             case DatabaseDataType::TYPE_STRING_MULTIPLE:
-                return 'nvarchar';
+                return 'text';
             case DatabaseDataType::TYPE_DATE:
                 return 'date';
             case DatabaseDataType::TYPE_DATETIME:
-                return 'datetime2(0)';
+                return 'timestamp';
             case DatabaseDataType::TYPE_TIME:
-                return 'time(0)';
+                return 'time';
         }
-        return 'nvarchar';
+        return 'text';
     }
 
     
@@ -169,23 +169,23 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
         $cast = '';
         switch ($type) {
             case DatabaseDataType::TYPE_INTEGER:
-                $cast = 'int';
+                $cast = 'integer';
                 break;
             case DatabaseDataType::TYPE_DECIMAL:
                 $cast = 'decimal';
                 break;
             case DatabaseDataType::TYPE_STRING:
             case DatabaseDataType::TYPE_STRING_MULTIPLE:
-                $cast = 'nvarchar';
+                $cast = 'text';
                 break;
             case DatabaseDataType::TYPE_DATE:
                 $cast = 'date';
                 break;
             case DatabaseDataType::TYPE_DATETIME:
-                $cast = 'datetime2(0)';
+                $cast = 'timestamp';
                 break;
             case DatabaseDataType::TYPE_TIME:
-                $cast = 'time(0)';
+                $cast = 'time';
                 break;
         }
 
@@ -200,10 +200,6 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
                 $decimal_digit = array_get($options, 'decimal_digit') ?? 2;
                 $length = ($length > 38 ? 38 : $length);
                 $cast .= "($length, $decimal_digit)";
-                break;
-                
-            case DatabaseDataType::TYPE_STRING:
-                $cast .= "($length)";
                 break;
         }
 
@@ -314,45 +310,6 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
             '6' => '5',
             '7' => '6',
         ];
-    }
-
-    /**
-     * Compile an insert and get ID statement into SQL.
-     *
-     * @param  Builder  $query
-     * @param  array   $values
-     * @param  string  $sequence
-     * @return string
-     */
-    public function compileInsertGetId(Builder $query, $values, $sequence)
-    {
-        if (strtoupper($sequence) == 'ID' && array_has($values, $sequence) && isset($values[$sequence])) {
-            // set IDENTITY_INSERT in query.
-            return $this->compileEnableIdentityInsert($query->from) . parent::compileInsertGetId($query, $values, $sequence) . $this->compileDisableIdentityInsert($query->from);
-        }
-        return parent::compileInsertGetId($query, $values, $sequence);
-    }
-
-    /**
-     * Compile the query to set enable IDENTITY_INSERT
-     *
-     * @param string $tableName
-     * @return string query string
-     */
-    public function compileEnableIdentityInsert(string $tableName)
-    {
-        return "SET IDENTITY_INSERT {$this->wrapTable($tableName)} ON;  ";
-    }
-
-    /**
-     * Compile the query to set diesable IDENTITY_INSERT
-     *
-     * @param string $tableName
-     * @return string
-     */
-    public function compileDisableIdentityInsert(string $tableName)
-    {
-        return "SET IDENTITY_INSERT {$this->wrapTable($tableName)} OFF; ";
     }
 
     /**

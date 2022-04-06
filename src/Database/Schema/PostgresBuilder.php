@@ -2,15 +2,15 @@
 
 namespace Exceedone\Exment\Database\Schema;
 
-use Illuminate\Database\Schema\Postgres as BaseBuilder;
+use Illuminate\Database\Schema\PostgresBuilder as BaseBuilder;
 
-class Postgres extends BaseBuilder
+class PostgresBuilder extends BaseBuilder
 {
     use BuilderTrait;
     
     protected function getUniqueIndexDefinitionsSelect($sql, $tableName, $columnName, $unique)
     {
-        return $this->connection->select($sql, ['column_name' => $columnName, 'is_unique' => $unique]);
+        return $this->connection->select($sql, ['table_name' => $tableName]);
     }
 
     /**
@@ -24,11 +24,11 @@ class Postgres extends BaseBuilder
     }
 
     /**
-     * Check Postgres
+     * Check whether casting column compare
      *
      * @return bool
      */
-    public function isPostgres()
+    public function isCastColumnCompare()
     {
         return true;
     }
@@ -58,9 +58,6 @@ class Postgres extends BaseBuilder
         $table = $this->connection->getTablePrefix().$table;
         $this->connection->statement(
             $this->grammar->compileCreateValueTable($table)
-        );
-        $this->connection->statement(
-            $this->grammar->compileAlterPrimaryKey($table)
         );
     }
 }

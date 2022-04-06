@@ -99,11 +99,11 @@ trait BuilderTrait
     }
 
     /**
-     * Check sqlserver
+     * Check whether casting column compare
      *
      * @return bool
      */
-    public function isSqlServer()
+    public function isCastColumnCompare()
     {
         return false;
     }
@@ -191,7 +191,7 @@ trait BuilderTrait
         $sql = $unique ? $this->grammar->compileGetUnique($tableName) : $this->grammar->compileGetIndex($tableName);
 
         $results = $this->getUniqueIndexDefinitionsSelect($sql, $tableName, $columnName, $unique);
-        return $this->connection->getPostProcessor()->processIndexDefinitions($baseTableName, $results);
+        return $this->connection->getPostProcessor()->processIndexDefinitions($baseTableName, $columnName, $unique, $results);
     }
     
 
@@ -244,9 +244,14 @@ trait BuilderTrait
     public function createRelationValueTable($table)
     {
         $table = $this->connection->getTablePrefix().$table;
-        $this->connection->statement(
-            $this->grammar->compileCreateRelationValueTable($table)
-        );
+        $sqls = $this->grammar->compileCreateRelationValueTable($table);
+        if(!is_list($sqls)){
+            $sqls = [$sqls];
+        }
+
+        foreach($sqls as $sql){
+            $this->connection->statement($sql);
+        }
     }
 
     /**

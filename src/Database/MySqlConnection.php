@@ -134,6 +134,16 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
 
     /**
+     * Is enable execute backup driver
+     *
+     * @return bool
+     */
+    public function isEnableBackup() : bool
+    {
+        return true;
+    }
+
+    /**
      * Check execute backup database
      *
      * @return bool

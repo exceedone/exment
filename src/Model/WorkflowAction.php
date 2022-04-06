@@ -890,7 +890,7 @@ class WorkflowAction extends ModelBase
     public static function appendStatusFromQuery($query, $workflow_status)
     {
         // if sql server, append cast
-        if (\Exment::isSqlServer()) {
+        if (\ExmentDB::isCastColumnCompare()) {
             /// create where raw query
             $column = \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_ACTION . '.status_from');
             $whereStatusStart = $column . ' = ' . \Exment::wrapValue($workflow_status);
@@ -909,7 +909,7 @@ class WorkflowAction extends ModelBase
     public static function appendStatusFromJoinQuery($query)
     {
         // if sql server, append cast
-        if (\Exment::isSqlServer()) {
+        if (\ExmentDB::isCastColumnCompare()) {
             /// create where raw query
             $whereStatusStart = \Exment::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
             $query->whereRaw($whereStatusStart);

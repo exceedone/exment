@@ -24,11 +24,11 @@ class SqlServerBuilder extends BaseBuilder
     }
 
     /**
-     * Check sqlserver
+     * Check whether casting column compare
      *
      * @return bool
      */
-    public function isSqlServer()
+    public function isCastColumnCompare()
     {
         return true;
     }

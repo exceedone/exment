@@ -821,17 +821,6 @@ class Exment
     }
 
     /**
-     * Whether db is sqlserver.
-     *
-     * @return boolean
-     */
-    public function isSqlServer() : bool
-    {
-        return \DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder;
-    }
-
-
-    /**
      * Whether server os is Windows
      *
      * @return boolean
