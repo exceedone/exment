@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Enums\TextAlignExType;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
 use Exceedone\Exment\Validator;
 
@@ -144,6 +145,23 @@ abstract class CustomItem implements ItemInterface
             $array['text-align'] = $text_align;
         }
         return $this->getStyleString($array);
+    }
+
+    /**
+     * get grid header style
+     */
+    public function gridHeaderStyle()
+    {
+        $array = [];
+
+        $header_align = array_get($this->options, 'header_align')?? TextAlignExType::LEFT;
+        if ($header_align == TextAlignExType::INHERIT) {
+            $text_align = $this->custom_column->getOption('text_align');
+            if (isset($text_align)) {
+                $array['text-align'] = $text_align;
+            }
+        }
+        return $array;
     }
 
     /**

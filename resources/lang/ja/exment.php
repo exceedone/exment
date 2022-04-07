@@ -1780,6 +1780,7 @@ return [
         'view_infobox_title' => '情報ボックス-タイトル',
         'view_infobox' => '情報ボックス-本文',
         'pager_count_default' => 'システム設定に合わせる',
+        'header_align' => '列名の配置',
         'custom_view_filters' => 'データ表示条件',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
@@ -1816,6 +1817,12 @@ return [
             'm' => '月毎',
             'd' => '日毎',
             'w' => '曜日毎',
+        ],
+        'align_type_options' => [
+            "inherit" => "カスタム列の設定に合わせる",
+            "left" => "左寄せ",
+            "center" => "中央寄せ",
+            "right" => "右寄せ",
         ],
 
         'summary_condition_options' => [
