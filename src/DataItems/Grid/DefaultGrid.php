@@ -707,7 +707,7 @@ class DefaultGrid extends GridBase
             $form->select('pager_count', exmtrans("common.pager_count"))
                 ->required()
                 ->options(getPagerOptions(true, $grid_per_pages))
-                ->config('allowClear', false)
+                ->disableClear()
                 ->default(0);
         }
 

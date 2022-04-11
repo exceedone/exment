@@ -4,11 +4,12 @@ This page explains how to set up developing Exment engine.
 ## First
 - We suggest using Visual Studio Code for developing.
 - This page is beta version. If you cannot set up, please write issue.
-- Please install first.
+- The following applications must be installed in advance.
     - Visual Studio Code
     - git
     - composer
-    - node.js
+    - node.js(npm)
+- Please prepare the WEB server, database, etc. required to operate Exment locally according to your environment.[Reference site](https://exment.net/docs/#/server)  
 
 ## Fork repository
 - Access [https://github.com/exceedone/exment] and click "fork" right-top button on page.
@@ -31,11 +32,12 @@ mkdir packages
 cd packages
 ~~~
 
-- Create "exceedone" directory.  
+- Create a directory with your GitHub username.  
+(ex. hirossyi73)
 
 ~~~
-mkdir exceedone
-cd exceedone
+mkdir hirossyi73
+cd hirossyi73
 ~~~
 
 - Clone your repository.
@@ -74,7 +76,7 @@ git clone https://github.com/hirossyi73/exment.git
     "repositories": [
         {
             "type": "path",
-            "url": "packages/exceedone/exment",
+            "url": "packages/hirossyi73/exment",
             "options": {
                 "symlink": true
             }
@@ -99,16 +101,31 @@ php artisan passport:keys
 - Download tsconfig.json from this site and put on root project.  
 [tsconfig.json](https://exment.net/downloads/develop/tsconfig.json)
 
+- Open tsconfig.json and edit lines 5 and 10 to your own owner name.  
+
+```
+  "compilerOptions": {
+    ...
+    "outDir": "./packages/hirossyi73/exment/public/vendor/exment/js",
+    ...
+  },
+  "include": [
+    "packages/hirossyi73/exment/src/Web/ts/*.ts"
+  ]
+```
+
 - Install npm packages on root project.  
 
 ~~~
+npm init
+# Please input 'Enter' and finish install.
 npm install -g typescript
-npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2
+npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2 @types/jquery.validation
 ~~~
 
 - Download *.d.ts files that not contains npm packages.  
 And set *.d.ts files to node_modules/@types/(package name folder - Please create folder).  
-[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts) please  
+[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts)   
 [exment/index.d.ts](https://exment.net/downloads/develop/exment/index.d.ts)
 
 - Open packages.json's dependencies block and append downloaded files.
@@ -120,12 +137,36 @@ And set *.d.ts files to node_modules/@types/(package name folder - Please create
 }
 ~~~
 
-- Download tasks.json file and set ".vscode" folder on project root folder. (If doesn't have ".vscode", please create it.)
-[tasks.json](https://exment.net/downloads/develop/tasks.json)
+- Copy the "tasks.json" file directly under the project folder to the ".vscode" folder in the project root folder.  
+    - If the "tasks.json" file does not exist, download it from [here](https://exment.net/downloads/develop/tasks.json).  
+    - If the ".vscode" folder does not exist, create it yourself.  
+
+- In index.d.ts, there is a conflict between bootstrap and jquery definition files, so fix them individually.
+Open node_modules\@types\bootstrap\index.d.ts and modify it as follows: *Near the 27th line.
+
+``` typescript
+declare global {
+    interface JQuery {
+        alert: Alert.jQueryInterface;
+        // Comment
+        //button: Button.jQueryInterface;
+        carousel: Carousel.jQueryInterface;
+        collapse: Collapse.jQueryInterface;
+        dropdown: Dropdown.jQueryInterface;
+        tab: Tab.jQueryInterface;
+        modal: Modal.jQueryInterface;
+        offcanvas: Offcanvas.jQueryInterface;
+        [Popover.NAME]: Popover.jQueryInterface;
+        scrollspy: ScrollSpy.jQueryInterface;
+        toast: Toast.jQueryInterface;
+        // Comment
+        //[Tooltip.NAME]: Tooltip.jQueryInterface;
+    }
+}
+```
 
 - If you update *.ts file in "exment" package and you want to compile, please execute this command "Ctrl + Shift + B" on VSCode.  
-Update .js file in packages/exceedone/exment/public/vendor/exment/js.
-
+Update .js file in packages/hirossyi73/exment/public/vendor/exment/js.
 
 - If you want to publish js file for web, please execute this command on project root directory.
 
@@ -138,16 +179,22 @@ php artisan exment:publish
 - Install VsCode plugin "EasySass".
 [EasySass](https://marketplace.visualstudio.com/items?itemName=spook.easysass)
 
-- Open VsCode setting and open EasySass setting.  
-Set "Target Dir" setting "packages/exceedone/exment/public/vendor/exment/css".  
+- Open the VS Code settings page. Select Extensions → Easy Sass from the submenu.  
+In the "Target Dir" field, enter "packages/hirossyi73/exment/public/vendor/exment/css".  
+    - Please convert the "hirossyi73" part to your own owner name.  
 
-- When you edit .scss file and save, update .css file to packages/exceedone/exment/public/vendor/exment/css.
+- When you edit .scss file and save, update .css file to packages/hirossyi73/exment/public/vendor/exment/css.
 
 - If you want to publish css file, please execute this command on project root directory.
 
 ~~~
 php artisan exment:publish
 ~~~
+
+## others
+
+- By setting the symbolic link, the files of the Exment package exist in both the 'packages' folder and the 'vendor' folder.  
+When modifying the program, please edit the 'packages' folder.
 
 ## GitHub
 
@@ -173,7 +220,7 @@ Before pushing to GitHub, execute php-cs-fixer and format the source code.
 ~~~
 composer global require friendsofphp/php-cs-fixer
 
-# Add user environment. Change "%USERPROFILE%" to machine user name. ex:「C:\Users\XXXX」
+# Add the following path to your environment variables. ("%USERPROFILE%" is a variable that points to your user directory. ex:「C:\Users\XXXX」)
 %USERPROFILE%\AppData\Roaming\Composer\vendor\bin 
 ~~~
 
@@ -181,9 +228,9 @@ composer global require friendsofphp/php-cs-fixer
 
 ```
 #Remove unused use
-php-cs-fixer fix ./vendor/exceedone/exment --rules=no_unused_imports
+php-cs-fixer fix ./vendor/hirossyi73/exment --rules=no_unused_imports
 #Fix all source
-php-cs-fixer fix
+php-cs-fixer fix ./vendor/hirossyi73/exment
 ```
 
 

@@ -13,12 +13,12 @@ class AddOptionsToFilters extends Migration
      */
     public function up()
     {
-        if(Schema::hasTable('revisions')){
+        if (Schema::hasTable('revisions')) {
             Schema::table('revisions', function (Blueprint $table) {
-                if(!Schema::hasColumn('revisions', 'deleted_at')){
+                if (!Schema::hasColumn('revisions', 'deleted_at')) {
                     $table->timestamp('deleted_at', 0)->nullable()->after('updated_at');
                 }
-                if(!Schema::hasColumn('revisions', 'delete_user_id')){
+                if (!Schema::hasColumn('revisions', 'delete_user_id')) {
                     $table->unsignedInteger('delete_user_id', 0)->nullable()->after('create_user_id');
                 }
             });
@@ -32,7 +32,7 @@ class AddOptionsToFilters extends Migration
      */
     public function down()
     {
-        Schema::table('revisions', function($table) {
+        Schema::table('revisions', function ($table) {
             if (Schema::hasColumn('revisions', 'deleted_at')) {
                 $table->dropColumn('deleted_at');
             }

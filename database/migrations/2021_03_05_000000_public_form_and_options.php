@@ -15,7 +15,7 @@ class PublicFormAndOptions extends Migration
     public function up()
     {
         $schema = DB::connection()->getSchemaBuilder();
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
@@ -48,7 +48,7 @@ class PublicFormAndOptions extends Migration
             }
         });
 
-        if(!Schema::hasTable('public_forms')){
+        if (!Schema::hasTable('public_forms')) {
             $schema->create('public_forms', function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->uuid('uuid')->unique();
@@ -78,7 +78,7 @@ class PublicFormAndOptions extends Migration
 
         // Remove resouce laravel-admin show
         $path = base_path('resources/views/vendor/admin/show/panel.blade.php');
-        if(\File::exists($path)){
+        if (\File::exists($path)) {
             \File::delete($path);
         }
     }

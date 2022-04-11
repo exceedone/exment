@@ -145,9 +145,7 @@ class Restore
                 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
                 
-                if (!$this->tmpDisk()->exists($to)) {
-                    $this->tmpDisk()->makeDirectory($to, 0755, true);
-                }
+                \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
 
                 $files = $tmpDisk->files($directory);
                 foreach ($files as $file) {

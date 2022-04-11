@@ -97,11 +97,13 @@ class CustomNotifyController extends AdminControllerTableBase
             $tools->append(new Tools\CustomTableMenuButton('notify', $this->custom_table));
         });
 
-        $grid->actions(function (Grid\Displayers\Actions $actions) {
+        $custom_table = $this->custom_table;
+
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
             $actions->disableView();
             
             $linker = (new Linker)
-                ->url(admin_urls("notify/create?copy_id={$actions->row->id}"))
+                ->url(admin_urls("notify/{$custom_table->table_name}/create?copy_id={$actions->row->id}"))
                 ->icon('fa-copy')
                 ->tooltip(exmtrans('common.copy_item', exmtrans('notify.notify')));
             $actions->prepend($linker);
@@ -151,7 +153,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
             ->options(NotifyTrigger::transKeyArrayFilter("notify.notify_trigger_options", NotifyTrigger::CUSTOM_TABLES()))
             ->required()
-            ->config('allowClear', false)
+            ->disableClear()
             ->attribute([
                 'data-filtertrigger' =>true,
                 'data-changedata' => json_encode([
@@ -237,7 +239,7 @@ class CustomNotifyController extends AdminControllerTableBase
             $form->select('notify_action', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
             ->required()
-            ->config('allowClear', false)
+            ->disableClear()
             ->attribute([
                 'data-filtertrigger' =>true,
                 'data-linkage' => json_encode([

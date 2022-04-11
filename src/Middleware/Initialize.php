@@ -147,12 +147,23 @@ class Initialize
 
 
         ///// File info
+        $permissions = [
+            'file' => [
+                'public' => 0764,
+                'private' => 0700,
+            ],
+            'dir' => [
+                'public' => 0775,
+                'private' => 0700,
+            ]
+        ];
         /// maybe update setting by user
         if (!Config::has('filesystems.disks.exment')) {
             Config::set('filesystems.disks.exment', [
                 'driver' => 'local',
                 'root' => storage_path('app/admin'),
                 'url' => admin_url(),
+                'permissions' => $permissions,
             ]);
         }
         
@@ -160,6 +171,7 @@ class Initialize
             Config::set('filesystems.disks.backup', [
                 'driver' => 'local',
                 'root' => storage_path('app/backup'),
+                'permissions' => $permissions,
             ]);
         }
 
@@ -167,6 +179,7 @@ class Initialize
             Config::set('filesystems.disks.plugin', [
                 'driver' => 'local',
                 'root' => storage_path('app/plugins'),
+                'permissions' => $permissions,
             ]);
         }
         
@@ -174,6 +187,7 @@ class Initialize
             Config::set('filesystems.disks.template', [
                 'driver' => 'local',
                 'root' => storage_path('app/templates'),
+                'permissions' => $permissions,
             ]);
         }
 
@@ -181,6 +195,7 @@ class Initialize
             Config::set('filesystems.disks.public_form_tmp', [
                 'driver' => 'local',
                 'root' => storage_path('app/public_form_tmp'),
+                'permissions' => $permissions,
             ]);
         }
 
@@ -189,44 +204,52 @@ class Initialize
         Config::set('filesystems.disks.admin_tmp', [
             'driver' => 'local',
             'root' => storage_path('app/admin_tmp'),
+            'permissions' => $permissions,
         ]);
 
         Config::set('filesystems.disks.tmpupload', [
             'driver' => 'local',
             'root' => storage_path('app/tmpupload'),
+            'permissions' => $permissions,
         ]);
 
         Config::set('filesystems.disks.admin', [
             'driver' => 'exment-driver-exment',
             'mergeFrom' => 'exment',
+            'permissions' => $permissions,
         ]);
         
         Config::set('filesystems.disks.plugin_sync', [
             'driver' => 'exment-driver-plugin',
             'mergeFrom' => 'plugin',
             'root' => storage_path('app/plugins'),
+            'permissions' => $permissions,
         ]);
 
         Config::set('filesystems.disks.backup_sync', [
             'driver' => 'exment-driver-backup',
             'mergeFrom' => 'backup',
             'root' => storage_path('app/backup'),
+            'permissions' => $permissions,
         ]);
         
         Config::set('filesystems.disks.template_sync', [
             'driver' => 'exment-driver-template',
             'mergeFrom' => 'template',
             'root' => storage_path('app/templates'),
+            'permissions' => $permissions,
         ]);
 
 
         Config::set('filesystems.disks.plugin_local', [
             'driver' => 'local',
             'root' => storage_path('app/plugins'),
+            'permissions' => $permissions,
         ]);
         Config::set('filesystems.disks.plugin_test', [
             'driver' => 'local',
             'root' => exment_package_path('tests/tmpfile/plugins'),
+            'permissions' => $permissions,
         ]);
 
         // mysql setting
@@ -471,6 +494,7 @@ class Initialize
             'tinymce'        => Field\Tinymce::class,
             'codeEditor'          => Field\CodeEditor::class,
             'image'        => Field\Image::class,
+            'favicon'        => Field\Favicon::class,
             'link'           => Field\Link::class,
             'exmheader'           => Field\Header::class,
             'radio'           => Field\RadioButton::class,

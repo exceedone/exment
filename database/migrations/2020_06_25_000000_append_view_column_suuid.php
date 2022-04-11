@@ -14,14 +14,14 @@ class AppendViewColumnSuuid extends Migration
      */
     public function up()
     {
-        if(Schema::hasTable('custom_view_columns')){
+        if (Schema::hasTable('custom_view_columns')) {
             Schema::table('custom_view_columns', function (Blueprint $table) {
                 if (!Schema::hasColumn('custom_view_columns', 'suuid')) {
                     $table->string('suuid', 20)->index()->after('id');
                 }
             });
         }
-        if(Schema::hasTable('custom_view_summaries')){
+        if (Schema::hasTable('custom_view_summaries')) {
             Schema::table('custom_view_summaries', function (Blueprint $table) {
                 if (!Schema::hasColumn('custom_view_summaries', 'suuid')) {
                     $table->string('suuid', 20)->index()->after('id');
@@ -40,21 +40,21 @@ class AppendViewColumnSuuid extends Migration
     public function down()
     {
         $schema = DB::connection()->getSchemaBuilder();
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(Schema::hasTable('custom_view_columns')){
+        if (Schema::hasTable('custom_view_columns')) {
             $schema->table('custom_view_columns', function (ExtendedBlueprint $table) {
-                if(Schema::hasColumn('custom_view_columns', 'suuid')){
+                if (Schema::hasColumn('custom_view_columns', 'suuid')) {
                     $table->dropIndex(['suuid']);
                     $table->dropColumn('suuid');
                 }
             });
         }
-        if(Schema::hasTable('custom_view_summaries')){
+        if (Schema::hasTable('custom_view_summaries')) {
             $schema->table('custom_view_summaries', function (ExtendedBlueprint $table) {
-                if(Schema::hasColumn('custom_view_summaries', 'suuid')){
+                if (Schema::hasColumn('custom_view_summaries', 'suuid')) {
                     $table->dropIndex(['suuid']);
                     $table->dropColumn('suuid');
                 }

@@ -105,9 +105,7 @@ class BulkInsertCommand extends Command
         $tempdir = getFullpath(date('YmdHis'), Define::DISKNAME_ADMIN_TMP);
 
         // create temp directory if not exists
-        if (!File::exists($tempdir)) {
-            File::makeDirectory($tempdir, 0755, true);
-        }
+        \Exment::makeDirectory($tempdir);
 
         // convert csv file to tsv file
         $outputpath = $this->convertTsv($tempdir, $file);

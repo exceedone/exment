@@ -27,6 +27,7 @@ use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginPageType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\FormHelper;
@@ -1028,6 +1029,11 @@ class CustomValueController extends AdminControllerTableBase
         foreach ($custom_table->getSelectedItems() as $item) {
             $model = getModelName(array_get($item, 'custom_table_id'));
             $column_name = array_get($item, 'column_name');
+            // ignore mail_template reference from mail_send_log
+            if ($custom_table->table_name == SystemTableName::MAIL_TEMPLATE &&
+                $item->custom_table->table_name == SystemTableName::MAIL_SEND_LOG) {
+                continue;
+            }
             if ($model::whereIn('value->'.$column_name, $list)->exists()) {
                 return true;
             }

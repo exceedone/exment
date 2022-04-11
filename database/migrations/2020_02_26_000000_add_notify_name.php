@@ -13,9 +13,9 @@ class AddNotifyName extends Migration
      */
     public function up()
     {
-        if(Schema::hasTable('notifies')){
+        if (Schema::hasTable('notifies')) {
             Schema::table('notifies', function (Blueprint $table) {
-                if(!Schema::hasColumn('notifies', 'notify_name')){
+                if (!Schema::hasColumn('notifies', 'notify_name')) {
                     $table->string('notify_name', 256)->nullable()->after('suuid');
                 }
             });
@@ -29,7 +29,7 @@ class AddNotifyName extends Migration
      */
     public function down()
     {
-        Schema::table('notifies', function($table) {
+        Schema::table('notifies', function ($table) {
             if (Schema::hasColumn('notifies', 'notify_name')) {
                 $table->dropColumn('notify_name');
             }

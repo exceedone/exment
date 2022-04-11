@@ -40,11 +40,14 @@ trait SystemValuesTrait
         
         $workflows = $this->getValues($custom_value, $keys['workflows']);
         $bodies = $this->getValues($custom_value, $keys['bodies']);
+
+        $positon = $custom_value->custom_table->getSystemValuesPosition();
         
         // return any content that can be rendered
         return view('exment::form.field.system_values', [
             'workflows' => $workflows,
             'bodies' => $bodies,
+            'positon' => $positon,
         ]);
     }
 

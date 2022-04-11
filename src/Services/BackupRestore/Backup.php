@@ -103,9 +103,7 @@ class Backup
 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
                 
-                if (!$this->tmpDisk()->exists($to)) {
-                    $this->tmpDisk()->makeDirectory($to, 0755, true);
-                }
+                \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
 
                 \File::copyDirectory($from, $this->tmpDisk()->path($to));
             }
@@ -115,9 +113,7 @@ class Backup
                 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
                 
-                if (!$this->tmpDisk()->exists($to)) {
-                    $this->tmpDisk()->makeDirectory($to, 0755, true);
-                }
+                \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
 
                 $files = $disk->allFiles('');
                 foreach ($files as $file) {

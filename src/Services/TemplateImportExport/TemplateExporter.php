@@ -42,9 +42,7 @@ class TemplateExporter
         // create ZIP file --------------------------------------------------
         $tmpdir = \Exment::getTmpFolderPath('template', false);
         $tmpFulldir = getFullpath($tmpdir, Define::DISKNAME_ADMIN_TMP, true);
-        if (!\File::isDirectory($tmpFulldir)) {
-            \File::makeDirectory($tmpFulldir, 0755, true);
-        }
+        \Exment::makeDirectory($tmpFulldir);
         $tmpfilename = make_uuid();
 
         $zip = new ZipArchive();

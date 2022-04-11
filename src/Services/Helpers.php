@@ -537,9 +537,7 @@ if (!function_exists('getFullpath')) {
 
         if ($mkdir) {
             $dirPath = pathinfo($path)['dirname'];
-            if (!\File::exists($dirPath)) {
-                \File::makeDirectory($dirPath, 0755, true);
-            }
+            \Exment::makeDirectory($dirPath);
         }
         return $path;
     }
@@ -1520,7 +1518,7 @@ if (! function_exists('abortJson')) {
 if (!function_exists('getAjaxResponse')) {
     /**
      * get ajax response.
-     * using plugin, copy, data import/
+     * using plugin, copy, data import, etc...
      *
      * @return \Symfony\Component\HttpFoundation\Response Response for ajax json
      */
@@ -1539,6 +1537,11 @@ if (!function_exists('getAjaxResponse')) {
             'swaltext' => null,
             'errors' => [],
             'pjaxmodal' => false,
+
+            // response as file download
+            'fileBase64' => null,
+            'fileContentType' => null,
+            'fileName' => null,
         ], $results);
 
         if (isset($results['swaltext']) && !isset($results['swal'])) {

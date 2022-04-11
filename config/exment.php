@@ -254,7 +254,7 @@ return [
     | Show Default Login Provider
     |--------------------------------------------------------------------------
     |
-    | If you set SSO login provider, whether showing exment default login provider. 
+    | If you set SSO login provider, whether showing exment default login provider.
     |
     */
     'show_default_login_provider' => env('EXMENT_SHOW_DEFAULT_LOGIN_PROVIDER', true),
@@ -373,7 +373,7 @@ return [
     | Search List Link Filter
     |--------------------------------------------------------------------------
     |
-    | Keyword Search or relation search, if click list button, show filtered list. 
+    | Keyword Search or relation search, if click list button, show filtered list.
     | If true, filtered
     |
     */
@@ -603,7 +603,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Disabled user view 
+    | Disabled user view
     |--------------------------------------------------------------------------
     |
     | Disabled user view, only system view
@@ -613,7 +613,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Disabled user dashboard 
+    | Disabled user dashboard
     |--------------------------------------------------------------------------
     |
     | Disabled user dashboard, only system dashboard
@@ -748,7 +748,7 @@ return [
     |
     | Disable select relation linkage
     | "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
-    | 
+    |
     */
     'select_relation_linkage_disabled' => env('SELECT_RELATION_LINKAGE_DISABLED', false),
 
@@ -769,13 +769,13 @@ return [
     |--------------------------------------------------------------------------
     |
     | When showing html if textarea, space to tag.
-    | 
+    |
     */
     'textarea_space_tag' => env('EXMENT_TEXTAREA_SPACE_TAG', true),
     
     /*
     |--------------------------------------------------------------------------
-    | API default get data count 
+    | API default get data count
     |--------------------------------------------------------------------------
     |
     | get data count (custom_table, custom_value, custom_column...)
@@ -786,7 +786,7 @@ return [
     
     /*
     |--------------------------------------------------------------------------
-    | API max get data count 
+    | API max get data count
     |--------------------------------------------------------------------------
     |
     | get data count (custom_table, custom_value, custom_column...)
@@ -796,7 +796,7 @@ return [
     
     /*
     |--------------------------------------------------------------------------
-    | API max create count 
+    | API max create count
     |--------------------------------------------------------------------------
     |
     | max length create data
@@ -806,7 +806,7 @@ return [
     
     /*
     |--------------------------------------------------------------------------
-    | API max delete count 
+    | API max delete count
     |--------------------------------------------------------------------------
     |
     | max length delete data
@@ -816,7 +816,7 @@ return [
     
     /*
     |--------------------------------------------------------------------------
-    | API append label 
+    | API append label
     |--------------------------------------------------------------------------
     |
     | Whether appending label column
@@ -848,7 +848,7 @@ return [
     |--------------------------------------------------------------------------
     | File download inline
     |--------------------------------------------------------------------------
-    | 
+    |
     */
     'file_download_inline_extensions' => env('EXMENT_FILE_DOWNLOAD_INLINE_EXTENSIONS', ''),
 
@@ -856,7 +856,7 @@ return [
     |--------------------------------------------------------------------------
     | Delete force custom value
     |--------------------------------------------------------------------------
-    | 
+    |
     | Custom value delete always force
     */
     'delete_force_custom_value' => env('EXMENT_DELETE_FORCE_CUSTOM_VALUE', false),
@@ -865,7 +865,7 @@ return [
     |--------------------------------------------------------------------------
     | Document upload max count one request
     |--------------------------------------------------------------------------
-    | 
+    |
     */
     'document_upload_max_count' => env('EXMENT_DOCUMENT_UPLOAD_MAX_COUNT', 5),
 
@@ -1023,7 +1023,7 @@ return [
     |
     | Set trust proxy IPs.
     | *This config doesn't want to copy backup restore, so set key is ADMIN_, not EXMENT_.*
-    */  
+    */
     'trust_proxy_ips' => env('ADMIN_TRUST_PROXY_IPS', null),
   
     /*
@@ -1033,7 +1033,7 @@ return [
     |
     | Set trust proxy headers. set as Request::{name}.
     | *This config doesn't want to copy backup restore, so set key is ADMIN_, not EXMENT_.*
-    */  
+    */
     'trust_proxy_headers' => env('ADMIN_TRUST_PROXY_HEADERS', null),
 
     /*

@@ -30,9 +30,7 @@ abstract class FileImportTestBase extends TestCase
             $this->initAllTest();
             $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
             $import_path = $this->getImportPath();
-            if (!\File::exists($import_path)) {
-                \File::makeDirectory($import_path, 0755, true);
-            }
+            \Exment::makeDirectory($import_path);
 
             $sourceDir = $this->getSourceFilePath();
             $dirs = scandir($sourceDir);

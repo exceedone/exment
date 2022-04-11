@@ -335,7 +335,6 @@ var Exment;
                 return CustomFromEvent.validateOption(value, element);
             });
             $('#custom_form_form').validate({
-                ignore: [],
                 errorPlacement: function (err, element) {
                     // append class "error" to .custom_form_column_item
                     element.closest('.custom_form_column_item').addClass('error');
@@ -651,11 +650,11 @@ var Exment;
             $('.custom_form_block_available').each(function (index, elem) {
                 // if elem's value is not 1, continue.
                 if (!pBool($(elem).val())) {
-                    return true;
+                    return;
                 }
                 // if not check, continue
                 if ($(elem).is(':checkbox') && !$(elem).is(':checked')) {
-                    return true;
+                    return;
                 }
                 let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests .custom_form_column_item');
                 // if required value is 1, hasRequire is true and break

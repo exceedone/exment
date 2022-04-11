@@ -36,6 +36,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ShowGridType;
+use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
 
@@ -73,21 +74,35 @@ class DefaultShow extends ShowBase
     }
     
     /**
+     * set system values
+     * @param Show $show
+     */
+    protected function setSystemValues($show)
+    {
+        $trashed = boolval(request()->get('trashed'));
+
+        $field = (new ShowField(null, null))->system_values([
+            'withTrashed' => $trashed])->setWidth(12, 0);
+
+        $show->addFieldAndOption($field, [
+            'row' => $this->rowCount++,
+            'column' => 1,
+            'width' => 4,
+            'calcWidth' => false,
+        ]);
+        $field->border = false;
+    }
+    
+    /**
      * create show form list
      */
     public function createShowForm()
     {
         return new static::$showClassName($this->custom_value, function ($show) {
-            if (!$this->modal) {
-                $trashed = boolval(request()->get('trashed'));
-                $field = (new ShowField(null, null))->system_values(['withTrashed' => $trashed])->setWidth(12, 0);
-                $show->addFieldAndOption($field, [
-                    'row' => $this->rowCount++,
-                    'column' => 1,
-                    'width' => 4,
-                    'calcWidth' => false,
-                ]);
-                $field->border = false;
+            $system_values_pos = $this->custom_table->getSystemValuesPosition();
+
+            if (!$this->modal && $system_values_pos == ShowPositionType::TOP) {
+                $this->setSystemValues($show);
             }
 
             if ($this->gridShows()) {
@@ -128,6 +143,11 @@ class DefaultShow extends ShowBase
                     continue;
                 }
                 $this->setByCustomFormBlock($show, $custom_form_block);
+            }
+
+            if (!$this->modal && $system_values_pos == ShowPositionType::BOTTOM) {
+                $this->rowCount = $show->getMaxRow() + 1;
+                $this->setSystemValues($show);
             }
             
             // if modal, disable list and delete

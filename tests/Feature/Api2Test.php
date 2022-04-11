@@ -1395,7 +1395,7 @@ class Api2Test extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query').'?q=index_2')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query').'?q=index_002')
             ->assertStatus(200)
             ->assertJsonCount(10, 'data');
     }
@@ -1417,7 +1417,7 @@ class Api2Test extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query').'?q=index_1&count=5')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query').'?q=index_001&count=5')
             ->assertStatus(200)
             ->assertJsonCount(5, 'data');
     }
@@ -1441,7 +1441,7 @@ class Api2Test extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'no_permission', 'query').'?q=index_3')
+        ])->get(admin_urls('api', 'data', 'no_permission', 'query').'?q=index_003')
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY
@@ -1455,7 +1455,7 @@ class Api2Test extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query').'?q=index_1&count=100')
+        ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query').'?q=index_001&count=100')
             ->assertStatus(200);
         $json = json_decode($response->baseResponse->getContent(), true);
         // get ids
@@ -1464,7 +1464,7 @@ class Api2Test extends ApiTestBase
         })->toArray();
 
         $this->checkCustomValuePermission(CustomTable::getEloquent('custom_value_edit'), $ids, function ($query) {
-            $query->where('value->index_text', 'LIKE', 'index_1%');
+            $query->where('value->index_text', 'LIKE', 'index_001%');
         });
     }
 
@@ -1477,7 +1477,7 @@ class Api2Test extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'custom_value_edit_all', 'query-column').'?q=index_text%20ne%20index_2_1,id%20gte%20100,id%20lte%201000')
+        ])->get(admin_urls('api', 'data', 'custom_value_edit_all', 'query-column').'?q=index_text%20ne%20index_002_001,id%20gte%20100,id%20lte%201000')
             ->assertStatus(200)
             ->assertJsonCount(2, 'data');
     }
@@ -1533,7 +1533,7 @@ class Api2Test extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query-column').'?q=index_text%20eq%20index_2_1,created_user_id%20ne%202')
+        ])->get(admin_urls('api', 'data', 'custom_value_access_all', 'query-column').'?q=index_text%20eq%20index_002_001,created_user_id%20ne%202')
             ->assertStatus(200)
             ->assertJsonCount(0, 'data');
     }
@@ -1596,7 +1596,7 @@ class Api2Test extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'no_permission', 'query-column').'?q=index_text%20eq%20index_2_1')
+        ])->get(admin_urls('api', 'data', 'no_permission', 'query-column').'?q=index_text%20eq%20index_002_001')
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY
@@ -1763,10 +1763,11 @@ class Api2Test extends ApiTestBase
     public function testPutFileMultiple()
     {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+        $custom_column = CustomColumn::getEloquent('file_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
 
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
             ->getValueQuery()
-            ->whereNull('value->file_multiple')
+            ->whereNull($custom_column->getQueryKey())
             ->first();
 
         $response = $this->withHeaders([

@@ -16,12 +16,12 @@ class SearchServiceTest extends UnitTestBase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
         $service = new SearchService($custom_table);
 
-        $service->where('index_text', 'index_1_1');
+        $service->where('index_text', 'index_001_001');
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function ($value) {
-            $this->assertMatch($value->getValue('index_text'), 'index_1_1');
+            $this->assertMatch($value->getValue('index_text'), 'index_001_001');
         });
     }
     
@@ -50,14 +50,14 @@ class SearchServiceTest extends UnitTestBase
         // get parent custom column
         $parent_custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
         $parent_custom_column = CustomColumn::getEloquent('index_text', $parent_custom_table);
-        $service->where($parent_custom_column, 'index_3_1');
+        $service->where($parent_custom_column, 'index_003_001');
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function ($value) {
             // get parent value
             $parent_value = $value->getParentValue();
-            $this->assertMatch($parent_value->getValue('index_text'), 'index_3_1');
+            $this->assertMatch($parent_value->getValue('index_text'), 'index_003_001');
         });
     }
 
@@ -92,7 +92,7 @@ class SearchServiceTest extends UnitTestBase
         $parent_custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY);
         $parent_custom_column = CustomColumn::getEloquent('index_text', $parent_custom_table);
         $relation = CustomRelation::getRelationByParentChild($parent_custom_table, $custom_table);
-        $service->where($parent_custom_column, 'index_3_1');
+        $service->where($parent_custom_column, 'index_003_001');
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
@@ -101,7 +101,7 @@ class SearchServiceTest extends UnitTestBase
             $parent_values = $value->getParentValue($relation);
             // Whether checking contains parent value
             $this->assertTrue($parent_values->contains(function ($parent_value) {
-                return isMatchString($parent_value->getValue('index_text'), 'index_3_1');
+                return isMatchString($parent_value->getValue('index_text'), 'index_003_001');
             }));
         });
     }
@@ -115,14 +115,14 @@ class SearchServiceTest extends UnitTestBase
         // get parent custom column
         $parent_custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_SELECT);
         $parent_custom_column = CustomColumn::getEloquent('index_text', $parent_custom_table);
-        $service->where($parent_custom_column, 'index_3_1');
+        $service->where($parent_custom_column, 'index_003_001');
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function ($value) {
             // get parent value
             $parent_value = $value->getValue('parent_select_table');
-            $this->assertMatch($parent_value->getValue('index_text'), 'index_3_1');
+            $this->assertMatch($parent_value->getValue('index_text'), 'index_003_001');
         });
     }
 

@@ -82,6 +82,14 @@ vendor/exceedone/exment/phpstan.neon.dist
 ./vendor/bin/phpstan analyse
 ```
 
+## 言語ファイル作成漏れチェック
+以下のコマンドを実施し、言語ファイルの翻訳ファイル設定漏れが無いことを確認する。  
+※実行結果、何も表示されなければ正常終了です。翻訳漏れがある場合、その翻訳対象が一覧表示されます。
+
+```
+php artisan exment:checklang
+```
+
 
 ## テストデータ
 
@@ -93,7 +101,7 @@ vendor/exceedone/exment/phpstan.neon.dist
 | 3 | user2 | user2user2 |
 | 4 | user3 | user3user3 |
 | 5 | company1-userA | company1-userA |
-| 6 | dev-userB | dev-userB |
+| 6 | dev0-userB | dev0-userB |
 | 7 | dev1-userC | dev1-userC |
 | 8 | dev1-userD | dev1-userD |
 | 9 | dev2-userE | dev2-userE |
@@ -103,7 +111,7 @@ vendor/exceedone/exment/phpstan.neon.dist
 | id | organization_code | parent_organization_code | users |
 | ---- | ---- | ---- | ---- |
 | 1 | company1 | - | company1-userA |
-| 2 | dev | company1 | dev-userB |
+| 2 | dev | company1 | dev0-userB |
 | 3 | manage | company1 | - |
 | 4 | dev1 | dev | dev1-userC,dev1-userD |
 | 5 | dev2 | dev | dev2-userE |

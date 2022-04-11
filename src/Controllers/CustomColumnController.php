@@ -292,7 +292,7 @@ class CustomColumnController extends AdminControllerTableBase
                 $form->select('editable_userinfo', exmtrans("custom_column.editable_userinfo"))
                     ->help(exmtrans("custom_column.help.editable_userinfo"))
                     ->options(EditableUserInfoType::transArray('custom_column.editable_userinfo_options'))
-                    ->config('allowClear', false)
+                    ->disableClear()
                     ->default(EditableUserInfoType::VIEW);
             }
 

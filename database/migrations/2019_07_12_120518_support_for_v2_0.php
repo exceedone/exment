@@ -18,11 +18,11 @@ class SupportForV20 extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(!\Schema::hasTable(SystemTableName::ROLE_GROUP)){
+        if (!\Schema::hasTable(SystemTableName::ROLE_GROUP)) {
             $schema->create(SystemTableName::ROLE_GROUP, function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->string('role_group_name', 256)->index()->unique();
@@ -33,7 +33,7 @@ class SupportForV20 extends Migration
             });
         }
         
-        if(!\Schema::hasTable(SystemTableName::ROLE_GROUP_PERMISSION)){
+        if (!\Schema::hasTable(SystemTableName::ROLE_GROUP_PERMISSION)) {
             $schema->create(SystemTableName::ROLE_GROUP_PERMISSION, function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->integer('role_group_id')->unsigned();
@@ -47,7 +47,7 @@ class SupportForV20 extends Migration
             });
         }
 
-        if(!\Schema::hasTable(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)){
+        if (!\Schema::hasTable(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)) {
             $schema->create(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->integer('role_group_id')->unsigned();
@@ -60,7 +60,7 @@ class SupportForV20 extends Migration
             });
         }
 
-        if(!\Schema::hasTable(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)){
+        if (!\Schema::hasTable(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)) {
             $schema->create(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->nullableMorphs('parent');
@@ -72,13 +72,13 @@ class SupportForV20 extends Migration
             });
         }
 
-        if(!Schema::hasColumn('notifies', 'custom_view_id')){
+        if (!Schema::hasColumn('notifies', 'custom_view_id')) {
             Schema::table('notifies', function (Blueprint $table) {
                 $table->integer('custom_view_id')->after('custom_table_id')->unsigned()->nullable();
             });
         }
 
-        if(!\Schema::hasTable(SystemTableName::NOTIFY_NAVBAR)){
+        if (!\Schema::hasTable(SystemTableName::NOTIFY_NAVBAR)) {
             $schema->create(SystemTableName::NOTIFY_NAVBAR, function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->integer('notify_id')->unsigned()->index();
@@ -99,7 +99,7 @@ class SupportForV20 extends Migration
             });
                 
             // update notify notify_action to notify_actions
-            foreach(Notify::all() as $notify){
+            foreach (Notify::all() as $notify) {
                 $notify->notify_actions = $notify->notify_action;
                 $notify->save();
             }

@@ -65,9 +65,8 @@ class TemplateDiskService extends DiskServiceBase
         $localSyncDisk = $localSyncDiskItem->Disk();
 
         // download zip
-        if (!$localSyncDisk->exists($localSyncDiskItem->dirName())) {
-            $localSyncDisk->makeDirectory($localSyncDiskItem->dirName(), 0755, true);
-        }
+        \Exment::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
+        
         // get file list
         $files = $disk->allFiles($diskItem->dirName());
         foreach ($files as $file) {
