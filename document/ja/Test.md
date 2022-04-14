@@ -66,6 +66,7 @@ composer require aacotroneo/laravel-saml2
 composer require league/flysystem-sftp ~1.0
 composer require league/flysystem-aws-s3-v3 ~1.0
 composer require league/flysystem-azure-blob-storage ~0.1.6
+composer require spatie/flysystem-dropbox=^1.2.0
 ```
 
 - 以下のファイルを、プロジェクトのルートフォルダにコピーします。
