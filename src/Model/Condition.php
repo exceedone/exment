@@ -17,6 +17,17 @@ class Condition extends ModelBase
     protected $condition_type_key = 'condition_type';
     protected $condition_column_key = 'target_column_id';
 
+    public function getCustomTable()
+    {
+        if ($this->morph_type == 'custom_form_priority') {
+            $parent_table = CustomFormPriority::find($this->morph_id);
+            if (isset($parent_table)) {
+                return $parent_table->custom_form->custom_table;
+            }
+        }
+        return null;
+    }
+
     public function getConditionTargetAttribute()
     {
         return $this->getConditionTarget();
@@ -52,6 +63,7 @@ class Condition extends ModelBase
             return null;
         }
 
+        //$this->condition_item->setCustomTable($parent_table->custom_form->custom_table);
         return $this->condition_item->getConditionLabel($this) . ' : ' . $this->condition_item->getConditionText($this);
     }
 
