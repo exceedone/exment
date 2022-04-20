@@ -12,7 +12,7 @@ class AdminDiskService extends DiskServiceBase
 {
     public function __construct(...$args)
     {
-        $now = date('YmdHis');
+        $now = \Carbon\Carbon::now()->format('YmdHisv');
         $path = isset($args[0]) ? $args[0] : $now;
 
         // get dirname and file name from pathinfo
