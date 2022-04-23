@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: ["mysql", "mariadb", "sqlsrv"]
+        db: ["mysql", "mariadb"]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -50,11 +50,6 @@ jobs:
         run: |
           make ${{ matrix.db }}-init
 
-      - name: Test browser
-        working-directory: docker-exment
-        run: |
-          docker-compose -f docker-compose.yml exec -T php composer run exment:test:browser
-
       - name: Test feature
         working-directory: docker-exment
         run: |
@@ -64,3 +59,8 @@ jobs:
         working-directory: docker-exment
         run: |
           docker-compose -f docker-compose.yml exec -T php composer run exment:test:unit
+
+      - name: Test browser
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php composer run exment:test:browser
