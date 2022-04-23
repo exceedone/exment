@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ "7.3", "7.4" ]
+        php: [ "7.2", "7.3", "7.4" ]
     steps:
       - uses: actions/checkout@v2
 
@@ -23,7 +23,7 @@ jobs:
 
       - name: Prepare
         run: |
-          wget https://cs.symfony.com/download/php-cs-fixer-v3.phar -O php-cs-fixer
+          wget https://cs.symfony.com/download/php-cs-fixer-v2.phar -O php-cs-fixer
           chmod a+x php-cs-fixer
 
       - name: Versions
@@ -34,5 +34,5 @@ jobs:
 
       - name: Execute php-cs-fixer
         run: |
-          php php-cs-fixer fix --diff --format txt --verbose --dry-run ./src
-          php php-cs-fixer fix --diff --format txt --verbose --dry-run ./tests
+          php php-cs-fixer fix --dry-run -v --diff --diff-format udiff ./src
+          php php-cs-fixer fix --dry-run -v --diff --diff-format udiff ./tests
