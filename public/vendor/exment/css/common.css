@@ -3461,6 +3461,10 @@
   max-height: 40px;
 }
 
+.sidebar-mini.sidebar-collapse .main-header .logo > .logo-lg {
+  display: none !important;
+}
+
 .form-revision .form-group {
   margin-bottom: 0;
 }
