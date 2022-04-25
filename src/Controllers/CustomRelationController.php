@@ -156,7 +156,7 @@ class CustomRelationController extends AdminControllerTableBase
                     ->toArray();
             })
             ->required()
-            ->rules("loopRelation:{$custom_table_id},{$id}");
+            ->rules("loopRelation:{$custom_table_id},{$id}|duplicateRelation:{$id}");
 
             $relation_type_options = RelationType::transKeyArray("custom_relation.relation_type_options");
             $form->select('relation_type', exmtrans("custom_relation.relation_type"))
