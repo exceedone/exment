@@ -55,7 +55,7 @@ Execute Lint (PHPStan / Laratisan) and perform syntax check etc.
 
 ```
 # for lint
-composer require --dev nunomaduro/larastan=^0.5
+composer require --dev nunomaduro/larastan=~1.0
 
 # for Exment related libraries
 composer require pragmarx/google2fa

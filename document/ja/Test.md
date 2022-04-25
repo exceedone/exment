@@ -56,7 +56,7 @@ Lint(PHPStan / Laratisan)を実行し、構文チェックなどを行います�
 
 ```
 # Lintのライブラリ
-composer require --dev nunomaduro/larastan=^0.5
+composer require --dev nunomaduro/larastan=~1.0
 
 # Exmentの関連ライブラリ
 composer require pragmarx/google2fa
