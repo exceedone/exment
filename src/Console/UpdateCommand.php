@@ -45,7 +45,7 @@ class UpdateCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
@@ -54,6 +54,8 @@ class UpdateCommand extends Command
         $this->createExmentBootstrapFile();
         
         $this->initDatabase();
+        
+        return 0;
     }
 
     /**

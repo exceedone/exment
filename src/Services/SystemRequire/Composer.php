@@ -86,7 +86,7 @@ class Composer extends SystemRequireBase
             // get composer version using regex
             else {
                 $composer_version_string = $output[0];
-                preg_match("/^Composer version (?<version>\d+\.\d+\.\d+)/u", $composer_version_string, $match);
+                preg_match("/^(Composer version|Composer) (?<version>\d+\.\d+\.\d+)/u", $composer_version_string, $match);
                 if ($match) {
                     $composer_version = $match['version'];
                 } else {
@@ -140,10 +140,10 @@ class Composer extends SystemRequireBase
         switch ($this->result) {
             case SystemRequireResult::OK:
                 return exmtrans('common.success');
-                
+
             case SystemRequireResult::WARNING:
                 return exmtrans('common.warning');
-                
+
             case SystemRequireResult::NG:
                 return exmtrans('common.error');
         }

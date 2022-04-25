@@ -2,7 +2,14 @@
     "name": "exceedone/exment",
     "description": "Management for Product, Client, Contracts, Subscription, ...",
     "type": "library",
-    "keywords": ["CMS", "SFA", "Dynamic Table", "Free", "Custom Database", "Custom Table"],
+    "keywords": [
+        "CMS",
+        "SFA",
+        "Dynamic Table",
+        "Free",
+        "Custom Database",
+        "Custom Table"
+    ],
     "homepage": "https://exment.net",
     "license": "GPL-3.0-or-later",
     "authors": [
@@ -16,28 +23,33 @@
         }
     ],
     "require": {
-        "php": ">=7.2.0",
-        "exceedone/laravel-admin": "~2.0",
-        "laravel/framework": "~6.20",
+        "php": ">=7.3.0",
+        "laravel/framework": "^8.0",
         "laravelcollective/html": "~6.2",
         "laravel/helpers": "~1.4",
-        "webpatser/laravel-uuid": "^3.0",
+        "laravel/ui": "^3.0",
+        "webpatser/laravel-uuid": "^4.0",
         "phpoffice/phpspreadsheet": "^1.5.0",
         "box/spout": "^3.1",
         "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.6.0",
-        "laravel/passport": "^7.0",
+        "laravel/passport": "^10.0",
         "laravel/slack-notification-channel": "^2.3",
         "lcobucci/jwt": "3.3.*",
         "composer/composer": "^2.0",
+        "exceedone/laravel-admin": "dev-feature/laravel8",
         "kylekatarnls/update-helper": "^1.2",
-        "renatomarinho/laravel-page-speed": "^1.8.11"
+        "renatomarinho/laravel-page-speed": "^1.8.11",
+        "laravel/socialite": "^5.2",
+        "fideloper/proxy": "^4.0"
     },
     "require-dev": {
-        "symfony/css-selector": "~4.2",
-        "laravel/browser-kit-testing": "~5.2",
+        "symfony/css-selector": "~5.2",
+        "laravel/browser-kit-testing": "~6.2",
         "dms/phpunit-arraysubset-asserts": "~0.1"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Exceedone\\Exment\\": "src/",
@@ -53,6 +65,11 @@
                 "Exment": "Exceedone\\Exment\\Facades\\ExmentFacade",
                 "ExmentDB": "Exceedone\\Exment\\Facades\\ExmentDBFacade"
             }
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "kylekatarnls/update-helper": true
         }
     }
 }

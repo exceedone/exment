@@ -200,7 +200,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         // Create public form with maxmum parameter
         $this->post(admin_url('formpublic/custom_value_edit_all'), $form);
-        
+
         $response = $this->visit(admin_url('form/custom_value_edit_all'))
             ->seePageIs(admin_url('form/custom_value_edit_all'))
             ->matchStatusCode(200)
@@ -347,7 +347,7 @@ class CPublicFormTest extends ExmentKitTestCase
         $this->delete(admin_url('formpublic/custom_value_edit_all/'. $pform->id))
             ->matchStatusCode(200)
         ;
-        
+
         $response = $this->visit(admin_url('form/custom_value_edit_all'))
             ->seePageIs(admin_url('form/custom_value_edit_all'))
             ->matchStatusCode(200)
@@ -371,7 +371,7 @@ class CPublicFormTest extends ExmentKitTestCase
             'custom_form_id' => $target_form->id,
             'public_form_view_name' => 'Public Form Unit Test',
         ]);
-        
+
         $response = $this->visit(admin_url('form/custom_value_edit_all'))
             ->seePageIs(admin_url('form/custom_value_edit_all'))
             ->matchStatusCode(200)
@@ -530,9 +530,7 @@ class CPublicFormTest extends ExmentKitTestCase
             // ->seeIsSelected('notify_actions_error[??][notify_action]', '1')
             // ->seeIsSelected('notify_actions_error[??][notify_action_target]', ['administrator', 'fixed_email'])
             // ->seeInField('notify_actions_error[??][target_emails]', 'unittest@mail.co.jp')
-            ->seeInField('css_js_setting[custom_css]', 'h1 {
-                color:red !important;
-            }')
+            ->seeInField('css_js_setting[custom_css]', 'h1 { color:red !important; }')
             ->seeIsSelected('css_js_setting[plugin_css][]', $this->getStylePluginId())
             ->seeInField('css_js_setting[custom_js]', 'alert("unit test");')
             ->seeIsSelected('css_js_setting[plugin_js][]', $this->getScriptPluginId())
@@ -650,7 +648,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         $pform = $this->getNewestForm();
         $share_url = $pform->getUrl();
-        
+
         // Check public form view out of term
         $this->visit($share_url)
             ->seePageIs($share_url)

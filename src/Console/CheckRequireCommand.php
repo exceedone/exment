@@ -40,7 +40,7 @@ class CheckRequireCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle()
     {
@@ -58,6 +58,7 @@ class CheckRequireCommand extends Command
 
             $this->line('---------------------------');
         }
+        return 0;
     }
 
     /**
