@@ -82,7 +82,7 @@ class WorkflowItem extends SystemItem implements ConditionItemInterface
         $this->custom_table = $condition->getCustomTable();
         $workflow = $this->getWorkflow();
 
-        return collect($condition->condition_value)->map(function ($v) use($workflow) {
+        return collect($condition->condition_value)->map(function ($v) use ($workflow) {
             return Model\WorkflowStatus::getWorkflowStatusName($v, $workflow);
         })->implode(",");
         //return Model\WorkflowStatus::getWorkflowStatusName($condition->condition_value);

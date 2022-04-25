@@ -35,7 +35,7 @@ class ParentValue extends ItemBase
         $length_string = $this->length_array[1];
         $length_string = str_replace('.', ',', $length_string);
 
-        return collect($parentModel)->map(function($model) use($length_string) {
+        return collect($parentModel)->map(function ($model) use ($length_string) {
             return $model->getValue($length_string, true, $this->matchOptions) ?? '';
         })->join(exmtrans('common.separate_word'));
     }
