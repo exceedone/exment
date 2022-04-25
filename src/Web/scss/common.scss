@@ -778,6 +778,18 @@ table img.image_html{
     }
 }
 
+tr.header-left th {
+    text-align: left;
+}
+
+tr.header-center th {
+    text-align: center;
+}
+
+tr.header-right th {
+    text-align: right;
+}
+
 @media (min-width: 768px){
     .modal-dialog.modal-xl {
         width: 600px;
