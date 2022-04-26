@@ -3461,6 +3461,10 @@
   max-height: 40px;
 }
 
+.sidebar-mini.sidebar-collapse .main-header .logo > .logo-lg {
+  display: none !important;
+}
+
 .form-revision .form-group {
   margin-bottom: 0;
 }
@@ -4191,6 +4195,18 @@ fieldset[disabled] .btn.btn-purple.active {
 
 #tile-template .row-eq-height > [class^="col-"] {
   margin-bottom: 10px;
+}
+
+tr.header-left th {
+  text-align: left;
+}
+
+tr.header-center th {
+  text-align: center;
+}
+
+tr.header-right th {
+  text-align: right;
 }
 
 @media (min-width: 768px) {

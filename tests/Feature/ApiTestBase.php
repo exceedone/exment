@@ -15,7 +15,7 @@ use Exceedone\Exment\Tests\TestDefine;
 abstract class ApiTestBase extends TestCase
 {
     use TestTrait;
-    
+
     /**
      * Get Client Id and Secret
      *
@@ -44,13 +44,13 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get Password token
      *
-     * @return \Illuminate\Foundation\Testing\TestResponse
+     * @return Illuminate\Testing\TestResponse
      */
     protected function getPasswordToken($user_code, $password, $scope = [])
     {
         $this->initAllTest();
         list($client_id, $client_secret) = $this->getClientIdAndSecret();
-        
+
         if (\is_nullorempty($scope)) {
             $scope = ApiScope::arrays();
         }
@@ -68,13 +68,13 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get API Key
      *
-     * @return \Illuminate\Foundation\Testing\TestResponse
+     * @return \Illuminate\Testing\TestResponse
      */
     protected function getApiKey($scope = [])
     {
         $this->initAllTest();
         list($client_id, $client_secret, $api_key) = $this->getClientIdAndSecretAndKey();
-        
+
         if (\is_nullorempty($scope)) {
             $scope = ApiScope::arrays();
         }
@@ -88,7 +88,7 @@ abstract class ApiTestBase extends TestCase
         ]);
     }
 
-    
+
     /**
      * Get Admin access token for administrator
      *
@@ -100,7 +100,7 @@ abstract class ApiTestBase extends TestCase
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }
-    
+
     /**
      * Get Admin access token for administrator. get as api key
      *
@@ -112,7 +112,7 @@ abstract class ApiTestBase extends TestCase
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }
-    
+
     /**
      * Get user1 access token for all-edit user
      *
@@ -124,7 +124,7 @@ abstract class ApiTestBase extends TestCase
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }
-    
+
     /**
      * Get user2 access token for general user
      *
@@ -136,7 +136,7 @@ abstract class ApiTestBase extends TestCase
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }
-    
+
     /**
      * Get dev0-userB access token for general user
      *
@@ -172,7 +172,7 @@ abstract class ApiTestBase extends TestCase
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }
-    
+
     /**
      * Get public form uri
      *
@@ -183,13 +183,13 @@ abstract class ApiTestBase extends TestCase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $custom_form = CustomForm::getDefault($custom_table);
         $public_form = PublicForm::where('custom_form_id', $custom_form->id)->first();
-        
+
         return $public_form->getApiUrl();
     }
-    
 
 
-    
+
+
     /**
      * Json inner fragment
      *

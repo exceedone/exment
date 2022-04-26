@@ -1,6 +1,8 @@
 <?php
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
+use Exceedone\Exment\Model\CustomRelation;
+
 /**
  * replace value
  */
@@ -21,12 +23,20 @@ class ParentValue extends ItemBase
             return $parent_value ? $parent_value->label : null;
         }
 
-        $parentModel = $this->custom_value->getParentValue();
+        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_value->custom_table->id)->first();
+
+        $parentModel = $this->custom_value->getParentValue($relation);
+
+        if (!is_list($parentModel)) {
+            $parentModel = [$parentModel];
+        }
         
         // replace length_string dotted comma
         $length_string = $this->length_array[1];
         $length_string = str_replace('.', ',', $length_string);
 
-        return $parentModel->getValue($length_string, true, $this->matchOptions) ?? '';
+        return collect($parentModel)->map(function ($model) use ($length_string) {
+            return $model->getValue($length_string, true, $this->matchOptions) ?? '';
+        })->join(exmtrans('common.separate_word'));
     }
 }

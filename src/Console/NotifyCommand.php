@@ -39,17 +39,18 @@ class NotifyCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
         $notify = $this->findNotify();
 
         if (!isset($notify)) {
-            return;
+            return 0;
         }
         
         $notify->notifySchedule();
+        return 0;
     }
     
     protected function findNotify() : ?Notify

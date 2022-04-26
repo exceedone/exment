@@ -43,7 +43,7 @@ class RefreshTableDataCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @return int
      */
     public function handle()
     {
@@ -59,7 +59,7 @@ class RefreshTableDataCommand extends Command
         });
         if ($notExistsTables->count() > 0) {
             $this->error('Table ' . $notExistsTables->implode(",") . " are not found.");
-            return;
+            return 1;
         }
         
         // if contains user org mailtemplate table, return
@@ -68,11 +68,11 @@ class RefreshTableDataCommand extends Command
         });
         if ($userOrgTables->count() > 0) {
             $this->error('Table ' . $userOrgTables->implode(",") . " cannot refresh.");
-            return;
+            return 1;
         }
 
         if (!$this->confirm('Really refresh data? All refresh custom data.')) {
-            return;
+            return 1;
         }
 
         RefreshDataService::refreshTable($table_names);

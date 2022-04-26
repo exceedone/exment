@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\OperationLog;
+use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Tests\TestDefine;
 use Carbon\Carbon;
 
@@ -18,7 +19,7 @@ class Api2Test extends ApiTestBase
     public function testOkAuthorize()
     {
         $response = $this->getPasswordToken('admin', 'adminadmin');
-        
+
         $response
             ->assertStatus(200)
             ->assertJsonStructure([
@@ -32,7 +33,7 @@ class Api2Test extends ApiTestBase
     public function testOkAuthorizeApiKey()
     {
         $response = $this->getApiKey();
-        
+
         $response
             ->assertStatus(200)
             ->assertJsonStructure([
@@ -46,17 +47,17 @@ class Api2Test extends ApiTestBase
     public function testErrorAuthorize()
     {
         $response = $this->getPasswordToken('adjfjke', 'adjfjkeadjfjkeadjfjkeadjfjke');
-        
+
         $response
             ->assertStatus(401);
     }
-    
+
     public function testErrorNoToken()
     {
         $this->get(admin_urls('api', 'version'))
             ->assertStatus(401);
     }
-    
+
     public function testGetVersion()
     {
         $token = $this->getAdminAccessToken();
@@ -172,7 +173,7 @@ class Api2Test extends ApiTestBase
 
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
-        
+
         $this->assertTrue(!\is_nullorempty($data));
         $this->assertTrue(
             collect($data)->contains(function ($d) {
@@ -375,10 +376,10 @@ class Api2Test extends ApiTestBase
     public function testDenyGetColumn()
     {
         $token = $this->getUser2AccessToken([ApiScope::TABLE_READ]);
-        
+
         // get no_permission table's column.
         $column = CustomColumn::getEloquent('text', CustomTable::getEloquent('no_permission'));
-        
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'column', $column->id))
@@ -430,7 +431,7 @@ class Api2Test extends ApiTestBase
     public function testDenyGetColumnByName()
     {
         $token = $this->getUser2AccessToken([ApiScope::TABLE_READ]);
-        
+
         // get no_permission table's column.
         $this->withHeaders([
             'Authorization' => "Bearer $token",
@@ -440,7 +441,7 @@ class Api2Test extends ApiTestBase
 
 
 
-    
+
     // get custom value -------------------------------------
 
 
@@ -622,7 +623,7 @@ class Api2Test extends ApiTestBase
 
 
 
-    
+
     // get custom value with view -------------------------------------
 
 
@@ -695,7 +696,7 @@ class Api2Test extends ApiTestBase
     public function testGetViewDataWithSort()
     {
         $this->skipTempTest('ビューのソート処理について見直し');
-        
+
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
         $custom_view = CustomView::where('view_view_name', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST . '-select-table-1')->first();
@@ -780,7 +781,7 @@ class Api2Test extends ApiTestBase
 
 
 
-    
+
     // post value -------------------------------------
 
     public function testCreateValue()
@@ -922,7 +923,7 @@ class Api2Test extends ApiTestBase
         $pre_count = $parents->sum(function ($parent) {
             return $parent->getChildrenValues('child_table')->count();
         });
-            
+
         $data = [];
         for ($i = 1; $i <= 3; $i++) {
             $data[] = [
@@ -961,7 +962,7 @@ class Api2Test extends ApiTestBase
             ]
         ])
         ->assertStatus(201);
-        
+
         $this->assertJsonTrue($response, [
             'value' => [
                 'text' => $text,
@@ -1115,7 +1116,7 @@ class Api2Test extends ApiTestBase
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
 
         $text = 'test' . date('YmdHis') . '_update';
-        
+
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->put(admin_urls('api', 'data', 'custom_value_edit', $data->id), [
@@ -1182,7 +1183,7 @@ class Api2Test extends ApiTestBase
             ]
         ])
         ->assertStatus(200);
-        
+
         $this->assertJsonTrue($response, [
                 'parent_id' => '8',
                 'parent_type' => 'parent_table',
@@ -1199,7 +1200,7 @@ class Api2Test extends ApiTestBase
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
 
         $text = 'test' . date('YmdHis') . '_update';
-        
+
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->put(admin_urls('api', 'data', 'child_table', $data->id), [
@@ -1347,7 +1348,7 @@ class Api2Test extends ApiTestBase
         // check not exists (and contains trashed data)
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find($id);
         $this->assertTrue(!isset($data));
-        
+
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->query()->onlyTrashed()->find($id);
         $this->assertTrue($isGetTrashed ? isset($data) : !isset($data));
     }
@@ -1503,7 +1504,7 @@ class Api2Test extends ApiTestBase
             ->assertJsonCount(4, 'data');
     }
 
-    
+
     public function testDataQueryColumnPermissionCheck()
     {
         $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
@@ -1666,8 +1667,8 @@ class Api2Test extends ApiTestBase
 
 
 
-    
-    
+
+
     // file, document, attachment -------------------------------------
     // test file column
     public function testPostFile()
@@ -1699,7 +1700,7 @@ class Api2Test extends ApiTestBase
 
         $this->assertFileUrl($token, $response);
     }
-    
+
     public function testPutFile()
     {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
@@ -1755,7 +1756,7 @@ class Api2Test extends ApiTestBase
 
         $this->assertFilesUrl($token, $response, ['test', TestDefine::FILE2_TESTSTRING]);
     }
-    
+
     /**
      * Put file multiple, not contains file.
      */
@@ -1817,7 +1818,7 @@ class Api2Test extends ApiTestBase
         ])
         ->assertStatus(200);
         $this->assertFilesUrl($token, $response, [TestDefine::FILE2_TESTSTRING]);
-        
+
 
         // Append file ----------------------------------------------------
         $response = $this->withHeaders([
@@ -1867,10 +1868,10 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'document', 'custom_value_edit', 1))
         ->assertStatus(200);
-        
+
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = collect(array_get($json, 'data'))->first();
-        
+
         $this->assertMatch(array_get($data, 'url'), $document->url);
         $this->assertMatch(array_get($data, 'api_url'), $document->api_url);
         $this->assertMatch(array_get($data, 'name'), $document->label);
@@ -1906,7 +1907,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'files', $document->file_uuid . '?base64=1'))
         ->assertStatus(200);
-        
+
         $json = json_decode($response->baseResponse->getContent(), true);
 
         $this->assertMatch(array_get($json, 'name'), $document->label);
@@ -2053,11 +2054,6 @@ class Api2Test extends ApiTestBase
             ->assertStatus(204);
     }
 
-
-
-
-
-
     // post notify -------------------------------------
 
     public function testCreateNotify()
@@ -2156,8 +2152,6 @@ class Api2Test extends ApiTestBase
             ]);
     }
 
-
-    
     // Log ----------------------------------------------------
     public function testGetLogs()
     {
@@ -2214,7 +2208,7 @@ class Api2Test extends ApiTestBase
     public function testGetLogsFilterLoginUserId()
     {
         $filters = ['login_user_id' => 0, 'count' => 1000000];
-        
+
         $this->assertLogsFilterResult($filters, function ($result, $filterValue) {
             return array_get($result, 'user_id') == $filterValue;
         });
@@ -2233,21 +2227,21 @@ class Api2Test extends ApiTestBase
     public function testGetLogsFilterPath()
     {
         $filters = ['path' => admin_base_path('auth/login'), 'count' => 1000000];
-        
+
         $this->assertLogsFilterResult($filters);
     }
 
     public function testGetLogsFilterMethod()
     {
         $filters = ['method' => 'POST', 'count' => 1000000];
-        
+
         $this->assertLogsFilterResult($filters);
     }
 
     public function testGetLogsFilterIp()
     {
         $filters = ['ip' => '127.0.0.1', 'count' => 1000000];
-        
+
         $this->assertLogsFilterResult($filters);
     }
 
@@ -2263,7 +2257,7 @@ class Api2Test extends ApiTestBase
             }
         }
         $filters = ['target_datetime_start' => $target_created_at, 'count' => 1000000];
-        
+
         $this->assertLogsFilterResult($filters, function ($result, $filterValue) {
             return Carbon::parse(array_get($result, 'created_at'))->format('Y-m-d H:i:s') >= $filterValue;
         });
@@ -2282,7 +2276,7 @@ class Api2Test extends ApiTestBase
         }
 
         $filters = ['target_datetime_end' => $target_created_at, 'count' => 1000000];
-        
+
         $this->assertLogsFilterResult($filters, function ($result, $filterValue) {
             return Carbon::parse(array_get($result, 'created_at'))->format('Y-m-d H:i:s') <= $filterValue;
         });
@@ -2324,7 +2318,7 @@ class Api2Test extends ApiTestBase
     {
         \Config::set('exment.api_max_data_count', 1000000);
         $token = $this->getAdminAccessToken([ApiScope::LOG]);
-        
+
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls_query('api', 'log', $filters))
@@ -2352,7 +2346,7 @@ class Api2Test extends ApiTestBase
                 if ($key == 'count') {
                     continue;
                 }
-                
+
                 if ($ckeckCallback) {
                     $this->assertFalse($ckeckCallback($result, $value));
                 } else {
@@ -2426,9 +2420,9 @@ class Api2Test extends ApiTestBase
             $response = $this->withHeaders([
                 'Authorization' => "Bearer $token",
             ])->get($url);
-    
+
             $file = $response->baseResponse->getContent();
-    
+
             $this->assertMatch($file, $matchValues[$index]);
         }
 
@@ -2447,9 +2441,9 @@ class Api2Test extends ApiTestBase
             $response = $this->withHeaders([
                 'Authorization' => "Bearer $token",
             ])->get(admin_urls('api', 'files', str_replace("\\", "/", $path)));
-    
+
             $file = $response->baseResponse->getContent();
-    
+
             $this->assertMatch($file, $matchValues[$index]);
         }
     }

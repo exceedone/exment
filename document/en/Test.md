@@ -7,9 +7,9 @@ How to test.
 - Please execute this command.
 
 ```
-composer require symfony/css-selector=~4.2
-composer require laravel/browser-kit-testing=~5.2
-composer require dms/phpunit-arraysubset-asserts=~0.1
+composer require symfony/css-selector=~5.0
+composer require laravel/browser-kit-testing=~6.3
+composer require dms/phpunit-arraysubset-asserts=~0.3
 ```
 
 ### Change PHPUnit version (Only first)
@@ -55,7 +55,7 @@ Execute Lint (PHPStan / Laratisan) and perform syntax check etc.
 
 ```
 # for lint
-composer require --dev nunomaduro/larastan=^0.5
+composer require --dev nunomaduro/larastan=~1.0
 
 # for Exment related libraries
 composer require pragmarx/google2fa
@@ -65,6 +65,7 @@ composer require aacotroneo/laravel-saml2
 composer require league/flysystem-sftp=~1.0
 composer require league/flysystem-aws-s3-v3=~1.0
 composer require league/flysystem-azure-blob-storage=~0.1.6
+composer require spatie/flysystem-dropbox=^1.2.0
 ```
 
 - Copy setting file.
