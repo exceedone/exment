@@ -7,9 +7,9 @@
 - 以下のコマンドを実行してください。  
 
 ```
-composer require symfony/css-selector=~4.2
-composer require laravel/browser-kit-testing=~5.2
-composer require dms/phpunit-arraysubset-asserts=~0.1
+composer require symfony/css-selector=~5.0
+composer require laravel/browser-kit-testing=~6.3
+composer require dms/phpunit-arraysubset-asserts=~0.3
 ```
 
 ### PHPUnitバージョン変更(初回のみ)
