@@ -1,4 +1,4 @@
-name: ExecutExmentUnittest
+name: phpunit
 
 on: [push]
 #  pull_request:
@@ -50,17 +50,7 @@ jobs:
         run: |
           make ${{ matrix.db }}-init
 
-      - name: Test feature
+      - name: PHPUnit Test
         working-directory: docker-exment
         run: |
-          docker-compose -f docker-compose.yml exec -T php composer run exment:test:feature
-
-      - name: Test unit
-        working-directory: docker-exment
-        run: |
-          docker-compose -f docker-compose.yml exec -T php composer run exment:test:unit
-
-      - name: Test browser
-        working-directory: docker-exment
-        run: |
-          docker-compose -f docker-compose.yml exec -T php composer run exment:test:browser
+          docker-compose -f docker-compose.yml exec -T php composer run exment:test
