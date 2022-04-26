@@ -84,7 +84,7 @@ class CrudShow extends CrudBase
             $box->tools($oauthLogoutView->render());
         }
         
-        if($this->pluginClass->enableDelete($id))
+        if($this->pluginClass->enableDeleteAll() && $this->pluginClass->enableDelete($id))
         {
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }
