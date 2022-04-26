@@ -3,9 +3,15 @@ name: phpunit
 on: [push]
 #  pull_request:
 #    paths:
-#      - 'backend/**'
-#      - 'infrastructure/**'
-#      - 'docker-compose.yml'
+#      - 'config/**'
+#      - 'database/**'
+#      - 'resources/**'
+#      - 'src/**'
+#      - 'tests/**'
+
+env:
+  DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: oreno4649/exment-boilerplate
 
 
 jobs:
@@ -18,12 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: oreno4649/docker-exment
+          repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
           path: ./docker-exment
 
       - uses: actions/checkout@v2
         with:
-          repository: oreno4649/exment-boilerplate
+          repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate
 
       - uses: actions/checkout@v2
