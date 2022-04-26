@@ -629,11 +629,16 @@ return [
             'uri' => 'URL',
             'endpoint_page' => 'Endpoint(Page)',
             'endpoint_api' => 'Endpoint(API)',
+            'endpoint_crud' => 'Endpoint(CRUD)',
             'all_user_enabled' => 'All user can use',
             'export_types' => 'Export Type',
             'export_description' => 'Description',
             'grid_menu_title' => 'Title in Menu',
             'grid_menu_description' => 'Description in Menu',
+            'crud_auth_key' => 'Application Auth Key',
+            'crud_auth_oauth' => 'OAuth Type',
+            'crud_auth_id_password' => 'Login User ID',
+            'crud_auth_id_password_password' => 'Login User Password',
 
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
@@ -665,6 +670,10 @@ return [
             'endpoint' => 'The endpoint for accessing this plugin.',
             'grid_menu_title' => 'Set the title of the view that is displayed when you set the view.',
             'grid_menu_description' => 'Set the description of the view that is displayed when you set the view.',
+            'crud_auth_key' => 'It is an application authentication key for executing data linkage with this plugin. If you do not set this key, you will not be able to access the page.',
+            'crud_auth_oauth' => 'Select the OAuth provider to use to perform data linkage with this plugin. Obtain an access token with the plug-in and use it for data linkage.<br/>* In order to authenticate with the OAuth provider with this plugin, please add the following URL to the callback URL of the provider.<br/>:callback_url',
+            'crud_auth_id_password' => 'Please enter the ID of the logged-in user used to perform data linkage with this plugin.',
+            'crud_auth_id_password_password' => 'Enter the password of the logged-in user used to perform data linkage with this plugin.',
         ],
 
         'error' => [
@@ -673,6 +682,12 @@ return [
             'cannot_read' => 'The plugin :plugin_view_name could not be loaded successfully. Please check the plug-in file itself or contact your system administrator.',
             'class_requirement' => 'The required libraries were not installed. Please install the following libraries with composer. :composer',
             'class_wrongnamespace' => 'The namespaces in the following classes may be incorrect. Review the namespace description. :classes',
+            'crud_autherror_setting' => 'Setting Error',
+            'crud_autherror_auth' => 'Auth Error',
+            'crud_autherror_setting_auth' => 'Auth Setting Error',
+            'crud_autherror_common_help' => 'The settings required for access have not been made. Please review the settings.',
+            'crud_autherror_auth_help' => 'You have not been authenticated or your certification has expired.<br/>To display this page, please log in and authenticate.',
+            'crud_autherror_setting_auth_help' => 'Authentication settings have not been made. Move to the plug-in setting screen and set the authentication.',
         ],
     
         'plugin_type_options' => [
@@ -690,6 +705,7 @@ return [
             'event' => 'Event',
             'button' => 'Button',
             'view' => 'View',
+            'crud' => 'CRUDページ',
         ],
     ],
 
@@ -888,6 +904,8 @@ return [
         'login_button_background_color_hover' => 'Background Color(hover)',
         'login_button_font_color' => 'Font Color',
         'login_button_font_color_hover' => 'Font Color(hover)',
+        
+        'custom_setting' => 'Custom Setting',
         
         'login_test' => 'Login Test',
         'login_test_redirect' => 'Redirect URL for Test',
@@ -1780,13 +1798,14 @@ return [
         'view_infobox_title' => 'Infobox-Title',
         'view_infobox' => 'Infobox-Body',
         'pager_count_default' => 'Adjust to system settings',
+        'header_align' => 'Column Align',
         'custom_view_filters' => 'View Filter',
         'view_filter_condition' => 'Filter Condition',
         'view_filter_condition_value_text' => 'Filter Condition Value',
         'view_group_condition' => 'Column type',
         'view_summary_condition' => 'Summary type',
         'default_view_name' => 'Default View',
-           'alldata_view_name' => 'All Data View',
+        'alldata_view_name' => 'All Data View',
         'custom_view_grid_filters' => 'View filter item setting',
         'description_custom_view_columns' => 'Select display columns.',
         'description_custom_view_calendar_columns' => 'Select the date column to display in the calendar.<br/>* If custom columns do not appear in Target column, no <a href="%s" target="_blank">search index columns<i class="fa fa-external-link"></i></a> has been set. Please confirm the content of the link destination and set it.',
@@ -1816,6 +1835,12 @@ return [
             'm' => 'Month',
             'd' => 'Day',
             'w' => 'Weekday',
+        ],
+        'align_type_options' => [
+            "inherit" => "Match custom column settings",
+            "left" => "Left",
+            "center" => "Center",
+            "right" => "Right",
         ],
 
         'summary_condition_options' => [
