@@ -58,6 +58,7 @@ var Exment;
                                             html: [
                                                 $('<i/>', {
                                                     'class': 'fa ' + d.icon,
+                                                    //'style': hasValue(d.color) ? 'color:' + d.color : null
                                                 }),
                                                 $('<span></span>', {
                                                     'text': d.table_view_name,

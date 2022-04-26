@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 var Exment;
 (function (Exment) {
+    var _a;
     /**
      * Execute culc event.
      *
@@ -225,6 +226,7 @@ var Exment;
             CalcEvent.loopcount = 0;
         }
     }
+    _a = CalcEvent;
     CalcEvent.calcDataList = [];
     CalcEvent.loopcount = 0;
     CalcEvent.showLoopError = false;
@@ -245,14 +247,14 @@ var Exment;
             for (let calc_formula_key in blockData.calc_formulas) {
                 let calc_formula = blockData.calc_formulas[calc_formula_key];
                 let $triggerBox = Exment.CommonEvent.getBlockElement(calc_formula.trigger_block);
-                $triggerBox.on('change.exment_calc', Exment.CommonEvent.getClassKey(calc_formula.trigger_column), { calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                $triggerBox.on('change.exment_calc', Exment.CommonEvent.getClassKey(calc_formula.trigger_column), { calc_formula: calc_formula }, (ev) => __awaiter(_a, void 0, void 0, function* () {
                     if (ev.originalEvent && ev.originalEvent.isTrusted) {
                         CalcEvent.resetLoopConnt();
                     }
                     yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
                 }));
                 // set event for plus minus button
-                $triggerBox.on('click.exment_calc_plusminus', '.btn-number-plus,.btn-number-minus', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                $triggerBox.on('click.exment_calc_plusminus', '.btn-number-plus,.btn-number-minus', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(_a, void 0, void 0, function* () {
                     // call only has $target. $target is autocalc's key
                     let $target = $(ev.target).closest('.input-group').find(Exment.CommonEvent.getClassKey(ev.data.data.trigger_column));
                     if (!hasValue($target)) {
@@ -263,14 +265,14 @@ var Exment;
                 // set event for row add remove event to child block if type is parent
                 if (calc_formula.type == 'parent') {
                     let $targetBoxChild = Exment.CommonEvent.getBlockElement(calc_formula.target_block);
-                    $targetBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                    $targetBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(_a, void 0, void 0, function* () {
                         yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
                     }));
                 }
                 // set event for row add remove event to child block if type is summary
                 if (calc_formula.type == 'sum' || calc_formula.type == 'summary') {
                     let $triggerBoxChild = Exment.CommonEvent.getBlockElement(calc_formula.trigger_block);
-                    $triggerBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                    $triggerBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(_a, void 0, void 0, function* () {
                         yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
                     }));
                 }
@@ -281,7 +283,7 @@ var Exment;
                 let box = Exment.GetBox.make();
                 let $childbox = box.getBox().find('.hasmanyblock-' + calc_count.child_relation_name);
                 // add laravel-admin row plusminus event
-                $childbox.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { calc_count: calc_count }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                $childbox.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { calc_count: calc_count }, (ev) => __awaiter(_a, void 0, void 0, function* () {
                     yield CalcEvent.setCalc(ev.data.calc_count, $(ev.target));
                 }));
             }

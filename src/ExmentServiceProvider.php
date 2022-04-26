@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Services\Plugin\PluginApiBase;
+use Exceedone\Exment\Services\Plugin\PluginCrudBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -34,7 +35,7 @@ use Webpatser\Uuid\Uuid;
 
 class ExmentServiceProvider extends ServiceProvider
 {
-    
+
     /**
      * Application Policy Map
      *
@@ -62,38 +63,38 @@ class ExmentServiceProvider extends ServiceProvider
      * @var array commands
      */
     protected $commands = [
-        'Exceedone\Exment\Console\VersionCommand',
-        'Exceedone\Exment\Console\InstallCommand',
-        'Exceedone\Exment\Console\UpdateCommand',
-        'Exceedone\Exment\Console\PublishCommand',
-        'Exceedone\Exment\Console\ScheduleCommand',
-        'Exceedone\Exment\Console\NotifyScheduleCommand',
-        'Exceedone\Exment\Console\NotifyCommand',
-        'Exceedone\Exment\Console\BatchCommand',
-        'Exceedone\Exment\Console\BackupCommand',
-        'Exceedone\Exment\Console\RestoreCommand',
-        'Exceedone\Exment\Console\ClientListCommand',
-        'Exceedone\Exment\Console\BulkInsertCommand',
-        'Exceedone\Exment\Console\PatchDataCommand',
-        'Exceedone\Exment\Console\InitTestCommand',
-        'Exceedone\Exment\Console\CheckLangCommand',
-        'Exceedone\Exment\Console\CheckRequireCommand',
-        'Exceedone\Exment\Console\NotifyTestCommand',
-        'Exceedone\Exment\Console\RefreshDataCommand',
-        'Exceedone\Exment\Console\RefreshTableDataCommand',
-        'Exceedone\Exment\Console\ImportCommand',
-        'Exceedone\Exment\Console\ExportCommand',
-        'Exceedone\Exment\Console\ExportChunkCommand',
-        'Exceedone\Exment\Console\ResetPasswordCommand',
-        'Exceedone\Exment\Console\CheckConnectionCommand',
-        'Exceedone\Exment\Console\TotalUpdateCommand',
-        'Exceedone\Exment\Console\FileColumnImportCommand',
-        'Exceedone\Exment\Console\DocumentImportCommand',
-        'Exceedone\Exment\Console\WorkflowClearCommand',
-        'Exceedone\Exment\Console\SetupDirCommand',
+        \Exceedone\Exment\Console\VersionCommand::class,
+        \Exceedone\Exment\Console\InstallCommand::class,
+        \Exceedone\Exment\Console\UpdateCommand::class,
+        \Exceedone\Exment\Console\PublishCommand::class,
+        \Exceedone\Exment\Console\ScheduleCommand::class,
+        \Exceedone\Exment\Console\NotifyScheduleCommand::class,
+        \Exceedone\Exment\Console\NotifyCommand::class,
+        \Exceedone\Exment\Console\BatchCommand::class,
+        \Exceedone\Exment\Console\BackupCommand::class,
+        \Exceedone\Exment\Console\RestoreCommand::class,
+        \Exceedone\Exment\Console\ClientListCommand::class,
+        \Exceedone\Exment\Console\BulkInsertCommand::class,
+        \Exceedone\Exment\Console\PatchDataCommand::class,
+        \Exceedone\Exment\Console\InitTestCommand::class,
+        \Exceedone\Exment\Console\CheckLangCommand::class,
+        \Exceedone\Exment\Console\CheckRequireCommand::class,
+        \Exceedone\Exment\Console\NotifyTestCommand::class,
+        \Exceedone\Exment\Console\RefreshDataCommand::class,
+        \Exceedone\Exment\Console\RefreshTableDataCommand::class,
+        \Exceedone\Exment\Console\ImportCommand::class,
+        \Exceedone\Exment\Console\ExportCommand::class,
+        \Exceedone\Exment\Console\ExportChunkCommand::class,
+        \Exceedone\Exment\Console\ResetPasswordCommand::class,
+        \Exceedone\Exment\Console\CheckConnectionCommand::class,
+        \Exceedone\Exment\Console\TotalUpdateCommand::class,
+        \Exceedone\Exment\Console\FileColumnImportCommand::class,
+        \Exceedone\Exment\Console\DocumentImportCommand::class,
+        \Exceedone\Exment\Console\WorkflowClearCommand::class,
+        \Exceedone\Exment\Console\SetupDirCommand::class,
     ];
 
-    
+
     /**
      * The application's global HTTP middleware stack.
      *
@@ -131,14 +132,14 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.permission' => AdminMiddleware\Permission::class,
         'admin.bootstrap'  => AdminMiddleware\Bootstrap::class,
         'admin.session'    => AdminMiddleware\Session::class,
-        
+
         'pluginapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePluginApi::class,
-        
+
         'publicform.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicForm::class,
         'publicform.bootstrap'       => \Exceedone\Exment\Middleware\BootstrapPublicForm::class,
         'publicformapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicFormApi::class,
         'publicform.session'    => \Exceedone\Exment\Middleware\PublicFormSession::class,
-        
+
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
         'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
@@ -220,8 +221,9 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.morph',
             'admin.log',
             // 'throttle:60,1',
-            'bindings',
-        ],
+            //'bindings',
+            //　↓
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,        ],
         // Exment Plugin API
         'pluginapi' => [
             'pluginapi.auth',
@@ -232,7 +234,8 @@ class ExmentServiceProvider extends ServiceProvider
             // 'throttle:60,1',
             'admin.morph',
             'admin.log',
-            'bindings',
+            // 'bindings',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
         // Extends web middleware If call exment's parts by user, please Add
         'exment_web' => [
@@ -297,7 +300,7 @@ class ExmentServiceProvider extends ServiceProvider
             __DIR__.'/../config/exment.php',
             'exment'
         );
-        
+
         // register global middleware.
         $kernel = $this->app->make(Kernel::class);
         foreach ($this->middleware as $middleware) {
@@ -328,13 +331,16 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->bind(PluginApiBase::class, function ($app) {
             return Plugin::getPluginPageModel();
         });
+        $this->app->bind(PluginCrudBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
+        });
         $this->app->bind(PublicForm::class, function ($app) {
             return PublicForm::getPublicFormByRequest();
         });
         $this->app->bind(CustomTable::class, function ($app) {
             return CustomTable::findByEndpoint();
         });
-        
+
         // guard provider
         Auth::extend('publicformtoken', function ($app, $name, array $config) {
             return tap($this->makeGuard($config), function ($guard) {
@@ -387,7 +393,7 @@ class ExmentServiceProvider extends ServiceProvider
         foreach ($this->serviceProviders as $serviceProvider) {
             $this->app->register($serviceProvider);
         }
-        
+
         $this->commands($this->commands);
 
         if (!$this->app->runningInConsole()) {
@@ -413,7 +419,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
-                
+
             // set cron event
             try {
                 if (hasTable(SystemTableName::PLUGIN)) {
@@ -458,7 +464,7 @@ class ExmentServiceProvider extends ServiceProvider
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
             return new Providers\PublicFormUserProvider($app['hash'], LoginUser::class);
         });
-        
+
         \Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {
             return new ExmentCustomValidator($translator, $data, $rules, $messages, $customAttributes);
         });
@@ -470,7 +476,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
 
         Initialize::initializeConfig(false);
-        
+
         if (method_exists("\Encore\Admin\Admin", "registered")) {
             Admin::registered(function () {
                 Initialize::registeredLaravelAdmin();
@@ -481,7 +487,7 @@ class ExmentServiceProvider extends ServiceProvider
             });
         }
     }
-    
+
     /**
      * Boot database for extend
      *
@@ -511,7 +517,7 @@ class ExmentServiceProvider extends ServiceProvider
             Gate::policy($key, $value);
         }
     }
-    
+
     /**
      * Get the policies defined on the provider.
      *
@@ -564,7 +570,7 @@ class ExmentServiceProvider extends ServiceProvider
         return $middlewareGroups;
     }
 
-    
+
     /**
      * Make an instance of the token guard.
      *

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
 {
+    use Traits\SerializeDateTrait;
     //protected $appends = ['base_user_id'];
 
     public function getBaseUserIdAttribute()
@@ -25,4 +26,5 @@ class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
         $user = $this->user;
         return $user ? $user->user_name : null;
     }
+
 }

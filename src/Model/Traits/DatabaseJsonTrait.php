@@ -83,7 +83,7 @@ trait DatabaseJsonTrait
     {
         ///// saving event for image, file event
         $value = $this->{$dbcolumnname} ?? [];
-        $original = json_decode($this->getOriginal($dbcolumnname), true) ?? [];
+        $original = json_decode($this->getRawOriginal($dbcolumnname), true) ?? [];
 
         // loop columns
         $update_flg = false;

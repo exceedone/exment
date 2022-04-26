@@ -267,7 +267,7 @@ class LoginSetting extends ModelBase
     /**
      * get Socialite Provider
      */
-    public static function getSocialiteProvider($login_provider, $isTest = false)
+    public static function getSocialiteProvider($login_provider, $isTest = false, ?string $redirectUrl = null)
     {
         if (is_string($login_provider)) {
             $provider_name = $login_provider;
@@ -279,19 +279,33 @@ class LoginSetting extends ModelBase
             $provider = $login_provider;
             $provider_name = $provider->provider_name;
         }
+        
+        // get redirect url
+        // (1)config
+        // (2)arg string
+        // (3) default setting
+        $redirectConfigUrl = config("services.{$provider_name}.redirect");
+        $redirectUrl = $redirectConfigUrl ?: $redirectUrl ?: ($isTest ? $provider->exment_callback_url_test : $provider->exment_callback_url);
 
         //create config
         $config = [
             'client_id' => $provider->getOption('oauth_client_id'),
             'client_secret' => $provider->getOption('oauth_client_secret'),
-            'redirect' => $isTest ? $provider->exment_callback_url_test : $provider->exment_callback_url,
+            'redirect' => $redirectUrl,
         ];
         config(["services.$provider_name" => array_merge(config("services.$provider_name", []), $config)]);
 
-        $scope = $provider->getOption('scope', []);
-        return \Socialite::with($provider_name)
+        $scope = $provider->getOption('oauth_scope', []);
+        $socialiteProvider = \Socialite::with($provider_name)
             ->scopes($scope)
             ;
+
+        // If has custom setting, call custom config.
+        if(!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class)){
+            $socialiteProvider->setLoginCustomConfig($provider);
+        }
+
+        return $socialiteProvider;
     }
 
     /**
@@ -404,7 +418,7 @@ class LoginSetting extends ModelBase
     protected function setBcrypt()
     {
         $keys = ['saml_sp_x509', 'saml_sp_privatekey', 'saml_idp_x509'];
-        $originals = jsonToArray($this->getOriginal('options'));
+        $originals = jsonToArray($this->getRawOriginal('options'));
 
         foreach ($keys as $key) {
             $value = $this->getOption($key);

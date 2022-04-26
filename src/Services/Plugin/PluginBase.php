@@ -27,4 +27,24 @@ trait PluginBase
     public function setCustomOptionForm(&$form)
     {
     }
+
+    /**
+     * Get the value of pluginOptions
+     */ 
+    public function getPluginOptions()
+    {
+        return $this->pluginOptions;
+    }
+
+    /**
+     * Set the value of pluginOptions
+     *
+     * @return  self
+     */ 
+    public function setPluginOptions($pluginOptions)
+    {
+        $this->pluginOptions = $pluginOptions;
+
+        return $this;
+    }
 }
