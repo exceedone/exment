@@ -3,7 +3,6 @@ namespace Exceedone\Exment\Validator;
 
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SummaryCondition;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
@@ -124,32 +123,6 @@ class ExmentCustomValidator extends AdminValidator
         if (array_get($option, 'numeric')) {
             return false;
         }
-        return true;
-    }
-    
-    /**
-    * Validate already exists 1:n relation which has same child table
-    *
-    * @param string $attribute
-    * @param mixed $value
-    * @param array $parameters
-    * @return bool
-    */
-    public function validateDuplicateRelation($attribute, $value, $parameters)
-    {
-        $relation_type = data_get($this->getData(), 'relation_type');
-
-        if ($relation_type == RelationType::ONE_TO_MANY) {
-            $relation_id = count($parameters) >= 1 ? $parameters[0] : null;
-
-            $query = CustomRelation::where('child_custom_table_id', $value)
-                ->where('relation_type', RelationType::ONE_TO_MANY);
-            if (!is_nullorempty($relation_id)) {
-                $query = $query->where('id', '<>', $relation_id);
-            }
-            return !($query->exists());
-        }
-
         return true;
     }
     

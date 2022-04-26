@@ -228,6 +228,7 @@ return [
         'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
         'email_multiline' => 'Eメールアドレスでない行が含まれています。',
+        'duplicate_relation' => 'すでに関連付けられているテーブルです。',
         
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',

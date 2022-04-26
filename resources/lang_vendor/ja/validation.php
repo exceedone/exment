@@ -115,7 +115,6 @@ return [
         ],
         'child_custom_table_id' => [
             'loop_relation' => 'すでに関連付けられているテーブルです。',
-            'duplicate_relation' => 'すでに関連付けられているテーブルです。',
         ],
     ],
 

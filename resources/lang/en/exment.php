@@ -228,6 +228,7 @@ return [
         'max_table_index' => 'Up to :count search indexes can be set in one table.',
         'using_index_column' => 'Search index cannot be released because it is in use by a view.',
         'email_multiline' => 'Contains lines that are not email addresses.',
+        'duplicate_relation' => 'The table is already associated.',
 
         'not_match' => 'The value of :attribute1 and the value of :attribute1 are different.',
         'not_notmatch' => ':attribute1 and :attribute2 must have different values.',
