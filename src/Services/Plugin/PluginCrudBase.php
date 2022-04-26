@@ -407,6 +407,17 @@ abstract class PluginCrudBase extends PluginPublicBase
     }
 
     /**
+     * Whether edit all. If false, disable edit button and link.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableEditAll(array $options = []) : bool
+    {
+        return true;
+    }
+
+    /**
      * Whether edit target data. If false, disable edit button and link.
      * Default: true
      *
@@ -417,6 +428,17 @@ abstract class PluginCrudBase extends PluginPublicBase
         return true;
     }
 
+    /**
+     * Whether delete all. If false, disable delete button and link.
+     * Default: true
+     *
+     * @return bool
+     */
+    public function enableDeleteAll(array $options = []) : bool
+    {
+        return true;
+    }
+    
     /**
      * Whether delete target data. If false, disable delete button and link.
      * Default: true

@@ -1,10 +1,8 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
-use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Grid\Grid;
 use Illuminate\Http\Request;
-use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Form\Tools;
 
@@ -132,6 +130,12 @@ class CrudGrid extends CrudBase
         $plugin = $this->plugin;
         $pluginClass = $this->pluginClass;
         $grid->tools(function($tools) use($grid, $plugin, $pluginClass){
+            if(!$this->pluginClass->enableDeleteAll()){
+                $tools->batch(function ($batch) {
+                    $batch->disableDelete();
+                });
+            }
+
             if($this->pluginClass->enableCreate()){
                 $tools->prepend(view('exment::tools.button', [
                     'href' => admin_url($this->getFullUrl('create')),
@@ -168,10 +172,10 @@ class CrudGrid extends CrudBase
     {
         $pluginClass = $this->pluginClass;
         $grid->actions(function($actions) use($pluginClass){
-            if(!$pluginClass->enableEdit($actions->row)){
+            if(!$pluginClass->enableEditAll() || !$pluginClass->enableEdit($actions->row)){
                 $actions->disableEdit();
             }
-            if(!$pluginClass->enableDelete($actions->row)){
+            if(!$pluginClass->enableDeleteAll() || !$pluginClass->enableDelete($actions->row)){
                 $actions->disableDelete();
             }
             if(!$pluginClass->enableShow($actions->row)){

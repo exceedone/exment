@@ -2,9 +2,7 @@
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Grid\Grid;
 use Illuminate\Http\Request;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Exceedone\Exment\Form\Tools;
@@ -91,7 +89,7 @@ class CrudShow extends CrudBase
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }
 
-        if($this->pluginClass->enableEdit($id))
+        if($this->pluginClass->enableEditAll() && $this->pluginClass->enableEdit($id))
         {
             $box->tools(view('exment::tools.button', [
                 'href' => admin_url($this->getFullUrl(url_join($id, 'edit'))),
