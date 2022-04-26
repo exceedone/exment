@@ -176,13 +176,12 @@ class PluginCrudController extends Controller
         try {
             return $targetClass->getPluginOptions()->loginOAuth();
         } catch (SsoLoginErrorException $ex) {
-            //ToDO:修正
             \Log::error($ex);
-
+            throw $ex;
             // if error, redirect edit page
         } catch (\Exception $ex) {
-            //ToDO:修正
             \Log::error($ex);
+            throw $ex;
         }
     }
 
@@ -209,13 +208,13 @@ class PluginCrudController extends Controller
             }
             return redirect($targetClass->getFullUrl($endpoints->first()));
         } catch (SsoLoginErrorException $ex) {
-            //ToDO:修正
             \Log::error($ex);
-
+            throw $ex;
             // if error, redirect edit page
         } catch (\Exception $ex) {
-            //ToDO:修正
             \Log::error($ex);
+            throw $ex;
+
         }
     }
 
@@ -236,13 +235,12 @@ class PluginCrudController extends Controller
             $targetClass->getPluginOptions()->clearOauthAccessToken();
             return redirect($targetClass->getFullUrl('noauth'));
         } catch (SsoLoginErrorException $ex) {
-            //ToDO:修正
             \Log::error($ex);
-
+            throw $ex;
             // if error, redirect edit page
         } catch (\Exception $ex) {
-            //ToDO:修正
             \Log::error($ex);
+            throw $ex;
         }
     }
 

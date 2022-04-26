@@ -130,7 +130,6 @@ class CrudForm extends CrudBase
             $value = $this->pluginClass->putEdit($id, $values);
         }
 
-        //ToDo:修正。配列かオブジェクトの場合
         return redirect($this->getFullUrl($value));
     }
 
