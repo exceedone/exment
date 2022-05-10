@@ -76,7 +76,6 @@ class PaginateAction extends ExportActionBase implements ActionInterface
      */
     public function execute()
     {
-        
     }
 
     /**

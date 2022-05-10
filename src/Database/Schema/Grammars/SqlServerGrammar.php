@@ -200,5 +200,4 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     {
         return "EXEC sp_MSforeachtable 'DROP TABLE ?'";
     }
-
 }

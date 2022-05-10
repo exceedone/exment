@@ -78,11 +78,11 @@ class OAuthService implements LoginServiceInterface
             return;
         }
 
-        if(!isset($login_setting)){
+        if (!isset($login_setting)) {
             $form->select('oauth_provider_type', exmtrans('login.oauth_provider_type'))
                 ->options(LoginProviderType::transKeyArray('login.oauth_provider_type_options'))
                 ->required()
-                ->attribute(['data-filtertrigger' => true, 
+                ->attribute(['data-filtertrigger' => true,
                     'data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]]),
 
                     'data-changehtml' => json_encode([
@@ -105,7 +105,7 @@ class OAuthService implements LoginServiceInterface
                 ->required()
                 ->help(exmtrans('login.help.login_provider_name'))
                 ->attribute([
-                    'data-filtertrigger' => true, 
+                    'data-filtertrigger' => true,
                     'data-filter' => json_encode(['key' => 'options_oauth_provider_type', 'value' => [LoginProviderType::OTHER]]),
                     'data-changehtml' => json_encode([
                         [
@@ -116,8 +116,7 @@ class OAuthService implements LoginServiceInterface
                         ],
                     ]),
                 ]);
-        }
-        else{
+        } else {
             $form->display('oauth_provider_type_text', exmtrans('login.oauth_provider_type'))
                 ->displayText(exmtrans('login.oauth_provider_type_options.' . $login_setting->getOption('oauth_provider_type')));
             $form->hidden('oauth_provider_type');
@@ -239,13 +238,13 @@ class OAuthService implements LoginServiceInterface
         $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
         $access_token = \Exment::user()->getSettingValue($key);
         $expires_at = \Exment::user()->getSettingValue($key_expires_at);
-        if(!$access_token || !$expires_at){
+        if (!$access_token || !$expires_at) {
             return null;
         }
 
         // Check whether ex
         $expiresAt = \Carbon\Carbon::parse($expires_at);
-        if($expiresAt <= \Carbon\Carbon::now()->addMinute(-1)){
+        if ($expiresAt <= \Carbon\Carbon::now()->addMinute(-1)) {
             return null;
         }
 
@@ -260,7 +259,7 @@ class OAuthService implements LoginServiceInterface
      */
     public static function callbackAccessTokenToDB(LoginSetting $login_setting, ?string $callbackUrl) : ?string
     {
-        try{
+        try {
             $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, false, $callbackUrl);
             // get user
             $user = $socialiteProvider->user();
@@ -277,8 +276,7 @@ class OAuthService implements LoginServiceInterface
             \Exment::user()->setSettingValue($key, $token);
             \Exment::user()->setSettingValue($key_expires_at, $expiresAt);
             return $token;
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return null;
         }
     }
@@ -314,7 +312,7 @@ class OAuthService implements LoginServiceInterface
      */
     public static function setLoginSettingForm($provider_name, $form)
     {
-        if(is_nullorempty($provider_name)){
+        if (is_nullorempty($provider_name)) {
             return;
         }
 
@@ -325,20 +323,17 @@ class OAuthService implements LoginServiceInterface
             'redirect' => 'https://foobar.com',
         ]]);
 
-        try{
+        try {
             $socialiteProvider = \Socialite::with($provider_name);
         
             // has instance of
-            if(!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class))
-            {
+            if (!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class)) {
                 $form->exmheader(exmtrans('login.custom_setting'))->hr();
             
                 $socialiteProvider->setLoginSettingForm($form);
             }
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             // if not found provider_name in Socialite, nothing.
         }
     }
-
 }

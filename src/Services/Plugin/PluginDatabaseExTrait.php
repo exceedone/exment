@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
 
 /**

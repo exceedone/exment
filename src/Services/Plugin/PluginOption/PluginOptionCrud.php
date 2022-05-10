@@ -33,7 +33,7 @@ class PluginOptionCrud extends PluginOptionBase
     public function getOauthSetting() : ?Model\LoginSetting
     {
         $oauth_id = $this->plugin->getOption('crud_auth_oauth');
-        if(is_nullorempty($oauth_id)){
+        if (is_nullorempty($oauth_id)) {
             return null;
         }
 
@@ -58,12 +58,12 @@ class PluginOptionCrud extends PluginOptionBase
     public function getOauthAccessToken() : ?string
     {
         // If already getted, return this.
-        if($this->access_token){
+        if ($this->access_token) {
             return $this->access_token;
         }
 
         $login_setting = $this->getOauthSetting();
-        if(!$login_setting){
+        if (!$login_setting) {
             return null;
         }
 
@@ -80,7 +80,7 @@ class PluginOptionCrud extends PluginOptionBase
     public function setOauthAccessToken()
     {
         $login_setting = $this->getOauthSetting();
-        if(!$login_setting){
+        if (!$login_setting) {
             return $this;
         }
 
@@ -98,7 +98,7 @@ class PluginOptionCrud extends PluginOptionBase
     public function clearOauthAccessToken()
     {
         $login_setting = $this->getOauthSetting();
-        if(!$login_setting){
+        if (!$login_setting) {
             return $this;
         }
 

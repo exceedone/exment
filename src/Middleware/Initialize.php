@@ -389,7 +389,7 @@ class Initialize
                 // Here we will check if the "driver" key exists and if it does we will use
                 // the entire mail configuration file as the "driver" config in order to
                 // provide "BC" for any Laravel <= 6.x style mail configuration files.
-                if(!is_nullorempty(Config::get('mail.driver'))){
+                if (!is_nullorempty(Config::get('mail.driver'))) {
                     $keys = [
                         'system_mail_host' => 'host',
                         'system_mail_port' => 'port',
@@ -399,8 +399,7 @@ class Initialize
                         'system_mail_from' => ['from.address', 'from.name'],
                         'system_mail_from_view_name' => 'from.name', // If system_mail_from_view_name is not set, from.name set as system_mail_from
                     ];
-                }
-                else{
+                } else {
                     $keys = [
                         'system_mail_host' => 'mailers.smtp.host',
                         'system_mail_port' => 'mailers.smtp.port',

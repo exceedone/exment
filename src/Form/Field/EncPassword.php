@@ -8,9 +8,9 @@ namespace Exceedone\Exment\Form\Field;
 class EncPassword extends Password
 {
     /**
-     * @bool update if empty flag 
+     * @bool update if empty flag
      */
-    protected $updateIfEmpty = false;    
+    protected $updateIfEmpty = false;
 
     /**
      * Prepare for a field value before update or insert.

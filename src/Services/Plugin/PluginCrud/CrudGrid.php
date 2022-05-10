@@ -36,30 +36,29 @@ class CrudGrid extends CrudBase
     {
         $definitions = $this->pluginClass->getFieldDefinitions();
 
-        $grid = new Grid(function($grid){
+        $grid = new Grid(function ($grid) {
             $this->setGridColumn($grid);
-        }, function($grid, ?array $options)
-        {
-            if(is_nullorempty($options)){
+        }, function ($grid, ?array $options) {
+            if (is_nullorempty($options)) {
                 $options = [];
             }
 
-            if(!is_nullorempty(request()->get('per_page'))){
+            if (!is_nullorempty(request()->get('per_page'))) {
                 $options['per_page'] = request()->get('per_page');
             }
-            if(!is_nullorempty(request()->get('query'))){
+            if (!is_nullorempty(request()->get('query'))) {
                 $options['query'] = request()->get('query');
             }
 
-            if(!is_nullorempty(request()->get('page'))){
+            if (!is_nullorempty(request()->get('page'))) {
                 $options['page'] = request()->get('page');
             }
-            if(!isset($options['page'])){
+            if (!isset($options['page'])) {
                 $options['page'] = 1;
             }
 
             // If support paginate, call as paginate values
-            if($this->pluginClass->enablePaginate()){
+            if ($this->pluginClass->enablePaginate()) {
                 $paginate = $this->pluginClass->getPaginate($options);
                 return $paginate;
             }
@@ -75,11 +74,11 @@ class CrudGrid extends CrudBase
 
         // get primary key
         $primary = $this->pluginClass->getPrimaryKey();
-        if(!is_nullorempty($primary)){
+        if (!is_nullorempty($primary)) {
             $grid->setKeyName($primary);
         }
 
-        if(!$this->pluginClass->enablePaginate()){
+        if (!$this->pluginClass->enablePaginate()) {
             $grid->disablePaginator();
         }
 
@@ -99,15 +98,16 @@ class CrudGrid extends CrudBase
      * @param Grid $grid
      * @return void
      */
-    protected function setGridColumn(Grid $grid){
+    protected function setGridColumn(Grid $grid)
+    {
         $definitions = $this->pluginClass->getFieldDefinitions();
         // create table
         $targets = collect($definitions)
-            ->filter(function($d){
+            ->filter(function ($d) {
                 return array_has($d, 'grid');
             })->sortBy('grid');
 
-        foreach($targets as $target){
+        foreach ($targets as $target) {
             $this->pluginClass->setGridColumnDifinition($grid, array_get($target, 'key'), array_get($target, 'label'));
         }
     }
@@ -122,21 +122,21 @@ class CrudGrid extends CrudBase
     {
         $grid->disableCreateButton();
 
-        if($this->pluginClass->enableFreewordSearch()){
+        if ($this->pluginClass->enableFreewordSearch()) {
             $grid->quickSearch(function ($model, $input) {
             }, 'left');
         }
         
         $plugin = $this->plugin;
         $pluginClass = $this->pluginClass;
-        $grid->tools(function($tools) use($grid, $plugin, $pluginClass){
-            if(!$this->pluginClass->enableDeleteAll()){
+        $grid->tools(function ($tools) use ($grid, $plugin, $pluginClass) {
+            if (!$this->pluginClass->enableDeleteAll()) {
                 $tools->batch(function ($batch) {
                     $batch->disableDelete();
                 });
             }
 
-            if($this->pluginClass->enableCreate()){
+            if ($this->pluginClass->enableCreate()) {
                 $tools->prepend(view('exment::tools.button', [
                     'href' => admin_url($this->getFullUrl('create')),
                     'label' => trans('admin.new'),
@@ -145,16 +145,16 @@ class CrudGrid extends CrudBase
                 ])->render(), 'right');
             }
             
-            if($pluginClass->enableExport()){
+            if ($pluginClass->enableExport()) {
                 $button = new Tools\ExportImportButton($plugin->getFullUrl(), $grid, false, true, false);
                 $button->setBaseKey('common');
                 
                 $tools->prepend($button, 'right');
             }
 
-            // get oauth logout view 
+            // get oauth logout view
             $oauthLogoutView = $this->getOAuthLogoutView();
-            if($oauthLogoutView){
+            if ($oauthLogoutView) {
                 $tools->prepend($oauthLogoutView, 'right');
             }
 
@@ -171,14 +171,14 @@ class CrudGrid extends CrudBase
     protected function setGridActions(Grid $grid)
     {
         $pluginClass = $this->pluginClass;
-        $grid->actions(function($actions) use($pluginClass){
-            if(!$pluginClass->enableEditAll() || !$pluginClass->enableEdit($actions->row)){
+        $grid->actions(function ($actions) use ($pluginClass) {
+            if (!$pluginClass->enableEditAll() || !$pluginClass->enableEdit($actions->row)) {
                 $actions->disableEdit();
             }
-            if(!$pluginClass->enableDeleteAll() || !$pluginClass->enableDelete($actions->row)){
+            if (!$pluginClass->enableDeleteAll() || !$pluginClass->enableDelete($actions->row)) {
                 $actions->disableDelete();
             }
-            if(!$pluginClass->enableShow($actions->row)){
+            if (!$pluginClass->enableShow($actions->row)) {
                 $actions->disableView();
             }
 

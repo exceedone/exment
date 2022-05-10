@@ -263,17 +263,17 @@ class PluginController extends AdminControllerBase
                 if ($plugin->matchPluginType(PluginType::CRUD)) {
                     // get all endpoints
                     $pluginClass = $this->getPluginClass($plugin);
-                    if($pluginClass){
+                    if ($pluginClass) {
                         // get all url
                         $urls = [];
                         $endpoints = $pluginClass->getAllEndpoints();
                         // If not set endpoints, set empty endpoint.
-                        if(is_nullorempty($endpoints)){
+                        if (is_nullorempty($endpoints)) {
                             $urls[] = $plugin->getRootUrl(PluginType::CRUD);
                         }
                         // else, set all endpoints.
-                        else{
-                            foreach($pluginClass->getAllEndpoints() as $endpoint){
+                        else {
+                            foreach ($pluginClass->getAllEndpoints() as $endpoint) {
                                 $urls[] = url_join($plugin->getRootUrl(PluginType::CRUD), $endpoint);
                             }
                         }
@@ -305,21 +305,19 @@ class PluginController extends AdminControllerBase
 
             if ($plugin->matchPluginType(PluginType::CRUD)) {
                 $pluginClass = $this->getPluginClass($plugin);
-                if(isset($pluginClass) && !is_nullorempty($crudAuthType = $pluginClass->getAuthType())){
-                    if($crudAuthType == PluginCrudAuthType::KEY){
+                if (isset($pluginClass) && !is_nullorempty($crudAuthType = $pluginClass->getAuthType())) {
+                    if ($crudAuthType == PluginCrudAuthType::KEY) {
                         $form->text('crud_auth_key', $pluginClass->getAuthSettingLabel())
                             ->help($pluginClass->getAuthSettingHelp());
-                    }
-                    elseif($crudAuthType == PluginCrudAuthType::ID_PASSWORD){
+                    } elseif ($crudAuthType == PluginCrudAuthType::ID_PASSWORD) {
                         $form->text('crud_auth_id', $pluginClass->getAuthSettingLabel())
                             ->help($pluginClass->getAuthSettingHelp());
                         $form->encpassword('crud_auth_password', $pluginClass->getAuthSettingPasswordLabel())
                         ->updateIfEmpty()
                         ->help($pluginClass->getAuthSettingPasswordHelp());
-                    }
-                    elseif($crudAuthType == PluginCrudAuthType::OAUTH){
+                    } elseif ($crudAuthType == PluginCrudAuthType::OAUTH) {
                         $form->select('crud_auth_oauth')
-                            ->options(function(){
+                            ->options(function () {
                                 return Model\LoginSetting::where('login_type', LoginType::OAUTH)
                                     ->pluck('login_view_name', 'id');
                             })

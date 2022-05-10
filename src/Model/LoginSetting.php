@@ -301,7 +301,7 @@ class LoginSetting extends ModelBase
             ;
 
         // If has custom setting, call custom config.
-        if(!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class)){
+        if (!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class)) {
             $socialiteProvider->setLoginCustomConfig($provider);
         }
 

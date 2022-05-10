@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Auth;
+
 use Exceedone\Exment\Model\LoginSetting;
 
 interface ProviderLoginConfig

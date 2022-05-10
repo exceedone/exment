@@ -93,10 +93,9 @@ class CrudForm extends CrudBase
         $box->style('info');
         $this->setFormTools($id, $box);
 
-        if($isCreate){
+        if ($isCreate) {
             $this->pluginClass->callbackCreate($form, $box);
-        }
-        else{
+        } else {
             $this->pluginClass->callbackEdit($id, $form, $box);
         }
 
@@ -118,15 +117,14 @@ class CrudForm extends CrudBase
         $validateResult = $this->pluginClass->validate($form, $values, $isCreate, $id);
 
         //ToDo:validation error
-        if($validateResult->any()){
+        if ($validateResult->any()) {
             return back()->withInput($values);
         }
 
         // save value
-        if($isCreate){
+        if ($isCreate) {
             $value = $this->pluginClass->postCreate($values);
-        }
-        else{
+        } else {
             $value = $this->pluginClass->putEdit($id, $values);
         }
 
@@ -144,7 +142,7 @@ class CrudForm extends CrudBase
     {
         $key = $isCreate ? 'create' : 'edit';
         $definitions = collect($this->pluginClass->getFieldDefinitions())
-            ->filter(function($d) use($key){
+            ->filter(function ($d) use ($key) {
                 return array_has($d, $key) && !array_boolval($d, 'primary');
             })->map(function ($item, $key) {
                 return array_get($item, 'key');
@@ -163,10 +161,9 @@ class CrudForm extends CrudBase
      */
     protected function getForm(bool $isCreate, $id = null) : WidgetForm
     {
-        if($isCreate){
+        if ($isCreate) {
             $data = [];
-        }
-        else{
+        } else {
             $data = $this->pluginClass->getData($id);
         }
 
@@ -190,27 +187,25 @@ class CrudForm extends CrudBase
     protected function setFormColumn(bool $isCreate, Form $form)
     {
         $customForm = $this->pluginClass->setForm($form, $isCreate);
-        if(!is_nullorempty($customForm)){
+        if (!is_nullorempty($customForm)) {
             $form = $customForm;
-        }else{
+        } else {
             $key = $isCreate ? 'create' : 'edit';
             $definitions = collect($this->pluginClass->getFieldDefinitions())
-                ->filter(function($d) use($key){
+                ->filter(function ($d) use ($key) {
                     return array_has($d, $key);
                 })->sortBy($key);
     
             // get primary key
             $primary = $this->pluginClass->getPrimaryKey();
     
-            foreach($definitions as $target){
+            foreach ($definitions as $target) {
                 // if primary key, only show.
-                if($primary == array_get($target, 'key')){
+                if ($primary == array_get($target, 'key')) {
                     $this->pluginClass->setFormPrimaryDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
-                }
-                elseif($isCreate){
+                } elseif ($isCreate) {
                     $this->pluginClass->setCreateColumnDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
-                }
-                else{
+                } else {
                     $this->pluginClass->setEditColumnDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
                 }
             }
@@ -225,14 +220,13 @@ class CrudForm extends CrudBase
      */
     protected function setFormTools($id, Box $box)
     {
-        // get oauth logout view 
+        // get oauth logout view
         $oauthLogoutView = $this->getOAuthLogoutView();
-        if($oauthLogoutView){
+        if ($oauthLogoutView) {
             $box->tools($oauthLogoutView->render());
         }
         
-        if($this->pluginClass->enableDelete($id))
-        {
+        if ($this->pluginClass->enableDelete($id)) {
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }
 
@@ -243,7 +237,7 @@ class CrudForm extends CrudBase
                 'btn_class' => 'btn-default',
             ])->render());
 
-        if($this->pluginClass->enableShow($id)){
+        if ($this->pluginClass->enableShow($id)) {
             $box->tools(view('exment::tools.button', [
                 'href' => admin_url($this->getFullUrl($id)),
                 'label' => trans('admin.show'),
