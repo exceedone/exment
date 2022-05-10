@@ -41,11 +41,11 @@ abstract class CrudBase
 
     protected function getOAuthLogoutView()
     {
-        if($this->pluginClass->getAuthType() != PluginCrudAuthType::OAUTH){
+        if ($this->pluginClass->getAuthType() != PluginCrudAuthType::OAUTH) {
             return null;
         }
 
-        if(!$this->pluginClass->enableOAuthLogoutButton()){
+        if (!$this->pluginClass->enableOAuthLogoutButton()) {
             return null;
         }
         
@@ -55,6 +55,5 @@ abstract class CrudBase
             'icon' => 'fa-sign-out',
             'btn_class' => 'btn-primary',
         ]);
-
     }
 }

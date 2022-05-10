@@ -110,7 +110,7 @@ class PluginServiceProvider extends ServiceProvider
                 'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : ['adminweb', 'admin'],
             ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json) {
                 // if crud, set crud routing
-                if($plugin_type == PluginType::CRUD){
+                if ($plugin_type == PluginType::CRUD) {
                     $router->get("oauth", "PluginCrudController@oauth");
                     $router->get("oauthcallback", "PluginCrudController@oauthcallback");
                     $router->get("oauthlogout", "PluginCrudController@oauthlogout");

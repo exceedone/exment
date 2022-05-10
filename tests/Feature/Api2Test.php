@@ -10,7 +10,6 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\OperationLog;
-use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Tests\TestDefine;
 use Carbon\Carbon;
 

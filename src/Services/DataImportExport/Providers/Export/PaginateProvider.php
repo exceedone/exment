@@ -71,12 +71,12 @@ class PaginateProvider extends ProviderBase
     protected function getHeaders()
     {
         // 1st row, column name
-        $rows[] = collect($this->headers)->map(function($header){
+        $rows[] = collect($this->headers)->map(function ($header) {
             return array_get($header, 'key');
         });
 
         // 2st row, column view name
-        $rows[] = collect($this->headers)->map(function($header){
+        $rows[] = collect($this->headers)->map(function ($header) {
             return array_get($header, 'label');
         });
 
@@ -88,17 +88,15 @@ class PaginateProvider extends ProviderBase
      */
     public function getRecords() : Collection
     {
-        if($this->isAll){
+        if ($this->isAll) {
             $records = new Collection;
-            $callback = $this->grid->chunk(function($data) use(&$records)
-            {
+            $callback = $this->grid->chunk(function ($data) use (&$records) {
                 if (is_nullorempty($records)) {
                     $records = new Collection;
                 }
                 $records = $records->merge(collect($data));
             });
-        }
-        else{
+        } else {
             $records = $this->grid->getCurrentPage();
         }
     
@@ -121,7 +119,7 @@ class PaginateProvider extends ProviderBase
             $body_items = [];
             // add items
 
-            foreach($this->headers as $header){
+            foreach ($this->headers as $header) {
                 $body_items[] = array_get((array)$record, array_get($header, 'key'));
             }
             $bodies[] = $body_items;

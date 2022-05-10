@@ -230,7 +230,7 @@ class LoginSettingController extends AdminControllerBase
                 $provider_name = array_get($request->all(), 'options.oauth_provider_type') == 'other' ? array_get($request->all(), 'options.oauth_provider_name') : array_get($request->all(), 'options.oauth_provider_type');
             } elseif ($request->old('login_type') == LoginType::OAUTH) {
                 $provider_name = array_get($request->old(), 'options.oauth_provider_type') == 'other' ? array_get($request->old(), 'options.oauth_provider_name') : array_get($request->old(), 'options.oauth_provider_type');
-            } 
+            }
             if (!is_nullorempty($provider_name)) {
                 LoginServiceBase\OAuth\OAuthService::setLoginSettingForm($provider_name, $form);
             }
@@ -737,7 +737,7 @@ class LoginSettingController extends AdminControllerBase
         $id = $request->route('id');
 
         $form = new Form(new LoginSetting);
-        $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("login.options"), function ($form) use($val) {
+        $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("login.options"), function ($form) use ($val) {
             // Form options area -- start
             $form->html('<div class="form_dynamic_options_response">')->plain();
             LoginServiceBase\OAuth\OAuthService::setLoginSettingForm($val, $form);
@@ -751,5 +751,4 @@ class LoginSettingController extends AdminControllerBase
             'script' => $script,
         ];
     }
-
 }

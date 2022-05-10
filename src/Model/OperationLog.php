@@ -26,5 +26,4 @@ class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
         $user = $this->user;
         return $user ? $user->user_name : null;
     }
-
 }

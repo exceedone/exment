@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services\Plugin;
 use Encore\Admin\Widgets\Box;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
-use Exceedone\Exment\Services\Login\OAuth\OAuthService;
 use App\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -27,7 +26,7 @@ class PluginCrudController extends Controller
     public function index($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -42,13 +41,13 @@ class PluginCrudController extends Controller
      */
     public function show($endpoint = null, $id = null)
     {
-        if(!is_nullorempty($endpoint) && is_nullorempty($id)){
+        if (!is_nullorempty($endpoint) && is_nullorempty($id)) {
             $id = $endpoint;
             $endpoint = null;
         }
 
         $targetClass = $this->getClass($endpoint);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -57,14 +56,14 @@ class PluginCrudController extends Controller
     }
 
     /**
-     * create. 
+     * create.
      *
      * @return void
      */
     public function create($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -74,14 +73,14 @@ class PluginCrudController extends Controller
 
 
     /**
-     * store. 
+     * store.
      *
      * @return void
      */
     public function store($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -91,19 +90,19 @@ class PluginCrudController extends Controller
 
 
     /**
-     * edit. 
+     * edit.
      *
      * @return void
      */
     public function edit($endpoint = null, $id = null)
     {
-        if(!is_nullorempty($endpoint) && is_nullorempty($id)){
+        if (!is_nullorempty($endpoint) && is_nullorempty($id)) {
             $id = $endpoint;
             $endpoint = null;
         }
 
         $targetClass = $this->getClass($endpoint);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -112,19 +111,19 @@ class PluginCrudController extends Controller
     }
 
     /**
-     * update. 
+     * update.
      *
      * @return void
      */
     public function update($endpoint = null, $id = null)
     {
-        if(!is_nullorempty($endpoint) && is_nullorempty($id)){
+        if (!is_nullorempty($endpoint) && is_nullorempty($id)) {
             $id = $endpoint;
             $endpoint = null;
         }
 
         $targetClass = $this->getClass($endpoint);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -133,19 +132,19 @@ class PluginCrudController extends Controller
     }
 
     /**
-     * destroy. 
+     * destroy.
      *
      * @return void
      */
     public function destroy($endpoint = null, $id = null)
     {
-        if(!is_nullorempty($endpoint) && is_nullorempty($id)){
+        if (!is_nullorempty($endpoint) && is_nullorempty($id)) {
             $id = $endpoint;
             $endpoint = null;
         }
 
         $targetClass = $this->getClass($endpoint);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -169,7 +168,7 @@ class PluginCrudController extends Controller
     public function oauth($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint, false, true);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -194,7 +193,7 @@ class PluginCrudController extends Controller
     public function oauthcallback($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint, false, true);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -203,7 +202,7 @@ class PluginCrudController extends Controller
 
             // redirect to root if not multi endpoint.
             $endpoints = $targetClass->getAllEndpoints();
-            if(is_nullorempty($endpoints) || $endpoints->count() == 1){
+            if (is_nullorempty($endpoints) || $endpoints->count() == 1) {
                 return redirect($targetClass->getFullUrl());
             }
             return redirect($targetClass->getFullUrl($endpoints->first()));
@@ -214,7 +213,6 @@ class PluginCrudController extends Controller
         } catch (\Exception $ex) {
             \Log::error($ex);
             throw $ex;
-
         }
     }
 
@@ -227,7 +225,7 @@ class PluginCrudController extends Controller
     public function oauthlogout($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint, false, true);
-        if($targetClass instanceof Response){
+        if ($targetClass instanceof Response) {
             return $targetClass;
         }
 
@@ -245,7 +243,7 @@ class PluginCrudController extends Controller
     }
 
     /**
-     * No Auth page. 
+     * No Auth page.
      *
      * @return void
      */
@@ -255,29 +253,24 @@ class PluginCrudController extends Controller
         
         $content = $targetClass->getContent();
        
-        if(!$targetClass->enableAccessCrud()){
+        if (!$targetClass->enableAccessCrud()) {
             admin_error($targetClass->getCannotAccessTitle(), $targetClass->getCannotAccessMessage());
-        }
-        else{
-
+        } else {
             $authType = $targetClass->getAuthType();
-            if(is_nullorempty($authType)){
+            if (is_nullorempty($authType)) {
                 return $content;
             }
 
-            if($authType == PluginCrudAuthType::KEY){
+            if ($authType == PluginCrudAuthType::KEY) {
                 admin_error(exmtrans('plugin.error.crud_autherror_setting_auth'), exmtrans('plugin.error.crud_autherror_setting_auth_help'));
-            }
-            elseif($authType == PluginCrudAuthType::ID_PASSWORD){
+            } elseif ($authType == PluginCrudAuthType::ID_PASSWORD) {
                 admin_error(exmtrans('plugin.error.crud_autherror_setting_auth'), exmtrans('plugin.error.crud_autherror_setting_auth_help'));
-            }
-            elseif($authType == PluginCrudAuthType::OAUTH){
+            } elseif ($authType == PluginCrudAuthType::OAUTH) {
                 // Get Oauth provider
                 $login_provider = $targetClass->getPluginOptions()->getOauthSetting();
-                if(is_nullorempty($login_provider)){
+                if (is_nullorempty($login_provider)) {
                     admin_error(exmtrans('plugin.error.crud_autherror_setting_auth'), exmtrans('plugin.error.crud_autherror_setting_auth_help'));
-                }
-                else{
+                } else {
                     $box = new Box(exmtrans('plugin.error.crud_autherror_auth'), view('exment::auth.plugin_crud_login', [
                         'form_providers' => [
                             $login_provider->login_provider_name => $login_provider->getLoginButton(),
@@ -302,7 +295,7 @@ class PluginCrudController extends Controller
     protected function getClass(?string $endpoint, bool $isCheckAuthorize = true, bool $isEmptyEndpoint = false)
     {
         $className = $this->pluginPage->getPluginClassName($endpoint, $isEmptyEndpoint);
-        if(!$className){
+        if (!$className) {
             abort(404);
         }
 
@@ -310,7 +303,7 @@ class PluginCrudController extends Controller
         $class->setPluginOptions($this->pluginPage->getPluginOptions())
             ->setEndpoint($endpoint);
 
-        if($isCheckAuthorize && ($response = $this->authorizePlugin($endpoint, $class)) instanceof Response){
+        if ($isCheckAuthorize && ($response = $this->authorizePlugin($endpoint, $class)) instanceof Response) {
             return $response;
         }
         
@@ -324,33 +317,32 @@ class PluginCrudController extends Controller
      */
     protected function authorizePlugin(?string $endpoint, $targetClass)
     {
-        if(!$targetClass->enableAccessCrud()){
+        if (!$targetClass->enableAccessCrud()) {
             return redirect($targetClass->getFullUrl('noauth'));
         }
 
         $authType = $targetClass->getAuthType();
-        if(is_nullorempty($authType)){
+        if (is_nullorempty($authType)) {
             return true;
         }
 
-        if($authType == PluginCrudAuthType::KEY){
+        if ($authType == PluginCrudAuthType::KEY) {
             // get key
             $key = $targetClass->getAuthKey();
-            if(is_nullorempty($key)){
+            if (is_nullorempty($key)) {
                 return redirect($targetClass->getFullUrl('noauth'));
             }
         }
-        if($authType == PluginCrudAuthType::ID_PASSWORD){
+        if ($authType == PluginCrudAuthType::ID_PASSWORD) {
             // get id and password
             $id_password = $targetClass->getAuthIdPassword();
-            if(is_nullorempty(array_get($id_password, 'id')) || is_nullorempty(array_get($id_password, 'password'))){
+            if (is_nullorempty(array_get($id_password, 'id')) || is_nullorempty(array_get($id_password, 'password'))) {
                 return redirect($targetClass->getFullUrl('noauth'));
             }
-        }
-        elseif($authType == PluginCrudAuthType::OAUTH){
+        } elseif ($authType == PluginCrudAuthType::OAUTH) {
             // get token
             $token = $targetClass->getPluginOptions()->getOauthAccessToken();
-            if(is_nullorempty($token)){
+            if (is_nullorempty($token)) {
                 return redirect($targetClass->getFullUrl('noauth'));
             }
         }

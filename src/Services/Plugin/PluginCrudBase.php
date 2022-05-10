@@ -5,11 +5,9 @@ use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Grid\Grid;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Layout\Content;
-use Exceedone\Exment\Services\Plugin\PluginCrud;
 
 /**
  * Plugin CRUD(and List)
@@ -87,7 +85,8 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array|Collection
      */
-    public function getFieldDefinitions(){
+    public function getFieldDefinitions()
+    {
         return [];
     }
 
@@ -126,7 +125,8 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array|Collection
      */
-    public function getData($id, array $options = []){
+    public function getData($id, array $options = [])
+    {
         return collect();
     }
 
@@ -135,7 +135,8 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return Form|null
      */
-    public function setForm(Form $form, bool $isCreate, array $options = []) : ?Form{
+    public function setForm(Form $form, bool $isCreate, array $options = []) : ?Form
+    {
         return null;
     }
     
@@ -144,39 +145,45 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return mixed
      */
-    public function postCreate(array $posts, array $options = []){}
+    public function postCreate(array $posts, array $options = [])
+    {
+    }
 
     /**
      * edit posted value
      *
      * @return mixed
      */
-    public function putEdit($id, array $posts, array $options = []){}
+    public function putEdit($id, array $posts, array $options = [])
+    {
+    }
     
     /**
      * delete value
-     * 
+     *
      * @param $id string
      * @return mixed
      */
-    public function delete($id, array $options = []){}
+    public function delete($id, array $options = [])
+    {
+    }
 
     /**
      * delete value
-     * 
+     *
      * @param $ids array
      * @return mixed
      */
     public function deletes(array $ids, array $options = [])
     {
-        foreach($ids as $id){
+        foreach ($ids as $id) {
             $this->delete($id, $options);
         }
     }
 
     /**
      * Get the value of endpoint
-     */ 
+     */
     public function getEndpoint()
     {
         return $this->endpoint;
@@ -186,7 +193,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Set the value of endpoint
      *
      * @return  self
-     */ 
+     */
     public function setEndpoint($endpoint)
     {
         $this->endpoint = $endpoint;
@@ -196,7 +203,7 @@ abstract class PluginCrudBase extends PluginPublicBase
 
     /**
      * Get target all endpoints
-     * If support multiple endpoints, override function, end return. 
+     * If support multiple endpoints, override function, end return.
      *
      * @return array|null
      */
@@ -214,17 +221,17 @@ abstract class PluginCrudBase extends PluginPublicBase
      */
     public function getPluginClassName(?string $endpoint, bool $isEmptyEndpoint)
     {
-        if($isEmptyEndpoint){
+        if ($isEmptyEndpoint) {
             return get_class($this);
         }
 
         $allEndpoints = $this->getAllEndpoints();
-        if(is_nullorempty($allEndpoints)){
+        if (is_nullorempty($allEndpoints)) {
             return get_class($this);
         }
 
-        foreach($allEndpoints as $allEndpoint){
-            if($allEndpoint == $endpoint){
+        foreach ($allEndpoints as $allEndpoint) {
+            if ($allEndpoint == $endpoint) {
                 return get_class($this);
             }
         }
@@ -367,7 +374,7 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function getPrimaryKey() : string
     {
         $definitions = $this->getFieldDefinitions();
-        return array_get(collect($definitions)->first(function($definition, $key){
+        return array_get(collect($definitions)->first(function ($definition, $key) {
             return array_boolval($definition, 'primary');
         }), 'key');
     }
@@ -669,15 +676,15 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @return Content
      */
     public function getContent() : Content
-    { 
+    {
         $content = new Content();
-        if(!is_nullorempty($title = $this->plugin->getOption('title', $this->getTitle()))){
+        if (!is_nullorempty($title = $this->plugin->getOption('title', $this->getTitle()))) {
             $content->header($title);
         }
-        if(!is_nullorempty($description = $this->plugin->getOption('description', $this->getDescription()))){
+        if (!is_nullorempty($description = $this->plugin->getOption('description', $this->getDescription()))) {
             $content->description($description);
         }
-        if(!is_nullorempty($headericon = $this->plugin->getOption('icon', $this->getIcon()))){
+        if (!is_nullorempty($headericon = $this->plugin->getOption('icon', $this->getIcon()))) {
             $content->headericon($headericon);
         }
 
@@ -688,7 +695,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Get content title
      *
      * @return  string
-     */ 
+     */
     public function getTitle() : ?string
     {
         return $this->title;
@@ -698,7 +705,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Get content description
      *
      * @return  string
-     */ 
+     */
     public function getDescription() : ?string
     {
         return $this->description;
@@ -708,7 +715,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Get content icon
      *
      * @return  string
-     */ 
+     */
     public function getIcon() : ?string
     {
         return $this->icon;

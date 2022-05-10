@@ -30,7 +30,7 @@ trait PluginBase
 
     /**
      * Get the value of pluginOptions
-     */ 
+     */
     public function getPluginOptions()
     {
         return $this->pluginOptions;
@@ -40,7 +40,7 @@ trait PluginBase
      * Set the value of pluginOptions
      *
      * @return  self
-     */ 
+     */
     public function setPluginOptions($pluginOptions)
     {
         $this->pluginOptions = $pluginOptions;

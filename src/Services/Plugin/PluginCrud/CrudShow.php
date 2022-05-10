@@ -59,13 +59,14 @@ class CrudShow extends CrudBase
      * @param Form $form
      * @return void
      */
-    protected function setShowColumn(Form $form){
+    protected function setShowColumn(Form $form)
+    {
         $definitions = collect($this->pluginClass->getFieldDefinitions())
-            ->filter(function($d){
+            ->filter(function ($d) {
                 return array_has($d, 'show');
             })->sortBy('show');
 
-        foreach($definitions as $target){
+        foreach ($definitions as $target) {
             $this->pluginClass->setShowColumnDifinition($form, array_get($target, 'key'), array_get($target, 'label'));
         }
     }
@@ -78,19 +79,17 @@ class CrudShow extends CrudBase
      */
     protected function setShowTools($id, Box $box)
     {
-        // get oauth logout view 
+        // get oauth logout view
         $oauthLogoutView = $this->getOAuthLogoutView();
-        if($oauthLogoutView){
+        if ($oauthLogoutView) {
             $box->tools($oauthLogoutView->render());
         }
         
-        if($this->pluginClass->enableDeleteAll() && $this->pluginClass->enableDelete($id))
-        {
+        if ($this->pluginClass->enableDeleteAll() && $this->pluginClass->enableDelete($id)) {
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }
 
-        if($this->pluginClass->enableEditAll() && $this->pluginClass->enableEdit($id))
-        {
+        if ($this->pluginClass->enableEditAll() && $this->pluginClass->enableEdit($id)) {
             $box->tools(view('exment::tools.button', [
                 'href' => admin_url($this->getFullUrl(url_join($id, 'edit'))),
                 'label' => trans('admin.edit'),

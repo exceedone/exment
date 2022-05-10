@@ -267,18 +267,28 @@ class File extends CustomItem
     
     protected static function getFileOptions($custom_column, $id)
     {
+        $options = [
+            'showPreview' => true,
+            'deleteUrl' => admin_urls('data', $custom_column->custom_table->table_name, $id, 'filedelete'),
+            'deleteExtraData'      => [
+                Field::FILE_DELETE_FLAG         => $custom_column->column_name,
+                '_token'                         => csrf_token(),
+                '_method'                        => 'PUT',
+            ],
+            'deletedEvent' => 'Exment.CommonEvent.CallbackExmentAjax(jqXHR.responseJSON);',
+        ];
+
+        $column_options = $custom_column->options;
+        if (array_key_value_exists('placeholder', $column_options)) {
+            $options['msgPlaceholder'] = array_get($column_options, 'placeholder');
+        }
+        if (array_key_value_exists('dropzone_title', $column_options)) {
+            $options['dropZoneTitle'] = array_get($column_options, 'dropzone_title');
+        }
+
         return array_merge(
             Define::FILE_OPTION(),
-            [
-                'showPreview' => true,
-                'deleteUrl' => admin_urls('data', $custom_column->custom_table->table_name, $id, 'filedelete'),
-                'deleteExtraData'      => [
-                    Field::FILE_DELETE_FLAG         => $custom_column->column_name,
-                    '_token'                         => csrf_token(),
-                    '_method'                        => 'PUT',
-                ],
-                'deletedEvent' => 'Exment.CommonEvent.CallbackExmentAjax(jqXHR.responseJSON);',
-            ]
+            $options
         );
     }
 
