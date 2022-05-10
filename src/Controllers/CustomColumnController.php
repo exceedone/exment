@@ -252,7 +252,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->displayText(function ($val) {
                     return ColumnType::getHtml($val);
                 })->escape(false);
-            $form->internal('column_type')->default($column_type);
+            $form->hidden('column_type')->default($column_type);
         }
 
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item, $id) {
@@ -277,6 +277,10 @@ class CustomColumnController extends AdminControllerTableBase
 
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"))
                 ->help(exmtrans("custom_column.help.placeholder"));
+
+            $form->text('dropzone_title', exmtrans("custom_column.options.dropzone_title"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['file', 'image']])])
+                ->help(exmtrans("custom_column.help.dropzone_title"));
             
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             
