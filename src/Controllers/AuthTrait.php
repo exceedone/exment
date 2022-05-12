@@ -62,6 +62,8 @@ trait AuthTrait
 
         $array['show_default_form'] = $array['show_default_login_provider'] || count($array['form_providers']) > 0;
 
+        $array['login_use_2factor'] = boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor());
+
         return $array;
     }
 

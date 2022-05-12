@@ -28,7 +28,7 @@
                 </div>
                 <div class="row">
                     <div class="col-xs-12 text-center">
-                        @if(config('admin.auth.remember'))
+                        @if(!$login_use_2factor && config('admin.auth.remember'))
                         <div class="checkbox icheck">
                             <label>
                                 <input type="checkbox" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
