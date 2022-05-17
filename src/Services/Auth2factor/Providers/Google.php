@@ -182,6 +182,10 @@ class Google
 
         // set session for 2factor
         session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+        // save skip_2factor cookie
+        if (boolval($request->get('login_2factor_use_cookie', false))) {
+            Auth2factorService::save2FactorSkip();
+        }
         admin_toastr(trans('admin.login_successful'));
 
         return redirect(admin_url(''));

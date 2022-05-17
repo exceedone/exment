@@ -989,6 +989,7 @@ return [
         'login_2factor_provider' => '既定の認証方式',
         'login_2factor_provider_user' => '2段階認証の認証方式',
         'login_2factor_verify_code' => '認証コード',
+        'login_2factor_use_cookie' => 'この端末では次回から入力しない',
 
         'google' => [
             'register_download' => 'Google認証システムインストール',

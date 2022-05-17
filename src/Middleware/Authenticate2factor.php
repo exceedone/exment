@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Middleware;
 use Closure;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 
 class Authenticate2factor extends \Encore\Admin\Middleware\Authenticate
 {
@@ -43,7 +44,7 @@ class Authenticate2factor extends \Encore\Admin\Middleware\Authenticate
 
         // get session
         $auth2factor = session(Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR);
-        if (!boolval($auth2factor)) {
+        if (!boolval($auth2factor) && !Auth2factorService::is2FactorSkip()) {
             return redirect(admin_url('auth-2factor'));
         }
 

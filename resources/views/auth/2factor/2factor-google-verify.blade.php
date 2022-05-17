@@ -15,6 +15,17 @@
                 <input type="text" class="form-control" placeholder="{{ exmtrans('2factor.message.input_number') }}" name="verify_code" value="{{ old('verify_code') }}" required />
             </div>
 
+            <div class="form-group">
+                <div class="col-xs-12 text-center">
+                    <div class="checkbox icheck">
+                        <label>
+                            <input type="checkbox" name="login_2factor_use_cookie" value="1" {{ old('login_2factor_use_cookie') ? 'checked' : '' }}>
+                            {{ exmtrans('2factor.login_2factor_use_cookie') }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-xs-12 col-sm-8 col-sm-offset-2">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">

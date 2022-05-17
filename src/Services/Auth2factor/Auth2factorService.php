@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
+use Illuminate\Support\Facades\Cookie;
 
 /**
  * For login 2 factor
@@ -167,5 +168,27 @@ class Auth2factorService
             ->where('email', $loginuser->email)
             ->where('login_user_id', $loginuser->id)
             ->delete();
+    }
+
+    /**
+     * Save cookie 2factor skip flag
+     *
+     */
+    public static function save2FactorSkip()
+    {
+        // save cookie
+        Cookie::queue('skip_2factor', 'TODO_2FACTOR_SKIP', 5256000);
+    }
+
+    /**
+     * Check if 2factor skip
+     *
+     * @return bool
+     */
+    public static function is2FactorSkip() : bool
+    {
+        // get cookie
+        $skip_2factor = Cookie::get('skip_2factor');
+        return isset($skip_2factor) && $skip_2factor == 'TODO_2FACTOR_SKIP';
     }
 }

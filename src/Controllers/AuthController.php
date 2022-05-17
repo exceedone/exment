@@ -228,6 +228,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         if (!boolval(config('exment.login_use_2factor', false)) || !boolval(System::login_use_2factor())) {
             return;
         }
+        if (Auth2factorService::is2FactorSkip()) {
+            return;
+        }
 
         $auth2factor = Auth2factorService::getProvider();
         $auth2factor->insertVerify();
