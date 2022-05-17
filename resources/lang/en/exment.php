@@ -989,6 +989,7 @@ return [
         'login_2factor_provider' => 'Default Authentication',
         'login_2factor_provider_user' => 'Two-Step Authentication Type',
         'login_2factor_verify_code' => 'Authentication Code',
+        'login_2factor_use_cookie' => 'Do not enter from the next time on this terminal',
 
         'google' => [
             'register_download' => 'Google verification system installation',
