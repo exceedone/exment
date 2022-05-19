@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Auth2factor;
 
 use Exceedone\Exment\Notifications\MailSender;
+use Exceedone\Exment\Notifications\SmsSender;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -95,11 +96,17 @@ class Auth2factorService
      */
     public static function addAndSendVerify($verify_type, $verify_code, $valid_period_datetime, $mail_template, $mail_prms = [])
     {
+        $provider_type = array_get($mail_prms, 'provider_type', Login2FactorProviderType::EMAIL);
+
         static::addVerify($verify_type, $verify_code, $valid_period_datetime);
 
-        // send mail
+        // send verify code
         try {
-            static::sendVerify($mail_template, $mail_prms);
+            if ($provider_type == Login2FactorProviderType::EMAIL) {
+                static::sendVerify($mail_template, $mail_prms);
+            } else {
+                static::sendVerifySms($mail_template, $mail_prms);
+            }
 
             return true;
         }
@@ -157,6 +164,26 @@ class Auth2factorService
         return $sender;
     }
 
+    
+    /**
+     * Send verify to SMS
+     *
+     * @param string|CustomValue $mail_template
+     * @param array $sms_prms
+     * @return MailSender
+     */
+    protected static function sendVerifySms($mail_template, $sms_prms = []) : SmsSender
+    {
+        $loginuser = \Admin::user();
+
+        $telno = $loginuser->base_user->getValue(array_get($sms_prms, 'sms_tel_column'));
+
+        // send sms
+        $sender = SmsSender::make($mail_template, $telno)
+            ->prms($sms_prms);
+        $sender->send();
+        return $sender;
+    }
 
     public static function deleteCode($verify_type, $verify_code)
     {

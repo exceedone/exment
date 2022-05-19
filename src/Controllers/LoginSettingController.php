@@ -603,12 +603,23 @@ class LoginSettingController extends AdminControllerBase
             ->help(exmtrans("2factor.help.login_2factor_provider"))
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
 
+        $form->select('login_2factor_tel_column', exmtrans("2factor.login_2factor_tel_column"))
+            ->options(function ($option) {
+                return CustomTable::getEloquent(SystemTableName::USER)
+                    ->getFilteredTypeColumns(Enums\ColumnType::TEXT)
+                    ->pluck('column_view_name', 'id');
+            })
+            ->disableClear()
+            ->help(exmtrans("2factor.help.login_2factor_tel_column"))
+            ->attribute(['data-filter' => json_encode(['key' => 'login_2factor_provider', 'value' => 'sms'])]);
+
         $form->ajaxButton('login_2factor_verify_button', exmtrans("2factor.submit_verify_code"))
             ->help(exmtrans("2factor.help.submit_verify_code"))
             ->url(route('exment.2factor_verify'))
             ->button_class('btn-sm btn-info')
             ->button_label(exmtrans('2factor.submit_verify_code'))
-            ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
+            ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1']),
+                'data-senddata' => json_encode(['key' => ['login_2factor_provider', 'login_2factor_tel_column']])]);
 
         $form->text('login_2factor_verify_code', exmtrans("2factor.login_2factor_verify_code"))
             ->required()
@@ -673,19 +684,24 @@ class LoginSettingController extends AdminControllerBase
      *
      * @return void
      */
-    public function auth_2factor_verify()
+    public function auth_2factor_verify(Request $request)
     {
         $loginuser = \Admin::user();
 
         // set 2factor params
         $verify_code = random_int(100000, 999999);
         $valid_period_datetime = Carbon::now()->addMinute(60);
+
+        $login_2factor_provider = $request->get('login_2factor_provider');
+        $login_2factor_tel_column = $request->get('login_2factor_tel_column');
         
         // send verify
         try {
             if (!Auth2factorService::addAndSendVerify('system', $verify_code, $valid_period_datetime, MailKeyName::VERIFY_2FACTOR_SYSTEM, [
                 'verify_code' => $verify_code,
                 'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
+                'provider_type' => $login_2factor_provider,
+                'sms_tel_column' => $login_2factor_tel_column,
             ])) {
                 // show warning message
                 return getAjaxResponse([

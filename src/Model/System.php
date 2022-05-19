@@ -63,6 +63,7 @@ use Cache;
 * @method static int|void backup_history_files($arg = null)
 * @method static boolean|void login_use_2factor($arg = null)
 * @method static string|void login_2factor_provider($arg = null)
+* @method static string|void login_2factor_tel_column($arg = null)
 * @method static array|void system_admin_users($arg = null)
 * @method static boolean|void show_default_login_provider($arg = null)
 * @method static boolean|void sso_redirect_force($arg = null)

@@ -135,7 +135,7 @@ class AjaxButton extends Field
                 // get data-key
                 for (let index in senddata_params.key) {
                     let key = senddata_params.key[index];
-                    let elem = parent.find(CommonEvent.getClassKey(key));
+                    let elem = parent.find(Exment.CommonEvent.getClassKey(key));
                     if (elem.length == 0) {
                         continue;
                     }

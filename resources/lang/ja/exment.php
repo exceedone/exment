@@ -989,6 +989,7 @@ return [
         'login_2factor_provider' => '既定の認証方式',
         'login_2factor_provider_user' => '2段階認証の認証方式',
         'login_2factor_verify_code' => '認証コード',
+        'login_2factor_tel_column' => 'SMS送信先電話番号',
 
         'google' => [
             'register_download' => 'Google認証システムインストール',
@@ -1020,11 +1021,13 @@ return [
             'login_2factor_provider' => '既定で使用する、2段階認証の方式を選択してください。この設定は、ユーザーが個別に変更できます。',
             'login_2factor_provider_user' => '2段階認証の方式を選択してください。',
             'login_2factor_verify_code' => '受信した認証コードを、このフォームに入力してください。',
+            'login_2factor_tel_column' => 'SMSの送信先となる電話番号の列を選択してください。',
         ],
 
         '2factor_provider_options' => [
             'email' => 'Eメール認証',
             'google' => 'Google認証システム',
+            'sms' => 'SMS認証',
         ],
     ],
 

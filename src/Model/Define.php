@@ -128,6 +128,7 @@ class Define
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
         'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],
+        'login_2factor_tel_column' => ['group' => '2factor'],
     ];
 
     public const SYSTEM_SKIN = [
