@@ -20,6 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         db: ["mysql", "mariadb"]
+        test: ["feature", "unit", "browser"]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -58,4 +59,4 @@ jobs:
       - name: PHPUnit Test
         working-directory: docker-exment
         run: |
-          docker-compose -f docker-compose.yml exec -T php composer run exment:test
+          docker-compose -f docker-compose.yml exec -T php composer run exment:test:${{ matrix.test }}
