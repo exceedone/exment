@@ -1,13 +1,13 @@
 name: phpunit
 
-on:
-  pull_request:
-    paths:
-      - 'config/**'
-      - 'database/**'
-      - 'resources/**'
-      - 'src/**'
-      - 'tests/**'
+on: [push]
+#  pull_request:
+#    paths:
+#      - 'config/**'
+#      - 'database/**'
+#      - 'resources/**'
+#      - 'src/**'
+#      - 'tests/**'
 
 env:
   DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: ["mysql", "mariadb"]
+        db: ["mysql", "mariadb", "sqlsrv"]
         test: ["feature", "unit", "browser"]
     steps:
       - uses: actions/checkout@v2
@@ -42,7 +42,6 @@ jobs:
       - name: Make ${{ matrix.db }} up
         working-directory: docker-exment
         run: |
-          ls -al
           make ${{ matrix.db }}-up
 
       - name: copy compose.dev.json
