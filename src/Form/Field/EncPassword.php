@@ -8,6 +8,11 @@ namespace Exceedone\Exment\Form\Field;
 class EncPassword extends Password
 {
     /**
+     * @bool update if empty flag
+     */
+    protected $updateIfEmpty = false;
+
+    /**
      * Prepare for a field value before update or insert.
      *
      * @param mixed $value
@@ -17,7 +22,7 @@ class EncPassword extends Password
     public function prepare($value)
     {
         // if don't input by user, return original
-        if (is_nullorempty($value)) {
+        if (!$this->updateIfEmpty && is_nullorempty($value)) {
             return $this->original;
         }
 
@@ -30,6 +35,15 @@ class EncPassword extends Password
      */
     protected function formatValue()
     {
-        $this->value = null;
+        $this->value = trydecrypt($this->value);
+    }
+    
+    /**
+     * set flag update if empty.
+     */
+    public function updateIfEmpty(bool $updateIfEmpty = true)
+    {
+        $this->updateIfEmpty = $updateIfEmpty;
+        return $this;
     }
 }

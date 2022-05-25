@@ -228,6 +228,7 @@ return [
         'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
         'email_multiline' => 'Eメールアドレスでない行が含まれています。',
+        'duplicate_relation' => 'すでに関連付けられているテーブルです。',
         
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
@@ -628,11 +629,16 @@ return [
             'uri' => 'URI',
             'endpoint_page' => 'エンドポイント(ページ)',
             'endpoint_api' => 'エンドポイント(API)',
+            'endpoint_crud' => 'エンドポイント(CRUD)',
             'all_user_enabled' => 'すべてのユーザーが利用可能',
             'export_types' => 'エクスポートの種類',
             'export_description' => '説明文',
             'grid_menu_title' => 'メニューでのタイトル',
             'grid_menu_description' => 'メニューでの説明文',
+            'crud_auth_key' => 'アプリケーション認証キー',
+            'crud_auth_oauth' => 'OAuth種類',
+            'crud_auth_id_password' => 'ログインユーザーID',
+            'crud_auth_id_password_password' => 'ログインユーザーパスワード',
 
             'event_trigger_options' => [
                 'saving' => '保存直前',
@@ -664,6 +670,10 @@ return [
             'endpoint' => 'このプラグインにアクセスするためのエンドポイントです。',
             'grid_menu_title' => 'ビューの設定時にダイアログで表示される、ビューのタイトルを設定してください。',
             'grid_menu_description' => 'ビューの設定時にダイアログで表示される、ビューの説明文を設定してください。',
+            'crud_auth_key' => 'このプラグインでデータ連携を実行するための、アプリケーション認証キーです。このキーの設定がない場合、ページにアクセスできません。',
+            'crud_auth_oauth' => 'このプラグインでデータ連携を実行するために使用する、OAuthプロバイダを選択してください。プラグインでアクセストークンを取得し、データ連携に使用します。<br/>※このプラグインでOAuthプロバイダで認証を実施するためには、以下のURLをプロバイダのコールバックURLに追加してください。<br/>:callback_url',
+            'crud_auth_id_password' => 'このプラグインでデータ連携を実行するために使用する、ログインユーザーのIDを入力してください。',
+            'crud_auth_id_password_password' => 'このプラグインでデータ連携を実行するために使用する、ログインユーザーのパスワードを入力してください。',
         ],
 
         'error' => [
@@ -672,6 +682,12 @@ return [
             'cannot_read' => 'プラグイン :plugin_view_name が正常に読み込めませんでした。プラグインファイル本体を一度ご確認いただくか、システム管理者にお問い合わせください。',
             'class_requirement' => '必須ライブラリがインストールされていませんでした。以下のライブラリを、composerでインストールしてください。 :composer',
             'class_wrongnamespace' => '以下のクラスのnamespaceが誤っている可能性があります。namespace記述を見直してください。 :classes',
+            'crud_autherror_setting' => '設定エラー',
+            'crud_autherror_auth' => '認証エラー',
+            'crud_autherror_setting_auth' => '認証設定エラー',
+            'crud_autherror_common_help' => 'アクセスに必要な設定が行われていません。設定を見直してください。',
+            'crud_autherror_auth_help' => '認証されていないか、認証の有効期限が切れています。<br/>このページを表示するためには、ログインを実施し、認証を行ってください。',
+            'crud_autherror_setting_auth_help' => '認証設定が行われていません。プラグイン設定画面に遷移し、認証設定を行ってください。',
         ],
     
         'plugin_type_options' => [
@@ -689,6 +705,7 @@ return [
             'event' => 'イベント',
             'button' => 'ボタン',
             'view' => 'ビュー',
+            'crud' => 'CRUDページ',
         ],
     ],
 
@@ -887,6 +904,8 @@ return [
         'login_button_background_color_hover' => '背景色(オンマウス)',
         'login_button_font_color' => '文字色',
         'login_button_font_color_hover' => '文字色(オンマウス)',
+
+        'custom_setting' => '独自設定',
         
         'login_test' => 'ログインテスト',
         'login_test_redirect' => 'テスト用リダイレクトURL',
@@ -1280,6 +1299,7 @@ return [
             'default' => '初期値',
             'default_type' => '初期値種類',
             'placeholder' => 'プレースホルダー',
+            'dropzone_title' => 'ドラッグ＆ドロップエリアの表示文言',
             'help' => 'ヘルプ',
             'min_max_width' => '列の幅',
             'text_align' => '一覧の配置',
@@ -1369,6 +1389,7 @@ return [
             'default_type' => 'データを新規登録する時の、初期値の種類を選択できます。',
             'default' => 'データを新規登録する時の、項目の初期値です。',
             'placeholder' => '入力前のフィールドにガイダンスとして薄い色で表示される文字列です。',
+            'dropzone_title' => 'ドラッグ＆ドロップエリアにガイダンスとして薄い色で表示される文字列です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'min_max_width' => '一覧表示する時の、列の幅の最小値と最大値を、整数(px)で入力してください。',
             'text_align' => '一覧表示する時の配置を選択してください。',
@@ -1780,6 +1801,7 @@ return [
         'view_infobox_title' => '情報ボックス-タイトル',
         'view_infobox' => '情報ボックス-本文',
         'pager_count_default' => 'システム設定に合わせる',
+        'header_align' => '列名の配置',
         'custom_view_filters' => 'データ表示条件',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
@@ -1816,6 +1838,12 @@ return [
             'm' => '月毎',
             'd' => '日毎',
             'w' => '曜日毎',
+        ],
+        'align_type_options' => [
+            "inherit" => "カスタム列の設定に合わせる",
+            "left" => "左寄せ",
+            "center" => "中央寄せ",
+            "right" => "右寄せ",
         ],
 
         'summary_condition_options' => [

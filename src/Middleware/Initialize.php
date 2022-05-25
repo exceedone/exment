@@ -386,15 +386,30 @@ class Initialize
 
             // mail setting
             if (!boolval(config('exment.mail_setting_env_force', false))) {
-                $keys = [
-                    'system_mail_host' => 'host',
-                    'system_mail_port' => 'port',
-                    'system_mail_username' => 'username',
-                    'system_mail_password' => 'password',
-                    'system_mail_encryption' => 'encryption',
-                    'system_mail_from' => ['from.address', 'from.name'],
-                    'system_mail_from_view_name' => 'from.name', // If system_mail_from_view_name is not set, from.name set as system_mail_from
-                ];
+                // Here we will check if the "driver" key exists and if it does we will use
+                // the entire mail configuration file as the "driver" config in order to
+                // provide "BC" for any Laravel <= 6.x style mail configuration files.
+                if (!is_nullorempty(Config::get('mail.driver'))) {
+                    $keys = [
+                        'system_mail_host' => 'host',
+                        'system_mail_port' => 'port',
+                        'system_mail_username' => 'username',
+                        'system_mail_password' => 'password',
+                        'system_mail_encryption' => 'encryption',
+                        'system_mail_from' => ['from.address', 'from.name'],
+                        'system_mail_from_view_name' => 'from.name', // If system_mail_from_view_name is not set, from.name set as system_mail_from
+                    ];
+                } else {
+                    $keys = [
+                        'system_mail_host' => 'mailers.smtp.host',
+                        'system_mail_port' => 'mailers.smtp.port',
+                        'system_mail_username' => 'mailers.smtp.username',
+                        'system_mail_password' => 'mailers.smtp.password',
+                        'system_mail_encryption' => 'mailers.smtp.encryption',
+                        'system_mail_from' => ['from.address', 'from.name'],
+                        'system_mail_from_view_name' => 'from.name', // If system_mail_from_view_name is not set, from.name set as system_mail_from
+                    ];
+                }
 
                 foreach ($keys as $keyname => $configname) {
                     if (is_nullorempty($val = System::{$keyname}())) {

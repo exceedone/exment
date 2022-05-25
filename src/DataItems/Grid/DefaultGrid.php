@@ -97,6 +97,8 @@ class DefaultGrid extends GridBase
     public function setGrid($grid)
     {
         $custom_table = $this->custom_table;
+        // set table header attributes
+        $grid->setHeaderAttributes($this->custom_view->getHeaderOptions());
         // get view columns
         $custom_view_columns = $this->custom_view->custom_view_columns_cache;
         foreach ($custom_view_columns as $custom_view_column) {
@@ -110,6 +112,7 @@ class DefaultGrid extends GridBase
                     'grid_column' => true,
                     'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
                     'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                    'header_align' => $this->custom_view->header_align ?? null,
                 ]);
             //$name = $item->indexEnabled() ? $item->index() : $item->uniqueName();
             $className = 'column-' . $item->name();
@@ -122,6 +125,7 @@ class DefaultGrid extends GridBase
                 })
                 ->style($item->gridStyle())
                 ->setClasses($className)
+                ->setHeaderStyle($item->gridHeaderStyle())
                 ->display(function ($v) use ($item) {
                     if (is_null($this)) {
                         return '';
@@ -709,6 +713,10 @@ class DefaultGrid extends GridBase
                 ->options(getPagerOptions(true, $grid_per_pages))
                 ->disableClear()
                 ->default(0);
+
+            $form->select('header_align', exmtrans("custom_view.header_align"))
+                ->options(Enums\TextAlignExType::transArray('custom_view.align_type_options'))
+            ;
         }
 
         // column setting

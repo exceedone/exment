@@ -78,21 +78,53 @@ class OAuthService implements LoginServiceInterface
             return;
         }
 
-        $form->select('oauth_provider_type', exmtrans('login.oauth_provider_type'))
-        ->options(LoginProviderType::transKeyArray('login.oauth_provider_type_options'))
-        ->required()
-        ->attribute(['data-filtertrigger' => true, 'data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
+        if (!isset($login_setting)) {
+            $form->select('oauth_provider_type', exmtrans('login.oauth_provider_type'))
+                ->options(LoginProviderType::transKeyArray('login.oauth_provider_type_options'))
+                ->required()
+                ->attribute(['data-filtertrigger' => true,
+                    'data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]]),
 
-        $login_provider_caution = '<span class="red">' . exmtrans('login.message.oauth_provider_caution', [
-            'url' => getManualUrl('sso'),
-        ]) . '</span>';
-        $form->descriptionHtml($login_provider_caution)
-        ->attribute(['data-filter' => json_encode(['key' => 'options_provider_type', 'value' => [LoginProviderType::OTHER]])]);
+                    'data-changehtml' => json_encode([
+                        [
+                            'url' => admin_urls('login_setting', 'loginOptionHtml'),
+                            'target' => '.form_dynamic_options',
+                            'response' => '.form_dynamic_options_response',
+                            'form_type' => 'option',
+                        ],
+                    ]),
+                ]);
+        
+            $login_provider_caution = '<span class="red">' . exmtrans('login.message.oauth_provider_caution', [
+                'url' => getManualUrl('sso'),
+            ]) . '</span>';
+            $form->descriptionHtml($login_provider_caution)
+            ->attribute(['data-filter' => json_encode(['key' => 'options_provider_type', 'value' => [LoginProviderType::OTHER]])]);
+    
+            $form->text('oauth_provider_name', exmtrans('login.oauth_provider_name'))
+                ->required()
+                ->help(exmtrans('login.help.login_provider_name'))
+                ->attribute([
+                    'data-filtertrigger' => true,
+                    'data-filter' => json_encode(['key' => 'options_oauth_provider_type', 'value' => [LoginProviderType::OTHER]]),
+                    'data-changehtml' => json_encode([
+                        [
+                            'url' => admin_urls('login_setting', 'loginOptionHtml'),
+                            'target' => '.form_dynamic_options',
+                            'response' => '.form_dynamic_options_response',
+                            'form_type' => 'option',
+                        ],
+                    ]),
+                ]);
+        } else {
+            $form->display('oauth_provider_type_text', exmtrans('login.oauth_provider_type'))
+                ->displayText(exmtrans('login.oauth_provider_type_options.' . $login_setting->getOption('oauth_provider_type')));
+            $form->hidden('oauth_provider_type');
 
-        $form->text('oauth_provider_name', exmtrans('login.oauth_provider_name'))
-        ->required()
-        ->help(exmtrans('login.help.login_provider_name'))
-        ->attribute(['data-filter' => json_encode(['key' => 'options_oauth_provider_type', 'value' => [LoginProviderType::OTHER]])]);
+            $form->display('oauth_provider_name_text', exmtrans('login.oauth_provider_name'))
+                ->displayText($login_setting->getOption('oauth_provider_name'));
+            $form->hidden('oauth_provider_name');
+        }
 
         $form->text('oauth_client_id', exmtrans('login.oauth_client_id'))
         ->required()
@@ -128,6 +160,20 @@ class OAuthService implements LoginServiceInterface
     {
         // provider check
         $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, true);
+        return $socialiteProvider->redirect();
+    }
+
+    /**
+     * Execute login for plugin clud
+     *
+     * @param Request $request
+     * @return void
+     */
+    public static function loginPluginClud(Request $request, $login_setting, string $callbackUrl)
+    {
+        // provider get
+        $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, false, $callbackUrl);
+
         return $socialiteProvider->redirect();
     }
 
@@ -178,9 +224,116 @@ class OAuthService implements LoginServiceInterface
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
+
+
+    /**
+     * Get auth for oauth.
+     *
+     * @return string|null
+     */
+    public static function getAccessTokenFromDB(LoginSetting $login_setting) : ?string
+    {
+        // get access token by user setting
+        $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
+        $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
+        $access_token = \Exment::user()->getSettingValue($key);
+        $expires_at = \Exment::user()->getSettingValue($key_expires_at);
+        if (!$access_token || !$expires_at) {
+            return null;
+        }
+
+        // Check whether ex
+        $expiresAt = \Carbon\Carbon::parse($expires_at);
+        if ($expiresAt <= \Carbon\Carbon::now()->addMinute(-1)) {
+            return null;
+        }
+
+        return $access_token;
+    }
     
+
+    /**
+     * Set database and callback auth for oauth.
+     *
+     * @return self
+     */
+    public static function callbackAccessTokenToDB(LoginSetting $login_setting, ?string $callbackUrl) : ?string
+    {
+        try {
+            $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, false, $callbackUrl);
+            // get user
+            $user = $socialiteProvider->user();
+            $token = $user->token;
+            $expiresIn = $user->expiresIn;
+
+            // get Expired at
+            $now = \Carbon\Carbon::now();
+            $expiresAt = $now->addSecond($expiresIn);
+    
+            // get access token by user setting
+            $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
+            $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
+            \Exment::user()->setSettingValue($key, $token);
+            \Exment::user()->setSettingValue($key_expires_at, $expiresAt);
+            return $token;
+        } catch (\Exception $ex) {
+            return null;
+        }
+    }
+
+
+    /**
+     * Clear auth for oauth.
+     *
+     * @return string|null
+     */
+    public static function clearAccessTokenFromDB(LoginSetting $login_setting)
+    {
+        // get access token by user setting
+        $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
+        $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
+        \Exment::user()->forgetSettingValue($key);
+        \Exment::user()->forgetSettingValue($key_expires_at);
+    }
+
+
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting)
     {
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
+    }
+
+    
+
+    /**
+     * Set custom config for login setting controller.
+     *
+     * @param Form $form
+     * @return void
+     */
+    public static function setLoginSettingForm($provider_name, $form)
+    {
+        if (is_nullorempty($provider_name)) {
+            return;
+        }
+
+        // set dummy client id, secret, redirect
+        config(["services.{$provider_name}" => [
+            'client_id' => 'dummy',
+            'client_secret' => 'dummy',
+            'redirect' => 'https://foobar.com',
+        ]]);
+
+        try {
+            $socialiteProvider = \Socialite::with($provider_name);
+        
+            // has instance of
+            if (!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class)) {
+                $form->exmheader(exmtrans('login.custom_setting'))->hr();
+            
+                $socialiteProvider->setLoginSettingForm($form);
+            }
+        } catch (\Exception $ex) {
+            // if not found provider_name in Socialite, nothing.
+        }
     }
 }

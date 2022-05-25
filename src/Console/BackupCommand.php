@@ -45,7 +45,7 @@ class BackupCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return int
      */
     public function handle()
     {
@@ -64,7 +64,7 @@ class BackupCommand extends Command
             return $this->backup->execute($target, $schedule);
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
-            return;
+            return 1;
         } catch (\Exception $e) {
             throw $e;
         } finally {

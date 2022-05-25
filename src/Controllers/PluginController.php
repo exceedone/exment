@@ -6,15 +6,18 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
+use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Illuminate\Http\Request;
 
 class PluginController extends AdminControllerBase
@@ -257,6 +260,29 @@ class PluginController extends AdminControllerBase
                 if ($plugin->matchPluginType(PluginType::API)) {
                     $form->display('endpoint_api', exmtrans("plugin.options.endpoint_api"))->default($plugin->getRootUrl(PluginType::API))->help(exmtrans("plugin.help.endpoint"));
                 }
+                if ($plugin->matchPluginType(PluginType::CRUD)) {
+                    // get all endpoints
+                    $pluginClass = $this->getPluginClass($plugin);
+                    if ($pluginClass) {
+                        // get all url
+                        $urls = [];
+                        $endpoints = $pluginClass->getAllEndpoints();
+                        // If not set endpoints, set empty endpoint.
+                        if (is_nullorempty($endpoints)) {
+                            $urls[] = $plugin->getRootUrl(PluginType::CRUD);
+                        }
+                        // else, set all endpoints.
+                        else {
+                            foreach ($pluginClass->getAllEndpoints() as $endpoint) {
+                                $urls[] = url_join($plugin->getRootUrl(PluginType::CRUD), $endpoint);
+                            }
+                        }
+                        $form->display('endpoint_crud', exmtrans("plugin.options.endpoint_crud"))
+                            ->default(implode("<br/>", $urls))
+                            ->escape(false)
+                            ->help(exmtrans("plugin.help.endpoint"));
+                    }
+                }
             } elseif ($plugin->matchPluginType(PluginType::BATCH) && !$command_only) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
@@ -275,6 +301,29 @@ class PluginController extends AdminControllerBase
                     ->help(exmtrans("plugin.help.grid_menu_description"))
                     ->rules('max:200');
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
+            }
+
+            if ($plugin->matchPluginType(PluginType::CRUD)) {
+                $pluginClass = $this->getPluginClass($plugin);
+                if (isset($pluginClass) && !is_nullorempty($crudAuthType = $pluginClass->getAuthType())) {
+                    if ($crudAuthType == PluginCrudAuthType::KEY) {
+                        $form->text('crud_auth_key', $pluginClass->getAuthSettingLabel())
+                            ->help($pluginClass->getAuthSettingHelp());
+                    } elseif ($crudAuthType == PluginCrudAuthType::ID_PASSWORD) {
+                        $form->text('crud_auth_id', $pluginClass->getAuthSettingLabel())
+                            ->help($pluginClass->getAuthSettingHelp());
+                        $form->encpassword('crud_auth_password', $pluginClass->getAuthSettingPasswordLabel())
+                        ->updateIfEmpty()
+                        ->help($pluginClass->getAuthSettingPasswordHelp());
+                    } elseif ($crudAuthType == PluginCrudAuthType::OAUTH) {
+                        $form->select('crud_auth_oauth')
+                            ->options(function () {
+                                return Model\LoginSetting::where('login_type', LoginType::OAUTH)
+                                    ->pluck('login_view_name', 'id');
+                            })
+                            ->help($pluginClass->getAuthSettingHelp());
+                    }
+                }
             }
 
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
@@ -335,6 +384,7 @@ class PluginController extends AdminControllerBase
         });
         
         $form->disableReset();
+        $form->disableEditingCheck(false);
         return $form;
     }
 
@@ -346,11 +396,7 @@ class PluginController extends AdminControllerBase
      */
     protected function setCustomOptionForm($plugin, &$form)
     {
-        if (!isset($plugin)) {
-            return;
-        }
-        
-        $pluginClass = $plugin->getClass(null, ['throw_ex' => false, 'as_setting' => true]);
+        $pluginClass = $this->getPluginClass($plugin);
         if (!isset($pluginClass)) {
             return;
         }
@@ -359,10 +405,30 @@ class PluginController extends AdminControllerBase
             return;
         }
 
-        
         $form->exmheader(exmtrans("plugin.options.custom_options_header"))->hr();
         $form->embeds('custom_options', exmtrans("plugin.options.custom_options_header"), function ($form) use ($pluginClass) {
             $pluginClass->setCustomOptionForm($form);
         })->disableHeader();
+    }
+
+
+    /**
+     * Get plguin class.
+     * Plugin class is that user defined.
+     *
+     * @return mixed
+     */
+    protected function getPluginClass($plugin)
+    {
+        if (!isset($plugin)) {
+            return;
+        }
+        
+        $pluginClass = $plugin->getClass(null, ['throw_ex' => false, 'as_setting' => true]);
+        if (!isset($pluginClass)) {
+            return null;
+        }
+        
+        return $pluginClass;
     }
 }

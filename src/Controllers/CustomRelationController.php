@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Validator\DuplicateRelationRule;
 
 class CustomRelationController extends AdminControllerTableBase
 {
@@ -149,6 +150,9 @@ class CustomRelationController extends AdminControllerTableBase
             $form->hidden('child_custom_table_id')->default($child_table->id);
             $form->hidden('relation_type')->default($relation_type);
         } else {
+            $validates = ["loopRelation:{$custom_table_id},{$id}"];
+            $validates[] = new DuplicateRelationRule($id);
+
             $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function ($child_custom_table_id) use ($custom_table_id) {
                 return CustomTable::filterList()
                     ->where('id', '<>', $custom_table_id)
@@ -156,7 +160,7 @@ class CustomRelationController extends AdminControllerTableBase
                     ->toArray();
             })
             ->required()
-            ->rules("loopRelation:{$custom_table_id},{$id}");
+            ->rules($validates);
 
             $relation_type_options = RelationType::transKeyArray("custom_relation.relation_type_options");
             $form->select('relation_type', exmtrans("custom_relation.relation_type"))

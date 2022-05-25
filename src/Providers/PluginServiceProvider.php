@@ -96,6 +96,10 @@ class PluginServiceProvider extends ServiceProvider
                 $prefix = $pluginPage->getDashboardUri();
                 $defaultFunction = 'body';
                 break;
+            case PluginType::CRUD:
+                $prefix = $pluginPage->getRouteUri();
+                $defaultFunction = 'index';
+                break;
         }
         $isApi = $plugin_type == PluginType::API;
 
@@ -104,7 +108,28 @@ class PluginServiceProvider extends ServiceProvider
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',
                 'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : ['adminweb', 'admin'],
-            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $json) {
+            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json) {
+                // if crud, set crud routing
+                if ($plugin_type == PluginType::CRUD) {
+                    $router->get("oauth", "PluginCrudController@oauth");
+                    $router->get("oauthcallback", "PluginCrudController@oauthcallback");
+                    $router->get("oauthlogout", "PluginCrudController@oauthlogout");
+                    $router->get("noauth", "PluginCrudController@noauth");
+
+                    $endpoints = $pluginPage->getAllEndpoints();
+                    $key = is_nullorempty($endpoints) ? "" : "{endpoint}";
+
+                    $router->get("{$key}", "PluginCrudController@index");
+                    $router->get("{$key}/create", "PluginCrudController@create");
+                    $router->post("{$key}", "PluginCrudController@store");
+                    $router->get("{$key}/{id}/edit", "PluginCrudController@edit");
+                    $router->put("{$key}/{id}", "PluginCrudController@update");
+                    $router->patch("{$key}/{id}", "PluginCrudController@update");
+                    $router->delete("{$key}/{id}", "PluginCrudController@destroy");
+                    $router->get("{$key}/{id}", "PluginCrudController@show");
+                    return;
+                }
+    
                 $routes = array_get($json, 'route', []);
     
                 // if not has index endpoint, set.
@@ -115,7 +140,7 @@ class PluginServiceProvider extends ServiceProvider
                         'function' => $defaultFunction ?? 'index'
                     ];
                 }
-    
+
                 foreach ($routes as $route) {
                     $method = array_get($route, 'method');
                     $methods = is_string($method) ? [$method] : $method;

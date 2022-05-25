@@ -21,7 +21,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonOptionTrait;
-    
+    use Traits\SerializeDateTrait;
+
     /**
      * @var string
      */
@@ -227,10 +228,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         }
         $json['parent_id'] = $parent_id;
         array_forget($json, 'parent_name');
-        
+
         // convert menu type
         $json['menu_type'] = MenuType::getEnumValue($json['menu_type']);
-        
+
         if (isset($json['menu_target_name'])) {
             // case plugin or table
             switch ($json['menu_type']) {
@@ -347,7 +348,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             'uri' => $uri,
         ];
     }
-    
+
     /**
      * Detach models from the relationship.
      *

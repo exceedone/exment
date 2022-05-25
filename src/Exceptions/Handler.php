@@ -2,7 +2,8 @@
 
 namespace Exceedone\Exment\Exceptions;
 
-use Exception;
+use Laravel\Passport\Exceptions\OAuthServerException;
+use Throwable;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Session\TokenMismatchException;
 
@@ -30,10 +31,10 @@ class Handler extends ExceptionHandler
     /**
      * Report or log an exception.
      *
-     * @param  \Exception  $exception
+     * @param Throwable $exception
      * @return void
      */
-    public function report(Exception $exception)
+    public function report(Throwable $exception)
     {
         parent::report($exception);
     }
@@ -42,12 +43,17 @@ class Handler extends ExceptionHandler
      * Render an exception into an HTTP response.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $exception
+     * @param Throwable $exception
      * @return \Illuminate\Http\Response
+     * @throws Throwable
      */
-    public function render($request, Exception $exception)
+    public function render($request, Throwable $exception)
     {
         return \Exment::error($request, $exception, function ($request, $exception) {
+            if ($exception instanceof OAuthServerException) {
+                return response([
+                    'message' => $exception->getMessage()], 401);
+            }
             if ($request->expectsJson()) {
                 if ($exception instanceof TokenMismatchException) {
                     return response()->json([

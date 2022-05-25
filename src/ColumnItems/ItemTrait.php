@@ -1016,4 +1016,12 @@ trait ItemTrait
     {
         return null;
     }
+
+    /**
+     * get grid header style
+     */
+    public function gridHeaderStyle()
+    {
+        return [];
+    }
 }
