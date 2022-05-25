@@ -392,7 +392,7 @@ class Define
     ];
 
     public const PHP_VERSION = [
-        '7.1.3',
+        '7.3.0',
         '7.5.0',
     ];
 
