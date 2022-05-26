@@ -104,7 +104,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
         // get column
         // if SqlServer, needs cast
-        if ($grammar instanceof \Illuminate\Database\Query\Grammars\SqlServerGrammar) {
+        if (\ExmentDB::isCastColumnCompare()) {
             $tableQuery = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, 'c.id');
             $pluginQuery = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, 'p.id');
         } else {
