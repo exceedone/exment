@@ -43,11 +43,40 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
     /**
      * Compile the query to Create Value Table
      *
-     * @return string
+     * @param  string  $tableName
+     * @return array
      */
     public function compileCreateValueTable(string $tableName)
     {
-        return "create table if not exists {$this->wrapTable($tableName)} (like custom_values INCLUDING ALL)";
+        return [
+            "create table if not exists {$tableName} (like custom_values INCLUDING ALL)",
+            "create sequence {$tableName}_id_seq",
+            "alter table {$tableName} alter id set default nextval('{$tableName}_id_seq')",
+            "alter sequence {$tableName}_id_seq owned by {$tableName}.id"
+        ];
+    }
+
+    /**
+     * Compile the query to get current sequence value.
+     *
+     * @param  string  $sequenceName
+     * @return string
+     */
+    public function compileGetCurrentSequence(string $sequenceName)
+    {
+        return "select last_value from {$sequenceName}";
+    }
+
+    /**
+     * Compile the query to set sequence value.
+     *
+     * @param  string  $sequenceName
+     * @param  integer $value
+     * @return string
+     */
+    public function compileSetSequence(string $sequenceName, int $value)
+    {
+        return "select setval('$sequenceName', $value)";
     }
 
     /**

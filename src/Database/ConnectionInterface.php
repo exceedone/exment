@@ -25,6 +25,13 @@ interface ConnectionInterface
      * @return boolean
      */
     public function isUseUnicodeMultipleColumn() : bool;
+
+    /**
+     * Whether update sequence used for column default value
+     *
+     * @return boolean
+     */
+    public function isUpdateDefaultSequence() : bool;
     
     /**
      * Restore database

@@ -72,6 +72,12 @@ abstract class CustomValue extends ModelBase
     protected $already_updated = false;
 
     /**
+     * update_sequence.
+     * if true, update primary sequence.
+     */
+    protected $update_sequence = false;
+
+    /**
      * label work.
      * get label only first time.
      */
@@ -417,6 +423,11 @@ abstract class CustomValue extends ModelBase
     {
         parent::boot();
 
+        static::creating(function ($model) {
+            if (\ExmentDB::isUpdateDefaultSequence() && isset($model->id)) {
+                $model->update_sequence = true;
+            }
+        });
         static::saving(function ($model) {
             if ($model->disable_saving_event) {
                 return;
@@ -441,6 +452,9 @@ abstract class CustomValue extends ModelBase
             $model->preSave();
         });
         static::created(function ($model) {
+            if ($model->update_sequence) {
+                \Schema::updateDefaultSequence($model->getTable(), $model->id);
+            }
             $model->savedEvent(true);
         });
         static::updated(function ($model) {

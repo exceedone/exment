@@ -331,4 +331,15 @@ trait BuilderTrait
             $results = $this->connection->statement($sql);
         }
     }
+    
+    /**
+     * update sequence for column default.
+     *
+     * @param string $table
+     * @param string $columnName
+     * @return void
+     */
+    public function updateDefaultSequence($table, $columnName = 'id')
+    {
+    }
 }

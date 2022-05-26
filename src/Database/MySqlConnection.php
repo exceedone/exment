@@ -174,6 +174,16 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         return false;
     }
 
+    /**
+     * Whether update sequence used for column default value
+     *
+     * @return boolean
+     */
+    public function isUpdateDefaultSequence() : bool
+    {
+        return false;
+    }
+
     
     /**
      * Restore database

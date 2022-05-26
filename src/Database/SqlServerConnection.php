@@ -95,6 +95,16 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
         return true;
     }
 
+    /**
+     * Whether update sequence used for column default value
+     *
+     * @return boolean
+     */
+    public function isUpdateDefaultSequence() : bool
+    {
+        return false;
+    }
+
     public function backupDatabase($tempDir)
     {
     }
