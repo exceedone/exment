@@ -86,7 +86,12 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
      */
     public function compileCreateRelationValueTable(string $tableName)
     {
-        return "create table if not exists {$this->wrapTable($tableName)} (like custom_relation_values INCLUDING ALL)";
+        return [
+            "create table if not exists {$this->wrapTable($tableName)} (like custom_relation_values INCLUDING ALL)",
+            "create sequence {$tableName}_id_seq",
+            "alter table {$tableName} alter id set default nextval('{$tableName}_id_seq')",
+            "alter sequence {$tableName}_id_seq owned by {$tableName}.id"
+        ];
     }
     
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
