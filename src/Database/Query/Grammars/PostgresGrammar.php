@@ -35,8 +35,9 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
      */
     public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false)
     {
-        $index = $this->wrap($column);
-        $queryStr = "STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\"', ''), ',')";
+        // $index = $this->wrap($column);
+        $index = $this->getCastColumn(DatabaseDataType::TYPE_STRING, $column);
+        $queryStr = "REGEXP_SPLIT_TO_TABLE(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\"', ''), ',')";
 
         // definition table name
         $tableNameAs = "{$tableName}_exists";
@@ -44,16 +45,16 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
         $tableNameWrapAs = $this->wrapTable($tableNameAs);
 
         // CREATE "CROSS APPLY"
-        $fromRaw = "$tableNameWrap as $tableNameWrapAs CROSS APPLY $queryStr AS CROSS_APPLY_TABLE";
+        $fromRaw = "(select id, $queryStr as VALUE from $tableNameWrap) as $tableNameWrapAs";
 
         $func = $isNot ? 'whereNotExists' : 'whereExists';
-        $builder->{$func}(function ($query) use ($values, $fromRaw, $tableNameWrap, $tableNameWrapAs) {
+        $builder->{$func}(function ($query) use ($values, $fromRaw, $tableNameAs, $tableNameWrap, $tableNameWrapAs) {
             $query->select(\DB::raw(1))
                 // fromRaw is wrapped.
                 ->fromRaw($fromRaw)
                 // $tableNameWrapAs and $tableNameWrap is wrapped.
                 ->whereRaw("$tableNameWrapAs.id = $tableNameWrap.id")
-                ->whereIn("CROSS_APPLY_TABLE.value", toArray($values));
+                ->whereIn("$tableNameAs.value", toArray($values));
         });
 
         return $builder;
@@ -217,29 +218,26 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
     public function getDateFormatString($groupCondition, $column, $groupBy = false, $wrap = true)
     {
         if ($wrap) {
-            $column = $this->wrap($column);
+            $column = $this->getCastColumn(DatabaseDataType::TYPE_DATETIME, $column);
         } elseif ($this->isJsonSelector($column)) {
             $column = $this->wrapJsonUnquote($column);
         }
 
         switch ($groupCondition) {
             case GroupCondition::Y:
-                return "format(datepart(YEAR, $column), '0000')";
+                return "to_char($column, 'YYYY')";
             case GroupCondition::YM:
-                return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00')";
+                return "to_char($column, 'YYYY-MM')";
             case GroupCondition::YMD:
-                return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00') + '-' + format(datepart(DAY, $column), '00')";
+                return "to_char($column, 'YYYY-MM-DD')";
             case GroupCondition::M:
-                return "format(datepart(MONTH, $column), '00')";
+                return "to_char($column, 'MM')";
             case GroupCondition::D:
-                return "format(datepart(DAY, $column), '00')";
+                return "to_char($column, 'DD')";
             case GroupCondition::W:
-                if ($groupBy) {
-                    return "datepart(WEEKDAY, $column)";
-                }
-                return $this->getWeekdayCaseWhenQuery("datepart(WEEKDAY, $column)");
+                return "date_part('dow', $column)";
             case GroupCondition::YMDHIS:
-                return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00') + '-' + format(datepart(DAY, $column), '00') + ' ' + format(datepart(HOUR, $column), '00') + ':' + format(datepart(MINUTE, $column), '00') + ':' + format(datepart(SECOND, $column), '00')";
+                return "to_char($column, 'YYYY-MM-DD HH24:MI:SS')";
         }
 
         return null;
@@ -273,43 +271,6 @@ class PostgresGrammar extends BaseGrammar implements GrammarInterface
         }
 
         return null;
-    }
-
-    /**
-     * Get case when query
-     * *Convert starting 0 start*
-     *
-     * @return string
-     */
-    protected function getWeekdayCaseWhenQuery($str)
-    {
-        $queries = [];
-
-        // get weekday and no list
-        $weekdayNos = $this->getWeekdayNolist();
-
-        foreach ($weekdayNos as $no => $weekdayKey) {
-            $queries[] = "when {$no} then '$weekdayKey'";
-        }
-
-        $queries[] = "else ''";
-
-        $when = implode(" ", $queries);
-        return "(case {$str} {$when} end)";
-    }
-
-    protected function getWeekdayNolist()
-    {
-        // fixed mysql server
-        return [
-            '1' => '0',
-            '2' => '1',
-            '3' => '2',
-            '4' => '3',
-            '5' => '4',
-            '6' => '5',
-            '7' => '6',
-        ];
     }
 
     /**

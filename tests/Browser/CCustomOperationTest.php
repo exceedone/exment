@@ -238,6 +238,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         Model\System::clearCache();
 
+        // ToDo：要キャスト対応
         $ids = $target_table->getValueModel()->where('value->currency', '>', 30000)
             ->where('value->user', TestDefine::TESTDATA_USER_LOGINID_DEV_USERB)
             ->where('value->yesno', '<>', 1)

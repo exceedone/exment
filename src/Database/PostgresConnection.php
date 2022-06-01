@@ -75,6 +75,16 @@ class PostgresConnection extends BaseConnection implements ConnectionInterface
     }
 
     /**
+     * Check postgresql
+     *
+     * @return bool
+     */
+    public function isPostgres()
+    {
+        return true;
+    }
+
+    /**
      * Check execute backup database
      *
      * @return bool

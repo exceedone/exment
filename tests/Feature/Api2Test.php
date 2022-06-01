@@ -137,21 +137,27 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
+        $assert_json = [
+            'column_name' => 'parent_organization',
+            'column_view_name' => '親組織',
+            'column_type' => 'organization',
+            "system_flg"=> "1",
+            "order"=> "0",
+            'options' => [
+                "index_enabled"=> "1",
+                "freeword_search"=> "1",
+            ]
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['system_flg'] = true;
+            $assert_json['order'] = 0;
+        }
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'table').'?id=5&expands=columns')
             ->assertStatus(200)
-            ->assertJsonFragment([
-                'column_name' => 'parent_organization',
-                'column_view_name' => '親組織',
-                'column_type' => 'organization',
-                "system_flg"=> "1",
-                "order"=> "0",
-                'options' => [
-                    "index_enabled"=> "1",
-                    "freeword_search"=> "1",
-                ]
-            ])
+            ->assertJsonFragment($assert_json)
             ->assertJsonStructure([
                 'data' => [
                     '*' => [
@@ -283,25 +289,31 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
+        $assert_json = [
+            'column_name' => 'view_flg',
+            'column_view_name' => '表示フラグ',
+            'column_type' => 'yesno',
+            'system_flg'=> '0',
+            'order'=> '0',
+            'options' => [
+                'index_enabled'=> '1',
+                'freeword_search'=> '1',
+                'default'=> '1',
+                'required'=> '1',
+                'help'=> '一覧表示したい場合、YESに設定してください。',
+            ]
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['system_flg'] = false;
+            $assert_json['order'] = 0;
+        }
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'table', 'information', 'columns'))
             ->assertStatus(200)
             ->assertJsonCount(5)
-            ->assertJsonFragment([
-                'column_name' => 'view_flg',
-                'column_view_name' => '表示フラグ',
-                'column_type' => 'yesno',
-                'system_flg'=> '0',
-                'order'=> '0',
-                'options' => [
-                    'index_enabled'=> '1',
-                    'freeword_search'=> '1',
-                    'default'=> '1',
-                    'required'=> '1',
-                    'help'=> '一覧表示したい場合、YESに設定してください。',
-                ]
-            ]);
+            ->assertJsonFragment($assert_json);
     }
 
     public function testGetWrongTableColumns()
@@ -328,22 +340,27 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
+        $assert_json = [
+            'column_name' => 'user',
+            'column_view_name' => '送信対象ユーザー',
+            'column_type' => 'user',
+            'system_flg'=> '1',
+            'order'=> '0',
+            'options' => [
+                'index_enabled'=> '1',
+                'freeword_search' => '1',
+            ]
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['system_flg'] = true;
+            $assert_json['order'] = 0;
+        }
         $column = CustomColumn::getEloquent('user', 'mail_send_log');
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'column', $column->id))
             ->assertStatus(200)
-            ->assertJsonFragment([
-                'column_name' => 'user',
-                'column_view_name' => '送信対象ユーザー',
-                'column_type' => 'user',
-                'system_flg'=> '1',
-                'order'=> '0',
-                'options' => [
-                    'index_enabled'=> '1',
-                    'freeword_search' => '1',
-                ]
-            ]);
+            ->assertJsonFragment($assert_json);
     }
 
     public function testNotFoundGetColumn()
@@ -488,7 +505,11 @@ class Api2Test extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $value = array_get($data[0], 'value');
-        $this->assertMatch(array_get($value, 'user'), '9');
+        if (\ExmentDB::isPostgres()) {
+            $this->assertNull(array_get($value, 'user'));
+        } else {
+            $this->assertMatch(array_get($value, 'user'), '9');
+        }
     }
 
     public function testGetValuesByMultiId()

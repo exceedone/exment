@@ -1297,7 +1297,7 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            return array_get($data, 'updated_user_id') !== TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC;
+            return array_get($data, 'updated_user_id') != TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC;
         });
     }
 

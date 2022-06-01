@@ -49,7 +49,7 @@ class SystemRequireTest extends UnitTestBase
     public function testBackupRestore()
     {
         return $this->_test(SystemRequire\BackupRestore::class, function () {
-            if (!\Exment::isEnableBackup()) {
+            if (!\ExmentDB::isEnableBackup()) {
                 return SystemRequireResult::WARNING;
             }
             return SystemRequireResult::OK;

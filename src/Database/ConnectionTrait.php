@@ -39,6 +39,16 @@ trait ConnectionTrait
     }
 
     /**
+     * Check postgresql
+     *
+     * @return bool
+     */
+    public function isPostgres()
+    {
+        return false;
+    }
+
+    /**
      * Check whether casting column compare
      *
      * @return bool

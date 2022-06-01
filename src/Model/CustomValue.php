@@ -1373,9 +1373,18 @@ abstract class CustomValue extends ModelBase
         // Add join query to child
         RelationTable::setChildJoinManyMany($query, $parent_table, $child_table);
 
-        $query->where(getDBTableName($child_table) . '.id', $this->id)
-            ->select(getDBTableName($parent_table) . '.*')
-            ->distinct();
+        if (\ExmentDB::isPostgres()) {
+            $ids = $query->where(getDBTableName($child_table) . '.id', $this->id)
+                ->select(getDBTableName($parent_table) . '.id')
+                ->distinct()
+                ->get()->pluck('id')->toArray();
+            $query = $parent_table->getValueQuery()
+                ->whereIn('id', $ids);
+        } else {
+            $query->where(getDBTableName($child_table) . '.id', $this->id)
+                ->select(getDBTableName($parent_table) . '.*')
+                ->distinct();
+        }
         return $query->get();
     }
 
