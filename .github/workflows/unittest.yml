@@ -1,13 +1,13 @@
 name: phpunit
 
-on:
-  pull_request:
-    paths:
-      - 'config/**'
-      - 'database/**'
-      - 'resources/**'
-      - 'src/**'
-      - 'tests/**'
+on: [workflow_dispatch]
+#  pull_request:
+#    paths:
+#      - 'config/**'
+#      - 'database/**'
+#      - 'resources/**'
+#      - 'src/**'
+#      - 'tests/**'
 
 env:
   DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
@@ -19,8 +19,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: ["mysql", "mariadb"]
-        test: ["feature", "unit", "browser"]
+        db: ["sqlsrv"]
+        test: ["feature"]
     steps:
       - uses: actions/checkout@v2
         with:
