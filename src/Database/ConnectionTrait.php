@@ -49,6 +49,16 @@ trait ConnectionTrait
     }
 
     /**
+     * Check sqlserver
+     *
+     * @return bool
+     */
+    public function isSqlServer()
+    {
+        return false;
+    }
+
+    /**
      * Check whether casting column compare
      *
      * @return bool

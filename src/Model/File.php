@@ -419,7 +419,12 @@ class File extends ModelBase
             if (!is_uuid($pathOrUuid)) {
                 return null;
             }
-            return static::where('uuid', $pathOrUuid)->first();
+            // TODO provisional support for postgresql
+            if (\ExmentDB::isPostgres()) {
+                return static::whereRaw('uuid::text = ?', $pathOrUuid)->first();
+            } else {
+                return static::where('uuid', $pathOrUuid)->first();
+            }
         };
         $funcPath = function ($pathOrUuid) {
             // get by $dirname, $filename

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\OperationUpdateType;
 use Exceedone\Exment\Enums\OperationValueType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -238,8 +239,16 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         Model\System::clearCache();
 
-        // ToDo：要キャスト対応
-        $ids = $target_table->getValueModel()->where('value->currency', '>', 30000)
+        // ToDo：暫定キャスト対応
+        $query = $target_table->getValueModel();
+        if (\ExmentDB::isPostgres()) {
+            $grammar = \DB::getQueryGrammar();
+            $cast_column = $grammar->getCastColumn(DatabaseDataType::TYPE_INTEGER, "value->currency");
+            $query = $query->whereRaw("$cast_column > 30000");
+        } else {
+            $query = $query->where('value->currency', '>', 30000);
+        }
+        $ids = $query
             ->where('value->user', TestDefine::TESTDATA_USER_LOGINID_DEV_USERB)
             ->where('value->yesno', '<>', 1)
             ->where('value->organization', '<>', TestDefine::TESTDATA_ORGANIZATION_DEV)
@@ -259,7 +268,15 @@ class CCustomOperationTest extends ExmentKitTestCase
             $this->assertEquals($custom_value->getValue('yesno'), '1');
         }
 
-        $err_ids = $target_table->getValueModel()->where('value->currency', '<', 30000)
+        $query = $target_table->getValueModel();
+        if (\ExmentDB::isPostgres()) {
+            $grammar = \DB::getQueryGrammar();
+            $cast_column = $grammar->getCastColumn(DatabaseDataType::TYPE_INTEGER, "value->currency");
+            $query = $query->whereRaw("$cast_column < 30000");
+        } else {
+            $query = $query->where('value->currency', '<', 30000);
+        }
+        $err_ids = $query
             ->where('value->user', TestDefine::TESTDATA_USER_LOGINID_DEV_USERB)
             ->take(2)->pluck('id')->toArray();
 

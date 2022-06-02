@@ -1272,7 +1272,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $data = [];
 
-        $subQuery = $this->getValueModel()->getSearchQuery($q, $options);
+        $subQuery = $this->getValueModel()->getSearchQuery($q, $options)->withoutGlobalScopes();
         if (is_nullorempty($subQuery)) {
             return null;
         }

@@ -20,12 +20,16 @@ class OrderScope implements Scope
 
     public function apply(Builder $builder, Model $model)
     {
+        $table_name = $model->getTable();
+
         if (!$this->hasOrderById($builder, $this->column)) {
-            $builder->orderBy($this->column, $this->direction);
+            $builder->orderBy("$table_name.". $this->column, $this->direction);
         }
 
-        if (!$this->hasOrderById($builder, 'id')) {
-            $builder->orderBy('id', 'asc');
+        $primaryKey = $model->getKeyName();
+
+        if (isset($primaryKey) && $this->column != $primaryKey && !$this->hasOrderById($builder, $primaryKey)) {
+            $builder->orderBy("$table_name.$primaryKey", 'asc');
         }
     }
 

@@ -423,6 +423,11 @@ abstract class CustomValue extends ModelBase
     {
         parent::boot();
 
+        if (config('database.default') !='sqlsrv') {
+            // add default order
+            static::addGlobalScope(new OrderScope((new static)->getKeyName()));
+        }
+
         static::creating(function ($model) {
             if (\ExmentDB::isUpdateDefaultSequence() && isset($model->id)) {
                 $model->update_sequence = true;

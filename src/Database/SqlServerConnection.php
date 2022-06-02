@@ -148,4 +148,14 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
         \DB::statement("DROP VIEW IF EXISTS " . $viewName);
     }
+
+    /**
+     * Check sqlserver
+     *
+     * @return bool
+     */
+    public function isSqlServer()
+    {
+        return true;
+    }
 }
