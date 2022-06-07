@@ -105,7 +105,7 @@ trait CustomViewTrait
         $query = $custom_table->getValueQuery();
         if ($view_kind_type == ViewKindType::AGGREGATE) {
             $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
-            $data = $grid->getQuery($query)->get();
+            $data = $grid->getQuery($query)->withoutGlobalScopes()->get();
         } else {
             $custom_view->filterSortModel($query);
             if ($get_count) {
