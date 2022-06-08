@@ -934,7 +934,9 @@ trait ItemTrait
      */
     protected function getWeekdayFormat($val)
     {
-        $queries = [];
+        if (is_null($val)) {
+            return null;
+        }
 
         // get weekday and no list
         $weekdayNos = $this->getWeekdayNolist();
