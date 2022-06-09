@@ -68,12 +68,6 @@ class Restore
 
             $result = 0;
 
-            // restore table definition
-            $this->restoreDatabase();
-
-            // import tsv file to table
-            $this->importTsv();
-
             // copy directory to temporary folder
             if (!$this->copyFiles()) {
                 $result = -1;
@@ -81,6 +75,12 @@ class Restore
 
             // copy env
             $this->updateEnv();
+
+            // restore table definition
+            $this->restoreDatabase();
+
+            // import tsv file to table
+            $this->importTsv();
 
             System::clearCache();
             

@@ -67,12 +67,15 @@ class BackupController extends AdminControllerBase
             ];
         }
 
+        $is_postgres = \ExmentDB::isPostgres();
+
         $rows = $this->restore->list();
 
         $content->row(view(
             'exment::backup.index',
             [
                 'files' => $rows,
+                'restore_enabled' => !$is_postgres,
                 'restore_keyword' => Define::RESTORE_CONFIRM_KEYWORD,
                 'restore_text' => exmtrans('common.message.execution_takes_time') . exmtrans('backup.message.restore_confirm_text') . exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD),
                 'editname_text' => exmtrans('backup.message.edit_filename_text'),
@@ -81,6 +84,10 @@ class BackupController extends AdminControllerBase
 
         // create setting form
         $content->row($this->settingFormBox());
+
+        if ($is_postgres) {
+            admin_warning_once(exmtrans('backup.disabled_restore'), exmtrans('backup.message.disabled_restore'));
+        }
 
         
         return $content;
