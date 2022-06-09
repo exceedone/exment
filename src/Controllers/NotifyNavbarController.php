@@ -30,7 +30,8 @@ class NotifyNavbarController extends AdminControllerBase
     {
         $grid = new Grid(new NotifyNavbar);
         $grid->column('read_flg', exmtrans('notify_navbar.read_flg'))->sortable()->display(function ($read_flg) {
-            return exmtrans("notify_navbar.read_flg_options.$read_flg");
+            $value = boolval($read_flg) ? '1' : '0';
+            return exmtrans("notify_navbar.read_flg_options.$value");
         });
         $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->display(function ($parent_type) {
             if (is_null($parent_type) || is_null($custom_table = CustomTable::getEloquent($parent_type))) {
