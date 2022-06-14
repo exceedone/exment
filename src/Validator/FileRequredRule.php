@@ -3,13 +3,13 @@ namespace Exceedone\Exment\Validator;
 
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
-use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ImplicitRule;
 
 /**
  * FileRequredRule.
  * Required file. If has $custom_value, then alway return true.
  */
-class FileRequredRule implements Rule
+class FileRequredRule implements ImplicitRule
 {
     protected $custom_column;
 
