@@ -26,6 +26,44 @@ And execute this command.
 composer update
 ```
 
+- If the root of your project contains phpunit.xml, open the file.  
+After that, if the following description is included, comment it out.
+
+``` xml
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true">
+    <php>
+        <!-- <server name="DB_CONNECTION" value="sqlite"/> --> <!-- Add Comment -->
+        <!-- <server name="DB_DATABASE" value=":memory:"/> --> <!-- Add Comment -->
+    </php>
+</phpunit>
+```
+
+- The test does API, but in some cases it seems to get 429 errors (Too Many Requests).  
+Open app\Http\Kernel.php and modify the following description.
+
+``` php
+     protected $middlewareGroups = [
+        'web' => [
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            // \Illuminate\Session\Middleware\AuthenticateSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+
+        'api' => [
+            'throttle:60000,1', // Change large value
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+    ];
+```
+
+
 
 ## Create test data
 

@@ -26,6 +26,43 @@ composer require dms/phpunit-arraysubset-asserts=~0.3
 composer update
 ```
 
+- プロジェクトのルートに、phpunit.xmlが含まれていた場合、ファイルを開きます。  
+その後、以下の記述が含まれていた場合、コメントアウトします。
+
+``` xml
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true">
+    <php>
+        <!-- <server name="DB_CONNECTION" value="sqlite"/> --> <!-- コメントアウト -->
+        <!-- <server name="DB_DATABASE" value=":memory:"/> --> <!-- コメントアウト -->
+    </php>
+</phpunit>
+```
+
+- テストではAPIを施しますが、場合により、429エラー(Too Many Requests)が発生するようです。  
+app\Http\Kernel.phpを開き、以下の記述を修正してください。
+
+``` php
+     protected $middlewareGroups = [
+        'web' => [
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            // \Illuminate\Session\Middleware\AuthenticateSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+
+        'api' => [
+            'throttle:60000,1', // 値を大きな数に変更
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+    ];
+```
+
 
 
 ## テストデータ作成
