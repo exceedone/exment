@@ -39,7 +39,6 @@
         "composer/composer": "^2.0",
         "exceedone/laravel-admin": "dev-feature/php8_laravel8",
         "kylekatarnls/update-helper": "^1.2",
-        "renatomarinho/laravel-page-speed": "^2.0.0",
         "laravel/socialite": "^5.2",
         "fideloper/proxy": "^4.0"
     },
