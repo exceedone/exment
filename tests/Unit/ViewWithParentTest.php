@@ -549,6 +549,7 @@ class ViewWithParentTest extends TestCase
             }
             $parent = $data?->getParentValue();
             $user = $data?->getValue('user');
+            if (is_null($user)) return false;
             return strpos($user?->getValue('user_name'), 'user') !== 0 &&
                 $parent?->getValue('text') != 'test_2';
         }, $options);
