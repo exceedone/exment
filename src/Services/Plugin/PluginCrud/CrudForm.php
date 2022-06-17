@@ -121,13 +121,11 @@ class CrudForm extends CrudBase
         /////validation error
         // If $validateResult is array, has items
         $isError = false;
-        if(is_list($validateResult)){
+        if (is_list($validateResult)) {
             $isError = count($validateResult) > 0;
-        }
-        elseif($validateResult instanceof MessageBag){
+        } elseif ($validateResult instanceof MessageBag) {
             $isError = $validateResult->any();
-        }
-        elseif($validateResult instanceof ExmentCustomValidator){
+        } elseif ($validateResult instanceof ExmentCustomValidator) {
             $isError = $validateResult->fails();
             $validateResult = $validateResult->getMessages();
         }
