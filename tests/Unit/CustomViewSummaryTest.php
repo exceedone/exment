@@ -933,8 +933,8 @@ class CustomViewSummaryTest extends UnitTestBase
                 }
 
                 if (!empty($summary['key']) && isset($column_data)) {
-                    if (is_array(json_decode($summary['key']))) {
-                        return isMatchArray($column_data, json_decode($summary['key']));
+                    if (is_array(json_decode_ex($summary['key']))) {
+                        return isMatchArray($column_data, json_decode_ex($summary['key']));
                     } elseif (is_array($column_data)) {
                         return false;
                     } elseif ($column_data instanceof \Carbon\Carbon) {

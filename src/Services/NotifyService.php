@@ -217,7 +217,7 @@ class NotifyService
         $mail_template_id = $request->get('mail_template_id');
 
         // get target users
-        $target_user_keys = json_decode($request->get('target_users'), true);
+        $target_user_keys = json_decode_ex($request->get('target_users'), true);
         
         if (!isset($mail_key_name) || !isset($mail_template_id)) {
             abort(404);

@@ -170,7 +170,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'table'))
             ->assertStatus(200);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
 
         $this->assertTrue(!\is_nullorempty($data));
@@ -485,7 +485,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'data', 'custom_value_access_all').'?orderby=user%20desc,id%20asc')
             ->assertStatus(200);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $value = array_get($data[0], 'value');
         $this->assertMatch(array_get($value, 'user'), '9');
@@ -551,7 +551,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit').'?count=1000')
             ->assertStatus(200);
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         // get ids
         $ids = collect(array_get($json, 'data'))->map(function ($j) {
             return array_get($j, 'id');
@@ -637,7 +637,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid))
             ->assertStatus(200);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $column_definitions = array_get($json, 'column_definitions');
         $user_key = collect($column_definitions)->filter(function ($val) {
@@ -683,7 +683,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid).'?valuetype=text')
             ->assertStatus(200);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $column_definitions = array_get($json, 'column_definitions');
         $user_key = collect($column_definitions)->filter(function ($val) {
@@ -707,7 +707,7 @@ class Api2Test extends ApiTestBase
 
         $check_data = $custom_view->getQueryData();
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $column_definitions = array_get($json, 'column_definitions');
         $id_key = collect($column_definitions)->filter(function ($val) {
@@ -729,7 +729,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'viewdata', TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $custom_view->suuid, 3))
             ->assertStatus(200);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $data = array_get($json, 'value');
         $column_definitions = array_get($json, 'column_definitions');
         $id_key = collect($column_definitions)->filter(function ($val) {
@@ -1456,7 +1456,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query').'?q=index_001&count=100')
             ->assertStatus(200);
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         // get ids
         $ids = collect(array_get($json, 'data'))->map(function ($j) {
             return array_get($j, 'id');
@@ -1514,7 +1514,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query-column').'?q=odd_even%20eq%20odd&count=1000')
             ->assertStatus(200);
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         // get ids
         $ids = collect(array_get($json, 'data'))->map(function ($j) {
             return array_get($j, 'id');
@@ -1849,7 +1849,7 @@ class Api2Test extends ApiTestBase
         ])
         ->assertStatus(201);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $this->assertTrue(array_has($json, 'url'));
         $this->assertTrue(array_has($json, 'created_at'));
         $this->assertTrue(array_has($json, 'created_user_id'));
@@ -1868,7 +1868,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'document', 'custom_value_edit', 1))
         ->assertStatus(200);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $data = collect(array_get($json, 'data'))->first();
 
         $this->assertMatch(array_get($data, 'url'), $document->url);
@@ -1907,7 +1907,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'files', $document->file_uuid . '?base64=1'))
         ->assertStatus(200);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
 
         $this->assertMatch(array_get($json, 'name'), $document->label);
         $this->assertMatch(array_get($json, 'base64'), base64_encode(TestDefine::FILE_TESTSTRING));
@@ -2323,7 +2323,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls_query('api', 'log', $filters))
             ->assertStatus(200);
 
-        $results = json_decode($response->baseResponse->getContent(), true)['data'];
+        $results = json_decode_ex($response->baseResponse->getContent(), true)['data'];
         foreach ($results as $result) {
             foreach ($filters as $key => $value) {
                 if ($key == 'count') {
@@ -2360,7 +2360,7 @@ class Api2Test extends ApiTestBase
 
     protected function assertFileUrl($token, $response)
     {
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
 
         // get file url as uuid
@@ -2368,7 +2368,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', $id . '?valuetype=text'))
         ->assertStatus(200);
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $url = array_get($json, 'value.file');
         $this->assertTrue(isset($url));
 
@@ -2386,7 +2386,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', $id))
         ->assertStatus(200);
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $path = array_get($json, 'value.file');
         $this->assertTrue(isset($path));
 
@@ -2402,7 +2402,7 @@ class Api2Test extends ApiTestBase
 
     protected function assertFilesUrl($token, $response, $matchValues)
     {
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
 
         // get file url as uuid
@@ -2410,7 +2410,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $id . '?valuetype=text'))
         ->assertStatus(200);
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $urls = array_get($json, 'value.file_multiple');
         $this->assertTrue(isset($urls));
         $this->assertMatch(count(stringToArray($urls)), count($matchValues));
@@ -2431,7 +2431,7 @@ class Api2Test extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, $id))
         ->assertStatus(200);
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $paths = array_get($json, 'value.file_multiple');
         $this->assertTrue(isset($paths));
         $this->assertMatch(count($paths), count($matchValues));

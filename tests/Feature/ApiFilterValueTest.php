@@ -1298,7 +1298,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $response = $this->response->getContent();
         $this->assertTrue(is_json($response), "response is not json. response is $response");
 
-        $json = json_decode($response, true);
+        $json = json_decode_ex($response, true);
         $html = array_get($json, 'html');
 
         // check element result

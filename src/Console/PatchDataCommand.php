@@ -624,7 +624,7 @@ class PatchDataCommand extends Command
         $templates_data_path = exment_package_path('system_template');
         $configPath = "$templates_data_path/config.json";
 
-        $json = json_decode(\File::get($configPath), true);
+        $json = json_decode_ex(\File::get($configPath), true);
 
         // re-loop columns. because we have to get other column id --------------------------------------------------
         foreach (array_get($json, "custom_tables", []) as $table) {
@@ -800,7 +800,7 @@ class PatchDataCommand extends Command
         $viewRoles = [];
         foreach ($valueRoles as $valueRole) {
             $val = (array)$valueRole;
-            $permissions = json_decode($val['permissions'], true);
+            $permissions = json_decode_ex($val['permissions'], true);
             if (array_has($permissions, 'custom_value_edit')) {
                 $editRoles[] = $val['id'];
             } else {
@@ -1277,7 +1277,7 @@ class PatchDataCommand extends Command
                 }
 
                 $isUpdate = false;
-                $json = json_decode($input, true);
+                $json = json_decode_ex($input, true);
                 if (is_nullorempty($json)) {
                     continue;
                 }
@@ -1590,7 +1590,7 @@ class PatchDataCommand extends Command
             }
 
             if (!is_array($calc_formulas) && is_json($calc_formulas)) {
-                $calc_formulas = json_decode($calc_formulas, true);
+                $calc_formulas = json_decode_ex($calc_formulas, true);
             } elseif (is_string($calc_formulas)) {
                 return true;
             }

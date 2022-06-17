@@ -832,7 +832,7 @@ if (!function_exists('jsonToArray')) {
         }
         // convert json to array
         if (!is_array($value) && is_json($value)) {
-            return json_decode($value, true);
+            return json_decode_ex($value, true);
         }
         return $value;
     }
@@ -929,7 +929,7 @@ if (!function_exists('arrayToString')) {
 if (!function_exists('is_json')) {
     function is_json($string)
     {
-        return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+        return is_string($string) && is_array(json_decode_ex($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
     }
 }
 
@@ -1741,6 +1741,28 @@ if (!function_exists('admin_exclusion_path')) {
                 }
                 return $escaped;
             }, $str);
+        }
+    }
+    
+    if (!function_exists('json_decode_ex')) {
+        /**
+         * Wrapper for json_decode that throws when an error occurs.
+         *
+         * @param array|string $json    JSON data to parse
+         * @param bool   $assoc   When true, returned objects will be converted
+         *                        into associative arrays.
+         * @param int    $depth   User specified recursion depth.
+         * @param int    $options Bitmask of JSON decode options.
+         *
+         * @return object|array|string|int|float|bool|null
+         */
+        function json_decode_ex($json, bool $assoc = false, int $depth = 512, int $options = 0)
+        {
+            if (is_null($json) || is_array($json)) {
+                return $json;
+            }
+
+            return json_decode_ex($json, $assoc, $depth, $options);
         }
     }
 }

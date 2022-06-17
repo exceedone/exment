@@ -220,7 +220,7 @@ class Exment
             $latest = null;
             $current = null;
             if (isset($version_json)) {
-                $version = json_decode($version_json, true);
+                $version = json_decode_ex($version_json, true);
                 $latest = array_get($version, 'latest');
                 $current = array_get($version, 'current');
             }
@@ -233,7 +233,7 @@ class Exment
                 }
 
                 $contents = \File::get($composer_lock);
-                $json = json_decode($contents, true);
+                $json = json_decode_ex($contents, true);
                 if (!$json) {
                     return [null, null];
                 }
@@ -273,7 +273,7 @@ class Exment
                     return [null, null];
                 }
 
-                $json = json_decode($contents, true);
+                $json = json_decode_ex($contents, true);
                 if (!$json) {
                     return [null, null];
                 }

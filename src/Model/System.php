@@ -332,7 +332,7 @@ class System extends ModelBase
             } elseif ($type == 'datetime') {
                 $value = is_null($value) ? null : new Carbon($value);
             } elseif ($type == 'json') {
-                $value = is_null($value) ? [] : json_decode($value);
+                $value = is_null($value) ? [] : json_decode_ex($value);
             } elseif ($type == 'array') {
                 $value = is_null($value) ? [] : array_filter(explode(',', $value));
             } elseif ($type == 'file') {
