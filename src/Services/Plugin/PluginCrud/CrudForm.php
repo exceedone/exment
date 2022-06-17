@@ -1,11 +1,13 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
-use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
+use Illuminate\Support\MessageBag;
+use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 
 /**
  * Form for Plugin CRUD(and List)
@@ -116,9 +118,19 @@ class CrudForm extends CrudBase
         // validate
         $validateResult = $this->pluginClass->validate($form, $values, $isCreate, $id);
 
-        //ToDo:validation error
-        if ($validateResult->any()) {
-            return back()->withInput($values);
+        /////validation error
+        // If $validateResult is array, has items
+        $isError = false;
+        if (is_list($validateResult)) {
+            $isError = count($validateResult) > 0;
+        } elseif ($validateResult instanceof MessageBag) {
+            $isError = $validateResult->any();
+        } elseif ($validateResult instanceof ExmentCustomValidator) {
+            $isError = $validateResult->fails();
+            $validateResult = $validateResult->getMessages();
+        }
+        if ($isError) {
+            return back()->withErrors($validateResult)->withInput($values);
         }
 
         // save value

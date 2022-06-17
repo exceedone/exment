@@ -663,13 +663,13 @@ class SelectTable extends CustomItem
     }
 
 
-    protected function setCustomColumnOptionFormSelectTable(&$form, bool $isUserOrg = false)
+    protected function setCustomColumnOptionFormSelectTable(&$form, string $user_org = null)
     {
         $id = request()->route('id');
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
         // define select-target table
         
-        if (!$isUserOrg) {
+        if (is_nullorempty($user_org)) {
             if (!isset($id)) {
                 $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
                 ->help(exmtrans("custom_column.help.select_target_table"))
@@ -749,14 +749,14 @@ class SelectTable extends CustomItem
         $manual_url = getManualUrl('data_import_export?id='.exmtrans('custom_column.help.select_import_column_id_key'));
         $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
             ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
-            ->options(function ($select_table, $field) use ($id, $custom_table) {
-                return SelectTable::getImportExportColumnSelect($custom_table, $select_table, $field, $id);
+            ->options(function ($select_table, $field) use ($id, $custom_table, $user_org) {
+                return SelectTable::getImportExportColumnSelect($custom_table, $select_table, $field, $id, $user_org);
             });
 
         $form->select('select_export_column_id', exmtrans("custom_column.options.select_export_column_id"))
             ->help(exmtrans("custom_column.help.select_export_column_id"))
-            ->options(function ($select_table, $field) use ($id, $custom_table) {
-                return SelectTable::getImportExportColumnSelect($custom_table, $select_table, $field, $id, false);
+            ->options(function ($select_table, $field) use ($id, $custom_table, $user_org) {
+                return SelectTable::getImportExportColumnSelect($custom_table, $select_table, $field, $id, $user_org, false);
             });
 
         $form->switchbool('select_load_ajax', exmtrans("custom_column.options.select_load_ajax"))
@@ -773,7 +773,7 @@ class SelectTable extends CustomItem
      *
      * @return array
      */
-    protected static function getImportExportColumnSelect($custom_table, $value, $field, $id, $isImport = true)
+    protected static function getImportExportColumnSelect($custom_table, $value, $field, $id, $column_type, $isImport = true)
     {
         if (is_nullorempty($field)) {
             return [];
@@ -785,8 +785,11 @@ class SelectTable extends CustomItem
         } elseif (isset($id) || old('column_type')) {
             $model = CustomColumn::getEloquent($id);
         }
-        if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
-            return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions([
+        if (isset($model)) {
+            $column_type = $model->column_type;
+        }
+        if (isset($column_type) && in_array($column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
+            return CustomTable::getEloquent($column_type)->getColumnsSelectOptions([
                 'index_enabled_only' => $isImport,
                 'include_system' => false,
             ]) ?? [];

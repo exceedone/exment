@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Encore\Admin\Form;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 
@@ -25,7 +26,7 @@ class Organization extends SelectTable
      */
     public function setCustomColumnOptionForm(&$form)
     {
-        $this->setCustomColumnOptionFormSelectTable($form, true);
+        $this->setCustomColumnOptionFormSelectTable($form, ColumnType::ORGANIZATION);
 
         $form->switchbool('showing_all_user_organizations', exmtrans("custom_column.options.showing_all_user_organizations"))
             ->help(exmtrans("custom_column.help.showing_all_user_organizations"))
