@@ -82,6 +82,8 @@ class CCustomViewTest extends ExmentKitTestCase
         $raw = CustomView::orderBy('created_at', 'desc')->first();
         $id = array_get($raw, 'id');
 
+        Model\System::clearRequestSession();
+        
         // Update custom view
         $this->visit(admin_url('view/exmenttest_view/'. $id . '/edit'))
             ->seeInField('view_view_name', '新しいビュー')

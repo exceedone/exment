@@ -361,6 +361,8 @@ class PluginTest extends TestCase
             $this->assertTrue(false, 'This batch excepts error, but not throw exception.');
         } catch (\Exception $ex) {
             $this->assertTrue(true);
+        } catch (\Throwable $ex) {
+            $this->assertTrue(true);
         }
     }
 }
