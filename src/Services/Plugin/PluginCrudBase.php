@@ -1,13 +1,14 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 
-use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Grid\Grid;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Encore\Admin\Widgets\Grid\Grid;
+use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Layout\Content;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 
 /**
  * Plugin CRUD(and List)
@@ -663,7 +664,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Validate form
      *
      * @param WidgetForm $form
-     * @return void
+     * @return array|MessageBag|ExmentCustomValidator
      */
     public function validate(WidgetForm $form, array $values, bool $isCreate, $id)
     {
