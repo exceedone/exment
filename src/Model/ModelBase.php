@@ -235,4 +235,15 @@ class ModelBase extends Model
     {
         return in_array($key, $this->getGuarded()) || $this->getGuarded() == ['*'];
     }
+    
+    /**
+     * Prepare a date for array / JSON serialization.
+     *
+     * @param  \DateTimeInterface  $date
+     * @return string
+     */
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format($this->getDateFormat());
+    }
 }
