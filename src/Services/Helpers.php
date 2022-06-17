@@ -533,7 +533,7 @@ if (!function_exists('getFullpath')) {
         if (is_string($disk)) {
             $disk = Storage::disk($disk);
         }
-        $path = $disk->getDriver()->getAdapter()->applyPathPrefix($filename);
+        $path = $disk->getAdapter()->applyPathPrefix($filename);
 
         if ($mkdir) {
             $dirPath = pathinfo($path)['dirname'];

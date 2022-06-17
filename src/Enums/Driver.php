@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Enums;
 
+use Illuminate\Filesystem\FilesystemAdapter;
 use League\Flysystem\Filesystem;
 use Exceedone\Exment\Storage\Adapter;
 
@@ -65,6 +66,7 @@ class Driver extends EnumBase
             }
         }
         $adaper = $classname::getAdapter($app, $config, $driverKey);
-        return new Filesystem($adaper);
+        $filesystem = new Filesystem($adaper, $config);
+        return new FilesystemAdapter($filesystem, $adaper, $config);
     }
 }
