@@ -44,7 +44,7 @@ class ApiDataController extends AdminControllerTableBase
             return abortJson(404);
         }
         
-        return call_user_func_array([$this, $method], $parameters);
+        return $this->{$method}(...array_values($parameters));
     }
 
     // custom_value --------------------------------------------------

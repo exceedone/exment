@@ -34,7 +34,7 @@ class PluginApiController extends Controller
         }
 
         // create html
-        $result = call_user_func_array([$this->pluginApi, $method], $parameters);
+        $result = call_user_func_array([$this->pluginApi, $method], array_values($parameters));
 
         return $result;
     }
