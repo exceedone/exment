@@ -1762,7 +1762,7 @@ if (!function_exists('admin_exclusion_path')) {
                 return $json;
             }
 
-            return json_decode_ex($json, $assoc, $depth, $options);
+            return json_decode($json, $assoc, $depth, $options);
         }
     }
 }
