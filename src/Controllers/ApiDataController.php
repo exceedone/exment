@@ -316,7 +316,7 @@ class ApiDataController extends AdminControllerTableBase
             $custom_values[] = $custom_value;
         }
         
-        \DB::transaction(function () use ($custom_values, $forceDelete) {
+        \ExmentDB::transaction(function () use ($custom_values, $forceDelete) {
             foreach ($custom_values as $custom_value) {
                 if ($forceDelete) {
                     $custom_value->forceDelete();

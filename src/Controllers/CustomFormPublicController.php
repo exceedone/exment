@@ -620,7 +620,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $json = $importer->getJsonFromZip($file);
 
         $public_form = null;
-        \DB::transaction(function () use (&$public_form, $json, $request) {
+        \ExmentDB::transaction(function () use (&$public_form, $json, $request) {
             // new json ignored notify
             $json_ignored = array_get($json, 'public_form');
             array_forget($json_ignored, ['notify_complete_admin', 'notify_complete_user', 'notify_error']);

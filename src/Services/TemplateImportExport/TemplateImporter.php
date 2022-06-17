@@ -637,7 +637,7 @@ class TemplateImporter
     {
         System::clearCache();
         
-        DB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
+        \ExmentDB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
             // tables for default form and views
             $createDefaultTables = [];
 

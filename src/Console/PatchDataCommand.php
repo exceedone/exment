@@ -290,7 +290,7 @@ class PatchDataCommand extends Command
         $json = $template->getMergeJson();
 
         try {
-            \DB::transaction(function () use ($json, $target_column_name, $target_table_name) {
+            \ExmentDB::transaction(function () use ($json, $target_column_name, $target_table_name) {
                 // re-loop columns. because we have to get other column id --------------------------------------------------
                 foreach (array_get($json, "custom_tables", []) as $table) {
                     // find tables. --------------------------------------------------
@@ -1139,7 +1139,7 @@ class PatchDataCommand extends Command
             return;
         }
 
-        \DB::transaction(function () {
+        \ExmentDB::transaction(function () {
             // modify custom table file column
             CustomTable::all()->each(function ($custom_table) {
                 $dbName = getDBTableName($custom_table);
@@ -1435,7 +1435,7 @@ class PatchDataCommand extends Command
             return;
         }
 
-        \DB::transaction(function () use ($classes) {
+        \ExmentDB::transaction(function () use ($classes) {
             foreach ($classes as $c) {
                 $c::all()->each(function ($v) {
                     if (!is_nullorempty($v->suuid)) {
@@ -1936,7 +1936,7 @@ class PatchDataCommand extends Command
         $custom_table_user = CustomTable::getEloquent(SystemTableName::USER);
         $custom_table_organization = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
 
-        \DB::transaction(function () use ($custom_table_user, $custom_table_organization) {
+        \ExmentDB::transaction(function () use ($custom_table_user, $custom_table_organization) {
             CustomColumn::get()
             ->each(function ($custom_column) use ($custom_table_user, $custom_table_organization) {
                 if ($custom_column->column_type != Enums\ColumnType::SELECT_TABLE) {
@@ -1969,7 +1969,7 @@ class PatchDataCommand extends Command
      */
     protected function setFileType()
     {
-        \DB::transaction(function () {
+        \ExmentDB::transaction(function () {
             // get file_type is null
             Model\File::whereNull('file_type')->get()
             ->each(function ($file) {
@@ -2004,7 +2004,7 @@ class PatchDataCommand extends Command
      */
     protected function patchCustomViewSummaryViewPivot()
     {
-        \DB::transaction(function () {
+        \ExmentDB::transaction(function () {
             $classNames = [CustomViewSummary::class, CustomViewColumn::class];
             foreach ($classNames as $className) {
                 // get all CustomViewSummary
@@ -2062,7 +2062,7 @@ class PatchDataCommand extends Command
      */
     protected function patchNotifyTime()
     {
-        \DB::transaction(function () {
+        \ExmentDB::transaction(function () {
             // get all CustomViewSummary
             Notify::where('notify_trigger', Enums\NotifyTrigger::TIME)
             ->get()
@@ -2121,7 +2121,7 @@ class PatchDataCommand extends Command
      */
     protected function setFileParent()
     {
-        \DB::transaction(function () {
+        \ExmentDB::transaction(function () {
             $column_key = CustomColumn::getEloquent('file_uuid', SystemTableName::DOCUMENT)->getQueryKey();
             // get file_type is null
             Model\File::where('file_type', '2')->whereNull('parent_id')->get()
@@ -2150,7 +2150,7 @@ class PatchDataCommand extends Command
         if (!$user_table) {
             return;
         }
-        \DB::transaction(function () use ($user_table) {
+        \ExmentDB::transaction(function () use ($user_table) {
             foreach ($user_table->custom_columns as $custom_column) {
                 switch ($custom_column->column_name) {
                     case 'user_code':
