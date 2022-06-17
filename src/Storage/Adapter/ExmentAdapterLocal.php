@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Storage\Adapter;
 
-use League\Flysystem\Adapter\Local;
+use League\Flysystem\Local\LocalFilesystemAdapter as Local;
 
 class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
 {
