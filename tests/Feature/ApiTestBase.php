@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
-use Tests\TestCase;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\PublicForm;
@@ -12,7 +11,7 @@ use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\TestDefine;
 
-abstract class ApiTestBase extends TestCase
+abstract class ApiTestBase extends FeatureTestBase
 {
     use TestTrait;
 

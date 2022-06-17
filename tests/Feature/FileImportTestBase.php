@@ -2,13 +2,12 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
-use Tests\TestCase;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 
-abstract class FileImportTestBase extends TestCase
+abstract class FileImportTestBase extends FeatureTestBase
 {
     use ImportTrait, TestTrait;
 
