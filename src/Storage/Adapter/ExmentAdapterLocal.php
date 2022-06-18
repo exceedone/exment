@@ -38,16 +38,4 @@ class ExmentAdapterLocal extends LocalFilesystemAdapter implements ExmentAdapter
     {
         return [];
     }
-
-    /**
-     * Prefix a path.
-     *
-     * @param string $path
-     *
-     * @return string prefixed path
-     */
-    public function applyPathPrefix(string $path) : string
-    {
-        return $this->localPrefixer->prefixPath($path);
-    }
 }

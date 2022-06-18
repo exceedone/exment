@@ -63,7 +63,6 @@ trait AdapterTrait
      */
     protected function getPrefixer() : PathPrefixer
     {
-        $foo = new foo();
         $reflectionClass = new \ReflectionClass(get_class($this));
         return $reflectionClass->getProperty('prefixer');
     }

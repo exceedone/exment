@@ -10,6 +10,17 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
     use AdapterTrait;
     
     /**
+     * Override EXTRA_METADATA_FIELDS because EXTRA_METADATA_FIELDS is private
+     * @var string[]
+     */
+    protected const EXTRA_METADATA_FIELDS = [
+        'Metadata',
+        'StorageClass',
+        'ETag',
+        'VersionId',
+    ];
+
+    /**
      * get adapter class
      */
     public static function getAdapter($app, $config, $driverKey)
@@ -43,17 +54,5 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
         return [
             'bucket' => config('exment.rootpath.s3.' . $mergeFrom),
         ];
-    }
-
-    /**
-     * Prefix a path.
-     *
-     * @param string $path
-     *
-     * @return string prefixed path
-     */
-    public function applyPathPrefix(string $path) : string
-    {
-        return $this->localPrefixer->prefixPath($path);
     }
 }

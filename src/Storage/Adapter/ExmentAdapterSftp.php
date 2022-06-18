@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\PhpseclibV2\SftpAdapter;
+use League\Flysystem\PhpseclibV2\SftpConnectionProvider;
+use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
 
 class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
 {
@@ -17,7 +19,12 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
         $mergeConfig = static::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);
         $mergeConfig['driver'] = 'sftp';
 
-        $driver = new self($mergeConfig);
+        $driver = new self(
+            SftpConnectionProvider::fromArray($mergeConfig), 
+            array_get($mergeConfig, 'root')
+            //,
+            //PortableVisibilityConverter::fromArray(array_get($mergeConfig, 'permissions'))
+        );
         return $driver;
     }
     

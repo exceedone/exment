@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\Ftp\FtpAdapter;
+use League\Flysystem\Ftp\FtpConnectionOptions;
 
 class ExmentAdapterFtp extends FtpAdapter implements ExmentAdapterInterface
 {
@@ -17,7 +18,7 @@ class ExmentAdapterFtp extends FtpAdapter implements ExmentAdapterInterface
         $mergeConfig = static::mergeFileConfig('filesystems.disks.ftp', "filesystems.disks.$mergeFrom", $mergeFrom);
         $mergeConfig['driver'] = 'ftp';
 
-        $driver = new self($mergeConfig);
+        $driver = new self(FtpConnectionOptions::fromArray($mergeConfig));
         return $driver;
     }
     
