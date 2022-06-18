@@ -39,7 +39,8 @@
         "composer/composer": "^2.0",
         "exceedone/laravel-admin": "dev-feature/php8_laravel9",
         "kylekatarnls/update-helper": "^1.2",
-        "laravel/socialite": "^5.2"
+        "laravel/socialite": "^5.2",
+        "psr/simple-cache": "^2.0"
     },
     "require-dev": {
         "symfony/css-selector": "~5.2",
