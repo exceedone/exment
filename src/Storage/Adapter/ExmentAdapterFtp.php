@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Storage\Adapter;
 
-use League\Flysystem\Adapter\Ftp;
+use League\Flysystem\Ftp\FtpAdapter;
 
-class ExmentAdapterFtp extends Ftp implements ExmentAdapterInterface
+class ExmentAdapterFtp extends FtpAdapter implements ExmentAdapterInterface
 {
     use AdapterTrait;
     

@@ -12,4 +12,13 @@ interface ExmentAdapterInterface
     public static function getAdapter($app, $config, $driverKey);
 
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array;
+    
+    /**
+     * Prefix a path.
+     *
+     * @param string $path
+     *
+     * @return string prefixed path
+     */
+    public function applyPathPrefix(string $path) : string;
 }

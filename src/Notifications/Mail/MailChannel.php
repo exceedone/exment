@@ -42,8 +42,14 @@ class MailChannel
                     ->to($mailMessage->getTo())
                     ->cc($mailMessage->getCc())
                     ->bcc($mailMessage->getBcc())
-                    ->subject($mailMessage->getSubject())
-                    ->setBody($mailMessage->getBody(), $mailMessage->getBodyType());
+                    ->subject($mailMessage->getSubject());
+
+                if($mailMessage->getBodyType() == 'text/plain'){
+                    $message->text($mailMessage->getBody());
+                }
+                else{
+                    $message->html($mailMessage->getBody());
+                }
                 
                 $this->setAttachments($message, $mailMessage, $tmpZipPath);
             });

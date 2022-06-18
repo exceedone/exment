@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Storage\Adapter;
 
-use League\Flysystem\Sftp\SftpAdapter;
+use League\Flysystem\PhpseclibV2\SftpAdapter;
 
 class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
 {

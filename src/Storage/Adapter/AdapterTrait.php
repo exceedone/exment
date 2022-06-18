@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Storage\Adapter;
 
 use Exceedone\Exment\Model\File;
+use League\Flysystem\PathPrefixer;
 
 /**
  *
@@ -51,5 +52,30 @@ trait AdapterTrait
         }
 
         return $baseConfig;
+    }
+
+
+    /**
+     * Get PathPrefixer.
+     * $prefixer is private, so we have to get this property forcibly.
+     *
+     * @return PathPrefixer
+     */
+    protected function getPrefixer() : PathPrefixer
+    {
+        $foo = new foo();
+        $reflectionClass = new \ReflectionClass(get_class($this));
+        return $reflectionClass->getProperty('prefixer');
+    }
+    
+    /**
+     * Prefix a path.
+     *
+     * @param string $path
+     *
+     * @return string prefixed path
+     */
+    public function applyPathPrefix(string $path) : string{
+        return $this->getPrefixer()->prefixPath($path);
     }
 }

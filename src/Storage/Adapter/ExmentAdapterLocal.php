@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Storage\Adapter;
 
-use League\Flysystem\Local\LocalFilesystemAdapter as Local;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
-class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
+class ExmentAdapterLocal extends LocalFilesystemAdapter implements ExmentAdapterInterface
 {
     use AdapterTrait;
     
@@ -37,5 +37,17 @@ class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array
     {
         return [];
+    }
+
+    /**
+     * Prefix a path.
+     *
+     * @param string $path
+     *
+     * @return string prefixed path
+     */
+    public function applyPathPrefix(string $path) : string
+    {
+        return $this->localPrefixer->prefixPath($path);
     }
 }
