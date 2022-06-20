@@ -28,6 +28,7 @@ use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Finder\Finder;
+use League\Flysystem\PathPrefixer;
 
 /**
  * Class Admin.
@@ -1075,5 +1076,31 @@ class Exment
         }
 
         return $result;
+    }
+
+    
+    /**
+     * Prefix a path.
+     *
+     * @param string $path
+     *
+     * @return string prefixed path
+     */
+    public function getPathPrefix($adapeer, string $path) : string{
+        return $this->getPrefixer($adapeer)->prefixPath($path);
+    }
+
+    /**
+     * Get PathPrefixer.
+     * From filesystem 3.0, $prefixer is private, so we have to get this property forcibly.
+     *
+     * @return PathPrefixer
+     */
+    protected function getPrefixer($adapeer) : PathPrefixer
+    {
+        $reflectionClass = new \ReflectionClass($adapeer);
+        $property = $reflectionClass->getProperty('prefixer');
+        $property->setAccessible(true);
+        return $property->getValue($adapeer);
     }
 }
