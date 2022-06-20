@@ -1560,7 +1560,7 @@ if (!function_exists('downloadFile')) {
     function downloadFile($path, $disk)
     {
         $driver = $disk->getDriver();
-        $metaData = $driver->getMetadata($path);
+        $type = $driver->mimeType($path);
         $stream = $driver->readStream($path);
 
         // get page name
@@ -1575,7 +1575,7 @@ if (!function_exists('downloadFile')) {
             },
             200,
             [
-                'Content-Type' => $metaData['type'],
+                'Content-Type' => $type,
                 'Content-disposition' => "attachment; filename*=UTF-8''$name",
             ]
         );
