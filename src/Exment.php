@@ -1096,11 +1096,11 @@ class Exment
      *
      * @return PathPrefixer
      */
-    protected function getPrefixer($adapeer) : PathPrefixer
+    protected function getPrefixer($adapter) : PathPrefixer
     {
-        $reflectionClass = new \ReflectionClass($adapeer);
+        $reflectionClass = new \ReflectionClass($adapter);
         $property = $reflectionClass->getProperty('prefixer');
         $property->setAccessible(true);
-        return $property->getValue($adapeer);
+        return $property->getValue($adapter);
     }
 }
