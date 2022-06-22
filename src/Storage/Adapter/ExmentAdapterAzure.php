@@ -14,8 +14,7 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
      */
     public static function getAdapter($app, $config, $driverKey)
     {
-        $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = static::mergeFileConfig('filesystems.disks.azure', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig = static::getConfig($config);
 
         $key = "DefaultEndpointsProtocol=https;AccountName=" . array_get($mergeConfig, 'account') . ";AccountKey=" . array_get($mergeConfig, 'key') . ";";
         $client = BlobRestProxy::createBlobService($key);
@@ -27,5 +26,18 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
         return [
             'container' => config('exment.rootpath.azure.' . $mergeFrom),
         ];
+    }
+
+    /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array
+    {
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.azure', "filesystems.disks.$mergeFrom", $mergeFrom);
+        return $mergeConfig;
     }
 }

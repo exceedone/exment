@@ -15,9 +15,7 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
      */
     public static function getAdapter($app, $config, $driverKey)
     {
-        $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = static::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);
-        $mergeConfig['driver'] = 'sftp';
+        $mergeConfig = static::getConfig($config);
 
         $driver = new self(
             SftpConnectionProvider::fromArray($mergeConfig), 
@@ -33,5 +31,19 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
         return [
             'root' => config('exment.rootpath.sftp.' . $mergeFrom),
         ];
+    }
+    
+    /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array
+    {
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig['driver'] = 'sftp';
+        return $mergeConfig;
     }
 }

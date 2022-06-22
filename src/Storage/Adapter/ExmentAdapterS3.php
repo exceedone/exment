@@ -25,8 +25,7 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
      */
     public static function getAdapter($app, $config, $driverKey)
     {
-        $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = static::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig = static::getConfig($config);
 
         // create client config
         $clientConfig = [
@@ -54,5 +53,18 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
         return [
             'bucket' => config('exment.rootpath.s3.' . $mergeFrom),
         ];
+    }
+
+    /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array
+    {
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
+        return $mergeConfig;
     }
 }

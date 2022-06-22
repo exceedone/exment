@@ -66,6 +66,9 @@ class Driver extends EnumBase
             }
         }
         $adaper = $classname::getAdapter($app, $config, $driverKey);
+
+        // Merge config
+        $config = $classname::getConfig($config);
         $filesystem = new Filesystem($adaper, $config);
         return new FilesystemAdapter($filesystem, $adaper, $config);
     }

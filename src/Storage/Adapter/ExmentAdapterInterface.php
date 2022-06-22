@@ -14,6 +14,14 @@ interface ExmentAdapterInterface
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array;
     
     /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array;
+
+    /**
      * Prefix a path.
      *
      * @param string $path

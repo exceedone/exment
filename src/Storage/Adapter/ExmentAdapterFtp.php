@@ -14,10 +14,8 @@ class ExmentAdapterFtp extends FtpAdapter implements ExmentAdapterInterface
      */
     public static function getAdapter($app, $config, $driverKey)
     {
-        $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = static::mergeFileConfig('filesystems.disks.ftp', "filesystems.disks.$mergeFrom", $mergeFrom);
-        $mergeConfig['driver'] = 'ftp';
-
+        $mergeConfig = static::getConfig($config);
+        
         $driver = new self(FtpConnectionOptions::fromArray($mergeConfig));
         return $driver;
     }
@@ -27,5 +25,19 @@ class ExmentAdapterFtp extends FtpAdapter implements ExmentAdapterInterface
         return [
             'root' => config('exment.rootpath.ftp.' . $mergeFrom),
         ];
+    }
+
+    /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array
+    {
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.ftp', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig['driver'] = 'ftp';
+        return $mergeConfig;
     }
 }
