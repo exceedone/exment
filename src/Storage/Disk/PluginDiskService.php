@@ -96,11 +96,11 @@ class PluginDiskService extends DiskServiceBase
         $localSyncDisk = $localSyncDiskItem->disk();
 
         /// get directory
-        $dirFullPath = $diskItem->dirFullPath();
+        $dirName = $diskItem->dirName();
         $localSyncDirName = $localSyncDiskItem->dirName();
 
         // get file list
-        $files = $disk->allFiles($dirFullPath);
+        $files = $disk->allFiles($dirName);
         foreach ($files as $file) {
             // copy from crowd to local
             $stream = $disk->readStream($file);

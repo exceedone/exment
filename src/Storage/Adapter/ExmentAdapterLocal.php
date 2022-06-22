@@ -28,14 +28,25 @@ class ExmentAdapterLocal extends LocalFilesystemAdapter implements ExmentAdapter
      */
     public static function getAdapter($app, $config, $driverKey)
     {
-        $mergeFrom = array_get($config, 'mergeFrom');
-        $config = static::mergeFileConfig('filesystems.disks.local', "filesystems.disks.$mergeFrom", $mergeFrom);
-
-        return new self(array_get($config, 'root'));
+        $mergeConfig = static::getConfig($config);
+        return new self(array_get($mergeConfig, 'root'));
     }
     
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array
     {
         return [];
+    }
+
+    /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array
+    {
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $config = static::mergeFileConfig('filesystems.disks.local', "filesystems.disks.$mergeFrom", $mergeFrom);
+        return $config;
     }
 }
