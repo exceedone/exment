@@ -158,6 +158,7 @@ class Restore
                     try {
                         fclose($stream);
                     } catch (\Exception $ex) {
+                    } catch (\Throwable $ex) {
                     }
                 }
             }
