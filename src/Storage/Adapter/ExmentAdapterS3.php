@@ -65,6 +65,9 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
     {
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = static::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
+        if (!array_key_exists('ACL', $mergeConfig)) {
+            $mergeConfig['ACL'] = 'private';
+        }
         return $mergeConfig;
     }
 }
