@@ -53,15 +53,4 @@ trait AdapterTrait
         return $baseConfig;
     }
 
-
-    /**
-     * Prefix a path.
-     *
-     * @param string $path
-     *
-     * @return string prefixed path
-     */
-    public function applyPathPrefix(string $path) : string{
-        return \Exment::getPathPrefix($this, $path);
-    }
 }
