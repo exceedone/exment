@@ -63,7 +63,7 @@ trait ImportValueTrait
         // find value function
         $findFunc = function ($v, ...$keys) {
             foreach ($keys as $key) {
-                if (strcmp($v, $key) == 0) {
+                if (strcmp_ex($v, $key) == 0) {
                     return $key;
                 }
             }

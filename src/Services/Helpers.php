@@ -863,7 +863,7 @@ if (!function_exists('stringToArray')) {
             return $value->toArray();
         }
 
-        $array = explode(',', $value);
+        $array = explode_ex(',', $value);
 
         return collect($array)->map(function ($a) {
             return trim($a);
@@ -990,7 +990,7 @@ if (!function_exists('isMatchString')) {
         if (is_array($v1) || is_array($v2)) {
             return false;
         }
-        return strcmp($v1, $v2) == 0;
+        return strcmp_ex($v1, $v2) == 0;
     }
 }
 
@@ -1006,7 +1006,7 @@ if (!function_exists('isMatchDecimal')) {
     {
         $v1 = rtrim((strpos($v1, ".") !== false ? rtrim($v1, "0") : $v1), ".");
         $v2 = rtrim((strpos($v2, ".") !== false ? rtrim($v2, "0") : $v2), ".");
-        return strcmp($v1, $v2) == 0;
+        return strcmp_ex($v1, $v2) == 0;
     }
 }
 
@@ -1225,7 +1225,7 @@ if (!function_exists('explodeBreak')) {
      */
     function explodeBreak($text)
     {
-        return explode("\r\n", preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "\r\n", $text));
+        return explode_ex("\r\n", preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "\r\n", $text));
     }
 }
 
