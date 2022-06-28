@@ -70,7 +70,7 @@ if (!function_exists('esc_html')) {
      */
     function esc_html($str)
     {
-        return htmlspecialchars($str, ENT_QUOTES|ENT_HTML5);
+        return htmlspecialchars_ex($str, ENT_QUOTES|ENT_HTML5);
     }
 }
 
@@ -132,7 +132,7 @@ if (!function_exists('is_nullorempty')) {
         if (is_null($obj)) {
             return true;
         }
-        if (is_string($obj) && strlen($obj) == 0) {
+        if (is_string($obj) && strlen_ex($obj) == 0) {
             return true;
         }
         if (is_array($obj) && count($obj) == 0) {
@@ -216,7 +216,7 @@ if (!function_exists('hex2rgb')) {
         if (substr($hex, 0, 1) == "#") {
             $hex = substr($hex, 1) ;
         }
-        if (strlen($hex) == 3) {
+        if (strlen_ex($hex) == 3) {
             $hex = substr($hex, 0, 1) . substr($hex, 0, 1) . substr($hex, 1, 1) . substr($hex, 1, 1) . substr($hex, 2, 1) . substr($hex, 2, 1) ;
         }
         return array_map("hexdec", [ substr($hex, 0, 2), substr($hex, 2, 2), substr($hex, 4, 2) ]) ;
@@ -551,7 +551,7 @@ if (!function_exists('mb_basename')) {
     {
         $tmp = preg_split('/[\/\\\\]/', $str);
         $res = end($tmp);
-        if (strlen($suffix)) {
+        if (strlen_ex($suffix)) {
             $suffix = preg_quote($suffix);
             $res = preg_replace("/({$suffix})$/u", "", $res);
         }
@@ -1040,6 +1040,9 @@ if (!function_exists('rstrpos')) {
      */
     function rstrpos(?string $haystack, ?string $needle, ?int $offset = 0)
     {
+        $haystack = $haystack?? '';
+        $needle = $needle?? '';
+
         $result = strrpos($haystack, $needle, $offset);
         if ($result === false) {
             return $result;
@@ -1078,7 +1081,7 @@ if (!function_exists('make_password')) {
         }
         $str = '';
         for ($i = 0; $i < $length; ++$i) {
-            $str .= $chars[mt_rand(0, strlen($chars) -1)];
+            $str .= $chars[mt_rand(0, strlen_ex($chars) -1)];
         }
         return $str;
     }
@@ -1097,7 +1100,7 @@ if (!function_exists('make_randomstr')) {
         
         $str = '';
         for ($i = 0; $i < $length; ++$i) {
-            $str .= $chars[mt_rand(0, strlen($chars) -1)];
+            $str .= $chars[mt_rand(0, strlen_ex($chars) -1)];
         }
         return $str;
     }
@@ -1698,7 +1701,7 @@ if (!function_exists('admin_exclusion_path')) {
         $prefix = trim(config('admin.route.prefix'), '/');
 
         if (starts_with($path, $prefix)) {
-            $path = substr($path, strlen($prefix));
+            $path = substr($path, strlen_ex($prefix));
         }
 
         $path = trim($path, '/');
@@ -1738,7 +1741,7 @@ if (!function_exists('admin_exclusion_path')) {
             return preg_replace_callback("/((?:[^\x09\x0A\x0D\x20-\x7E]{3})+)/", function ($matches) {
                 $char = mb_convert_encoding($matches[1], "UTF-16", "UTF-8");
                 $escaped = "";
-                for ($i = 0, $l = strlen($char); $i < $l; $i += 2) {
+                for ($i = 0, $l = strlen_ex($char); $i < $l; $i += 2) {
                     $escaped .=  "\u" . sprintf("%02x%02x", ord($char[$i]), ord($char[$i+1]));
                 }
                 return $escaped;

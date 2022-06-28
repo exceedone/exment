@@ -29,7 +29,7 @@ class Select extends CustomItem
         $select_options = $this->custom_column->createSelectOptions();
         // if $value is array
         $multiple = true;
-        if (!is_array($v) && preg_match('/\[.+\]/i', $v)) {
+        if (!is_array($v) && preg_match_ex('/\[.+\]/i', $v)) {
             $v = json_decode_ex($v);
         }
         if (!is_array($v)) {

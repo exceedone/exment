@@ -269,7 +269,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public static function getEloquent($id, $withs = [])
     {
-        if (strlen($id) == 20) {
+        if (strlen_ex($id) == 20) {
             return static::getEloquentDefault($id, $withs, 'suuid');
         }
 
