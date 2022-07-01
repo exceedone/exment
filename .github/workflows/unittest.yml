@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: ["mysql", "mariadb"]
+        db: ["mysql", "mariadb", "sqlsrv"]
         test: ["feature", "unit", "browser"]
     steps:
       - uses: actions/checkout@v2
