@@ -1,0 +1,53 @@
+name: phpstan
+
+on: [push]
+#  pull_request:
+#    paths:
+#      - 'config/**'
+#      - 'database/**'
+#      - 'resources/**'
+#      - 'src/**'
+#      - 'tests/**'
+
+env:
+  DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: oreno4649/exment-boilerplate
+
+jobs:
+  exment-analyse:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
+          path: ./docker-exment
+
+      - uses: actions/checkout@v2
+        with:
+          repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
+          path: ./docker-exment/exment-boilerplate
+
+      - uses: actions/checkout@v2
+        with:
+          path: ./docker-exment/exment-boilerplate/exment
+
+      - name: Docker Compose Version
+        run: docker-compose --version
+
+      - name: copy compose.dev.json
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
+          docker-compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
+
+      - name: setup phpstan
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php composer install
+          docker-compose -f docker-compose.yml exec -T php composer --dev nunomaduro/larastan=~1.0
+          docker-compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
+
+      - name: run phpstan
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php ./vendor/bin/phpstan analyse
