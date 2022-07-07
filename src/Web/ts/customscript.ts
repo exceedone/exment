@@ -5,7 +5,8 @@ namespace Exment {
     const EVENT_FORM_LOADED = 'exment:form_loaded';
     const EVENT_LIST_LOADED = 'exment:list_loaded';
     const EVENT_SHOW_LOADED = 'exment:show_loaded';
-
+    //const EVENT_CALENDAR_BIND = 'exment:calendar_bind'; // Used by calendar.blade.php
+    
     /**
     * Column Event Script.
     */
