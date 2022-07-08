@@ -30,7 +30,7 @@
         "laravel/ui": "^3.0",
         "webpatser/laravel-uuid": "^4.0",
         "phpoffice/phpspreadsheet": "^1.23.0",
-        "box/spout": "^3.1",
+        "exment-git/spout": "^4.0",
         "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.6.0",
         "laravel/passport": "^10.0",
