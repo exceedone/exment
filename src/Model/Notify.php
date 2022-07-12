@@ -285,24 +285,27 @@ class Notify extends ModelBase
 
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
-            if (!isset($options['targetUserOrgs'])) {
-                $users = $this->getNotifyTargetUsers($custom_value, $action_setting, $custom_table);
-            } else {
-                $users = [];
+            $users = $this->getNotifyTargetUsers($custom_value, $action_setting, $custom_table);
+            if (isset($options['targetUserOrgs'])) {
+                $targetUserOrgs = [];
                 foreach ($options['targetUserOrgs'] as $targetUserOrg) {
                     if ($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION) {
-                        $users = array_merge($users, $targetUserOrg->users->pluck('id')->toArray());
+                        $targetUserOrgs = array_merge($targetUserOrgs, $targetUserOrg->users->pluck('id')->toArray());
                     } else {
-                        $users[] = $targetUserOrg->id;
+                        $targetUserOrgs[] = $targetUserOrg->id;
                     }
                 }
 
                 // get users
-                $users = getModelName(SystemTableName::USER)::find($users);
+                $targetUserOrgs = getModelName(SystemTableName::USER)::find($targetUserOrgs);
                 // convert as NotifyTarget
-                $users = $users->map(function ($user) {
+                $targetUserOrgs = $targetUserOrgs->map(function ($user) {
                     return NotifyTarget::getModelAsUser($user);
                 });
+                foreach ($users as $item) {
+                    $targetUserOrgs->push($item);
+                }
+                $users = $targetUserOrgs;
             }
             
             if (NotifyAction::isChatMessage($action_setting)) {
