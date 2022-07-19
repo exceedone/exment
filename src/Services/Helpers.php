@@ -869,6 +869,38 @@ if (!function_exists('stringToArray')) {
     }
 }
 
+if (!function_exists('breakToArray')) {
+    /**
+     * string(as Line feed code): to array
+     * Collection : $collect->toArray()
+     *
+     * @param mixed $value
+     * @return array
+     */
+    function breakToArray($value)
+    {
+        if (is_nullorempty($value)) {
+            return [];
+        }
+        
+        // convert json to array
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if ($value instanceof \Illuminate\Support\Collection) {
+            return $value->toArray();
+        }
+
+        $value = str_replace(array("\r\n", "\r", "\n"), "\n", $value);
+        $array = explode("\n", $value);
+
+        return collect($array)->map(function ($a) {
+            return trim($a);
+        })->toArray();
+    }
+}
+
 if (!function_exists('toArray')) {
     /**
      * Convert array. Such as casting array
