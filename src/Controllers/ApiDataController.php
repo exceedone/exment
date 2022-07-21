@@ -841,7 +841,15 @@ class ApiDataController extends AdminControllerTableBase
                     'url' => admin_url('data', [$table_name, $row->id]),
                     'color' => $custom_view_column->view_column_color,
                     'textColor' => $custom_view_column->view_column_font_color,
+                    
+                    'id' => $row->id,
+                    'value' => $row->value,
                 ];
+                if(boolval(config('exment.calendar_data_get_value'))){
+                    $task['id'] = $row->id;
+                    $task['value'] = $row->value;
+                }
+
                 $this->setCalendarDate($task, $row, $target_start_column, $target_end_column);
                 
                 $tasks[] = $task;
