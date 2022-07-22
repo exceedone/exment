@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\CopyColumnType;
 
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface

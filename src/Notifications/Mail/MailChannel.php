@@ -44,10 +44,9 @@ class MailChannel
                     ->bcc($mailMessage->getBcc())
                     ->subject($mailMessage->getSubject());
 
-                if($mailMessage->getBodyType() == 'text/plain'){
+                if ($mailMessage->getBodyType() == 'text/plain') {
                     $message->text($mailMessage->getBody());
-                }
-                else{
+                } else {
                     $message->html($mailMessage->getBody());
                 }
                 

@@ -1086,7 +1086,8 @@ class Exment
      *
      * @return string prefixed path
      */
-    public function getPathPrefix($adapeer, string $path) : string{
+    public function getPathPrefix($adapeer, string $path) : string
+    {
         return $this->getPrefixer($adapeer)->prefixPath($path);
     }
 

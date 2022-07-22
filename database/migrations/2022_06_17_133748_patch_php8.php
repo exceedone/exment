@@ -14,9 +14,9 @@ class PatchPhp8 extends Migration
      */
     public function up()
     {
-        if(Schema::hasTable('oauth_clients')){
+        if (Schema::hasTable('oauth_clients')) {
             Schema::table('oauth_clients', function (Blueprint $table) {
-                if(!Schema::hasColumn('oauth_clients', 'provider')){
+                if (!Schema::hasColumn('oauth_clients', 'provider')) {
                     $table->string('provider')->nullable()->after('secret');
                 }
             });
@@ -31,13 +31,13 @@ class PatchPhp8 extends Migration
     public function down()
     {
         $schema = DB::connection()->getSchemaBuilder();
-        $schema->blueprintResolver(function($table, $callback) {
+        $schema->blueprintResolver(function ($table, $callback) {
             return new ExtendedBlueprint($table, $callback);
         });
 
-        if(Schema::hasTable('oauth_clients')){
+        if (Schema::hasTable('oauth_clients')) {
             $schema->table('oauth_clients', function (ExtendedBlueprint $table) {
-                if(Schema::hasColumn('oauth_clients', 'provider')){
+                if (Schema::hasColumn('oauth_clients', 'provider')) {
                     $table->dropColumn('provider');
                 }
             });

@@ -845,7 +845,7 @@ class ApiDataController extends AdminControllerTableBase
                     'id' => $row->id,
                     'value' => $row->value,
                 ];
-                if(boolval(config('exment.calendar_data_get_value'))){
+                if (boolval(config('exment.calendar_data_get_value'))) {
                     $task['id'] = $row->id;
                     $task['value'] = $row->value;
                 }

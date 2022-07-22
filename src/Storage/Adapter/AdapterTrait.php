@@ -52,5 +52,4 @@ trait AdapterTrait
 
         return $baseConfig;
     }
-
 }

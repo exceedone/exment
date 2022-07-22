@@ -18,7 +18,7 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
         $mergeConfig = static::getConfig($config);
 
         $driver = new self(
-            SftpConnectionProvider::fromArray($mergeConfig), 
+            SftpConnectionProvider::fromArray($mergeConfig),
             array_get($mergeConfig, 'root')
             //,
             //PortableVisibilityConverter::fromArray(array_get($mergeConfig, 'permissions'))

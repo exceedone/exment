@@ -65,7 +65,7 @@ trait ConnectionTrait
     /**
      * Execute a Closure within a transaction.
      * *PHP8 checks transactions, and if already closed transaction, throw exception. So we need other functions.
-     * 
+     *
      * *COPIED from Illuminate\Database\Concerns\ManagesTransactions*
      *
      * @param  \Closure  $callback
@@ -91,7 +91,9 @@ trait ConnectionTrait
             // exception back out and let the developer handle an uncaught exceptions.
             catch (Throwable $e) {
                 $this->handleTransactionException(
-                    $e, $currentAttempt, $attempts
+                    $e,
+                    $currentAttempt,
+                    $attempts
                 );
 
                 continue;
@@ -115,7 +117,9 @@ trait ConnectionTrait
                 }
             } catch (Throwable $e) {
                 $this->handleCommitTransactionException(
-                    $e, $currentAttempt, $attempts
+                    $e,
+                    $currentAttempt,
+                    $attempts
                 );
 
                 continue;
@@ -126,5 +130,4 @@ trait ConnectionTrait
             return $callbackResult;
         }
     }
-
 }
