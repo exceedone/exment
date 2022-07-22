@@ -37,7 +37,7 @@
         "laravel/slack-notification-channel": "^2.3",
         "lcobucci/jwt": "^4.0.0",
         "composer/composer": "^2.0",
-        "exceedone/laravel-admin": "dev-feature/php8_laravel9",
+        "exceedone/laravel-admin": "^3.0",
         "kylekatarnls/update-helper": "^1.2",
         "laravel/socialite": "^5.2",
         "psr/simple-cache": "^2.0"
