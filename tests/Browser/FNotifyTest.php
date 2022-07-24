@@ -112,7 +112,7 @@ class FNotifyTest extends ExmentKitTestCase
 
         $content = $response->response->getContent();
         if (is_json($content)) {
-            $json = json_decode($content, true);
+            $json = json_decode_ex($content, true);
 
             ///// Cannot test checking whether submitting mail.
             $this->assertTrue(array_get($json, 'result', false), 'Post submit error, message is : ' . json_encode($json['errors']));
@@ -147,7 +147,7 @@ class FNotifyTest extends ExmentKitTestCase
 
         $content = $response->response->getContent();
         if (is_json($content)) {
-            $json = json_decode($content, true);
+            $json = json_decode_ex($content, true);
             if (array_get($json, 'result') === false) {
                 throw new \Exception(json_encode($json['errors']));
             }

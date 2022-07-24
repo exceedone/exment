@@ -6,6 +6,7 @@ use Exceedone\Exment\Tests\Constraints;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 use Laravel\BrowserKitTesting\TestCase as BaseTestCase;
 
 abstract class ExmentKitTestCase extends BaseTestCase
@@ -25,6 +26,22 @@ abstract class ExmentKitTestCase extends BaseTestCase
         $this->baseUrl = env('APP_URL');
         parent::setUp();
         System::clearCache();
+    }
+    
+    /**
+     * Boot the testing helper traits.
+     *
+     * @return array
+     */
+    protected function setUpTraits()
+    {
+        $uses = parent::setUpTraits();
+
+        if (isset($uses[DatabaseTransactions::class])) {
+            $this->beginDatabaseTransaction();
+        }
+
+        return $uses;
     }
 
     // ...

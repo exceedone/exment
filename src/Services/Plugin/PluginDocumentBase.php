@@ -75,7 +75,7 @@ abstract class PluginDocumentBase
         $dir_path = dirname($reflector->getFileName());
         // read document.json
         $document_json_path = path_join($dir_path, 'document.json');
-        $json = json_decode(File::get($document_json_path), true);
+        $json = json_decode_ex(File::get($document_json_path), true);
 
         return $json;
     }
@@ -111,7 +111,7 @@ abstract class PluginDocumentBase
         if (!File::exists($document_json_path)) {
             $filename = $default_document_name;
         } else {
-            $json = json_decode(File::get($document_json_path), true);
+            $json = json_decode_ex(File::get($document_json_path), true);
             $filename = array_get($json, "filename", $default_document_name);
         }
         // return "filename" value

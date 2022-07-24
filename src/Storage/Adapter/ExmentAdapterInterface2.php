@@ -15,5 +15,13 @@ interface ExmentAdapterInterface2
      */
     public static function getAdapter($app, $config, $driverKey);
     
+    /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array;
+
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array;
 }

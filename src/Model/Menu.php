@@ -147,7 +147,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         foreach ($rows as &$row) {
             $result = true;
             if (isset($row['options'])) {
-                $row['options'] = json_decode($row['options'], true);
+                $row['options'] = json_decode_ex($row['options'], true);
             }
             switch ($row['menu_type']) {
                 case MenuType::PLUGIN:
@@ -164,7 +164,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         break;
                     }
                     if (is_nullorempty($row['icon'])) {
-                        $table_options = json_decode(array_get($row, 'table_options'), true);
+                        $table_options = json_decode_ex(array_get($row, 'table_options'), true);
                         $row['icon'] = array_get($table_options, 'icon');
                     }
                     $row['uri'] = 'data/'.$row['table_name'];

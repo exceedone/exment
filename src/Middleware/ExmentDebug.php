@@ -90,7 +90,7 @@ class ExmentDebug
         $functions = [];
         $i = 0;
         foreach ($bt as $b) {
-            if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
+            if ($i > 1 && strpos_ex(array_get($b, 'class'), 'Exceedone') !== false) {
                 $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
             }
 

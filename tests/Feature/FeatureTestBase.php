@@ -1,15 +1,15 @@
 <?php
 
-namespace Exceedone\Exment\Tests\Unit;
+namespace Exceedone\Exment\Tests\Feature;
 
 use Tests\TestCase;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 
-abstract class UnitTestBase extends TestCase
+abstract class FeatureTestBase extends TestCase
 {
     use TestTrait;
-    
+
     /**
      * Boot the testing helper traits.
      *

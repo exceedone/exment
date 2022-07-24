@@ -46,7 +46,7 @@ abstract class PhpSpreadSheet extends FormatBase
                 for ($row = 1; $row <= $highestRow; ++$row) {
                     for ($col = 1; $col <= $highestColumnIndex; ++$col) {
                         $cell = $sheet->getCellByColumnAndRow($col, $row);
-                        if (strpos($cell->getValue(), '=') === 0) {
+                        if (strpos_ex($cell->getValue(), '=') === 0) {
                             $cell->setDataType(Cell\DataType::TYPE_STRING);
                         }
                         // set percent last, set as string

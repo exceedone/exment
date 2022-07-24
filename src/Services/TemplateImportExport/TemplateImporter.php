@@ -2,7 +2,6 @@
 namespace Exceedone\Exment\Services\TemplateImportExport;
 
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -54,7 +53,7 @@ class TemplateImporter
             $items = $this->getTemplates();
             foreach (array_filter($importKeys) as $importKey) {
                 $item = collect($items)->first(function ($item) use ($importKey) {
-                    $importItem = json_decode($importKey, true);
+                    $importItem = json_decode_ex($importKey, true);
                     return array_get($item, 'template_type') == array_get($importItem, 'template_type')
                         && array_get($item, 'template_name') == array_get($importItem, 'template_name');
                 });
@@ -167,11 +166,11 @@ class TemplateImporter
             $locale = \App::getLocale();
             try {
                 $dirname = pathinfo($path)['dirname'];
-                $json = json_decode($disk->get($path), true);
+                $json = json_decode_ex($disk->get($path), true);
                 // merge language file
                 $langpath = "$dirname/lang/$locale/lang.json";
                 if ($disk->exists($langpath)) {
-                    $lang = json_decode($disk->get($langpath), true);
+                    $lang = json_decode_ex($disk->get($langpath), true);
                     $json = $this->mergeTemplate($json, $lang);
                 }
                 // add thumbnail
@@ -212,11 +211,11 @@ class TemplateImporter
         foreach ($paths as $path) {
             try {
                 $dirname = pathinfo($path)['dirname'];
-                $json = json_decode(File::get($path), true);
+                $json = json_decode_ex(File::get($path), true);
                 // merge language file
                 $langpath = "$dirname/lang/$locale/lang.json";
                 if (File::exists($langpath)) {
-                    $lang = json_decode(File::get($langpath), true);
+                    $lang = json_decode_ex(File::get($langpath), true);
                     $json = $this->mergeTemplate($json, $lang);
                 }
                 // add thumbnail
@@ -348,7 +347,7 @@ class TemplateImporter
         //
         if (isset($config_path)) {
             // get config.json
-            $json = json_decode(File::get(path_join($tmpfolderpath, $config_path)), true);
+            $json = json_decode_ex(File::get(path_join($tmpfolderpath, $config_path)), true);
             if (!isset($json)) {
                 return $emptyResult;
             }
@@ -372,7 +371,7 @@ class TemplateImporter
         }
 
         // get config.json
-        $json = json_decode($tmpDisk->get($config_path), true);
+        $json = json_decode_ex($tmpDisk->get($config_path), true);
         if (!isset($json)) {
             return false;
         }
@@ -637,7 +636,7 @@ class TemplateImporter
     {
         System::clearCache();
         
-        DB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
+        \ExmentDB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
             // tables for default form and views
             $createDefaultTables = [];
 
@@ -836,7 +835,7 @@ class TemplateImporter
             $basePath = exment_package_path('system_template');
         }
 
-        $json = json_decode($jsonString, true);
+        $json = json_decode_ex($jsonString, true);
         if (!isset($json)) {
             // TODO:Error
             return;
@@ -847,7 +846,7 @@ class TemplateImporter
         $langpath = "$basePath/lang/$locale/lang.json";
 
         if (File::exists($langpath)) {
-            $lang = json_decode(File::get($langpath), true);
+            $lang = json_decode_ex(File::get($langpath), true);
             $json = $this->mergeTemplate($json, $lang);
         }
 

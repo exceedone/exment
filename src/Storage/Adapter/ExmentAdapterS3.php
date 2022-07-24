@@ -3,19 +3,29 @@
 namespace Exceedone\Exment\Storage\Adapter;
 
 use Aws\S3\S3Client;
-use League\Flysystem\AwsS3v3\AwsS3Adapter;
+use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 
-class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
+class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
 {
     use AdapterTrait;
     
+    /**
+     * Override EXTRA_METADATA_FIELDS because EXTRA_METADATA_FIELDS is private
+     * @var string[]
+     */
+    protected const EXTRA_METADATA_FIELDS = [
+        'Metadata',
+        'StorageClass',
+        'ETag',
+        'VersionId',
+    ];
+
     /**
      * get adapter class
      */
     public static function getAdapter($app, $config, $driverKey)
     {
-        $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = static::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig = static::getConfig($config);
 
         // create client config
         $clientConfig = [
@@ -43,5 +53,21 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
         return [
             'bucket' => config('exment.rootpath.s3.' . $mergeFrom),
         ];
+    }
+
+    /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array
+    {
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
+        if (!array_key_exists('ACL', $mergeConfig)) {
+            $mergeConfig['ACL'] = 'private';
+        }
+        return $mergeConfig;
     }
 }

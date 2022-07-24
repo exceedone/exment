@@ -44,7 +44,7 @@ class ApiDataController extends AdminControllerTableBase
             return abortJson(404);
         }
         
-        return call_user_func_array([$this, $method], $parameters);
+        return $this->{$method}(...array_values($parameters));
     }
 
     // custom_value --------------------------------------------------
@@ -316,7 +316,7 @@ class ApiDataController extends AdminControllerTableBase
             $custom_values[] = $custom_value;
         }
         
-        \DB::transaction(function () use ($custom_values, $forceDelete) {
+        \ExmentDB::transaction(function () use ($custom_values, $forceDelete) {
             foreach ($custom_values as $custom_value) {
                 if ($forceDelete) {
                     $custom_value->forceDelete();
@@ -841,7 +841,15 @@ class ApiDataController extends AdminControllerTableBase
                     'url' => admin_url('data', [$table_name, $row->id]),
                     'color' => $custom_view_column->view_column_color,
                     'textColor' => $custom_view_column->view_column_font_color,
+                    
+                    'id' => $row->id,
+                    'value' => $row->value,
                 ];
+                if (boolval(config('exment.calendar_data_get_value'))) {
+                    $task['id'] = $row->id;
+                    $task['value'] = $row->value;
+                }
+
                 $this->setCalendarDate($task, $row, $target_start_column, $target_end_column);
                 
                 $tasks[] = $task;

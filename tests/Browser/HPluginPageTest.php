@@ -88,7 +88,7 @@ class HPluginPageTest extends ExmentKitTestCase
         $response = $this->get(admin_url('dashboardbox/html/' . $box->suuid));
         $content = $response->response->getContent();
         if (is_json($content)) {
-            $json = json_decode($content, true);
+            $json = json_decode_ex($content, true);
             $body = array_get($json, 'body');
 
             $this->assertTrue(strpos($body, "<h4>$integer</h4>") !== false);

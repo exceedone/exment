@@ -90,7 +90,7 @@ class NestedEmbeds extends Embeds
         }
 
         if (is_string($this->value)) {
-            return json_decode($this->value, true);
+            return json_decode_ex($this->value, true);
         }
 
         return (array) $this->value;

@@ -610,7 +610,7 @@ trait RevisionableTrait
             return $attribute;
         }
         if (is_string($attribute)) {
-            $attribute = json_decode($attribute, true);
+            $attribute = json_decode_ex($attribute, true);
         }
         foreach ($attribute as $key => $value) {
             if (is_array($value) || is_object($value)) {

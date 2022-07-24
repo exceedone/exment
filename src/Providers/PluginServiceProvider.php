@@ -69,7 +69,7 @@ class PluginServiceProvider extends ServiceProvider
         }
 
         $config = \File::get($config_path);
-        $json = json_decode($config, true);
+        $json = json_decode_ex($config, true);
 
         if (!$plugin->matchPluginType($plugin_type)) {
             return;
