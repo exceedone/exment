@@ -3,8 +3,8 @@ name: php-cs-fixer
 on:
   pull_request:
     paths:
-      - './src'
-      - './tests'
+      - 'src/**'
+      - 'tests/**'
 
 jobs:
   php-cs-fixer:
@@ -12,9 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ "7.3", "7.4" ]
+        php: [ "8.0", "8.1" ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
