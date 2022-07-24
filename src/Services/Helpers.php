@@ -871,15 +871,15 @@ if (!function_exists('stringToArray')) {
     }
 }
 
-if (!function_exists('breakToArray')) {
+if (!function_exists('breakCommaToArray')) {
     /**
-     * string(as Line feed code): to array
+     * string(as Line feed code and comma): to array
      * Collection : $collect->toArray()
      *
      * @param mixed $value
      * @return array
      */
-    function breakToArray($value)
+    function breakCommaToArray($value)
     {
         if (is_nullorempty($value)) {
             return [];
@@ -894,7 +894,7 @@ if (!function_exists('breakToArray')) {
             return $value->toArray();
         }
 
-        $value = str_replace(array("\r\n", "\r", "\n"), "\n", $value);
+        $value = str_replace(array("\r\n", "\r", "\n", ","), "\n", $value);
         $array = explode("\n", $value);
 
         return collect($array)->map(function ($a) {
