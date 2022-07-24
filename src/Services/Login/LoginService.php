@@ -460,7 +460,7 @@ class LoginService
         }
 
         $exment_user = null;
-        \DB::transaction(function () use ($custom_login_user, &$exment_user) {
+        \ExmentDB::transaction(function () use ($custom_login_user, &$exment_user) {
             $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
 
             $update_user_columns = static::getUserColumns();

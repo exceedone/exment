@@ -392,8 +392,8 @@ class Define
     ];
 
     public const PHP_VERSION = [
-        '7.1.3',
-        '7.5.0',
+        '8.0.0',
+        '8.2.0',
     ];
 
     public const CUSTOM_TABLE_ENDPOINTS = [

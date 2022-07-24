@@ -204,7 +204,7 @@ abstract class BlockBase
         return collect($custom_form_columns)->map(function ($req_custom_form_column, $key) {
             // convert option to array
             if (isset($req_custom_form_column['options']) && is_string($req_custom_form_column['options']) && is_json($req_custom_form_column['options'])) {
-                $req_custom_form_column['options'] = json_decode($req_custom_form_column['options'], true);
+                $req_custom_form_column['options'] = json_decode_ex($req_custom_form_column['options'], true);
             }
             $custom_form_column = new CustomFormColumn($req_custom_form_column);
             $custom_form_column->request_key = $key;

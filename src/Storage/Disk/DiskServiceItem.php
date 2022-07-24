@@ -86,7 +86,7 @@ class DiskServiceItem
      */
     public function isDriverLocal()
     {
-        return $this->disk()->getDriver()->getAdapter() instanceof \League\Flysystem\Adapter\Local;
+        return $this->disk()->getAdapter() instanceof \League\Flysystem\Local\LocalFilesystemAdapter;
     }
 
     /**

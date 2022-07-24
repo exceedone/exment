@@ -117,7 +117,7 @@ class News
 
             // if already executed
             if (isset($update_news)) {
-                $update_news = json_decode($update_news, true);
+                $update_news = json_decode_ex($update_news, true);
                 $update_time = array_get($update_news, 'update_time');
                 if (isset($update_time)) {
                     $update_time = new Carbon($update_time);
@@ -148,7 +148,7 @@ class News
             }
     
             // get wordpress items
-            $this->items = json_decode($contents, true);
+            $this->items = json_decode_ex($contents, true);
         } catch (\Exception $ex) {
             \Log::error($ex);
         }

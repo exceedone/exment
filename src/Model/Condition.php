@@ -78,7 +78,7 @@ class Condition extends ModelBase
         }
 
         if (is_string($condition_value)) {
-            $array = json_decode($condition_value);
+            $array = json_decode_ex($condition_value);
             if (is_array($array)) {
                 return array_filter($array, function ($val) {
                     return !is_null($val);

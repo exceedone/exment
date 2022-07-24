@@ -60,7 +60,7 @@ class TemplateController extends AdminControllerBase
             //     'query' => $query,
             // ]);
             // $contents = $response->getBody()->getContents();
-            // $json = json_decode($contents, true);
+            // $json = json_decode_ex($contents, true);
     
             // // create paginator
             // $paginator = new LengthAwarePaginator(

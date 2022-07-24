@@ -15,6 +15,15 @@
                 if(event.allDayBetween) {
                     event.end = moment(event.end).add(1, 'days').format('YYYY-MM-DD');
                 }
+                
+                // call handle event
+                let jqEvent = $.Event('exment:calendar_bind');
+                $(window).trigger(jqEvent, event);
+                // If can get result, replace result.
+                if(jqEvent && jqEvent.result){
+                    event = jqEvent.result;
+                }
+                
                 return event;
             },
              eventTimeFormat: { // like '14:30:00'

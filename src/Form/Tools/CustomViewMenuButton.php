@@ -84,7 +84,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
             } elseif ($btype == ViewKindType::ALLDATA) {
                 return 1;
             } else {
-                return $atype > $btype;
+                return $atype <=> $btype;
             }
         };
         usort($userviews, $compare);

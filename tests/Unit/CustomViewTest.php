@@ -1,7 +1,7 @@
 <?php
 namespace Exceedone\Exment\Tests\Unit;
 
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;

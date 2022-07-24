@@ -44,11 +44,11 @@ trait ColumnOptionQueryTrait
     protected static function getOptionParams($query, $defaultCustomTable)
     {
         $params = [];
-        $params['column_target'] = explode("?", $query)[0];
+        $params['column_target'] = explode_ex("?", $query)[0];
         $defaultCustomTable = CustomTable::getEloquent($defaultCustomTable);
 
-        if (preg_match('/.+\?.+$/i', $query) === 1) {
-            $view_column_query = explode("?", $query)[1];
+        if (preg_match_ex('/.+\?.+$/i', $query) === 1) {
+            $view_column_query = explode_ex("?", $query)[1];
             parse_str($view_column_query, $view_column_query_array);
 
             $params['column_table_id'] = array_get($view_column_query_array, 'table_id', $defaultCustomTable->id ?? null);
@@ -71,7 +71,7 @@ trait ColumnOptionQueryTrait
      */
     protected function getViewColumnTargetItems($view_column_target, $column_table_name_key = 'custom_view')
     {
-        $column_type_target = explode("?", $view_column_target)[0];
+        $column_type_target = explode_ex("?", $view_column_target)[0];
         
         if (!is_nullorempty($column_table_name_key) && isset($this->{$column_table_name_key})) {
             $custom_table_id = $this->{$column_table_name_key}->custom_table_id;

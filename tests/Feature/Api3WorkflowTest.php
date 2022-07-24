@@ -722,7 +722,7 @@ class Api3WorkflowTest extends ApiTestBase
             'created_user_id' => "6" //dev0-userB
         ]);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
         
         $authorities = WorkflowValueAuthority::where('workflow_value_id', $id)->get();
@@ -939,7 +939,7 @@ class Api3WorkflowTest extends ApiTestBase
             'created_user_id' => "7" //dev1-userC
         ]);
 
-        $json = json_decode($response->baseResponse->getContent(), true);
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
         
         // get workflow value

@@ -46,7 +46,7 @@ class CustomOperationColumn extends ModelBase
         }
 
         if (is_string($update_value_text)) {
-            $array = json_decode($update_value_text);
+            $array = json_decode_ex($update_value_text);
             if (is_array($array)) {
                 return array_filter($array, function ($val) {
                     return !is_null($val);

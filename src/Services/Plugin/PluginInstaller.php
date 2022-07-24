@@ -175,7 +175,7 @@ class PluginInstaller
         $tmpDiskItem = $diskService->tmpDiskItem();
 
         // get config.json
-        $json = json_decode(File::get($config_path), true);
+        $json = json_decode_ex(File::get($config_path), true);
 
         //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.json wrong'
         if ($json == null) {

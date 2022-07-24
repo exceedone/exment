@@ -28,6 +28,7 @@ use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Finder\Finder;
+use League\Flysystem\PathPrefixer;
 
 /**
  * Class Admin.
@@ -220,7 +221,7 @@ class Exment
             $latest = null;
             $current = null;
             if (isset($version_json)) {
-                $version = json_decode($version_json, true);
+                $version = json_decode_ex($version_json, true);
                 $latest = array_get($version, 'latest');
                 $current = array_get($version, 'current');
             }
@@ -233,7 +234,7 @@ class Exment
                 }
 
                 $contents = \File::get($composer_lock);
-                $json = json_decode($contents, true);
+                $json = json_decode_ex($contents, true);
                 if (!$json) {
                     return [null, null];
                 }
@@ -273,7 +274,7 @@ class Exment
                     return [null, null];
                 }
 
-                $json = json_decode($contents, true);
+                $json = json_decode_ex($contents, true);
                 if (!$json) {
                     return [null, null];
                 }
@@ -1075,5 +1076,36 @@ class Exment
         }
 
         return $result;
+    }
+
+    
+    /**
+     * Prefix a path.
+     *
+     * @param string $path
+     *
+     * @return string prefixed path
+     */
+    public function getPathPrefix($adapeer, string $path) : string
+    {
+        return $this->getPrefixer($adapeer)->prefixPath($path);
+    }
+
+    /**
+     * Get PathPrefixer.
+     * From filesystem 3.0, $prefixer is private, so we have to get this property forcibly.
+     *
+     * @return PathPrefixer
+     */
+    protected function getPrefixer($adapter) : PathPrefixer
+    {
+        $reflectionClass = new \ReflectionClass($adapter);
+        try {
+            $property = $reflectionClass->getProperty('prefixer');
+        } catch (\ReflectionException $ex) {
+            $property = $reflectionClass->getParentClass()->getProperty('prefixer');
+        }
+        $property->setAccessible(true);
+        return $property->getValue($adapter);
     }
 }

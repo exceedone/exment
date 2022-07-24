@@ -76,7 +76,7 @@ abstract class GridBase
      */
     public function getCallbackFilter()
     {
-        $group_keys = json_decode(request()->query('group_key'));
+        $group_keys = json_decode_ex(request()->query('group_key'));
         if (is_nullorempty($group_keys)) {
             return null;
         }

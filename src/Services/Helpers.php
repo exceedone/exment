@@ -70,7 +70,7 @@ if (!function_exists('esc_html')) {
      */
     function esc_html($str)
     {
-        return htmlspecialchars($str, ENT_QUOTES|ENT_HTML5);
+        return htmlspecialchars_ex($str, ENT_QUOTES|ENT_HTML5);
     }
 }
 
@@ -132,7 +132,7 @@ if (!function_exists('is_nullorempty')) {
         if (is_null($obj)) {
             return true;
         }
-        if (is_string($obj) && strlen($obj) == 0) {
+        if (is_string($obj) && strlen_ex($obj) == 0) {
             return true;
         }
         if (is_array($obj) && count($obj) == 0) {
@@ -216,7 +216,7 @@ if (!function_exists('hex2rgb')) {
         if (substr($hex, 0, 1) == "#") {
             $hex = substr($hex, 1) ;
         }
-        if (strlen($hex) == 3) {
+        if (strlen_ex($hex) == 3) {
             $hex = substr($hex, 0, 1) . substr($hex, 0, 1) . substr($hex, 1, 1) . substr($hex, 1, 1) . substr($hex, 2, 1) . substr($hex, 2, 1) ;
         }
         return array_map("hexdec", [ substr($hex, 0, 2), substr($hex, 2, 2), substr($hex, 4, 2) ]) ;
@@ -533,7 +533,9 @@ if (!function_exists('getFullpath')) {
         if (is_string($disk)) {
             $disk = Storage::disk($disk);
         }
-        $path = $disk->getDriver()->getAdapter()->applyPathPrefix($filename);
+
+        $adapter = $disk->getAdapter();
+        $path = \Exment::getPathPrefix($adapter, $filename);
 
         if ($mkdir) {
             $dirPath = pathinfo($path)['dirname'];
@@ -549,7 +551,7 @@ if (!function_exists('mb_basename')) {
     {
         $tmp = preg_split('/[\/\\\\]/', $str);
         $res = end($tmp);
-        if (strlen($suffix)) {
+        if (strlen_ex($suffix)) {
             $suffix = preg_quote($suffix);
             $res = preg_replace("/({$suffix})$/u", "", $res);
         }
@@ -832,7 +834,7 @@ if (!function_exists('jsonToArray')) {
         }
         // convert json to array
         if (!is_array($value) && is_json($value)) {
-            return json_decode($value, true);
+            return json_decode_ex($value, true);
         }
         return $value;
     }
@@ -861,7 +863,39 @@ if (!function_exists('stringToArray')) {
             return $value->toArray();
         }
 
-        $array = explode(',', $value);
+        $array = explode_ex(',', $value);
+
+        return collect($array)->map(function ($a) {
+            return trim($a);
+        })->toArray();
+    }
+}
+
+if (!function_exists('breakCommaToArray')) {
+    /**
+     * string(as Line feed code and comma): to array
+     * Collection : $collect->toArray()
+     *
+     * @param mixed $value
+     * @return array
+     */
+    function breakCommaToArray($value)
+    {
+        if (is_nullorempty($value)) {
+            return [];
+        }
+        
+        // convert json to array
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if ($value instanceof \Illuminate\Support\Collection) {
+            return $value->toArray();
+        }
+
+        $value = str_replace(array("\r\n", "\r", "\n", ","), "\n", $value);
+        $array = explode("\n", $value);
 
         return collect($array)->map(function ($a) {
             return trim($a);
@@ -929,7 +963,7 @@ if (!function_exists('arrayToString')) {
 if (!function_exists('is_json')) {
     function is_json($string)
     {
-        return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+        return is_string($string) && is_array(json_decode_ex($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
     }
 }
 
@@ -988,7 +1022,7 @@ if (!function_exists('isMatchString')) {
         if (is_array($v1) || is_array($v2)) {
             return false;
         }
-        return strcmp($v1, $v2) == 0;
+        return strcmp_ex($v1, $v2) == 0;
     }
 }
 
@@ -1004,7 +1038,7 @@ if (!function_exists('isMatchDecimal')) {
     {
         $v1 = rtrim((strpos($v1, ".") !== false ? rtrim($v1, "0") : $v1), ".");
         $v2 = rtrim((strpos($v2, ".") !== false ? rtrim($v2, "0") : $v2), ".");
-        return strcmp($v1, $v2) == 0;
+        return strcmp_ex($v1, $v2) == 0;
     }
 }
 
@@ -1038,6 +1072,9 @@ if (!function_exists('rstrpos')) {
      */
     function rstrpos(?string $haystack, ?string $needle, ?int $offset = 0)
     {
+        $haystack = $haystack?? '';
+        $needle = $needle?? '';
+
         $result = strrpos($haystack, $needle, $offset);
         if ($result === false) {
             return $result;
@@ -1076,7 +1113,7 @@ if (!function_exists('make_password')) {
         }
         $str = '';
         for ($i = 0; $i < $length; ++$i) {
-            $str .= $chars[mt_rand(0, strlen($chars) -1)];
+            $str .= $chars[mt_rand(0, strlen_ex($chars) -1)];
         }
         return $str;
     }
@@ -1095,7 +1132,7 @@ if (!function_exists('make_randomstr')) {
         
         $str = '';
         for ($i = 0; $i < $length; ++$i) {
-            $str .= $chars[mt_rand(0, strlen($chars) -1)];
+            $str .= $chars[mt_rand(0, strlen_ex($chars) -1)];
         }
         return $str;
     }
@@ -1223,7 +1260,7 @@ if (!function_exists('explodeBreak')) {
      */
     function explodeBreak($text)
     {
-        return explode("\r\n", preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "\r\n", $text));
+        return explode_ex("\r\n", preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "\r\n", $text));
     }
 }
 
@@ -1560,7 +1597,7 @@ if (!function_exists('downloadFile')) {
     function downloadFile($path, $disk)
     {
         $driver = $disk->getDriver();
-        $metaData = $driver->getMetadata($path);
+        $type = $driver->mimeType($path);
         $stream = $driver->readStream($path);
 
         // get page name
@@ -1575,7 +1612,7 @@ if (!function_exists('downloadFile')) {
             },
             200,
             [
-                'Content-Type' => $metaData['type'],
+                'Content-Type' => $type,
                 'Content-disposition' => "attachment; filename*=UTF-8''$name",
             ]
         );
@@ -1696,7 +1733,7 @@ if (!function_exists('admin_exclusion_path')) {
         $prefix = trim(config('admin.route.prefix'), '/');
 
         if (starts_with($path, $prefix)) {
-            $path = substr($path, strlen($prefix));
+            $path = substr($path, strlen_ex($prefix));
         }
 
         $path = trim($path, '/');
@@ -1736,11 +1773,33 @@ if (!function_exists('admin_exclusion_path')) {
             return preg_replace_callback("/((?:[^\x09\x0A\x0D\x20-\x7E]{3})+)/", function ($matches) {
                 $char = mb_convert_encoding($matches[1], "UTF-16", "UTF-8");
                 $escaped = "";
-                for ($i = 0, $l = strlen($char); $i < $l; $i += 2) {
+                for ($i = 0, $l = strlen_ex($char); $i < $l; $i += 2) {
                     $escaped .=  "\u" . sprintf("%02x%02x", ord($char[$i]), ord($char[$i+1]));
                 }
                 return $escaped;
             }, $str);
+        }
+    }
+    
+    if (!function_exists('json_decode_ex')) {
+        /**
+         * Wrapper for json_decode that throws when an error occurs.
+         *
+         * @param array|string $json    JSON data to parse
+         * @param bool   $assoc   When true, returned objects will be converted
+         *                        into associative arrays.
+         * @param int    $depth   User specified recursion depth.
+         * @param int    $options Bitmask of JSON decode options.
+         *
+         * @return object|array|string|int|float|bool|null
+         */
+        function json_decode_ex($json, bool $assoc = false, int $depth = 512, int $options = 0)
+        {
+            if (is_null($json) || is_array($json)) {
+                return $json;
+            }
+
+            return json_decode($json, $assoc, $depth, $options);
         }
     }
 }

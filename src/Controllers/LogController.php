@@ -82,7 +82,7 @@ class LogController extends AdminControllerBase
             $show->field('path', exmtrans('operation_log.path'));
             $show->field('ip', exmtrans('operation_log.ip'));
             $show->field('input', exmtrans('operation_log.input'))->as(function ($input) {
-                $input = json_decode($input, true);
+                $input = json_decode_ex($input, true);
                 $input = Arr::except($input, ['_pjax', '_token', '_method', '_previous_']);
                 if (empty($input)) {
                     return '{}';

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Middleware;
 
-use Fideloper\Proxy\TrustProxies as BaseTrustProxies;
+use Illuminate\Http\Middleware\TrustProxies as BaseTrustProxies;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -38,7 +38,12 @@ class TrustProxies extends BaseTrustProxies
         if (!is_nullorempty($headers)) {
             $this->headers = constant("\Illuminate\Http\Request::$headers");
         } else {
-            $this->headers = \Illuminate\Http\Request::HEADER_X_FORWARDED_ALL;
+            $this->headers = Request::HEADER_X_FORWARDED_FOR |
+                Request::HEADER_X_FORWARDED_HOST |
+                Request::HEADER_X_FORWARDED_PORT |
+                Request::HEADER_X_FORWARDED_PROTO |
+                Request::HEADER_X_FORWARDED_AWS_ELB
+            ;
         }
 
         $this->setTrustedProxyIpAddresses($request);

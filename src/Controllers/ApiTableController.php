@@ -29,7 +29,7 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(404);
         }
         
-        return call_user_func_array([$this, $method], $parameters);
+        return $this->{$method}(...array_values($parameters));
     }
 
     // CustomColumn --------------------------------------------------
@@ -121,7 +121,7 @@ class ApiTableController extends AdminControllerTableBase
             return null;
         }
 
-        $elementName = str_replace($request->get('replace_search', 'condition_key'), $request->get('replace_word', 'condition_value'), $request->get('cond_name'));
+        $elementName = str_replace_ex($request->get('replace_search', 'condition_key'), $request->get('replace_word', 'condition_value'), $request->get('cond_name'));
         $label = exmtrans('condition.condition_value');
         $item->setElement($elementName, 'condition_value', $label);
         if (isset($filterKind)) {

@@ -54,7 +54,7 @@ class ReplaceFormatService
                                 if (count($kv) <= 1) {
                                     continue;
                                 }
-                                $matchOptions[$kv[0]] = str_replace('"', "", $kv[1]);
+                                $matchOptions[$kv[0]] = str_replace_ex('"', "", $kv[1]);
                             }
                         } else {
                             $targetFormat = $length_array[0];
@@ -103,7 +103,7 @@ class ReplaceFormatService
                     }
 
                     // replace
-                    $format = str_replace($matchString, $str, $format);
+                    $format = str_replace_ex($matchString, $str, $format);
                 }
             }
         } catch (\Exception $e) {

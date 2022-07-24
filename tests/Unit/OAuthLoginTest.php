@@ -12,7 +12,7 @@ use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Services\Login\OAuth\OAuthUser;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Laravel\Socialite\Two\User as SocialiteUser;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 
 class OAuthLoginTest extends UnitTestBase
 {

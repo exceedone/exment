@@ -13,11 +13,10 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 use Illuminate\Support\Collection;
-use Tests\TestCase;
 
-class ImportExportTest extends TestCase
+class ImportExportTest extends FeatureTestBase
 {
     use ImportTrait, TestTrait, DatabaseTransactions;
 

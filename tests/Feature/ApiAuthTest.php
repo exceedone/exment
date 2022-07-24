@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Tests\TestDefine;

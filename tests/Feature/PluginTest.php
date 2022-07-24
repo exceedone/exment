@@ -3,9 +3,8 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use Encore\Admin\Grid;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 use Illuminate\Support\Facades\Storage;
-use Tests\TestCase;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Model\File as ExmentFile;
@@ -22,7 +21,7 @@ use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\PluginTestTrait;
 
-class PluginTest extends TestCase
+class PluginTest extends FeatureTestBase
 {
     use TestTrait, PluginTestTrait, DatabaseTransactions;
 
@@ -360,6 +359,8 @@ class PluginTest extends TestCase
             \Artisan::call('exment:batch', ['--name' => 'TestPluginError']);
             $this->assertTrue(false, 'This batch excepts error, but not throw exception.');
         } catch (\Exception $ex) {
+            $this->assertTrue(true);
+        } catch (\Throwable $ex) {
             $this->assertTrue(true);
         }
     }

@@ -225,7 +225,7 @@ class Notify extends ModelBase
      */
     public function notifyCreateUpdateUser($custom_value, $notifySavedType, $options = [])
     {
-        if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
+        if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA, $notifySavedType)) {
             return;
         }
 
@@ -461,9 +461,10 @@ class Notify extends ModelBase
      *
      * @param CustomValue $custom_value
      * @param string $notify_trigger
+     * @param string $notifySavedType
      * @return boolean
      */
-    public function isNotifyTarget($custom_value, $notify_trigger)
+    public function isNotifyTarget($custom_value, $notify_trigger, $notifySavedType = null)
     {
         if (array_get($this, 'notify_trigger') != $notify_trigger) {
             return false;
@@ -475,7 +476,11 @@ class Notify extends ModelBase
                 $custom_table = $custom_value->custom_table;
                 $query = $custom_table->getValueQuery();
                 $table_name = getDBTableName($custom_table);
-                return $custom_view->setValueFilters($query)->where("$table_name.id", $custom_value->id)->exists();
+                if ($notifySavedType === NotifySavedType::DELETE) {
+                    return $custom_view->setValueFilters($query)->where("$table_name.id", $custom_value->id)->withTrashed()->exists();
+                } else {
+                    return $custom_view->setValueFilters($query)->where("$table_name.id", $custom_value->id)->exists();
+                }
             }
         }
         return true;
