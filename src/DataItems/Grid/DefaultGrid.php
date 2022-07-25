@@ -252,7 +252,6 @@ class DefaultGrid extends GridBase
         }, 'left');
 
         $grid->filter(function ($filter) use ($ajax) {
-            $filter->disableIdFilter();
             $filter->setAction($this->getFilterUrl());
 
             if ($this->custom_table->enableShowTrashed() === true && !$this->modal) {
@@ -263,6 +262,16 @@ class DefaultGrid extends GridBase
                 $filter->setFilterAjax(admin_urls_query('data', $this->custom_table->table_name, ['filter_ajax' => 1]));
                 return;
             }
+
+            // If filter is plugin filter setting, call.
+            $plugin = $this->custom_view->grid_filter_type == 'plugin' ? Plugin::getEloquent($this->custom_view->grid_filter_plugin_id) : null;
+            if($plugin){
+                $f = $plugin->getClass(Enums\PluginType::VIEW_FILTER);
+                $f->grid_filter($filter);
+                return;
+            }
+
+            $filter->disableIdFilter();
 
             $filterItems = $this->getFilterColumns($filter);
 
@@ -777,5 +786,29 @@ class DefaultGrid extends GridBase
         })->setTableColumnWidth(8, 4)
         ->rowUpDown('order', 10)
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters", $manualUrl));
+
+        $form->radio('grid_filter_type', exmtrans("custom_view.grid_filter_type"))
+            ->options(exmtrans("custom_view.grid_filter_type_options"))
+            ->default('default');
+        
+        $form->select('grid_filter_plugin_id', exmtrans("custom_view.grid_filter_plugin_id"))
+            ->options(function () use($custom_table) {
+                $plugins = Plugin::getPluginsByTable($custom_table, false)->filter(function ($plugin) {
+                    return $plugin->matchPluginType(Enums\PluginType::VIEW_FILTER);
+                })
+                ->pluck('plugin_view_name', 'id')
+                ->toArray();
+                return $plugins;
+            })
+            ->help(exmtrans("custom_view.help.grid_filter_plugin_id"))
+            ->required()
+            ;
+
+        $form->editing(function ($form, $arr) {
+            $form->model()->append([
+                'grid_filter_type',
+                'grid_filter_plugin_id',
+            ]);
+        });
     }
 }

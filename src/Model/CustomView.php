@@ -179,6 +179,25 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->setJson('custom_options', $key, $val);
     }
 
+    public function getGridFilterTypeAttribute()
+    {
+        return $this->getOption('grid_filter_type');
+    }
+    public function setGridFilterTypeAttribute($value)
+    {
+        $this->setOption('grid_filter_type', $value);
+        return $this;
+    }
+    public function getGridFilterPluginIdAttribute()
+    {
+        return $this->getOption('grid_filter_plugin_id');
+    }
+    public function setGridFilterPluginIdAttribute($value)
+    {
+        $this->setOption('grid_filter_plugin_id', $value);
+        return $this;
+    }
+
     public function deletingChildren()
     {
         $this->custom_view_columns()->delete();

@@ -24,6 +24,7 @@ use Exceedone\Exment\Services\Plugin\PluginPublicDefault;
  * @method static PluginType EVENT()
  * @method static PluginType VIEW()
  * @method static PluginType CRUD()
+ * @method static PluginType VIEW_FILTER()
  */
 class PluginType extends EnumBase
 {
@@ -42,6 +43,7 @@ class PluginType extends EnumBase
     public const EVENT = '12';
     public const VIEW = '13';
     public const CRUD = '14';
+    public const VIEW_FILTER = '15';
     
     /**
      * Plugin type. Can call from endpoint.
@@ -131,6 +133,7 @@ class PluginType extends EnumBase
             static::EVENT,
             static::BUTTON,
             static::VIEW,
+            static::VIEW_FILTER,
         ];
     }
 
@@ -268,6 +271,7 @@ class PluginType extends EnumBase
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, $options);
                 case PluginType::VIEW:
+                case PluginType::VIEW_FILTER:
                     return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'custom_view'));
             }
         }

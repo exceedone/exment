@@ -706,6 +706,7 @@ return [
             'button' => 'ボタン',
             'view' => 'ビュー',
             'crud' => 'CRUDページ',
+            'view_filter' => 'ビューフィルター',
         ],
     ],
 
@@ -1810,6 +1811,8 @@ return [
         'default_view_name' => '既定のビュー',
         'alldata_view_name' => '全件ビュー',
         'custom_view_grid_filters' => 'ビューの「フィルタ」項目指定',
+        'grid_filter_type' => '「フィルタ」種類',
+        'grid_filter_plugin_id' => 'プラグイン選択',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
@@ -1817,7 +1820,7 @@ return [
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※２件以上登録した場合、データ量が非常に多いテーブルですと、パフォーマンスが低下する場合があります。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_grid_filters' => 'ビューの上部に表示する「フィルタ」で、選択肢として表示する列を指定します。<br/>※システム既定の項目を表示する場合、この一覧に列を追加しないでください。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
-
+        
         'help' => [
             'custom_view_type' => 'システムビュー：このテーブルを使用するユーザー全員が使用できるビューです。 ユーザービュー：作成したユーザーのみが使用できるビューです。',
             'sort_type' => 'ソートを、「昇順(小さい順)」で実行するか、「降順（大きい順）」で実行するか、指定します。',
@@ -1825,6 +1828,7 @@ return [
             'use_view_infobox' => 'YESにすることで、ビューの上部に、業務内容や、ユーザーへのメッセージなどを記入できる、情報ボックスを設定することができます。',
             'view_infobox_title' => '情報ボックスに表示するタイトルを記入してください。',
             'view_infobox' => '情報ボックスに表示するHTMLを記入してください。※画像、スクリプトは入力できません。',
+            'grid_filter_plugin_id' => 'プラグイン(ビューフィルター)でインストールされているプラグインが表示されます。',
         ],
 
         'column_sort_options' => [
@@ -1925,6 +1929,12 @@ return [
             'filter' => '条件ビュー',
             'plugin' => '独自ビュー',
             'alldata' => '全件ビュー',
+        ],
+
+        'grid_filter_type_options' => [
+            'default' => 'システム既定',
+            'select' => 'ユーザー指定',
+            'plugin' => 'プラグイン',
         ],
     ],
 
