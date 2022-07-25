@@ -69,7 +69,7 @@ trait HasManyJsonTrait
         if (is_null($this->value)) {
             $this->value = [];
         } elseif (is_string($this->value) && is_json($this->value)) {
-            $this->value = json_decode($this->value, true);
+            $this->value = json_decode_ex($this->value, true);
         }
 
         /*

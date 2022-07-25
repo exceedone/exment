@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use Illuminate\Support\Facades\Storage;
-use Tests\TestCase;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\LoginUser;
@@ -24,7 +23,7 @@ use Exceedone\Exment\Revisionable\Revision;
  * Soft delete, hard delete, always hard delete.
  * Check target: file, document, storages, and revisions
  */
-class CustomValueDeleteTest extends TestCase
+class CustomValueDeleteTest extends FeatureTestBase
 {
     use TestTrait, PluginTestTrait;
 

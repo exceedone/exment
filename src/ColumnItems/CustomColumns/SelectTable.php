@@ -95,7 +95,7 @@ class SelectTable extends CustomItem
         }
         
         if (!is_array($v) && preg_match('/\[.+\]/i', $v)) {
-            $v = json_decode($v);
+            $v = json_decode_ex($v);
         }
 
         $isArray = is_list($v);

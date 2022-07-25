@@ -39,7 +39,7 @@ class PluginPageController extends Controller
         }
 
         // create html
-        $result = call_user_func_array([$this->pluginPage, $method], $parameters);
+        $result = call_user_func_array([$this->pluginPage, $method], array_values($parameters));
 
         if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
             return $result;

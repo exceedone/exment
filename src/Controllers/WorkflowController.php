@@ -726,7 +726,7 @@ class WorkflowController extends AdminControllerBase
                         ->withInput();
         }
 
-        \DB::transaction(function () use ($workflow_tables) {
+        \ExmentDB::transaction(function () use ($workflow_tables) {
             foreach ($workflow_tables as $custom_table_id => $item) {
                 foreach (array_get($item, 'workflows', []) as $workflow_id => $workflow_item) {
                     // get workflow table using custom table id and workflow id

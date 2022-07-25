@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
-use Tests\TestCase;
 use Illuminate\Support\Facades\Notification;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\LoginUser;
@@ -18,7 +17,7 @@ use Exceedone\Exment\Jobs;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Carbon\Carbon;
 
-class NotifyTest extends TestCase
+class NotifyTest extends FeatureTestBase
 {
     use TestTrait;
 

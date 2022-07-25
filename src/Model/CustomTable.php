@@ -1046,7 +1046,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // get page settings
             $settings = \Exment::user()->getSettingValue($path)?? '[]';
-            $settings = json_decode($settings, true);
+            $settings = json_decode_ex($settings, true);
 
             // get view settings
             $parameters = [];
@@ -1086,7 +1086,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $inputs = Arr::except(Request::all(), ['view', '_pjax', '_token', '_method', '_previous_', '_export_', 'format', 'group_key', 'group_view']);
 
         $parameters = \Exment::user()->getSettingValue($path)?? '[]';
-        $parameters = json_decode($parameters, true);
+        $parameters = json_decode_ex($parameters, true);
 
         $parameters[$view] = $inputs;
 

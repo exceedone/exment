@@ -425,7 +425,7 @@ class CustomValueAuthoritable extends ModelBase
         foreach ($keys as $key) {
             list($optionItem, $ajaxItem) = CustomTable::getEloquent($key)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
-                'selected_value' => str_replace("{$key}_", "", $default),
+                'selected_value' => str_replace_ex("{$key}_", "", $default),
                 'permission' => $permission,
                 'notAjax' => $all,
             ]);

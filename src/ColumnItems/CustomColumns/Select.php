@@ -29,8 +29,8 @@ class Select extends CustomItem
         $select_options = $this->custom_column->createSelectOptions();
         // if $value is array
         $multiple = true;
-        if (!is_array($v) && preg_match('/\[.+\]/i', $v)) {
-            $v = json_decode($v);
+        if (!is_array($v) && preg_match_ex('/\[.+\]/i', $v)) {
+            $v = json_decode_ex($v);
         }
         if (!is_array($v)) {
             $val = [$v];
@@ -214,7 +214,7 @@ class Select extends CustomItem
         $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
 
         if (is_json($value)) {
-            $value = json_decode($value, true);
+            $value = json_decode_ex($value, true);
         }
         if (is_array($value)) {
             return collect($value)->map(function ($val) use ($isUseUnicode) {

@@ -38,7 +38,7 @@ class InitOnlyRule implements Rule
         $v = $this->getOriginalValue();
 
         if (is_json($value)) {
-            $value = json_decode($value);
+            $value = json_decode_ex($value);
         }
 
         if ($v != $value) {

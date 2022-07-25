@@ -77,6 +77,7 @@ abstract class DiskServiceBase
             try {
                 fclose($stream);
             } catch (\Exception $ex) {
+            } catch (\Throwable $ex) {
             }
         }
     }

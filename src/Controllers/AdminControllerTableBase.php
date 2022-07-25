@@ -51,7 +51,7 @@ abstract class AdminControllerTableBase extends Controller
             abort(404);
         }
         
-        return call_user_func_array([$this, $method], $parameters);
+        return $this->{$method}(...array_values($parameters));
     }
 
     /**

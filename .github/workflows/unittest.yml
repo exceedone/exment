@@ -1,0 +1,61 @@
+name: phpunit
+
+on:
+  pull_request:
+    paths:
+      - 'config/**'
+      - 'database/**'
+      - 'resources/**'
+      - 'src/**'
+      - 'tests/**'
+
+env:
+  DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: oreno4649/exment-boilerplate
+
+jobs:
+  exment-testing:
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        db: ["mysql", "mariadb", "sqlsrv"]
+        test: ["feature", "unit", "browser"]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
+          path: ./docker-exment
+
+      - uses: actions/checkout@v2
+        with:
+          repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
+          path: ./docker-exment/exment-boilerplate
+
+      - uses: actions/checkout@v2
+        with:
+          path: ./docker-exment/exment-boilerplate/exment
+
+      - name: Docker Compose Version
+        run: docker-compose --version
+
+      - name: Make ${{ matrix.db }} up
+        working-directory: docker-exment
+        run: |
+          make ${{ matrix.db }}-up
+
+      - name: copy compose.dev.json
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
+          docker-compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
+
+      - name: Make ${{ matrix.db }} Initialize
+        working-directory: docker-exment
+        run: |
+          make ${{ matrix.db }}-init
+
+      - name: PHPUnit Test
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php composer run exment:test:${{ matrix.test }}

@@ -313,7 +313,7 @@ class WorkflowAction extends ModelBase
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
 
-        \DB::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
+        \ExmentDB::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
             $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
             if ($next === true) {

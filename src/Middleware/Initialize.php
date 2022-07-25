@@ -476,8 +476,8 @@ class Initialize
 
         Grid\Tools::$defaultPosition = 'right';
         Grid\Tools\BatchActions::$deleteBatchClassName = \Exceedone\Exment\Grid\Tools\BatchDelete::class;
-        Grid\Concerns\HasQuickSearch::$searchKey = 'query';
-        Grid::$searchKey = 'query';
+        //Grid\Concerns\HasQuickSearch::setSearchKey('query');
+        Grid::setSearchKey('query');
 
         Auth2factorService::providers('email', \Exceedone\Exment\Services\Auth2factor\Providers\Email::class);
         Auth2factorService::providers('google', \Exceedone\Exment\Services\Auth2factor\Providers\Google::class);

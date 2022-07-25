@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Storage\Adapter;
 
-use League\Flysystem\Sftp\SftpAdapter;
+use League\Flysystem\PhpseclibV2\SftpAdapter;
+use League\Flysystem\PhpseclibV2\SftpConnectionProvider;
+use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
 
 class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
 {
@@ -13,11 +15,14 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
      */
     public static function getAdapter($app, $config, $driverKey)
     {
-        $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = static::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);
-        $mergeConfig['driver'] = 'sftp';
+        $mergeConfig = static::getConfig($config);
 
-        $driver = new self($mergeConfig);
+        $driver = new self(
+            SftpConnectionProvider::fromArray($mergeConfig),
+            array_get($mergeConfig, 'root')
+            //,
+            //PortableVisibilityConverter::fromArray(array_get($mergeConfig, 'permissions'))
+        );
         return $driver;
     }
     
@@ -26,5 +31,19 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
         return [
             'root' => config('exment.rootpath.sftp.' . $mergeFrom),
         ];
+    }
+    
+    /**
+     * Get config. Execute merge.
+     *
+     * @param array $config
+     * @return array
+     */
+    public static function getConfig($config) : array
+    {
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig['driver'] = 'sftp';
+        return $mergeConfig;
     }
 }

@@ -67,7 +67,7 @@ class RefreshDataService
         })->toArray(), $tables);
 
         // call truncate
-        \DB::transaction(function () use ($tables) {
+        \ExmentDB::transaction(function () use ($tables) {
             foreach ($tables as $table) {
                 \DB::table($table)->truncate();
             }
@@ -129,7 +129,7 @@ class RefreshDataService
 
 
         // call truncate
-        \DB::transaction(function () use ($truacateTables, $custom_tables, $deleteTables) {
+        \ExmentDB::transaction(function () use ($truacateTables, $custom_tables, $deleteTables) {
             foreach ($custom_tables as $custom_table) {
                 // delete
                 foreach ($deleteTables as $deleteTableName => $deleteTable) {

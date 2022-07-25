@@ -48,7 +48,7 @@ class Image extends OtherBase
         $result = parent::getItemsForDisplay();
 
         // set image url for option
-        $options = json_decode($result['options'], true);
+        $options = json_decode_ex($result['options'], true);
         $options['image_url'] = $this->getImageUrl();
         $result['options'] = collect($options)->toJson();
         return $result;

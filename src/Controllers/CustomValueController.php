@@ -46,6 +46,9 @@ class CustomValueController extends AdminControllerTableBase
     const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
     const CLASSNAME_CUSTOM_VALUE_FORM = 'block_custom_value_form';
     const CLASSNAME_CUSTOM_VALUE_PREFIX = 'custom_value_';
+    const DATANAME_CUSTOM_VIEW_ID = 'data-custom_view_id';
+    const DATANAME_CUSTOM_VIEW_SUUID = 'data-custom_view_suuid';
+    const DATANAME_CUSTOM_VIEW_NAME = 'data-view_view_name';
 
     /**
      * CustomValueController constructor.
@@ -187,6 +190,11 @@ class CustomValueController extends AdminControllerTableBase
             $form->disableCreatingCheck();
 
             $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+            $row->attribute([
+                static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
+                static::DATANAME_CUSTOM_VIEW_SUUID => $this->custom_view->suuid,
+                static::DATANAME_CUSTOM_VIEW_NAME => $this->custom_view->view_view_name,
+            ]);
         } else {
             $callback = null;
             if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
@@ -226,6 +234,11 @@ class CustomValueController extends AdminControllerTableBase
 
             $row = new Row($grid);
             $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+            $row->attribute([
+                static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
+                static::DATANAME_CUSTOM_VIEW_SUUID => $this->custom_view->suuid,
+                static::DATANAME_CUSTOM_VIEW_NAME => $this->custom_view->view_view_name,
+            ]);
         }
 
         $content->row($row);
@@ -263,6 +276,11 @@ class CustomValueController extends AdminControllerTableBase
 
         $row = new Row($this->form(null));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+        $row->attribute([
+            static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
+            static::DATANAME_CUSTOM_VIEW_SUUID => $this->custom_view->suuid,
+            static::DATANAME_CUSTOM_VIEW_NAME => $this->custom_view->view_view_name,
+        ]);
         $content->row($row);
         
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
@@ -304,6 +322,11 @@ class CustomValueController extends AdminControllerTableBase
 
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+        $row->attribute([
+            static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
+            static::DATANAME_CUSTOM_VIEW_SUUID => $this->custom_view->suuid,
+            static::DATANAME_CUSTOM_VIEW_NAME => $this->custom_view->view_view_name,
+        ]);
         $content->row($row);
 
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [

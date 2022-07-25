@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\CopyColumnType;
 
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -82,7 +81,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function execute($from_custom_value, $inputs = null)
     {
         $to_custom_value = null;
-        DB::transaction(function () use (&$to_custom_value, $from_custom_value, $inputs) {
+        \ExmentDB::transaction(function () use (&$to_custom_value, $from_custom_value, $inputs) {
             $to_custom_value = static::saveCopyModel(
                 $this->custom_copy_columns,
                 $this->custom_copy_input_columns,

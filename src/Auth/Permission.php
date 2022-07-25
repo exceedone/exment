@@ -362,7 +362,7 @@ class Permission
         }
 
         // remove admin url from request url.
-        $url = str_replace(admin_url(), '', $endpoint);
+        $url = str_replace_ex(admin_url(), '', $endpoint);
         
         // remove after query
         $url = $this->removeAfterQuery($url);
@@ -415,7 +415,7 @@ class Permission
     {
         // Get plugin data by Endpoint
         $plugin = Plugin::firstRecord(function ($plugin) use ($endpoint) {
-            return strcmp($plugin->getOption('uri'), $endpoint) == 0;
+            return strcmp_ex($plugin->getOption('uri'), $endpoint) == 0;
         }, false);
         if (!isset($plugin)) {
             return false;
@@ -493,7 +493,7 @@ class Permission
      */
     protected function isNotAdminUrl(?string $endpoint)
     {
-        $parse_url = parse_url($endpoint);
+        $parse_url = parse_url_ex($endpoint);
         if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
             return true;
         }

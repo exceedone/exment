@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Model\CustomTable;

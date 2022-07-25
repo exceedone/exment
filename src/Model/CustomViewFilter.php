@@ -64,7 +64,7 @@ class CustomViewFilter extends ModelBase
     public function getViewFilterConditionValueAttribute()
     {
         if (is_string($this->view_filter_condition_value_text)) {
-            $array = json_decode($this->view_filter_condition_value_text);
+            $array = json_decode_ex($this->view_filter_condition_value_text);
             if (is_array($array)) {
                 return array_filter($array, function ($val) {
                     return !is_null($val);

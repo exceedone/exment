@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\FilterOption;
