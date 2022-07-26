@@ -62,6 +62,10 @@ class Date extends CustomItem
             return $this->value;
         }
 
+        if (isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))) {
+            return $this->getOriginalValue();
+        }
+
         if (!isset($this->value)) {
             return null;
         }
