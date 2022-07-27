@@ -40,35 +40,45 @@ class CheckLangCommand extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         $jaTrans = trans('exment::exment', [], 'ja');
         $langs = SystemLocale::getLocaleOptions();
 
+        $hasError = false;
         foreach ($langs as $lang => $label) {
             if ($lang == 'ja') {
                 continue;
             }
 
-            $this->checkTrans(['exment::exment'], $jaTrans, $lang);
+            $result = $this->checkTrans(['exment::exment'], $jaTrans, $lang);
+            if ($result === true) {
+                $hasError = true;
+            }
         }
-        return 0;
+        return $hasError ? 1 : 0;
     }
     
-    protected function checkTrans(array $keys, $jat, $lang)
+    protected function checkTrans(array $keys, $jat, $lang): bool
     {
+        $hasError = false;
         foreach ($jat as $key => $value) {
             $langKeys = $keys;
             $langKeys[] = $key;
 
             if (is_array($value)) {
-                $this->checkTrans($langKeys, $value, $lang);
+                $result = $this->checkTrans($langKeys, $value, $lang);
+                if ($result === true) {
+                    $hasError = true;
+                }
             } else {
                 if (!\Lang::has(implode(".", $langKeys), $lang)) {
                     $langKey = implode(".", $langKeys);
-                    $this->info("{$lang} {$langKey}");
+                    $this->warn("{$lang} {$langKey}");
+                    $hasError = true;
                 }
             }
         }
+        return $hasError;
     }
 }
