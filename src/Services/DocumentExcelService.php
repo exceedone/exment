@@ -75,7 +75,7 @@ class DocumentExcelService
             $spreadsheet = $reader->load($this->templateFileFullPath);
     
             if($this->calledCallback){
-                $this->calledCallback($spreadsheet);
+                call_user_func($this->calledCallback, $spreadsheet);
             }
 
             // output all sheets
@@ -108,7 +108,7 @@ class DocumentExcelService
             }
     
             if($this->savingCallback){
-                $this->savingCallback($spreadsheet);
+                call_user_func($this->savingCallback, $spreadsheet);
             }
 
             $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
