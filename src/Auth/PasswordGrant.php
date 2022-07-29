@@ -80,16 +80,16 @@ class PasswordGrant extends PasswordGrantBase
             );
             if ($user instanceof UserEntityInterface === false) {
                 $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));
-    
+
                 throw OAuthServerException::invalidCredentials();
             }
-    
+
             return $user;
         } catch (SsoLoginErrorException $ex) {
             throw new OAuthServerException($ex->getSsoErrorMessage(), 3, 'invalid_request', 400);
         }
     }
-    
+
 
     /**
      * {@inheritdoc}
@@ -108,11 +108,11 @@ class PasswordGrant extends PasswordGrantBase
             'provider_name' => $login_setting->provider_name,
             'islogin_from_provider' => true,
         ];
-        
+
         if (method_exists($model, 'findForPassport')) {
-            $user = (new $model)->findForPassport($username, $credentials);
+            $user = (new $model())->findForPassport($username, $credentials);
         } else {
-            $user = (new $model)->where('email', $username)->first();
+            $user = (new $model())->where('email', $username)->first();
         }
 
         if (! $user) {

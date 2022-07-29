@@ -40,7 +40,7 @@ trait CustomColumnTrait
                 $custom_column->column_name => $value,
             ],
         ]);
-        
+
         $column_item = $custom_column->column_item->setCustomValue($custom_value);
 
         return [$custom_value, $column_item];

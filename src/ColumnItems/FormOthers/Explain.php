@@ -22,7 +22,7 @@ class Explain extends FormOtherItem
         // default escapes text
         return replaceBreakEsc($this->_text($v));
     }
-    
+
     protected function setAdminOptions(&$field)
     {
         parent::setAdminOptions($field);

@@ -6,27 +6,27 @@ use Exceedone\Exment\Model\CustomColumn;
 
 class ColumnType extends EnumBase
 {
-    const TEXT = 'text';
-    const TEXTAREA = 'textarea';
-    const EDITOR = 'editor';
-    const URL = 'url';
-    const EMAIL = 'email';
-    const INTEGER = 'integer';
-    const DECIMAL = 'decimal';
-    const CURRENCY = 'currency';
-    const DATE = 'date';
-    const TIME = 'time';
-    const DATETIME = 'datetime';
-    const SELECT = 'select';
-    const SELECT_VALTEXT = 'select_valtext';
-    const SELECT_TABLE = 'select_table';
-    const YESNO = 'yesno';
-    const BOOLEAN = 'boolean';
-    const AUTO_NUMBER = 'auto_number';
-    const IMAGE = 'image';
-    const FILE = 'file';
-    const USER = 'user';
-    const ORGANIZATION = 'organization';
+    public const TEXT = 'text';
+    public const TEXTAREA = 'textarea';
+    public const EDITOR = 'editor';
+    public const URL = 'url';
+    public const EMAIL = 'email';
+    public const INTEGER = 'integer';
+    public const DECIMAL = 'decimal';
+    public const CURRENCY = 'currency';
+    public const DATE = 'date';
+    public const TIME = 'time';
+    public const DATETIME = 'datetime';
+    public const SELECT = 'select';
+    public const SELECT_VALTEXT = 'select_valtext';
+    public const SELECT_TABLE = 'select_table';
+    public const YESNO = 'yesno';
+    public const BOOLEAN = 'boolean';
+    public const AUTO_NUMBER = 'auto_number';
+    public const IMAGE = 'image';
+    public const FILE = 'file';
+    public const USER = 'user';
+    public const ORGANIZATION = 'organization';
 
     public static function COLUMN_TYPE_CALC()
     {
@@ -167,17 +167,17 @@ class ColumnType extends EnumBase
     {
         return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_DATETIME());
     }
-    
+
     public static function isUrl($column_type)
     {
         return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_URL());
     }
-    
+
     public static function isAttachment($column_type)
     {
         return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_ATTACHMENT());
     }
-    
+
     public static function isUserOrganization($column_type)
     {
         return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_USER_ORGANIZATION());
@@ -207,7 +207,7 @@ class ColumnType extends EnumBase
         return static::_isMatchColumnType($column_type, static::COLUMN_TYPE_OPERATION_ENABLE_SYSTEM());
     }
 
-    protected static function _isMatchColumnType($column_type, array $types) : bool
+    protected static function _isMatchColumnType($column_type, array $types): bool
     {
         if ($column_type instanceof CustomColumn) {
             $column_type = $column_type->column_type;
@@ -225,7 +225,7 @@ class ColumnType extends EnumBase
         if (is_null($text)) {
             return null;
         }
-        
+
         if (preg_match('/\d{4}-\d{2}-\d{2}$/', $text)) {
             return static::DATE;
         } elseif (preg_match('/\d{4}-\d{2}-\d{2}\h\d{2}:\d{2}:\d{2}$/', $text)) {
@@ -289,7 +289,7 @@ class ColumnType extends EnumBase
             case static::ORGANIZATION:
                 return 'fa-users';
         }
-        
+
         return null;
     }
 

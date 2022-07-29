@@ -10,7 +10,7 @@ use Encore\Admin\Facades\Admin;
 class DeleteButton
 {
     protected $url;
-    
+
     public function __construct($url)
     {
         $this->url = $url;
@@ -47,7 +47,7 @@ EOT;
             'attributes' => ['id' => $id],
         ]);
     }
-    
+
     /**
      * @return string
      */

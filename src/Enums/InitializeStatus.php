@@ -4,9 +4,9 @@ namespace Exceedone\Exment\Enums;
 
 class InitializeStatus extends EnumBase
 {
-    const LANG = 'lang';
-    const DATABASE = 'database';
-    const SYSTEM_REQUIRE = 'system_require';
-    const INSTALLING = 'installing';
-    const INITIALIZE = 'initialize';
+    public const LANG = 'lang';
+    public const DATABASE = 'database';
+    public const SYSTEM_REQUIRE = 'system_require';
+    public const INSTALLING = 'installing';
+    public const INITIALIZE = 'initialize';
 }

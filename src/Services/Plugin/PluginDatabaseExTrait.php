@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Exceedone\Exment\Model\Define;
@@ -8,7 +9,6 @@ use Exceedone\Exment\Model\Define;
  */
 trait PluginDatabaseExTrait
 {
-
     /**
      * Set external connection
      *

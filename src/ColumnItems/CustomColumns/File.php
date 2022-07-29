@@ -58,7 +58,7 @@ class File extends CustomItem
         if (!isset($url)) {
             return $url;
         }
-        
+
         return \Exment::getUrlTag($url, $file->filename, UrlTagType::BLANK, [], [
             'tooltipTitle' => exmtrans('common.download'),
         ]);
@@ -113,7 +113,7 @@ class File extends CustomItem
         }
         return Field\File::class;
     }
-    
+
 
     protected function setAdminOptions(&$field)
     {
@@ -121,7 +121,7 @@ class File extends CustomItem
         $fileOption = File::getFileOptions($this->custom_column, $this->id);
         $field->options($fileOption)->removable();
         $field->help(array_get($fileOption, 'maxFileSizeHelp'));
-        
+
         // set filename rule
         $custom_table = $this->getCustomTable();
         $multiple = $this->isMultipleEnabled();
@@ -160,7 +160,7 @@ class File extends CustomItem
                 if (!is_array($files)) {
                     $files = [$files];
                 }
-    
+
                 $result = [];
                 foreach ($files as $file) {
                     if (!($file instanceof UploadedFile)) {
@@ -182,14 +182,14 @@ class File extends CustomItem
                     session()->put(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES, $sessions);
                     // and set request session for using removing UploadedFile
                     System::setRequestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES . $hashName, $fileName);
-                
+
                     $result[] = $fileName;
                 }
 
                 return $this->isMultipleEnabled() ? $result : (count($result) > 0 ? $result[0] : null);
             });
         }
-        
+
         if (!is_null($accept_extensions = array_get($this->custom_column->options, 'accept_extensions'))) {
             // append accept rule. And add dot.
             $accept_extensions = collect(stringToArray($accept_extensions))->map(function ($accept_extension) {
@@ -218,7 +218,7 @@ class File extends CustomItem
 
         $field->destroy($del_key); // delete file
         ExmentFile::deleteFileInfo($del_key); // delete file table
-        
+
         // updated value
         if (!$this->isMultipleEnabled()) {
             $updatedValue = null;
@@ -242,7 +242,7 @@ class File extends CustomItem
         $del_column_name = $this->custom_column->column_name;
         $value = $this->custom_value->value;
         $fileValue = array_get($value, $del_column_name);
-        
+
         if (is_nullorempty($fileValue)) {
             return null;
         }
@@ -264,7 +264,7 @@ class File extends CustomItem
             })->toArray();
         return $value;
     }
-    
+
     protected static function getFileOptions($custom_column, $id)
     {
         $options = [
@@ -322,7 +322,7 @@ class File extends CustomItem
             $validates[] = new Validator\FileRule(stringToArray($accept_extensions));
         }
     }
-    
+
     protected function getCustomField($classname, $column_name_prefix = null)
     {
         $field = parent::getCustomField($classname, $column_name_prefix);
@@ -350,7 +350,7 @@ class File extends CustomItem
 
         return $field;
     }
-    
+
 
     public function getAdminFilterWhereQuery($query, $input)
     {
@@ -360,10 +360,10 @@ class File extends CustomItem
         if (is_nullorempty($ids)) {
             $query->whereNotMatch();
         }
-        
+
         $query->whereOrIn($this->getTableColumn('id'), $ids);
     }
-    
+
 
     /**
      * Get Search queries for free text search
@@ -384,7 +384,7 @@ class File extends CustomItem
         } else {
             $query->whereOrIn('id', $ids);
         }
-        
+
         $query->select('id')->take($takeCount);
 
         return [$query];
@@ -433,7 +433,7 @@ class File extends CustomItem
     {
         return $this->isMultipleEnabledTrait();
     }
-    
+
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
@@ -464,13 +464,13 @@ class File extends CustomItem
                 ->help(exmtrans("custom_column.help.accept_extensions"));
         }
     }
-    
+
     /**
      * Get separate word for multiple
      *
      * @return string|null
      */
-    protected function getSeparateWord() : ?string
+    protected function getSeparateWord(): ?string
     {
         if (boolval(array_get($this->options, 'asApi'))) {
             return ",";
@@ -505,7 +505,7 @@ class File extends CustomItem
     protected function getTmpFile(string $name)
     {
         $localFileName = str_replace(Field\File::TMP_FILE_PREFIX, "", $name);
-        
+
         // get file info
         $fileInfo = $this->getTmpFileInfo($name);
 
@@ -538,7 +538,7 @@ class File extends CustomItem
     {
         foreach (System::requestSession(Define::SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES) ?? [] as $name) {
             $localFileName = str_replace(Field\File::TMP_FILE_PREFIX, "", $name);
-        
+
             // get file info
             $fileInfo = $this->getTmpFileInfo($name);
 
@@ -564,7 +564,7 @@ class File extends CustomItem
      * @param string $v
      * @return string|null
      */
-    protected function getPublicFileName($v) : ?string
+    protected function getPublicFileName($v): ?string
     {
         // If public form tmp file, return Only file name.
         if (is_string($v) && strpos($v, Field\File::TMP_FILE_PREFIX) === 0) {

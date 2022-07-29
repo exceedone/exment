@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -14,7 +15,7 @@ class WorkflowWorkUser extends ViewFilterBase
      */
     protected static $isAppendDatabaseTable = false;
 
-    
+
     public static function getFilterOption()
     {
         return FilterOption::WORKFLOW_EQ_WORK_USER;
@@ -31,7 +32,7 @@ class WorkflowWorkUser extends ViewFilterBase
     {
         $or_option = $this->or_option;
 
-        $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
+        $func = $or_option ? 'orWhereNotNull' : 'whereNotNull';
         $query->{$func}('workflow_values_wf.morph_id');
 
         return $query;
@@ -44,7 +45,7 @@ class WorkflowWorkUser extends ViewFilterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         if (is_nullorempty($value)) {
             return false;

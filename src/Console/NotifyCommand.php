@@ -48,12 +48,12 @@ class NotifyCommand extends Command
         if (!isset($notify)) {
             return 0;
         }
-        
+
         $notify->notifySchedule();
         return 0;
     }
-    
-    protected function findNotify() : ?Notify
+
+    protected function findNotify(): ?Notify
     {
         $query = Notify::where('notify_trigger', NotifyTrigger::TIME);
         // Execute batch. *Batch can execute if active_flg is false, so get value directly.

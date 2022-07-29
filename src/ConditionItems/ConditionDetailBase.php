@@ -12,7 +12,7 @@ abstract class ConditionDetailBase extends ConditionItemBase
      *
      * @return string|null
      */
-    public function getQueryKey(Condition $condition) : ?string
+    public function getQueryKey(Condition $condition): ?string
     {
         $condition_type = ConditionTypeDetail::getEnum($condition->target_column_id);
         if (!isset($condition_type)) {

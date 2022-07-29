@@ -19,7 +19,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
     {
         return $this->getFilterOptionConditon();
     }
-    
+
     /**
      * Get change field
      *
@@ -31,7 +31,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
     {
         return $this->getChangeFieldUserOrg(CustomTable::getEloquent(SystemTableName::USER), $key, $show_condition_key);
     }
-    
+
     /**
      * check if custom_value and user(organization, role) match for conditions.
      *
@@ -43,7 +43,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
         $user = \Exment::getUserId();
         return $this->compareValue($condition, $user);
     }
-    
+
     /**
      * get text.
      *
@@ -68,8 +68,8 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
         }
         return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');
     }
-    
-    
+
+
     /**
      * Check has workflow authority with this item.
      *

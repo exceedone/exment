@@ -6,7 +6,6 @@ use Encore\Admin\Grid\Tools\BatchDelete as BatchDeleteBase;
 
 class BatchDelete extends BatchDeleteBase
 {
-
     /**
      * Script of batch delete action.
      */

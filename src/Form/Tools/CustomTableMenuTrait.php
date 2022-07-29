@@ -13,7 +13,7 @@ trait CustomTableMenuTrait
     protected $page_name;
     protected $page_name_sub;
     protected $custom_table;
-    
+
     protected function getItems()
     {
         $items = [];

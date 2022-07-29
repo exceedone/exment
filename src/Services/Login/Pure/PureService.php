@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Login\Pure;
 
 use Exceedone\Exment\Services\Login\LoginService;

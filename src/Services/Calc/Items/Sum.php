@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Calc\Items;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -15,13 +16,13 @@ class Sum extends ItemBase
      * @var CustomTable
      */
     public $child_custom_table;
-    
+
     public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $child_custom_table)
     {
         parent::__construct($custom_column, $custom_table);
         $this->child_custom_table = $child_custom_table;
     }
-    
+
     public function type()
     {
         return 'summary';
@@ -58,7 +59,7 @@ class Sum extends ItemBase
      *
      * @return array
      */
-    public function getTriggeredKeys() : array
+    public function getTriggeredKeys(): array
     {
         return [
             'trigger_block' => $this->getRelationName() ?? 'default',

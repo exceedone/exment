@@ -20,17 +20,17 @@ use Validator;
 trait DataImportExportServiceTrait
 {
     public static $queryName = '_export_';
-    
+
     /**
      * csv or excel format string (xlsx, csv)
      */
     protected $format;
-    
+
     /**
      * file base name
      */
     protected $filebasename;
-    
+
     /**
      * import action.
      */
@@ -54,7 +54,7 @@ trait DataImportExportServiceTrait
     public function __construct($args = [])
     {
         $this->format = static::getFormat($args);
-        
+
         if (array_has($args, 'grid')) {
             $this->setGrid(array_get($args, 'grid'));
         }
@@ -82,12 +82,12 @@ trait DataImportExportServiceTrait
         return $this;
     }
 
-    protected static function getFormat($args = []) : string
+    protected static function getFormat($args = []): string
     {
         if ($args instanceof FormatBase) {
             return $args->getFormat();
         }
-        
+
         if ($args instanceof UploadedFile) {
             $format = $args->extension();
             if ($args->getClientMimeType() === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
@@ -107,8 +107,8 @@ trait DataImportExportServiceTrait
 
         return $format;
     }
-    
-    protected function getFormatClass(string $library, bool $isExport) : FormatBase
+
+    protected function getFormatClass(string $library, bool $isExport): FormatBase
     {
         if ($isExport) {
             if ($this->exportAction && method_exists($this->exportAction, 'getFormatClass')) {
@@ -129,28 +129,28 @@ trait DataImportExportServiceTrait
 
         return $this;
     }
-    
+
     public function exportAction($exportAction)
     {
         $this->exportAction = $exportAction;
 
         return $this;
     }
-    
+
     public function viewExportAction($viewExportAction)
     {
         $this->viewExportAction = $viewExportAction;
 
         return $this;
     }
-    
+
     public function pluginExportAction($pluginExportAction)
     {
         $this->pluginExportAction = $pluginExportAction;
 
         return $this;
     }
-    
+
     /**
      * execute export
      */
@@ -177,10 +177,10 @@ trait DataImportExportServiceTrait
             ->datalist($datalist)
             ->filebasename($this->exportAction->filebasename())
             ->createFile();
-        
+
         $formatObj->sendResponse($files);
     }
-    
+
     /**
      * @param Request $request
      * @return mixed|void error message or success message etc...
@@ -225,7 +225,7 @@ trait DataImportExportServiceTrait
 
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
-        
+
         if (count($datalist) == 0 || (count($datalist) == 1 && array_has($datalist, Define::SETTING_SHEET_NAME))) {
             return [
                 'result' => false,
@@ -239,7 +239,7 @@ trait DataImportExportServiceTrait
         return $response;
     }
 
-    
+
     /**
      * @param string $file_path
      * @param array  $options
@@ -271,7 +271,7 @@ trait DataImportExportServiceTrait
         }
 
         $result = $this->importAction->importChunk($datalist, $options);
-        
+
         if (boolval(array_get($result, 'result'))) {
             return [
                 'result' => true,
@@ -283,7 +283,7 @@ trait DataImportExportServiceTrait
             ];
         }
     }
-    
+
     /**
      * execute export background
      */
@@ -308,7 +308,7 @@ trait DataImportExportServiceTrait
                 'message' => exmtrans('common.message.notfound'),
             ];
         }
-    
+
         $formatObj->saveAsFile($options['dirpath'], $files);
 
         return [
@@ -350,7 +350,7 @@ trait DataImportExportServiceTrait
         }
     }
 
-    
+
     /**
      * @param Request $request
      * @return bool
@@ -432,7 +432,7 @@ trait DataImportExportServiceTrait
             'manual' => \getManualUrl('data_bulk_insert')
         ]) . '</span>')
         ->setWidth(8, 3);
-        
+
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:' . implode(',', array_keys($formats)))->setWidth(8, 3)->addElementClass('custom_table_file')
@@ -443,7 +443,7 @@ trait DataImportExportServiceTrait
                 return '.' . $format;
             })->implode(',')])
             ->help(exmtrans('custom_value.import.help.custom_table_file', implode(',', array_values($formats))) . array_get($fileOption, 'maxFileSizeHelp'));
-    
+
         // get import primary key list
         $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))
             ->options($this->importAction->getPrimaryKeys())
@@ -468,7 +468,7 @@ trait DataImportExportServiceTrait
         //     ->setWidth(8, 3)
         //     ->addElementClass('select_action')
         //     ->help(exmtrans('custom_value.import.help.error_flow'));
-    
+
         $form->textarea('import_error_message', exmtrans('custom_value.import.import_error_message'))
             ->attribute(['readonly' => true])
             ->setWidth(8, 3)
@@ -477,14 +477,14 @@ trait DataImportExportServiceTrait
             ->help(exmtrans('custom_value.import.help.import_error_message'));
 
         $this->importAction->setImportModalItems($form);
-        
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
             'title' => exmtrans('common.import') . ' - ' . $this->importAction->getImportHeaderViewName()
         ]);
     }
-    
+
     /**
      * get primary key list.
      *
@@ -570,7 +570,7 @@ trait DataImportExportServiceTrait
         }
         return $data;
     }
-    
+
     /**
      * get column import value. if error, set message
      *

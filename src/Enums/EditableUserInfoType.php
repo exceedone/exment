@@ -4,9 +4,9 @@ namespace Exceedone\Exment\Enums;
 
 class EditableUserInfoType extends EnumBase
 {
-    const NONE = 'none';
-    const VIEW = 'view';
-    const EDIT = 'edit';
+    public const NONE = 'none';
+    public const VIEW = 'view';
+    public const EDIT = 'edit';
 
     public static function showSettingForm($editableType)
     {

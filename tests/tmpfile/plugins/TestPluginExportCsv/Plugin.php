@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Plugins\TestPluginExportCsv;
 
 use Exceedone\Exment\Services\Plugin\PluginExportBase;
@@ -43,7 +44,7 @@ class Plugin extends PluginExportBase
      *
      * @return string
      */
-    public function getFileName() : string
+    public function getFileName(): string
     {
         return "test.csv";
     }

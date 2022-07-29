@@ -38,17 +38,17 @@ abstract class DiskServiceBase
     {
         return $this->diskItem;
     }
-    
+
     public function tmpDiskItem()
     {
         return $this->tmpDiskItem;
     }
-    
+
     public function localSyncDiskItem()
     {
         return $this->localSyncDiskItem;
     }
-    
+
     /**
      * Upload to crowd disk
      *
@@ -69,7 +69,7 @@ abstract class DiskServiceBase
             }
 
             $stream = $this->tmpDiskItem()->disk()->readStream($from);
-            
+
             $this->diskItem()->disk()->delete($to);
 
             $this->diskItem()->disk()->writeStream($to, $stream);
@@ -92,7 +92,7 @@ abstract class DiskServiceBase
         if (!$this->isDeleteTmpAfterExecute()) {
             return;
         }
-        
+
         $this->tmpDiskItem()->disk()->delete($this->tmpDiskItem()->filePath());
         deleteDirectory($this->tmpDiskItem()->disk(), $this->tmpDiskItem()->dirName());
     }

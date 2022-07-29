@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -43,7 +44,7 @@ class PasswordHistoryRule implements Rule
         // get password history
         $old_passwords = PasswordHistory::where('login_user_id', $this->login_user->id)
             ->orderby('created_at', 'desc')->limit($cnt)->pluck('password');
-        
+
         if (count($old_passwords) == 0) {
             return true;
         }

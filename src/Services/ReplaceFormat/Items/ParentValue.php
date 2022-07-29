@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
 use Exceedone\Exment\Model\CustomRelation;
@@ -16,7 +17,7 @@ class ParentValue extends ItemBase
         if (!isset($this->custom_value)) {
             return null;
         }
-        
+
         // get value from model
         if (count($this->length_array) <= 1) {
             $parent_value = $this->custom_value->getParentValue();
@@ -30,7 +31,7 @@ class ParentValue extends ItemBase
         if (!is_list($parentModel)) {
             $parentModel = [$parentModel];
         }
-        
+
         // replace length_string dotted comma
         $length_string = $this->length_array[1];
         $length_string = str_replace('.', ',', $length_string);

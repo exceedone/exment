@@ -48,7 +48,7 @@ interface ItemInterface
      * get or set value's id.
      */
     public function id($id = null);
-    
+
     /**
      * get or set header label.
      */
@@ -83,7 +83,7 @@ interface ItemInterface
      * get view filter type
      */
     public function getViewFilterType();
-    
+
     /**
      * Convert filter value.
      * Ex. If value is decimal and Column Type is decimal, return floatval.

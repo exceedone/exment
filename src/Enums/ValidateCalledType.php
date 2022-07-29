@@ -7,7 +7,7 @@ namespace Exceedone\Exment\Enums;
  */
 class ValidateCalledType extends EnumBase
 {
-    const FORM = 'form';
-    const IMPORT = 'import';
-    const API = 'api';
+    public const FORM = 'form';
+    public const IMPORT = 'import';
+    public const API = 'api';
 }

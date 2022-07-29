@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Tests\Browser;
 
 class ALoginOutTest extends ExmentKitTestCase
 {
-    
     /**
      *
      * @return void
@@ -32,7 +31,7 @@ class ALoginOutTest extends ExmentKitTestCase
             ->seeOuterElement('p[class="login-box-msg"]', 'ログイン');
     }
 
-    
+
     /**
      *
      * @return void

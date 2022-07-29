@@ -9,7 +9,7 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 abstract class UnitTestBase extends TestCase
 {
     use TestTrait;
-    
+
     /**
      * Boot the testing helper traits.
      *

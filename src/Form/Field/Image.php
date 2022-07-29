@@ -14,7 +14,7 @@ class Image extends \Encore\Admin\Form\Field\Image
     protected function getRules()
     {
         $rules = parent::getRules();
-        $rules[] = new \Exceedone\Exment\Validator\ImageRule;
+        $rules[] = new \Exceedone\Exment\Validator\ImageRule();
         return $rules;
     }
 }

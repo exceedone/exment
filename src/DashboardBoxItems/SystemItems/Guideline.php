@@ -11,7 +11,7 @@ class Guideline
     {
         return null;
     }
-    
+
     /**
      * get footer
      */
@@ -19,7 +19,7 @@ class Guideline
     {
         return null;
     }
-    
+
     /**
      * get html body
      */

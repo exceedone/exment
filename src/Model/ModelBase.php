@@ -88,7 +88,7 @@ class ModelBase extends Model
 
     public static function getTableName()
     {
-        return with(new static)->getTable();
+        return with(new static())->getTable();
     }
 
     /**
@@ -235,7 +235,7 @@ class ModelBase extends Model
     {
         return in_array($key, $this->getGuarded()) || $this->getGuarded() == ['*'];
     }
-    
+
     /**
      * Prepare a date for array / JSON serialization.
      *

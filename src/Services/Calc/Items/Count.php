@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Calc\Items;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -13,13 +14,13 @@ class Count extends ItemBase
      * @var CustomTable
      */
     public $child_custom_table;
-    
+
     public function __construct(?CustomTable $custom_table, ?CustomTable $child_custom_table)
     {
         parent::__construct(null, $custom_table);
         $this->child_custom_table = $child_custom_table;
     }
-    
+
     public function type()
     {
         return 'count';
@@ -51,7 +52,7 @@ class Count extends ItemBase
      *
      * @return array
      */
-    public function getTriggeredKeys() : array
+    public function getTriggeredKeys(): array
     {
         return [
             'trigger_block' => 'default',

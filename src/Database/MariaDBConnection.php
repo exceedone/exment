@@ -10,7 +10,7 @@ use Exceedone\Exment\Database\Query\Processors\MariaDBProcessor;
 class MariaDBConnection extends MySqlConnection
 {
     use ConnectionTrait;
-    
+
     /**
      * Get a schema builder instance for the connection.
      *
@@ -32,9 +32,9 @@ class MariaDBConnection extends MySqlConnection
      */
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix(new SchemaGrammar);
+        return $this->withTablePrefix(new SchemaGrammar());
     }
-    
+
     /**
      * Get the default query grammar instance.
      *
@@ -42,7 +42,7 @@ class MariaDBConnection extends MySqlConnection
      */
     protected function getDefaultQueryGrammar()
     {
-        return $this->withTablePrefix(new QueryGrammar);
+        return $this->withTablePrefix(new QueryGrammar());
     }
 
     /**
@@ -52,11 +52,11 @@ class MariaDBConnection extends MySqlConnection
      */
     protected function getDefaultPostProcessor()
     {
-        return new MariaDBProcessor;
+        return new MariaDBProcessor();
     }
 
-    
-    public function getDatabaseDriverName() : string
+
+    public function getDatabaseDriverName(): string
     {
         return 'MariaDB';
     }
@@ -66,7 +66,7 @@ class MariaDBConnection extends MySqlConnection
      *
      * @return boolean
      */
-    public function isUseUnicodeMultipleColumn() : bool
+    public function isUseUnicodeMultipleColumn(): bool
     {
         return true;
     }

@@ -39,7 +39,7 @@ class CustomColumnController extends AdminControllerTableBase
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
-        
+
         $title = exmtrans("custom_column.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
         $this->setPageInfo($title, $title, exmtrans("custom_column.description"), 'fa-list');
     }
@@ -57,8 +57,8 @@ class CustomColumnController extends AdminControllerTableBase
         }
         return parent::index($request, $content);
     }
-    
-    
+
+
     /**
      * Edit
      *
@@ -101,7 +101,7 @@ class CustomColumnController extends AdminControllerTableBase
      */
     protected function grid()
     {
-        $grid = new Grid(new CustomColumn);
+        $grid = new Grid(new CustomColumn());
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
@@ -174,9 +174,9 @@ class CustomColumnController extends AdminControllerTableBase
      */
     protected function form($id = null)
     {
-        $form = new Form(new CustomColumn);
+        $form = new Form(new CustomColumn());
         $request = request();
-        
+
         // get custom_item for option
         $custom_column = CustomColumn::getEloquent($id);
 
@@ -196,7 +196,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         $form->internal('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
-        
+
         if (!isset($id)) {
             $classname = CustomColumn::class;
             $form->text('column_name', exmtrans("custom_column.column_name"))
@@ -264,11 +264,11 @@ class CustomColumnController extends AdminControllerTableBase
                 ])
                 ->attribute(['data-filtertrigger' =>true])
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
-            
+
             $form->switchbool('freeword_search', exmtrans("custom_column.options.freeword_search"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_index_enabled', 'value' => '1'])])
                 ->help(exmtrans("custom_column.help.freeword_search"));
-            
+
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
 
@@ -281,12 +281,12 @@ class CustomColumnController extends AdminControllerTableBase
             $form->text('dropzone_title', exmtrans("custom_column.options.dropzone_title"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['file', 'image']])])
                 ->help(exmtrans("custom_column.help.dropzone_title"));
-            
+
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
-            
+
             $form->numberRange('min_width', 'max_width', exmtrans("custom_column.options.min_max_width"))
                 ->help(exmtrans("custom_column.help.min_max_width"))
-                ;
+            ;
 
             $form->select('text_align', exmtrans("custom_column.options.text_align"))
                 ->help(exmtrans("custom_column.help.text_align"))
@@ -347,16 +347,16 @@ class CustomColumnController extends AdminControllerTableBase
         });
         return $form;
     }
-    
+
     public function calcModal(Request $request, $tableKey, $id = null)
     {
         // get other columns
         // return $id is null(calling create fuction) or not match $id and row id.
         $custom_column_options = CalcService::getCalcCustomColumnOptions($id, $this->custom_table);
-        
+
         // get value
         $value = $request->get('options_calc_formula') ?? '';
-        
+
         $render = view('exment::custom-column.calc_formula_modal', [
             'custom_columns' => $custom_column_options,
             'value' => $value,
@@ -373,7 +373,7 @@ class CustomColumnController extends AdminControllerTableBase
         ]);
     }
 
-    
+
     /**
      * add column form and view after saved
      */
@@ -384,13 +384,13 @@ class CustomColumnController extends AdminControllerTableBase
         if (boolval($add_custom_form_flg)) {
             $form = CustomForm::getDefault($this->custom_table);
             $form_block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
-            
+
             // whether saved check (as index)
             $exists = $form_block->custom_form_columns()
                 ->where('form_column_target_id', $model->id)
                 ->where('form_column_type', FormColumnType::COLUMN)
                 ->count() > 0;
-                
+
             if (!$exists) {
                 // get order
                 $order = $form_block->custom_form_columns()
@@ -408,7 +408,7 @@ class CustomColumnController extends AdminControllerTableBase
                     ->pluck('width')
                     ->first() ?? 2;
 
-                $custom_form_column = new CustomFormColumn;
+                $custom_form_column = new CustomFormColumn();
                 $custom_form_column->custom_form_block_id = $form_block->id;
                 $custom_form_column->form_column_type = FormColumnType::COLUMN;
                 $custom_form_column->form_column_target_id = $model->id;
@@ -424,7 +424,7 @@ class CustomColumnController extends AdminControllerTableBase
         $add_custom_view_flg = app('request')->input('add_custom_view_flg');
         if (boolval($add_custom_view_flg)) {
             $view = CustomView::getDefault($this->custom_table, false);
-            
+
             // get order
             if ($view->custom_view_columns()->count() == 0) {
                 $order = 1;
@@ -446,7 +446,7 @@ class CustomColumnController extends AdminControllerTableBase
                 $order++;
             }
 
-            $custom_view_column = new CustomViewColumn;
+            $custom_view_column = new CustomViewColumn();
             $custom_view_column->custom_view_id = $view->id;
             $custom_view_column->view_column_type = ConditionType::COLUMN;
             $custom_view_column->view_column_target = $model->id;
@@ -455,12 +455,12 @@ class CustomColumnController extends AdminControllerTableBase
             $custom_view_column->save();
         }
 
-        
+
         // set table labels --------------------------------------------------
         $add_table_label_flg = app('request')->input('add_table_label_flg');
         if (boolval($add_table_label_flg)) {
             $priority = CustomColumnMulti::where('custom_table_id', $this->custom_table->id)->where('multisetting_type', MultisettingType::TABLE_LABELS)->max('priority') ?? 0;
-            
+
             CustomColumnMulti::create([
                 'custom_table_id' => $this->custom_table->id,
                 'multisetting_type' => MultisettingType::TABLE_LABELS,
@@ -472,7 +472,7 @@ class CustomColumnController extends AdminControllerTableBase
         }
     }
 
-    
+
     /**
      * Get column_type's option form
      *
@@ -489,7 +489,7 @@ class CustomColumnController extends AdminControllerTableBase
         // get custom item
         $column_item = $this->getCustomItem($request, $id, $val);
 
-        $form = new Form(new CustomColumn);
+        $form = new Form(new CustomColumn());
         $form->setUniqueName($form_uniqueName)->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item) {
             // Form options area -- start
             $form->html('<div class="form_dynamic_options_response">')->plain();

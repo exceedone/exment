@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Model\Define;
@@ -22,7 +23,7 @@ class DatabaseForm
         'username',
         'password',
     ];
-    
+
     public function index()
     {
         $database_default = config('database.default', 'mysql');
@@ -39,7 +40,7 @@ class DatabaseForm
 
         return view('exment::install.database', $args);
     }
-    
+
     public function post()
     {
         $request = request();
@@ -49,10 +50,10 @@ class DatabaseForm
             if ($s == 'password') {
                 continue;
             }
-            
+
             $rules[$s] = 'required';
         }
-        
+
         $validation = \Validator::make($request->all(), $rules);
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);
@@ -63,19 +64,19 @@ class DatabaseForm
                 'database_canconnection' => $result,
             ]);
         }
-        
+
         if (!$this->canDatabaseConnection($request)) {
             return back()->withInput()->withErrors([
                 'database_canconnection' => exmtrans('install.error.database_canconnection'),
             ]);
         }
-        
+
         if (($result = $this->checkDatabaseMatch()) !== true) {
             return back()->withInput()->withErrors([
                 'database_canconnection' => $result,
             ]);
         }
-        
+
         if (($result = $this->checkDatabaseVersion()) !== true) {
             return back()->withInput()->withErrors([
                 'database_canconnection' => $result,
@@ -87,7 +88,7 @@ class DatabaseForm
             $inputs['DB_' . strtoupper($s)] = $request->get($s);
         }
 
-        
+
         // try {
         //     $this->setEnv($inputs);
         // } catch (\Exception $ex) {
@@ -170,10 +171,10 @@ class DatabaseForm
             'database' => Define::DATABASE_TYPE[$this->database_default],
             'current' => $version
         ]);
-        
+
         return $errorMessage;
     }
-    
+
     /**
      * Check database mariadb and mysql mistake/
      *

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
@@ -14,7 +15,7 @@ class Image extends OtherBase
      *
      * @return WidgetForm
      */
-    public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
+    public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         $form = new WidgetForm($parameters);
 
@@ -36,14 +37,14 @@ class Image extends OtherBase
         return $form;
     }
 
-    
-    
+
+
     /**
      * Get items for display
      *
      * @return array
      */
-    public function getItemsForDisplay() : array
+    public function getItemsForDisplay(): array
     {
         $result = parent::getItemsForDisplay();
 
@@ -59,7 +60,7 @@ class Image extends OtherBase
      *
      * @return string|null
      */
-    protected function getImageUrl() : ?string
+    protected function getImageUrl(): ?string
     {
         $file = ExmentFile::getFileFromFormColumn(array_get($this->custom_form_column, 'id'));
         if (!$file) {
@@ -68,14 +69,14 @@ class Image extends OtherBase
         return ExmentFile::getUrl($file);
     }
 
-    
+
 
     /**
      * prepare saving option.
      *
      * @return array|string
      */
-    public function prepareSavingOptions(array $options) : array
+    public function prepareSavingOptions(array $options): array
     {
         return array_filter($options, function ($option, $key) {
             return in_array($key, [
@@ -89,12 +90,12 @@ class Image extends OtherBase
      *
      * @return array
      */
-    public function getValidationRules() : array
+    public function getValidationRules(): array
     {
         return ['image' => 'required_image'];
     }
 
-    public function getFontAwesomeClass() : ?string
+    public function getFontAwesomeClass(): ?string
     {
         return 'fa-picture-o';
     }
@@ -104,14 +105,14 @@ class Image extends OtherBase
      *
      * @return array
      */
-    public function getOptionLabels() : array
+    public function getOptionLabels(): array
     {
         $result = parent::getOptionLabels();
 
         if (!is_nullorempty($this->getImageUrl())) {
             $result['image'] = exmtrans('custom_form.setting_available');
         }
-        
+
         return $result;
     }
 }

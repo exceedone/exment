@@ -14,7 +14,7 @@ class LdapUser extends CustomLoginUserBase
 {
     public static function with($login_setting, $ldapUser)
     {
-        $user = new LdapUser;
+        $user = new LdapUser();
         $user->provider_name = $login_setting->getOption('ldap_name');
         $user->login_type = LoginType::LDAP;
         $user->login_setting = $login_setting;
@@ -28,7 +28,7 @@ class LdapUser extends CustomLoginUserBase
 
         return $user;
     }
-    
+
     /**
      * Mapping saml user value
      *
@@ -48,13 +48,13 @@ class LdapUser extends CustomLoginUserBase
                 $hasValue = true;
                 continue;
             }
-    
+
             if (!isset($ldapuser_attrs)) {
                 $ldapuser_attrs = self::accessProtected($ldapuser, 'attributes');
             }
 
             $ldap_attr = strtolower($ldap_attr);
-    
+
             if (!isset($ldapuser_attrs[$ldap_attr])) {
                 $mappingKey = str_replace($replaceValue, null, $mappingKey);
                 continue;
@@ -65,12 +65,12 @@ class LdapUser extends CustomLoginUserBase
                 $hasValue = true;
                 continue;
             }
-    
+
             if (count($ldapuser_attrs[$ldap_attr]) == 0) {
                 $mappingKey = str_replace($replaceValue, null, $mappingKey);
                 continue;
             }
-    
+
             // now it returns the first item, but it could return
             // a comma-separated string or any other thing that suits you better
             $mappingKey = str_replace($replaceValue, $ldapuser_attrs[$ldap_attr][0], $mappingKey);

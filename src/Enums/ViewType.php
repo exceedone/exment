@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class ViewType extends EnumBase
 {
-    const SYSTEM = 0;
-    const USER = 1;
+    public const SYSTEM = 0;
+    public const USER = 1;
 }

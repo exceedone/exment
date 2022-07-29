@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 class Editor
 {
     protected $dashboard_box;
-    
+
     public function __construct(?DashboardBox $dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -21,7 +21,7 @@ class Editor
     {
         return null;
     }
-    
+
     /**
      * get footer
      */
@@ -29,7 +29,7 @@ class Editor
     {
         return null;
     }
-    
+
     /**
      * get html body
      */
@@ -48,6 +48,6 @@ class Editor
             ->config('height', '250')
             ->help(exmtrans('dashboard.help.dashboard_box_options.content'))
             ->attribute(['data-filter' => json_encode(['key' => 'options_target_system_id', 'value' => [DashboardBoxSystemPage::EDITOR]])])
-            ;
+        ;
     }
 }

@@ -4,10 +4,10 @@ namespace Exceedone\Exment\Enums;
 
 class FormLabelType extends EnumBase
 {
-    const FORM_DEFAULT = "form_default";
-    const HORIZONTAL = "horizontal";
-    const VERTICAL = "vertical";
-    const HIDDEN = "hidden";
+    public const FORM_DEFAULT = "form_default";
+    public const HORIZONTAL = "horizontal";
+    public const VERTICAL = "vertical";
+    public const HIDDEN = "hidden";
 
     public static function getFormLabelTypes()
     {

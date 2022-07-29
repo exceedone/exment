@@ -64,9 +64,9 @@ class Currency extends Decimal
     protected function setAdminOptions(&$field)
     {
         parent::setAdminOptions($field);
-        
+
         $options = $this->custom_column->options;
-        
+
         // get symbol
         $symbol = CurrencySymbol::getEnum(array_get($options, 'currency_symbol'));
         if (isset($symbol)) {
@@ -86,7 +86,7 @@ class Currency extends Decimal
     public function setCustomColumnOptionForm(&$form)
     {
         $this->setCustomColumnOptionFormNumber($form);
-        
+
         $form->select('currency_symbol', exmtrans("custom_column.options.currency_symbol"))
             ->help(exmtrans("custom_column.help.currency_symbol"))
             ->required()
@@ -100,7 +100,7 @@ class Currency extends Decimal
                 }
                 return $options;
             });
-            
+
         $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
             ->default(2)
             ->min(0)

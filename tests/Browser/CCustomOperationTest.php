@@ -21,12 +21,14 @@ use Carbon\Carbon;
 
 class CCustomOperationTest extends ExmentKitTestCase
 {
-    use ExmentKitPrepareTrait, ColumnOptionQueryTrait, DatabaseTransactions;
+    use ExmentKitPrepareTrait;
+    use ColumnOptionQueryTrait;
+    use DatabaseTransactions;
 
     /**
      * pre-excecute process before test.
      */
-    protected function setUp() : void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->login();
@@ -98,7 +100,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ]);
 
         $this->seeIsSelected('operation_type[]', CustomOperationType::BUTTON);
-        
+
         foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
             $row_id = $custom_operation_column->id;
             $this->seeIsSelected(
@@ -174,7 +176,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ]);
 
         $this->seeIsSelected('operation_type[]', CustomOperationType::BULK_UPDATE);
-        
+
         foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
             $row_id = $custom_operation_column->id;
             $this->seeIsSelected(
@@ -310,7 +312,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 '_remove_' => 0,
             ]]
         ]);
-        
+
         foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
             $row_id = $custom_operation_column->id;
             $this->seeIsSelected(
@@ -614,11 +616,11 @@ class CCustomOperationTest extends ExmentKitTestCase
             $pre_child_cnt + count($data['custom_operation_columns']),
             CustomOperationColumn::count()
         )
-            ;
+        ;
 
         $raw = CustomOperation::orderBy('created_at', 'desc')->first();
         $id = array_get($raw, 'id');
-            
+
         $this->visit(admin_url("operation/$target_table_name/$id/edit"))
             ->seePageIs(admin_url("operation/$target_table_name/$id/edit"))
             ->seeOuterElement('input[id=operation_name]', 'operation unit test')
@@ -634,7 +636,7 @@ class CCustomOperationTest extends ExmentKitTestCase
      *
      * @return array
      */
-    protected function getFilterSelectOptions($filter_type) : array
+    protected function getFilterSelectOptions($filter_type): array
     {
         $options = FilterOption::FILTER_OPTIONS()[$filter_type];
         return collect($options)->mapWithKeys(function ($option) {
@@ -647,7 +649,7 @@ class CCustomOperationTest extends ExmentKitTestCase
      *
      * @return array
      */
-    protected function getUserSelectOptions() : array
+    protected function getUserSelectOptions(): array
     {
         $custom_table = CustomTable::getEloquent(SystemTableName::USER);
         return $custom_table->getSelectOptions([
@@ -660,7 +662,7 @@ class CCustomOperationTest extends ExmentKitTestCase
      *
      * @return array
      */
-    protected function getRoleSelectOptions() : array
+    protected function getRoleSelectOptions(): array
     {
         return Model\RoleGroup::all()
             ->mapWithKeys(function ($value) {

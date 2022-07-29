@@ -34,7 +34,7 @@ class PublicFormController extends Controller
      * @var CustomForm
      */
     protected $custom_form;
-    
+
     /**
      * @var CustomTable
      */
@@ -78,7 +78,7 @@ class PublicFormController extends Controller
     {
         // check user authority
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            throw new PublicFormNotFoundException;
+            throw new PublicFormNotFoundException();
             ;
         }
         return $this->getInputContent($request);
@@ -116,10 +116,10 @@ class PublicFormController extends Controller
 
             $form = $this->public_form->getForm($request)
                 ->setAction(url_join($this->public_form->getUrl(), $uri));
-    
-            $content = new PublicContent;
+
+            $content = new PublicContent();
             $this->public_form->setContentOption($content);
-    
+
             $content->row($form);
             return $content;
         } catch (\Exception $ex) {
@@ -139,7 +139,7 @@ class PublicFormController extends Controller
     {
         // check user authority
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            throw new PublicFormNotFoundException;
+            throw new PublicFormNotFoundException();
             ;
         }
 
@@ -162,7 +162,7 @@ class PublicFormController extends Controller
 
             $show = $this->public_form->getShow($request, $custom_value, $inputs);
 
-            $content = new PublicContent;
+            $content = new PublicContent();
             $this->public_form->setContentOption($content, ['isContainer' => true]);
 
             $content->row($show);
@@ -185,7 +185,7 @@ class PublicFormController extends Controller
     {
         // check user authority
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            throw new PublicFormNotFoundException;
+            throw new PublicFormNotFoundException();
             ;
         }
         // get data by session or result
@@ -222,7 +222,7 @@ class PublicFormController extends Controller
             });
 
             $form->saved(function ($form) use ($request, $public_form) {
-                $content = new PublicContent;
+                $content = new PublicContent();
                 $public_form->setContentOption($content, ['isContainer' => true]);
 
                 $content->row($public_form->getCompleteView($request, $form->model()));
@@ -250,7 +250,7 @@ class PublicFormController extends Controller
      * @param array $inputs
      * @return array
      */
-    protected function removeUploadedFile(array $inputs) : array
+    protected function removeUploadedFile(array $inputs): array
     {
         foreach ($inputs as &$input) {
             if (is_array($input)) {

@@ -42,7 +42,7 @@ class PluginType extends EnumBase
     public const EVENT = '12';
     public const VIEW = '13';
     public const CRUD = '14';
-    
+
     /**
      * Plugin type. Can call from endpoint.
      * @return array
@@ -217,7 +217,7 @@ class PluginType extends EnumBase
 
         // get class name.
         $classname = static::getPluginClassName($plugin_type, $plugin, $options);
-    
+
         if (!is_null($classname)) {
             // if only one record, set $plugin_type
             if (count($plugin->plugin_types) == 1) {
@@ -284,7 +284,7 @@ class PluginType extends EnumBase
         return null;
     }
 
-    
+
     /**
      * Get plugin class name
      *
@@ -292,7 +292,7 @@ class PluginType extends EnumBase
      * @param array $options
      * @return ?string
      */
-    public static function getPluginClassName($plugin_type, $plugin, $options = []) : ?string
+    public static function getPluginClassName($plugin_type, $plugin, $options = []): ?string
     {
         $options = array_merge([
             'custom_table' => null,
@@ -307,7 +307,7 @@ class PluginType extends EnumBase
 
         $classname = $plugin->getNameSpace($classShortName);
         $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
-    
+
         if (\File::exists($fuleFullPath) && class_exists($classname)) {
             return $classname;
         }

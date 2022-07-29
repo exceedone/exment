@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Encore\Admin\Widgets\Grid\Grid;
@@ -20,13 +21,13 @@ class CrudGrid extends CrudBase
     public function index()
     {
         $content = $this->pluginClass->getContent();
-        
+
         $content->body($this->grid()->render());
 
         return $content;
     }
 
-    
+
     /**
      * Make a grid builder.
      *
@@ -87,7 +88,7 @@ class CrudGrid extends CrudBase
         // create exporter
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
-        
+
         return $grid;
     }
 
@@ -126,7 +127,7 @@ class CrudGrid extends CrudBase
             $grid->quickSearch(function ($model, $input) {
             }, 'left');
         }
-        
+
         $plugin = $this->plugin;
         $pluginClass = $this->pluginClass;
         $grid->tools(function ($tools) use ($grid, $plugin, $pluginClass) {
@@ -144,11 +145,11 @@ class CrudGrid extends CrudBase
                     'btn_class' => 'btn-success',
                 ])->render(), 'right');
             }
-            
+
             if ($pluginClass->enableExport()) {
                 $button = new Tools\ExportImportButton($plugin->getFullUrl(), $grid, false, true, false);
                 $button->setBaseKey('common');
-                
+
                 $tools->prepend($button, 'right');
             }
 
@@ -186,7 +187,7 @@ class CrudGrid extends CrudBase
         });
     }
 
-    
+
     // create import and exporter
     protected function getImportExportService(Grid $grid)
     {
@@ -199,7 +200,7 @@ class CrudGrid extends CrudBase
                     'filename' => date('YmdHis'),
                 ]
             ))
-            ;
+        ;
         return $service;
     }
 }

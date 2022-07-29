@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\LoginUser;
 
 class PermissionEndpointTest extends UnitTestBase
 {
-    const EndpointsPass = [
+    public const EndpointsPass = [
         '',
         '/',
         'api/column',
@@ -84,7 +84,7 @@ class PermissionEndpointTest extends UnitTestBase
         'https://github.com/exceedone/exment',
     ];
 
-    const EndpointsDeny = [
+    public const EndpointsDeny = [
         'api_setting',
         'api_setting/create',
         'api_setting/foobar',
@@ -147,12 +147,12 @@ class PermissionEndpointTest extends UnitTestBase
 
         'data/information',
         'view/information',
-        
+
         'view/mail_template',
         'data/mail_template',
     ];
 
-    const EndpointsPassNoPermission = [
+    public const EndpointsPassNoPermission = [
         'data/information',
         'view/information',
     ];

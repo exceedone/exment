@@ -36,7 +36,7 @@ class InstallSeeder extends Seeder
             // DELETE
             DB::table(config('admin.database.menu_table'))->delete();
 
-            $importer = new TemplateImportExport\TemplateImporter;
+            $importer = new TemplateImportExport\TemplateImporter();
             $importer->importSystemTemplate();
         } catch (\Exception $exception) {
             //DB::rollback();

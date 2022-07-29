@@ -36,7 +36,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
             return ((object) $result)->table_name;
         }, $results);
     }
-    
+
     /**
      * Process the results of a Column Definitions query.
      *
@@ -55,7 +55,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
             ];
         })->toArray();
     }
-    
+
     /**
      * Process the results of a index listing query.
      *

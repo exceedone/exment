@@ -18,7 +18,9 @@ use Illuminate\Support\Collection;
 
 class ImportExportTest extends FeatureTestBase
 {
-    use ImportTrait, TestTrait, DatabaseTransactions;
+    use ImportTrait;
+    use TestTrait;
+    use DatabaseTransactions;
 
     /**
      * full path stored export files.
@@ -274,7 +276,7 @@ class ImportExportTest extends FeatureTestBase
         }
 
         if ($chunk_no > 0) {
-            $count = isset($params['--count'])? $params['--count']: 1000;
+            $count = isset($params['--count']) ? $params['--count'] : 1000;
             if ($chunk_no > 1) {
                 $model = $model->skip(($chunk_no - 1) * $count);
             }
@@ -282,9 +284,9 @@ class ImportExportTest extends FeatureTestBase
         }
 
         if (isset($params['--type']) && $params['--type'] == 'page') {
-            $page = isset($params['--page'])? $params['--page']: 1;
-            $count = isset($params['--count'])? $params['--count']: $pager_count;
-            $count = empty($count)? System::grid_pager_count(): $count;
+            $page = isset($params['--page']) ? $params['--page'] : 1;
+            $count = isset($params['--count']) ? $params['--count'] : $pager_count;
+            $count = empty($count) ? System::grid_pager_count() : $count;
             if ($page > 1) {
                 $model = $model->skip(($page - 1) * $count);
             }
@@ -383,8 +385,8 @@ class ImportExportTest extends FeatureTestBase
 
         $this->assertEquals($result, 0);
 
-        $start = isset($params['--start'])? $params['--start']: 1;
-        $end = isset($params['--end'])? $params['--end']: 1000;
+        $start = isset($params['--start']) ? $params['--start'] : 1;
+        $end = isset($params['--end']) ? $params['--end'] : 1000;
 
         for ($i = $start; $i <= $end; $i++) {
             $num = $i;

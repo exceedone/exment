@@ -72,7 +72,7 @@ class CustomViewColumn extends ModelBase
     protected static function boot()
     {
         parent::boot();
-        
+
         static::saving(function ($model) {
             $model->prepareJson('options');
         });
@@ -91,7 +91,7 @@ class CustomViewColumn extends ModelBase
 
         return $this;
     }
-    
+
     public function getViewColumnFontColorAttribute()
     {
         return $this->getOption('font_color');
@@ -102,7 +102,7 @@ class CustomViewColumn extends ModelBase
 
         return $this;
     }
-    
+
     public function getViewColumnEndDateAttribute()
     {
         return $this->getViewColumnTarget('view_column_table_id', 'options.end_date_type', 'options.end_date_target');
@@ -114,7 +114,7 @@ class CustomViewColumn extends ModelBase
             $this->setOption('end_date_target', null);
             return $this;
         }
-        
+
         list($column_type, $column_table_id, $column_type_target, $view_pivot_column, $view_pivot_table) = $this->getViewColumnTargetItems($end_date);
 
         $this->setOption('end_date_type', $column_type);
@@ -131,7 +131,7 @@ class CustomViewColumn extends ModelBase
     {
         return $this->setViewPivotIdTrait('view_pivot_column_id', $view_pivot_column_id);
     }
-    
+
     public function getViewPivotTableIdAttribute()
     {
         return $this->getViewPivotIdTrait('view_pivot_table_id');
@@ -140,8 +140,8 @@ class CustomViewColumn extends ModelBase
     {
         return $this->setViewPivotIdTrait('view_pivot_table_id', $view_pivot_table_id);
     }
-    
-    
+
+
     public function getViewGroupConditionAttribute()
     {
         return $this->getOption('view_group_condition');

@@ -73,7 +73,7 @@ class CustomViewFilter extends ModelBase
         }
         return $this->view_filter_condition_value_text;
     }
-    
+
     /**
      * set view_filter_condition_value_text.
      * * we have to convert int if view_filter_condition_value is array*
@@ -107,7 +107,7 @@ class CustomViewFilter extends ModelBase
     {
         return $this->setViewPivotIdTrait('view_pivot_column_id', $view_pivot_column_id);
     }
-    
+
     public function getViewPivotTableIdAttribute()
     {
         return $this->getViewPivotIdTrait('view_pivot_table_id');
@@ -116,8 +116,8 @@ class CustomViewFilter extends ModelBase
     {
         return $this->setViewPivotIdTrait('view_pivot_table_id', $view_pivot_table_id);
     }
-    
-    
+
+
     /**
      * set value filter
      */
@@ -126,11 +126,11 @@ class CustomViewFilter extends ModelBase
         // get filter target column
         $condition_value_text = $this->view_filter_condition_value_text;
         $view_filter_condition = $this->view_filter_condition;
-        
+
         $viewFilterItem = ViewFilterBase::make($this->view_filter_condition, $this->column_item, [
             'or_option' => $or_option,
         ]);
-        
+
         $viewFilterItem->setFilter($query, $condition_value_text);
         return $query;
     }

@@ -42,8 +42,8 @@ class FNotifyTest extends ExmentKitTestCase
 
         $this->assertTrue($result, 'Not has notify form');
     }
-    
-    
+
+
     /**
      * test notify button test html, and attachment
      */
@@ -118,7 +118,7 @@ class FNotifyTest extends ExmentKitTestCase
             $this->assertTrue(array_get($json, 'result', false), 'Post submit error, message is : ' . json_encode($json['errors']));
         }
     }
-    
+
 
 
     protected function getNotify(CustomTable $custom_table, string $suffix)
@@ -128,7 +128,7 @@ class FNotifyTest extends ExmentKitTestCase
             ->where('notify_trigger', Enums\NotifyTrigger::BUTTON)
             ->where('notify_view_name', $custom_table->table_name . $suffix)
             ->first()
-            ;
+        ;
     }
 
     protected function getNotifyUrl(CustomTable $custom_table, CustomValue $custom_value, Notify $notify)
@@ -140,7 +140,7 @@ class FNotifyTest extends ExmentKitTestCase
     }
 
 
-    protected function getDomDocument(string $url) : \DOMDocument
+    protected function getDomDocument(string $url): \DOMDocument
     {
         // check config update
         $response = $this->get($url);
@@ -156,7 +156,7 @@ class FNotifyTest extends ExmentKitTestCase
         } else {
             $html = $content;
         }
-        
+
         $domDocument = new \DOMDocument();
         libxml_use_internal_errors(true);
         $domDocument->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
@@ -165,8 +165,8 @@ class FNotifyTest extends ExmentKitTestCase
         return $domDocument;
     }
 
-    
-    protected function hasContainsHtml(\DOMDocument $domDocument, string $tagName, \Closure $callback) : bool
+
+    protected function hasContainsHtml(\DOMDocument $domDocument, string $tagName, \Closure $callback): bool
     {
         $selects = $domDocument->getElementsByTagName($tagName);
         if ($selects->length == 0) {

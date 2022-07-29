@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -27,7 +28,7 @@ class EmailMultiline implements Rule
             if (is_nullorempty($a)) {
                 continue;
             }
-            
+
             if (filter_var($a, FILTER_VALIDATE_EMAIL) === false) {
                 return false;
             }
@@ -35,7 +36,7 @@ class EmailMultiline implements Rule
 
         return true;
     }
-    
+
 
     /**
      * get validation error message

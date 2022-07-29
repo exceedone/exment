@@ -27,7 +27,7 @@ class ExmentDebug
         }
     }
 
-    
+
     /**
      * Output log database
      *
@@ -59,8 +59,8 @@ class ExmentDebug
         });
     }
 
-    
-    
+
+
     /**
      * Output log request
      *

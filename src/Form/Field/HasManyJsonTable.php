@@ -23,7 +23,7 @@ class HasManyJsonTable extends HasManyTable
     {
         return $this->getKeyNameTrait();
     }
-    
+
 
     public function prepare($input)
     {
@@ -42,12 +42,12 @@ class HasManyJsonTable extends HasManyTable
         return $this->buildRelatedFormsTrait();
     }
 
-    
+
     protected function buildNestedForm($column, \Closure $builder, $key = null, $index = null)
     {
         return $this->buildNestedFormTrait($column, $builder, $key, $index);
     }
-    
+
     protected function getParentRenderClass()
     {
         return get_parent_class(get_parent_class(get_parent_class(get_parent_class($this))));

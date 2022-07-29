@@ -63,7 +63,7 @@ class RelationTable
      * @var string
      */
     public $tableUniqueName;
-    
+
     /**
      * Sub query's callbacks. Use for summary.
      * If set, call for sub query select, group by etc.
@@ -83,7 +83,7 @@ class RelationTable
 
         $this->tableUniqueName = short_uuid();
     }
-    
+
 
     /**
      * Get children's relation tables list.(Contains select table)
@@ -141,7 +141,7 @@ class RelationTable
         });
     }
 
-    
+
 
     /**
      * Get relation table. Using view pivot table and column id.
@@ -152,7 +152,7 @@ class RelationTable
      * @param string|int|null $view_pivot_table_id
      * @return RelationTable|null
      */
-    public static function getRelationTable($custom_column, $view_pivot_column_id, $view_pivot_table_id) : ?RelationTable
+    public static function getRelationTable($custom_column, $view_pivot_column_id, $view_pivot_table_id): ?RelationTable
     {
         if (is_nullorempty($view_pivot_column_id) || is_nullorempty($view_pivot_table_id)) {
             return null;
@@ -181,7 +181,7 @@ class RelationTable
         if (is_nullorempty($relationTables)) {
             return null;
         }
-        
+
         // if only 1, return first.
         if ($relationTables->count() <= 1) {
             return $relationTables->first();
@@ -236,7 +236,7 @@ class RelationTable
      * @param string|null $key. 27?view_pivot_column_id=parent_id&view_pivot_table_id=20
      * @return RelationTable|null
      */
-    public static function getRelationTableByKey(?string $key) : ?RelationTable
+    public static function getRelationTableByKey(?string $key): ?RelationTable
     {
         if (is_nullorempty($key) || strpos($key, '?') === false) {
             return null;
@@ -244,7 +244,7 @@ class RelationTable
 
         $custom_column_id = explode('?', $key)[0];
         parse_str(explode('?', $key)[1], $prms);
-        
+
         return static::getRelationTable(
             $custom_column_id,
             array_get($prms, 'view_pivot_column_id'),
@@ -260,13 +260,13 @@ class RelationTable
      * @param array $options execute options.
      * @return Collection
      */
-    protected static function _getTablesSelectTable(CustomTable $custom_table, array $options) : Collection
+    protected static function _getTablesSelectTable(CustomTable $custom_table, array $options): Collection
     {
         $results = collect();
         // 1. Get custom columns as "select_table". They contains these columns matching them.
         // * table_column > options > search_enabled is true.
         // * table_column > options > select_target_table is table id user selected.
-        
+
         // get select tables custom columns.
         $custom_columns = CustomColumn::allRecords()
         ->filter(function ($custom_column) use ($custom_table, $options) {
@@ -310,7 +310,7 @@ class RelationTable
      * @param array $options execute options.
      * @return Collection
      */
-    protected static function _getParentTablesSelectTable(CustomTable $custom_table, array $options) : Collection
+    protected static function _getParentTablesSelectTable(CustomTable $custom_table, array $options): Collection
     {
         $results = collect();
 
@@ -323,7 +323,7 @@ class RelationTable
                 if (!$custom_column->index_enabled) {
                     return false;
                 }
-                
+
                 $select_target_table = $custom_column->select_target_table;
                 if (!$select_target_table) {
                     return false;
@@ -337,7 +337,7 @@ class RelationTable
 
         foreach ($custom_columns as $custom_column) {
             $table_obj = $custom_column->select_target_table;
-            
+
             $results->push(new self([
                 'searchType' => SearchType::SUMMARY_SELECT_TABLE,
                 'base_table' => $custom_table,
@@ -349,7 +349,7 @@ class RelationTable
         return $results;
     }
 
-    
+
     /**
      * Get custom tables as "relation tables".
      *
@@ -357,10 +357,10 @@ class RelationTable
      * @param array $options
      * @return array
      */
-    protected static function _getTablesRelation(CustomTable $custom_table, array $options) : Collection
+    protected static function _getTablesRelation(CustomTable $custom_table, array $options): Collection
     {
         $results = collect();
-    
+
         // 2. Get relation tables.
         // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
         $tables = CustomTable::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
@@ -382,7 +382,7 @@ class RelationTable
         return $results;
     }
 
-    
+
     /**
      * Get custom tables as "relation tables" to parent.
      *
@@ -390,10 +390,10 @@ class RelationTable
      * @param array $options
      * @return array
      */
-    protected static function _getParentTablesRelation(CustomTable $custom_table, array $options) : Collection
+    protected static function _getParentTablesRelation(CustomTable $custom_table, array $options): Collection
     {
         $results = collect();
-    
+
         // 2. Get relation tables.
         // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
         $tables = CustomTable::join('custom_relations', function ($join) use ($custom_table) {
@@ -429,7 +429,7 @@ class RelationTable
     {
         $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
-        
+
         switch ($searchType) {
             case SearchType::ONE_TO_MANY:
                 return static::setQueryOneMany($query, $parent_table, $child_table, $value);
@@ -441,8 +441,8 @@ class RelationTable
                     $custom_column = $child_table->getSelectTableColumns($parent_table)->first();
                 }
                 return static::setQuerySelectTable($query, $custom_column, $value);
-            }
-        
+        }
+
         return $query;
     }
 
@@ -459,10 +459,10 @@ class RelationTable
         if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
             return;
         }
-        
+
         $dbName = getDBTableName($child_table);
         $query->whereOrIn("$dbName.parent_id", $value)->where("$dbName.parent_type", $parent_table->table_name);
-        
+
         return $query;
     }
 
@@ -485,11 +485,11 @@ class RelationTable
         if (is_nullorempty($relation)) {
             return;
         }
-        
+
         $query->whereHas($relation->getRelationName(), function ($query) use ($relation, $value) {
             $query->whereOrIn($relation->getRelationName() . '.parent_id', $value);
         });
-        
+
         return $query;
     }
 
@@ -506,7 +506,7 @@ class RelationTable
         if (is_nullorempty($custom_column)) {
             return;
         }
-        
+
         $query->whereOrIn($custom_column->getQueryKey(), $value);
 
         return $query;
@@ -528,7 +528,7 @@ class RelationTable
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
         $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
         $leftJoin = boolval(array_get($params, 'leftJoin'));
-        
+
         switch ($this->searchType) {
             case SearchType::ONE_TO_MANY:
                 return $this->setParentJoinOneMany($query, $parent_table, $child_table, $leftJoin);
@@ -539,8 +539,8 @@ class RelationTable
                     $custom_column = $child_table->getSelectTableColumns($parent_table)->first();
                 }
                 return $this->setParentJoinSelectTable($query, $parent_table, $custom_column, $leftJoin);
-            }
-        
+        }
+
         return $query;
     }
 
@@ -557,7 +557,7 @@ class RelationTable
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
         $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
         $leftJoin = boolval(array_get($params, 'leftJoin'));
-        
+
         switch ($this->searchType) {
             case SearchType::SUMMARY_ONE_TO_MANY:
                 return $this->setSummaryChildJoinOneMany($query, $parent_table, $child_table, $leftJoin);
@@ -568,11 +568,11 @@ class RelationTable
                     $custom_column = $parent_table->getSelectTableColumns($child_table)->first();
                 }
                 return $this->setSummaryChildJoinSelectTable($query, $parent_table, $custom_column, $leftJoin);
-            }
-        
+        }
+
         return $query;
     }
-    
+
     /**
      * Set parent join for 1:n relation
      *
@@ -593,10 +593,10 @@ class RelationTable
         // Append join query.
         $joinName = $leftJoin ? 'leftJoin' : 'join';
         $query->{$joinName}("$parent_table_name AS {$this->tableUniqueName}", "{$this->tableUniqueName}.id", "=", "$child_table_name.parent_id");
-        
+
         return $query;
     }
-    
+
     /**
      * Set parent join for n:n relation
      *
@@ -614,7 +614,7 @@ class RelationTable
         if (is_nullorempty($relation)) {
             return;
         }
-        
+
         // Get DB table name
         $parent_table_name = getDBTableName($parent_table);
         $child_table_name = getDBTableName($child_table);
@@ -624,11 +624,11 @@ class RelationTable
         $joinName = $leftJoin ? 'leftJoin' : 'join';
         $query->{$joinName}($relation_name, "$child_table_name.id", "=", "$relation_name.child_id")
             ->{$joinName}("$parent_table_name AS {$this->tableUniqueName}", "{$this->tableUniqueName}.id", "=", "$relation_name.parent_id");
-        
+
         return $query;
     }
 
-    
+
     /**
      * Set parent join for select table
      *
@@ -663,8 +663,8 @@ class RelationTable
                 $join->whereColumn("$unique_table_name.id", "=", "$child_table_name.$query_key");
             }
         })
-            ;
-            
+        ;
+
         return $query;
     }
 
@@ -699,11 +699,11 @@ class RelationTable
                 $callback($subQuery, $this);
             };
         }, $this->tableUniqueName, "{$this->tableUniqueName}.parent_id", "=", "$parent_table_name.id");
-        
+
         return $query;
     }
-    
-    
+
+
     /**
      * Set child join for n:n relation
      *
@@ -721,7 +721,7 @@ class RelationTable
         if (is_nullorempty($relation)) {
             return;
         }
-        
+
         // Get DB table name
         $parent_table_name = getDBTableName($parent_table);
         $child_table_name = getDBTableName($child_table);
@@ -738,8 +738,8 @@ class RelationTable
 
         return $query;
     }
-    
-    
+
+
     /**
      * Set child join for n:n relation
      *
@@ -757,13 +757,13 @@ class RelationTable
         if (is_nullorempty($relation)) {
             return;
         }
-        
+
         // Get DB table name
         $parent_table_name = getDBTableName($parent_table);
         $child_table_name = getDBTableName($child_table);
         $relation_name = $relation->getRelationName();
 
-        
+
         // Append join query.
         $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
         $query->{$joinName}(function ($subQuery) use ($child_table_name, $relation_name, $leftJoin) {
@@ -780,7 +780,7 @@ class RelationTable
                 $callback($subQuery, $this);
             };
         }, $this->tableUniqueName, "{$this->tableUniqueName}.parent_id", "=", "$parent_table_name.id");
-        
+
         return $query;
     }
 
@@ -828,12 +828,12 @@ class RelationTable
                 $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$query_key");
             }
         });
-        
+
         return $query;
     }
 
 
-    
+
     /**
      * Create subquery for Workflow status join
      *
@@ -851,14 +851,14 @@ class RelationTable
                     ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
                     ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', true);
             })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_from_id', 'workflow_status_to_id']);
-            
+
         // join query is $or_option is true then leftJoin
         $joinFunc = $or_option ? 'leftJoinSub' : 'joinSub';
         $query->{$joinFunc}($subquery, 'workflow_values', function ($join) use ($tableName) {
             $join->on($tableName . '.id', 'workflow_values.morph_id');
         });
     }
-    
+
 
     /**
      * Create subquery for Workflow status join
@@ -880,20 +880,20 @@ class RelationTable
                 $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_id', "$tableName.id")
                     ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_type', $custom_table->table_name)
                     ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.workflow_table_id', $custom_table->id)
-                    ;
+                ;
             })
             // join user table
             ->leftJoin($userTableName . ' AS last_executed_user', function ($join) {
                 $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.last_executed_user_id', "last_executed_user.id")
-                    ;
+                ;
             })
             ->leftJoin($userTableName . ' AS first_executed_user', function ($join) {
                 $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.first_executed_user_id', "first_executed_user.id")
-                    ;
+                ;
             })
             ->leftJoin($userTableName . ' AS created_user', function ($join) use ($tableName) {
                 $join->on($tableName . '.created_user_id', "created_user.id")
-                    ;
+                ;
             })
             ///// add authority function for user or org
             ->where(function ($query) use ($tableName, $custom_table) {
@@ -912,12 +912,12 @@ class RelationTable
             ->distinct()
             ->select([$tableName .'.id  as morph_id']);
 
-        
+
         /////// second query. not has workflow value's custom value
         $subquery2 = \DB::table($tableName)
             ->join(SystemTableName::VIEW_WORKFLOW_START, function ($join) use ($custom_table) {
                 $join->where(SystemTableName::VIEW_WORKFLOW_START . '.workflow_table_id', $custom_table->id)
-                    ;
+                ;
             })
             // filtering not contains workflow value
             ->whereNotExists(function ($query) use ($tableName, $custom_table) {
@@ -926,7 +926,7 @@ class RelationTable
                     ->whereColumn(SystemTableName::WORKFLOW_VALUE . '.morph_id', "$tableName.id")
                     ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
                     ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1)
-                    ;
+                ;
             })
             ///// add authority function for user or org
             ->where(function ($query) use ($tableName, $custom_table) {
@@ -944,7 +944,7 @@ class RelationTable
             ->union($subquery)
             ->distinct()
             ->select([$tableName .'.id as morph_id']);
-    
+
         // join query is $or_option is true then leftJoin
         $joinFunc = $or_option ? 'leftJoinSub' : 'joinSub';
         $query->{$joinFunc}($subquery2, 'workflow_values_wf', function ($join) use ($tableName) {

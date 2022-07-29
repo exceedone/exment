@@ -59,7 +59,7 @@ class CustomViewSummary extends ModelBase
     {
         return $this->belongsTo(CustomView::class, 'custom_view_id');
     }
-    
+
     public function custom_column()
     {
         if ($this->view_column_type != ConditionType::COLUMN) {
@@ -67,7 +67,7 @@ class CustomViewSummary extends ModelBase
         }
         return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
     }
-    
+
     public function custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'view_column_table_id');
@@ -81,7 +81,7 @@ class CustomViewSummary extends ModelBase
     {
         return $this->setViewPivotIdTrait('view_pivot_column_id', $view_pivot_column_id);
     }
-    
+
     public function getViewPivotTableIdAttribute()
     {
         return $this->getViewPivotIdTrait('view_pivot_table_id');

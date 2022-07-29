@@ -14,7 +14,7 @@ class WorkflowStatus extends ModelBase
     protected static function boot()
     {
         parent::boot();
-        
+
         // add default order
         static::addGlobalScope(new OrderScope('order'));
     }
@@ -27,16 +27,16 @@ class WorkflowStatus extends ModelBase
     {
         return static::getEloquentCache($id, $withs);
     }
-    
+
     /**
      * Get workflow start status as object
      *
      * @param Workflow $workflow
      * @return WorkflowStatus
      */
-    public static function getWorkflowStartStatus(Workflow $workflow) : WorkflowStatus
+    public static function getWorkflowStartStatus(Workflow $workflow): WorkflowStatus
     {
-        $workflow_status = new WorkflowStatus;
+        $workflow_status = new WorkflowStatus();
         $workflow_status->id = null;
         $workflow_status->workflow_id = strval($workflow->id);
         $workflow_status->status_type = "0";
@@ -63,7 +63,7 @@ class WorkflowStatus extends ModelBase
     {
         if (!is_nullorempty($workflow_status) && $workflow_status != Define::WORKFLOW_START_KEYNAME) {
             $rec = WorkflowStatus::getEloquent($workflow_status);
-            return isset($rec)? $rec->status_name: null;
+            return isset($rec) ? $rec->status_name : null;
         }
 
         // get workflow
@@ -80,7 +80,7 @@ class WorkflowStatus extends ModelBase
      * @param string|null $workflow_status
      * @return bool
      */
-    public static function getWorkflowStatusCompleted($workflow_status = null) : bool
+    public static function getWorkflowStatusCompleted($workflow_status = null): bool
     {
         if (!isset($workflow_status) || $workflow_status == Define::WORKFLOW_START_KEYNAME) {
             return false;

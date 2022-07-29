@@ -7,7 +7,8 @@ use Exceedone\Exment\Services\Update\UpdateService;
 
 class TotalUpdateCommand extends Command
 {
-    use CommandTrait, InstallUpdateTrait;
+    use CommandTrait;
+    use InstallUpdateTrait;
 
     /**
      * The console command name.

@@ -1,7 +1,5 @@
 <?php
 
-
-
 namespace Exceedone\Exment\Auth;
 
 use Illuminate\Support\Str;

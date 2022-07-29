@@ -21,7 +21,7 @@ use Validator;
 trait ApiDataTrait
 {
     use ApiTrait;
-    
+
     /**
      * find data by id
      * use select Changedata
@@ -82,7 +82,7 @@ trait ApiDataTrait
         return json_encode($list);
     }
 
-    
+
     /**
      * find match data for select ajax
      * @param Request $request
@@ -94,7 +94,7 @@ trait ApiDataTrait
         if (!isset($paginator)) {
             return [];
         }
-        
+
         if (!($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator)) {
             return $paginator;
         }
@@ -108,8 +108,8 @@ trait ApiDataTrait
 
         return $paginator;
     }
-    
-    
+
+
     /**
      * get selected id's children values
      * *parent_select_table_id(required) : The select_table of the parent column(Changed by user) that executed Linkage. .
@@ -196,7 +196,7 @@ trait ApiDataTrait
                 ]),
                 $options['appends']
             );
-            
+
             if (boolval($options['makeHidden'])) {
                 // execute makehidden
                 $results = $target->makeHidden($this->custom_table->getMakeHiddenArray());
@@ -206,7 +206,7 @@ trait ApiDataTrait
                 if (ValueType::isRegetApiCustomValue($valuetype)) {
                     $this->custom_table->setSelectTableValues($results);
                 }
-                
+
                 $results->map(function ($result) use ($request) {
                     $this->modifyCustomValue($request, $result);
                 });
@@ -231,7 +231,7 @@ trait ApiDataTrait
         }
     }
 
-    
+
     protected function modifyCustomValue(Request $request, $custom_value)
     {
         // append label
@@ -269,7 +269,7 @@ trait ApiDataTrait
 
         return false;
     }
-    
+
 
     protected function executeQuery(Request $request, $count = null)
     {
@@ -288,7 +288,7 @@ trait ApiDataTrait
 
         // filtered query
         $q = $request->get('q');
-        
+
         if (!isset($count)) {
             if (($count = $this->getCount($request)) instanceof Response) {
                 return $count;
@@ -331,7 +331,7 @@ trait ApiDataTrait
             'display_table' => $request->get('display_table_id'),
             'all' => $column ? $column->isGetAllUserOrganization() : false,
         ]);
-        
+
         return $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [
                 'q' => $q,

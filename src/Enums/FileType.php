@@ -7,30 +7,30 @@ class FileType extends EnumBase
     /**
      * custom value's column(file, image)
      */
-    const CUSTOM_VALUE_COLUMN = '1';
+    public const CUSTOM_VALUE_COLUMN = '1';
 
     /**
      * Custom value's document
      */
-    const CUSTOM_VALUE_DOCUMENT = '2';
+    public const CUSTOM_VALUE_DOCUMENT = '2';
 
     /**
      * User avatar
      */
-    const AVATAR = '3';
+    public const AVATAR = '3';
 
     /**
      * System icon, logo, etc
      */
-    const SYSTEM = '4';
+    public const SYSTEM = '4';
 
     /**
      * Custom form column
      */
-    const CUSTOM_FORM_COLUMN = '5';
+    public const CUSTOM_FORM_COLUMN = '5';
 
     /**
      * Public form logo etc.
      */
-    const PUBLIC_FORM = '6';
+    public const PUBLIC_FORM = '6';
 }

@@ -22,14 +22,14 @@ abstract class FormBase
      * @var boolean
      */
     protected $disableSavingButton = false;
-    
+
     /**
      * If true, disableSavedRedirectCheck
      *
      * @var boolean
      */
     protected $disableSavedRedirectCheck = false;
-    
+
     /**
      * If true, disableDefaultSavedRedirect.
      *
@@ -43,7 +43,7 @@ abstract class FormBase
      * @var boolean
      */
     protected $enableDefaultQuery = false;
-    
+
     /**
      * If true, This form is as confirm.
      *
@@ -134,7 +134,7 @@ abstract class FormBase
 
         return $this;
     }
-    
+
     abstract public function form();
 
     /**

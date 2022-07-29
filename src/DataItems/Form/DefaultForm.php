@@ -44,9 +44,9 @@ class DefaultForm extends FormBase
     public function form()
     {
         $request = request();
-        
+
         $classname = getModelName($this->custom_table);
-        $form = new Form(new $classname);
+        $form = new Form(new $classname());
 
         $form->setHorizontal(boolval($this->custom_form->getOption('form_label_type') ?? true));
 
@@ -250,22 +250,22 @@ EOT;
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                     continue;
                 }
-    
+
                 $column_item = $form_column->column_item;
                 if (is_null($column_item)) {
                     continue;
                 }
                 $this->setColumnItemOption($column_item, $custom_form_columns);
-    
+
                 $field = $column_item
                     ->setCustomValue($target_custom_value)
                     ->getAdminField($form_column);
-    
+
                 // set $closures using $form_column->column_no
                 if (!isset($field)) {
                     continue;
                 }
-    
+
                 $field->setWidth(8, 2);
                 // push field to form
                 $form->pushFieldAndOption($field, [
@@ -298,14 +298,14 @@ EOT;
                 $column = $form_column->custom_column;
                 $form_column_options = $form_column->options;
                 $options = $column->options;
-                
+
                 // data changedata
                 // if set form_column_options changedata_target_column_id, and changedata_column_id
                 if (array_key_value_exists('changedata_target_column_id', $form_column_options) && array_key_value_exists('changedata_column_id', $form_column_options)) {
                     ///// set changedata info
                     $this->setChangeDataArray($column, $custom_form_block, $form_column_options, $options, $changedata_array);
                 }
-                    
+
                 // set relatedlinkage_array
                 // if set form_column_options relation_filter_target_column_id
                 if (array_key_value_exists('relation_filter_target_column_id', $form_column_options)) {
@@ -359,7 +359,7 @@ EOT;
                 if (!method_exists($model, $relation_name)) {
                     continue;
                 }
-    
+
                 // get relation value
                 $relation = $model->$relation_name();
                 $keyName = $relation->getRelated()->getKeyName();
@@ -371,7 +371,7 @@ EOT;
                 })->map(function ($val) {
                     return array_get($val, 'id');
                 })->values()->toArray();
-                
+
                 // skip _remove_ flg
                 $relationValues = array_filter($relationValues, function ($val) {
                     if (array_get($val, Form::REMOVE_FLAG_NAME) == 1) {
@@ -387,7 +387,7 @@ EOT;
                     $uniqueCheckSiblings = array_filter($relationValues, function ($relationValue, $key) use ($relationK) {
                         return !isMatchString($relationK, $key);
                     }, ARRAY_FILTER_USE_BOTH);
-                    
+
                     if (is_array($validateResult = $instance->validateSaving($relationV, [
                         'column_name_prefix' => "$relation_name.$relationK.value.",
                         'uniqueCheckSiblings' => array_values($uniqueCheckSiblings),
@@ -399,7 +399,7 @@ EOT;
                 }
             }
         });
-        
+
         // form prepare callback event
         $form->prepareCallback(function ($input) {
             array_forget($input, 'updated_at');
@@ -413,7 +413,7 @@ EOT;
         $form->savedInTransaction(function ($form) {
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
         });
-        
+
         if (!$this->disableDefaultSavedRedirect) {
             $form->saved(function ($form) use ($select_parent) {
                 // if $one_record_flg, redirect
@@ -491,7 +491,7 @@ EOT;
                 $isButtonCreate = false;
                 $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_EDIT, $custom_table);
             }
-            
+
             $tools->disableView(false);
             $tools->setListPath($custom_table->getGridUrl(true));
 
@@ -534,7 +534,7 @@ EOT;
             }
         });
     }
-    
+
 
     /**
      * set change data array.
@@ -583,7 +583,7 @@ EOT;
         } else {
             $to_block_name = null;
         }
-        
+
         //// get from block name.
         // if not match form block's and $changedata_target_table. from block is default
         if (!isMatchString($custom_form_block->form_block_target_table_id, $changedata_target_table->id)) {
@@ -616,7 +616,7 @@ EOT;
             'to_block_form' => is_null($to_block_name) ? null : '.has-many-' . $to_block_name . '-form,.has-many-table-' . $to_block_name.'-form',
         ];
     }
-    
+
     /**
      * set related linkage array.
      * "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
@@ -653,7 +653,7 @@ EOT;
 
             $child_column = $linkage->child_column;
             $child_select_table = $child_column->select_target_table;
-                    
+
             // skip same table
             if ($parent_select_table->id == $child_select_table->id) {
                 continue;
@@ -819,7 +819,7 @@ EOT;
      *
      * @return boolean
      */
-    protected function isPublicForm() : bool
+    protected function isPublicForm(): bool
     {
         return $this instanceof PublicFormForm;
     }

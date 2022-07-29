@@ -26,7 +26,7 @@ class ReCaptcha extends Hidden
         $this->label = 'Gooele reCaptcha';
     }
 
-    
+
     /**
      * Get field validation rules.
      *
@@ -34,7 +34,7 @@ class ReCaptcha extends Hidden
      */
     protected function getRules()
     {
-        $this->rules([new \Exceedone\Exment\Validator\CaptchaRule]);
+        $this->rules([new \Exceedone\Exment\Validator\CaptchaRule()]);
         return parent::getRules();
     }
 

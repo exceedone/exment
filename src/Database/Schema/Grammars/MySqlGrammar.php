@@ -56,7 +56,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     {
         return "create table if not exists {$this->wrapTable($tableName)} like custom_relation_values";
     }
-    
+
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         // ALTER TABLE
@@ -67,12 +67,12 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
             "alter table {$db_table_name} add index {$index_name}({$db_column_name})",
         ];
     }
-    
+
     public function compileGetIndex($tableName)
     {
         return $this->_compileGetIndex($tableName, false);
     }
-    
+
     public function compileGetUnique($tableName)
     {
         return $this->_compileGetIndex($tableName, true);
@@ -82,7 +82,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     {
         return "show index from {$this->wrapTable($tableName)} where non_unique = :non_unique and column_name = :column_name";
     }
-    
+
     public function compileGetConstraint($tableName)
     {
         return null;

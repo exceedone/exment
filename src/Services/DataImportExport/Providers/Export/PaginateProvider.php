@@ -86,20 +86,20 @@ class PaginateProvider extends ProviderBase
     /**
      * get target chunk records
      */
-    public function getRecords() : Collection
+    public function getRecords(): Collection
     {
         if ($this->isAll) {
-            $records = new Collection;
+            $records = new Collection();
             $callback = $this->grid->chunk(function ($data) use (&$records) {
                 if (is_nullorempty($records)) {
-                    $records = new Collection;
+                    $records = new Collection();
                 }
                 $records = $records->merge(collect($data));
             });
         } else {
             $records = $this->grid->getCurrentPage();
         }
-    
+
         $this->count = count($records);
         return $records;
     }
@@ -112,7 +112,7 @@ class PaginateProvider extends ProviderBase
         if (!isset($records)) {
             return [];
         }
-        
+
         $bodies = [];
 
         foreach ($records as $record) {

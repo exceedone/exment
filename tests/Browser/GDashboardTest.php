@@ -33,7 +33,7 @@ class GDashboardTest extends ExmentKitTestCase
             ->seeInElement('label', 'ダッシュボード4行目')
             ->seeInElement('button', '保存');
     }
-    
+
 
     public function testCreateDashboard()
     {
@@ -58,7 +58,7 @@ class GDashboardTest extends ExmentKitTestCase
         $this->assertTrue(isMatchString($model->options['row3'], '3'));
         $this->assertTrue(isMatchString($model->options['row4'], '3'));
     }
-    
+
 
     public function testEditDashboard()
     {
@@ -98,7 +98,7 @@ class GDashboardTest extends ExmentKitTestCase
             ->seeInElement('label', '表示')
             ->seeInElement('label', '対象のビュー')
         ;
-        
+
         //ToDo: How to test options
     }
 
@@ -128,7 +128,7 @@ class GDashboardTest extends ExmentKitTestCase
                 'target_view_id' => $custom_view->id,
             ],
         ]);
-            
+
         // Check database
         $box = $this->getDashboardBoxModel($model, 1, 1);
         $this->assertTrue(isMatchString($box->dashboard_box_view_name, 'DashboardBoxListTest'));
@@ -159,19 +159,19 @@ class GDashboardTest extends ExmentKitTestCase
             ->seeInElement('label', 'アイテム表示名')
             ->seeInElement('label', '表示')
         ;
-        
+
         //ToDo: How to test options
     }
 
-    
+
     public function testCreateBoxSystemGuideline()
     {
         $this->_testCreateDashboardSystem('SystemGuidelineTest', Enums\DashboardBoxSystemPage::GUIDELINE, 1, 2);
-        
+
         //ToDo: How to test real dashboard item
     }
-    
-    
+
+
     public function testCreateBoxSystemNews()
     {
         $this->_testCreateDashboardSystem('SystemNewsTest', Enums\DashboardBoxSystemPage::NEWS, 1, 3);
@@ -179,8 +179,8 @@ class GDashboardTest extends ExmentKitTestCase
 
         //ToDo: How to test real dashboard item
     }
-    
-    
+
+
     public function testCreateBoxSystemEditor()
     {
         $this->_testCreateDashboardSystem('SystemEditorTest', Enums\DashboardBoxSystemPage::EDITOR, 2, 1, [
@@ -189,7 +189,7 @@ class GDashboardTest extends ExmentKitTestCase
 
         //ToDo: How to test real dashboard item
     }
-    
+
     public function testCreateBoxSystemHtml()
     {
         $this->_testCreateDashboardSystem('SystemHtmlTest', Enums\DashboardBoxSystemPage::HTML, 2, 2, [
@@ -200,7 +200,7 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
-    
+
 
     public function testDisplayCreateBoxChart()
     {
@@ -228,7 +228,7 @@ class GDashboardTest extends ExmentKitTestCase
             ->seeInElement('label', '項目名を表示する')
             ->seeInElement('label', 'オプション設定')
         ;
-        
+
         //ToDo: How to test options
     }
 
@@ -241,8 +241,8 @@ class GDashboardTest extends ExmentKitTestCase
 
         //ToDo: How to test real dashboard item
     }
-    
-    
+
+
     public function testCreateBoxChartLine()
     {
         $this->_testCreateDashboardChart('ChartLineTest', Enums\ChartType::LINE, 3, 1, [
@@ -251,8 +251,8 @@ class GDashboardTest extends ExmentKitTestCase
 
         //ToDo: How to test real dashboard item
     }
-    
-    
+
+
     public function testCreateBoxChartPie()
     {
         $this->_testCreateDashboardChart('ChartPieTest', Enums\ChartType::PIE, 3, 2, [
@@ -261,9 +261,9 @@ class GDashboardTest extends ExmentKitTestCase
 
         //ToDo: How to test real dashboard item
     }
-    
 
-    
+
+
     public function testDisplayCreateBoxCalendar()
     {
         $model = $this->getDashboardTestModel();
@@ -285,18 +285,18 @@ class GDashboardTest extends ExmentKitTestCase
             ->seeInElement('label', '対象のテーブル')
             ->seeInElement('label', '対象のビュー')
         ;
-        
+
         //ToDo: How to test options
     }
 
-    
+
     public function testCreateBoxCalendarMonth()
     {
         $this->_testCreateDashboardCalendar('CalendarMonthTest', Enums\CalendarType::MONTH, 3, 3);
 
         //ToDo: How to test real dashboard item
     }
-    
+
 
     public function testCreateBoxCalendarList()
     {
@@ -304,7 +304,7 @@ class GDashboardTest extends ExmentKitTestCase
 
         //ToDo: How to test real dashboard item
     }
-    
+
 
 
 
@@ -334,7 +334,7 @@ class GDashboardTest extends ExmentKitTestCase
             'dashboard_box_view_name' => $dashboard_box_view_name,
             'options' => $options,
         ]);
-            
+
         // Check database
         $box = $this->getDashboardBoxModel($model, $row_no, $column_no);
         $this->assertTrue(isMatchString($box->dashboard_box_view_name, $dashboard_box_view_name));
@@ -345,7 +345,7 @@ class GDashboardTest extends ExmentKitTestCase
         }
     }
 
-    
+
     /**
      * TODO: Now is only default view. Append summary view
      *
@@ -390,7 +390,7 @@ class GDashboardTest extends ExmentKitTestCase
             'dashboard_box_view_name' => $dashboard_box_view_name,
             'options' => $options,
         ]);
-            
+
         // Check database
         $box = $this->getDashboardBoxModel($model, $row_no, $column_no);
         $this->assertTrue(isMatchString($box->dashboard_box_view_name, $dashboard_box_view_name));
@@ -401,7 +401,7 @@ class GDashboardTest extends ExmentKitTestCase
         }
     }
 
-    
+
     protected function _testCreateDashboardCalendar($dashboard_box_view_name, $calendar_type, $row_no, $column_no, array $options = [])
     {
         $model = $this->getDashboardTestModel();
@@ -432,7 +432,7 @@ class GDashboardTest extends ExmentKitTestCase
             'dashboard_box_view_name' => $dashboard_box_view_name,
             'options' => $options,
         ]);
-            
+
         // Check database
         $box = $this->getDashboardBoxModel($model, $row_no, $column_no);
         $this->assertTrue(isMatchString($box->dashboard_box_view_name, $dashboard_box_view_name));
@@ -444,15 +444,15 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
-    protected function getDashboardTestModel() : Model\Dashboard
+    protected function getDashboardTestModel(): Model\Dashboard
     {
         $model = Model\Dashboard::where('dashboard_name', 'DashboardTest')->first();
         $this->assertTrue(isset($model), 'dashboard not found');
         return $model;
     }
-    
 
-    protected function getDashboardBoxModel(Model\Dashboard $dashboard, $row_no, $column_no) : Model\DashboardBox
+
+    protected function getDashboardBoxModel(Model\Dashboard $dashboard, $row_no, $column_no): Model\DashboardBox
     {
         $model = Model\DashboardBox::where('dashboard_id', $dashboard->id)
             ->where('row_no', $row_no)

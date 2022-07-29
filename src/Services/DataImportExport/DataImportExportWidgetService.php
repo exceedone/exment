@@ -11,8 +11,8 @@ class DataImportExportWidgetService extends AbstractExporter
 {
     use DataImportExportServiceTrait;
 
-    const SCOPE_ALL = 'all';
-    const SCOPE_TEMPLATE = 'temp';
-    const SCOPE_CURRENT_PAGE = 'page';
-    const SCOPE_SELECTED_ROWS = 'selected';
+    public const SCOPE_ALL = 'all';
+    public const SCOPE_TEMPLATE = 'temp';
+    public const SCOPE_CURRENT_PAGE = 'page';
+    public const SCOPE_SELECTED_ROWS = 'selected';
 }

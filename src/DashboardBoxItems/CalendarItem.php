@@ -13,14 +13,14 @@ use Exceedone\Exment\Enums\ViewKindType;
 class CalendarItem implements ItemInterface
 {
     use TableItemTrait;
-    
+
     protected $dashboard_box;
 
     protected $custom_table;
-    
+
     protected $custom_view;
 
-    
+
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -37,7 +37,7 @@ class CalendarItem implements ItemInterface
         }
     }
 
-    
+
     /**
      * get header
      */
@@ -45,7 +45,7 @@ class CalendarItem implements ItemInterface
     {
         return $this->tableheader();
     }
-    
+
     /**
      * get footer
      */
@@ -60,7 +60,7 @@ class CalendarItem implements ItemInterface
     public static function saving(&$form)
     {
     }
-    
+
     /**
      * get html(for display)
      * *this function calls from non-value method. So please escape if not necessary unescape.

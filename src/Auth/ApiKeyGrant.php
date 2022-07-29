@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Auth;
 
 use Laravel\Passport\Bridge\User;
@@ -78,7 +79,7 @@ class ApiKeyGrant extends AbstractGrant
     {
         return 'api_key';
     }
-    
+
     /**
      * {@inheritdoc}
      */

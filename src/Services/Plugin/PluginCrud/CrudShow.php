@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Encore\Admin\Widgets\Form;
@@ -21,13 +22,13 @@ class CrudShow extends CrudBase
     public function show($id)
     {
         $content = $this->pluginClass->getContent();
-        
+
         $content->body($this->detail($id)->render());
 
         return $content;
     }
 
-    
+
     /**
      * Make a show builder.
      *
@@ -40,7 +41,7 @@ class CrudShow extends CrudBase
         $form = new WidgetForm((array)$data);
         $form->disableReset();
         $form->disableSubmit();
-        
+
         $this->setShowColumn($form);
 
         $box = new Box(trans('admin.detail'), $form);
@@ -84,7 +85,7 @@ class CrudShow extends CrudBase
         if ($oauthLogoutView) {
             $box->tools($oauthLogoutView->render());
         }
-        
+
         if ($this->pluginClass->enableDeleteAll() && $this->pluginClass->enableDelete($id)) {
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }

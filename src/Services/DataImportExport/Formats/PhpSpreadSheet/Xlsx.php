@@ -35,13 +35,13 @@ class Xlsx extends PhpSpreadSheet
             return $datalist;
         });
     }
-    
+
 
     protected function _getData($request, $callback)
     {
         // get file
         list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
-        
+
         $reader = $this->createReader();
         $spreadsheet = $reader->load($path);
         try {
@@ -60,7 +60,7 @@ class Xlsx extends PhpSpreadSheet
      * @param \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet
      * @return int
      */
-    protected function getRowCount($spreadsheet) : int
+    protected function getRowCount($spreadsheet): int
     {
         $count = 0;
 
@@ -73,12 +73,12 @@ class Xlsx extends PhpSpreadSheet
         return $count;
     }
 
-    
+
     protected function createWriter($spreadsheet)
     {
         return IOFactory::createWriter($spreadsheet, 'Xlsx');
     }
-    
+
     protected function createReader()
     {
         return IOFactory::createReader('Xlsx');

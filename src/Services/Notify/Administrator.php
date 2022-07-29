@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Notify;
 
 use Illuminate\Support\Collection;
@@ -12,7 +13,7 @@ use Exceedone\Exment\Model\WorkflowValue;
 
 class Administrator extends NotifyTargetBase
 {
-    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
+    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         return $this->_getModel();
     }
@@ -24,7 +25,7 @@ class Administrator extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
-    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->_getModel();
     }

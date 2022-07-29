@@ -34,7 +34,7 @@ class DocumentExcelService
      * @var CustomValue
      */
     protected $model;
-    
+
     /**
      * construct
      *
@@ -59,7 +59,7 @@ class DocumentExcelService
         try {
             $reader = IOFactory::createReader('Xlsx');
             $spreadsheet = $reader->load($this->templateFileFullPath);
-    
+
             // output all sheets
             $showGridlines = [];
             $sheetCount = $spreadsheet->getSheetCount();
@@ -68,34 +68,34 @@ class DocumentExcelService
                 $showGridlines[] = $sheet->getShowGridlines();
                 // output table
                 $this->lfTable($sheet);
-    
+
                 // outputvalue
                 $this->lfValue($sheet);
             }
-    
+
             // output excel
             $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
             $writer->setIncludeCharts(true);
             //$writer->setPreCalculateFormulas(true);
             $writer->save($this->getFullPathTmp());
-    
+
             // re-load and save again. (Because cannot calc formula)
             $reader = IOFactory::createReader('Xlsx');
             $spreadsheet = $reader->load($this->getFullPathTmp());
-    
+
             $sheetCount = $spreadsheet->getSheetCount();
             for ($i = 0; $i < $sheetCount; $i++) {
                 $sheet = $spreadsheet->getSheet($i);
                 $sheet->setShowGridlines($showGridlines[$i]);
             }
-    
+
             $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
             $this->saveFile($writer);
-    
+
             // remove tmpfile
             \File::delete($this->getAdminTmpFullPath());
             \File::delete($this->getFullPathTmp());
-    
+
             return true;
         } finally {
             // Delete tmp directory
@@ -127,7 +127,7 @@ class DocumentExcelService
                 if (!in_array($format_key, ['loop', 'loop-item'])) {
                     continue;
                 }
-            
+
                 // set loops array
                 if (!array_has($loops, $table_name)) {
                     $loops[$table_name] = [
@@ -351,7 +351,7 @@ class DocumentExcelService
         $filepath = path_join($this->getDirPath(), $this->getUniqueFileName());
         return getFullpath($filepath, Define::DISKNAME_ADMIN, true);
     }
-    
+
     /**
      * get admin tmp Directory full path from root
      * @return string File path
@@ -361,7 +361,7 @@ class DocumentExcelService
         $filepath = path_join($this->getDirPath(), $this->getUniqueFileName());
         return getFullpath($filepath, Define::DISKNAME_ADMIN_TMP, true);
     }
-    
+
     /**
      * get (tmp saving) Directory full path from root
      * @return string File path
@@ -387,7 +387,7 @@ class DocumentExcelService
         // copy admin_tmp to admin
         $stream = \Storage::disk(Define::DISKNAME_ADMIN_TMP)->readStream($file);
         \Storage::disk(Define::DISKNAME_ADMIN)->writeStream($file, $stream);
-        
+
         try {
             fclose($stream);
         } catch (\Exception $ex) {
@@ -406,12 +406,12 @@ class DocumentExcelService
         $diskService = new AdminDiskService($path);
         // sync from crowd.
         $diskService->syncFromDisk();
-        
+
         $path = $diskService->localSyncDiskItem()->fileFullPath();
         if (!\File::exists($path)) {
             return null;
         }
-        
+
         $width = array_get($matchOptions, 'width');
         $height = array_get($matchOptions, 'height');
 

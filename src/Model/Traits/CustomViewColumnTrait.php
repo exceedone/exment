@@ -29,14 +29,14 @@ trait CustomViewColumnTrait
     {
         return $this->belongsTo(CustomView::class, 'custom_view_id');
     }
-    
+
     public function getCustomColumnAttribute()
     {
         if ($this->view_column_type == ConditionType::COLUMN) {
             return CustomColumn::getEloquent($this->view_column_target_id);
         }
     }
-    
+
     public function custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'view_column_table_id');
@@ -88,7 +88,7 @@ trait CustomViewColumnTrait
 
         return $this->_custom_item;
     }
-    
+
     /**
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
@@ -140,13 +140,13 @@ trait CustomViewColumnTrait
             $this->view_pivot_table_id = $view_pivot_table;
         }
     }
-    
+
     /**
      * get column item using view_column_target
      */
     public static function getColumnItem($view_column_target, ?CustomTable $custom_table = null)
     {
-        $model = new self;
+        $model = new self();
         $model->view_column_target = $view_column_target;
 
         // if not view_column_table_id, set custom table
@@ -162,7 +162,7 @@ trait CustomViewColumnTrait
         return $column_item;
     }
 
-    
+
     /**
      * Get column target id and target table id.
      *
@@ -171,7 +171,7 @@ trait CustomViewColumnTrait
      * @param string|CustomTable|null $custom_table
      * @return array offset 0 : column id, 1 : table id
      */
-    protected static function getColumnAndTableId($view_column_type, $column_name, $custom_table = null) : array
+    protected static function getColumnAndTableId($view_column_type, $column_name, $custom_table = null): array
     {
         if (!isset($view_column_type)) {
             $view_column_type = ConditionType::COLUMN;
@@ -229,7 +229,7 @@ trait CustomViewColumnTrait
                     'column_name' => SystemColumn::getOption(['id' => $this->view_column_target_id])['name'],
                     'column_type' => $this->view_column_type,
                 ];
-            
+
             case ConditionType::PARENT_ID:
                 return [
                     'table_name' => $table_name,
@@ -239,7 +239,7 @@ trait CustomViewColumnTrait
         }
         return [];
     }
-    
+
     /**
      * get custom view column or summary record.
      *
@@ -265,7 +265,7 @@ trait CustomViewColumnTrait
         return null;
     }
 
-    
+
     public static function importReplaceJson(&$json, $options = [])
     {
         $custom_view = array_get($options, 'parent');
@@ -299,7 +299,7 @@ trait CustomViewColumnTrait
                 array_get($json, "view_pivot_column_name"),
                 array_get($json, "view_pivot_table_name")
             );
-    
+
             $json['view_pivot_column_id'] = $view_pivot_column_id;
             $json['view_pivot_table_id'] = $view_pivot_table_id;
         }
@@ -311,7 +311,7 @@ trait CustomViewColumnTrait
     {
         return static::findBySuuid(str_replace(Define::COLUMN_ITEM_UNIQUE_PREFIX, '', $ckey));
     }
-    
+
     /**
      * get Table And Column Name
      */

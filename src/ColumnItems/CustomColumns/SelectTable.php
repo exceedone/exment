@@ -28,7 +28,7 @@ class SelectTable extends CustomItem
 
     protected $target_table;
     protected $target_view;
-    
+
     public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
         parent::__construct($custom_column, $custom_value, $view_column_target);
@@ -93,7 +93,7 @@ class SelectTable extends CustomItem
         if (is_null($v)) {
             return null;
         }
-        
+
         if (!is_array($v) && preg_match('/\[.+\]/i', $v)) {
             $v = json_decode_ex($v);
         }
@@ -110,26 +110,26 @@ class SelectTable extends CustomItem
             if (!isset($v)) {
                 continue;
             }
-            
+
             $model = $this->target_table->getValueModel($v);
             if (is_null($model)) {
                 if ($this->target_table->hasCustomValueInDB($v)) {
                     $result[] = exmtrans('common.message.no_permission');
                 }
-                
+
                 continue;
             }
-            
+
             // if $model is array multiple, set as array
             if (!($model instanceof Collection)) {
                 $model = [$model];
             }
-    
+
             foreach ($model as $m) {
                 if (is_null($m)) {
                     continue;
                 }
-                
+
                 $result[] = $this->getResult($m, $text, $html);
             }
         }
@@ -152,7 +152,7 @@ class SelectTable extends CustomItem
             return $model->getLabel();
         }
     }
-    
+
     protected function getAdminFieldClass()
     {
         if ($this->isMultipleEnabled()) {
@@ -161,13 +161,13 @@ class SelectTable extends CustomItem
             return Field\Select::class;
         }
     }
-        
+
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
      * @return string
      */
-    protected function getGridFilterOption() : ?string
+    protected function getGridFilterOption(): ?string
     {
         return FilterOption::SELECT_EXISTS;
     }
@@ -292,7 +292,7 @@ class SelectTable extends CustomItem
      * @param mixed $form_column_options
      * @return boolean
      */
-    protected function isShowSearchButton($form_column_options) : bool
+    protected function isShowSearchButton($form_column_options): bool
     {
         if ($this->isPublicForm()) {
             return false;
@@ -328,7 +328,7 @@ class SelectTable extends CustomItem
         $callback = function (&$query) use ($linkage) {
             return $linkage->setQueryFilter($query, $this->getRelationParentValue($linkage));
         };
-        
+
         return $callback;
     }
 
@@ -361,30 +361,30 @@ class SelectTable extends CustomItem
 
         return null;
     }
-    
+
     protected function setAdminFilterOptions(&$filter)
     {
         if (!isset($this->target_table)) {
             return;
         }
         $target_table = $this->target_table;
-        
+
         $selectOption = $this->getSelectFieldOptions();
         $ajax = $target_table->getOptionAjaxUrl($selectOption);
-        
+
         $filter->multipleSelect(function ($value) use ($target_table, $selectOption) {
             $selectOption['selected_value'] = $value;
             // get DB option value
             return $target_table->getSelectOptions($selectOption);
         })->ajax($ajax);
     }
-    
+
     protected function setValidates(&$validates)
     {
         $validates[] = new Validator\SelectTableNumericRule();
         $validates[] = new Validator\CustomValueRule($this->target_table, $this->custom_column->getOption('select_target_view'));
     }
-    
+
     protected function getRemoveValidates()
     {
         return [\Encore\Admin\Validator\HasOptionRule::class];
@@ -506,7 +506,7 @@ class SelectTable extends CustomItem
             return parent::getPureValueByQuery($default);
         }
     }
-    
+
     /**
      * Get pure value. If you want to change the search value, change it with this function.
      *
@@ -527,7 +527,7 @@ class SelectTable extends CustomItem
         if (is_string($labelColumns)) {
             return null;
         }
-        
+
         $use_table_label_id = boolval($select_table->getOption('use_label_id_flg', false));
 
         // searching select table query
@@ -607,10 +607,10 @@ class SelectTable extends CustomItem
 
         $name = $custom_column->getQueryKey();
         $query->where($name, 'LIKE', $searchValue);
-        
+
         return true;
     }
-    
+
     /**
      * Get Search queries for free text search
      *
@@ -635,7 +635,7 @@ class SelectTable extends CustomItem
 
         return [$query];
     }
-    
+
     public function isMultipleEnabled()
     {
         return $this->isMultipleEnabledTrait();
@@ -668,7 +668,7 @@ class SelectTable extends CustomItem
         $id = request()->route('id');
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
         // define select-target table
-        
+
         if (is_nullorempty($user_org)) {
             if (!isset($id)) {
                 $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
@@ -718,7 +718,7 @@ class SelectTable extends CustomItem
                 if (is_nullorempty($field)) {
                     return [];
                 }
-        
+
                 // check $value or $field->data()
                 $custom_table = null;
                 if (isset($value)) {
@@ -727,14 +727,14 @@ class SelectTable extends CustomItem
                 } elseif (!is_nullorempty($field->data())) {
                     $custom_table = CustomTable::getEloquent(array_get($field->data(), 'select_target_table'));
                 }
-                
+
                 if (!isset($custom_table)) {
                     if (!ColumnType::isUserOrganization($column_type)) {
                         return [];
                     }
                     $custom_table = CustomTable::getEloquent($column_type);
                 }
-        
+
                 if (!isset($custom_table)) {
                     return [];
                 }
@@ -744,7 +744,7 @@ class SelectTable extends CustomItem
                         return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
                     })->pluck('view_view_name', 'id');
             });
-        
+
         $custom_table = $this->custom_table;
         $manual_url = getManualUrl('data_import_export?id='.exmtrans('custom_column.help.select_import_column_id_key'));
         $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))

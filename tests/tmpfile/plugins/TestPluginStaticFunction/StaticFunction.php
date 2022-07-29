@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Plugins\TestPluginStaticFunction;
 
 class StaticFunction

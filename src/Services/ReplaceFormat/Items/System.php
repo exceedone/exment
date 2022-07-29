@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
 use Exceedone\Exment\Model\System as SystemModel;
@@ -26,11 +27,11 @@ class System extends ItemBase
         if ($key_system == "login_url") {
             return admin_url("auth/login");
         }
-        
+
         if ($key_system == "system_url") {
             return admin_url("");
         }
-        
+
         return '';
     }
 }

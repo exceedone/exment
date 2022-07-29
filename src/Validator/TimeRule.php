@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -18,7 +19,7 @@ class TimeRule implements Rule
         '^(0[0-9]|1[0-9]|2[0-3]|[0-9]):[0-5][0-9]:[0-5][0-9]$',
         '^(0[0-9]|1[0-9]|2[0-3])[0-5][0-9][0-5][0-9]$',
     ];
-    
+
     public function __construct()
     {
     }
@@ -38,11 +39,11 @@ class TimeRule implements Rule
         if (is_list($value)) {
             return false;
         }
-        
+
         if ($value instanceof \Carbon\Carbon) {
             return true;
         }
-        
+
         foreach (static::TIME_FORMATS as $time_format) {
             if (preg_match("/{$time_format}/u", $value)) {
                 return true;

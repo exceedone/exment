@@ -4,10 +4,10 @@ namespace Exceedone\Exment\Enums;
 
 class FilterKind extends EnumBase
 {
-    const VIEW = 'view';
-    const WORKFLOW = 'workflow';
-    const FORM = 'form';
-    const OPERATION = 'operation';
+    public const VIEW = 'view';
+    public const WORKFLOW = 'workflow';
+    public const FORM = 'form';
+    public const OPERATION = 'operation';
 
     public static function FILTER_KIND_USE_DATE()
     {

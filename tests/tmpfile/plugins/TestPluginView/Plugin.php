@@ -33,7 +33,7 @@ class Plugin extends PluginViewBase
 
         return response()->json($custom_value);
     }
-    
+
 
     /**
      * Set view option form for setting
@@ -57,7 +57,7 @@ class Plugin extends PluginViewBase
         // 並べ替えの設定を行う場合
         static::setSortFields($form);
     }
-    
+
 
     protected function values()
     {
@@ -106,7 +106,7 @@ class Plugin extends PluginViewBase
 
         foreach ($items as $item) {
             $c = array_get($item, 'value.' . $category->column_name);
-            
+
             foreach ($boards as &$board) {
                 if (!isMatchString($c, $board['key'])) {
                     continue;

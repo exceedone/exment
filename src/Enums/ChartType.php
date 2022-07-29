@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Enums;
 
 class ChartType extends EnumBase
 {
-    const BAR = 'bar';
-    const LINE = 'line';
-    const PIE = 'pie';
+    public const BAR = 'bar';
+    public const LINE = 'line';
+    public const PIE = 'pie';
 }

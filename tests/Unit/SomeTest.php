@@ -40,7 +40,7 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(36.29, 2), 36.29);
         $this->assertMatch(floorDigit(36.29, 3), 36.29);
     }
-    
+
     public function testFloatDigitMinus()
     {
         $this->assertMatch(floorDigit(-37, 0), -37);
@@ -69,7 +69,7 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(-36.29, 2), -36.29);
         $this->assertMatch(floorDigit(-36.29, 3), -36.29);
     }
-    
+
     public function testFloatDigitZero()
     {
         $this->assertMatch(floorDigit(37, 0, true), '37');
@@ -98,7 +98,7 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(36.29, 2, true), '36.29');
         $this->assertMatch(floorDigit(36.29, 3, true), '36.290');
     }
-    
+
     public function testFloatDigitZeroMinus()
     {
         $this->assertMatch(floorDigit(-37, 0, true), '-37');

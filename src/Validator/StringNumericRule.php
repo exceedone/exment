@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -31,7 +32,7 @@ class StringNumericRule implements Rule
 
         return true;
     }
-    
+
     /**
      * get validation error message
      *

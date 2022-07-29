@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\File as ExmentFile;
@@ -43,7 +44,7 @@ class ZipService
         } else {
             static::execPasswordZipLinux($zipFullPath, $tmpFolderPath, $password);
         }
-        
+
         if (\File::exists($tmpFolderPath)) {
             \File::deleteDirectory($tmpFolderPath);
         }
@@ -52,7 +53,7 @@ class ZipService
     protected static function execPasswordZipWin($zipFullPath, $tmpFolderPath, $password)
     {
         if ($tmpFolderPath == '/' || $tmpFolderPath == '') {
-            throw new \Exception;
+            throw new \Exception();
         }
 
         $output = [];
@@ -63,7 +64,7 @@ class ZipService
     protected static function execPasswordZipLinux($zipFullPath, $tmpFolderPath, $password)
     {
         if ($tmpFolderPath == '/' || $tmpFolderPath == '') {
-            throw new \Exception;
+            throw new \Exception();
         }
 
         $output = [];

@@ -37,7 +37,7 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
 
         return $this;
     }
-    
+
 
     /**
      * Set the value of confirm_title
@@ -75,7 +75,7 @@ class PublicShowPanel extends \Encore\Admin\Show\Panel
 
         return $this;
     }
-    
+
     /**
      * Render this panel.
      *

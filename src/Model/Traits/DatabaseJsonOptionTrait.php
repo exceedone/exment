@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model\Traits;
 trait DatabaseJsonOptionTrait
 {
     use DatabaseJsonTrait;
-    
+
     public function getOption($key, $default = null)
     {
         return $this->getJson('options', $key, $default);

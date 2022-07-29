@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\Exists;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -19,7 +20,7 @@ abstract class ExistsBase extends ViewFilterBase
 
         $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
         $query_value = collect($query_value)->map(function ($val) use ($isMultiple, $isUseUnicode) {
-            return $isMultiple && $isUseUnicode? unicode_encode($val): $val;
+            return $isMultiple && $isUseUnicode ? unicode_encode($val) : $val;
         })->toArray();
         if ($isMultiple) {
             $method_name_suffix = $this->isExists() ? 'InArrayString' : 'NotInArrayString';
@@ -32,7 +33,7 @@ abstract class ExistsBase extends ViewFilterBase
         }
     }
 
-    
+
     /**
      * compare 2 value
      *
@@ -40,7 +41,7 @@ abstract class ExistsBase extends ViewFilterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         // if empty array, When isExists is true, return false. not isExists, return true.
         if (is_nullorempty($value)) {
@@ -55,5 +56,5 @@ abstract class ExistsBase extends ViewFilterBase
         return !$this->isExists();
     }
 
-    abstract protected function isExists() : bool;
+    abstract protected function isExists(): bool;
 }

@@ -18,7 +18,7 @@ class SwitchField extends AdminSwitchField
         if (is_null($this->value()) && is_null($this->getOld())) {
             $this->value = $this->states['off']['value'];
         }
-        
+
         $this->script = <<<EOT
 
 $('{$this->getElementClassSelector()}.la_checkbox').bootstrapSwitch({

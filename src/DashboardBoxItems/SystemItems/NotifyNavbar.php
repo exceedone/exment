@@ -13,7 +13,7 @@ use Encore\Admin\Widgets\Table as WidgetTable;
 class NotifyNavbar
 {
     protected $dashboard_box;
-    
+
     /**
      * WordPress Page Items
      *
@@ -33,7 +33,7 @@ class NotifyNavbar
     {
         return null;
     }
-    
+
     /**
      * get footer
      */
@@ -43,7 +43,7 @@ class NotifyNavbar
         $label = trans('admin.list');
         return "<div style='padding:8px;'><a href='{$link}'>{$label}</a></div>";
     }
-    
+
     /**
      * get html body
      */
@@ -60,7 +60,7 @@ class NotifyNavbar
             trans('admin.action'),
         ];
         $bodies = [];
-        
+
         foreach ($this->items as $item) {
             $body = [];
 
@@ -81,14 +81,14 @@ class NotifyNavbar
             // reference target data
             $html = '';
             if (array_key_value_exists('parent_id', $item)) {
-                $linker = (new Linker)
+                $linker = (new Linker())
                     ->url(admin_url("notify_navbar/rowdetail/{$item->id}"))
                     ->icon('fa-list')
                     ->tooltip(exmtrans('notify_navbar.data_refer'));
                 $html .= $linker->render();
             }
 
-            $linker = (new Linker)
+            $linker = (new Linker())
                 ->url(admin_url("notify_navbar/{$item->id}"))
                 ->icon('fa-eye')
                 ->tooltip(trans('admin.show'));
@@ -128,7 +128,7 @@ class NotifyNavbar
             \Log::error($ex);
         }
     }
-    
+
     /**
      * set laravel admin embeds option
      */

@@ -8,7 +8,8 @@ use Exceedone\Exment\Tests\TestTrait;
 
 class FileImportTest extends FileImportTestBase
 {
-    use ImportTrait, TestTrait;
+    use ImportTrait;
+    use TestTrait;
 
     protected function getImportPath()
     {

@@ -18,10 +18,10 @@ abstract class FormatBase
      * @var bool
      */
     protected $isBackground = false;
-    
+
     protected $extension = '*';
     protected $accept_extension = '*';
-    
+
     /**
      * File saved tmp directory path
      *
@@ -40,9 +40,9 @@ abstract class FormatBase
         if (!func_num_args()) {
             return $this->datalist;
         }
-        
+
         $this->datalist = $datalist;
-        
+
         return $this;
     }
 
@@ -51,9 +51,9 @@ abstract class FormatBase
         if (!func_num_args()) {
             return $this->filebasename;
         }
-        
+
         $this->filebasename = $filebasename;
-        
+
         return $this;
     }
 
@@ -91,8 +91,8 @@ abstract class FormatBase
         $this->deleteTmpDirectory();
         exit;
     }
-    
-    
+
+
     public function saveAsFile($dirpath)
     {
         // move file tmp directory to $dirpath
@@ -112,7 +112,7 @@ abstract class FormatBase
      * @param string $name
      * @return string
      */
-    public function getRealFileName(string $name) : string
+    public function getRealFileName(string $name): string
     {
         return $name . '.' . $this->getFormat();
     }
@@ -122,7 +122,7 @@ abstract class FormatBase
      *
      * @return string
      */
-    public function getFileName() : string
+    public function getFileName(): string
     {
         $fileName = $this->filebasename;
 
@@ -138,14 +138,14 @@ abstract class FormatBase
         }
         return $fileName;
     }
-    
+
 
     /**
      * Get DownloadFilePath
      *
      * @return string
      */
-    protected function getDownloadFilePath() : string
+    protected function getDownloadFilePath(): string
     {
         return $this->downloadFilePath;
     }
@@ -155,7 +155,7 @@ abstract class FormatBase
      *
      * @return string
      */
-    protected function tmpdir() : string
+    protected function tmpdir(): string
     {
         if (!$this->tmpdir) {
             $this->tmpdir = \Exment::getTmpFolderPath('data');
@@ -169,7 +169,7 @@ abstract class FormatBase
      *
      * @return string
      */
-    protected function getTmpFilePath($fileName) : string
+    protected function getTmpFilePath($fileName): string
     {
         return path_join($this->tmpdir(), $fileName);
     }
@@ -208,7 +208,7 @@ abstract class FormatBase
      * @param bool $isExport
      * @return FormatBase
      */
-    public static function getFormatClass(?string $format, string $library, bool $isExport) : FormatBase
+    public static function getFormatClass(?string $format, string $library, bool $isExport): FormatBase
     {
         if ($isExport) {
             if (!is_null($config = config('exment.export_library'))) {
@@ -219,7 +219,7 @@ abstract class FormatBase
                 $library = isMatchString($config, 'PHP_SPREAD_SHEET') ? ExportImportLibrary::PHP_SPREAD_SHEET : ExportImportLibrary::SP_OUT;
             }
         }
-        
+
         switch ($format) {
             case 'excel':
             case 'xlsx':
@@ -240,7 +240,7 @@ abstract class FormatBase
      * @param array $files
      * @return string
      */
-    protected function createDownloadFile(array $files) : string
+    protected function createDownloadFile(array $files): string
     {
         // save as csv
         if (count($files) == 1) {
@@ -255,7 +255,7 @@ abstract class FormatBase
             $zipfilename = short_uuid().'.zip';
             $zipfillpath = path_join($tmpdir, $zipfilename);
             $res = $zip->open($zipfillpath, \ZipArchive::CREATE);
-            
+
             foreach ($files as $f) {
                 $zip->addFile($f['path'], $f['name']);
             }
@@ -272,7 +272,7 @@ abstract class FormatBase
      * @param Request|\SplFileInfo|string $target
      * @return array [$path, $extension, $originalName];
      */
-    protected function getFileInfo($target) : array
+    protected function getFileInfo($target): array
     {
         // get file
         if ($target instanceof Request) {
@@ -316,7 +316,7 @@ abstract class FormatBase
      * @param array $options
      * @return boolean
      */
-    protected function isReadSheetRow(int $sheet_row_no, array $options = []) : bool
+    protected function isReadSheetRow(int $sheet_row_no, array $options = []): bool
     {
         // get options
         list($skip_excel_row_no) = [
@@ -339,7 +339,7 @@ abstract class FormatBase
      * 1 sheet - 1 table data
      */
     abstract public function createFile();
-    
+
 
     abstract public function getFormat();
 

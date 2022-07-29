@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -32,7 +33,7 @@ class YesNoRule implements Rule
             || isMatchString(strtolower($value), 'yes')
             || isMatchString(strtolower($value), 'no');
     }
-    
+
     /**
      * get validation error message
      *

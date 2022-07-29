@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Exceedone\Exment\Services\DocumentExcelService;
@@ -12,7 +13,7 @@ use Exceedone\Exment\Enums\FileType;
 abstract class PluginDocumentBase
 {
     use PluginBase;
-    
+
     protected $custom_table;
     protected $custom_value;
     protected $document_value;
@@ -33,7 +34,7 @@ abstract class PluginDocumentBase
     public function execute()
     {
         $table_name = $this->custom_table->table_name;
-        
+
         // execute prependExecute
         $this->executing();
 
@@ -121,7 +122,7 @@ abstract class PluginDocumentBase
             $filename
         ];
     }
-    
+
     public function getButtonLabel()
     {
         // get label
@@ -131,14 +132,14 @@ abstract class PluginDocumentBase
             return $this->plugin->plugin_view_name;
         }
     }
-    
+
     /**
      * execute before creating document
      */
     protected function executing()
     {
     }
-    
+
     /**
      * execute after creating document
      */

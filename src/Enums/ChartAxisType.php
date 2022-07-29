@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class ChartAxisType extends EnumBase
 {
-    const X = '1';
-    const Y = '2';
+    public const X = '1';
+    public const Y = '2';
 }

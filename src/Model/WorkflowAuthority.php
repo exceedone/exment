@@ -24,7 +24,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
             return null;
         }
         $condition_type_label = $condition_type->transKey('condition.condition_type_options');
-        
+
         return $item->getText($this->related_type, $this->related_id, false);
     }
 
@@ -46,12 +46,12 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                 if (!isset($condition_type)) {
                     continue;
                 }
-        
+
                 $authority = new WorkflowAuthority();
                 $authority->related_id = $v;
                 $authority->related_type = $key;
                 $authority->workflow_action_id = isset($action) ? $action->id : null;
-    
+
                 $items[] = $authority;
             }
         }
@@ -65,7 +65,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
      *
      * @return array
      */
-    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, WorkflowAction $workflow_action, bool $asNextAction = false) : array
+    public function getWorkflowAuthorityUserOrgLabels(CustomValue $custom_value, WorkflowAction $workflow_action, bool $asNextAction = false): array
     {
         $workflow = $workflow_action->workflow_cache;
         $type = ConditionTypeDetail::getEnum($this->related_type);
@@ -114,7 +114,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
                     'users' => $userIds,
                     'organizations' => $organizationIds,
                 ];
-                
+
             case ConditionTypeDetail::LOGIN_USER_COLUMN:
                 return \Exceedone\Exment\ConditionItems\LoginUserColumnItem::getTargetUserAndOrg($custom_value, $workflow_action, $this->related_id, $asNextAction);
         }

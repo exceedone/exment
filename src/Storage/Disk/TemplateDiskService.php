@@ -21,7 +21,7 @@ class TemplateDiskService extends DiskServiceBase
         $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_ADMIN_TMP), $template_name, $this->now);
         $this->localSyncDiskItem = $this->tmpDiskItem;
     }
-    
+
     /**
      * Whether needs download from clowd
      *
@@ -49,7 +49,7 @@ class TemplateDiskService extends DiskServiceBase
     {
         return true;
     }
-    
+
     /**
      * copy file from disk to localSyncDisk disk
      *
@@ -60,13 +60,13 @@ class TemplateDiskService extends DiskServiceBase
         ///// copy to sync disk
         $diskItem = $this->diskItem();
         $localSyncDiskItem = $this->localSyncDiskItem();
-        
+
         $disk = $diskItem->disk();
         $localSyncDisk = $localSyncDiskItem->Disk();
 
         // download zip
         \Exment::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
-        
+
         // get file list
         $files = $disk->allFiles($diskItem->dirName());
         foreach ($files as $file) {
@@ -84,7 +84,7 @@ class TemplateDiskService extends DiskServiceBase
             } catch (\Exception $ex) {
             }
         }
-        
+
         return true;
     }
 }

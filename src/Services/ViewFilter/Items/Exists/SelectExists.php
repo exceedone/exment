@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\Exists;
 
 use Exceedone\Exment\Enums\FilterOption;
@@ -10,7 +11,7 @@ class SelectExists extends ExistsBase
         return FilterOption::SELECT_EXISTS;
     }
 
-    protected function isExists() : bool
+    protected function isExists(): bool
     {
         return true;
     }

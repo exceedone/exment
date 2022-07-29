@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\FormSetting\FormBlock;
 
 use Exceedone\Exment\Model\CustomFormBlock;
@@ -22,7 +23,7 @@ class DefaultBlock extends BlockBase
      */
     public static function getDefaultBlock(CustomTable $custom_table)
     {
-        $block = new CustomFormBlock;
+        $block = new CustomFormBlock();
         $block->id = null;
         $block->form_block_type = FormBlockType::DEFAULT;
         $block->form_block_target_table_id = $custom_table->id;

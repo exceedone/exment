@@ -65,7 +65,7 @@ class WorkflowValue extends ModelBase
     {
         $status = $this->workflow_status_cache;
 
-        return isset($status) ? ($status->editable_flg == 1): true;
+        return isset($status) ? ($status->editable_flg == 1) : true;
     }
 
     /**
@@ -85,7 +85,7 @@ class WorkflowValue extends ModelBase
                 ->where('id', '<>', $this->id)
                 ->orderBy('id', 'desc')
                 ->get();
-            
+
             foreach ($workflow_values as $workflow_value) {
                 if ($workflow_value->workflow_status_to_id == $this->workflow_status_to_id) {
                     $authorities = $workflow_value->workflow_value_authorities;
@@ -98,13 +98,13 @@ class WorkflowValue extends ModelBase
         }
         return $authorities;
     }
-    
+
     /**
      * this workflow is completed
      *
      * @return bool
      */
-    public function isCompleted() : bool
+    public function isCompleted(): bool
     {
         $statusTo = $this->workflow_status_cache;
         return WorkflowStatus::getWorkflowStatusCompleted($statusTo);
@@ -143,7 +143,7 @@ class WorkflowValue extends ModelBase
             ->orderBy('id', 'desc')
             ->first();
     }
-    
+
     /**
      * Get last executed workflow value.
      * *Filtered action_executed_flg
@@ -159,7 +159,7 @@ class WorkflowValue extends ModelBase
             ->orderBy('id', 'desc')
             ->first();
     }
-    
+
     public function deletingChildren()
     {
         $this->workflow_value_authorities()->delete();
@@ -168,7 +168,7 @@ class WorkflowValue extends ModelBase
     protected static function boot()
     {
         parent::boot();
-        
+
         static::deleting(function ($model) {
             $model->deletingChildren();
         });

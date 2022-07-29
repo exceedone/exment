@@ -12,14 +12,14 @@ class Csv extends SpOut
 
     protected $accept_extension = 'csv,zip';
 
-    
+
     /**
      * Get all csv's row count
      *
      * @param string|array|\Illuminate\Support\Collection $files
      * @return int
      */
-    protected function getRowCount($files) : int
+    protected function getRowCount($files): int
     {
         $count = 0;
         if (is_string($files)) {
@@ -32,7 +32,7 @@ class Csv extends SpOut
             $reader->setEncoding('UTF-8');
             $reader->setFieldDelimiter(",");
             $reader->open($file);
-            
+
             // cannot row count directry, so loop
             foreach ($reader->getSheetIterator() as $sheet) {
                 $sheetName = $sheet->getName();
@@ -72,7 +72,7 @@ class Csv extends SpOut
         return $array;
     }
 
-    
+
     /**
      * @return \Box\Spout\Writer\CSV\Writer
      */
@@ -81,7 +81,7 @@ class Csv extends SpOut
         return WriterEntityFactory::createCSVWriter();
     }
 
-    
+
     /**
      * @return \Box\Spout\Reader\CSV\Reader
      */

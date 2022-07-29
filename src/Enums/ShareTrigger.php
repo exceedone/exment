@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class ShareTrigger extends EnumBase
 {
-    const CREATE = "1";
-    const UPDATE = "2";
+    public const CREATE = "1";
+    public const UPDATE = "2";
 }

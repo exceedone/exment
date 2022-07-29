@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Enums;
 
 class FormBlockType extends EnumBase
 {
-    const DEFAULT = 0;
-    const ONE_TO_MANY = 1;
-    const MANY_TO_MANY = 2;
+    public const DEFAULT = 0;
+    public const ONE_TO_MANY = 1;
+    public const MANY_TO_MANY = 2;
 }

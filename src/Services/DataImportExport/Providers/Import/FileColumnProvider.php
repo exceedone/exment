@@ -17,9 +17,9 @@ class FileColumnProvider extends ProviderBase
      * @var string
      */
     protected $fileDirFullPath;
-    
+
     protected $primary_key;
-    
+
     /**
      * Custom table
      *
@@ -100,7 +100,7 @@ class FileColumnProvider extends ProviderBase
 
         return $results;
     }
-    
+
     /**
      * validate imported all data.
      * @param mixed $dataObjects
@@ -112,7 +112,7 @@ class FileColumnProvider extends ProviderBase
         $validate_columns = $this->custom_table->custom_columns_cache->filter(function ($custom_column) {
             return ColumnType::isAttachment($custom_column);
         });
-        
+
         $error_data = [];
         $success_data = [];
         foreach ($dataObjects as $line_no => $value) {
@@ -126,7 +126,7 @@ class FileColumnProvider extends ProviderBase
 
         return [$success_data, $error_data];
     }
-    
+
     /**
      * validate data row
      * @param int $line_no
@@ -162,14 +162,14 @@ class FileColumnProvider extends ProviderBase
         if (!$model) {
             $errors[] = exmtrans('common.message.notfound_or_deny');
         }
-        
+
         // Whether contains column
         if ($isCheckColumn) {
             $column_name = array_get($data, 'column_name');
             $validate_column = $validate_columns->first(function ($validate_column) use ($column_name) {
                 return isMatchString($column_name, $validate_column->column_name);
             });
-    
+
             if (!$validate_column) {
                 $errors[] = exmtrans('custom_value.import.message.file_column_not_match', [
                     'column_name' => $column_name,
@@ -230,7 +230,7 @@ class FileColumnProvider extends ProviderBase
         $exmentfile = ExmentFile::storeAs(FileType::CUSTOM_VALUE_COLUMN, $file, $this->custom_table->table_name, $displayFileName)
             ->saveCustomValueAndColumn($model->id, $custom_column, $this->custom_table, !$custom_column->isMultipleEnabled());
         $path = path_join($this->custom_table->table_name, $exmentfile->local_filename);
-        
+
         // set custom value
         if (!$custom_column->isMultipleEnabled()) {
             $model->setValue($column_name, $path);
@@ -254,7 +254,7 @@ class FileColumnProvider extends ProviderBase
      * @param array $value_custom
      * @return string|null
      */
-    protected function getFileFullPath(array $value_custom) : ?string
+    protected function getFileFullPath(array $value_custom): ?string
     {
         $file_name = array_get($value_custom, 'file_name');
         if (is_nullorempty($file_name)) {

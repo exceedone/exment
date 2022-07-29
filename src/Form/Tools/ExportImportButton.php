@@ -35,7 +35,7 @@ class ExportImportButton extends ModalTileMenuButton
         $this->export_flg = !boolval(config('exment.export_disabled', false)) && $export_flg;
         $this->import_flg = !boolval(config('exment.import_disabled', false)) && $import_flg;
         $this->view_flg = !boolval(config('exment.export_view_disabled', false)) && $view_flg;
-        
+
         // switch label
         $this->total_export_flg = $this->export_flg || $this->view_flg;
 
@@ -55,7 +55,7 @@ class ExportImportButton extends ModalTileMenuButton
             'button_class' => 'btn-twitter',
         ]);
     }
-    
+
     /**
      * Set parent grid.
      *
@@ -83,7 +83,7 @@ class ExportImportButton extends ModalTileMenuButton
 
         return $this;
     }
-    
+
     /**
      * Set base_key.
      *

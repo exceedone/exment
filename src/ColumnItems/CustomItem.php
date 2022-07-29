@@ -24,10 +24,13 @@ use Exceedone\Exment\Validator;
 
 abstract class CustomItem implements ItemInterface
 {
-    use ItemTrait, SystemColumnItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
-    
+    use ItemTrait;
+    use SystemColumnItemTrait;
+    use SummaryItemTrait;
+    use ColumnOptionQueryTrait;
+
     protected $custom_column;
-    
+
     protected $custom_value;
 
     /**
@@ -190,7 +193,7 @@ abstract class CustomItem implements ItemInterface
         }
 
         $this->prepare();
-        
+
         return $this;
     }
 
@@ -238,7 +241,7 @@ abstract class CustomItem implements ItemInterface
      *
      * @return string|null
      */
-    public function getHelp() : ?string
+    public function getHelp(): ?string
     {
         // if initonly is true and has value, not showing help
         if ($this->initonly()) {
@@ -252,7 +255,7 @@ abstract class CustomItem implements ItemInterface
         } elseif (array_key_value_exists('help', $this->custom_column->options)) {
             $help = array_get($this->custom_column->options, 'help');
         }
-        
+
         // if initonly is true and now, showing help and cannot edit help
         elseif (!boolval(array_get($this->options, 'public_form')) && boolval(array_get($this->custom_column->options, 'init_only'))) {
             $help .= exmtrans('common.help.init_flg');
@@ -279,7 +282,7 @@ abstract class CustomItem implements ItemInterface
         if (!is_nullorempty($default)) {
             return $default;
         }
-        
+
         // If initonly, not set default
         if ($this->initonly()) {
             return null;
@@ -367,7 +370,7 @@ abstract class CustomItem implements ItemInterface
         return null;
     }
 
-    
+
     public function getFilterField($value_type = null)
     {
         if (get_class($this) == AutoNumber::class) {
@@ -397,17 +400,17 @@ abstract class CustomItem implements ItemInterface
         return $this->getCustomField($classname);
     }
 
-    
+
     /**
      * Whether is show filter null check
      *
      * @return bool
      */
-    public function isShowFilterNullCheck() : bool
+    public function isShowFilterNullCheck(): bool
     {
         return true;
     }
-    
+
     protected function getFilterFieldClass()
     {
         return $this->getAdminFieldClass();
@@ -440,7 +443,7 @@ abstract class CustomItem implements ItemInterface
         $options = $this->custom_column->options;
         // form column name. join $column_name_prefix and $column_name
         $form_column_name = $column_name_prefix.$this->name();
-        
+
         $field = new $classname($form_column_name, [array_get($this->form_column_options, 'form_column_view_name') ?? $this->label()]);
         if ($this->isSetAdminOptions()) {
             $this->setAdminOptions($field);
@@ -493,7 +496,7 @@ abstract class CustomItem implements ItemInterface
         }
         // append help
         $this->appendHelp($field);
-        
+
         $field->attribute(['data-column_type' => $this->custom_column->column_type]);
 
         $field->setElementClass("class_" . $this->uniqueName());
@@ -623,10 +626,10 @@ abstract class CustomItem implements ItemInterface
         if ($this->readonly()) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * replace value for import
      *
@@ -655,12 +658,12 @@ abstract class CustomItem implements ItemInterface
     protected function setAdminFilterOptions(&$filter)
     {
     }
-    
+
     protected function setValidates(&$validates)
     {
     }
 
-    protected function getAppendHelpText() : ?string
+    protected function getAppendHelpText(): ?string
     {
         return null;
     }
@@ -683,7 +686,7 @@ abstract class CustomItem implements ItemInterface
         if ($className = static::findItemClass($column_type)) {
             return new $className($custom_column, $custom_value, $view_column_target);
         }
-        
+
         admin_error('Error', "Field type [$column_type] does not exist.");
 
         return null;
@@ -694,7 +697,7 @@ abstract class CustomItem implements ItemInterface
      *
      * @return string|null
      */
-    public function getFontAwesomeClass() : ?string
+    public function getFontAwesomeClass(): ?string
     {
         return $this->custom_column->getFontAwesomeClass();
     }
@@ -726,7 +729,7 @@ abstract class CustomItem implements ItemInterface
     {
         $options = array_get($this->custom_column, 'options');
         $validates = [];
-        
+
         // setting options --------------------------------------------------
         // required
         if ($this->required()) {
@@ -749,7 +752,7 @@ abstract class CustomItem implements ItemInterface
 
         // get removing fields.
         $field->removeRules($this->getRemoveValidates());
-        
+
         return $validates;
     }
 
@@ -771,7 +774,7 @@ abstract class CustomItem implements ItemInterface
         return true;
     }
 
-    
+
     public function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
@@ -804,7 +807,7 @@ abstract class CustomItem implements ItemInterface
      *
      * @return bool
      */
-    public function disableDisplayWhenShow() : bool
+    public function disableDisplayWhenShow(): bool
     {
         if ($this->internal() || $this->hidden()) {
             return true;
@@ -814,7 +817,7 @@ abstract class CustomItem implements ItemInterface
         if (boolval(config('exment.disable_show_field_readonly', false)) && $this->readonly()) {
             return true;
         }
-        
+
         if (boolval(config('exment.disable_show_field_viewonly', false)) && $this->viewonly()) {
             return true;
         }
@@ -838,7 +841,7 @@ abstract class CustomItem implements ItemInterface
         return boolval(array_get($options, 'required')) || boolval(array_get($this->form_column_options, 'required'));
     }
 
-    protected function isSetAdminOptions() : bool
+    protected function isSetAdminOptions(): bool
     {
         return !$this->hidden() &&
             !$this->initonly() &&
@@ -846,7 +849,7 @@ abstract class CustomItem implements ItemInterface
             !$this->internal();
     }
 
-    
+
     /**
      * Set Custom Column Form(defalut and form). Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
@@ -859,7 +862,7 @@ abstract class CustomItem implements ItemInterface
         $this->setCustomColumnDefaultValueForm($form);
         $this->setCustomColumnOptionForm($form);
     }
-    
+
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
@@ -870,7 +873,7 @@ abstract class CustomItem implements ItemInterface
     public function setCustomColumnOptionForm(&$form)
     {
     }
-    
+
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields

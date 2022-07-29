@@ -5,12 +5,12 @@ namespace Exceedone\Exment\Enums;
 class SummaryCondition extends EnumBase
 {
     use EnumOptionTrait;
-    
-    const SUM = "1";
+
+    public const SUM = "1";
     //const AVG = 2;
-    const COUNT = "3";
-    const MIN = "4";
-    const MAX = "5";
+    public const COUNT = "3";
+    public const MIN = "4";
+    public const MAX = "5";
 
     protected static $options = [
         "1" => ['id' => "1", 'name' => 'sum', 'numeric' => true, 'countable' => true],

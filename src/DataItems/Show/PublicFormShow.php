@@ -19,7 +19,7 @@ class PublicFormShow extends DefaultShow
      * @var PublicForm
      */
     protected $public_form;
-    
+
     /**
      * Set public Form
      *
@@ -53,13 +53,13 @@ class PublicFormShow extends DefaultShow
                 continue;
             }
             $custom_form_block = $custom_values[0]['custom_form_block'];
-                
+
             // Create show panel for relation
             $relationInfo = $custom_form_block->getRelationInfo();
 
             foreach ($custom_values as $info) {
                 $custom_value = $info['custom_value'];
-                
+
                 // add field if n:n
                 if ($info['relation_type'] == RelationType::MANY_TO_MANY) {
                     $field = new ShowField($relationInfo[1], $relationInfo[2]);
@@ -69,7 +69,7 @@ class PublicFormShow extends DefaultShow
                             return $custom_value->getLabel();
                         })->implode(exmtrans('common.separate_word'));
                     });
-                    
+
                     $show->addFieldAndOption($field, [
                         'row' => 999, // ToDo: the best way for getting row no.
                         'column' => 1,
@@ -84,7 +84,7 @@ class PublicFormShow extends DefaultShow
                         $this->setByCustomFormBlock($show, $custom_form_block);
                     });
                     $relationShowPanel->addChildren($childShow);
-                    
+
                     $result[] = $relationShowPanel;
                 }
             }

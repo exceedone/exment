@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Login\OAuth;
 
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
@@ -94,13 +95,13 @@ class OAuthService implements LoginServiceInterface
                         ],
                     ]),
                 ]);
-        
+
             $login_provider_caution = '<span class="red">' . exmtrans('login.message.oauth_provider_caution', [
                 'url' => getManualUrl('sso'),
             ]) . '</span>';
             $form->descriptionHtml($login_provider_caution)
             ->attribute(['data-filter' => json_encode(['key' => 'options_provider_type', 'value' => [LoginProviderType::OTHER]])]);
-    
+
             $form->text('oauth_provider_name', exmtrans('login.oauth_provider_name'))
                 ->required()
                 ->help(exmtrans('login.help.login_provider_name'))
@@ -149,7 +150,7 @@ class OAuthService implements LoginServiceInterface
         }
     }
 
-    
+
     /**
      * Execute login test
      *
@@ -177,7 +178,7 @@ class OAuthService implements LoginServiceInterface
         return $socialiteProvider->redirect();
     }
 
-    
+
     /**
      * Execute login callback
      *
@@ -231,7 +232,7 @@ class OAuthService implements LoginServiceInterface
      *
      * @return string|null
      */
-    public static function getAccessTokenFromDB(LoginSetting $login_setting) : ?string
+    public static function getAccessTokenFromDB(LoginSetting $login_setting): ?string
     {
         // get access token by user setting
         $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
@@ -250,14 +251,14 @@ class OAuthService implements LoginServiceInterface
 
         return $access_token;
     }
-    
+
 
     /**
      * Set database and callback auth for oauth.
      *
      * @return self
      */
-    public static function callbackAccessTokenToDB(LoginSetting $login_setting, ?string $callbackUrl) : ?string
+    public static function callbackAccessTokenToDB(LoginSetting $login_setting, ?string $callbackUrl): ?string
     {
         try {
             $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, false, $callbackUrl);
@@ -269,7 +270,7 @@ class OAuthService implements LoginServiceInterface
             // get Expired at
             $now = \Carbon\Carbon::now();
             $expiresAt = $now->addSecond($expiresIn);
-    
+
             // get access token by user setting
             $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
             $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
@@ -302,7 +303,7 @@ class OAuthService implements LoginServiceInterface
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
     }
 
-    
+
 
     /**
      * Set custom config for login setting controller.
@@ -325,11 +326,11 @@ class OAuthService implements LoginServiceInterface
 
         try {
             $socialiteProvider = \Socialite::with($provider_name);
-        
+
             // has instance of
             if (!is_nullorempty($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderLoginConfig::class)) {
                 $form->exmheader(exmtrans('login.custom_setting'))->hr();
-            
+
                 $socialiteProvider->setLoginSettingForm($form);
             }
         } catch (\Exception $ex) {

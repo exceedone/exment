@@ -11,9 +11,9 @@ class DefaultTableProvider extends ProviderBase
     protected $custom_table;
 
     protected $custom_columns;
-    
+
     protected $primary_key;
-    
+
     protected $filter;
 
     /**
@@ -99,14 +99,14 @@ class DefaultTableProvider extends ProviderBase
             $primary_value = array_get($value_custom, $this->primary_key);
             // if not exists, new instance
             if (is_nullorempty($primary_value)) {
-                $model = new $modelName;
+                $model = new $modelName();
             }
             // if exists, firstOrNew
             else {
                 // get model from models
                 $model = array_get($models, strval($primary_value));
                 if (!isset($model)) {
-                    $model = new $modelName;
+                    $model = new $modelName();
                 }
             }
             if (!isset($model)) {
@@ -119,7 +119,7 @@ class DefaultTableProvider extends ProviderBase
 
         return $results;
     }
-    
+
     /**
      * validate imported all data.
      * @param mixed $dataObjects
@@ -133,7 +133,7 @@ class DefaultTableProvider extends ProviderBase
 
         ///// get all table columns
         $validate_columns = $this->custom_table->custom_columns;
-        
+
         $error_data = [];
         $success_data = [];
         foreach ($dataObjects as $line_no => $value) {
@@ -147,7 +147,7 @@ class DefaultTableProvider extends ProviderBase
 
         return [$success_data, $error_data];
     }
-    
+
     /**
      * validate data row
      * @param int $line_no
@@ -217,7 +217,7 @@ class DefaultTableProvider extends ProviderBase
     {
         $siblings = [];
         $ignoreIds = [];
-        
+
         foreach ($dataObjects as $line_no => $value) {
             if ($line_no != $current_no) {
                 $siblings[] = array_get($value, 'data');
@@ -252,7 +252,7 @@ class DefaultTableProvider extends ProviderBase
         return $data_custom;
     }
 
-    
+
     /**
      * Data processing before getting model using imported data
      *

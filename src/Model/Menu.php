@@ -91,13 +91,13 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
     public static function getTableName()
     {
-        return with(new static)->getTable();
+        return with(new static())->getTable();
     }
 
     /**
      * @return array
      */
-    public function allNodes() : array
+    public function allNodes(): array
     {
         $grammar = DB::getQueryGrammar();
         $orderColumn = $grammar->wrap($this->orderColumn);
@@ -313,7 +313,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             $parent_name = null;
         } else {
             $parent_id = $this['parent_id'];
-            $menulist = (new Menu)->allNodes(); // allNodes:dimensional
+            $menulist = (new Menu())->allNodes(); // allNodes:dimensional
             $parent = collect($menulist)->first(function ($value, $key) use ($parent_id) {
                 return array_get($value, 'id') == $parent_id;
             });

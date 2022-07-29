@@ -24,7 +24,7 @@ trait EnumOptionTrait
         }
         return collect($options)->toArray();
     }
-    
+
     public static function getOption($filters = [])
     {
         return collect(static::getOptions($filters))->first() ?? null;

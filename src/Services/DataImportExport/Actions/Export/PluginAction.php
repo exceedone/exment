@@ -12,9 +12,9 @@ use Exceedone\Exment\Enums\PluginType;
 class PluginAction extends CustomTableAction
 {
     protected $custom_view;
-    
+
     protected $plugin;
-    
+
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
@@ -41,7 +41,7 @@ class PluginAction extends CustomTableAction
             'custom_view' => $this->custom_view,
             'grid' => $this->grid
         ]);
-        
+
         $datalist = [];
         foreach ($providers as $provider) {
             if (!$provider->isOutput()) {
@@ -82,7 +82,7 @@ class PluginAction extends CustomTableAction
             $file = $pluginClass->execute();
 
             $response = response()->download($file, $pluginClass->getFileName());
-            
+
             // if string(tmp file), set deleteFileAfterSend
             if (is_string($file)) {
                 $response->deleteFileAfterSend(true);

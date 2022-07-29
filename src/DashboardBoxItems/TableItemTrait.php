@@ -66,7 +66,7 @@ trait TableItemTrait
         ];
     }
 
-    public static function getCustomViewSelectOptions($value, $field, $model, $dashboard, bool $isCalendar = false) : array
+    public static function getCustomViewSelectOptions($value, $field, $model, $dashboard, bool $isCalendar = false): array
     {
         if (is_nullorempty($field)) {
             return [];

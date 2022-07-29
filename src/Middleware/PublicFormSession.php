@@ -12,7 +12,7 @@ class PublicFormSession extends \Encore\Admin\Middleware\Session
      *
      * @return string|null
      */
-    protected function getSessionPath(Request $request) : ?string
+    protected function getSessionPath(Request $request): ?string
     {
         // get baseUrl
         $baseUrl = trim(request()->getBaseUrl(), '/');
@@ -22,7 +22,7 @@ class PublicFormSession extends \Encore\Admin\Middleware\Session
         } else {
             $path = '';
         }
-        
+
         $public_form = PublicForm::getPublicFormByRequest();
         if ($public_form) {
             $path .= '/' . trim($public_form->getBasePath(), '/');

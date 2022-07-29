@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
@@ -13,7 +14,7 @@ class Header extends OtherBase
      *
      * @return WidgetForm
      */
-    public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
+    public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         $form = new WidgetForm($parameters);
 
@@ -32,7 +33,7 @@ class Header extends OtherBase
      *
      * @return array
      */
-    public function prepareSavingOptions(array $options) : array
+    public function prepareSavingOptions(array $options): array
     {
         return array_filter($options, function ($option, $key) {
             return in_array($key, [
@@ -47,12 +48,12 @@ class Header extends OtherBase
      *
      * @return array
      */
-    public function getValidationRules() : array
+    public function getValidationRules(): array
     {
         return ['text' => 'required'];
     }
 
-    public function getFontAwesomeClass() : ?string
+    public function getFontAwesomeClass(): ?string
     {
         return 'fa-header';
     }

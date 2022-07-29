@@ -4,10 +4,9 @@ namespace Exceedone\Exment\Model;
 
 class UserSetting extends ModelBase
 {
-    protected $casts = ['settings' => 'json'];
-    
     use Traits\DatabaseJsonTrait;
-    
+    protected $casts = ['settings' => 'json'];
+
     public function getSetting($key, $default = null)
     {
         return $this->getJson('settings', $key, $default);

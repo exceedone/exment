@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter;
 
 use Exceedone\Exment\ColumnItems\ItemInterface;
@@ -9,7 +10,7 @@ use Exceedone\Exment\Enums\ColumnType;
 
 abstract class ViewFilterBase
 {
-    const classNames = [
+    public const classNames = [
         Items\Eq::class,
         Items\Ne::class,
         Items\Like::class,
@@ -40,7 +41,7 @@ abstract class ViewFilterBase
         Items\DayYear\DayThisYear::class,
         Items\DayYear\DayLastYear::class,
         Items\DayYear\DayNextYear::class,
-        
+
         Items\DayBeforeAfter\DayLastXDayOrAfter::class,
         Items\DayBeforeAfter\DayLastXDayOrBefore::class,
         Items\DayBeforeAfter\DayNextXDayOrAfter::class,
@@ -57,10 +58,10 @@ abstract class ViewFilterBase
         Items\Exists\SelectNotExists::class,
         Items\Exists\UserEq::class,
         Items\Exists\UserNe::class,
-        
+
         Items\UserEqUser\UserEqUser::class,
         Items\UserEqUser\UserNeUser::class,
-        
+
         Items\WorkflowStatus\WorkflowStatusEq::class,
         Items\WorkflowStatus\WorkflowStatusNe::class,
         Items\WorkflowWorkUser::class,
@@ -73,14 +74,14 @@ abstract class ViewFilterBase
      * @var ItemInterface
      */
     protected $column_item;
-    
+
     /**
      * Condition, for form priority, workflow, etc's match.
      *
      * @var Condition
      */
     protected $condition;
-    
+
     /**
      * For condition value, if value is null or empty array, whether ignore the value.
      *
@@ -145,9 +146,9 @@ abstract class ViewFilterBase
     }
 
 
-    protected function getQueryWhereName() : string
+    protected function getQueryWhereName(): string
     {
-        $where = $this->or_option ? 'orWhere': 'where';
+        $where = $this->or_option ? 'orWhere' : 'where';
 
         return $where;
     }
@@ -159,7 +160,7 @@ abstract class ViewFilterBase
      * @param string $view_filter_condition
      * @return ViewFilterBase|null
      */
-    public static function make($view_filter_condition, $column_item, array $options = []) : ?ViewFilterBase
+    public static function make($view_filter_condition, $column_item, array $options = []): ?ViewFilterBase
     {
         $classNames = static::classNames;
 
@@ -178,7 +179,7 @@ abstract class ViewFilterBase
      * @param Condition $condition
      * @return ViewFilterBase|null
      */
-    public static function makeForCondition(Condition $condition, array $options = []) : ?ViewFilterBase
+    public static function makeForCondition(Condition $condition, array $options = []): ?ViewFilterBase
     {
         $classNames = static::classNames;
 
@@ -193,7 +194,7 @@ abstract class ViewFilterBase
         return null;
     }
 
-    
+
     /**
      * compare 2 value
      *
@@ -201,7 +202,7 @@ abstract class ViewFilterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    public function compareValue($value, $conditionValue) : bool
+    public function compareValue($value, $conditionValue): bool
     {
         if (!is_list($value)) {
             $value = [$value];
@@ -221,7 +222,7 @@ abstract class ViewFilterBase
             if (static::$isConditionPassAsArray) {
                 return $this->_compareValue($value, $conditionValue);
             }
-    
+
             return collect($value)->contains(function ($value) use ($conditionValue) {
                 return $this->_compareValue($value, $conditionValue);
             });
@@ -235,7 +236,7 @@ abstract class ViewFilterBase
      *
      * @return boolean
      */
-    public function isNumeric() : bool
+    public function isNumeric(): bool
     {
         if (!$this->condition) {
             return false;
@@ -266,7 +267,7 @@ abstract class ViewFilterBase
     abstract protected function _setFilter($query, $method_name, $query_column, $query_value);
 
 
-    
+
     /**
      * compare 2 value
      *
@@ -274,7 +275,7 @@ abstract class ViewFilterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    abstract protected function _compareValue($value, $conditionValue) : bool;
+    abstract protected function _compareValue($value, $conditionValue): bool;
 
 
     /**

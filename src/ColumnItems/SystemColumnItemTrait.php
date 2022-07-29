@@ -39,7 +39,7 @@ trait SystemColumnItemTrait
     {
         $view_pivot_column = array_get($options, 'view_pivot_column');
         $valuekey = $this instanceof \Exceedone\Exment\ColumnItems\SystemItem ? $this->name() : 'value.'.$this->name();
-        
+
         $pivot_custom_value = $this->getViewPivotCustomValue($custom_value, $options);
 
         if (is_list($pivot_custom_value)) {
@@ -49,8 +49,8 @@ trait SystemColumnItemTrait
         }
         return array_get($pivot_custom_value, $valuekey);
     }
-    
-    
+
+
     /**
      * Get view pivot custom value for 1:n or n:n
      *
@@ -69,14 +69,14 @@ trait SystemColumnItemTrait
             if (!isset($relation)) {
                 return null;
             }
-            
+
             $relation_name = $relation->getRelationName();
             $relation_custom_value = $custom_value->{$relation_name};
 
             if (is_list($relation_custom_value)) {
                 return collect($relation_custom_value);
             }
-        
+
             return $relation_custom_value;
         // for select table ----------------------------------------------------
         } else {

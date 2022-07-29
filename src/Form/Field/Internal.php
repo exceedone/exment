@@ -10,7 +10,7 @@ use Encore\Admin\Form\Field;
 class Internal extends Field
 {
     protected $internal = true;
-    
+
     /**
      * Prepare for a field value before update or insert.
      *
@@ -23,7 +23,7 @@ class Internal extends Field
         return $this->getDefault() ?? $this->original();
     }
 
-    
+
     /**
      * Render this filed.
      *

@@ -35,7 +35,7 @@ class Plugin extends ModelBase
             $this->attributes['plugin_types'] = implode(',', $array);
         }
     }
- 
+
     public function getPluginTypesAttribute()
     {
         $plugin_types = array_get($this->attributes, 'plugin_types');
@@ -77,11 +77,11 @@ class Plugin extends ModelBase
             if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
                 return static::allRecords()->pluck('id');
             }
-    
+
             $permissions = \Exment::user()->allPermissions()->filter(function ($permission) {
                 return RoleType::PLUGIN == $permission->getRoleType() && array_key_exists(Permission::PLUGIN_SETTING, $permission->getPermissionDetails());
             });
-    
+
             return $permissions->map(function ($permission) {
                 return $permission->getPluginId();
             })->toArray();
@@ -203,7 +203,7 @@ class Plugin extends ModelBase
             $plugin_type = PluginType::getEnum($plugin_type);
             $class = PluginType::getPluginClass($plugin_type, $this, $options);
         }
-        
+
         if (!isset($class) && $options['throw_ex']) {
             throw new \Exception('plugin not found');
         }
@@ -245,7 +245,7 @@ class Plugin extends ModelBase
         //return path_join('plugins', ...$pluginPath);
         return path_join(...$pluginPath);
     }
-    
+
     /**
      * Get plugin fullpath.
      * if $pass_array is empty, return plugin folder full path.
@@ -387,7 +387,7 @@ class Plugin extends ModelBase
 
         \Exment::classLoader()->registerDir($fullPathDir, $this->getNameSpace());
     }
-    
+
     /**
      * Initialize plugin disk.
      *
@@ -412,7 +412,7 @@ class Plugin extends ModelBase
 
         $disk = $diskService->diskItem()->disk();
         $dirName = $diskService->diskItem()->dirName();
-        
+
         if (!$disk->exists($dirName)) {
             throw new \League\Flysystem\FileNotFoundException($dirName);
         }
@@ -455,13 +455,13 @@ class Plugin extends ModelBase
 
                 $event_triggers = array_get($plugin, 'options.event_triggers', []);
                 $enum = PluginEventType::getEnum($event);
-                
+
                 $options['throw_ex'] = false;
 
                 if (in_array($event, (array)$event_triggers) && isset($enum)) {
                     // call PluginType::EVENT as throw_ex is false
                     $class = $plugin->getClass(PluginType::EVENT, $options);
-                    
+
                     $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
 
                     // if isset $class, call
@@ -499,7 +499,7 @@ class Plugin extends ModelBase
             }
 
             $plugin_types = toArray(array_get($plugin, 'plugin_types'));
-            
+
             foreach ($plugin_types as $plugin_type) {
                 switch ($plugin_type) {
                     case PluginType::DOCUMENT:
@@ -525,7 +525,7 @@ class Plugin extends ModelBase
                         if (!in_array($event, $event_triggers) || is_null(PluginButtonType::getEnum($event))) {
                             break;
                         }
-                        
+
                         // call PluginType::BUTTON as throw_ex is false
                         $class = $plugin->getClass(PluginType::BUTTON, $options);
                         $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
@@ -542,7 +542,7 @@ class Plugin extends ModelBase
                 }
             }
         }
-        
+
         return $buttonList;
     }
 
@@ -555,7 +555,7 @@ class Plugin extends ModelBase
     public static function pluginPreparingImport($custom_table)
     {
         $plugins = static::getPluginsByTable($custom_table, true);
-        
+
         $itemlist = [];
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
@@ -587,7 +587,7 @@ class Plugin extends ModelBase
                 if (!$plugin->matchPluginType(PluginType::VALIDATOR)) {
                     continue;
                 }
-                
+
                 $class = $plugin->getClass(PluginType::VALIDATOR, $options);
                 if (!$class->validate()) {
                     $messages = array_merge_recursive($messages, $class->messages());
@@ -682,14 +682,14 @@ class Plugin extends ModelBase
                 if (!boolval(array_get($plugin, 'active_flg'))) {
                     return false;
                 }
-                
+
                 return true;
             }, false);
 
             return collect($plugins);
         });
     }
-    
+
     /**
      * Get plugin page model using request uri
      *
@@ -706,9 +706,9 @@ class Plugin extends ModelBase
             if (!isset($matches) || count($matches) <= 1) {
                 continue;
             }
-    
+
             $pluginName = $matches[1];
-            
+
             // get target plugin
             $plugin = static::getPluginsCache()->first(function ($plugin) use ($pluginName) {
                 if (!$plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())) {
@@ -719,11 +719,11 @@ class Plugin extends ModelBase
                     || $plugin->getOption('uri') == $pluginName
                 ;
             });
-    
+
             if (!isset($plugin)) {
                 continue;
             }
-            
+
             // get class
             foreach (Plugintype::PLUGIN_TYPE_PUBLIC_CLASS() as $plugin_type) {
                 if ($plugin->matchPluginType($plugin_type)) {
@@ -831,7 +831,7 @@ class Plugin extends ModelBase
 
         return $obj;
     }
-    
+
     public function getCustomOption($key, $default = null)
     {
         return $this->getJson('custom_options', $key, $default);
@@ -844,7 +844,7 @@ class Plugin extends ModelBase
     protected static function boot()
     {
         parent::boot();
-        
+
         static::saving(function ($model) {
             $model->prepareJson('options');
             $model->prepareJson('custom_options');

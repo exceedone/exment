@@ -27,7 +27,7 @@ class DocumentProvider extends FileColumnProvider
 
         return [$success_data, $error_data];
     }
-    
+
     /**
      * validate data row
      * @param int $line_no
@@ -58,10 +58,10 @@ class DocumentProvider extends FileColumnProvider
         // save file info
         $exmentfile = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $file, $this->custom_table->table_name, $displayFileName)
             ->saveCustomValue($model->id, null, $this->custom_table);
-        
+
         // save document model
         $exmentfile->saveDocumentModel($model, $displayFileName);
-                
+
         return $model;
     }
 }

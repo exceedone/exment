@@ -22,7 +22,7 @@ class NestedEmbeddedForm extends EmbeddedForm
 
         $elementName = $errorKey = [];
         $errPrefix = Field::getDotName($this->column);
-        
+
         if (is_array($jsonKey)) {
             foreach ($jsonKey as $index => $name) {
                 $elementName[$index] = "{$this->column}[$name]";

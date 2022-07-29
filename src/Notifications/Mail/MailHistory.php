@@ -13,30 +13,30 @@ class MailHistory
      * @var string|CustomValue|null
      */
     protected $mail_template;
-    
+
     /**
      * @var string|CustomValue|NotifyTarget|null
      */
     protected $user;
-    
+
     /**
      * Target custom value's id
      * @var string|null
      */
     protected $parent_id;
-    
+
     /**
      * Target custom value's table name
      * @var string|null
      */
     protected $parent_type;
-    
+
     /**
      * Target custom value.
      * @var CustomValue|null
      */
     protected $custom_value;
-    
+
 
     /**
      * Whether history
@@ -112,7 +112,7 @@ class MailHistory
      *
      * @return null|CustomValue
      */
-    public function getCustomValue() : ?CustomValue
+    public function getCustomValue(): ?CustomValue
     {
         if (isset($this->custom_value)) {
             return $this->custom_value;
@@ -129,23 +129,23 @@ class MailHistory
      * Whether history
      * @return bool
      */
-    public function isSetHistory() : bool
+    public function isSetHistory(): bool
     {
         return $this->isSetHistory;
     }
-    
+
     /**
      * Whether history body
      * @return bool
      */
-    public function isSetHistoryBody() : bool
+    public function isSetHistoryBody(): bool
     {
         return $this->isSetHistoryBody;
     }
 
 
 
-    
+
     /**
      * Set the value of user
      *
@@ -168,7 +168,7 @@ class MailHistory
 
         return $this;
     }
-    
+
     public function setHistory(bool $isSetHistory)
     {
         $this->isSetHistory = $isSetHistory;
@@ -180,7 +180,7 @@ class MailHistory
         $this->isSetHistoryBody = $isSetHistoryBody;
         return $this;
     }
-    
+
     /**
      * Set the value of mail_template
      *

@@ -65,11 +65,11 @@ class CustomTableController extends AdminControllerBase
      */
     protected function grid()
     {
-        $grid = new Grid(new CustomTable);
+        $grid = new Grid(new CustomTable());
         $grid->column('table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('order', exmtrans("custom_table.order"))->sortable()->editable();
-        
+
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
             $tools->append(new Tools\CustomTableMenuAjaxButton());
@@ -85,17 +85,17 @@ class CustomTableController extends AdminControllerBase
             $actions->disableDelete();
 
             // add new multiple columns
-            $linker = (new Linker)
+            $linker = (new Linker())
                 ->url(admin_urls('table', $actions->getKey(), 'edit').'?columnmulti=1')
                 ->icon('fa-cogs')
                 ->tooltip(exmtrans('custom_table.expand_setting'));
             $actions->append($linker);
-                
+
             $custom_table = $actions->row;
 
             // add custom column
             if ($custom_table->hasPermission(Permission::CUSTOM_TABLE)) {
-                $linker = (new Linker)
+                $linker = (new Linker())
                 ->url(admin_urls('column', $custom_table->table_name))
                 ->icon('fa-list')
                 ->tooltip(exmtrans('change_page_menu.custom_column'));
@@ -104,7 +104,7 @@ class CustomTableController extends AdminControllerBase
 
             // add data
             if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-                $linker = (new Linker)
+                $linker = (new Linker())
                 ->url($actions->row->getGridUrl())
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));
@@ -130,7 +130,7 @@ class CustomTableController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        $form = new Form(new CustomTable);
+        $form = new Form(new CustomTable());
         if (!isset($id)) {
             $form->text('table_name', exmtrans("custom_table.table_name"))
                 ->required()
@@ -144,7 +144,7 @@ class CustomTableController extends AdminControllerBase
             ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
-        
+
         $form->number('order', exmtrans("custom_table.order"))->rules("integer")
             ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_table')));
 
@@ -158,37 +158,37 @@ class CustomTableController extends AdminControllerBase
             $form->switchbool('use_label_id_flg', exmtrans("custom_table.use_label_id_flg"))
                 ->help(sprintf(exmtrans("custom_table.help.use_label_id_flg"), getManualUrl('column?id='.exmtrans('custom_column.options.use_label_flg'))))
                 ->default("0")
-                ;
+            ;
             $form->switchbool('one_record_flg', exmtrans("custom_table.one_record_flg"))
                 ->help(exmtrans("custom_table.help.one_record_flg"))
                 ->default("0")
-                ;
+            ;
             $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"))
                 ->default("1")
-                ;
+            ;
             $form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))
                 ->help(exmtrans("custom_table.help.comment_flg"))
                 ->default("1")
-                ;
+            ;
             $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
                 ->default("1")
                 ->attribute(['data-filtertrigger' =>true])
-                ;
+            ;
             $form->number('revision_count', exmtrans("custom_table.revision_count"))->help(exmtrans("custom_table.help.revision_count"))
                 ->min(0)
                 ->max(500)
                 ->default(config('exment.revision_count', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
-                ;
-            
+            ;
+
             $form->exmheader(exmtrans('role_group.permission_setting'))->hr();
 
             $form->switchbool('all_user_editable_flg', exmtrans("custom_table.all_user_editable_flg"))->help(exmtrans("custom_table.help.all_user_editable_flg"))
                 ->default("0");
-            
+
             $form->switchbool('all_user_viewable_flg', exmtrans("custom_table.all_user_viewable_flg"))->help(exmtrans("custom_table.help.all_user_viewable_flg"))
                 ->default("0");
-            
+
             $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
                 ->default("0");
         })->disableHeader();
@@ -234,7 +234,7 @@ class CustomTableController extends AdminControllerBase
                 $tools->append((new Tools\CustomTableMenuButton('table', $model, 'default_setting')));
             }
         });
-        
+
         $form->saving(function (Form $form) {
             $this->exists = $form->model()->exists;
         });
@@ -261,7 +261,7 @@ class CustomTableController extends AdminControllerBase
             if (!$this->exists) {
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
                 $custom_column_url = admin_urls('column', $table_name);
-    
+
                 admin_toastr(exmtrans('custom_table.help.saved_redirect_column'));
                 return redirect($custom_column_url);
             }
@@ -328,7 +328,7 @@ SCRIPT;
 </div>
 HTML;
     }
-    
+
     /**
      * Make a formMultiColumn.
      *
@@ -336,21 +336,21 @@ HTML;
      */
     protected function formMultiColumn($id = null)
     {
-        $form = new Form(new CustomTable);
+        $form = new Form(new CustomTable());
         $form->display('table_name', exmtrans("custom_table.table_name"));
         $form->display('table_view_name', exmtrans("custom_table.table_view_name"));
-        
+
         $form->hidden('columnmulti')->default(1);
         $form->ignore('columnmulti');
 
         $custom_table = CustomTable::getEloquent($id);
-        
+
         $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
             $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                 ]));
-            
+
             $form->hidden('priority')->default(1);
             $form->hidden('multisetting_type')->default(MultisettingType::TABLE_LABELS);
         })->setTableColumnWidth(10, 2)
@@ -373,7 +373,7 @@ HTML;
             $form->hidden('multisetting_type')->default(MultisettingType::MULTI_UNIQUES);
         })->setTableColumnWidth(4, 4, 3, 1)
         ->descriptionHtml(exmtrans("custom_table.custom_column_multi.help.uniques"));
-        
+
 
         $form->hasManyTable('compare_columns', exmtrans("custom_table.custom_column_multi.compare_columns"), function ($form) use ($custom_table) {
             $form->select('compare_column1_id', exmtrans("custom_table.custom_column_multi.compare_column1_id"))->required()
@@ -394,8 +394,8 @@ HTML;
             $form->hidden('multisetting_type')->default(MultisettingType::COMPARE_COLUMNS);
         })->setTableColumnWidth(4, 3, 4, 1)
         ->descriptionHtml(exmtrans("custom_table.custom_column_multi.help.compare_columns"));
-        
-        
+
+
         // if not master, share setting
         if (!in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
             $manualUrl = getManualUrl('table?id=' . exmtrans('custom_table.custom_column_multi.share_settings'));
@@ -440,7 +440,7 @@ HTML;
 
         $form->tools(function (Form\Tools $tools) use ($id) {
             $tools->disableDelete();
-            
+
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
@@ -522,7 +522,7 @@ HTML;
         if (!app('request')->has('add_parent_menu_flg') || !app('request')->has('add_parent_menu')) {
             return;
         }
-        
+
         $add_parent_menu_flg = app('request')->input('add_parent_menu_flg');
         if (!boolval($add_parent_menu_flg)) {
             return;
@@ -562,20 +562,19 @@ HTML;
         if (!app('request')->has('add_notify_flg')) {
             return;
         }
-        
+
         $add_notify_flg = app('request')->input('add_notify_flg');
         if (!boolval($add_notify_flg)) {
             return;
         }
 
         // get mail template
-        $mail_template_id = getModelName(SystemTableName::MAIL_TEMPLATE)
-            ::where('value->mail_key_name', MailKeyName::DATA_SAVED_NOTIFY)
+        $mail_template_id = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::DATA_SAVED_NOTIFY)
             ->first()
             ->id;
 
         // insert
-        $notify = new Notify;
+        $notify = new Notify();
         $notify->notify_view_name = exmtrans('notify.notify_trigger_options.create_update_data');
         $notify->notify_trigger = NotifyTrigger::CREATE_UPDATE_DATA;
         $notify->target_id = $model->id;
@@ -599,7 +598,7 @@ HTML;
         return CustomTable::validateDestroy($id);
     }
 
-    
+
     /**
      * Showing menu modal
      *

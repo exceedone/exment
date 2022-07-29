@@ -12,8 +12,9 @@ use Encore\Admin\Form\Field;
 
 class Select extends CustomItem
 {
-    use ImportValueTrait, SelectTrait;
-    
+    use ImportValueTrait;
+    use SelectTrait;
+
     protected function _value($v)
     {
         return $this->getResultForSelect($v, false);
@@ -40,7 +41,7 @@ class Select extends CustomItem
         }
         // switch column_type and get return value
         $returns = $this->getReturnsValue($select_options, $val, $label);
-        
+
         if ($multiple) {
             return $label ? implode(exmtrans('common.separate_word'), $returns) : $returns;
         } else {
@@ -52,7 +53,7 @@ class Select extends CustomItem
     {
         return $val;
     }
-    
+
     protected function getAdminFieldClass()
     {
         if ($this->isMultipleEnabled()) {
@@ -69,13 +70,13 @@ class Select extends CustomItem
             }
         }
     }
-    
+
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
      * @return string
      */
-    protected function getGridFilterOption() : ?string
+    protected function getGridFilterOption(): ?string
     {
         return FilterOption::SELECT_EXISTS;
     }
@@ -96,7 +97,7 @@ class Select extends CustomItem
         if (boolval(array_get($this->options, 'as_modal'))) {
             $field->asModal();
         }
-        
+
         if ($this->isFreeInput()) {
             $field->freeInput(true);
 
@@ -119,7 +120,7 @@ class Select extends CustomItem
             $field->addEmpty(true);
         }
     }
-    
+
     protected function setValidates(&$validates)
     {
         if (!$this->isFreeInput()) {
@@ -138,7 +139,7 @@ class Select extends CustomItem
         $options = $this->custom_column->createSelectOptions();
         $filter->multipleSelect($options);
     }
-    
+
     /**
      * replace value for import
      *
@@ -148,7 +149,7 @@ class Select extends CustomItem
     {
         return $this->custom_column->createSelectOptions();
     }
-    
+
 
     public function isMultipleEnabled()
     {
@@ -188,7 +189,7 @@ class Select extends CustomItem
         $form->textarea('select_item', exmtrans("custom_column.options.select_item"))
             ->required()
             ->help(exmtrans("custom_column.help.select_item"));
-            
+
         $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
             ->attribute(['data-filtertrigger' =>true])
             ->help(exmtrans("custom_column.help.multiple_enabled"));
@@ -218,9 +219,9 @@ class Select extends CustomItem
         }
         if (is_array($value)) {
             return collect($value)->map(function ($val) use ($isUseUnicode) {
-                return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($val): $val;
+                return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($val) : $val;
             })->toArray();
         }
-        return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($value): $value;
+        return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($value) : $value;
     }
 }

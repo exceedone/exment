@@ -9,7 +9,8 @@ use Exceedone\Exment\Tests\TestTrait;
 
 abstract class FileImportTestBase extends FeatureTestBase
 {
-    use ImportTrait, TestTrait;
+    use ImportTrait;
+    use TestTrait;
 
     /**
      * full path stored export files.

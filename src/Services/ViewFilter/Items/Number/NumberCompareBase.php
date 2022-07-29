@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\Number;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -18,6 +19,6 @@ abstract class NumberCompareBase extends ViewFilterBase
         $query_column = $this->column_item->getCastWrapTableColumn($query_column);
         $query->{$method_name}(\DB::raw($query_column), $this->getMark(), $query_value);
     }
-    
-    abstract protected function getMark() : string;
+
+    abstract protected function getMark(): string;
 }

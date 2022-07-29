@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\DayBeforeAfter;
 
 use Exceedone\Exment\Enums\FilterOption;
@@ -15,12 +16,12 @@ class DayTodayOrBefore extends DayBeforeAfterBase
     {
         return Carbon::today();
     }
-    
-    protected function getMark() : string
+
+    protected function getMark(): string
     {
         return "<=";
     }
-    
+
 
     /**
      * compare 2 value
@@ -29,7 +30,7 @@ class DayTodayOrBefore extends DayBeforeAfterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         $today = \Carbon\Carbon::today();
         return \Exment::getCarbonOnlyDay($value)->lte($today);

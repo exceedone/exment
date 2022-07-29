@@ -95,7 +95,7 @@ class Revision extends Eloquent
     private function formatFieldName($key)
     {
         $related_model = $this->revisionable_type;
-        $related_model = new $related_model;
+        $related_model = new $related_model();
         $revisionFormattedFieldNames = $related_model->getRevisionFormattedFieldNames();
 
         if (isset($revisionFormattedFieldNames[$key])) {
@@ -149,7 +149,7 @@ class Revision extends Eloquent
         $main_model = $this->revisionable_type;
         // Load it, WITH the related model
         if (class_exists($main_model)) {
-            $main_model = new $main_model;
+            $main_model = new $main_model();
 
             try {
                 if ($this->isRelated()) {
@@ -169,12 +169,12 @@ class Revision extends Eloquent
                     $item = $related_class::find($this->$which_value);
 
                     if (is_null($this->$which_value) || $this->$which_value == '') {
-                        $item = new $related_class;
+                        $item = new $related_class();
 
                         return $item->getRevisionNullString();
                     }
                     if (!$item) {
-                        $item = new $related_class;
+                        $item = new $related_class();
 
                         return $this->format($this->key, $item->getRevisionUnknownString());
                     }
@@ -302,7 +302,7 @@ class Revision extends Eloquent
     public function format($key, $value)
     {
         $related_model = $this->revisionable_type;
-        $related_model = new $related_model;
+        $related_model = new $related_model();
         $revisionFormattedFields = $related_model->getRevisionFormattedFields();
 
         if (isset($revisionFormattedFields[$key])) {
@@ -311,7 +311,7 @@ class Revision extends Eloquent
             return $value;
         }
     }
-    
+
     /**
      * get user from id
      */

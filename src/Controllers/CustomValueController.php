@@ -42,13 +42,13 @@ class CustomValueController extends AdminControllerTableBase
         HasResourceTableActions::destroy as destroyTrait;
     }
 
-    const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
-    const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
-    const CLASSNAME_CUSTOM_VALUE_FORM = 'block_custom_value_form';
-    const CLASSNAME_CUSTOM_VALUE_PREFIX = 'custom_value_';
-    const DATANAME_CUSTOM_VIEW_ID = 'data-custom_view_id';
-    const DATANAME_CUSTOM_VIEW_SUUID = 'data-custom_view_suuid';
-    const DATANAME_CUSTOM_VIEW_NAME = 'data-view_view_name';
+    public const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
+    public const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
+    public const CLASSNAME_CUSTOM_VALUE_FORM = 'block_custom_value_form';
+    public const CLASSNAME_CUSTOM_VALUE_PREFIX = 'custom_value_';
+    public const DATANAME_CUSTOM_VIEW_ID = 'data-custom_view_id';
+    public const DATANAME_CUSTOM_VIEW_SUUID = 'data-custom_view_suuid';
+    public const DATANAME_CUSTOM_VIEW_NAME = 'data-view_view_name';
 
     /**
      * CustomValueController constructor.
@@ -64,7 +64,7 @@ class CustomValueController extends AdminControllerTableBase
 
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
     }
-    
+
     /**
      * Update the specified resource in storage.
      *
@@ -111,7 +111,7 @@ class CustomValueController extends AdminControllerTableBase
                 return $response;
             }
         }
-        
+
         return $this->destroyTrait($tableKey, $id);
     }
 
@@ -155,7 +155,7 @@ class CustomValueController extends AdminControllerTableBase
         if ($this->custom_table->isOneRecord()) {
             // get record list
             $record = $this->custom_table->getValueModel()->first();
-            $id = isset($record)? $record->id: null;
+            $id = isset($record) ? $record->id : null;
 
             // if no edit permission show readonly form
             if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
@@ -208,7 +208,7 @@ class CustomValueController extends AdminControllerTableBase
             $grid_item = $this->custom_view->grid_item
                 ->modal($modal);
             $grid_item->callback($grid_item->getCallbackFilter());
-            
+
             if ($request->has('filter_ajax')) {
                 return $grid_item->getFilterHtml();
             }
@@ -256,7 +256,7 @@ class CustomValueController extends AdminControllerTableBase
 
         return $content;
     }
-    
+
     /**
      * Create interface.
      *
@@ -269,7 +269,7 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->AdminContent($content);
-        
+
         Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
             'page_type' => PluginPageType::CREATE
         ]);
@@ -282,7 +282,7 @@ class CustomValueController extends AdminControllerTableBase
             static::DATANAME_CUSTOM_VIEW_NAME => $this->custom_view->view_view_name,
         ]);
         $content->row($row);
-        
+
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
             'page_type' => PluginPageType::CREATE
         ]);
@@ -335,7 +335,7 @@ class CustomValueController extends AdminControllerTableBase
         ]);
         return $content;
     }
-    
+
     /**
      * Show interface.
      *
@@ -393,33 +393,33 @@ class CustomValueController extends AdminControllerTableBase
         $content->body($show_item->getRevisionCompare($request->get('revision')));
         return $content;
     }
-   
+
     /**
      * get compare item for pjax
      */
     public function compareitem(Request $request, Content $content, $tableKey, $id)
     {
         $this->firstFlow($request, CustomValuePageType::SHOW, $id);
-        
+
         $show_item = $this->custom_form->show_item->id($id);
 
         return $show_item->getRevisionCompare($request->get('revision'), true);
     }
-   
+
     /**
      * restore data
      */
     public function restoreRevision(Request $request, $tableKey, $id)
     {
         $this->firstFlow($request, CustomValuePageType::EDIT, $id);
-        
+
         $show_item = $this->custom_form->show_item->id($id);
 
         $revision_suuid = $request->get('revision');
 
         return $show_item->restoreRevision($revision_suuid);
     }
-  
+
     /**
      * for file upload function.
      */
@@ -444,7 +444,7 @@ class CustomValueController extends AdminControllerTableBase
         $show_item = $this->custom_form->show_item->id($id);
         return $show_item->filedelete($request, $this->form($id));
     }
- 
+
     /**
      * add comment.
      */
@@ -482,11 +482,11 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
             return $response;
         }
-        
+
         $grid = $this->custom_view->grid_item;
         return $grid->import($request);
     }
- 
+
     /**
      * get import modal
      */
@@ -501,7 +501,7 @@ class CustomValueController extends AdminControllerTableBase
         $importlist = Plugin::pluginPreparingImport($this->custom_table);
         return $service->getImportModal($importlist);
     }
-    
+
     //Function handle plugin click event
     /**
      * @param Request $request
@@ -517,7 +517,7 @@ class CustomValueController extends AdminControllerTableBase
         if (!isset($plugin)) {
             abort(404);
         }
-        
+
         \Exment::setTimeLimitLong();
 
         $class = $plugin->getClass($request->input('plugin_type'), [
@@ -526,7 +526,7 @@ class CustomValueController extends AdminControllerTableBase
             'selected_custom_values' => (!is_nullorempty($request->get('select_ids')) ? $this->custom_table->getValueModel()->find($request->get('select_ids')) : collect()),
         ]);
         $response = $class->execute();
-        
+
         if ($response === false) {
             return getAjaxResponse(false);
         } elseif ($response instanceof \Illuminate\Http\RedirectResponse) {
@@ -545,7 +545,7 @@ class CustomValueController extends AdminControllerTableBase
             'toastr' => exmtrans('common.message.success_execute'),
         ]);
     }
-    
+
     //Function handle operation button click event
     /**
      * @param Request $request
@@ -563,11 +563,11 @@ class CustomValueController extends AdminControllerTableBase
         if (!isset($operation)) {
             abort(404);
         }
-        
+
         \Exment::setTimeLimitLong();
 
         $response = $operation->execute($this->custom_table, $ids, $request->all());
-        
+
         if ($response === true) {
             return getAjaxResponse([
                 'result' => true,
@@ -606,7 +606,7 @@ class CustomValueController extends AdminControllerTableBase
         $custom_value = $this->custom_table->getValueModel($id);
         $show_item = $this->custom_form->show_item->id($id);
         $form = $show_item->getWorkflowHistory();
-        
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
@@ -652,7 +652,7 @@ class CustomValueController extends AdminControllerTableBase
         $custom_value = $this->custom_table->getValueModel($id);
 
         //TODO:validation
-        
+
         $action->executeAction($custom_value, [
             'comment' => $request->get('comment'),
             'next_work_users' => $request->get('next_work_users'),
@@ -683,7 +683,7 @@ class CustomValueController extends AdminControllerTableBase
         $from_table_view_name = esc_html($this->custom_table->table_view_name);
         $to_table_view_name = esc_html($copy->to_custom_table->table_view_name);
         $path = admin_urls('data', $this->custom_table->table_name, $id, 'copyClick');
-        
+
         // create form fields
         $form = new ModalForm();
         $form->action($path);
@@ -702,7 +702,7 @@ class CustomValueController extends AdminControllerTableBase
             $form->pushField($field);
         }
         $form->hidden('uuid')->default($uuid);
-        
+
         $form->setWidth(10, 2);
 
         // get label
@@ -743,7 +743,7 @@ class CustomValueController extends AdminControllerTableBase
             }
             $id = $request->input('id');
         }
-        
+
         // create form fields
         $form = new ModalForm();
         $form->action($path);
@@ -764,7 +764,7 @@ class CustomValueController extends AdminControllerTableBase
         }
         $form->hidden('suuid')->default($suuid);
         $form->hidden('id')->default($id);
-        
+
         $form->setWidth(10, 2);
 
         // get label
@@ -797,7 +797,7 @@ class CustomValueController extends AdminControllerTableBase
         if (!isset($copy)) {
             abort(404);
         }
-        
+
         // execute copy
         $custom_value = getModelName($this->custom_table)::find($id);
         $response = $copy->executeRequest($custom_value, $request);
@@ -826,7 +826,7 @@ class CustomValueController extends AdminControllerTableBase
 
         $service = new NotifyService($notify, $targetid, $tableKey, $id);
         $form = $service->getNotifyDialogForm();
-        
+
         if ($form === false) {
             return getAjaxResponse([
                 'result'  => false,
@@ -850,7 +850,7 @@ class CustomValueController extends AdminControllerTableBase
         // get customvalue
         $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
         $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
-        
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
@@ -880,12 +880,12 @@ class CustomValueController extends AdminControllerTableBase
     public function sendTargetUsers(Request $request, $tableKey, $id = null)
     {
         $service = $this->getNotifyService($tableKey, $id);
-        
+
         // get target users
         $target_users = request()->get('target_users');
 
         $form = $service->getNotifyDialogFormMultiple($target_users);
-        
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
@@ -900,11 +900,11 @@ class CustomValueController extends AdminControllerTableBase
     public function sendMail(Request $request, $tableKey, $id = null)
     {
         $service = $this->getNotifyService($tableKey, $id);
-        
+
         return $service->sendNotifyMail($this->custom_table);
     }
 
-    
+
     /**
      * set share users organizations
      */
@@ -944,7 +944,7 @@ class CustomValueController extends AdminControllerTableBase
                 if (!$custom_value->trashed()) {
                     continue;
                 }
-                
+
                 if (($response = $this->firstFlow($request, CustomValuePageType::EDIT)) instanceof Response) {
                     \DB::rollback();
                     return $response;
@@ -952,12 +952,12 @@ class CustomValueController extends AdminControllerTableBase
 
                 $custom_value->restore();
             }
-            
+
             \DB::commit();
         } catch (\Exception $e) {
             \DB::rollback();
         }
-    
+
         return getAjaxResponse([
             'result'  => true,
             'message' => exmtrans('custom_value.message.restore_succeeded'),
@@ -1009,7 +1009,7 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->setFormViewInfo($request, $formActionType, $id);
-        
+
         // id set, checking as update.
         // check for update
         $code = null;
@@ -1035,12 +1035,12 @@ class CustomValueController extends AdminControllerTableBase
             // if import, check has create permission(but not check "create" form action)
             $code = $this->custom_table->enableImport();
         }
-        
+
         if ($code !== true) {
             Checker::error($code->getMessage());
             return false;
         }
-        
+
         return true;
     }
 
@@ -1082,8 +1082,7 @@ class CustomValueController extends AdminControllerTableBase
         // check if child data referenced
         foreach ($relations as $relation) {
             $child_table = $relation->child_custom_table;
-            $list = getModelName($child_table)
-                ::where('parent_id', $id)
+            $list = getModelName($child_table)::where('parent_id', $id)
                 ->where('parent_type', $custom_table->table_name)
                 ->pluck('id')->all();
             if ($this->checkReferenced($child_table, $list)) {

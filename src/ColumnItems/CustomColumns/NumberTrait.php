@@ -19,7 +19,7 @@ trait NumberTrait
     {
         return true;
     }
-    
+
     /**
      * Compare two values.
      */
@@ -32,21 +32,21 @@ trait NumberTrait
                 }
 
                 return $compare_column->getCompareErrorMessage('validation.not_gt', $compare_column->compare_column1, $compare_column->compare_column2);
-                
+
             case FilterOption::COMPARE_GTE:
                 if ($this_value >= $target_value) {
                     return true;
                 }
 
                 return $compare_column->getCompareErrorMessage('validation.not_gte', $compare_column->compare_column1, $compare_column->compare_column2);
-                
+
             case FilterOption::COMPARE_LT:
                 if ($this_value < $target_value) {
                     return true;
                 }
 
                 return $compare_column->getCompareErrorMessage('validation.not_lt', $compare_column->compare_column1, $compare_column->compare_column2);
-                
+
             case FilterOption::COMPARE_LTE:
                 if ($this_value <= $target_value) {
                     return true;
@@ -77,11 +77,11 @@ trait NumberTrait
         $form->number('number_max', exmtrans("custom_column.options.number_max"))
             ->disableUpdown()
             ->defaultEmpty();
-        
+
         $form->switchbool('number_format', exmtrans("custom_column.options.number_format"))
             ->help(exmtrans("custom_column.help.number_format"));
 
-        
+
         // calc
         $custom_table = $this->custom_table;
         $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))

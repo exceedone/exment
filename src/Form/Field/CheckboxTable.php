@@ -7,7 +7,7 @@ use Encore\Admin\Form\Field\Checkbox;
 class CheckboxTable extends Checkbox
 {
     protected $view = 'exment::form.field.checkboxtable';
-    
+
     protected $checkWidth = 100;
     protected $items = [];
     protected $headerHelps = [];
@@ -35,7 +35,7 @@ class CheckboxTable extends Checkbox
     public function items($items)
     {
         $this->items = $items;
-        
+
         return $this;
     }
 
@@ -54,7 +54,7 @@ class CheckboxTable extends Checkbox
     protected function getItems()
     {
         $result = [];
-        $errors = request()->session()->get('errors') ?: new \Illuminate\Support\ViewErrorBag;
+        $errors = request()->session()->get('errors') ?: new \Illuminate\Support\ViewErrorBag();
 
         foreach ($this->items as $item) {
             if ($errors->has(array_get($item, 'key'))) {
@@ -74,7 +74,7 @@ class CheckboxTable extends Checkbox
      *
      * @return bool
      */
-    protected function hasError() : bool
+    protected function hasError(): bool
     {
         return collect($this->getItems())->contains(function ($item) {
             return !is_nullorempty(array_get($item, 'error'));

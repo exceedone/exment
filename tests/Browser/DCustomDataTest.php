@@ -247,7 +247,7 @@ class DCustomDataTest extends ExmentKitTestCase
     {
         $colname1 = CustomColumn::getEloquent('select_multiple', 'unicode_data_table')->getIndexColumnName();
         $colname2 = CustomColumn::getEloquent('select_valtext_multiple', 'unicode_data_table')->getIndexColumnName();
-        
+
         // Check custom view data
         $this->visit(admin_url("data/unicode_data_table?$colname1=日本&$colname2=い&$colname2=ち"))
             ->seeInElement('h1', 'unicode_data_table')

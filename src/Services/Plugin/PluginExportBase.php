@@ -12,21 +12,21 @@ abstract class PluginExportBase
     use PluginBase;
 
     protected $custom_table;
-    
+
     /**
      * Provider as default
      *
      * @var \Exceedone\Exment\Services\DataImportExport\Providers\Export\ProviderBase
      */
     protected $default_provider;
-    
+
     /**
      * Provider as view
      *
      * @var \Exceedone\Exment\Services\DataImportExport\Providers\Export\ProviderBase
      */
     protected $view_provider;
-    
+
     /**
      * Tmp full path.
      *
@@ -49,7 +49,7 @@ abstract class PluginExportBase
         return $this;
     }
 
-    
+
     public function viewProvider($view_provider)
     {
         $this->view_provider = $view_provider;
@@ -79,7 +79,7 @@ abstract class PluginExportBase
         return $this->combineData($this->view_provider->data());
     }
 
-    
+
     /**
      * Combine data
      *
@@ -96,7 +96,7 @@ abstract class PluginExportBase
 
         return $bodies;
     }
-    
+
 
     /**
      * Get CustomValue's records.
@@ -139,5 +139,5 @@ abstract class PluginExportBase
      *
      * @return string
      */
-    abstract public function getFileName() : string;
+    abstract public function getFileName(): string;
 }

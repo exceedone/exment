@@ -18,7 +18,7 @@ class RelationPivotTableProvider extends ProviderBase
         parent::__construct();
 
         $this->relation = array_get($args, 'relation');
-        
+
         $this->grid = array_get($args, 'grid');
     }
 
@@ -73,7 +73,7 @@ class RelationPivotTableProvider extends ProviderBase
     {
         // create 2 rows.
         $rows = [];
-        
+
         $rows[] = $columnDefines;
         // column_view_names
         $column_view_names =  [
@@ -84,23 +84,23 @@ class RelationPivotTableProvider extends ProviderBase
             $column_view_names[] = trans('admin.delete');
         }
         $rows[] = $column_view_names;
-        
+
         return $rows;
     }
 
     /**
      * get target chunk records
      */
-    public function getRecords() : Collection
+    public function getRecords(): Collection
     {
         // get base records
         $relation_name = $this->relation->getRelationName();
         $this->grid->model()->with($relation_name);
 
-        $records = new Collection;
+        $records = new Collection();
         $this->grid->model()->eloquent()->chunk(100, function ($data) use (&$records, $relation_name) {
             if (is_nullorempty($records)) {
-                $records = new Collection;
+                $records = new Collection();
             }
             $datalist = $data->map(function ($d) use ($relation_name) {
                 return $d->{$relation_name};
@@ -116,7 +116,7 @@ class RelationPivotTableProvider extends ProviderBase
                     $records->push($record);
                 }
             }
-        }) ?? new Collection;
+        }) ?? new Collection();
 
         $this->count = count($records);
         return $records;
@@ -130,7 +130,7 @@ class RelationPivotTableProvider extends ProviderBase
         if (!isset($records)) {
             return [];
         }
-        
+
         $bodies = [];
 
         foreach ($records as $record) {

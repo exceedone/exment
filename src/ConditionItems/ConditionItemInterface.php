@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 interface ConditionItemInterface
 {
     public function getFilterOption();
-    
+
     /**
      * check if custom_value and user(organization, role) match for conditions.
      *
@@ -17,7 +17,7 @@ interface ConditionItemInterface
      * @return boolean
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value);
-    
+
     /**
      * Get condition label.
      *
@@ -44,7 +44,7 @@ interface ConditionItemInterface
      * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true);
-    
+
 
     /**
      * Check has workflow authority with this item.

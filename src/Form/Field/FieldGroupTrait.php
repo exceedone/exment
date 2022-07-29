@@ -116,7 +116,7 @@ trait FieldGroupTrait
             $totalWidth = 1;
         }
 
-        
+
         // Set col_md width using total width. ----------------------------------------------------
         $fieldGroups = $fieldGroups->map(function ($fieldGroups) use ($totalWidth) {
             $columnCount = count($fieldGroups['columns']);

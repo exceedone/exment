@@ -11,7 +11,7 @@ class PluginItem implements ItemInterface
     protected $dashboard_box;
     protected $plugin;
     protected $pluginItem;
-    
+
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -22,7 +22,7 @@ class PluginItem implements ItemInterface
         if (!isset($this->plugin)) {
             return;
         }
-        
+
         $this->pluginItem = $this->plugin->getClass(PluginType::DASHBOARD, ['dashboard_box' => $dashboard_box, 'throw_ex' => false]);
     }
 
@@ -37,7 +37,7 @@ class PluginItem implements ItemInterface
 
         return $this->pluginItem->header();
     }
-        
+
     /**
      * get html body
      */
@@ -90,7 +90,7 @@ class PluginItem implements ItemInterface
         $form->select('target_plugin_id', exmtrans("dashboard.dashboard_box_options.target_plugin_id"))
             ->required()
             ->options($options)
-            ;
+        ;
     }
 
     /**
@@ -105,7 +105,7 @@ class PluginItem implements ItemInterface
         list($dashboard_box) = $args + [null];
         return new self($dashboard_box);
     }
-    
+
     /**
      * Has show permission this dashboard item
      *
@@ -122,7 +122,7 @@ class PluginItem implements ItemInterface
         if (!\Exment::user()->hasPermissionPlugin($this->plugin, Permission::PLUGIN_ACCESS)) {
             return trans('admin.deny');
         }
-        
+
         if (!isset($this->pluginItem)) {
             return $this->plugin->getCannotReadMessage();
         }

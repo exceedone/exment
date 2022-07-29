@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -25,7 +26,7 @@ class CustomValueRule implements Rule
         $this->custom_table = CustomTable::getEloquent($custom_table);
         $this->custom_view = CustomView::getEloquent($custom_view);
     }
-    
+
     /**
     * Check Validation
     *
@@ -55,13 +56,13 @@ class CustomValueRule implements Rule
 
         return true;
     }
-    
+
     /**
      * HasData
      *
      * @return boolean
      */
-    protected function hasData(array $values) : bool
+    protected function hasData(array $values): bool
     {
         foreach ($values as $v) {
             if (!is_numeric($v)) {
@@ -83,7 +84,7 @@ class CustomValueRule implements Rule
      *
      * @return boolean
      */
-    protected function hasCustomViewFilter(array $values) : bool
+    protected function hasCustomViewFilter(array $values): bool
     {
         if (is_nullorempty($this->custom_view)) {
             return true;
@@ -94,13 +95,13 @@ class CustomValueRule implements Rule
         $this->custom_view->filterModel($query); // Not sort.
 
         $query->whereIn(getDBTableName($this->custom_table) . '.id', $values);
-        
+
         // check data counts;
         $count = $query->count();
 
         return $count == count($values);
     }
-    
+
 
     /**
      * get validation error message

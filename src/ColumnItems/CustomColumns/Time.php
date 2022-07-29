@@ -26,12 +26,12 @@ class Time extends Date
     {
         $filter->time();
     }
-    
+
     protected function getDisplayFormat()
     {
         return config('admin.time_format');
     }
-    
+
     protected function setValidates(&$validates)
     {
         $validates[] = new Validator\TimeRule();
@@ -70,7 +70,7 @@ class Time extends Date
         return null;
     }
 
-    
+
     /**
      * Set Custom Column Option default value Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
@@ -88,7 +88,7 @@ class Time extends Date
         $form->time('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_TIME])])
-            ;
+        ;
     }
 
     /**

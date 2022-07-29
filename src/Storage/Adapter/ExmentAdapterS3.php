@@ -8,7 +8,7 @@ use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
 {
     use AdapterTrait;
-    
+
     /**
      * Override EXTRA_METADATA_FIELDS because EXTRA_METADATA_FIELDS is private
      * @var string[]
@@ -48,7 +48,7 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
         return new self($client, array_get($mergeConfig, 'bucket'));
     }
 
-    public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array
+    public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array
     {
         return [
             'bucket' => config('exment.rootpath.s3.' . $mergeFrom),
@@ -61,7 +61,7 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
      * @param array $config
      * @return array
      */
-    public static function getConfig($config) : array
+    public static function getConfig($config): array
     {
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = static::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);

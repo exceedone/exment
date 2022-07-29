@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Exceedone\Exment\Model\CustomFormColumn;
@@ -31,12 +32,12 @@ abstract class ColumnBase
         $this->custom_form_column = $custom_form_column;
     }
 
-    public static function make(CustomFormColumn $custom_form_column) : ColumnBase
+    public static function make(CustomFormColumn $custom_form_column): ColumnBase
     {
         switch (array_get($custom_form_column, 'form_column_type', FormColumnType::COLUMN)) {
             case FormColumnType::COLUMN:
                 return Column::make($custom_form_column);
-                
+
             case FormColumnType::OTHER:
                 return OtherBase::make($custom_form_column);
         }
@@ -50,9 +51,9 @@ abstract class ColumnBase
      *
      * @return self
      */
-    public static function makeByParams($form_column_type, $form_column_target_id, $header_column_name = null) : ColumnBase
+    public static function makeByParams($form_column_type, $form_column_target_id, $header_column_name = null): ColumnBase
     {
-        $form_column = new CustomFormColumn;
+        $form_column = new CustomFormColumn();
         $form_column->form_column_type = $form_column_type;
         $form_column->form_column_target_id = $form_column_target_id;
 
@@ -76,13 +77,13 @@ abstract class ColumnBase
         return $this->custom_form_column;
     }
 
-    
+
     /**
      * Get items for display
      *
      * @return array
      */
-    public function getItemsForDisplay() : array
+    public function getItemsForDisplay(): array
     {
         return [
             'form_column_type' => $this->custom_form_column->form_column_type ?? FormColumnType::COLUMN,
@@ -90,9 +91,9 @@ abstract class ColumnBase
             'column_no' => $this->custom_form_column->column_no ?? 1,
             'width' => $this->custom_form_column->width ?? 1,
             'form_column_target_id' => $this->custom_form_column->form_column_target_id ?? null,
-            
+
             'options' =>  collect($this->custom_form_column->options ?? [])->toJson(),
-            
+
             'is_select_table' => $this->isSelectTable(),
             'required' => $this->isRequired(),
             'column_view_name' => $this->getColumnViewName(),
@@ -130,8 +131,8 @@ abstract class ColumnBase
         // add header name
         return "[custom_form_columns][{$key}]";
     }
-    
-    public function isSelectTable() : bool
+
+    public function isSelectTable(): bool
     {
         return false;
     }
@@ -142,7 +143,7 @@ abstract class ColumnBase
      *
      * @return array
      */
-    public function getOptionLabels() : array
+    public function getOptionLabels(): array
     {
         $options = $this->custom_form_column->options ?? [];
         $difinitions = $this->getOptionLabelsDefinitions();
@@ -179,7 +180,7 @@ abstract class ColumnBase
      *
      * @return array
      */
-    public function getOptionLabelsDefinitions() : array
+    public function getOptionLabelsDefinitions(): array
     {
         $result = [];
         $result['required'] = exmtrans('common.required');
@@ -190,7 +191,7 @@ abstract class ColumnBase
         foreach (['read_only', 'view_only', 'hidden', 'internal'] as $key) {
             $result[$key] = exmtrans("custom_form.$key");
         }
-        
+
         foreach (['default_type', 'default'] as $key) {
             $result[$key] = exmtrans("custom_column.options.default") . ':' . exmtrans('custom_form.setting_available');
         }
@@ -206,20 +207,20 @@ abstract class ColumnBase
      *
      * @return boolean
      */
-    public function useSetting() : bool
+    public function useSetting(): bool
     {
         return true;
     }
 
 
-    abstract public function getFontAwesomeClass() : ?string;
+    abstract public function getFontAwesomeClass(): ?string;
 
     /**
      * Get validation rules for jquery
      *
      * @return array
      */
-    public function getValidationRules() : array
+    public function getValidationRules(): array
     {
         return [];
     }
@@ -229,27 +230,27 @@ abstract class ColumnBase
      *
      * @return string|null
      */
-    abstract public function getColumnViewName() : ?string;
+    abstract public function getColumnViewName(): ?string;
 
-    
+
     /**
      * Whether this column is required
      *
      * @return boolean
      */
-    abstract public function isRequired() : bool;
+    abstract public function isRequired(): bool;
 
     /**
      * Get setting modal form
      *
      * @return WidgetForm
      */
-    abstract public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm;
-    
+    abstract public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm;
+
     /**
      * prepare saving option.
      *
      * @return array
      */
-    abstract public function prepareSavingOptions(array $options) : array;
+    abstract public function prepareSavingOptions(array $options): array;
 }

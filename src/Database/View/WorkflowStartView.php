@@ -16,16 +16,16 @@ class WorkflowStartView
         return \DB::table(SystemTableName::WORKFLOW_TABLE)
         ->join(SystemTableName::WORKFLOW, function ($join) {
             $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-                ;
+            ;
         })
         ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
             $join->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
                 ->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
-                ;
+            ;
         })
         ->join(SystemTableName::WORKFLOW_AUTHORITY, function ($join) {
             $join->on(SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . ".id")
-                ;
+            ;
         })
         ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
         ->distinct()

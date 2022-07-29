@@ -12,22 +12,22 @@ use Exceedone\Exment\Enums\RelationType;
 class ParentItem implements ItemInterface
 {
     use ItemTrait;
-    
+
     /**
      * this column's parent table
      */
     protected $parent_table;
-    
+
     /**
      * this custom relation
      */
     protected $custom_relation;
-    
+
     /**
      * specifying the parent table
      */
     protected $target_parent = false;
-    
+
     public function __construct($custom_table, $custom_value, $parent_table = null, ?CustomRelation $custom_relation = null)
     {
         $this->custom_table = $custom_table;
@@ -35,7 +35,7 @@ class ParentItem implements ItemInterface
 
         if (!$custom_relation) {
             $custom_relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table->id);
-            
+
             if (isset($parent_table)) {
                 $custom_relation = $custom_relation->where('parent_custom_table_id', $parent_table->id);
                 $this->target_parent = true;
@@ -152,7 +152,7 @@ class ParentItem implements ItemInterface
             ;
         }
         $this->prepare();
-        
+
         return $this;
     }
 
@@ -220,7 +220,7 @@ class ParentItem implements ItemInterface
         ];
     }
 
-    
+
     public function getFilterField()
     {
         if ($this->parent_table) {
@@ -269,12 +269,12 @@ class ParentItem implements ItemInterface
      *
      * @return string Ex: COUNT(`exm__3914ac5180d7dc43fcbb AS AAAA`)
      */
-    public function getSummaryWrapTableColumn() : string
+    public function getSummaryWrapTableColumn(): string
     {
         return '';
     }
 
-    
+
 
     /**
      * Get sqlname for group by
@@ -285,7 +285,7 @@ class ParentItem implements ItemInterface
      * @param boolean $asSqlAsName if true, get sqlname as name.
      * @return string group by column name
      */
-    public function getGroupByWrapTableColumn(bool $asSelect = false, bool $asSqlAsName = false) : string
+    public function getGroupByWrapTableColumn(bool $asSelect = false, bool $asSqlAsName = false): string
     {
         $table_column_name = $asSqlAsName ? $this->getTableColumn($this->sqlAsName()) : $this->getTableColumn();
 
@@ -302,7 +302,7 @@ class ParentItem implements ItemInterface
         return $result;
     }
 
-    
+
     /**
      * Set where query for grid filter. If class is "ExmWhere".
      *
@@ -330,7 +330,7 @@ class ParentItem implements ItemInterface
     {
         $relation = $this->custom_relation;
         $parent_custom_table = $relation->parent_custom_table;
-        
+
         // get options and ajax url
         $options = $parent_custom_table->getSelectOptions();
         $ajax = $parent_custom_table->getOptionAjaxUrl();

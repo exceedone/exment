@@ -45,7 +45,7 @@ class SlackSendJob extends Notification implements ShouldQueue
      */
     public function toSlack($notifiable)
     {
-        return (new SlackMessage)
+        return (new SlackMessage())
                 ->from($this->name, $this->icon)
                 ->content($this->content);
     }

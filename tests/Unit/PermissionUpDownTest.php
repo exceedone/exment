@@ -76,7 +76,7 @@ class PermissionUpDownTest extends UnitTestBase
         $this->executeTestOrganizationUser(7, JoinedOrgFilterType::ALL, [1, 2, 4], true);
     }
 
-    
+
     // Organization - Organization -------------------------------------------
     public function testOrganizationOrgCompany()
     {
@@ -184,7 +184,7 @@ class PermissionUpDownTest extends UnitTestBase
     {
         $this->executeTestRoleGroup(10, JoinedOrgFilterType::ONLY_UPPER, false);
     }
-    
+
     public function testRoleGroupDirectOnlyDowner()
     {
         $this->executeTestRoleGroup(6, JoinedOrgFilterType::ONLY_DOWNER, true);
@@ -204,7 +204,7 @@ class PermissionUpDownTest extends UnitTestBase
     {
         $this->executeTestRoleGroup(10, JoinedOrgFilterType::ONLY_DOWNER, false);
     }
-    
+
     public function testRoleGroupDirectOnlyJoin()
     {
         $this->executeTestRoleGroup(6, JoinedOrgFilterType::ONLY_JOIN, true);
@@ -272,8 +272,8 @@ class PermissionUpDownTest extends UnitTestBase
     {
         $this->executeTestCustomValue(10, JoinedOrgFilterType::ONLY_UPPER, false);
     }
-    
-    
+
+
     public function testCustomValueDirectOnlyDowner()
     {
         $this->executeTestCustomValue(6, JoinedOrgFilterType::ONLY_DOWNER, true);
@@ -293,8 +293,8 @@ class PermissionUpDownTest extends UnitTestBase
     {
         $this->executeTestCustomValue(10, JoinedOrgFilterType::ONLY_DOWNER, false);
     }
-    
-    
+
+
     public function testCustomValueDirectAll()
     {
         $this->executeTestCustomValue(6, JoinedOrgFilterType::ALL, true);
@@ -321,10 +321,10 @@ class PermissionUpDownTest extends UnitTestBase
 
         $user = CustomTable::getEloquent('user')->getValueModel($loginId);
         $organizations = $user->getOrganizationIdsForQuery($joinedOrgFilterType);
-        
+
         sort($organizations);
         sort($antiOrganizations);
-        
+
         $result = true;
         if (count($organizations) != count($antiOrganizations)) {
             $result = false;
@@ -349,10 +349,10 @@ class PermissionUpDownTest extends UnitTestBase
 
         $organization = CustomTable::getEloquent('organization')->getValueModel($id);
         $organizations = $organization->getOrganizationIdsForQuery($joinedOrgFilterType);
-        
+
         sort($organizations);
         sort($antiOrganizations);
-        
+
         $result = true;
         if (count($organizations) != count($antiOrganizations)) {
             $result = false;
@@ -376,7 +376,7 @@ class PermissionUpDownTest extends UnitTestBase
         $this->init();
         $this->be(LoginUser::find($loginId));
         System::org_joined_type_role_group($joinedOrgFilterType);
-        
+
         $func = $result ? 'assertTrue' : 'assertFalse';
         $this->{$func}(CustomTable::getEloquent('custom_value_edit')->hasPermission());
     }
@@ -387,7 +387,7 @@ class PermissionUpDownTest extends UnitTestBase
         $this->be(LoginUser::find($loginId));
         System::org_joined_type_role_group($joinedOrgFilterType);
         System::org_joined_type_custom_value($joinedOrgFilterType);
-        
+
         $func = $result ? 'assertTrue' : 'assertFalse';
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find(51); // 51 --- created by dev user
         $this->{$func}(isset($custom_value));

@@ -60,7 +60,7 @@ class Show extends AdminShow
             return array_get($fieldOption, 'options.row', 0);
         })->max();
     }
-    
+
     /**
      * Push field and set for grid
      *

@@ -49,7 +49,7 @@ trait HasResourceTableActions
         }
 
         $rows = collect(explode(',', $id))->filter();
-                
+
         // check row's disabled_delete
         $disabled_delete = false;
         $rows->each(function ($id) use (&$disabled_delete) {

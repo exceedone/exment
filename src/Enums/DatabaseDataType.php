@@ -4,13 +4,13 @@ namespace Exceedone\Exment\Enums;
 
 class DatabaseDataType extends EnumBase
 {
-    const TYPE_INTEGER = "0";
-    const TYPE_DECIMAL = "1";
-    const TYPE_STRING = "2";
-    const TYPE_DATE = "3";
-    const TYPE_DATETIME = "4";
-    const TYPE_TIME = "5";
+    public const TYPE_INTEGER = "0";
+    public const TYPE_DECIMAL = "1";
+    public const TYPE_STRING = "2";
+    public const TYPE_DATE = "3";
+    public const TYPE_DATETIME = "4";
+    public const TYPE_TIME = "5";
 
     // for select multiple type
-    const TYPE_STRING_MULTIPLE = "6";
+    public const TYPE_STRING_MULTIPLE = "6";
 }

@@ -31,16 +31,16 @@ class PluginServiceProvider extends ServiceProvider
         // get plugin page's
         foreach (PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type) {
             $pluginPages = Plugin::getByPluginTypes($plugin_type, true);
-        
+
             // loop
             foreach ($pluginPages as $pluginPage) {
                 $this->pluginRoute($plugin_type, $pluginPage);
             }
         }
-    
+
         // get plugin script's and style's
         $pluginPublics = Plugin::getPluginScriptStyles();
-        
+
         // loop
         foreach ($pluginPublics as $pluginScriptStyle) {
             $this->pluginScriptStyleRoute($pluginScriptStyle->_plugin(), config('admin.route.prefix'), 'admin_plugin_public');
@@ -129,9 +129,9 @@ class PluginServiceProvider extends ServiceProvider
                     $router->get("{$key}/{id}", "PluginCrudController@show");
                     return;
                 }
-    
+
                 $routes = array_get($json, 'route', []);
-    
+
                 // if not has index endpoint, set.
                 if (!$this->hasPluginRouteIndex($routes)) {
                     $routes[] = [
@@ -144,7 +144,7 @@ class PluginServiceProvider extends ServiceProvider
                 foreach ($routes as $route) {
                     $method = array_get($route, 'method');
                     $methods = is_string($method) ? [$method] : $method;
-                    $plugin_name = $isApi ? 'PluginApiController': 'PluginPageController';
+                    $plugin_name = $isApi ? 'PluginApiController' : 'PluginPageController';
                     foreach ($methods as $method) {
                         if ($method === "") {
                             $method = 'get';
@@ -182,7 +182,7 @@ class PluginServiceProvider extends ServiceProvider
             if (array_get($route, 'uri') != '') {
                 continue;
             }
-            
+
             $method = array_get($route, 'method');
             $methods = is_string($method) ? [$method] : $method;
             foreach ($methods as $method) {
@@ -190,7 +190,7 @@ class PluginServiceProvider extends ServiceProvider
                     $method = 'get';
                 }
                 $method = strtolower($method);
-                
+
                 // if not get, continue.
                 if ($method != 'get') {
                     continue;

@@ -2,6 +2,7 @@
 
 /**
  */
+
 namespace Exceedone\Exment\Services\Plugin;
 
 /**

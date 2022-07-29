@@ -22,13 +22,13 @@ use Exceedone\Exment\Model\RoleGroup;
  */
 class ConditionTypeDetail extends EnumBase
 {
-    const USER = "1";
-    const ORGANIZATION = "2";
-    const ROLE = "3";
-    const SYSTEM = "4";
-    const FORM = "5";
-    const LOGIN_USER_COLUMN = "8";
-    const COLUMN = "9";
+    public const USER = "1";
+    public const ORGANIZATION = "2";
+    public const ROLE = "3";
+    public const SYSTEM = "4";
+    public const FORM = "5";
+    public const LOGIN_USER_COLUMN = "8";
+    public const COLUMN = "9";
 
     public static function CONDITION_OPTIONS()
     {

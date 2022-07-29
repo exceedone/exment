@@ -24,7 +24,7 @@ class LoginUserController extends AdminControllerBase
     {
         $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"), 'fa-user-plus');
     }
-    
+
     /**
      * Show interface.
      *
@@ -45,9 +45,9 @@ class LoginUserController extends AdminControllerBase
     protected function grid()
     {
         $classname = getModelName(SystemTableName::USER);
-        $grid = new Grid(new $classname);
+        $grid = new Grid(new $classname());
         $table = CustomTable::getEloquent(SystemTableName::USER);
-        
+
         foreach (['user_code', 'user_name', 'email'] as $key) {
             $column = CustomColumn::getEloquent($key, $table);
             if (!$column) {
@@ -55,7 +55,7 @@ class LoginUserController extends AdminControllerBase
             }
             $grid->column($column->getQueryKey(), exmtrans('user.' . $key));
         }
-        
+
         $controller = $this;
         $grid->column('login_user_id', exmtrans('user.login_user'))->display(function ($login_user_id) use ($controller) {
             return !is_null($controller->getLoginUser($this)) ? 'YES' : '';
@@ -77,22 +77,22 @@ class LoginUserController extends AdminControllerBase
                 $filter->like($column->getQueryKey(), exmtrans('user.' . $key));
             }
         });
-        
+
         // create exporter
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
-        
+
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $button = new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true);
             $button->setBaseKey('common');
-            
+
             $tools->append($button);
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
             });
         });
-        
-        
+
+
         return $grid;
     }
 
@@ -104,7 +104,7 @@ class LoginUserController extends AdminControllerBase
         $service = $this->getImportExportService();
         return $service->getImportModal();
     }
-    
+
     protected function getImportExportService($grid = null)
     {
         // create exporter
@@ -128,7 +128,7 @@ class LoginUserController extends AdminControllerBase
     protected function form($id = null)
     {
         $classname = getModelName(SystemTableName::USER);
-        $form = new Form(new $classname);
+        $form = new Form(new $classname());
         $form->display('value.user_code', exmtrans('user.user_code'));
         $form->display('value.user_name', exmtrans('user.user_name'));
         $form->display('value.email', exmtrans('user.email'));
@@ -174,7 +174,7 @@ class LoginUserController extends AdminControllerBase
 
         return $this->response();
     }
-    
+
     /**
      * @param Request $request
      */
@@ -182,7 +182,7 @@ class LoginUserController extends AdminControllerBase
     {
         // create exporter
         $service = (new DataImportExport\DataImportExportService())
-            ->exportAction(new DataImportExport\Actions\Export\LoginUserAction)
+            ->exportAction(new DataImportExport\Actions\Export\LoginUserAction())
             ->importAction(
                 new DataImportExport\Actions\Import\LoginUserAction(
                     [

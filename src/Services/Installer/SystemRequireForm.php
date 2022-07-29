@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Enums\InitializeStatus;

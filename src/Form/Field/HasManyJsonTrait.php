@@ -19,7 +19,7 @@ trait HasManyJsonTrait
     {
         return null;
     }
-    
+
 
     public function prepare($input)
     {
@@ -90,7 +90,7 @@ trait HasManyJsonTrait
                 if ($index === 0) {
                     $forms = [];
                 }
-                
+
                 $forms[$key] = $this->buildNestedForm($this->column, $this->builder, $key, $index)
                     ->fill($data, $index);
                 $index++;
@@ -112,7 +112,7 @@ trait HasManyJsonTrait
                 if ($index === 0) {
                     $forms = [];
                 }
-                
+
                 // $forms[$key] = $this->buildNestedForm($this->column, $this->builder, $data, $index)
                 //     ->fill($data, $index);
                 $forms[] = $this->buildNestedForm($this->column, $this->builder, $key, $index)
@@ -123,7 +123,7 @@ trait HasManyJsonTrait
         return $forms;
     }
 
-    
+
     protected function buildNestedForm($column, \Closure $builder, $key = null, $index = null)
     {
         $form = new NestedForm($column);

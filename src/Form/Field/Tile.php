@@ -10,7 +10,7 @@ class Tile extends Field
     protected $view = 'exment::form.field.tile';
 
     protected $multipled;
-    
+
     /**
      * Set overlay loading (for ajax)
      *
@@ -88,7 +88,7 @@ class Tile extends Field
         }
 
         $this->options = array_filter($this->options);
-        $multipled = $this->multipled ? 'true': 'false';
+        $multipled = $this->multipled ? 'true' : 'false';
 
         // template search url
         $this->script = <<<EOT

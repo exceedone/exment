@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -55,8 +56,7 @@ class RefreshDataService
             })->toArray(), $tables);
 
         // exm__ tables (ignore org)
-        $custom_tables = CustomTable
-            ::whereNotIn('id', [$userTable->id, $orgTable->id, $mail_template->id])
+        $custom_tables = CustomTable::whereNotIn('id', [$userTable->id, $orgTable->id, $mail_template->id])
             ->get()
             ->filter(function ($table) {
                 return hasTable(getDBTableName($table));
@@ -150,7 +150,7 @@ class RefreshDataService
                     //->update(['value->' . $custom_column->column_name => '']);
                 });
             }
-            
+
             foreach ($truacateTables as $table) {
                 if (!hasTable($table)) {
                     continue;

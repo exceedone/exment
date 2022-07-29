@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class MailBodyType extends EnumBase
 {
-    const HTML = 'html';
-    const PLAIN = 'plain';
+    public const HTML = 'html';
+    public const PLAIN = 'plain';
 }

@@ -67,7 +67,7 @@ class ConditionHasManyTable
      * @var string
      */
     protected $condition_value_name = 'condition_value';
-    
+
     /**
      * Condition target label.
      *
@@ -88,7 +88,7 @@ class ConditionHasManyTable
      * @var string
      */
     protected $condition_value_label;
-    
+
     protected $condition_join_name = 'condition_join';
 
     /**
@@ -242,7 +242,7 @@ class ConditionHasManyTable
 
         return $this;
     }
-    
+
     /**
      * @return string
      */

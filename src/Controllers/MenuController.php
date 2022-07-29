@@ -24,7 +24,8 @@ use Illuminate\Validation\Rule;
 
 class MenuController extends AdminControllerBase
 {
-    use HasResourceActions, ExmentControllerTrait;
+    use HasResourceActions;
+    use ExmentControllerTrait;
 
     public function __construct()
     {
@@ -197,11 +198,11 @@ class MenuController extends AdminControllerBase
                 } elseif (!is_nullorempty($field->data())) {
                     $custom_table = CustomTable::getEloquent(array_get($field->data(), 'menu_target'));
                 }
-        
+
                 if (!isset($custom_table)) {
                     return [];
                 }
-        
+
                 return $contoller->getViewList($custom_table, false);
             })
         ;
@@ -231,7 +232,7 @@ class MenuController extends AdminControllerBase
             $isset_order = false;
             // get parent id
             $parent_id = $form->parent_id;
-            
+
             // get id
             $id = $form->model()->id;
             // if not set id(create), set order
@@ -243,7 +244,7 @@ class MenuController extends AdminControllerBase
                 $model_parent_id = $form->model()->parent_id;
                 $isset_order = ($model_parent_id != $parent_id);
             }
-            
+
             // get same parent_id count
             if ($isset_order) {
                 $query = Menu::where('parent_id', $parent_id);
@@ -398,7 +399,7 @@ class MenuController extends AdminControllerBase
         $menu_name_base = array_get($result, 'menu_name');
         $menu_name = $menu_name_base;
         $menus = Menu::all();
-        
+
         for ($i = 1; $i < 1000; $i++) {
             if (!$menus->contains(function ($menu) use ($menu_name) {
                 return $menu_name == $menu->menu_name;
@@ -429,7 +430,7 @@ class MenuController extends AdminControllerBase
         } elseif ($k == 'notify') {
             return false;
         }
-        
+
         return true;
     }
 

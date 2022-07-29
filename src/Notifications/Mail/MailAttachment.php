@@ -19,7 +19,7 @@ class MailAttachment
      * @var string
      */
     public $path;
-    
+
     /**
      * Sending file name
      *
@@ -32,7 +32,7 @@ class MailAttachment
      *
      * @return string|null
      */
-    public function getFullPath() : ?string
+    public function getFullPath(): ?string
     {
         return \Storage::disk(Define::DISKNAME_ADMIN)->path($this->path);
     }

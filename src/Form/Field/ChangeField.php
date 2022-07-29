@@ -79,7 +79,7 @@ class ChangeField extends Field
         }
         return [];
     }
-    
+
     public function filterKind($filterKind = null)
     {
         if (isset($filterKind)) {
@@ -207,7 +207,7 @@ EOT;
                 // required if visible
                 $field->required();
             }
-            
+
             $field->setWidth(12, 0)->setLabelClass(['hidden'])->setElementClass(['w-100'])->attribute(['style' => 'max-width:999999px']);
             $field->value($this->value());
             $field->setElementName($this->elementName)
@@ -223,8 +223,7 @@ EOT;
         }
     }
 
-    public function adminField($adminField)
-        :self
+    public function adminField($adminField): self
     {
         $this->adminField = $adminField;
         return $this;

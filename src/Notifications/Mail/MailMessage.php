@@ -4,5 +4,6 @@ namespace Exceedone\Exment\Notifications\Mail;
 
 class MailMessage
 {
-    use MailInfoTrait, MailHistoryTrait;
+    use MailInfoTrait;
+    use MailHistoryTrait;
 }

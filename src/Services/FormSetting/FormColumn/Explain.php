@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
@@ -13,7 +14,7 @@ class Explain extends Header
      *
      * @return WidgetForm
      */
-    public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
+    public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         $form = new WidgetForm($parameters);
 
@@ -23,8 +24,8 @@ class Explain extends Header
 
         return $form;
     }
-    
-    public function getFontAwesomeClass() : ?string
+
+    public function getFontAwesomeClass(): ?string
     {
         return 'fa-align-justify';
     }

@@ -20,7 +20,7 @@ class PermissionValueTest extends UnitTestBase
     public function testCustomValueAllTableAdmin()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
-        
+
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
         $ids = $custom_table->getValueModel()->all()->pluck('id')->toArray();
 
@@ -30,7 +30,7 @@ class PermissionValueTest extends UnitTestBase
     public function testCustomValueFilterAdmin()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
-        
+
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW);
         $ids = $custom_table->getValueModel()->all()->pluck('id')->toArray();
 
@@ -41,7 +41,7 @@ class PermissionValueTest extends UnitTestBase
     public function testCustomValueAllTable()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_USER2);
-        
+
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
         $ids = $custom_table->getValueModel()->all()->pluck('id')->toArray();
 
@@ -51,7 +51,7 @@ class PermissionValueTest extends UnitTestBase
     public function testCustomValueFilter()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_USER2);
-        
+
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW);
         $ids = $custom_table->getValueModel()->all()->pluck('id')->toArray();
 

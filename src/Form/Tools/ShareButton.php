@@ -11,7 +11,7 @@ class ShareButton
 {
     protected $id;
     protected $url;
-    
+
     public function __construct($id, $url)
     {
         $this->id = $id;
@@ -56,7 +56,7 @@ EOT;
             'url' => $this->url
         ]);
     }
-    
+
     /**
      * @return string
      */

@@ -9,7 +9,7 @@ class MariaDBConnectionFactory extends \Illuminate\Database\Connectors\Connectio
 {
     public function createConnector(array $config)
     {
-        return new MySqlConnector;
+        return new MySqlConnector();
     }
 
     protected function createConnection($driver, $connection, $database, $prefix = '', array $config = [])

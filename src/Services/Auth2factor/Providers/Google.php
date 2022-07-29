@@ -43,7 +43,7 @@ class Google
 
         return view('exment::auth.2factor.2factor-google-verify', $this->getLoginPageData());
     }
-    
+
     /**
      * Handle index
      *
@@ -69,7 +69,7 @@ class Google
 
         return view('exment::auth.2factor.2factor-google-email-sended', $this->getLoginPageData());
     }
-    
+
     /**
      * Handle verify posting
      *
@@ -78,7 +78,7 @@ class Google
     public function register()
     {
         $request = request();
-        
+
         // If the class is using the ThrottlesLogins trait, we can automatically throttle
         // the login attempts for this application. We'll key this by the username and
         // the IP address of the client making these requests into this application.
@@ -111,7 +111,7 @@ class Google
         } else {
             $key = decrypt($loginuser->auth2fa_key);
         }
-        
+
         $qrUrl = $g2fa->getQRCodeUrl(
             System::site_name(),
             $loginuser->email,
@@ -136,7 +136,7 @@ class Google
             'key' => $key,
         ]));
     }
-    
+
     /**
      * Handle verify posting
      *
@@ -186,7 +186,7 @@ class Google
 
         return redirect(admin_url(''));
     }
-    
+
     public function insertVerify()
     {
     }
@@ -196,7 +196,7 @@ class Google
         $g2fa = new Google2FA();
         return $g2fa;
     }
-    
+
     /**
      * Get the login username to be used by the controller.
      *

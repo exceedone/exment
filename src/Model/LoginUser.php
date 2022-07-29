@@ -19,7 +19,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     use AdminBuilder;
     use HasPermissions;
     use HasApiTokens;
-    
+
     protected $guarded = ['id'];
 
     protected $hidden = ['password'];
@@ -111,13 +111,13 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     {
         return $this->base_user->belong_organizations();
     }
-    
-    
+
+
     public function isLoginProvider()
     {
         return !is_nullorempty($this->login_provider);
     }
-    
+
     public function findForPassport($username, ?array $credentials = [])
     {
         return LoginUserProvider::RetrieveByCredential(array_merge(['username' => $username], $credentials));
@@ -152,7 +152,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     /**
      * send Password
      */
-    protected function send(bool $is_newuser) : ?MailSender
+    protected function send(bool $is_newuser): ?MailSender
     {
         if (!isset($this->send_password)) {
             return null;
@@ -246,11 +246,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         if (!isset($password)) {
             return;
         }
-        
+
         if ($password == $original) {
             return;
         }
-        
+
         if (isset($original) && Hash::check($password, $original)) {
             $this->password = $original;
         } else {
@@ -262,7 +262,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             }
         }
     }
-    
+
     protected static function boot()
     {
         parent::boot();

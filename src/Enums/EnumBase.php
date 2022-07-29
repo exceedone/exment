@@ -13,7 +13,7 @@ class EnumBase extends Enum
     {
         return strtolower($this->getKey());
     }
-    
+
     /**
      * get upper key Name
      */
@@ -21,7 +21,7 @@ class EnumBase extends Enum
     {
         return strtoupper($this->getKey());
     }
-    
+
     public function toString()
     {
         return $this->__toString();
@@ -103,13 +103,13 @@ class EnumBase extends Enum
         if ($value instanceof Enum) {
             return $value;
         }
-        
+
         $enums = static::values();
         foreach ($enums as $enum) {
             if ($enum->toString() == $value) {
                 return $enum;
             }
-            
+
             $key = $enum->lowerKey();
             if (isMatchString($key, $value)) {
                 return $enum;
@@ -122,7 +122,7 @@ class EnumBase extends Enum
         }
         return $default;
     }
-    
+
     /**
      * get enum, and return value
      */

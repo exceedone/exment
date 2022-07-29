@@ -15,11 +15,11 @@ class ApiKey extends Model
     protected $table = 'oauth_api_keys';
 
     public $timestamps = false;
-    
+
     protected $primary_key = 'key';
 
     protected $keyType = 'string';
-    
+
     public $incrementing = false;
 
 

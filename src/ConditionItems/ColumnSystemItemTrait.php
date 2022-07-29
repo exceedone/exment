@@ -45,7 +45,7 @@ trait ColumnSystemItemTrait
                 return null;
             }
         }
-    
+
         // get column item
         $column_item = $this->getFormColumnItem();
         $column_item->options(["changefield" => true]);

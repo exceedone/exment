@@ -4,8 +4,8 @@ namespace Exceedone\Exment\Enums;
 
 class RoleType extends EnumBase
 {
-    const SYSTEM = "0";
-    const TABLE = "1";
-    const VALUE = "2";
-    const PLUGIN = "3";
+    public const SYSTEM = "0";
+    public const TABLE = "1";
+    public const VALUE = "2";
+    public const PLUGIN = "3";
 }

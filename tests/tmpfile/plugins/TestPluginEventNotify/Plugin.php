@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Plugins\TestPluginEventNotify;
 
 use Exceedone\Exment\Services\Plugin\PluginEventBase;

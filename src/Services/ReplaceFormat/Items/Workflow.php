@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
 use Exceedone\Exment\Model\Workflow as WorkflowModel;
@@ -21,7 +22,7 @@ class Workflow extends ItemBase
         if (!isset($workflow_action) || !isset($workflow_value)) {
             return null;
         }
-        
+
         $workflow = WorkflowModel::getEloquentDefault(array_get($workflow_value, 'workflow_id'));
 
         $subkey = count($this->length_array) > 1 ? $this->length_array[1] : null;

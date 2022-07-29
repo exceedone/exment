@@ -25,7 +25,7 @@ class Text extends CustomItem
     {
         return Field\Text::class;
     }
-    
+
     protected function setAdminOptions(&$field)
     {
         // value size
@@ -42,18 +42,18 @@ class Text extends CustomItem
     {
         // value size
         $validates[] = 'max:'.$this->getMaxLength();
-        
+
         // value type
         $validates[] = new Validator\StringNumericRule();
-        
+
         // set regex rule
         $info = $this->getAvailableCharactersInfo();
         foreach ($info['validates'] as $v) {
             $validates[] = $v;
         }
     }
-    
-    protected function getAppendHelpText() : ?string
+
+    protected function getAppendHelpText(): ?string
     {
         if ($this->initonly() && isset($this->value)) {
             return null;
@@ -106,18 +106,18 @@ class Text extends CustomItem
             'help' => count($help_regexes) ? sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes)) : null,
         ];
     }
-    
-    
+
+
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
      * @return string
      */
-    protected function getGridFilterOption() : ?string
+    protected function getGridFilterOption(): ?string
     {
         return FilterOption::LIKE;
     }
-    
+
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
@@ -137,7 +137,7 @@ class Text extends CustomItem
         $form->checkbox('available_characters', exmtrans("custom_column.options.available_characters"))
             ->options(CustomColumn::getAvailableCharacters()->pluck('label', 'key'))
             ->help(exmtrans("custom_column.help.available_characters"))
-            ;
+        ;
 
         $form->switchbool('suggest_input', exmtrans("custom_column.options.suggest_input"))
             ->help(exmtrans("custom_column.help.suggest_input"));

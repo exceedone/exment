@@ -7,7 +7,7 @@ use Exceedone\Exment\Database\ExtendedBuilderTrait;
 class ExtendedBuilder extends \Illuminate\Database\Query\Builder
 {
     use ExtendedBuilderTrait;
-    
+
     /**
      * Get a new join clause.
      *

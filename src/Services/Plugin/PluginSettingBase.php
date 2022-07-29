@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 /**
@@ -8,7 +9,7 @@ namespace Exceedone\Exment\Services\Plugin;
 abstract class PluginSettingBase
 {
     use PluginBase;
-    
+
     public function __construct($plugin)
     {
         $this->plugin = $plugin;

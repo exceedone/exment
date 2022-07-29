@@ -16,7 +16,7 @@ class FormDataItem extends ConditionDetailBase implements ConditionItemInterface
     {
         return $this->getFilterOptionConditon();
     }
-    
+
     /**
      * check if custom_value and user(organization, role) match for conditions.
      *
@@ -32,7 +32,7 @@ class FormDataItem extends ConditionDetailBase implements ConditionItemInterface
 
         return $this->compareValue($condition, $form_data_type);
     }
-    
+
     /**
      * get text.
      *
@@ -47,7 +47,7 @@ class FormDataItem extends ConditionDetailBase implements ConditionItemInterface
             return exmtrans("condition.form_data_type_options.$v");
         })->implode(",");
     }
-    
+
     /**
      * Get change field
      *
@@ -62,7 +62,7 @@ class FormDataItem extends ConditionDetailBase implements ConditionItemInterface
         return $field->options($options);
     }
 
-    
+
     /**
      * Check has workflow authority with this item.
      *

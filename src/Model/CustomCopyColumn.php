@@ -8,10 +8,10 @@ use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
-    protected $appends = ['from_column_target', 'to_column_target'];
     use Traits\UseRequestSessionTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
+    protected $appends = ['from_column_target', 'to_column_target'];
 
     public static $templateItems = [
         //'excepts' => ['custom_copy_id', 'from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id'],
@@ -56,27 +56,27 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         return $this->belongsTo(CustomCopy::class, 'custom_copy_id');
     }
-    
+
     public function from_custom_column()
     {
         return $this->belongsTo(CustomColumn::class, 'from_column_target_id');
     }
-    
+
     public function to_custom_column()
     {
         return $this->belongsTo(CustomColumn::class, 'to_column_target_id');
     }
-    
+
     public function from_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'from_column_table_id');
     }
-    
+
     public function to_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'to_column_table_id');
     }
-    
+
     public function getFromCustomTableCacheAttribute()
     {
         return CustomTable::getEloquent($this->from_column_table_id);
@@ -95,7 +95,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         return $this->getViewColumnTarget('from_column_table_id', 'from_column_type', 'from_column_target_id');
     }
-    
+
     /**
      * set CopyColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
@@ -113,7 +113,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         return $this->getViewColumnTarget('to_column_table_id', 'to_column_type', 'to_column_target_id');
     }
-    
+
     /**
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
@@ -122,7 +122,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         $this->setViewColumnTarget($copy_column_target, 'custom_copy', 'to_column_table_id', 'to_column_type', 'to_column_target_id');
     }
-    
+
     /**
      * get Table And Column Name
      */
@@ -138,7 +138,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         return $this->getCopyColumnUniqueKeyValues('to_custom_table', 'to_custom_column', 'to_column_type', 'to_column_target_id');
     }
-    
+
     /**
      * getConditionTypeFromItemAttribute
      *
@@ -185,7 +185,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
                     'table_name' => $table_name,
                     'column_name' => SystemColumn::getOption(['id' => $this->{$column_target_id_key}])['name'],
                 ];
-            
+
             case ConditionType::PARENT_ID:
                 return [
                     'table_name' => $table_name,

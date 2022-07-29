@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Calc\Items;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -15,7 +16,7 @@ class Dynamic extends ItemBase
     {
         parent::__construct($custom_column, $custom_table);
     }
-    
+
     public function type()
     {
         return 'dynamic';
@@ -41,14 +42,14 @@ class Dynamic extends ItemBase
         $custom_column = CustomColumn::getEloquent($splits[0], $custom_table);
         return new self($custom_column, $custom_table);
     }
-    
+
 
     /**
      * Get triggered event key names
      *
      * @return array
      */
-    public function getTriggeredKeys() : array
+    public function getTriggeredKeys(): array
     {
         $trigger_block = (!$this->custom_form_block || $this->custom_form_block->form_block_type == FormBlockType::DEFAULT) ? 'default' : $this->getRelationName();
         return [

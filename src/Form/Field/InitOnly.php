@@ -25,7 +25,7 @@ class InitOnly extends Display
         // Even if set value, return always default.
         return $this->default;
     }
-    
+
     /**
      * {@inheritdoc}
      */

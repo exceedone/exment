@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class SharePermission extends EnumBase
 {
-    const EDIT = "1";
-    const VIEW = "2";
+    public const EDIT = "1";
+    public const VIEW = "2";
 }

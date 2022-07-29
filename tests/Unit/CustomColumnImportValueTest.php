@@ -11,10 +11,10 @@ use Exceedone\Exment\Enums\ColumnType;
 class CustomColumnImportValueTest extends UnitTestBase
 {
     use CustomColumnTrait;
-    
+
     // SELECT_VALTEXT ----------------------------------------------------
-    const SELECT_VALTEXT_VALUE = 'orange';
-    const SELECT_VALTEXT_TEXT = 'Orange';
+    public const SELECT_VALTEXT_VALUE = 'orange';
+    public const SELECT_VALTEXT_TEXT = 'Orange';
     public function _testSelectValTextImportValue($checkValue, $matchedValue, bool $result, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_VALTEXT, $options);
@@ -39,7 +39,7 @@ class CustomColumnImportValueTest extends UnitTestBase
 
 
 
-    
+
     // YESNO ----------------------------------------------------
     public function _testYesNoImportValue($checkValue, $matchedValue, bool $result, $options = [])
     {
@@ -67,8 +67,8 @@ class CustomColumnImportValueTest extends UnitTestBase
 
 
     // BOOLEAN ----------------------------------------------------
-    const BOOLEAN_VALUE = 'man';
-    const BOOLEAN_TEXT = 'MAN';
+    public const BOOLEAN_VALUE = 'man';
+    public const BOOLEAN_TEXT = 'MAN';
     public function _testBooleanImportValue($checkValue, $matchedValue, bool $result, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::BOOLEAN, $options);

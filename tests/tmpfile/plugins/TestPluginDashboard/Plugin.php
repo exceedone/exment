@@ -32,7 +32,7 @@ class Plugin extends PluginDashboardBase
     {
         $id = request()->get('id');
         $data = $this->getData($id);
-        
+
         $now = \Carbon\Carbon::now();
 
         $integer = $data->getValue('integer');

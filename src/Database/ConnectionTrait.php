@@ -61,7 +61,7 @@ trait ConnectionTrait
         }
     }
 
-    
+
     /**
      * Execute a Closure within a transaction.
      * *PHP8 checks transactions, and if already closed transaction, throw exception. So we need other functions.

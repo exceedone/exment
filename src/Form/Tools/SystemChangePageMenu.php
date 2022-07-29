@@ -16,11 +16,11 @@ class SystemChangePageMenu extends ModalTileMenuButton
         ]);
         $this->modal_title = exmtrans("system.system_header");
     }
-    
+
     public function render()
     {
         $items = $this->getMenuItems();
-        
+
         // if no menu, return
         if (count($items) == 0) {
             return null;

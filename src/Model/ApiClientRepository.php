@@ -40,7 +40,7 @@ class ApiClientRepository extends ClientRepository
             'key' => 'key_' . Str::random(30),
         ]);
         $apikey->save();
-        
+
         return $client;
     }
 }

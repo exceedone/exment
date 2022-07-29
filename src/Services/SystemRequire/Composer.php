@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\SystemRequire;
 
 use Exceedone\Exment\Enums\SystemRequireResult;
@@ -119,12 +120,12 @@ class Composer extends SystemRequireBase
         return SystemRequireResult::OK;
     }
 
-    public function getLabel() : string
+    public function getLabel(): string
     {
         return exmtrans('system_require.type.composer.label');
     }
 
-    public function getExplain() : string
+    public function getExplain(): string
     {
         return exmtrans('system_require.type.composer.explain');
     }
@@ -135,7 +136,7 @@ class Composer extends SystemRequireBase
      *
      * @return ?string
      */
-    public function getResultText() : ?string
+    public function getResultText(): ?string
     {
         switch ($this->result) {
             case SystemRequireResult::OK:
@@ -154,12 +155,12 @@ class Composer extends SystemRequireBase
      *
      * @return string
      */
-    public function checkResult() : string
+    public function checkResult(): string
     {
         return $this->result;
     }
 
-    protected function getMessageWarning() : ?string
+    protected function getMessageWarning(): ?string
     {
         if ($this->warning_type == 1) {
             return exmtrans('system_require.type.composer.warning');
@@ -173,7 +174,7 @@ class Composer extends SystemRequireBase
         return null;
     }
 
-    public function getSettingUrl() : ?string
+    public function getSettingUrl(): ?string
     {
         return \Exment::getManualUrl('server');
     }

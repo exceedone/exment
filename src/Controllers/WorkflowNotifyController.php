@@ -25,7 +25,9 @@ class WorkflowNotifyController extends Controller
     use HasResourceActions{
         destroy as destroyTrait;
     }
-    use NotifyTrait, WorkflowTrait, ExmentControllerTrait;
+    use NotifyTrait;
+    use WorkflowTrait;
+    use ExmentControllerTrait;
 
     protected $workflow;
 
@@ -73,8 +75,8 @@ class WorkflowNotifyController extends Controller
      */
     protected function grid()
     {
-        $grid = new Grid(new Notify);
-        
+        $grid = new Grid(new Notify());
+
         $grid->header(function ($grid) {
             $process = new ProgressTracker();
             return $process->options($this->getProgressInfo($this->workflow, 3))
@@ -101,7 +103,7 @@ class WorkflowNotifyController extends Controller
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->sortable()->display(function ($val) {
             return \Exment::getTrueMark($val);
         })->escape(false);
-        
+
         $grid->tools(function (Grid\Tools $tools) {
             $tools->prepend(new Tools\SystemChangePageMenu());
             $tools->prepend(view('exment::tools.button', [
@@ -118,14 +120,14 @@ class WorkflowNotifyController extends Controller
         $workflow = $this->workflow;
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($workflow) {
             $actions->disableView();
-            
-            $linker = (new Linker)
+
+            $linker = (new Linker())
                 ->url(admin_urls("workflow", $workflow->id, "notify", "create?copy_id={$actions->row->id}"))
                 ->icon('fa-copy')
                 ->tooltip(exmtrans('common.copy_item', exmtrans('notify.notify')));
             $actions->prepend($linker);
         });
-        
+
         $this->setFilterGrid($grid);
 
         return $grid;
@@ -144,7 +146,7 @@ class WorkflowNotifyController extends Controller
             return;
         }
 
-        $form = new Form(new Notify);
+        $form = new Form(new Notify());
         $form->progressTracker()->options($this->getProgressInfo($this->workflow, 3));
 
         $notify = Notify::find($id);
@@ -152,21 +154,21 @@ class WorkflowNotifyController extends Controller
             Checker::error(exmtrans('common.message.wrongdata'));
             return false;
         }
-        
+
         $workflow = $this->workflow;
 
         $form->internal('target_id')->default($this->workflow->id);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->default($this->workflow->workflow_view_name);
-       
+
         $this->setBasicForm($form, $notify);
 
         $form->exmheader(exmtrans('notify.header_trigger'))->hr();
-        
+
         $form->internal('notify_trigger')->default(NotifyTrigger::WORKFLOW);
         $form->display('notify_trigger', exmtrans("notify.notify_trigger"))
             ->displayText(exmtrans("notify.notify_trigger_options.workflow"));
-       
+
         $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($workflow) {
             $form->switchbool('notify_myself', exmtrans("notify.notify_myself"))
                 ->default(false)
@@ -204,12 +206,12 @@ class WorkflowNotifyController extends Controller
             ->first();
 
         $this->setMailTemplateForm($form, $notify, $mail_template ? $mail_template->id : null);
-        
+
         $this->setFooterForm($form, $notify);
 
         $form->tools(function (Form\Tools $tools) use ($workflow) {
             $tools->disableList();
-            
+
             $tools->append(new Tools\SystemChangePageMenu());
 
             $tools->append(view('exment::tools.button', [
@@ -241,7 +243,7 @@ class WorkflowNotifyController extends Controller
         return $options;
     }
 
-    
+
     /**
      * Index interface.
      *
@@ -281,7 +283,7 @@ class WorkflowNotifyController extends Controller
     {
         return $this->AdminContent($content)->body($this->form($id)->edit($id));
     }
-    
+
     /**
      * Update the specified resource in storage.
      *

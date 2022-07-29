@@ -35,7 +35,7 @@ class Email
             'email_send_verify' => exmtrans('2factor.message.email_send_verify', config('exment.login_2factor_valid_period', 10))
         ]));
     }
-    
+
     /**
      * Handle verify posting
      *
@@ -57,10 +57,10 @@ class Email
 
         $verify_code = $request->get('verify_code');
         $loginuser = \Admin::user();
-        
+
         if (!Auth2factorService::verifyCode('email', $verify_code, true)) {
             $this->incrementLoginAttempts($request);
-            
+
             // error
             return back()->withInput()->withErrors([
                 'verify_code' => exmtrans('2factor.message.verify_failed')
@@ -91,7 +91,7 @@ class Email
             admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
         }
     }
-    
+
     /**
      * Get the login username to be used by the controller.
      *

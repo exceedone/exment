@@ -19,18 +19,18 @@ trait WorkflowTrait
             $workflow_action_url = admin_urls('workflow', $id, 'edit?action=2');
             $workflow_status_url = admin_urls('workflow', $id, 'edit');
         }
-        
+
         $steps[] = [
             'active' => ($action == 1),
             'complete' => false,
-            'url' => ($action != 1) ? $workflow_status_url: null,
+            'url' => ($action != 1) ? $workflow_status_url : null,
             'description' => exmtrans('workflow.workflow_statuses')
         ];
 
         $steps[] = [
             'active' => ($action == 2),
             'complete' => false,
-            'url' => ($action != 2)? $workflow_action_url: null,
+            'url' => ($action != 2) ? $workflow_action_url : null,
             'description' => exmtrans('workflow.workflow_actions')
         ];
 
@@ -49,7 +49,7 @@ trait WorkflowTrait
                 'description' => exmtrans('workflow.beginning'),
             ];
         }
-        
+
         return $steps;
     }
 }

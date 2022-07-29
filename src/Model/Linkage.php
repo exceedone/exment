@@ -29,7 +29,7 @@ class Linkage
         return isset($this->child_column) ? $this->child_column->custom_table_cache : null;
     }
 
-    
+
     /**
      * get Select table's relation columns.
      * If there are two or more select_tables in the same table and they are in a parent-child relationship, parent-child relationship information is acquired.
@@ -42,7 +42,7 @@ class Linkage
 
         // Get select table columns in custom table.
         $parent_columns = $custom_table->getSelectTableColumns();
-        
+
         ///// re-loop for relation
         // $checkedSelectTableIds = [];
         foreach ($parent_columns as $parent_column) {
@@ -65,7 +65,7 @@ class Linkage
 
             // get RelationTable children tables
             $relations = $select_target_table->getRelationTables($checkPermission, ['search_enabled_only' => false]);
-          
+
             // if not exists, continue
             if (!$relations) {
                 continue;
@@ -73,7 +73,7 @@ class Linkage
 
             foreach ($relations as $relation) {
                 $child_custom_table = $relation->table;
-                
+
                 collect($parent_columns)->filter(function ($child_column) use ($child_custom_table) {
                     return $child_column->select_target_table && $child_column->select_target_table->id == $child_custom_table->id;
                 })

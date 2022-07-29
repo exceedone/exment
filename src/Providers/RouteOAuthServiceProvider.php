@@ -172,7 +172,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
     public function boot()
     {
         parent::boot();
-        
+
         if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
             app(AuthorizationServer::class)->enableGrantType(
                 $this->makeApiKeyGrant(),

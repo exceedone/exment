@@ -94,7 +94,7 @@ class Api2Test extends ApiTestBase
             ->assertJsonFragment([
                 'table_name' => 'information',
             ])
-            ;
+        ;
     }
 
     public function testGetTablesWithCount()
@@ -902,7 +902,7 @@ class Api2Test extends ApiTestBase
         for ($i = 1; $i <= 3; $i++) {
             $values[] = [
                 'parent_id' => 4,
-                'parent_type' => $i == 2? 'user': 'parent_table',
+                'parent_type' => $i == 2 ? 'user' : 'parent_table',
                 'text' => 'test' . date('YmdHis') . $i
             ];
         }

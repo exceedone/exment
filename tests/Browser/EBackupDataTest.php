@@ -181,7 +181,7 @@ class EBackupDataTest extends ExmentKitTestCase
         $this->visit(admin_url('backup'))
                 ->seePageIs(admin_url('backup'))
                 ->seeInField('backup_enable_automatic', $backup_enable_automatic ? 1 : 0);
-        
+
         // loop target
         $targets = BackupTarget::toArray();
         foreach ($targets as $target) {
@@ -223,11 +223,11 @@ class EBackupDataTest extends ExmentKitTestCase
             $this->assertTrue(true);
             return;
         }
-        
+
         // get latest backup file
         $files = $this->getArchiveFiles();
         rsort($files);
-        
+
         if (count($files) > 0) {
             $file = pathinfo($files[0], PATHINFO_FILENAME);
             // Restore data

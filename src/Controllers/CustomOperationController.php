@@ -25,7 +25,7 @@ class CustomOperationController extends AdminControllerTableBase
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
-        
+
         $title = exmtrans("custom_operation.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
         $this->setPageInfo($title, $title, exmtrans("custom_operation.description"), 'fa-th-list');
     }
@@ -40,7 +40,7 @@ class CustomOperationController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
-    
+
     /**
      * Edit
      *
@@ -69,7 +69,7 @@ class CustomOperationController extends AdminControllerTableBase
                 return false;
             }
         }
-        
+
         return parent::edit($request, $content, $tableKey, $id);
     }
 
@@ -95,14 +95,14 @@ class CustomOperationController extends AdminControllerTableBase
      */
     protected function grid()
     {
-        $grid = new Grid(new CustomOperation);
+        $grid = new Grid(new CustomOperation());
         $grid->column('operation_name', exmtrans("custom_operation.operation_name"))->sortable();
         $grid->column('operation_type', exmtrans("custom_operation.operation_type"))->sortable()->display(function ($val) {
             return collect(toArray($val))->map(function ($v) {
                 return array_get(CustomOperationType::transArray("custom_operation.operation_type_options_short"), $v);
             })->implode(exmtrans('common.separate_word'));
         });
-        
+
         $grid->model()->where('custom_table_id', $this->custom_table->id);
 
         $grid->disableExport();
@@ -116,7 +116,7 @@ class CustomOperationController extends AdminControllerTableBase
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\CustomTableMenuButton('operation', $this->custom_table));
         });
-        
+
         // filter
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
@@ -137,8 +137,8 @@ class CustomOperationController extends AdminControllerTableBase
     {
         // get request
         $request = Request::capture();
-        
-        $form = new Form(new CustomOperation);
+
+        $form = new Form(new CustomOperation());
 
         if (!isset($id)) {
             $id = $form->model()->id;
@@ -151,14 +151,14 @@ class CustomOperationController extends AdminControllerTableBase
         } else {
             $suuid = null;
         }
-        
+
         $form->internal('custom_table_id')->default($this->custom_table->id);
-        
+
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
 
         $form->text('operation_name', exmtrans("custom_operation.operation_name"))->required()->rules("max:40");
-        
+
         $form->multipleSelect('operation_type', exmtrans("custom_operation.operation_type"))
             ->help(exmtrans("custom_operation.help.operation_type"))
             ->options(function () {
@@ -178,7 +178,7 @@ class CustomOperationController extends AdminControllerTableBase
         })->disableHeader();
 
         $custom_table = $this->custom_table;
-        
+
         // update column setting
         $hasManyTable = new Tools\ConditionHasManyTable($form, [
             'name' => 'custom_operation_columns',
@@ -226,7 +226,7 @@ class CustomOperationController extends AdminControllerTableBase
                 return $item->getOperationFilterValueChangeField(array_get($data, 'operation_update_type'), $field->getElementName());
             },
         ]);
-        
+
         $hasManyTable->callbackField(function ($field) {
             $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
             $field->descriptionHtml(sprintf(exmtrans("custom_operation.help.custom_operation_columns"), $manualUrl));
@@ -261,7 +261,7 @@ class CustomOperationController extends AdminControllerTableBase
             'filterKind' => FilterKind::OPERATION,
             'label' => exmtrans('custom_operation.custom_operation_conditions'),
         ]);
-        
+
         $filterTable->callbackField(function ($field) {
             $field->descriptionHtml(sprintf(exmtrans("custom_operation.help.custom_operation_conditions")));
         });

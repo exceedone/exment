@@ -35,7 +35,6 @@ use Webpatser\Uuid\Uuid;
 
 class ExmentServiceProvider extends ServiceProvider
 {
-
     /**
      * Application Policy Map
      *

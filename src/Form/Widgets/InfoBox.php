@@ -30,14 +30,14 @@ class InfoBox extends AdminInfoBox
     public function showLink($showLink = true)
     {
         $this->data['showLink'] = $showLink;
-        
+
         return $this;
     }
-    
+
     public function linkText($linkText)
     {
         $this->data['linkText'] = $linkText;
-        
+
         return $this;
     }
 

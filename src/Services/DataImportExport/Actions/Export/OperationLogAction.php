@@ -28,7 +28,7 @@ class OperationLogAction extends ExportActionBase implements ActionInterface
         $datalist = [];
         $datalist[] = ['name' => $provider->name(), 'outputs' => $provider->data()];
         $this->count = $provider->getCount();
-        
+
         return $datalist;
     }
 
@@ -36,7 +36,7 @@ class OperationLogAction extends ExportActionBase implements ActionInterface
     {
         return 'operation_log';
     }
-    
+
     /**
      * Get format class(SpOut\Xlsx, PhpSpreadSheet\Csv, ...)
      *
@@ -44,7 +44,7 @@ class OperationLogAction extends ExportActionBase implements ActionInterface
      * @param string $library
      * @return FormatBase
      */
-    public function getFormatClass(?string $format, string $library) : FormatBase
+    public function getFormatClass(?string $format, string $library): FormatBase
     {
         switch ($format) {
             case 'excel':

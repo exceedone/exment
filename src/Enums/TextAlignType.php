@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Enums;
 
 class TextAlignType extends EnumBase
 {
-    const LEFT = 'left';
-    const CENTER = 'center';
-    const RIGHT = 'right';
+    public const LEFT = 'left';
+    public const CENTER = 'center';
+    public const RIGHT = 'right';
 }

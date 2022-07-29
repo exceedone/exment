@@ -15,7 +15,7 @@ class Boolean extends CustomItem
      * laravel-admin set required. if false, always not-set required
      */
     protected $required = false;
-    
+
     protected function _text($v)
     {
         if ($this->getTrueValue() == $v) {
@@ -51,8 +51,8 @@ class Boolean extends CustomItem
     {
         return Field\SwitchField::class;
     }
-    
- 
+
+
     protected function setValidates(&$validates)
     {
         $option = $this->getImportValueOption();
@@ -62,7 +62,7 @@ class Boolean extends CustomItem
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
-        
+
         // set options
         $states = [
             'on'  => ['value' => $this->getTrueValue(), 'text' => array_get($options, 'true_label')],
@@ -70,7 +70,7 @@ class Boolean extends CustomItem
         ];
         $field->states($states);
     }
-    
+
     protected function setAdminFilterOptions(&$filter)
     {
         $column = $this->custom_column;
@@ -80,7 +80,7 @@ class Boolean extends CustomItem
             $this->getTrueValue()    => array_get($column, 'options.true_label'),
         ]);
     }
-    
+
     protected function getRemoveValidates()
     {
         return [\Encore\Admin\Validator\HasOptionRule::class];
@@ -118,7 +118,7 @@ class Boolean extends CustomItem
         return null;
     }
 
-    
+
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
@@ -137,7 +137,7 @@ class Boolean extends CustomItem
             ->help(exmtrans("custom_column.help.true_label"))
             ->required()
             ->default(exmtrans("custom_column.options.true_label_default"));
-            
+
         $form->text('false_value', exmtrans("custom_column.options.false_value"))
             ->help(exmtrans("custom_column.help.false_value"))
             ->required();
@@ -147,7 +147,7 @@ class Boolean extends CustomItem
             ->required()
             ->default(exmtrans("custom_column.options.false_label_default"));
     }
-    
+
     public function getFalseValue()
     {
         return array_get($this->custom_column, 'options.false_value');

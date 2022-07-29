@@ -32,7 +32,7 @@ class MicrosoftTeamsSender extends SenderBase
      * @param string $body
      * @return MicrosoftTeamsSender
      */
-    public static function make($webhook_url, $subject, $body, array $options = []) : MicrosoftTeamsSender
+    public static function make($webhook_url, $subject, $body, array $options = []): MicrosoftTeamsSender
     {
         return new self($webhook_url, $subject, $body);
     }

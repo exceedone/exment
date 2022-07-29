@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services;
 
 /**
@@ -26,7 +27,7 @@ class ClassLoader
     {
         spl_autoload_register(array($this, 'loadClass'));
     }
-  
+
     public function registerDir(string $dir, string $baseNamespace)
     {
         $this->dirs[] = [
@@ -74,7 +75,7 @@ class ClassLoader
      * @param string $class
      * @return string|null
      */
-    protected function getFilePath($dir, $baseNamespace, $class) : ?string
+    protected function getFilePath($dir, $baseNamespace, $class): ?string
     {
         // get default class path
         $defaultClassPath = $class . '.php';
@@ -89,14 +90,14 @@ class ClassLoader
             if (!is_readable($file)) {
                 continue;
             }
-            
+
             $pathinfo = pathinfo($file);
             if (strpos($pathinfo['basename'], 'blade.php') !== false) {
                 continue;
             }
             return $file;
         }
-        
+
         return null;
     }
 }

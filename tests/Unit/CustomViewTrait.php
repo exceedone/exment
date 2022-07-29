@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Enums\ConditionType;
@@ -121,7 +122,7 @@ trait CustomViewTrait
     protected function getTargetColumnId($setting, $custom_table, $is_pivot = false)
     {
         if ($setting['column_name'] == SystemColumn::PARENT_ID) {
-            $column_id = $is_pivot? $setting['column_name']: Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
+            $column_id = $is_pivot ? $setting['column_name'] : Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
         } elseif (!isset($setting['condition_type']) || $setting['condition_type'] == ConditionType::COLUMN) {
             $custom_column = CustomColumn::getEloquent($setting['column_name'], $custom_table);
             $column_id = $custom_column->id;
@@ -202,7 +203,7 @@ trait CustomViewTrait
 
     protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text = null)
     {
-        $custom_view_filter = new CustomViewFilter;
+        $custom_view_filter = new CustomViewFilter();
         $custom_view_filter->custom_view_id = $custom_view_id;
         $custom_view_filter->view_column_type = $view_column_type;
         $custom_view_filter->view_column_table_id = $view_column_table_id;

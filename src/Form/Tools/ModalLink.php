@@ -18,7 +18,7 @@ class ModalLink implements Renderable
     protected $modal_title;
     protected $uuid;
     protected $attributes = [];
-    
+
     public function __construct($url, $options = [])
     {
         $this->url = $url;

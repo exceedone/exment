@@ -13,7 +13,8 @@ use Exceedone\Exment\DataItems\Grid\PluginGrid;
  */
 abstract class PluginViewBase extends PluginPublicBase
 {
-    use PluginBase, PluginPageTrait;
+    use PluginBase;
+    use PluginPageTrait;
 
     /**
      * @var CustomTable
@@ -56,7 +57,7 @@ abstract class PluginViewBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function useBox() : bool
+    public function useBox(): bool
     {
         return $this->useBox ?? true;
     }
@@ -66,7 +67,7 @@ abstract class PluginViewBase extends PluginPublicBase
      *
      * @return array
      */
-    public function useBoxButtons() : array
+    public function useBoxButtons(): array
     {
         return $this->useBoxButtons ?? [];
     }

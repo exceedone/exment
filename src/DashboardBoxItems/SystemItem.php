@@ -8,7 +8,7 @@ class SystemItem implements ItemInterface
 {
     protected $dashboard_box;
     protected $systemItem;
-    
+
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -32,7 +32,7 @@ class SystemItem implements ItemInterface
     {
         return $this->systemItem->header();
     }
-    
+
     /**
      * get footer
      */
@@ -40,7 +40,7 @@ class SystemItem implements ItemInterface
     {
         return $this->systemItem->footer();
     }
-    
+
     /**
      * get html body
      */
@@ -79,7 +79,7 @@ class SystemItem implements ItemInterface
             ->required()
             ->attribute(['data-filtertrigger' =>true])
             ->options($options)
-            ;
+        ;
 
         // set embed options
         foreach (DashboardBoxSystemPage::options() as $page) {

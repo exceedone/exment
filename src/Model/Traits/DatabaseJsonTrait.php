@@ -47,7 +47,7 @@ trait DatabaseJsonTrait
 
         return $this;
     }
-    
+
     /**
      * forget value from json
      *
@@ -57,7 +57,7 @@ trait DatabaseJsonTrait
         if (!isset($key)) {
             return $this;
         }
-        
+
         $value = $this->{$dbcolumnname};
         if (is_null($value)) {
             $value = [];
@@ -76,7 +76,7 @@ trait DatabaseJsonTrait
         $this->{$dbcolumnname} = [];
         return $this;
     }
-    
+
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
     protected function prepareJson($dbcolumnname)

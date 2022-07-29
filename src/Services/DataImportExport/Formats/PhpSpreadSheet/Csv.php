@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\DataImportExport\Formats\CsvTrait;
-use \File;
+use File;
 
 class Csv extends PhpSpreadSheet
 {
@@ -23,13 +23,13 @@ class Csv extends PhpSpreadSheet
         if ($extension == 'zip' && isset($file)) {
             $tmpdir = \Exment::getTmpFolderPath('data', false);
             $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
-            
+
             $filename = $file->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
             $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
 
             // open zip file
             try {
-                $zip = new \ZipArchive;
+                $zip = new \ZipArchive();
                 //Define variable like flag to check exitsed file config (config.json) before extract zip file
                 $res = $zip->open($fullpath);
                 if ($res !== true) {
@@ -71,7 +71,7 @@ class Csv extends PhpSpreadSheet
         }
         return $writer;
     }
-    
+
     protected function createReader()
     {
         return IOFactory::createReader('Csv');
@@ -83,7 +83,7 @@ class Csv extends PhpSpreadSheet
      * @param string|array|\Illuminate\Support\Collection $files
      * @return int
      */
-    protected function getRowCount($files) : int
+    protected function getRowCount($files): int
     {
         $count = 0;
         if (is_string($files)) {
@@ -96,7 +96,7 @@ class Csv extends PhpSpreadSheet
             $reader->setInputEncoding('UTF-8');
             $reader->setDelimiter(",");
             $spreadsheet = $reader->load($file);
-            
+
             $count += intval($spreadsheet->getActiveSheet()->getHighestRow());
         }
 

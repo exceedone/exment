@@ -40,10 +40,10 @@ class DashboardMenu
             if ($editflg) {
                 $settings[] = ['url' => admin_urls('dashboard', $this->current_dashboard->id, 'edit'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];
             }
-    
+
             $settings[] = ['url' => admin_urls('dashboard', 'create'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.create')];
         }
-        
+
         return view('exment::dashboard.header', [
             'current_dashboard' => $this->current_dashboard,
             'systemdashboards' => $systemdashboards,

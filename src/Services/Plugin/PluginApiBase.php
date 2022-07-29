@@ -3,6 +3,7 @@
 /**
  * Execute Batch
  */
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Exceedone\Exment\Controllers\ApiTrait;
@@ -14,12 +15,12 @@ class PluginApiBase
 {
     use ApiTrait;
     use PluginBase;
-    
+
     public function _plugin()
     {
         return $this->plugin;
     }
-    
+
     public function __construct($plugin)
     {
         $this->plugin = $plugin;

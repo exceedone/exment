@@ -80,7 +80,7 @@ class LoginUserItem extends ProviderBase
                     , ['key' => 'reset_password', 'value' => "1"]
                     ])]);
         }
-    
+
         // "send_password"'s data-filter is whether $id is null or hasvalue
         $send_password_filter = [
             ['key' => 'use_loginuser', 'value' => '1'],
@@ -105,7 +105,7 @@ class LoginUserItem extends ProviderBase
         if (!\Exment::user()->hasPermission(Permission::LOGIN_USER)) {
             return;
         }
-        
+
         if (!LoginSetting::isUseDefaultLoginForm()) {
             return;
         }
@@ -118,7 +118,7 @@ class LoginUserItem extends ProviderBase
 
         return true;
     }
-    
+
     /**
      * saved event
      */
@@ -127,7 +127,7 @@ class LoginUserItem extends ProviderBase
         if (!\Exment::user()->hasPermission(Permission::LOGIN_USER)) {
             return;
         }
-        
+
         if (!LoginSetting::isUseDefaultLoginForm()) {
             return;
         }
@@ -175,13 +175,13 @@ class LoginUserItem extends ProviderBase
             }
             return;
         }
-        
+
         // if "$user" doesn't have "login_user" obj and checked "use_loginuser", create login user object.
         $has_change = false;
         $is_newuser = false;
         $password = null;
         if (is_null($login_user) && boolval(array_get($data, 'use_loginuser'))) {
-            $login_user = new LoginUser;
+            $login_user = new LoginUser();
             $is_newuser = true;
             $login_user->base_user_id = $user ? $user->getUserId() : null;
             $has_change = true;
@@ -257,7 +257,7 @@ class LoginUserItem extends ProviderBase
             $tools->disableDelete();
         }
     }
-    
+
     protected function getLoginUser($base_user_id)
     {
         if (!isset($base_user_id)) {

@@ -54,7 +54,7 @@ class Datetime extends Date
     {
         return true;
     }
-    
+
 
     /**
      * Get default value.
@@ -92,6 +92,6 @@ class Datetime extends Date
         $form->datetime('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATETIME])])
-            ;
+        ;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 use Exceedone\Exment\Services\ClassBuilder;
 use Exceedone\Exment\Services\ReplaceFormat\ReplaceFormatService;
 use Exceedone\Exment\Model\Define;
@@ -95,7 +96,7 @@ if (!function_exists('html_clean')) {
         if (is_nullorempty($html)) {
             return $html;
         }
-        
+
         try {
             // default setting for exment
             $config = HTMLPurifier_Config::createDefault();
@@ -192,7 +193,7 @@ if (!function_exists('floorDigit')) {
             $digit = 0;
         }
         $numPointPosition = intval(strpos($num, '.'));
-        
+
         // if for display
         $result = null;
         if ($numPointPosition === 0) { //$num is an integer
@@ -232,7 +233,7 @@ if (!function_exists('rmcomma')) {
         if (is_null($value)) {
             return null;
         }
-        
+
         return str_replace(",", "", $value);
     }
 }
@@ -430,7 +431,7 @@ if (!function_exists('join_paths')) {
             if (empty($value)) {
                 continue;
             }
-            
+
             if (is_array($value)) {
                 $ret_pass = $ret_pass.$trim_str.join_paths($trim_str, $value);
             } elseif ($ret_pass == "") {
@@ -472,7 +473,7 @@ if (!function_exists('path_ltrim')) {
     {
         foreach (['/', '\\'] as $split) {
             $l = str_replace($split, '/', $ltrim);
-            
+
             if (is_nullorempty($l)) {
                 $l = $split;
             }
@@ -504,7 +505,7 @@ if (!function_exists('path_rtrim')) {
     {
         foreach (['/', '\\'] as $split) {
             $l = str_replace($split, '/', $rtrim);
-            
+
             if (is_nullorempty($l)) {
                 $l = $split;
             }
@@ -607,7 +608,7 @@ if (!function_exists('isMatchRequest')) {
 
         foreach (toArray($uris) as $uri) {
             $uri = admin_base_path($uri);
-            
+
             if ($uri !== '/') {
                 $uri = trim($uri, '/');
             }
@@ -633,13 +634,13 @@ if (!function_exists('deleteDirectory')) {
         if (is_string($disk)) {
             $disk = \Storage::disk($disk);
         }
-        
+
         try {
             $directories = $disk->directories($path);
             foreach ($directories as $directory) {
                 deleteDirectory($disk, $directory);
             }
-    
+
             $disk->delete($disk->files($path));
             $disk->deleteDirectory($path);
         } catch (\Exception $ex) {
@@ -681,7 +682,7 @@ if (!function_exists('array_boolval')) {
      * get array_get and return boolval
      * @return bool
      */
-    function array_boolval($array, $key, $default = false) : bool
+    function array_boolval($array, $key, $default = false): bool
     {
         if (is_string($array)) {
             $array = [$array];
@@ -754,7 +755,7 @@ if (!function_exists('array_value_exists')) {
      * @param array|\Illuminate\Support\Collection $array
      * @return bool
      */
-    function array_value_exists($value, $array) : bool
+    function array_value_exists($value, $array): bool
     {
         if (is_null($array)) {
             return false;
@@ -827,7 +828,7 @@ if (!function_exists('jsonToArray')) {
         if (!isset($value)) {
             return [];
         }
-        
+
         // convert json to array
         if (is_array($value)) {
             return $value;
@@ -853,7 +854,7 @@ if (!function_exists('stringToArray')) {
         if (is_nullorempty($value)) {
             return [];
         }
-        
+
         // convert json to array
         if (is_array($value)) {
             return $value;
@@ -884,7 +885,7 @@ if (!function_exists('breakCommaToArray')) {
         if (is_nullorempty($value)) {
             return [];
         }
-        
+
         // convert json to array
         if (is_array($value)) {
             return $value;
@@ -912,7 +913,7 @@ if (!function_exists('toArray')) {
      * @param mixed $value
      * @return ?array
      */
-    function toArray($value) : ?array
+    function toArray($value): ?array
     {
         if (is_null($value)) {
             return null;
@@ -947,7 +948,7 @@ if (!function_exists('arrayToString')) {
         if (is_null($value)) {
             return null;
         }
-        
+
         // convert json to array
         if (is_array($value)) {
             return implode(',', $value);
@@ -999,7 +1000,7 @@ if (!function_exists('is_list')) {
      * @param mixed $value
      * @return bool
      */
-    function is_list($value) : bool
+    function is_list($value): bool
     {
         if (is_null($value)) {
             return false;
@@ -1017,7 +1018,7 @@ if (!function_exists('isMatchString')) {
      * @param mixed $v2
      * @return bool
      */
-    function isMatchString($v1, $v2) : bool
+    function isMatchString($v1, $v2): bool
     {
         if (is_array($v1) || is_array($v2)) {
             return false;
@@ -1034,7 +1035,7 @@ if (!function_exists('isMatchDecimal')) {
      * @param mixed $v2
      * @return bool
      */
-    function isMatchDecimal($v1, $v2) : bool
+    function isMatchDecimal($v1, $v2): bool
     {
         $v1 = rtrim((strpos($v1, ".") !== false ? rtrim($v1, "0") : $v1), ".");
         $v2 = rtrim((strpos($v2, ".") !== false ? rtrim($v2, "0") : $v2), ".");
@@ -1050,7 +1051,7 @@ if (!function_exists('isMatchArray')) {
      * @param array $v2
      * @return bool
      */
-    function isMatchArray(array $v1, array $v2) : bool
+    function isMatchArray(array $v1, array $v2): bool
     {
         if (count($v1) == count($v2)) {
             $dup = array_intersect($v1, $v2);
@@ -1129,7 +1130,7 @@ if (!function_exists('make_randomstr')) {
         if ($useNumber) {
             $chars .= "23456789";
         }
-        
+
         $str = '';
         for ($i = 0; $i < $length; ++$i) {
             $str .= $chars[mt_rand(0, strlen_ex($chars) -1)];
@@ -1157,7 +1158,7 @@ if (!function_exists('short_uuid')) {
 }
 
 if (!function_exists('is_uuid')) {
-    function is_uuid($uuid) : bool
+    function is_uuid($uuid): bool
     {
         return Uuid::validate($uuid);
     }
@@ -1269,7 +1270,7 @@ if (!function_exists('getYesNo')) {
      * get yes no label
      * @return string
      */
-    function getYesNo($value) : string
+    function getYesNo($value): string
     {
         return boolval($value) ? 'YES' : 'NO';
     }
@@ -1433,7 +1434,7 @@ if (!function_exists('getCurrencySymbolLabel')) {
         }
 
         $currencyOption = $currencySymbol->getOption();
-        
+
         $symbol = $html ? array_get($currencyOption, 'html') : array_get($currencyOption, 'text');
 
         if (isset($currencyOption)) {
@@ -1602,7 +1603,7 @@ if (!function_exists('downloadFile')) {
 
         // get page name
         $name = rawurlencode(mb_basename($path));
-        
+
         if (ob_get_level()) {
             ob_end_clean();
         }
@@ -1667,13 +1668,13 @@ if (!function_exists('getCellAlphabet')) {
         $alphabet = "ZABCDEFGHIJKLMNOPQRSTUVWXY";
         $columnStr = '';
         $m = 0;
-            
+
         do {
             $m = $no % 26;
             $columnStr = substr($alphabet, $m, 1) . $columnStr;
             $no = floor($no / 26);
         } while (0 < $no && $m != 0);
-    
+
         return $columnStr;
     }
 }
@@ -1696,7 +1697,7 @@ if (!function_exists('getUserName')) {
         } else {
             $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
         }
-        
+
         if (!isset($user)) {
             if (CustomTable::getEloquent(SystemTableName::USER)->hasCustomValueInDB($id)) {
                 return exmtrans('common.message.no_permission');
@@ -1780,7 +1781,7 @@ if (!function_exists('admin_exclusion_path')) {
             }, $str);
         }
     }
-    
+
     if (!function_exists('json_decode_ex')) {
         /**
          * Wrapper for json_decode that throws when an error occurs.

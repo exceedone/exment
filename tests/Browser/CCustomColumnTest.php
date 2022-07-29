@@ -80,7 +80,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[string_length]', 256)
-;
+        ;
         $form = [
             'column_view_name' => 'One Line Text Update',
             'options[required]' => 1,
@@ -107,7 +107,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[default]', 'あああ')
             ->seeInField('options[string_length]', 128)
             ->seeInField('options[available_characters][]', 'lower')
-;
+        ;
     }
 
     // Create custom column --Multi line--
@@ -141,7 +141,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[string_length]', 512)
-;
+        ;
         $form = [
             'column_view_name' => 'Multi Line Text Update',
             'options[required]' => 1,
@@ -165,7 +165,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[unique]', 1)
             ->seeInField('options[default]', 'あああ')
             ->seeInField('options[string_length]', 256)
-;
+        ;
     }
 
     // Create custom column --Editor--
@@ -199,7 +199,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'テキストエディタのヘルプ')
-;
+        ;
         $form = [
             'column_view_name' => 'Editor Column Update',
             'options[required]' => 1,
@@ -219,7 +219,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --URL--
@@ -253,7 +253,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'URLのヘルプ')
-;
+        ;
         $form = [
             'column_view_name' => 'URL Column Update',
             'options[required]' => 1,
@@ -273,7 +273,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --Email--
@@ -307,7 +307,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'Emailのヘルプ')
-;
+        ;
         $form = [
             'column_view_name' => 'Email Column Update',
             'options[required]' => 1,
@@ -327,7 +327,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --Integer--
@@ -370,7 +370,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[number_format]', 0)
             ->seeInField('options[updown_button]', 0)
             ->seeInField('options[calc_formula]', '')
-;
+        ;
         $form = [
             'column_view_name' => 'Integer Column Update',
             'options[required]' => 1,
@@ -402,7 +402,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[number_format]', 1)
             ->seeInField('options[updown_button]', 1)
             ->seeInField('options[calc_formula]', '[{"type":"symbol","val":"times"},{"type":"fixed","val":100}]')
-;
+        ;
     }
 
     // Create custom column --Decimal--
@@ -444,7 +444,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[number_min]', -12345.67)
             ->seeInField('options[number_max]', 12345.67)
             ->seeInField('options[decimal_digit]', 3)
-;
+        ;
         $form = [
             'column_view_name' => 'Decimal Column Update',
             'options[required]' => 1,
@@ -472,7 +472,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[number_min]', 0)
             ->seeInField('options[number_max]', 999999)
             ->seeInField('options[decimal_digit]', 0)
-;
+        ;
     }
 
     // Create custom column --Currency--
@@ -516,7 +516,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[decimal_digit]', 3)
             ->seeInField('options[currency_symbol]', '')
             ->seeInField('options[calc_formula]', '')
-;
+        ;
         $form = [
             'column_view_name' => 'Currency Column Update',
             'options[required]' => 1,
@@ -548,7 +548,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[decimal_digit]', 0)
             ->seeIsSelected('options[currency_symbol]', 'USD')
             ->seeInField('options[calc_formula]', '[{"type":"symbol","val":"times"},{"type":"fixed","val":100}]')
-;
+        ;
     }
 
     // Create custom column --Date--
@@ -585,7 +585,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '日付のヘルプ')
             ->seeInField('options[default]', '2019/02/19')
-;
+        ;
         $form = [
             'column_view_name' => 'Date Column Update',
             'options[required]' => 1,
@@ -605,7 +605,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --Time--
@@ -642,7 +642,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '時間のヘルプ')
             ->seeInField('options[default]', '12:34:56')
-;
+        ;
         $form = [
             'column_view_name' => 'Time Column Uptime',
             'options[required]' => 1,
@@ -662,7 +662,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --DateTime--
@@ -699,7 +699,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '日付と時間のヘルプ')
             ->seeInField('options[default]', '2019/02/19 11:22:33')
-;
+        ;
         $form = [
             'column_view_name' => 'DateTime Column Updatetime',
             'options[required]' => 1,
@@ -719,7 +719,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --Select--
@@ -757,7 +757,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[help]', '選択肢のヘルプ')
             ->seeInField('options[default]', 0)
             ->seeInField('options[select_item]', '選択1 選択2 選択3')
-;
+        ;
         $form = [
             'column_view_name' => 'Select Column Update',
             'options[required]' => 1,
@@ -777,7 +777,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --Select Value Text--
@@ -816,7 +816,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[default]', 0)
             ->seeInField('options[multiple_enabled]', 0)
             ->seeInField('options[select_item_valtext]', '0,低い 1,通常 2,高い')
-;
+        ;
         $form = [
             'column_view_name' => 'Select Value Text Column Update',
             'options[required]' => 1,
@@ -838,7 +838,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
             ->seeInField('options[multiple_enabled]', 1)
-;
+        ;
     }
 
     // Create custom column --Select Table--
@@ -879,7 +879,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[default]', 0)
             ->seeInField('options[multiple_enabled]', 0)
             ->seeInElement('span', $table->table_view_name)
-;
+        ;
         $form = [
             'column_view_name' => 'Select Table Column Update',
             'options[required]' => 1,
@@ -901,7 +901,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
             ->seeInField('options[multiple_enabled]', 1)
-;
+        ;
     }
 
     // Create custom column --YesNo--
@@ -937,7 +937,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'YES・Noのヘルプ')
             ->seeInField('options[default]', 0)
-;
+        ;
         $form = [
             'column_view_name' => 'YesNo Column Update',
             'options[required]' => 1,
@@ -957,7 +957,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --Boolean--
@@ -1001,7 +1001,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[true_label]', '１番')
             ->seeInField('options[false_value]', 2)
             ->seeInField('options[false_label]', '２番')
-;
+        ;
         $form = [
             'column_view_name' => 'Boolean Column Update',
             'options[required]' => 1,
@@ -1021,7 +1021,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --AutoNumber--
@@ -1057,7 +1057,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '採番種類のヘルプ')
             ->seeIsSelected('options[auto_number_type]', 'random25')
-;
+        ;
         $form = [
             'column_view_name' => 'AutoNumber Column Update',
             'options[required]' => 1,
@@ -1077,7 +1077,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --Image--
@@ -1111,7 +1111,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '画像のヘルプ')
-;
+        ;
         $form = [
             'column_view_name' => 'Image Column Update',
             'options[required]' => 1,
@@ -1131,7 +1131,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --File--
@@ -1165,7 +1165,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'ファイルのヘルプ')
-;
+        ;
         $form = [
             'column_view_name' => 'File Column Update',
             'options[required]' => 1,
@@ -1185,7 +1185,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 1)
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
-;
+        ;
     }
 
     // Create custom column --User--
@@ -1220,7 +1220,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'ユーザーのヘルプ')
             ->seeInField('options[multiple_enabled]', 0)
-;
+        ;
         $form = [
             'column_view_name' => 'User Column Update',
             'options[required]' => 1,
@@ -1242,7 +1242,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
             ->seeInField('options[multiple_enabled]', 1)
-;
+        ;
     }
 
     // Create custom column --Organization--
@@ -1277,7 +1277,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '組織のヘルプ')
             ->seeInField('options[multiple_enabled]', 0)
-;
+        ;
         $form = [
             'column_view_name' => 'Organization Column Update',
             'options[required]' => 1,
@@ -1289,7 +1289,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit(admin_url('column/test/'. $id . '/edit'))
                 ->submitForm('admin-submit', $form)
                 ->seePageIs(admin_url('column/test'))
-                ;
+        ;
 
         // Check custom column --Organization--
         $this->visit(admin_url('column/test/'. $id . '/edit'))

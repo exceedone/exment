@@ -22,19 +22,19 @@ class SystemColumn extends EnumBase
 {
     use EnumOptionTrait;
 
-    const ID = 'id';
-    const SUUID = 'suuid';
-    const PARENT_ID = 'parent_id';
-    const PARENT_TYPE = 'parent_type';
-    const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'updated_at';
-    const DELETED_AT = 'deleted_at';
-    const CREATED_USER = 'created_user';
-    const UPDATED_USER = 'updated_user';
-    const DELETED_USER = 'deleted_user';
-    const WORKFLOW_STATUS = 'workflow_status';
-    const WORKFLOW_WORK_USERS = 'workflow_work_users';
-    
+    public const ID = 'id';
+    public const SUUID = 'suuid';
+    public const PARENT_ID = 'parent_id';
+    public const PARENT_TYPE = 'parent_type';
+    public const CREATED_AT = 'created_at';
+    public const UPDATED_AT = 'updated_at';
+    public const DELETED_AT = 'deleted_at';
+    public const CREATED_USER = 'created_user';
+    public const UPDATED_USER = 'updated_user';
+    public const DELETED_USER = 'deleted_user';
+    public const WORKFLOW_STATUS = 'workflow_status';
+    public const WORKFLOW_WORK_USERS = 'workflow_work_users';
+
     protected static $options = [
         'id' => ['id' => 1, 'name' => 'id', 'sqlname' => 'id', 'default' => true, 'order' => 1, 'header' => true, 'summary' => true, 'min_width' => 30, 'max_width' => 100, 'grid_filter' => true, 'grid_filter_system' => true],
         'suuid' => ['id' => 2, 'name' => 'suuid', 'sqlname' => 'suuid', 'default' => false, 'order' => 2, 'header' => true, 'min_width' => 100, 'max_width' => 300],
@@ -64,7 +64,7 @@ class SystemColumn extends EnumBase
     {
         return in_array($key, [static::WORKFLOW_STATUS, static::WORKFLOW_WORK_USERS]);
     }
-    
+
     public static function getEnum($value, $default = null, $include_id = true)
     {
         $enum = parent::getEnum($value, $default);

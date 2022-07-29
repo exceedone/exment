@@ -91,7 +91,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         $custom_value_edit = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
         $date = \Carbon\Carbon::parse($custom_value_edit->getValue('date'));
-        
+
         foreach ($dateFormats as $format) {
             $text = ReplaceFormatService::replaceTextFromFormat('${value:date/format="'  . $format . '"}', $custom_value_edit);
             $this->assertMatch($text, $date->format($format));
@@ -108,7 +108,7 @@ class ReplaceFormatTest extends UnitTestBase
     public function testReplaceSystemValue()
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);
-        
+
         $systemValues = collect(SystemColumn::getOptions())->pluck('name')->toArray();
 
         foreach ($systemValues as $systemValue) {
@@ -120,7 +120,7 @@ class ReplaceFormatTest extends UnitTestBase
     public function testReplaceValue()
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);
-        
+
         $custom_columns = CustomTable::getEloquent('information')->custom_columns;
 
         foreach ($custom_columns as $custom_column) {
@@ -168,7 +168,7 @@ class ReplaceFormatTest extends UnitTestBase
             $this->assertMatch($text, $value);
         }
     }
-    
+
     public function testReplaceWorkflow()
     {
         // get workflow last value
@@ -179,7 +179,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         $workflow_action = $workflow_value->workflow_action;
         $workflow = Workflow::getEloquent($workflow_value->workflow_id);
-        
+
         $custom_value = CustomTable::getEloquent($workflow_value->morph_type)->getValueModel($workflow_value->morph_id);
         $statusTo = $workflow_action->getStatusToId($custom_value);
 

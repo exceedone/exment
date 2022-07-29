@@ -7,14 +7,13 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 abstract class ExmentTestCase extends TestCase
 {
-    public static $databaseSetup = false;
-    
     use DatabaseMigrations;
     use ExmentTestTrait {
         ExmentTestTrait::runDatabaseMigrations insteadof DatabaseMigrations;
     }
+    public static $databaseSetup = false;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
 

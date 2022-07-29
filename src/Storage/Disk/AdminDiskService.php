@@ -51,8 +51,8 @@ class AdminDiskService extends DiskServiceBase
     {
         return true;
     }
-    
-    
+
+
     /**
      * copy file from disk to localSyncDisk disk
      *
@@ -63,13 +63,13 @@ class AdminDiskService extends DiskServiceBase
         ///// copy to sync disk
         $diskItem = $this->diskItem();
         $localSyncDiskItem = $this->localSyncDiskItem();
-        
+
         $disk = $diskItem->disk();
         $localSyncDisk = $localSyncDiskItem->disk();
 
         // download file
         \Exment::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
-        
+
         // only call if exists
         if (!$disk->exists($diskItem->filePath())) {
             return true;
@@ -80,7 +80,7 @@ class AdminDiskService extends DiskServiceBase
             fclose($stream);
         } catch (\Exception $ex) {
         }
-        
+
         return true;
     }
 }

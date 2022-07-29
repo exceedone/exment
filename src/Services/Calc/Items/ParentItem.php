@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Calc\Items;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -23,7 +24,7 @@ class ParentItem extends ItemBase
         parent::__construct($custom_column, $custom_table);
         $this->parent_table = $parent_table;
     }
-    
+
     public function type()
     {
         return 'parent';
@@ -57,7 +58,7 @@ class ParentItem extends ItemBase
         return $item;
     }
 
-    
+
     public function toArray()
     {
         $array = [];
@@ -72,7 +73,7 @@ class ParentItem extends ItemBase
      *
      * @return array
      */
-    public function getTriggeredKeys() : array
+    public function getTriggeredKeys(): array
     {
         if ($this->custom_form_block) {
             // if has block, and form_block_type is default, this block is child table only form.
@@ -100,7 +101,7 @@ class ParentItem extends ItemBase
                 ];
             }
         }
-        
+
         return [
             'trigger_block' => 'default',
             'trigger_column' => array_get($this->custom_column, 'column_name'),

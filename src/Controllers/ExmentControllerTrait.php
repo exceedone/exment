@@ -11,7 +11,7 @@ trait ExmentControllerTrait
     protected $header;
     protected $description;
     protected $headericon;
-    
+
     protected function setPageInfo($title = null, $header = null, $description = null, $headericon = null)
     {
         if (isset($header)) {
@@ -43,7 +43,7 @@ trait ExmentControllerTrait
         }
         return $content;
     }
-    
+
     /**
      * validation table
      * @param mixed $table id or customtable

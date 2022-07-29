@@ -53,7 +53,7 @@ class LogOperation extends BaseLogOperation
             && !$this->inExceptArray($request)
             && $this->inAllowedMethods($request->method());
     }
-    
+
     /**
      * Determine if the request has a URI that should pass through CSRF verification.
      *
@@ -69,7 +69,7 @@ class LogOperation extends BaseLogOperation
 
         return parent::inExceptArray($request);
     }
-    
+
     /**
      * Replace passwords with stars in operation log
      * @see https://github.com/z-song/laravel-admin/issues/625
@@ -83,7 +83,7 @@ class LogOperation extends BaseLogOperation
         return preg_replace('#("(' . $columns . ')"\s*:\s*")([^"]*)"#', '\1***"', $stringToLog);
     }
 
-    public static function getHideColumns() : array
+    public static function getHideColumns(): array
     {
         return [
             'password',

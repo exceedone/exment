@@ -6,7 +6,8 @@ use Encore\Admin\Console\InstallCommand as AdminInstallCommand;
 
 class InstallCommand extends AdminInstallCommand
 {
-    use CommandTrait, InstallUpdateTrait;
+    use CommandTrait;
+    use InstallUpdateTrait;
 
     /**
      * The console command name.
@@ -53,7 +54,7 @@ class InstallCommand extends AdminInstallCommand
         $this->createExmentBootstrapFile();
 
         $this->initDatabase();
-        
+
         $this->initAdminDirectory();
 
         //$this->call('passport:keys');

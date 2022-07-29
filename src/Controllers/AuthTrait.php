@@ -81,21 +81,21 @@ trait AuthTrait
     protected function logoutSaml(Request $request, $provider_name, $options = [])
     {
         $login_setting = LoginSetting::getSamlSetting($provider_name);
-        
+
         // if not set ssout_url, return login
         if (!isset($login_setting) || is_nullorempty($login_setting->getOption('saml_idp_ssout_url'))) {
             return redirect(\URL::route('exment.login'));
         }
 
         $saml2Auth = LoginSetting::getSamlAuth($provider_name);
-        
+
         $returnTo = route('exment.saml_sls');
         $sessionIndex = array_get($options, Define::SYSTEM_KEY_SESSION_SAML_SESSION . '.sessionIndex');
         $nameId = array_get($options, Define::SYSTEM_KEY_SESSION_SAML_SESSION . '.nameId');
         $saml2Auth->logout($returnTo, $nameId, $sessionIndex, $login_setting->name_id_format_string); //will actually end up in the sls endpoint
         //does not return
     }
-    
+
     /**
      * Send the response after the user was authenticated.
      *

@@ -13,7 +13,7 @@ class CopyMenuButton implements Renderable
     protected $copy;
     protected $custom_table;
     protected $id;
-    
+
     public function __construct($copy, $custom_table, $id = null)
     {
         $this->copy = $copy;
@@ -48,7 +48,7 @@ class CopyMenuButton implements Renderable
         });
 EOT;
     }
-    
+
     protected function scriptModal($uuid)
     {
         $table_name = array_get($this->custom_table, 'table_name');

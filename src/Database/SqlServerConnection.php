@@ -13,7 +13,7 @@ use Exceedone\Exment\Exceptions\BackupRestoreNotSupportedException;
 class SqlServerConnection extends BaseConnection implements ConnectionInterface
 {
     use ConnectionTrait;
-    
+
     /**
      * Get a schema builder instance for the connection.
      *
@@ -35,7 +35,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix(new SchemaGrammar);
+        return $this->withTablePrefix(new SchemaGrammar());
     }
 
     /**
@@ -45,7 +45,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefaultQueryGrammar()
     {
-        return $this->withTablePrefix(new QueryGrammar);
+        return $this->withTablePrefix(new QueryGrammar());
     }
 
     /**
@@ -55,11 +55,11 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefaultPostProcessor()
     {
-        return new SqlServerProcessor;
+        return new SqlServerProcessor();
     }
 
 
-    public function getDatabaseDriverName() : string
+    public function getDatabaseDriverName(): string
     {
         return 'SQL Server';
     }
@@ -70,17 +70,17 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      * @return bool
      * @throws BackupRestoreCheckException
      */
-    public function checkBackup() : bool
+    public function checkBackup(): bool
     {
         throw new BackupRestoreNotSupportedException(exmtrans('backup.message.not_support_driver', $this->getDatabaseDriverName()));
     }
-    
+
     /**
      * Whether use unicode if search multiple column
      *
      * @return boolean
      */
-    public function isUseUnicodeMultipleColumn() : bool
+    public function isUseUnicodeMultipleColumn(): bool
     {
         return true;
     }
@@ -88,7 +88,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     public function backupDatabase($tempDir)
     {
     }
-    
+
     /**
      * Restore database
      *
@@ -108,7 +108,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     {
     }
 
-    
+
     public function createView($viewName, $query)
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);

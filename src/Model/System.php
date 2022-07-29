@@ -165,7 +165,7 @@ class System extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
-    public static function getRequestSessionKeys() : \Illuminate\Support\Collection
+    public static function getRequestSessionKeys(): \Illuminate\Support\Collection
     {
         $result = collect();
         foreach (static::$requestSession as $key => $value) {
@@ -201,7 +201,7 @@ class System extends ModelBase
             if (!is_null($val = static::requestSession($key))) {
                 return $val;
             }
-            
+
             if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
                 $val = Cache::get($key);
                 static::setRequestSession($key, $val);
@@ -282,7 +282,7 @@ class System extends ModelBase
         foreach (static::get_system_keys($group) as $k) {
             $array[$k] = static::{$k}();
         }
-        
+
         return $array;
     }
 
@@ -306,7 +306,7 @@ class System extends ModelBase
 
             $type = array_get($setting, 'type');
             $value = null;
-            
+
             // if has data, return setting value or default value
             if (isset($system)) {
                 $value = $system->system_value;
@@ -324,7 +324,7 @@ class System extends ModelBase
             elseif (!is_null(array_get($setting, 'default'))) {
                 $value = array_get($setting, 'default');
             }
-    
+
             if ($type == 'boolean') {
                 $value = boolval($value);
             } elseif ($type == 'int') {
@@ -383,7 +383,7 @@ class System extends ModelBase
             $system->system_value = $value;
         }
         $system->saveOrFail();
-        
+
         return $system;
     }
 
@@ -397,7 +397,7 @@ class System extends ModelBase
             return;
         }
         $old_value = $system->system_value;
-        
+
         // change set value by type
         $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
         $type = array_get($setting, 'type');
@@ -410,7 +410,7 @@ class System extends ModelBase
         }
         $system->system_value = null;
         $system->save();
-        
+
         return $system;
     }
 

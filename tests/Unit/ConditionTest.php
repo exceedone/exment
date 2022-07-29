@@ -84,7 +84,7 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnTextNullCheck('test_2', FilterOption::NULL, false);
         $this->_testColumnTextNullCheck(2, FilterOption::NULL, false);
     }
-    
+
     protected function _testColumnText($target_value, array $values, string $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::TEXT, $target_value, $values, $filterOption, $result);
@@ -1465,11 +1465,11 @@ class ConditionTest extends UnitTestBase
                 'target_column_id' => $custom_column->id,
                 'condition_value' => $value,
             ]);
-            
-            
+
+
             $messageValue = is_array($value) ? json_encode($value) : ($value ?? 'null');
             $messageTargetValue = is_array($target_value) ? json_encode($target_value) : ($target_value ?? 'null');
-            
+
             $isMatchCondition = $condition->isMatchCondition($custom_value);
             $messageIsMatchCondition = $isMatchCondition ? 'true' : 'false';
             $messageResult = $result ? 'true' : 'false';
@@ -1512,7 +1512,7 @@ class ConditionTest extends UnitTestBase
             $this->assertMatch($condition->isMatchCondition($custom_value), $result);
         }
     }
-    
+
 
     /**
      * Execute test for custom column
@@ -1543,7 +1543,7 @@ class ConditionTest extends UnitTestBase
 
         $this->assertMatch($condition->isMatchCondition($custom_value), $result);
     }
-    
+
 
     /**
      * Execute test for workflow status
@@ -1578,12 +1578,12 @@ class ConditionTest extends UnitTestBase
                 'target_column_id' => 201, //WORKFLOW_STATUS
                 'condition_value' =>  $workflow_status ? $workflow_status->id : Model\Define::WORKFLOW_START_KEYNAME,
             ]);
-    
+
             $this->assertMatch($condition->isMatchCondition($custom_value), $result);
             break;
         }
     }
-    
+
 
     /**
      * Execute test for workflow work user
@@ -1618,7 +1618,7 @@ class ConditionTest extends UnitTestBase
                 'condition_key' => $filterOption,
                 'target_column_id' => 202, //WORKFLOW_WORK_USER
             ]);
-    
+
             $this->assertMatch($condition->isMatchCondition($custom_value), $result);
             break;
         }

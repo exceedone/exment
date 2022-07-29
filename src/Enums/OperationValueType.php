@@ -12,7 +12,7 @@ class OperationValueType extends EnumBase
     public const CREATED_USER = 'created_user';
     public const BERONG_ORGANIZATIONS = 'berong_organizations';
 
-    
+
     public static function getOperationValueOptions($operation_update_type, $custom_column)
     {
         if ($operation_update_type != OperationUpdateType::SYSTEM) {
@@ -43,16 +43,16 @@ class OperationValueType extends EnumBase
         switch ($operation_update_type) {
             case static::EXECUTE_DATETIME:
                 return \Carbon\Carbon::now();
-                
+
             case static::LOGIN_USER:
                 $login_user = \Exment::user();
                 return $login_user ? $login_user->getUserId() : null;
-                
+
             case static::CREATED_USER:
                 if ($custom_value instanceof CustomValue) {
                     return $custom_value->created_user_id;
                 }
-                    
+
                 // no break
             case static::BERONG_ORGANIZATIONS:
                 $login_user = \Exment::user();

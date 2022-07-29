@@ -50,7 +50,7 @@ class CheckRequireCommand extends Command
             $funcName = $this->getCommandFuncName($result);
 
             $this->line(exmtrans('system_require.item_header', ['label' => $check->getLabel(), 'text' => $check->getResultText(), 'result' => strtoupper($result)]));
-            
+
             if (!is_null($message = $check->getMessage())) {
                 $this->{$funcName}($message);
                 $this->{$funcName}($check->getSettingUrl());
@@ -67,7 +67,7 @@ class CheckRequireCommand extends Command
      * @param string $result
      * @return string
      */
-    protected function getCommandFuncName($result) : string
+    protected function getCommandFuncName($result): string
     {
         switch ($result) {
             case SystemRequireResult::OK:

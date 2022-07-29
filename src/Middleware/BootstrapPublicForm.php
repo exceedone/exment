@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\PublicForm;
 class BootstrapPublicForm
 {
     use BootstrapTrait;
-    
+
     public function handle(Request $request, \Closure $next)
     {
         $this->setCssJs($request, $next);

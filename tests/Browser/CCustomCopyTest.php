@@ -14,12 +14,14 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CCustomCopyTest extends ExmentKitTestCase
 {
-    use ExmentKitPrepareTrait, ColumnOptionQueryTrait, DatabaseTransactions;
+    use ExmentKitPrepareTrait;
+    use ColumnOptionQueryTrait;
+    use DatabaseTransactions;
 
     /**
      * pre-excecute process before test.
      */
-    protected function setUp() : void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->login();
@@ -70,7 +72,7 @@ class CCustomCopyTest extends ExmentKitTestCase
             ->seeOuterElement('input[id=label]', 'copy unit test')
             ->seeOuterElement('input[id=icon]', 'fa-android')
             ->seeOuterElement('input[id=button_class]', 'btn-info')
-            ;
+        ;
 
         foreach ($custom_copy->custom_copy_columns as $custom_copy_column) {
             $row_id = $custom_copy_column->id;
@@ -98,11 +100,11 @@ class CCustomCopyTest extends ExmentKitTestCase
         $this->_updateCopyData($custom_copy);
 
         $id = array_get($custom_copy, 'id');
-    
+
         $this->visit(admin_url("copy/custom_value_edit_all/$id/edit"))
             ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
             ->seeOuterElement('input[id=label]', 'copy unit test update')
-            ;
+        ;
 
         $custom_copy = CustomCopy::find($id);
 
@@ -125,7 +127,7 @@ class CCustomCopyTest extends ExmentKitTestCase
                 $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id
             );
         }
-        
+
         $options = ['ignore_attachment' => true];
         $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, $options));
         $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $options));
@@ -258,7 +260,7 @@ class CCustomCopyTest extends ExmentKitTestCase
         }
         $this->put(admin_url("copy/custom_value_edit_all/$id"), $data);
         $this->assertPostResponse($this->response, admin_url("copy/custom_value_edit_all"));
-        
+
         $this->assertEquals(
             $pre_default_cnt - $new_idx,
             CustomCopyColumn::where('copy_column_type', CopyColumnType::DEFAULT)->count()
@@ -275,7 +277,7 @@ class CCustomCopyTest extends ExmentKitTestCase
     protected function _addCopyData($is_same = false)
     {
         $from_table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL;
-        $to_table_name = $is_same? TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL: TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL;
+        $to_table_name = $is_same ? TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL : TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL;
 
         $pre_cnt = CustomCopy::count();
         $pre_child_cnt = CustomCopyColumn::count();
@@ -326,8 +328,8 @@ class CCustomCopyTest extends ExmentKitTestCase
             ->assertEquals($pre_cnt + 1, CustomCopy::count());
 
         $this->assertEquals($pre_child_cnt + $column_count, CustomCopyColumn::count())
-            ;
-            
+        ;
+
         $raw = CustomCopy::orderBy('created_at', 'desc')->first();
 
         return $raw;

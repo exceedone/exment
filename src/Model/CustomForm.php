@@ -78,17 +78,17 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         return $this->hasMany(CustomFormPriority::class, 'custom_form_id');
     }
-    
+
     public function public_forms()
     {
         return $this->hasMany(PublicForm::class, 'custom_form_id');
     }
-    
+
     public function custom_form_columns()
     {
         return $this->hasManyThrough(CustomFormColumn::class, CustomFormBlock::class, 'custom_form_id', 'custom_form_block_id');
     }
-    
+
     public function getCustomTableCacheAttribute()
     {
         return CustomTable::getEloquent($this->custom_table_id);
@@ -168,10 +168,10 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (!isset($form)) {
             $form = $tableObj->custom_forms()->first();
         }
-        
+
         // if form doesn't contain for target table, create form.
         if (!isset($form)) {
-            $form = new CustomForm;
+            $form = new CustomForm();
             $form->custom_table_id = $tableObj->id;
             $form->form_view_name = exmtrans('custom_form.default_form_name');
             $form->saveOrFail();
@@ -187,12 +187,12 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
             ->first();
         if (!isset($form_block)) {
             // Create CustomFormBlock as default
-            $form_block = new CustomFormBlock;
+            $form_block = new CustomFormBlock();
             $form_block->form_block_type = FormBlockType::DEFAULT;
             $form_block->form_block_target_table_id = $tableObj->id;
             $form_block->available = true;
             $form->custom_form_blocks()->save($form_block);
-            
+
             // add columns.
             $form_columns = [];
 
@@ -202,7 +202,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ->first();
             // loop for index_enabled columns, and add form.
             foreach ($tableObj->custom_columns_cache as $index => $custom_column) {
-                $form_column = new CustomFormColumn;
+                $form_column = new CustomFormColumn();
                 $form_column->custom_form_block_id = $form_block->id;
                 $form_column->form_column_type = FormColumnType::COLUMN;
                 $form_column->form_column_target_id = array_get($custom_column, 'id');
@@ -213,14 +213,14 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $form_columns[] = $form_column;
             }
             $form_block->custom_form_columns()->saveMany($form_columns);
-            
+
             // re-get form
             $form = static::find($form->id);
         }
 
         return $form;
     }
-    
+
     /**
      * get eloquent using request settion.
      * now only support only id.
@@ -246,7 +246,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             $model->setDefaultFlgInTable();
         });
@@ -256,7 +256,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         static::saving(function ($model) {
             $model->setDefaultFlgInTable();
         });
-        
+
         static::deleting(function ($model) {
             $model->deletingChildren();
         });

@@ -64,10 +64,10 @@ class FileColumnAction implements ActionInterface
                 if (empty($dataObject)) {
                     break;
                 }
-                
+
                 // validate data
                 list($data_import, $error_data) = $provider->validateImportData($dataObject);
-        
+
                 // if has error data, return error data
                 if (is_array($error_data) && count($error_data) > 0) {
                     $error_msg = [];
@@ -79,7 +79,7 @@ class FileColumnAction implements ActionInterface
                     }
                     $error_msg[] = exmtrans('command.import.error_info');
                     $error_msg[] = implode("\r\n", $error_data);
-                    
+
                     // execute command
                     if (isset($options['command'])) {
                         $options['command']->error(exmtrans(
@@ -91,7 +91,7 @@ class FileColumnAction implements ActionInterface
                             implode("\r\n", $error_msg)
                         ));
                     }
-                
+
                     return [
                         'result' => false,
                     ];
@@ -111,7 +111,7 @@ class FileColumnAction implements ActionInterface
                 $import_loop_count++;
             }
         }
-        
+
         return [
             'result' => true,
             'data_import_cnt' => $data_import_cnt,
@@ -130,7 +130,7 @@ class FileColumnAction implements ActionInterface
     {
         return $datalist;
     }
-    
+
     /**
      * get provider
      */

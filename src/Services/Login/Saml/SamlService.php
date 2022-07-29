@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Login\Saml;
 
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
@@ -18,7 +19,6 @@ use Illuminate\Http\Request;
  */
 class SamlService implements LoginServiceInterface
 {
-
     /**
      * Checking retrieveByCredential.
      * (1) Login using LDAP
@@ -75,9 +75,9 @@ class SamlService implements LoginServiceInterface
     {
         return LoginService::getTestFormSso($login_setting);
     }
-    
 
-    
+
+
     public static function setSamlForm($form, $login_setting, $errors)
     {
         if (array_has($errors, LoginType::SAML)) {
@@ -86,12 +86,12 @@ class SamlService implements LoginServiceInterface
 
             return;
         }
-        
+
         if (!isset($login_setting)) {
             $form->text('saml_name', exmtrans('login.saml_name'))
             ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'))
             ->required()
-            ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule])
+            ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule()])
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         } else {
             $form->display('saml_name_text', exmtrans('login.saml_name'))->default(function () use ($login_setting) {
@@ -107,16 +107,16 @@ class SamlService implements LoginServiceInterface
         ->help(exmtrans('login.help.saml_idp_entityid'))
         ->required()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         $form->url('saml_idp_sso_url', exmtrans('login.saml_idp_sso_url'))
         ->help(exmtrans('login.help.saml_idp_sso_url'))
         ->required()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         $form->url('saml_idp_ssout_url', exmtrans('login.saml_idp_ssout_url'))
         ->help(exmtrans('login.help.saml_idp_ssout_url'))
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         $form->textarea('saml_idp_x509', exmtrans('login.saml_idp_x509'))
         ->help(exmtrans('login.help.saml_idp_x509') .
             (isset($login_setting) ? exmtrans('login.help.saml_key_path', static::getCerKeysPath('saml_idp_x509', $login_setting)) : null))
@@ -125,7 +125,7 @@ class SamlService implements LoginServiceInterface
             return trydecrypt($value);
         })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
 
         $form->exmheader(exmtrans('login.saml_sp'))->hr()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
@@ -135,11 +135,11 @@ class SamlService implements LoginServiceInterface
         ->required()
         ->options(Define::SAML_NAME_ID_FORMATS)
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         $form->text('saml_sp_entityid', exmtrans('login.saml_sp_entityid'))
         ->help(exmtrans('login.help.saml_sp_entityid'))
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         $form->textarea('saml_sp_x509', exmtrans('login.saml_sp_x509'))
         ->help(exmtrans('login.help.saml_sp_x509') .
             (isset($login_setting) ? exmtrans('login.help.saml_key_path', static::getCerKeysPath('saml_sp_x509', $login_setting)) : null))
@@ -148,7 +148,7 @@ class SamlService implements LoginServiceInterface
             return trydecrypt($value);
         })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         $form->textarea('saml_sp_privatekey', exmtrans('login.saml_sp_privatekey'))
         ->help(exmtrans('login.help.saml_privatekey') .
             (isset($login_setting) ? exmtrans('login.help.saml_key_path', static::getCerKeysPath('saml_sp_privatekey', $login_setting)) : null))
@@ -157,19 +157,19 @@ class SamlService implements LoginServiceInterface
             return trydecrypt($value);
         })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         if (isset($login_setting)) {
             $form->display('saml_redirect_url', exmtrans('login.redirect_url'))->default($login_setting->exment_callback_url);
         }
 
         $form->exmheader(exmtrans('login.saml_option'))->hr()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         $form->switchbool('saml_option_name_id_encrypted', exmtrans("login.saml_option_name_id_encrypted"))
         ->help(exmtrans("login.help.saml_option_name_id_encrypted"))
         ->default("0")
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-        
+
         $form->switchbool('saml_option_authn_request_signed', exmtrans("login.saml_option_authn_request_signed"))
         ->help(exmtrans("login.help.saml_option_authn_request_signed"))
         ->default("0")
@@ -204,7 +204,7 @@ class SamlService implements LoginServiceInterface
         $saml2Auth->login();
     }
 
-    
+
     /**
      * Execute login test callback
      *
@@ -223,7 +223,7 @@ class SamlService implements LoginServiceInterface
             }
 
             $custom_login_user = SamlUser::with($login_setting->provider_name, $saml2Auth->getSaml2User(), true);
-            
+
             if (!is_nullorempty($custom_login_user->mapping_errors)) {
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, $custom_login_user->mapping_errors);
             }
@@ -237,7 +237,7 @@ class SamlService implements LoginServiceInterface
                     $custom_login_user
                 );
             }
-            
+
             return LoginService::getLoginResult(true, [], [], $custom_login_user);
         } catch (\Exception $ex) {
             \Log::error($ex);
@@ -286,7 +286,7 @@ class SamlService implements LoginServiceInterface
      * @param LoginSetting $login_setting
      * @return string file path.
      */
-    public static function getCerKeysPath($name, LoginSetting $login_setting) : string
+    public static function getCerKeysPath($name, LoginSetting $login_setting): string
     {
         if ($name == 'saml_sp_privatekey') {
             $filename = $name . ".key";

@@ -110,7 +110,7 @@ class CPublicFormTest extends ExmentKitTestCase
                 ->seeInElement('label', '公開有効期限')
                 ->seeInElement('label', '公開有効期限')
                 ->seeInElement('label', '公開有効期限')
-            ;
+        ;
         \DB::rollback();
     }
     // Create public form
@@ -414,7 +414,7 @@ class CPublicFormTest extends ExmentKitTestCase
         $today = Carbon::today();
         $start = Carbon::createFromDate($today->year, 1, 1)->format('Y-m-d');
         $end = Carbon::createFromDate($today->year, 12, 31)->format('Y-m-d');
-        
+
         $form = [
             'public_form_view_name' => 'Public Form Unit Test Update',
             'basic_setting[validity_period_start]' => $start,

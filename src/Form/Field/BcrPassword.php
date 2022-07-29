@@ -23,7 +23,7 @@ class BcrPassword extends Password
 
         return bcrypt($value);
     }
-    
+
     /**
      * Format value by passing custom formater.
      * Always null.

@@ -18,7 +18,7 @@ class PublicFormForm extends DefaultForm
      * @var PublicForm
      */
     protected $public_form;
-    
+
     /**
      * If true, all disabled tools button
      *
@@ -32,7 +32,7 @@ class PublicFormForm extends DefaultForm
      * @var boolean
      */
     protected $disableSavedRedirectCheck = true;
-    
+
     /**
      * If true, disableDefaultSavedRedirect.
      *

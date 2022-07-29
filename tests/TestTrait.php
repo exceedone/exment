@@ -136,7 +136,7 @@ trait TestTrait
         getModelName(SystemTableName::ORGANIZATION);
     }
 
-    
+
     /**
      * Check custom value's permission after getting api
      *
@@ -150,12 +150,12 @@ trait TestTrait
         // get all ids
         $allIds = \DB::table(getDBTableName($custom_table))->select('id')->pluck('id');
         $query = $custom_table->getValueModel()->withoutGlobalScopes();
-        
+
         if ($filterCallback) {
             $filterCallback($query);
         }
         $all_custom_values = $query->findMany($allIds);
-        
+
         foreach ($all_custom_values as $all_custom_value) {
             // if find target user ids, check has permisison
             $hasPermission = in_array($all_custom_value->id, $ids);
@@ -165,8 +165,8 @@ trait TestTrait
         }
     }
 
-    
-    protected function getTextDirPath() : string
+
+    protected function getTextDirPath(): string
     {
         $dir = storage_path('app/tests');
         \Exment::makeDirectory($dir);
@@ -174,7 +174,7 @@ trait TestTrait
         return $dir;
     }
 
-    protected function getTextFilePath($fileName = 'file.txt') : string
+    protected function getTextFilePath($fileName = 'file.txt'): string
     {
         $dir = $this->getTextDirPath();
 
@@ -198,7 +198,7 @@ trait TestTrait
         }
         return $file;
     }
-    
+
     protected function getTextFileObject($fileName = 'file.txt')
     {
         $file = $this->getTextFilePath($fileName);
@@ -211,7 +211,7 @@ trait TestTrait
         return \File::get($file);
     }
 
-    
+
     protected function callProtectedMethod($obj, $methodName, ...$args)
     {
         $method = new \ReflectionMethod(get_class($obj), $methodName);

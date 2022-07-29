@@ -11,7 +11,7 @@ use Exceedone\Exment\Validator;
 class Yesno extends CustomItem
 {
     use ImportValueTrait;
-    
+
     /**
      * laravel-admin set required. if false, always not-set required
      */
@@ -70,12 +70,12 @@ class Yesno extends CustomItem
             $field->requiredRule();
         }
     }
-    
+
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->radio(Define::YESNO_RADIO);
     }
-        
+
     protected function setValidates(&$validates)
     {
         $validates[] = new Validator\YesNoRule();
@@ -137,7 +137,7 @@ class Yesno extends CustomItem
         }
         $form->switchbool('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
-            ;
+        ;
     }
 
     /**
@@ -154,7 +154,7 @@ class Yesno extends CustomItem
         $form->switchbool('required_yes', exmtrans("custom_column.options.required_yes"))
             ->help(exmtrans("custom_column.help.required_yes"));
     }
-    
+
     public function getFalseValue()
     {
         return 0;

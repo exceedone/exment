@@ -28,7 +28,7 @@ class LoginUserAction implements ActionInterface
 
             // validate data
             list($data_import, $error_data) = $provider->validateImportData($dataObject);
-        
+
             // if has error data, return error data
             if (is_array($error_data) && count($error_data) > 0) {
                 return response([
@@ -69,7 +69,7 @@ class LoginUserAction implements ActionInterface
     {
         return $datalist;
     }
-    
+
     // Import Modal --------------------------------------------------
 
     /**
@@ -84,7 +84,7 @@ class LoginUserAction implements ActionInterface
     {
         return exmtrans('menu.system_definitions.loginuser');
     }
-    
+
     /**
      * get primary key list.
      */
@@ -94,7 +94,7 @@ class LoginUserAction implements ActionInterface
         $keys = getTransArray(Define::CUSTOM_VALUE_IMPORT_KEY, "custom_value.import.key_options");
         return $keys;
     }
-    
+
     /**
      * set_import_modal_items. it sets at form footer
      */

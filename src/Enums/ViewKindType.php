@@ -9,12 +9,12 @@ use Exceedone\Exment\DataItems\Grid as GridItem;
  */
 class ViewKindType extends EnumBase
 {
-    const DEFAULT = "0";
-    const AGGREGATE = "1";
-    const CALENDAR = "2";
-    const FILTER = "3";
-    const PLUGIN = "4";
-    const ALLDATA = "9";
+    public const DEFAULT = "0";
+    public const AGGREGATE = "1";
+    public const CALENDAR = "2";
+    public const FILTER = "3";
+    public const PLUGIN = "4";
+    public const ALLDATA = "9";
 
     /**
      * Accept view kind type for datalist
@@ -48,7 +48,7 @@ class ViewKindType extends EnumBase
         return in_array($enum, $acceptTypes);
     }
 
-    
+
     public static function getGridItemClassName($view_kind_type)
     {
         switch ($view_kind_type) {

@@ -25,7 +25,7 @@ abstract class SpOut extends FormatBase
         foreach ($this->datalist as $index => $data) {
             $sheet_name = array_get($data, 'name');
             $outputs = array_get($data, 'outputs');
-            
+
             // if output as zip, change file name.
             if ($this->isOutputAsZip()) {
                 $outputPath = $this->getTmpFilePath($this->getRealFileName($sheet_name));
@@ -80,7 +80,7 @@ abstract class SpOut extends FormatBase
                 'path' => $outputPath,
             ];
         }
-        
+
         // create download file
         $this->createDownloadFile($files);
 
@@ -97,7 +97,7 @@ abstract class SpOut extends FormatBase
      * @param boolean $isGetMerge
      * @return array
      */
-    public function getDataFromSheet($sheet, bool $keyvalue = false, bool $isGetMerge = false, array $options = []) : array
+    public function getDataFromSheet($sheet, bool $keyvalue = false, bool $isGetMerge = false, array $options = []): array
     {
         $data = [];
         foreach ($sheet->getRowIterator() as $row_no => $row) {
@@ -131,7 +131,7 @@ abstract class SpOut extends FormatBase
         return $data;
     }
 
-    
+
     /**
      * get cell value
      *

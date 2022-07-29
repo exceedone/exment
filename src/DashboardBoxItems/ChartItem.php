@@ -17,25 +17,25 @@ use Exceedone\Exment\Enums\ViewKindType;
 class ChartItem implements ItemInterface
 {
     use TableItemTrait;
-    
+
     protected $dashboard_box;
 
     protected $custom_table;
-    
+
     protected $custom_view;
-    
+
     protected $axis_x;
-    
+
     protected $axis_y;
-    
+
     protected $chart_type;
-    
+
     protected $chart_options;
-    
+
     protected $chart_axis_label;
-    
+
     protected $chart_axis_name;
-    
+
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -55,7 +55,7 @@ class ChartItem implements ItemInterface
         $this->chart_axis_name = array_get($this->dashboard_box, 'options.chart_axis_name')?? [];
     }
 
-    
+
     /**
      * get header
      */
@@ -63,7 +63,7 @@ class ChartItem implements ItemInterface
     {
         return $this->tableheader();
     }
-    
+
     /**
      * get footer
      */
@@ -71,7 +71,7 @@ class ChartItem implements ItemInterface
     {
         return null;
     }
-    
+
     /**
      * get html(for display)
      * *this function calls from non-value method. So please escape if not necessary unescape.
@@ -81,7 +81,7 @@ class ChartItem implements ItemInterface
         if (($result = $this->hasPermission()) !== true) {
             return $result;
         }
-        
+
         if (is_null($this->custom_view)) {
             return null;
         }
@@ -282,17 +282,17 @@ class ChartItem implements ItemInterface
             ->options([
                 1 => exmtrans("dashboard.dashboard_box_options.chart_axisx_short"),
                 2 => exmtrans("dashboard.dashboard_box_options.chart_axisy_short")])
-            ;
+        ;
         $form->checkbox('chart_axis_name', exmtrans("dashboard.dashboard_box_options.chart_axis_name"))
         ->options([
                 1 => exmtrans("dashboard.dashboard_box_options.chart_axisx_short"),
                 2 => exmtrans("dashboard.dashboard_box_options.chart_axisy_short")])
-            ;
+        ;
         $form->checkbox('chart_options', exmtrans("dashboard.dashboard_box_options.chart_options"))
         ->options([
                 1 => exmtrans("dashboard.dashboard_box_options.chart_legend"),
                 2 => exmtrans("dashboard.dashboard_box_options.chart_begin_zero")])
-            ;
+        ;
         $script = <<<EOT
         function setChartOptions(val) {
             if (val == 'pie') {
@@ -350,7 +350,7 @@ EOT;
     protected function getChartColor($datacnt)
     {
         $chart_color = config('exment.chart_backgroundColor');
-        $chart_color = stringToArray(empty($chart_color)? 'red': $chart_color);
+        $chart_color = stringToArray(empty($chart_color) ? 'red' : $chart_color);
 
         if ($this->chart_type == ChartType::PIE) {
             $colors = [];
@@ -363,7 +363,7 @@ EOT;
             }
             return $colors;
         } else {
-            return (count($chart_color) > 0)? $chart_color[0]: '';
+            return (count($chart_color) > 0) ? $chart_color[0] : '';
         }
     }
 

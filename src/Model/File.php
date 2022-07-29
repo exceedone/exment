@@ -29,7 +29,7 @@ class File extends ModelBase
 
     protected $guarded = ['uuid'];
     protected $casts = ['options' => 'json'];
-    
+
     // Primary key setting
     protected $primaryKey = 'uuid';
     // increment disable
@@ -57,7 +57,7 @@ class File extends ModelBase
      * @param array|boolean|null $options (Old version, this args is boolean)
      * @return string|null
      */
-    public static function getUrl($path, $options = []) : ?string
+    public static function getUrl($path, $options = []): ?string
     {
         if ($options === true) {
             $options = ['asApi' => true];
@@ -100,7 +100,7 @@ class File extends ModelBase
      * @param string|null $form_column
      * @return File|null
      */
-    public static function getFileFromFormColumn(?string $form_column) : ?File
+    public static function getFileFromFormColumn(?string $form_column): ?File
     {
         if (!$form_column) {
             return null;
@@ -167,7 +167,7 @@ class File extends ModelBase
         if (is_null($replace)) {
             $replace = true;
         }
-        
+
         if (!is_nullorempty($custom_value_id)) {
             $this->parent_id = $custom_value_id;
             $this->parent_type = $custom_table->table_name;
@@ -176,7 +176,7 @@ class File extends ModelBase
         $table_name = $this->local_dirname ?? $custom_table->table_name;
         $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
         $this->custom_column_id = $custom_column ? $custom_column->id : null;
-        
+
         // get old file if replace
         if ($replace) {
             $oldFiles = static::where('parent_id', $this->parent_id)
@@ -203,7 +203,7 @@ class File extends ModelBase
      * @param string $dirname directory name
      * @return File
      */
-    public static function saveFileInfo(?string $file_type, string $dirname, array $options = []) : File
+    public static function saveFileInfo(?string $file_type, string $dirname, array $options = []): File
     {
         $options = array_merge([
             'filename' => null, // saves file name
@@ -226,7 +226,7 @@ class File extends ModelBase
             // get unique name. if different and not override, change name
             $unique_filename = static::getUniqueFileName($dirname, $filename, $override);
         }
-        
+
         // if (!$override && $local_filename != $unique_filename) {
         //     $local_filename = $unique_filename;
         // }
@@ -280,12 +280,11 @@ class File extends ModelBase
         if (!$file) {
             return;
         }
-        
+
         $column_name = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getIndexColumnName('file_uuid');
-    
+
         // delete document info
-        getModelName(SystemTableName::DOCUMENT)
-            ::where($column_name, $file->uuid)
+        getModelName(SystemTableName::DOCUMENT)::where($column_name, $file->uuid)
             ->delete();
     }
     /**
@@ -303,7 +302,7 @@ class File extends ModelBase
         }
         $path = $data->path;
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
-        
+
         if (!$exists) {
             return null;
         }
@@ -368,7 +367,7 @@ class File extends ModelBase
         Storage::disk(config('admin.upload.disk'))->put($file->path, $content);
         return $file;
     }
-    
+
 
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
@@ -380,13 +379,13 @@ class File extends ModelBase
      * @param  bool  $override if file already exists, override
      * @return File
      */
-    public static function storeAs(?string $file_type, $content, string $dirname, string $name, array $options = []) : File
+    public static function storeAs(?string $file_type, $content, string $dirname, string $name, array $options = []): File
     {
         $options = array_merge([
             'filename' => $name, // saves file name
         ], $options);
         $file = static::saveFileInfo($file_type, $dirname, $options);
-        
+
         if ($content instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
             $content = \Illuminate\Http\UploadedFile::createFromBase($content);
         }
@@ -431,7 +430,7 @@ class File extends ModelBase
                 return $file;
             }
         };
-        
+
         foreach (toArray($pathOrUuids) as $pathOrUuid) {
             if (strpos($pathOrUuid, '/') !== false) {
                 $val = $funcPath($pathOrUuid) ?: $funcUuid($pathOrUuid) ?: null;
@@ -446,7 +445,7 @@ class File extends ModelBase
 
         return null;
     }
-    
+
     /**
      * get unique file name
      */
@@ -456,10 +455,10 @@ class File extends ModelBase
             if (!isset($filename)) {
                 list($dirname, $filename) = static::getDirAndFileName($dirname);
             }
-    
+
             // get by dir and filename
             $file = static::where('local_dirname', $dirname)->where('filename', $filename)->first();
-    
+
             if (!is_null($file)) {
                 return $file->local_filename;
             }

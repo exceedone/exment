@@ -147,7 +147,7 @@ abstract class ApiTestBase extends FeatureTestBase
 
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
-    
+
     /**
      * Get dev1-userC access token for general user
      *
@@ -159,7 +159,7 @@ abstract class ApiTestBase extends FeatureTestBase
 
         return array_get(json_decode_ex($response->baseResponse->getContent(), true), 'access_token');
     }
-    
+
     /**
      * Get user access token for target user
      *

@@ -68,7 +68,7 @@ class UserOrgRoleGroupItem extends ProviderBase
                 'role_group_target_id' => $id,
             ];
         });
-        
+
         \Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_groups, [
             'dbValueFilter' => function (&$model) use ($id) {
                 $model->where('role_group_target_id', $id)

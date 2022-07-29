@@ -54,7 +54,7 @@ class CheckLangCommand extends Command
         }
         return 0;
     }
-    
+
     protected function checkTrans(array $keys, $jat, $lang)
     {
         foreach ($jat as $key => $value) {

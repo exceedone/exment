@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\UserEqUser;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -27,7 +28,7 @@ abstract class UserEqUserBase extends ViewFilterBase
             $query->{$method_name . 'NotMatch'}();
         }
     }
-    
+
 
     /**
      * compare 2 value
@@ -36,7 +37,7 @@ abstract class UserEqUserBase extends ViewFilterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         // if empty array, When isExists is true, return false. not isExists, return true.
         if (is_nullorempty($value)) {
@@ -52,6 +53,6 @@ abstract class UserEqUserBase extends ViewFilterBase
     }
 
 
-    abstract protected function getMark() : string;
-    abstract protected function isExists() : bool;
+    abstract protected function getMark(): string;
+    abstract protected function isExists(): bool;
 }

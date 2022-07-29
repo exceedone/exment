@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Exceedone\Exment\Model;
@@ -30,7 +31,7 @@ trait PluginEventTrait
     {
         $this->plugin = $plugin;
         $this->custom_table = $custom_table;
-        
+
         if ($custom_value instanceof CustomValue) {
             $this->custom_value = $custom_value;
         } elseif (!is_nullorempty($custom_value) && !is_nullorempty($custom_table)) {

@@ -26,14 +26,14 @@ abstract class PluginExportExcel extends PluginExportBase
             $filePath = $this->plugin->getFullPath($templateFileName);
             if (!\File::exists($filePath)) {
                 //TODO:template file not found
-                throw new \Exception;
+                throw new \Exception();
             }
 
             $spreadsheet = $reader->load($filePath);
             return $spreadsheet;
         }
 
-        return new Spreadsheet;
+        return new Spreadsheet();
     }
 
     /**

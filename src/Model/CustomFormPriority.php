@@ -68,7 +68,7 @@ class CustomFormPriority extends ModelBase
 
         return $this;
     }
-    
+
     public function deletingChildren()
     {
         $this->custom_form_priority_conditions()->delete();
@@ -77,7 +77,7 @@ class CustomFormPriority extends ModelBase
     protected static function boot()
     {
         parent::boot();
-        
+
         static::deleting(function ($model) {
             $model->deletingChildren();
         });

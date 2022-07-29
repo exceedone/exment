@@ -10,10 +10,10 @@ use Exceedone\Exment\ColumnItems\ItemInterface;
  */
 class ValueType extends EnumBase
 {
-    const VALUE = 'value';
-    const HTML = 'html';
-    const TEXT = 'text';
-    const PURE_VALUE = 'pure_value';
+    public const VALUE = 'value';
+    public const HTML = 'html';
+    public const TEXT = 'text';
+    public const PURE_VALUE = 'pure_value';
 
     /**
      * Get custom value val
@@ -31,13 +31,13 @@ class ValueType extends EnumBase
         switch ($this) {
             case static::VALUE:
                 return $item->value();
-                
+
             case static::HTML:
                 return $item->html();
-            
+
             case static::TEXT:
                 return $item->text();
-    
+
             case static::PURE_VALUE:
                 return $item->pureValue();
         }

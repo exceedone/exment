@@ -12,7 +12,7 @@ class PluginOptionCrud extends PluginOptionBase
         $this->plugin = $plugin;
         $this->pluginClass = $pluginClass;
     }
-    
+
     protected $plugin;
 
     protected $pluginClass;
@@ -24,13 +24,13 @@ class PluginOptionCrud extends PluginOptionBase
      */
     protected $access_token;
 
-    
+
     /**
      * Get auth for oauth.
      *
      * @return Model\LoginSetting|null
      */
-    public function getOauthSetting() : ?Model\LoginSetting
+    public function getOauthSetting(): ?Model\LoginSetting
     {
         $oauth_id = $this->plugin->getOption('crud_auth_oauth');
         if (is_nullorempty($oauth_id)) {
@@ -39,7 +39,7 @@ class PluginOptionCrud extends PluginOptionBase
 
         return Model\LoginSetting::getEloquent($oauth_id);
     }
-    
+
     /**
      * Login OAuth.
      */
@@ -48,14 +48,14 @@ class PluginOptionCrud extends PluginOptionBase
         $login_setting = $this->getOauthSetting();
         return OAuthService::loginPluginClud(request(), $login_setting, $this->pluginClass->getFullUrl('oauthcallback'));
     }
-    
+
 
     /**
      * Get auth for oauth.
      *
      * @return string|null
      */
-    public function getOauthAccessToken() : ?string
+    public function getOauthAccessToken(): ?string
     {
         // If already getted, return this.
         if ($this->access_token) {
@@ -70,7 +70,7 @@ class PluginOptionCrud extends PluginOptionBase
         $this->access_token = OAuthService::getAccessTokenFromDB($login_setting);
         return $this->access_token;
     }
-    
+
 
     /**
      * Set auth for oauth.

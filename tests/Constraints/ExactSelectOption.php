@@ -93,7 +93,7 @@ class ExactSelectOption extends PageConstraint
      *
      * @return bool
      */
-    protected function test2Array() : bool
+    protected function test2Array(): bool
     {
         return $this->contains2Array($this->options, $this->realOptions) && $this->contains2Array($this->realOptions, $this->options);
     }
@@ -106,7 +106,7 @@ class ExactSelectOption extends PageConstraint
      * @param array|Collection $targetArr2
      * @return boolean
      */
-    protected function contains2Array($testArr1, $targetArr2) : bool
+    protected function contains2Array($testArr1, $targetArr2): bool
     {
         return \Exment::isContains2Array($testArr1, $targetArr2);
     }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items;
 
 use Exceedone\Exment\Services\ViewFilter;
@@ -10,7 +11,7 @@ class Ne extends ViewFilter\ViewFilterBase
     {
         return FilterOption::NE;
     }
-    
+
 
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
@@ -25,7 +26,7 @@ class Ne extends ViewFilter\ViewFilterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         if (!$this->isNumeric()) {
             return !isMatchString($value, $conditionValue);

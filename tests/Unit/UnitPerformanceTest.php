@@ -24,16 +24,16 @@ class UnitPerformanceTest extends TestCase
         //         System::clearCache();
         //         System::clearRequestSession();
         //     });
-            
+
         //     $this->showMicrotimeLog('CustomTable whereFirst' . $count, function() use($count){
         //         for ($i = 0; $i < $count; $i++) {
         //             CustomTable::where('table_name', SystemTableName::USER)->first();
         //         }
-                
+
         //         System::clearCache();
         //         System::clearRequestSession();
         //     });
-            
+
         //     $this->showMicrotimeLog('CustomColumn getEloquent' . $count, function() use($count){
         //         for($i = 0; $i < $count; $i++){
         //             CustomColumn::getEloquent('user_name', SystemTableName::USER);
@@ -42,13 +42,13 @@ class UnitPerformanceTest extends TestCase
         //         System::clearCache();
         //         System::clearRequestSession();
         //     });
-            
+
         //     $this->showMicrotimeLog('CustomColumn whereFirst' . $count, function() use($count){
         //         for ($i = 0; $i < $count; $i++) {
         //             $custom_table = CustomTable::where('table_name', SystemTableName::USER)->first();
         //             CustomColumn::where('custom_table_id', $custom_table->id)->first();
         //         }
-                
+
         //         System::clearCache();
         //         System::clearRequestSession();
         //     });
@@ -60,10 +60,10 @@ class UnitPerformanceTest extends TestCase
     public function testEloquentPermissionPerformance()
     {
         $this->be(LoginUser::find(2)); // user1
-        
+
         // for($i = 0; $i < 50; $i++){
         //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
-    
+
         //     $this->showMicrotimeLog('CustomTable enableEdit' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->custom_table->enableEdit(true);
@@ -73,7 +73,7 @@ class UnitPerformanceTest extends TestCase
 
         // for($i = 0; $i < 50; $i++){
         //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
-    
+
         //     $this->showMicrotimeLog('CustomTable hasPermission' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->custom_table->hasPermission();
@@ -83,7 +83,7 @@ class UnitPerformanceTest extends TestCase
 
         // for($i = 0; $i < 50; $i++){
         //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
-    
+
         //     $this->showMicrotimeLog('CustomValue enableEdit' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->enableEdit(true);
@@ -93,7 +93,7 @@ class UnitPerformanceTest extends TestCase
 
         // for($i = 0; $i < 50; $i++){
         //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
-    
+
         //     $this->showMicrotimeLog('CustomValue enableDelete' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->enableDelete(true);
@@ -103,7 +103,7 @@ class UnitPerformanceTest extends TestCase
 
         // for($i = 0; $i < 50; $i++){
         //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
-    
+
         //     $this->showMicrotimeLog('CustomValue lockedWorkflow' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->lockedWorkflow();
@@ -113,7 +113,7 @@ class UnitPerformanceTest extends TestCase
 
         // for($i = 0; $i < 50; $i++){
         //     $items = CustomTable::getEloquent('custom_value_edit_all')->getValueModel()->get();
-    
+
         //     $this->showMicrotimeLog('CustomValue workflow_status' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->workflow_status;
@@ -127,7 +127,7 @@ class UnitPerformanceTest extends TestCase
     protected function showMicrotimeLog($funcName, $callback)
     {
         $time_start = microtime(true);
-        
+
         $callback();
 
         $time = microtime(true) - $time_start;

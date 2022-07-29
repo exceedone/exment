@@ -20,7 +20,7 @@ class ChangePasswordController extends Controller
     protected function rules()
     {
         return [
-            'current_password' => ['required', new CurrentPasswordRule],
+            'current_password' => ['required', new CurrentPasswordRule()],
             'password' => get_password_rule(true, \Exment::user()),
         ];
     }

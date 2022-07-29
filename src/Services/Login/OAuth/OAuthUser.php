@@ -32,7 +32,7 @@ class OAuthUser extends CustomLoginUserBase
 
     public static function with($provider_name, $provider_user, $isTest = false)
     {
-        $user = new OAuthUser;
+        $user = new OAuthUser();
         $user->provider_name = $provider_name;
         $user->login_type = LoginType::OAUTH;
         $user->login_setting = LoginSetting::getOAuthSetting($provider_name, !$isTest);
@@ -51,7 +51,7 @@ class OAuthUser extends CustomLoginUserBase
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = array_get($user->mapping_values, $user->mapping_user_column);
-        
+
         return $user;
     }
 }

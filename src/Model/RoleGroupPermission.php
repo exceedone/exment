@@ -10,7 +10,7 @@ class RoleGroupPermission extends ModelBase
     use Traits\ClearCacheTrait;
 
     protected $casts = ['permissions' => 'json'];
-    
+
     public static $templateItems = [
         'excepts' => ['role_group'],
         'uniqueKeys' => [
@@ -39,12 +39,12 @@ class RoleGroupPermission extends ModelBase
             ]
         ]
     ];
-    
+
     public function role_group()
     {
         return $this->belongsTo(RoleGroup::class, 'role_group_id');
     }
-    
+
     /**
      * get Table Name or system name
      */
@@ -62,7 +62,7 @@ class RoleGroupPermission extends ModelBase
         }
         return [];
     }
-    
+
     protected static function importReplaceJson(&$json, $options = [])
     {
         $role_group_target_name = array_get($json, 'role_group_target_name');

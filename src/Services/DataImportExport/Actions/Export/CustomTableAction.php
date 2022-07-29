@@ -43,9 +43,9 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
 
         // get relations
         $this->relations = CustomRelation::getRelationsByParent($this->custom_table);
-        
+
         $this->grid = array_get($args, 'grid');
-        
+
         $this->add_setting = array_get($args, 'add_setting', true);
         $this->add_relation = array_get($args, 'add_relation', true);
     }
@@ -59,8 +59,8 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
             'custom_table' => $this->custom_table,
             'grid' => $this->grid
         ]);
-        
-        
+
+
         if (boolval($this->add_relation)) {
             foreach ($this->relations as $relation) {
                 // if n:n, create as RelationPivotTable
@@ -82,7 +82,7 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
                 }
             }
         }
-        
+
         if (boolval($this->add_setting)) {
             $providers[] = new Export\DefaultTableSettingProvider(
                 [

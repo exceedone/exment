@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Search;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -38,48 +39,48 @@ class SearchService
      * @var \Illuminate\Database\Eloquent\Builder
      */
     protected $query;
-    
+
     /**
      * Whether is append select for target custom_table's columns.
      *
      * @var bool
      */
     protected $isAppendSelect = true;
-    
+
     /**
      * Whether is already append select for target custom_table's columns.
      *
      * @var bool
      */
     protected $alreadyAppendSelect = false;
-    
+
     /**
      * Already joined tables
      *
      * @var array
      */
     protected $joinedTables = [];
-    
+
     /**
      * Already joined workflows(status, work_user)
      *
      * @var array
      */
     protected $joinedWorkflows = [];
-    
+
     /**
      * Summary orders
      * @var array
      */
     protected $summaryOrders = [];
-    
+
     /**
      * Summary Joins.
      * "joinSub" query only calls once, so First set select and group by, and after these, join sub query.
      * @var array
      */
     protected $summaryJoins = [];
-    
+
 
     public function __construct(CustomTable $custom_table)
     {
@@ -111,7 +112,7 @@ class SearchService
         if (!$this->alreadyAppendSelect) {
             $db_table_name = getDBTableName($this->custom_table);
             $this->query->select("$db_table_name.*");
-    
+
             $this->alreadyAppendSelect = true;
         }
         return $this;
@@ -140,7 +141,7 @@ class SearchService
         return $this;
     }
 
-    
+
     /**
      * Get query's value.
      *
@@ -173,7 +174,7 @@ class SearchService
             $operator,
             func_num_args() === 2
         );
-        
+
         // If custom column, execute where custom column's exists query.
         if ($column instanceof CustomColumn) {
             return $this->whereCustomColumn($column, $operator, $value, $boolean);
@@ -186,7 +187,7 @@ class SearchService
         return $this;
     }
 
-    
+
     /**
      * Add an "order by" clause to the query.
      * If CustomColumn, and linkage(relation or select table), add where exists query.
@@ -211,7 +212,7 @@ class SearchService
         return $this;
     }
 
-    
+
 
     /**
      * Add a where custom column. Contains CustomColumn.
@@ -279,7 +280,7 @@ class SearchService
         // set relation query using relation type class.
         else {
             $this->setJoin($relationTable, $whereCustomTable);
-            
+
             // Add orderBy query
             $this->query->orderBy($column->getQueryKey(), $direction);
         }
@@ -310,7 +311,7 @@ class SearchService
 
         return $this;
     }
-    
+
     /**
      * Add orderby custom column. Contains CustomViewColumn.
      * Convert to custom view sort directly.
@@ -337,7 +338,7 @@ class SearchService
 
         return $this->orderByCustomViewSort($custom_view_sort);
     }
-    
+
 
 
     /**
@@ -358,7 +359,7 @@ class SearchService
         // get group's column. this is wraped.
         $wrap_column = $column_item->getGroupByWrapTableColumn();
         $sqlAsName = \Exment::wrapColumn($column_item->sqlAsName());
-        
+
         // if has sub query(for child relation), set to sub query
         $isSubQuery = false;
         if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
@@ -377,14 +378,14 @@ class SearchService
         $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
         // set select column. And add "as".
         $this->query->selectRaw("$wrap_column AS $sqlAsName");
-        
+
         // if has sort order, set order by
         $this->setSummaryOrderBy($column, $wrap_column);
 
         return $this;
     }
 
-    
+
     /**
      * Add select by custom view summary. Contains CustomViewSummary.
      *
@@ -428,7 +429,7 @@ class SearchService
         else {
             $this->query->selectRaw("$wrap_column AS $sqlAsName");
         }
-        
+
         // if has sort order, set order by
         $this->setSummaryOrderBy($column, $wrap_column);
 
@@ -500,7 +501,7 @@ class SearchService
         if (is_null($query)) {
             $query = $this->query;
         }
- 
+
         // // set relation table join.
         // Cannot join in $query->where(function($query), so please call outer $query->where.
         // $this->setRelationJoin($column);
@@ -549,7 +550,7 @@ class SearchService
      *
      * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter|Notify $column
      */
-    public function setRelationJoin($column, array $options = []) : ?RelationTable
+    public function setRelationJoin($column, array $options = []): ?RelationTable
     {
         $options = array_merge([
             'asSummary' => false,
@@ -600,7 +601,7 @@ class SearchService
         return $relationTable;
     }
 
-    
+
     /**
      * Join relation join for workflow. For use workflow view filter.
      *
@@ -652,7 +653,7 @@ class SearchService
      * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $filterObj
      * @return RelationTable|null filtered Relation Table
      */
-    protected function filterRelationTable($relationTables, $filterObj) : ?RelationTable
+    protected function filterRelationTable($relationTables, $filterObj): ?RelationTable
     {
         // if only 1, return first.
         if ($relationTables->count() <= 1) {
@@ -759,7 +760,7 @@ class SearchService
      *
      * @return boolean is join workflow status
      */
-    protected function isJoinWorkflowStatus($custom_view_filter) : bool
+    protected function isJoinWorkflowStatus($custom_view_filter): bool
     {
         return $this->isJoinWorkflow($custom_view_filter, SystemColumn::WORKFLOW_STATUS);
     }
@@ -769,7 +770,7 @@ class SearchService
      *
      * @return boolean is join workflow status
      */
-    protected function isJoinWorkflowWorkUsers($custom_view_filter) : bool
+    protected function isJoinWorkflowWorkUsers($custom_view_filter): bool
     {
         return $this->isJoinWorkflow($custom_view_filter, SystemColumn::WORKFLOW_WORK_USERS);
     }
@@ -779,7 +780,7 @@ class SearchService
      *
      * @return boolean is join workflow status
      */
-    protected function isJoinWorkflow($custom_view_filter, $key) : bool
+    protected function isJoinWorkflow($custom_view_filter, $key): bool
     {
         // Whether custom_view_filter is boolelan. if true, always call.
         if ($custom_view_filter === true) {
@@ -790,7 +791,7 @@ class SearchService
             if ($custom_view_filter->view_column_type != ConditionType::WORKFLOW) {
                 return false;
             }
-            
+
             $enum = SystemColumn::getEnum($key);
             if ($custom_view_filter->view_column_target_id != $enum->option()['id']) {
                 return false;
@@ -816,7 +817,7 @@ class SearchService
      *  offset2 : this table's id
      *  offset2 : this column's id
      */
-    protected function getConditionParams($column) : array
+    protected function getConditionParams($column): array
     {
         if ($column instanceof CustomViewColumn || $column instanceof CustomViewFilter || $column instanceof CustomViewSort || $column instanceof CustomViewSummary || $column instanceof CustomViewGridFilter) {
             return [

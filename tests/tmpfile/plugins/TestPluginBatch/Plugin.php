@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Plugins\TestPluginBatch;
 
 use Exceedone\Exment\Services\Plugin\PluginBatchBase;

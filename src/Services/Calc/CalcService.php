@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Calc;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -28,11 +29,11 @@ class CalcService
             // replace value
             $value = str_replace(array_get($param, 'key'), array_get($param, 'displayText'), $value);
         }
-        
+
         return $value;
     }
 
-    
+
     /**
      * Create calc formula info for form.
      *
@@ -50,7 +51,7 @@ class CalcService
     {
         $calc_formulas = [];
         $calc_counts = [];
-        
+
         $relationInfo = $custom_form_block ? $custom_form_block->getRelationInfo($custom_table) : null;
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             if ($form_column->form_column_type != FormColumnType::COLUMN) {
@@ -83,7 +84,7 @@ class CalcService
                 // get formula_key_name
                 $target_block = ($relationInfo ? $relationInfo[1] : null) ?? 'default';
                 $formula_key_name = sprintf('%s/%s/%s/%s', $param['trigger_block'], $param['trigger_column'], $custom_column->column_name, $target_block);
-                
+
                 if (!array_has($calc_formulas, $formula_key_name)) {
                     $calc_formulas[$formula_key_name] = [
                         'trigger_block' => $param['trigger_block'],
@@ -111,7 +112,7 @@ class CalcService
                 }
 
                 $formula_key_name = sprintf('%s/%s', $child_relation_name, $custom_column->column_name);
-                
+
                 if (!array_has($calc_counts, $formula_key_name)) {
                     $calc_counts[$formula_key_name] = [
                         'child_relation_name' => $child_relation_name,
@@ -133,7 +134,7 @@ class CalcService
     }
 
 
-    
+
     /**
      * Create calc formula info.
      *
@@ -151,7 +152,7 @@ class CalcService
      *     'target_relation_name': If type is summary, box and triggered box is defferent, so set trigger relation name.
      * ]
      */
-    protected static function getCalcParamsFromString($value, CustomTable $custom_table, ?CustomFormBlock $custom_form_block = null) : array
+    protected static function getCalcParamsFromString($value, CustomTable $custom_table, ?CustomFormBlock $custom_form_block = null): array
     {
         if (is_nullorempty($value)) {
             return [];
@@ -215,7 +216,7 @@ class CalcService
      *     'type': calc type
      * ]
      */
-    public static function getCalcCustomColumnOptions($id, $custom_table) : \Illuminate\Support\Collection
+    public static function getCalcCustomColumnOptions($id, $custom_table): \Illuminate\Support\Collection
     {
         $options = collect();
 
@@ -228,7 +229,7 @@ class CalcService
         return $options;
     }
 
-    
+
     /**
      * Get Symbols
      *

@@ -6,7 +6,7 @@ use Carbon\Carbon;
 
 class CompareColumnType extends EnumBase
 {
-    const SYSTEM_DATE = 'system_date';
+    public const SYSTEM_DATE = 'system_date';
 
     public static function getCompareValue($compare_type)
     {

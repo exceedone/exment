@@ -1,4 +1,6 @@
-<?php namespace Exceedone\Exment\Revisionable;
+<?php
+
+namespace Exceedone\Exment\Revisionable;
 
 /*
  * This file is part of the Revisionable package by Venture Craft
@@ -397,11 +399,10 @@ trait RevisionableTrait
     {
         foreach ($revisions as $revision) {
             // get revision_no
-            $exists_revision_no = Revision
-                ::where('revisionable_type', array_get($revision, 'revisionable_type'))
+            $exists_revision_no = Revision::where('revisionable_type', array_get($revision, 'revisionable_type'))
                 ->where('revisionable_id', array_get($revision, 'revisionable_id'))
                 ->max('revision_no') + 1;
-            $obj_revision = new Revision;
+            $obj_revision = new Revision();
             $obj_revision->revision_no = $exists_revision_no;
             foreach ($revision as $key => $r) {
                 $obj_revision->{$key} = $r;
@@ -413,8 +414,7 @@ trait RevisionableTrait
     protected function forceDeleteData($revisions)
     {
         foreach ($revisions as $revision) {
-            Revision
-                ::where('revisionable_type', array_get($revision, 'revisionable_type'))
+            Revision::where('revisionable_type', array_get($revision, 'revisionable_type'))
                 ->where('revisionable_id', array_get($revision, 'revisionable_id'))
                 ->forceDelete();
         }
@@ -484,7 +484,7 @@ trait RevisionableTrait
         if (isset($this->doKeepTrigger) && array_has($this->doKeepTrigger, $key)) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -590,8 +590,8 @@ trait RevisionableTrait
             unset($donts);
         }
     }
-    
-    
+
+
     /**
      * get sorted jon object
      *

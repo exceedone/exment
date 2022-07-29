@@ -6,13 +6,13 @@ use Exceedone\Exment\Services\DataImportExport\Formats\XlsxTrait;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Box\Spout\Reader\ReaderAbstract;
- 
+
 class Xlsx extends SpOut
 {
     use XlsxTrait;
-    
+
     protected $accept_extension = 'xlsx';
-    
+
     /**
      * get data table list. contains self table, and relations (if contains)
      */
@@ -43,7 +43,7 @@ class Xlsx extends SpOut
     protected function _getData($request, $callback)
     {
         list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
-        
+
         $reader = $this->createReader();
         $reader->open($path);
         try {
@@ -59,7 +59,7 @@ class Xlsx extends SpOut
      * @param ReaderAbstract $reader
      * @return int
      */
-    protected function getRowCount(ReaderAbstract $reader) : int
+    protected function getRowCount(ReaderAbstract $reader): int
     {
         $count = 0;
 
@@ -75,7 +75,7 @@ class Xlsx extends SpOut
         return $count;
     }
 
-    
+
     /**
      * @return \Box\Spout\Writer\XLSX\Writer
      */
@@ -83,8 +83,8 @@ class Xlsx extends SpOut
     {
         return WriterEntityFactory::createXLSXWriter();
     }
-    
-    
+
+
     /**
      * @return \Box\Spout\Reader\XLSX\Reader
      */

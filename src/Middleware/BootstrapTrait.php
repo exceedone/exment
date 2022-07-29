@@ -14,7 +14,7 @@ trait BootstrapTrait
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }
-        
+
         $func = ($isCss ? 'css' : 'js');
         if ($isLast) {
             $func .= 'last';
@@ -23,7 +23,7 @@ trait BootstrapTrait
             Ad::{$func}(asset($l . '?ver='.$ver));
         }
     }
-    
+
 
     protected function isStaticRequest($request)
     {

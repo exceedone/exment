@@ -16,7 +16,8 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 
 class OAuthLoginTest extends UnitTestBase
 {
-    use TestTrait, DatabaseTransactions;
+    use TestTrait;
+    use DatabaseTransactions;
 
     protected function _commonProcess($options = [])
     {
@@ -42,7 +43,7 @@ class OAuthLoginTest extends UnitTestBase
             ],
         ]);
 
-        $test_user = (new SocialiteUser)->map([
+        $test_user = (new SocialiteUser())->map([
             'id' => $options['user_code'],
             'name' => 'テストユーザー',
             'email' => $options['email'],

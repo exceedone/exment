@@ -4,18 +4,18 @@ namespace Exceedone\Exment\Enums;
 
 class ColumnDefaultType extends EnumBase
 {
-    const EXECUTING_DATE = 'executing_date';
-    const SELECT_DATE = 'select_date';
-    
-    const EXECUTING_TIME = 'executing_time';
-    const SELECT_TIME = 'select_time';
-    
-    const EXECUTING_DATETIME = 'executing_datetime';
-    const EXECUTING_TODAY = 'executing_today';
-    const SELECT_DATETIME = 'select_datetime';
-    
-    const LOGIN_USER = 'login_user';
-    const SELECT_USER = 'select_user';
+    public const EXECUTING_DATE = 'executing_date';
+    public const SELECT_DATE = 'select_date';
+
+    public const EXECUTING_TIME = 'executing_time';
+    public const SELECT_TIME = 'select_time';
+
+    public const EXECUTING_DATETIME = 'executing_datetime';
+    public const EXECUTING_TODAY = 'executing_today';
+    public const SELECT_DATETIME = 'select_datetime';
+
+    public const LOGIN_USER = 'login_user';
+    public const SELECT_USER = 'select_user';
 
 
     public static function COLUMN_DEFAULT_TYPE_DATE()
@@ -42,7 +42,7 @@ class ColumnDefaultType extends EnumBase
             ColumnDefaultType::SELECT_DATETIME,
         ];
     }
-    
+
     public static function COLUMN_DEFAULT_TYPE_USER()
     {
         return [

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ReplaceFormat;
 
 use Exceedone\Exment\Model\Define;
@@ -37,11 +38,11 @@ class ReplaceFormatService
                     $str = null;
                     $matchString = null;
                     $matchOptions = [];
-                    
+
                     try {
                         $match = $matches[1][$i];
                         $matchString = $matches[0][$i];
-                        
+
                         //split slach
                         $length_array = explode("/", $match);
                         $matchOptions = [];
@@ -63,7 +64,7 @@ class ReplaceFormatService
                         //$targetFormat = strtolower($targetFormat);
                         // get length
                         $length_array = explode(":", $targetFormat);
-                        
+
                         $callbacked = false;
                         if (array_key_value_exists('matchBeforeCallback', $options)) {
                             // execute callback

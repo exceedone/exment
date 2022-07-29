@@ -29,27 +29,27 @@ namespace Exceedone\Exment\Enums;
  */
 class ErrorCode extends EnumBase
 {
-    const PERMISSION_DENY = '101';
-    const INVALID_PARAMS = '102';
-    const NOT_INDEX_ENABLED = '102';
-    const VALIDATION_ERROR = '103';
-    const FORM_ACTION_DISABLED = '104';
-    const DELETE_DISABLED = '105';
-    const WRONG_SCOPE = '106';
-    const DATA_NOT_FOUND = '107';
-    const ACCESS_DENIED = '108';
-    const OVER_LENGTH = '109';
-    const ALREADY_DELETED = '110';
-    const PLUGIN_NOT_FOUND = '111';
-    const WRONG_VIEW_AND_TABLE = '112';
-    const UNSUPPORTED_VIEW_KIND_TYPE = '113';
-    const WORKFLOW_LOCK = '201';
-    const WORKFLOW_NOSTART = '202';
-    const WORKFLOW_END = '203';
-    const WORKFLOW_ACTION_DISABLED = '204';
-    const WORKFLOW_NOT_HAS_NEXT_USER = '205';
-    const DISAPPROVAL_IP = '301';
-    const NOT_CONTAINS_CUSTOM_FORM = '401';
+    public const PERMISSION_DENY = '101';
+    public const INVALID_PARAMS = '102';
+    public const NOT_INDEX_ENABLED = '102';
+    public const VALIDATION_ERROR = '103';
+    public const FORM_ACTION_DISABLED = '104';
+    public const DELETE_DISABLED = '105';
+    public const WRONG_SCOPE = '106';
+    public const DATA_NOT_FOUND = '107';
+    public const ACCESS_DENIED = '108';
+    public const OVER_LENGTH = '109';
+    public const ALREADY_DELETED = '110';
+    public const PLUGIN_NOT_FOUND = '111';
+    public const WRONG_VIEW_AND_TABLE = '112';
+    public const UNSUPPORTED_VIEW_KIND_TYPE = '113';
+    public const WORKFLOW_LOCK = '201';
+    public const WORKFLOW_NOSTART = '202';
+    public const WORKFLOW_END = '203';
+    public const WORKFLOW_ACTION_DISABLED = '204';
+    public const WORKFLOW_NOT_HAS_NEXT_USER = '205';
+    public const DISAPPROVAL_IP = '301';
+    public const NOT_CONTAINS_CUSTOM_FORM = '401';
 
     public function getMessage()
     {

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use App\Http\Controllers\Controller;
@@ -7,7 +8,7 @@ use BadMethodCallException;
 class PluginApiController extends Controller
 {
     protected $pluginApi;
-    
+
     public function __construct(?PluginApiBase $pluginApi)
     {
         $this->pluginApi = $pluginApi;

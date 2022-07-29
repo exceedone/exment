@@ -92,7 +92,7 @@ class ScheduleCommand extends Command
     protected function pluginBatch()
     {
         $pluginBatches = Plugin::getBatches();
-        
+
         foreach ($pluginBatches as $pluginBatch) {
             \Artisan::call("exment:batch", ['--uuid' => $pluginBatch->uuid]);
         }

@@ -10,7 +10,7 @@ class SwitchBoolField extends SwitchField
         'on'  => ['value' => '1', 'text' => 'YES', 'color' => 'primary'],
         'off' => ['value' => '0', 'text' => 'NO', 'color' => 'default'],
     ];
-    
+
     public function render()
     {
         if ($this->value() === true || $this->value() === 'true') {
