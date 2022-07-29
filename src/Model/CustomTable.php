@@ -1264,6 +1264,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'relationColumn' => null, // Linkage object. if has, filtering value.
                 'searchDocument' => false, // is search document.
                 'isApi' => false, // called from API
+                'withChildren' => null, // If has value, set "with" to query.
             ],
             $options
         );
@@ -1310,6 +1311,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // set with
             $this->setQueryWith($query, $target_view);
                 
+            // set with relation
+            if(isset($options['withChildren'])){
+                $this->setQueryWithRelation($query, $options['withChildren']);
+            }
+
             $paginates->setCollection($query->get());
             
             if (boolval($options['makeHidden'])) {
@@ -1345,6 +1351,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         // set with
         $this->setQueryWith($query, $target_view);
+
+        // set with relation
+        if(isset($options['withChildren'])){
+            $this->setQueryWithRelation($query, $options['withChildren']);
+        }
 
         return $query->take($maxCount)->get();
     }
@@ -1464,6 +1475,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
         $this->appendSubQuery($query, $custom_view);
+    }
+
+    /**
+     * Set with query using relation
+     *
+     * @return void
+     */
+    protected function setQueryWithRelation($query, $relations)
+    {
+        if (!method_exists($query, 'with') || !$relations) {
+            return;
+        }
+
+        if(!is_list($relations)){
+            $relations = [$relations];
+        }
+
+        foreach($relations as $relation){
+            $query->with($relation->getRelationName());
+        }
     }
 
     /**
