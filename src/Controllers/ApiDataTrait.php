@@ -247,7 +247,7 @@ trait ApiDataTrait
      * @param bool $recursive if true, this is $recursive, so not call children
      * @return void
      */
-    protected function modifyCustomValue(Request $request, $custom_value)
+    protected function modifyCustomValue(Request $request, $custom_value, $recursive = false)
     {
         // append label
         if ($this->isAppendLabel($request)) {
