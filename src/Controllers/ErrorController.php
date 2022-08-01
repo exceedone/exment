@@ -41,8 +41,8 @@ class ErrorController extends Controller
                 ->default($exception->getMessage())
                 ->attribute(['disabled' => true])
                 ->rows(3)
-                ;
-            
+            ;
+
             if (boolval(config('app.debug', false))) {
                 $form->textarea('trace', exmtrans("error.error_trace"))
                     ->default($exception->getTraceAsString())

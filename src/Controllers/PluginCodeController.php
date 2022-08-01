@@ -16,7 +16,7 @@ use Validator;
 class PluginCodeController extends AdminControllerBase
 {
     use CodeTreeTrait;
-    
+
     protected $plugin;
 
     protected const node_key = Define::SYSTEM_KEY_SESSION_FILE_NODELIST;
@@ -100,7 +100,7 @@ class PluginCodeController extends AdminControllerBase
 
         return response()->json($this->getTreeDataJson($request));
     }
-    
+
     /**
      * Get file tree data
      *
@@ -116,7 +116,7 @@ class PluginCodeController extends AdminControllerBase
 
         $json = [];
         $this->setDirectoryNodes('/', '#', $json, true);
-        
+
         // set session
         session([static::node_key => $json]);
         return $json;
@@ -132,12 +132,12 @@ class PluginCodeController extends AdminControllerBase
     public function fileupload(Request $request, $id)
     {
         $this->plugin = Plugin::getEloquent($id);
-        
+
         if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
             Checker::error();
             return false;
         }
-        
+
         $validator = \Validator::make($request->all(), [
             'nodeid' => 'required',
         ]);
@@ -148,7 +148,7 @@ class PluginCodeController extends AdminControllerBase
         if ($request->hasfile('fileUpload')) {
             $nodeid = $request->get('nodeid');
             $folder_path = $this->getNodePath($nodeid);
-            
+
             $upload_files = $request->file('fileUpload');
 
             foreach ($upload_files as $upload_file) {
@@ -156,7 +156,7 @@ class PluginCodeController extends AdminControllerBase
 
                 $this->plugin->putAsPluginFile($folder_path, $filename, $upload_file);
             }
-            
+
             $this->updatePluginDatetime();
             admin_toastr(exmtrans('common.message.success_execute'));
             return back();
@@ -175,7 +175,7 @@ class PluginCodeController extends AdminControllerBase
     public function getFileEditForm(Request $request, $id)
     {
         $this->plugin = Plugin::getEloquent($id);
-        
+
         list($view, $isBox) = $this->getFileEditFormView($request, $id);
 
         if ($isBox) {
@@ -187,7 +187,7 @@ class PluginCodeController extends AdminControllerBase
         ];
     }
 
-    
+
     /**
      * Get child form html for selected file
      *
@@ -319,7 +319,7 @@ class PluginCodeController extends AdminControllerBase
             Checker::error();
             return false;
         }
-        
+
         $validator = Validator::make($request->all(), [
             'nodeid' => 'required',
         ]);
@@ -360,7 +360,7 @@ class PluginCodeController extends AdminControllerBase
             Checker::error();
             return false;
         }
-        
+
         $validator = Validator::make($request->all(), [
             'nodeid' => 'required',
             'edit_file' => 'required',
@@ -389,7 +389,7 @@ class PluginCodeController extends AdminControllerBase
         ]);
     }
 
-    
+
     /**
      * Update plugin's updated_at. Because sync files from crowd.
      *

@@ -44,7 +44,7 @@ class StatusSelects extends Select
 
         return $this;
     }
-    
+
     public function render()
     {
         $configs = array_merge([

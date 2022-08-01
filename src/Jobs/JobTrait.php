@@ -9,7 +9,10 @@ use Illuminate\Foundation\Bus\Dispatchable;
 
 trait JobTrait
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * Default try max count

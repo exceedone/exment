@@ -194,7 +194,7 @@ class NotifyTest extends UnitTestBase
                 ($notifiable->getBody() == $body);
         });
     }
-    
+
 
     public function testNotifyMailAttachment()
     {
@@ -232,7 +232,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifySlack()
     {
         $this->init(true);
-    
+
         $webhook_url = 'https://hooks.slack.com/services/XXXXX/YYYY';
         $subject = 'テスト';
         $body = '本文です';
@@ -283,7 +283,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyNavbar()
     {
         $this->init(false);
-        
+
         $user = CustomTable::getEloquent('user')->getValueModel()->first();
         $subject = 'テスト';
         $body = '本文です';
@@ -348,7 +348,7 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'user' => $target_user,
         ]);
-        
+
         $data = NotifyNavbar::withoutGlobalScopes()
             ->where('notify_id', $notify->id)->orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
         $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
@@ -368,7 +368,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyTestMail()
     {
         $this->init(true);
-        
+
         $notifiable = NotifyService::executeTestNotify([
             'type' => 'mail',
             'to' => TestDefine::TESTDATA_DUMMY_EMAIL,
@@ -386,7 +386,7 @@ class NotifyTest extends UnitTestBase
     }
 
 
-    
+
     protected function _testNotifyMail(array $params, \Closure $checkCallback)
     {
         $this->init(true);
@@ -523,7 +523,7 @@ class NotifyTest extends UnitTestBase
         });
     }
 
-    
+
 
     /**
      * @return void
@@ -545,7 +545,7 @@ class NotifyTest extends UnitTestBase
         });
     }
 
-    
+
     /**
      * @return void
      */
@@ -554,7 +554,7 @@ class NotifyTest extends UnitTestBase
         $this->_testNotifyTargetFixedEmail([TestDefine::TESTDATA_DUMMY_EMAIL], [NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL)]);
     }
 
-    
+
     /**
      * @return void
      */
@@ -563,7 +563,7 @@ class NotifyTest extends UnitTestBase
         $this->_testNotifyTargetFixedEmail([TestDefine::TESTDATA_DUMMY_EMAIL, TestDefine::TESTDATA_DUMMY_EMAIL2], [NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL), NotifyTarget::getModelAsEmail(TestDefine::TESTDATA_DUMMY_EMAIL2)]);
     }
 
-    
+
     /**
      * @return void
      */
@@ -595,7 +595,7 @@ class NotifyTest extends UnitTestBase
         }, ['target_emails' => $target_emails]);
     }
 
-    
+
 
 
     /**
@@ -607,8 +607,8 @@ class NotifyTest extends UnitTestBase
 
         foreach ([2, 1, 10] as $id) {
             $custom_value = $custom_table->getValueModel($id);
-            $targets = NotifyTarget::getModels(new Notify, $custom_value, $notify_action_target, $action_setting);
-            
+            $targets = NotifyTarget::getModels(new Notify(), $custom_value, $notify_action_target, $action_setting);
+
             $checkCallback($targets, $custom_value);
         }
     }

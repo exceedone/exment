@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Enums;
 
 class DatabaseType extends EnumBase
 {
-    const MYSQL = 'mysql';
-    const MARIADB = 'mariadb';
-    const SQLSRV = 'sqlsrv';
+    public const MYSQL = 'mysql';
+    public const MARIADB = 'mariadb';
+    public const SQLSRV = 'sqlsrv';
 }

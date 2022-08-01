@@ -46,7 +46,7 @@ class NotifyController extends AdminControllerBase
             ->getValueModel()
             ->where('value->mail_key_name', $mailKeyName)
             ->first();
-    
+
         if (!isset($mail_template)) {
             return [$keyName => null];
         }

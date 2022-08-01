@@ -64,7 +64,7 @@ trait ApiTrait
     protected function getCount(Request $request)
     {
         // get and check query parameter
-        
+
         if (!$request->has('count')) {
             return config('exment.api_default_data_count', 20);
         }
@@ -77,7 +77,7 @@ trait ApiTrait
 
         return $count;
     }
-    
+
     /**
      * get join table name list from querystring
      * @param Request $request

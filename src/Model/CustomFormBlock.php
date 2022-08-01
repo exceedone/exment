@@ -10,7 +10,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
-    
+
     protected $casts = ['options' => 'json'];
 
     /**
@@ -99,7 +99,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         return $this;
     }
 
-    
+
     public function isMultipleColumn()
     {
         foreach ($this->custom_form_columns as $custom_form_column) {
@@ -110,7 +110,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         return false;
     }
 
-    
+
     /**
      * get relation name etc for form block
      *
@@ -126,11 +126,11 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
             $enum = FormBlockType::getEnum(array_get($this, 'form_block_type'));
             $block_label = exmtrans("custom_form.table_".$enum->lowerKey()."_label") . $target_table->table_view_name;
         }
-        
+
         if (isMatchString(array_get($this, 'form_block_type'), FormBlockType::DEFAULT)) {
             return [null, null, $block_label];
         }
-        
+
         // get relation
         // if has args $custom_form_table, use $custom_form_table. Almost use preview
         if ($custom_form_table) {
@@ -143,7 +143,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
 
         $relation = CustomRelation::getRelationByParentChild($relation_custom_table, $target_table);
         $relation_name = $relation ? $relation->getRelationName() : null;
-        
+
         return [$relation, $relation_name, $block_label];
     }
 
@@ -183,7 +183,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
             $this->available = true;
         }
     }
-    
+
     public function deletingChildren()
     {
         $this->custom_form_columns()->withoutGlobalScope('remove_system_column')->delete();
@@ -192,7 +192,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     protected static function boot()
     {
         parent::boot();
-        
+
         static::deleting(function ($model) {
             $model->deletingChildren();
         });

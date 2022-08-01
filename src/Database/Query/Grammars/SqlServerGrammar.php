@@ -17,11 +17,11 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return bool
      */
-    public function isSupportWhereInMultiple() : bool
+    public function isSupportWhereInMultiple(): bool
     {
         return false;
     }
-    
+
 
     /**
      * wherein string.
@@ -58,8 +58,8 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
         return $builder;
     }
-    
-    
+
+
     /**
      * wherein column.
      * Ex. column is 1,12,23,31 , and want to match 1, getting.
@@ -104,7 +104,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         } else {
             $queryStr = "FIND_IN_SET({$baseColumnIndex}, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
         }
-        
+
         $func = $isOr ? 'orWhereRaw' : 'whereRaw';
         $builder->{$func}($queryStr);
 
@@ -154,7 +154,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         return 'nvarchar';
     }
 
-    
+
 
     /**
      * Get cast string
@@ -192,7 +192,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         if (!$addOption) {
             return $cast;
         }
-        
+
         $length = array_get($options, 'length') ?? 50;
 
         switch ($type) {
@@ -201,7 +201,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
                 $length = ($length > 38 ? 38 : $length);
                 $cast .= "($length, $decimal_digit)";
                 break;
-                
+
             case DatabaseDataType::TYPE_STRING:
                 $cast .= "($length)";
                 break;
@@ -209,7 +209,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
         return $cast;
     }
-    
+
     /**
      * Get date format string
      *

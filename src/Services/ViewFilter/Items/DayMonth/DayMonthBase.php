@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\DayMonth;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -28,6 +29,6 @@ abstract class DayMonthBase extends ViewFilterBase
 
         return [$target_day, $today];
     }
-    
+
     abstract protected function getTargetDay($query_value);
 }

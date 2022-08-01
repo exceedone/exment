@@ -20,7 +20,7 @@ class Header extends FormOtherItem
     {
         return Field\Header::class;
     }
-    
+
     protected function setAdminOptions(&$field)
     {
         parent::setAdminOptions($field);

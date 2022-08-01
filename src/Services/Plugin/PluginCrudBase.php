@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Illuminate\Support\Collection;
@@ -15,8 +16,9 @@ use Exceedone\Exment\Validator\ExmentCustomValidator;
  */
 abstract class PluginCrudBase extends PluginPublicBase
 {
-    use PluginBase, PluginPageTrait;
-    
+    use PluginBase;
+    use PluginPageTrait;
+
     public function __construct($plugin, $options = [])
     {
         $this->plugin = $plugin;
@@ -96,7 +98,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return LengthAwarePaginator|null
      */
-    public function getPaginate(array $options = []) : ?LengthAwarePaginator
+    public function getPaginate(array $options = []): ?LengthAwarePaginator
     {
         return null;
     }
@@ -106,7 +108,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return Collection
      */
-    public function getList(array $options = []) : Collection
+    public function getList(array $options = []): Collection
     {
         return collect();
     }
@@ -116,7 +118,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return int
      */
-    public function getChunkCount() : int
+    public function getChunkCount(): int
     {
         return 1000;
     }
@@ -136,11 +138,11 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return Form|null
      */
-    public function setForm(Form $form, bool $isCreate, array $options = []) : ?Form
+    public function setForm(Form $form, bool $isCreate, array $options = []): ?Form
     {
         return null;
     }
-    
+
     /**
      * post create value
      *
@@ -158,7 +160,7 @@ abstract class PluginCrudBase extends PluginPublicBase
     public function putEdit($id, array $posts, array $options = [])
     {
     }
-    
+
     /**
      * delete value
      *
@@ -208,7 +210,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array|null
      */
-    public function getAllEndpoints() : ?Collection
+    public function getAllEndpoints(): ?Collection
     {
         return null;
     }
@@ -246,17 +248,17 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string|null
      */
-    public function getAuthType() : ?string
+    public function getAuthType(): ?string
     {
         return null;
     }
-    
+
     /**
      * Get auth setting label.
      *
      * @return string|null
      */
-    public function getAuthSettingLabel() : ?string
+    public function getAuthSettingLabel(): ?string
     {
         return exmtrans('plugin.options.crud_auth_' . $this->getAuthType());
     }
@@ -266,7 +268,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string|null
      */
-    public function getAuthSettingPasswordLabel() : ?string
+    public function getAuthSettingPasswordLabel(): ?string
     {
         return exmtrans('plugin.options.crud_auth_id_password_password');
     }
@@ -276,7 +278,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string|null
      */
-    public function getAuthSettingHelp() : ?string
+    public function getAuthSettingHelp(): ?string
     {
         return exmtrans('plugin.help.crud_auth_' . $this->getAuthType(), [
             'callback_url' => $this->getFullUrl('oauthcallback')
@@ -288,7 +290,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string|null
      */
-    public function getAuthSettingPasswordHelp() : ?string
+    public function getAuthSettingPasswordHelp(): ?string
     {
         return exmtrans('plugin.help.crud_auth_id_password_password');
     }
@@ -298,39 +300,39 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string|null
      */
-    public function getAuthKey() : ?string
+    public function getAuthKey(): ?string
     {
         return $this->plugin->getOption('crud_auth_key');
     }
-    
+
     /**
      * Get auth for id and password.
      *
      * @return array
      */
-    public function getAuthIdPassword() : array
+    public function getAuthIdPassword(): array
     {
         return [
             'id' => $this->plugin->getOption('crud_auth_id'),
             'password' => trydecrypt($this->plugin->getOption('crud_auth_password')),
         ];
     }
-    
+
     /**
      * Get auth for oauth.
      *
      * @return string|null
      */
-    public function getOauthAccessToken() : ?string
+    public function getOauthAccessToken(): ?string
     {
         return $this->pluginOptions->getOauthAccessToken();
     }
-    
+
     public function _plugin()
     {
         return $this->plugin;
     }
-    
+
     /**
      * Get route uri for page
      *
@@ -350,7 +352,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string
      */
-    public function getFullUrl(...$endpoint) : string
+    public function getFullUrl(...$endpoint): string
     {
         array_unshift($endpoint, $this->getEndpoint());
         return $this->plugin->getFullUrl(...$endpoint);
@@ -362,7 +364,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string
      */
-    public function getRootFullUrl(...$endpoint) : string
+    public function getRootFullUrl(...$endpoint): string
     {
         return $this->plugin->getFullUrl(...$endpoint);
     }
@@ -372,7 +374,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string
      */
-    public function getPrimaryKey() : string
+    public function getPrimaryKey(): string
     {
         $definitions = $this->getFieldDefinitions();
         return array_get(collect($definitions)->first(function ($definition, $key) {
@@ -387,7 +389,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enablePaginate() : bool
+    public function enablePaginate(): bool
     {
         return true;
     }
@@ -398,7 +400,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableShow($value) : bool
+    public function enableShow($value): bool
     {
         return true;
     }
@@ -409,7 +411,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableCreate(array $options = []) : bool
+    public function enableCreate(array $options = []): bool
     {
         return true;
     }
@@ -420,7 +422,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableEditAll(array $options = []) : bool
+    public function enableEditAll(array $options = []): bool
     {
         return true;
     }
@@ -431,7 +433,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableEdit($value, array $options = []) : bool
+    public function enableEdit($value, array $options = []): bool
     {
         return true;
     }
@@ -442,29 +444,29 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableDeleteAll(array $options = []) : bool
+    public function enableDeleteAll(array $options = []): bool
     {
         return true;
     }
-    
+
     /**
      * Whether delete target data. If false, disable delete button and link.
      * Default: true
      *
      * @return bool
      */
-    public function enableDelete($value, array $options = []) : bool
+    public function enableDelete($value, array $options = []): bool
     {
         return true;
     }
-    
+
     /**
      * Whether export data. If false, disable export button and link.
      * Default: false
      *
      * @return bool
      */
-    public function enableExport(array $options = []) : bool
+    public function enableExport(array $options = []): bool
     {
         return false;
     }
@@ -475,7 +477,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableFreewordSearch(array $options = []) : bool
+    public function enableFreewordSearch(array $options = []): bool
     {
         return false;
     }
@@ -486,28 +488,28 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
-    public function enableAccessCrud(array $options = []) : bool
+    public function enableAccessCrud(array $options = []): bool
     {
         return true;
     }
-    
+
     /**
      * Whether show logout button if oauth
      * Default: true
      *
      * @return bool
      */
-    public function enableOAuthLogoutButton(array $options = []) : bool
+    public function enableOAuthLogoutButton(array $options = []): bool
     {
         return true;
     }
-    
+
 
     /**
      * Get cannot access title
      * @return string
      */
-    public function getCannotAccessTitle(array $options = []) : ?string
+    public function getCannotAccessTitle(array $options = []): ?string
     {
         return exmtrans('plugin.error.crud_autherror_setting');
     }
@@ -516,7 +518,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Get cannot access message
      * @return string
      */
-    public function getCannotAccessMessage(array $options = []) : ?string
+    public function getCannotAccessMessage(array $options = []): ?string
     {
         return exmtrans('plugin.error.crud_autherror_common_help');
     }
@@ -676,7 +678,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return Content
      */
-    public function getContent() : Content
+    public function getContent(): Content
     {
         $content = new Content();
         if (!is_nullorempty($title = $this->plugin->getOption('title', $this->getTitle()))) {
@@ -697,7 +699,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return  string
      */
-    public function getTitle() : ?string
+    public function getTitle(): ?string
     {
         return $this->title;
     }
@@ -707,7 +709,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return  string
      */
-    public function getDescription() : ?string
+    public function getDescription(): ?string
     {
         return $this->description;
     }
@@ -717,7 +719,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return  string
      */
-    public function getIcon() : ?string
+    public function getIcon(): ?string
     {
         return $this->icon;
     }

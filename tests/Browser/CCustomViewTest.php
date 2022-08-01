@@ -10,7 +10,8 @@ use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 
 class CCustomViewTest extends ExmentKitTestCase
 {
-    use ExmentKitPrepareTrait, ColumnOptionQueryTrait;
+    use ExmentKitPrepareTrait;
+    use ColumnOptionQueryTrait;
 
     /**
      * pre-excecute process before test.
@@ -77,13 +78,13 @@ class CCustomViewTest extends ExmentKitTestCase
             ->seePageIs(admin_url('view/exmenttest_view'))
             ->seeInElement('td', '新しいビュー')
             ->assertEquals($pre_cnt + 1, CustomView::count())
-            ;
+        ;
 
         $raw = CustomView::orderBy('created_at', 'desc')->first();
         $id = array_get($raw, 'id');
 
         Model\System::clearRequestSession();
-        
+
         // Update custom view
         $this->visit(admin_url('view/exmenttest_view/'. $id . '/edit'))
             ->seeInField('view_view_name', '新しいビュー')
@@ -93,7 +94,7 @@ class CCustomViewTest extends ExmentKitTestCase
             ->seeInElement('td', '更新したビュー');
     }
 
-    
+
 
     /**
      * Create custom view contains field.
@@ -170,8 +171,8 @@ class CCustomViewTest extends ExmentKitTestCase
             ->seePageIs(admin_url('view/exmenttest_view'))
             ->seeInElement('td', 'TestView2')
             ->assertEquals($pre_cnt + 1, CustomView::count())
-            ;
-            
+        ;
+
         $raw = CustomView::orderBy('created_at', 'desc')->first();
         $id = array_get($raw, 'id');
 
@@ -182,12 +183,12 @@ class CCustomViewTest extends ExmentKitTestCase
             'custom_view_filters' => ['classname' => Model\CustomViewFilter::class, 'callback' => function ($query, $v) {
                 $query->where('view_filter_condition', $v['view_filter_condition'])
                     ->whereOrIn('view_filter_condition_value_text', $v['view_filter_condition_value_query'])
-                    ;
+                ;
             }],
             'custom_view_sorts' => ['classname' => Model\CustomViewSort::class, 'callback' => function ($query, $v) {
                 $query->where('sort', $v['sort'])
                     ->where('priority', $v['priority'])
-                    ;
+                ;
             }],
         ];
 

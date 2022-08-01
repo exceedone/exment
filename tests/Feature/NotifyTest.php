@@ -125,7 +125,7 @@ class NotifyTest extends FeatureTestBase
         );
     }
 
-    
+
     /**
      * Test 2factor mail
      *
@@ -248,12 +248,12 @@ class NotifyTest extends FeatureTestBase
     }
 
 
-    
+
     public function testNotifyWorkflow()
     {
         $this->init(false);
         $user_id = \Exment::user()->base_user_id;
-        
+
         $workflow = Model\Workflow::where('workflow_view_name', 'workflow_common_company')->first();
         $workflow_action = Model\WorkflowAction::where('action_name', 'middle_action')->where('workflow_id', $workflow->id)->first();
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
@@ -294,7 +294,7 @@ class NotifyTest extends FeatureTestBase
                 ->where('target_user_id', $user->id)
                 ->orderBy('created_at', 'desc')->get();
             $this->assertTrue($data->count() > 0, "Notify data not contains.");
-                
+
             foreach ($data as $d) {
                 $this->assertEquals(array_get($d, 'parent_type'), $custom_table->table_name);
                 $this->assertEquals(array_get($d, 'parent_id'), $custom_value->id);
@@ -313,7 +313,7 @@ class NotifyTest extends FeatureTestBase
     public function testNotifyCustomValueCreateOnlyOnce()
     {
         $this->init(false);
-        
+
         // save custom value
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT)->getValueModel();
         $custom_value->setValue([

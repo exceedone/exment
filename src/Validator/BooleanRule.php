@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -36,7 +37,7 @@ class BooleanRule implements Rule
 
         return false;
     }
-    
+
     /**
      * get validation error message
      *
@@ -45,7 +46,7 @@ class BooleanRule implements Rule
     public function message()
     {
         $values = [];
-        
+
         foreach ($this->options as $k => $v) {
             $values[] = $k;
             $values[] = $v;

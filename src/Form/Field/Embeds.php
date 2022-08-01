@@ -32,7 +32,7 @@ class Embeds extends AdminField\Embeds
     public function footerHr($footer_hr = true)
     {
         $this->footer_hr = $footer_hr;
-        
+
         return $this;
     }
 
@@ -46,7 +46,7 @@ class Embeds extends AdminField\Embeds
         $this->gridEmbeds = true;
         return $this;
     }
-    
+
     /**
      * get fields in NestedEmbeddedForm
      */
@@ -66,7 +66,7 @@ class Embeds extends AdminField\Embeds
         return $this->setFormField($form);
     }
 
-    
+
     /**
      * Set form field.
      *

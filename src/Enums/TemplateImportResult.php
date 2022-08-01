@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Enums;
 
 class TemplateImportResult extends EnumBase
 {
-    const SUCCESS = "0";
-    const CONITNUE = "1";
-    const ERROR = "2";
+    public const SUCCESS = "0";
+    public const CONITNUE = "1";
+    public const ERROR = "2";
 }

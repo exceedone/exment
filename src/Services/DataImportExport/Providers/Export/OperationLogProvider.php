@@ -70,16 +70,16 @@ class OperationLogProvider extends ProviderBase
     /**
      * get target chunk records
      */
-    public function getRecords() : Collection
+    public function getRecords(): Collection
     {
-        $records = new Collection;
+        $records = new Collection();
         $this->grid->applyQuickSearch();
         $this->grid->getFilter()->with(['user', 'user.base_user'])->chunk(function ($data) use (&$records) {
             if (is_nullorempty($records)) {
-                $records = new Collection;
+                $records = new Collection();
             }
             $records = $records->merge($data);
-        }) ?? new Collection;
+        }) ?? new Collection();
 
         $this->count = count($records);
         return $records;
@@ -93,7 +93,7 @@ class OperationLogProvider extends ProviderBase
         if (!isset($records)) {
             return [];
         }
-        
+
         $bodies = [];
 
         foreach ($records as $record) {

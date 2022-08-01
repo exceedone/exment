@@ -38,7 +38,7 @@ trait MailInfoTrait
     /**
      * @return string
      */
-    public function getFrom() : string
+    public function getFrom(): string
     {
         return $this->mailInfo->getFrom();
     }
@@ -46,7 +46,7 @@ trait MailInfoTrait
     /**
      * @return string|null
      */
-    public function getFromName() : ?string
+    public function getFromName(): ?string
     {
         return $this->mailInfo->getFromName();
     }
@@ -54,7 +54,7 @@ trait MailInfoTrait
     /**
      * @return array
      */
-    public function getTo() : array
+    public function getTo(): array
     {
         return $this->mailInfo->getTo();
     }
@@ -62,7 +62,7 @@ trait MailInfoTrait
     /**
      * @return array
      */
-    public function getCc() : array
+    public function getCc(): array
     {
         return $this->mailInfo->getCc();
     }
@@ -70,7 +70,7 @@ trait MailInfoTrait
     /**
      * @return array
      */
-    public function getBcc() : array
+    public function getBcc(): array
     {
         return $this->mailInfo->getBcc();
     }
@@ -78,7 +78,7 @@ trait MailInfoTrait
     /**
      * @return string
      */
-    public function getSubject() : ?string
+    public function getSubject(): ?string
     {
         return $this->mailInfo->getSubject();
     }
@@ -86,7 +86,7 @@ trait MailInfoTrait
     /**
      * @return string
      */
-    public function getBody() : ?string
+    public function getBody(): ?string
     {
         return $this->mailInfo->getBody();
     }
@@ -94,7 +94,7 @@ trait MailInfoTrait
     /**
      * @return string
      */
-    public function getBodyType() : ?string
+    public function getBodyType(): ?string
     {
         return $this->mailInfo->getBodyType();
     }
@@ -102,7 +102,7 @@ trait MailInfoTrait
     /**
      * @return array
      */
-    public function getAttachments() : array
+    public function getAttachments(): array
     {
         return $this->mailInfo->getAttachments();
     }
@@ -110,7 +110,7 @@ trait MailInfoTrait
     /**
      * @return bool
      */
-    public function getUsePassword() : bool
+    public function getUsePassword(): bool
     {
         return $this->mailInfo->getUsePassword();
     }
@@ -118,7 +118,7 @@ trait MailInfoTrait
     /**
      * @return string
      */
-    public function getPassword() : ?string
+    public function getPassword(): ?string
     {
         return $this->mailInfo->getPassword();
     }

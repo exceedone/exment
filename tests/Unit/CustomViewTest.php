@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -14,7 +15,8 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewTest extends UnitTestBase
 {
-    use CustomViewTrait, DatabaseTransactions;
+    use CustomViewTrait;
+    use DatabaseTransactions;
 
     public function testFuncGetMatchedCustomView1()
     {
@@ -23,7 +25,7 @@ class CustomViewTest extends UnitTestBase
             $this->assertTrue($this->andWhere($data));
         }
     }
-    
+
     public function testFuncGetMatchedCustomView2()
     {
         $array = $this->getData('custom_value_edit_all', 'custom_value_edit_all-view-or');
@@ -298,7 +300,7 @@ class CustomViewTest extends UnitTestBase
                     case 2:
                         $this->assertEquals($text, intdiv($index, 2) + 1);
                         break;
-                    }
+                }
             }
         }
     }
@@ -349,7 +351,7 @@ class CustomViewTest extends UnitTestBase
                     case 2:
                         $this->assertEquals($text, 'test_' . (intdiv($index, 20) + 1));
                         break;
-                    }
+                }
             }
         }
         $this->assertTrue($null_exists);
@@ -401,9 +403,9 @@ class CustomViewTest extends UnitTestBase
     {
         $this->be(LoginUser::find(1));
         $classname = getModelName($table_name);
-        $grid = new Grid(new $classname);
+        $grid = new Grid(new $classname());
         $grid->paginate($page_count);
-    
+
         $custom_view = CustomView::where('view_view_name', $view_name)->first();
 
         if (isset($custom_view)) {
@@ -411,7 +413,7 @@ class CustomViewTest extends UnitTestBase
             // create grid
             $custom_view->setGrid($grid);
         }
- 
+
         $result = $grid->model()->buildData(false);
         $this->assertTrue(count($result) > 0, "custom view $view_name count expects over 0, but this count is 0.");
 

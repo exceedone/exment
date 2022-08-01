@@ -26,7 +26,7 @@ class PublicShowRelation implements Renderable
     protected $view = 'exment::public-form.confirmpanel-relation';
 
     protected $title;
-    
+
     protected $children = [];
 
     /**

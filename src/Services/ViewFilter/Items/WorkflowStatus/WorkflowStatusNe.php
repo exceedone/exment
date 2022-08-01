@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\WorkflowStatus;
 
 use Exceedone\Exment\Enums\FilterOption;
@@ -10,9 +11,9 @@ class WorkflowStatusNe extends WorkflowStatusBase
         return FilterOption::WORKFLOW_NE_STATUS;
     }
 
-    
 
-    protected function isExists() : bool
+
+    protected function isExists(): bool
     {
         return false;
     }

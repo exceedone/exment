@@ -35,16 +35,16 @@ class Notify extends ModelBase
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];
 
     protected $_schedule_date_column_item;
-    
+
     public function custom_table()
     {
         if (!in_array($this->notify_trigger, NotifyTrigger::CUSTOM_TABLES())) {
             return null;
         }
         return $this->belongsTo(CustomTable::class, 'target_id')
-            ;
+        ;
     }
-    
+
     public function custom_view()
     {
         if (isset($this->custom_view_id)) {
@@ -52,7 +52,7 @@ class Notify extends ModelBase
         }
         return $this->belongsTo(CustomView::class, 'custom_view_id')->whereNotMatch();
     }
-    
+
     public function getNotifyActionsAttribute()
     {
         return explode(",", array_get($this->attributes, 'notify_actions'));
@@ -152,7 +152,7 @@ class Notify extends ModelBase
         // Now only column.
         $custom_column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
         $query_key = \Exment::getOptionKey($custom_column->id, true, $custom_column->custom_table_id, array_get($this, 'trigger_settings'));
-        
+
         $this->_schedule_date_column_item = ColumnItems\CustomItem::getItem($custom_column, null, $query_key);
 
         if (!is_nullorempty($this->suuid)) {
@@ -176,7 +176,7 @@ class Notify extends ModelBase
                 'notify_target_column_key' => $column->column_view_name ?? null,
                 'notify_target_column_value' => $this->getNotifyTargetValue($custom_value, $column),
             ];
-    
+
             foreach ($this->action_settings as $action_setting) {
                 $users = $this->getNotifyTargetUsers($custom_value, $action_setting);
 
@@ -192,12 +192,12 @@ class Notify extends ModelBase
                     ]);
                     continue;
                 }
-    
+
                 // return function if no user-targeted action is included
                 if (!NotifyAction::isUserTarget($action_setting)) {
                     continue;
                 }
-        
+
                 $users = $this->uniqueUsers($users);
                 foreach ($users as $user) {
                     // send mail
@@ -217,8 +217,8 @@ class Notify extends ModelBase
             }
         }
     }
-    
-    
+
+
     /**
      * notify_create_update_user
      * *Contains Comment, share
@@ -245,7 +245,7 @@ class Notify extends ModelBase
 
         return $this->notifyUser($custom_value, $options);
     }
-    
+
     /**
      * notify target user.
      * *Contains Comment, share
@@ -307,7 +307,7 @@ class Notify extends ModelBase
                 }
                 $users = $targetUserOrgs;
             }
-            
+
             if (NotifyAction::isChatMessage($action_setting)) {
                 // send slack message
                 NotifyService::executeNotifyAction($this, [
@@ -354,7 +354,7 @@ class Notify extends ModelBase
             }
         }
     }
-    
+
 
     /**
      * notify workflow
@@ -374,7 +374,7 @@ class Notify extends ModelBase
         foreach ($this->action_settings as $action_setting) {
             $users = $this->getNotifyTargetUsersWorkflow($custom_value, $action_setting, $workflow_action, $workflow_value, $statusTo);
             $mail_template = $this->getMailTemplate();
-    
+
             $prms = [
                 'notify' => $this,
             ];
@@ -395,12 +395,12 @@ class Notify extends ModelBase
                 ]);
                 continue;
             }
-    
+
             // return function if no user-targeted action is included
             if (!NotifyAction::isUserTarget($action_setting)) {
                 continue;
             }
-    
+
             $users = $this->uniqueUsers($users);
             foreach ($users as $user) {
                 // send mail
@@ -426,7 +426,7 @@ class Notify extends ModelBase
             }
         }
     }
-    
+
     /**
      * check if notify workflow target data
      *
@@ -458,7 +458,7 @@ class Notify extends ModelBase
         }
         return true;
     }
-    
+
     /**
      * check if notify target data
      *
@@ -568,7 +568,7 @@ class Notify extends ModelBase
             }
         }
     }
-    
+
     /**
      * get notify target datalist
      */
@@ -598,7 +598,7 @@ class Notify extends ModelBase
 
         return [$datalist, $table, $column];
     }
-       
+
     /**
      * get notify target users
      *
@@ -653,7 +653,7 @@ class Notify extends ModelBase
                 $values->push($u);
             }
         }
-        
+
         $loginuser = \Exment::user();
         $values = $values->unique()->filter(function ($value) use ($loginuser) {
             if (is_nullorempty($loginuser)) {
@@ -691,8 +691,7 @@ class Notify extends ModelBase
         if ($checkHistory && $custom_value) {
             $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
             $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
-            $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
-                ::where($index_user, $user->id())
+            $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)::where($index_user, $user->id())
                 ->where($index_mail_template, $mail_template->id)
                 ->where('parent_id', $custom_value->id)
                 ->where('parent_type', $custom_table->table_name)
@@ -719,7 +718,7 @@ class Notify extends ModelBase
      *
      * @return bool
      */
-    protected function isNotifyMyself() : bool
+    protected function isNotifyMyself(): bool
     {
         // only CREATE_UPDATE_DATA and WORKFLOW
         if (!in_array($this->notify_trigger, [NotifyTrigger::CREATE_UPDATE_DATA, NotifyTrigger::WORKFLOW])) {
@@ -727,14 +726,14 @@ class Notify extends ModelBase
         }
         return boolval($this->getTriggerSetting('notify_myself') ?? false);
     }
-    
+
     /**
      * Unique users. unique key is mail address.
      *
      * @param array|Collection $users
      * @return Collection
      */
-    protected function uniqueUsers($users) : Collection
+    protected function uniqueUsers($users): Collection
     {
         return collect($users)->unique(function ($user) {
             return NotifyService::getAddress($user);
@@ -760,7 +759,7 @@ class Notify extends ModelBase
             'view_pivot_column' => $this->getTriggerSetting('view_pivot_column_id'),
             'view_pivot_table' => $this->getTriggerSetting('view_pivot_table_id'),
         ]);
-        
+
         return $item->setCustomValue($custom_value)->value();
     }
 }

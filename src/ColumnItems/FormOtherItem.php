@@ -11,7 +11,7 @@ use Encore\Admin\Show\Field as ShowField;
 abstract class FormOtherItem implements ItemInterface
 {
     use ItemTrait;
-    
+
     protected $form_column;
 
     protected $custom_value;
@@ -182,16 +182,16 @@ abstract class FormOtherItem implements ItemInterface
     {
         list($form_column) = $args + [null];
         $form_column_name = FormColumnType::getOption(['id' => $form_column->form_column_target_id])['column_name'] ?? null;
-                    
+
         if ($className = static::findItemClass($form_column_name)) {
             return new $className($form_column);
         }
-        
+
         admin_error('Error', "Field type [$form_column_name] does not exist.");
 
         return null;
     }
-    
+
     /**
      * Find item class.
      *
@@ -204,7 +204,7 @@ abstract class FormOtherItem implements ItemInterface
         if (!$column_type) {
             return false;
         }
-        
+
         $class = array_get(static::$availableFields, $column_type);
 
         if (class_exists($class)) {
@@ -213,7 +213,7 @@ abstract class FormOtherItem implements ItemInterface
 
         return false;
     }
-    
+
     /**
      * get view filter type
      */
@@ -230,7 +230,7 @@ abstract class FormOtherItem implements ItemInterface
      *
      * @return string Ex: COUNT(`exm__3914ac5180d7dc43fcbb AS AAAA`)
      */
-    public function getSummaryWrapTableColumn() : string
+    public function getSummaryWrapTableColumn(): string
     {
         return '';
     }

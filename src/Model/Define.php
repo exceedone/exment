@@ -28,7 +28,7 @@ class Define
     public const RULES_REGEX_SYSTEM_NAME = '^(?=[a-zA-Z])(?!.*[-_]$)[-_a-zA-Z0-9]+$';
     public const RULES_REGEX_LINK_FORMAT = "|<a href=[\"'](.*?)[\"'].*?>(.*?)</a>|mis";
     public const RULES_REGEX_BACKUP_FILENAME = '[ぁ-んァ-ヶ亜-熙a-zA-Z0-9]+';
-    
+
     public const DELETE_CONFIRM_KEYWORD = 'delete me';
     public const RESTORE_CONFIRM_KEYWORD = 'restore me';
     public const YES_KEYWORD = 'yes';
@@ -56,7 +56,7 @@ class Define
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
-        
+
         // Advanced ----------------------------------
         'filter_search_type' => ['default' => 'forward', 'group' => 'advanced'],
 
@@ -103,7 +103,7 @@ class Define
         'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
-        
+
 
         // notify
         'system_mail_host' => ['config' => 'mail.host', 'group' => 'notify'],
@@ -218,7 +218,7 @@ class Define
     public const AUTHENTICATE_KEY_WEB = 'admin';
     public const AUTHENTICATE_KEY_API = 'adminapi';
     public const AUTHENTICATE_KEY_PUBLIC_FORM = 'publicform';
-    
+
     /**
      * MENU SYSTEM DIFINITION
      */
@@ -355,7 +355,7 @@ class Define
     public const PAGER_DATALIST_COUNTS = [5, 10, 20];
 
     public const WORKFLOW_START_KEYNAME = 'start';
-    
+
     // Template --------------------------------------------------
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
         'custom_tables',
@@ -430,7 +430,7 @@ class Define
             'msgSizeTooLarge' => exmtrans('error.size_too_large'),
         ];
     }
-    
+
     public const HELP_URLS = [
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'search', 'help_uri'=> 'search'],

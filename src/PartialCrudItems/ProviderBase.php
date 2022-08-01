@@ -8,7 +8,7 @@ namespace Exceedone\Exment\PartialCrudItems;
 abstract class ProviderBase
 {
     protected $custom_table;
-    
+
     public function __construct($custom_table)
     {
         $this->custom_table = $custom_table;
@@ -55,14 +55,14 @@ abstract class ProviderBase
     public function saving($form, $id = null)
     {
     }
-    
+
     /**
      * saved event
      */
     public function saved($form, $id)
     {
     }
-    
+
     public static function getItem(...$args)
     {
         list($custom_table) = $args + [null];

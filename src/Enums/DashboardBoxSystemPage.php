@@ -6,11 +6,11 @@ use Exceedone\Exment\DashboardBoxItems\SystemItems;
 
 class DashboardBoxSystemPage extends EnumBase
 {
-    const GUIDELINE = 1;
-    const NEWS = 2;
-    const EDITOR = 3;
-    const HTML = 4;
-    const NOTIFY_NAVBAR = 4;
+    public const GUIDELINE = 1;
+    public const NEWS = 2;
+    public const EDITOR = 3;
+    public const HTML = 4;
+    public const NOTIFY_NAVBAR = 4;
 
     protected static $options = [
         'guideline' => ['id' => 1, 'name' => 'guideline', 'class' => SystemItems\Guideline::class],
@@ -24,12 +24,12 @@ class DashboardBoxSystemPage extends EnumBase
     {
         return array_get(static::$options, $this->lowerKey());
     }
-    
+
     public static function options()
     {
         return static::$options;
     }
-    
+
     public static function getEnum($value, $default = null)
     {
         $enum = parent::getEnum($value, $default);

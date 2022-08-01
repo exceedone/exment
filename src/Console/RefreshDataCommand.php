@@ -50,7 +50,7 @@ class RefreshDataCommand extends Command
         }
 
         RefreshDataService::refresh();
-        
+
         return 0;
     }
 }

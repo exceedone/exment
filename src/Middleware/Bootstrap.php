@@ -41,9 +41,9 @@ class Bootstrap
 
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
-            $navbar->left(new \Exceedone\Exment\Form\Navbar\Hidden);
-            $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav);
-            $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav);
+            $navbar->left(new \Exceedone\Exment\Form\Navbar\Hidden());
+            $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav());
+            $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav());
         });
         Ad::js(asset('lib/js/jquery-ui.min.js'));
         Ad::css(asset('lib/css/jquery-ui.min.css'));
@@ -117,7 +117,7 @@ class Bootstrap
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
-        
+
         $script = <<<EOT
     ///// delete click event
     $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
@@ -13,7 +14,7 @@ class Hr extends OtherBase
      *
      * @return WidgetForm
      */
-    public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
+    public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         return null;
     }
@@ -24,7 +25,7 @@ class Hr extends OtherBase
      *
      * @return array
      */
-    public function prepareSavingOptions(array $options) : array
+    public function prepareSavingOptions(array $options): array
     {
         return [];
     }
@@ -34,12 +35,12 @@ class Hr extends OtherBase
      *
      * @return boolean
      */
-    public function useSetting() : bool
+    public function useSetting(): bool
     {
         return false;
     }
 
-    public function getFontAwesomeClass() : ?string
+    public function getFontAwesomeClass(): ?string
     {
         return 'fa-window-minimize';
     }

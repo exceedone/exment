@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 class Html
 {
     protected $dashboard_box;
-    
+
     public function __construct(?DashboardBox $dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -21,7 +21,7 @@ class Html
     {
         return null;
     }
-    
+
     /**
      * get footer
      */
@@ -29,7 +29,7 @@ class Html
     {
         return null;
     }
-    
+
     /**
      * get html body
      */
@@ -48,6 +48,6 @@ class Html
             ->rows(10)
             ->help(exmtrans('dashboard.help.dashboard_box_options.html'))
             ->attribute(['data-filter' => json_encode(['key' => 'options_target_system_id', 'value' => [DashboardBoxSystemPage::HTML]])])
-            ;
+        ;
     }
 }

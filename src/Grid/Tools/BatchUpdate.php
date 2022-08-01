@@ -63,7 +63,7 @@ $('{$this->getElementClass()}').on('click', function() {
 
 EOT;
     }
-    
+
     protected function scriptModal($suuid)
     {
         $url = url($this->resource);

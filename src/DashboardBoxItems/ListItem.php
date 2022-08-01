@@ -16,13 +16,13 @@ class ListItem implements ItemInterface
     use TableItemTrait;
 
     protected $dashboard_box;
-    
+
     protected $custom_table;
-    
+
     protected $custom_view;
-    
+
     protected $paginate;
-    
+
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -50,7 +50,7 @@ class ListItem implements ItemInterface
     {
         return $this->tableheader();
     }
-    
+
     /**
      * get body
      * *this function calls from non-value method. So please escape if not necessary unescape.
@@ -63,14 +63,14 @@ class ListItem implements ItemInterface
         if (($result = $this->hasPermission()) !== true) {
             return $result;
         }
-        
+
         $datalist = $this->paginate->items();
 
         // get widget table
         $option = [
             'action_callback' => function (&$link, $custom_table, $data) {
                 if (count($custom_table->getRelationTables()) > 0) {
-                    $link .= (new Linker)
+                    $link .= (new Linker())
                     ->url($data->getRelationSearchUrl(true))
                     ->icon('fa-compress')
                     ->tooltip(exmtrans('search.header_relation'));
@@ -78,7 +78,7 @@ class ListItem implements ItemInterface
             }
         ];
         list($headers, $bodies, $columnStyles, $columnClasses) = $this->custom_view->convertDataTable($datalist, $option);
-        
+
         $widgetTable = new WidgetTable($headers, $bodies);
         $widgetTable->class('table table-hover');
         $widgetTable->setColumnStyle($columnStyles);
@@ -86,7 +86,7 @@ class ListItem implements ItemInterface
 
         return $widgetTable->render();
     }
-    
+
     /**
      * get footer
      * *this function calls from non-value method. So please escape if not necessary unescape.
@@ -95,7 +95,7 @@ class ListItem implements ItemInterface
     {
         // get paginate
         $this->setPaginate();
-        
+
         if (($result = $this->hasPermission()) !== true) {
             return null;
         }
@@ -164,7 +164,7 @@ class ListItem implements ItemInterface
         if (!$this->custom_table->hasPermission()) {
             return;
         }
-        
+
         // create model for getting data --------------------------------------------------
         $query = $this->custom_table->getValueModel()::query();
         $this->custom_view->getQuery($query);

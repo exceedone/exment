@@ -28,7 +28,7 @@ class EncPassword extends Password
 
         return encrypt($value);
     }
-    
+
     /**
      * Format value by passing custom formater.
      * Always null.
@@ -37,7 +37,7 @@ class EncPassword extends Password
     {
         $this->value = trydecrypt($this->value);
     }
-    
+
     /**
      * set flag update if empty.
      */

@@ -55,7 +55,7 @@ class PaginateAction extends ExportActionBase implements ActionInterface
             'headers' => $this->headers,
             'filename' => $this->filename,
         ]);
-        
+
         $datalist = [];
         foreach ($providers as $provider) {
             if (!$provider->isOutput()) {

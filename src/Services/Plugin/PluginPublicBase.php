@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\PublicForm;
 class PluginPublicBase
 {
     protected $plugin;
-    
+
     public function _plugin()
     {
         return $this->plugin;

@@ -23,7 +23,9 @@ use Exceedone\Exment\Tests\PluginTestTrait;
 
 class PluginTest extends FeatureTestBase
 {
-    use TestTrait, PluginTestTrait, DatabaseTransactions;
+    use TestTrait;
+    use PluginTestTrait;
+    use DatabaseTransactions;
 
     protected function init(bool $fake)
     {
@@ -41,7 +43,7 @@ class PluginTest extends FeatureTestBase
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_value = $custom_table->getValueModel()->where('value->multiples_of_3', '1')->first();
-        
+
         list($plugin, $pluginClass) = $this->getPluginInfo('TestPluginButton', PluginType::BUTTON, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
@@ -66,7 +68,7 @@ class PluginTest extends FeatureTestBase
 
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_value = $custom_table->getValueModel($id);
-        $change_val = $custom_value->getValue('multiples_of_3') == '1'? '0': '1';
+        $change_val = $custom_value->getValue('multiples_of_3') == '1' ? '0' : '1';
         $custom_value->setValue('multiples_of_3', $change_val);
         $custom_value->save();
 
@@ -92,7 +94,7 @@ class PluginTest extends FeatureTestBase
         $action = $custom_value->getWorkflowActions()->first();
         $action_user = $action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::CURRENT_WORK_USER)->first();
         $this->be(LoginUser::find($action_user->id));
-        
+
         $action->executeAction($custom_value, [
             'comment' => 'プラグインのワークフローイベントのテストです。',
         ]);
@@ -160,7 +162,7 @@ class PluginTest extends FeatureTestBase
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_value = $custom_table->getValueModel(1);
-        
+
         list($plugin, $pluginClass) = $this->getPluginInfo('TestPluginValidator', PluginType::VALIDATOR, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
@@ -224,7 +226,7 @@ class PluginTest extends FeatureTestBase
         $custom_table = CustomTable::getEloquent('information');
         $custom_view = CustomView::getAllData($custom_table);
         $classname = getModelName($custom_table);
-        $grid = new Grid(new $classname);
+        $grid = new Grid(new $classname());
 
         $pluginClass->defaultProvider(new DataImportExport\Providers\Export\DefaultTableProvider([
             'custom_table' => $custom_table,
@@ -263,7 +265,7 @@ class PluginTest extends FeatureTestBase
         $custom_table = CustomTable::getEloquent('information');
         $custom_view = CustomView::getAllData($custom_table);
         $classname = getModelName($custom_table);
-        $grid = new Grid(new $classname);
+        $grid = new Grid(new $classname());
 
         $pluginClass->defaultProvider(new DataImportExport\Providers\Export\DefaultTableProvider([
             'custom_table' => $custom_table,
@@ -315,7 +317,7 @@ class PluginTest extends FeatureTestBase
         $this->assertTrue(Storage::disk(config('admin.upload.disk'))->exists($file->path));
     }
 
-    
+
     /**
      * test plugin global function
      *
@@ -326,7 +328,7 @@ class PluginTest extends FeatureTestBase
         $result = \Artisan::call('exment:batch', ['--name' => 'TestPluginGlobalFunction']);
         $this->assertTrue($result === 0);
     }
-    
+
     /**
      * test plugin static function
      *
@@ -337,7 +339,7 @@ class PluginTest extends FeatureTestBase
         $result = \Artisan::call('exment:batch', ['--name' => 'TestPluginStaticFunction']);
         $this->assertTrue($result === 0);
     }
-    
+
     /**
      * test plugin trait function
      *

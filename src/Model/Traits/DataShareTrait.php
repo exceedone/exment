@@ -8,7 +8,6 @@ use Exceedone\Exment\Model\System;
 
 trait DataShareTrait
 {
-
     /**
      * get listbox options contains user and org
      *
@@ -51,11 +50,11 @@ trait DataShareTrait
                     return $id != $user_id;
                 });
             }
-                
+
             $options = $options->merge(collect($optionItem)->mapWithKeys(function ($i, $k) use ($key) {
                 return [$key . '_' . $k => $i];
             }));
-         
+
             // add ajax
             if (isset($ajaxItem)) {
                 $ajax = admin_urls_query('webapi/user_organization/select', ['display_table_id' => ($custom_table ? $custom_table->id : null)]);

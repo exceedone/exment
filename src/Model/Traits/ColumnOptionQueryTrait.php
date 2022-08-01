@@ -25,7 +25,7 @@ trait ColumnOptionQueryTrait
     {
         return \Exment::getOptionKey($column_key, $append_table, $table_id, $options);
     }
-    
+
     protected static function setKeyValueOption(&$options, $key, $value, $table_view_name)
     {
         $options[$key] = static::getViewColumnLabel($value, $table_view_name);
@@ -60,7 +60,7 @@ trait ColumnOptionQueryTrait
 
         return $params;
     }
-    
+
     /**
      * Get ViewColumnTargetItems using $view_column_target.
      * it contains $column_type, $column_table_id, $column_type_target
@@ -72,7 +72,7 @@ trait ColumnOptionQueryTrait
     protected function getViewColumnTargetItems($view_column_target, $column_table_name_key = 'custom_view')
     {
         $column_type_target = explode_ex("?", $view_column_target)[0];
-        
+
         if (!is_nullorempty($column_table_name_key) && isset($this->{$column_table_name_key})) {
             $custom_table_id = $this->{$column_table_name_key}->custom_table_id;
         } else {
@@ -113,7 +113,7 @@ trait ColumnOptionQueryTrait
      * @param array $options
      * @return array
      */
-    protected function getColumnSelectOption(string $table_name, array $options) : array
+    protected function getColumnSelectOption(string $table_name, array $options): array
     {
         // create from options
         return collect($options)->mapWithKeys(function ($option) use ($table_name) {
@@ -129,7 +129,7 @@ trait ColumnOptionQueryTrait
      * @param array $options
      * @return array
      */
-    protected function getColumnSelectOptions(string $table_name, array $options = []) : array
+    protected function getColumnSelectOptions(string $table_name, array $options = []): array
     {
         $options = array_merge([
             'is_index' => false,
@@ -146,7 +146,7 @@ trait ColumnOptionQueryTrait
             if (boolval($is_index)) {
                 return $custom_column->index_enabled;
             }
-            
+
             if (boolval($options['ignore_attachment']) && ColumnType::isAttachment($custom_column->column_type)) {
                 return false;
             }

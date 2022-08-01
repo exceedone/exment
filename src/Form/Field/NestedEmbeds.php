@@ -68,7 +68,7 @@ class NestedEmbeds extends Embeds
         return $attributes;
     }
 
-    
+
     /**
      * Get data for Embedded form.
      *
@@ -96,7 +96,7 @@ class NestedEmbeds extends Embeds
         return (array) $this->value;
     }
 
-    
+
     /**
      * Render the form.
      *

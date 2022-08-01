@@ -23,7 +23,7 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
         if ($shouldPassThrough) {
             return $next($request);
         }
-        
+
         // Get System config
         $initialized = System::initialized();
         // if path is not "initialize" and not installed, then redirect to initialize

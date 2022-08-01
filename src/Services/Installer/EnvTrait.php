@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Services\EnvService;
@@ -12,7 +13,7 @@ trait EnvTrait
     {
         return EnvService::setEnv($data, $matchRemove);
     }
-    
+
     protected function removeEnv($data = [])
     {
         return EnvService::removeEnv($data);

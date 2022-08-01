@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
@@ -12,7 +13,7 @@ use Exceedone\Exment\Grid\Filter as ExmFilter;
 class Decimal extends CustomItem
 {
     use NumberTrait;
-    
+
     public function prepare()
     {
         if (!is_null($this->value)) {
@@ -52,7 +53,7 @@ class Decimal extends CustomItem
         }
         return esc_html($text);
     }
-    
+
     protected function _text($v)
     {
         if (is_null($v)) {
@@ -83,11 +84,11 @@ class Decimal extends CustomItem
     {
         return Field\Text::class;
     }
-    
+
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
-        
+
         if (!is_null(array_get($options, 'number_min'))) {
             $field->attribute(['min' => array_get($options, 'number_min')]);
         }
@@ -97,9 +98,9 @@ class Decimal extends CustomItem
         if (!is_null(array_get($options, 'decimal_digit'))) {
             $field->attribute(['decimal_digit' => array_get($options, 'decimal_digit')]);
         }
-        
+
         $field->attribute(['style' => 'max-width: 200px']);
-        
+
         if (array_key_value_exists('decimal_digit', $options)) {
             $digit = intval(array_get($options, 'decimal_digit'));
 
@@ -108,7 +109,7 @@ class Decimal extends CustomItem
             $field->attribute(['type' => 'number', 'step' => $step]);
         }
     }
-   
+
     protected function getAdminFilterClass()
     {
         return ExmFilter\Between::class;
@@ -133,7 +134,7 @@ class Decimal extends CustomItem
         $integer_digit =  Define::MAX_FLOAT_PRECISION - $decimal_digit;
         $max_size_number = floatval(str_repeat(9, $integer_digit) . '.' . str_repeat(9, $decimal_digit));
         $min_size_number = -1 * $max_size_number;
-        
+
         $number_min = max(array_get($options, 'number_min')?? $min_size_number, $min_size_number);
         $number_max = min(array_get($options, 'number_max')?? $max_size_number, $max_size_number);
 
@@ -141,14 +142,14 @@ class Decimal extends CustomItem
         $validates[] = new Validator\NumberMinRule($number_min);
         $validates[] = new Validator\NumberMaxRule($number_max);
 
-        $validates[] = new Validator\DecimalCommaRule;
+        $validates[] = new Validator\DecimalCommaRule();
     }
 
     protected function getRemoveValidates()
     {
         return ['integer', 'numeric'];
     }
-    
+
     /**
      * get cast Options
      */
@@ -164,7 +165,7 @@ class Decimal extends CustomItem
         }
     }
 
-    
+
     /**
      * Convert filter value.
      * Ex. If value is decimal and Column Type is decimal, return floatval.
@@ -191,7 +192,7 @@ class Decimal extends CustomItem
     public function setCustomColumnOptionForm(&$form)
     {
         $this->setCustomColumnOptionFormNumber($form);
-        
+
         $form->switchbool('percent_format', exmtrans("custom_column.options.percent_format"))
             ->help(exmtrans("custom_column.help.percent_format"));
 

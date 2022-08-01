@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class WorkflowType extends EnumBase
 {
-    const COMMON = "0";
-    const TABLE = "1";
+    public const COMMON = "0";
+    public const TABLE = "1";
 }

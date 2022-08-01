@@ -17,7 +17,7 @@ trait AdapterTrait
     {
         return File::getUrl($path);
     }
-    
+
     /**
      * Merge config
      *

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Console;
 
-use \File;
+use File;
 use Exceedone\Exment\Model\CustomTable;
 
 trait ImportTrait
@@ -49,7 +49,7 @@ trait ImportTrait
      * @param string  $file_name
      * @return CustomTable|null
      */
-    protected function getTableFromFile(string $file_name) : ?CustomTable
+    protected function getTableFromFile(string $file_name): ?CustomTable
     {
         $table_name = file_ext_strip($file_name);
         // directry same name

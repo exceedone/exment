@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class CrudForm extends CrudBase
     public function create()
     {
         $content = $this->pluginClass->getContent();
-        
+
         $content->body($this->form(true)->render());
 
         return $content;
@@ -38,7 +39,7 @@ class CrudForm extends CrudBase
     public function edit($id)
     {
         $content = $this->pluginClass->getContent();
-        
+
         $content->body($this->form(false, $id)->render());
 
         return $content;
@@ -52,7 +53,7 @@ class CrudForm extends CrudBase
     public function store()
     {
         $content = $this->pluginClass->getContent();
-        
+
         return $this->save(true);
     }
 
@@ -64,7 +65,7 @@ class CrudForm extends CrudBase
     public function update($id)
     {
         $content = $this->pluginClass->getContent();
-        
+
         return $this->save(false, $id);
     }
 
@@ -77,11 +78,11 @@ class CrudForm extends CrudBase
     {
         $ids = stringToArray($id);
         $this->pluginClass->deletes($ids);
-        
+
         return $this->getFullUrl();
     }
 
-    
+
     /**
      * Make a form builder.
      *
@@ -150,7 +151,7 @@ class CrudForm extends CrudBase
      * @param boolean $isCreate
      * @return array
      */
-    protected function filterPostedValue(array $array, bool $isCreate) : array
+    protected function filterPostedValue(array $array, bool $isCreate): array
     {
         $key = $isCreate ? 'create' : 'edit';
         $definitions = collect($this->pluginClass->getFieldDefinitions())
@@ -159,8 +160,8 @@ class CrudForm extends CrudBase
             })->map(function ($item, $key) {
                 return array_get($item, 'key');
             })->toArray();
-            
-        
+
+
         return array_only($array, $definitions);
     }
 
@@ -171,7 +172,7 @@ class CrudForm extends CrudBase
      * @param mixed $id
      * @return WidgetForm
      */
-    protected function getForm(bool $isCreate, $id = null) : WidgetForm
+    protected function getForm(bool $isCreate, $id = null): WidgetForm
     {
         if ($isCreate) {
             $data = [];
@@ -207,10 +208,10 @@ class CrudForm extends CrudBase
                 ->filter(function ($d) use ($key) {
                     return array_has($d, $key);
                 })->sortBy($key);
-    
+
             // get primary key
             $primary = $this->pluginClass->getPrimaryKey();
-    
+
             foreach ($definitions as $target) {
                 // if primary key, only show.
                 if ($primary == array_get($target, 'key')) {
@@ -237,7 +238,7 @@ class CrudForm extends CrudBase
         if ($oauthLogoutView) {
             $box->tools($oauthLogoutView->render());
         }
-        
+
         if ($this->pluginClass->enableDelete($id)) {
             $box->tools((new Tools\DeleteButton(admin_url($this->getFullUrl($id))))->render());
         }

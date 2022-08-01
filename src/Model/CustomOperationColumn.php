@@ -12,7 +12,7 @@ class CustomOperationColumn extends ModelBase
     protected $guarded = ['id'];
     protected $appends = ['view_column_target', 'operation_update_type'];
     protected $casts = ['options' => 'json'];
-    
+
     public function custom_operation()
     {
         return $this->belongsTo(CustomOperation::class, 'custom_operation_id');
@@ -20,9 +20,9 @@ class CustomOperationColumn extends ModelBase
     public function getViewColumnTableIdAttribute()
     {
         $parent = $this->custom_operation;
-        return isset($parent)? $parent->custom_table_id: null;
+        return isset($parent) ? $parent->custom_table_id : null;
     }
-    
+
     /**
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
@@ -55,7 +55,7 @@ class CustomOperationColumn extends ModelBase
         }
         return $update_value_text;
     }
-    
+
     /**
      * set view_filter_condition_value_text.
      * * we have to convert int if view_filter_condition_value is array*
@@ -76,7 +76,7 @@ class CustomOperationColumn extends ModelBase
     {
         return $this->getOption('operation_update_type');
     }
-    
+
     public function setOperationUpdateTypeAttribute($operation_update_type)
     {
         return $this->setOption('operation_update_type', $operation_update_type);
@@ -94,7 +94,7 @@ class CustomOperationColumn extends ModelBase
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (is_null(array_get($model, 'update_value_text'))) {
                 $model->update_value_text = '';

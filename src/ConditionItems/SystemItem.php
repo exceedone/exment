@@ -15,7 +15,7 @@ use Exceedone\Exment\Enums\WorkflowTargetSystem;
 class SystemItem extends ConditionItemBase implements ConditionItemInterface
 {
     use ColumnSystemItemTrait;
-    
+
     /**
      * check if custom_value and user(organization, role) match for conditions.
      *
@@ -40,8 +40,8 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
         $enum = WorkflowTargetSystem::getEnum($value);
         return isset($enum) ? exmtrans('common.' . $enum->lowerkey()) : null;
     }
-    
-    
+
+
     /**
      * Check has workflow authority with this item.
      *
@@ -98,7 +98,7 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
      * @param Model\CustomTable $custom_table
      * @return string|null
      */
-    public function getSelectColumnText($custom_view_column, Model\CustomTable $custom_table) : ?string
+    public function getSelectColumnText($custom_view_column, Model\CustomTable $custom_table): ?string
     {
         $column_view_name = array_get($custom_view_column, 'view_column_name');
 
@@ -118,18 +118,18 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
      * @param Model\CustomColumn $custom_column
      * @return string|null
      */
-    public function getColumnValueKey($column_type_target, $custom_column) : ?string
+    public function getColumnValueKey($column_type_target, $custom_column): ?string
     {
         return SystemColumn::getOption(['id' => $column_type_target])['name'] ?? null;
     }
 
-    
+
     /**
      * get column and table id
      *
      * @return array offset 0 : column id, 1 : table id
      */
-    public function getColumnAndTableId($column_name, $custom_table) : array
+    public function getColumnAndTableId($column_name, $custom_table): array
     {
         $target_column_id = SystemColumn::getOption(['name' => $column_name])['id'] ?? null;
         // set parent table info

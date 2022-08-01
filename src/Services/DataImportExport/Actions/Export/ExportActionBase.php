@@ -28,7 +28,7 @@ abstract class ExportActionBase
      * @param bool $isExport
      * @return FormatBase
      */
-    public function getFormatClass(?string $format, string $library) : FormatBase
+    public function getFormatClass(?string $format, string $library): FormatBase
     {
         return FormatBase::getFormatClass($format, $library, true);
     }

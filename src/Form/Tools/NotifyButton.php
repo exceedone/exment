@@ -12,7 +12,7 @@ class NotifyButton
     protected $notify;
     protected $custom_table;
     protected $id;
-    
+
     public function __construct($notify, $custom_table, $id = null)
     {
         $this->notify = $notify;
@@ -72,7 +72,7 @@ EOT;
             'url' => $url
         ]);
     }
-    
+
     /**
      * @return string
      */

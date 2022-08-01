@@ -13,11 +13,11 @@ class CustomOperation extends ModelBase
     use Traits\ClearCacheTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonOptionTrait;
-    
+
     protected $casts = ['options' => 'json', 'operation_type' => 'array'];
     protected $appends = ['condition_join'];
 
-   
+
     public function custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
@@ -53,7 +53,7 @@ class CustomOperation extends ModelBase
     {
         return static::getEloquentDefault($id, $withs);
     }
-        
+
     public function getConditionJoinAttribute()
     {
         return $this->getOption('condition_join');
@@ -65,7 +65,7 @@ class CustomOperation extends ModelBase
 
         return $this;
     }
-    
+
     public function deletingChildren()
     {
         $this->custom_operation_columns()->delete();
@@ -76,12 +76,12 @@ class CustomOperation extends ModelBase
     protected static function boot()
     {
         parent::boot();
-        
+
         static::deleting(function ($model) {
             $model->deletingChildren();
         });
     }
-    
+
     /**
      * check if operation target data
      *
@@ -136,7 +136,7 @@ class CustomOperation extends ModelBase
         }
         return !$is_or;
     }
-    
+
     /**
      * Check all operations related to custom-table
      * If operation type and filter is matched, then update target column's value

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items;
 
 use Exceedone\Exment\Services\ViewFilter;
@@ -11,12 +12,12 @@ class Like extends ViewFilter\LikeBase
         return FilterOption::LIKE;
     }
 
-    
-    protected function isLike() : bool
+
+    protected function isLike(): bool
     {
         return true;
     }
-    
+
 
     /**
      * compare 2 value
@@ -25,7 +26,7 @@ class Like extends ViewFilter\LikeBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         return !is_null($value) && !is_null($conditionValue) && (strpos(strval($value), strval($conditionValue)) !== false);
     }

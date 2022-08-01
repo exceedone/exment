@@ -6,11 +6,11 @@ use Exceedone\Exment\DashboardBoxItems;
 
 class DashboardBoxType extends EnumBase
 {
-    const SYSTEM = 'system';
-    const LIST = 'list';
-    const CHART = 'chart';
-    const CALENDAR = 'calendar';
-    const PLUGIN = 'plugin';
+    public const SYSTEM = 'system';
+    public const LIST = 'list';
+    public const CHART = 'chart';
+    public const CALENDAR = 'calendar';
+    public const PLUGIN = 'plugin';
 
     public static function DASHBOARD_BOX_TYPE_OPTIONS()
     {

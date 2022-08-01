@@ -9,7 +9,8 @@ use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 
 class RestoreCommand extends Command
 {
-    use CommandTrait, EnvTrait;
+    use CommandTrait;
+    use EnvTrait;
 
     /**
      * The name and signature of the console command.
@@ -38,7 +39,7 @@ class RestoreCommand extends Command
 
         $this->initExmentCommand();
 
-        $this->restore = new BackupRestore\Restore;
+        $this->restore = new BackupRestore\Restore();
     }
 
     /**
@@ -75,7 +76,7 @@ class RestoreCommand extends Command
     protected function getFile()
     {
         $file = $this->argument("file");
-            
+
         if (!is_nullorempty($file)) {
             return $file;
         }

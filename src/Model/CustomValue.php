@@ -24,10 +24,10 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 abstract class CustomValue extends ModelBase
 {
-    use Traits\AutoSUuidTrait,
-    Traits\DatabaseJsonTrait,
-    \Illuminate\Database\Eloquent\SoftDeletes,
-    \Exceedone\Exment\Revisionable\RevisionableTrait;
+    use Traits\AutoSUuidTrait;
+    use Traits\DatabaseJsonTrait;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+    use \Exceedone\Exment\Revisionable\RevisionableTrait;
 
     protected $casts = ['value' => 'json'];
     // protected $appends = ['label'];
@@ -109,7 +109,7 @@ abstract class CustomValue extends ModelBase
             ->where('morph_type', $this->custom_table->table_name)
             ->where('latest_flg', true)
             ->orderBy('updated_at', 'desc')
-            ;
+        ;
     }
 
     /**
@@ -154,7 +154,7 @@ abstract class CustomValue extends ModelBase
         return $this->getUser('deleted_user_id', true, true);
     }
 
-    
+
     /**
      * Whether this model disable delete
      *
@@ -170,7 +170,7 @@ abstract class CustomValue extends ModelBase
         if (is_null(Workflow::getWorkflowByTable($this->custom_table))) {
             return null;
         }
-        
+
         return isset($this->workflow_value) ? $this->workflow_value->workflow_status_cache : null;
     }
 
@@ -244,7 +244,7 @@ abstract class CustomValue extends ModelBase
         return $this->morphToMany(getModelName(SystemTableName::USER), 'parent', 'custom_value_authoritables', 'parent_id', 'authoritable_target_id')
             ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
             ->wherePivot('authoritable_user_org_type', SystemTableName::USER)
-            ;
+        ;
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
@@ -253,7 +253,7 @@ abstract class CustomValue extends ModelBase
         return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'parent', 'custom_value_authoritables', 'parent_id', 'authoritable_target_id')
             ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
             ->wherePivot('authoritable_user_org_type', SystemTableName::ORGANIZATION)
-            ;
+        ;
     }
 
 
@@ -344,7 +344,7 @@ abstract class CustomValue extends ModelBase
             ->orderby('workflow_values.created_at', 'desc')
             ->get();
 
-    
+
         if (!$appendsStatus) {
             return $workflow_values;
         }
@@ -421,7 +421,7 @@ abstract class CustomValue extends ModelBase
             if ($model->disable_saving_event) {
                 return;
             }
-            
+
             if (!$model->restore_revision) {
                 $events = $model->exists ? CustomOperationType::UPDATE : CustomOperationType::CREATE;
                 // call create or update trigger operations
@@ -484,7 +484,7 @@ abstract class CustomValue extends ModelBase
                 $model->postForceDelete();
                 return;
             }
-            
+
             $model->preSave();
             $model->postDelete();
 
@@ -506,7 +506,7 @@ abstract class CustomValue extends ModelBase
             $model->postRestore();
         });
 
-        static::addGlobalScope(new CustomValueModelScope);
+        static::addGlobalScope(new CustomValueModelScope());
     }
 
     /**
@@ -541,7 +541,7 @@ abstract class CustomValue extends ModelBase
 
             // send notify
             $this->notify(NotifySavedType::CREATE);
- 
+
             // set revision
             $this->postCreate();
         } else {
@@ -553,7 +553,7 @@ abstract class CustomValue extends ModelBase
                 // send notify
                 $this->notify(NotifySavedType::UPDATE);
             }
-            
+
             // set revision
             $this->postSave();
         }
@@ -837,7 +837,7 @@ abstract class CustomValue extends ModelBase
         });
     }
 
-    
+
     /**
      * delete relation if record delete
      */
@@ -877,8 +877,7 @@ abstract class CustomValue extends ModelBase
         foreach ($relations as $relation) {
             $child_table = $relation->child_custom_table;
             // find keys
-            getModelName($child_table)
-                ::where('parent_id', $this->id)
+            getModelName($child_table)::where('parent_id', $this->id)
                 ->where('parent_type', $custom_table->table_name)
                 ->restore();
         }
@@ -926,7 +925,7 @@ abstract class CustomValue extends ModelBase
                 ->value_authoritable_organizations()
                 ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIdsForQuery($enum));
         } else {
-            throw new \Exception;
+            throw new \Exception();
         }
 
         return $query->get();
@@ -958,7 +957,7 @@ abstract class CustomValue extends ModelBase
                 return $this;
             }
         }
-        
+
         return $this->setJson('value', $key, $val, $forgetIfNull);
     }
 
@@ -986,7 +985,7 @@ abstract class CustomValue extends ModelBase
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
-        
+
         return $this->setValue($list, null, $forgetIfNull);
     }
 
@@ -1113,9 +1112,9 @@ abstract class CustomValue extends ModelBase
         if (!is_null($this->_label)) {
             return $this->_label;
         }
-        
+
         $label_columns = $this->custom_table->getLabelColumns();
-        
+
         if (isset($label_columns) && is_string($label_columns)) {
             $this->_label = $this->getExpansionLabel($label_columns);
         } else {
@@ -1227,7 +1226,7 @@ abstract class CustomValue extends ModelBase
             if (!$tag) {
                 return $url;
             }
-                
+
             return \Exment::getUrlTag($url, $document_name, UrlTagType::BLANK, [], [
                 'tooltipTitle' => exmtrans('common.download')
             ]);
@@ -1288,10 +1287,9 @@ abstract class CustomValue extends ModelBase
             ],
             $options
         );
-        $query = getModelName(SystemTableName::DOCUMENT)
-            ::where('parent_id', $this->id)
+        $query = getModelName(SystemTableName::DOCUMENT)::where('parent_id', $this->id)
             ->where('parent_type', $this->custom_table_name)
-            ;
+        ;
 
         if ($options['paginate']) {
             return $query->paginate($options['count']);
@@ -1342,12 +1340,12 @@ abstract class CustomValue extends ModelBase
             if (is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)) {
                 return null;
             }
-            
+
             $parent = CustomTable::getEloquent($this->parent_type);
             if (isset($parent)) {
                 $model = $parent->getValueModel($this->parent_id);
             }
-    
+
             return $model ?? null;
         }
 
@@ -1392,8 +1390,7 @@ abstract class CustomValue extends ModelBase
             if (ColumnType::isSelectTable($relation->column_type) && $relation->indexEnabled()) {
                 $index_name = $relation->getIndexColumnName();
                 // get children values where this id
-                $query = getModelName(CustomTable::getEloquent($relation))
-                    ::where($index_name, $this->id);
+                $query = getModelName(CustomTable::getEloquent($relation))::where($index_name, $this->id);
                 return $returnBuilder ? $query : $query->get();
             }
         }
@@ -1467,16 +1464,16 @@ abstract class CustomValue extends ModelBase
                     $query->whereOrIn($searchColumn, $options['mark'], $options['value'])->select('id');
                 }
                 $query->take($takeCount);
-    
+
                 $queries[] = $query;
             }
-            
+
             foreach ($queries as &$query) {
                 // if has relationColumn, set query filtering
                 if (isset($options['relationColumn'])) {
                     $options['relationColumn']->setQueryFilter($query, array_get($options, 'relationColumnValue'));
                 }
-                
+
                 ///// if has display table, filter display table
                 if (isset($options['display_table'])) {
                     $this->custom_table->filterDisplayTable($query, $options['display_table'], $options);
@@ -1544,7 +1541,7 @@ abstract class CustomValue extends ModelBase
                     if (!isset($column_item)) {
                         continue;
                     }
-                        
+
                     $column_item->setSearchOrWhere($query, $options['mark'], $options['value'], $options['q']);
                 } else {
                     $query->orWhere($searchColumn, $options['mark'], $options['value']);
@@ -1703,11 +1700,11 @@ abstract class CustomValue extends ModelBase
         if ($checkFormAction && $this->custom_table->formActionDisable(FormActionType::EDIT)) {
             return ErrorCode::FORM_ACTION_DISABLED();
         }
-        
+
         if (!$this->custom_table->hasPermissionEditData($this)) {
             return ErrorCode::PERMISSION_DENY();
         }
-        
+
         // if ($this->custom_table->isOneRecord()) {
         //     return ErrorCode::PERMISSION_DENY();
         // }
@@ -1724,7 +1721,7 @@ abstract class CustomValue extends ModelBase
         if ($this->trashed()) {
             return ErrorCode::ALREADY_DELETED();
         }
-        
+
         return true;
     }
 
@@ -1752,18 +1749,18 @@ abstract class CustomValue extends ModelBase
         if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
         }
-        
+
         if (method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()) {
             return ErrorCode::DELETE_DISABLED();
         }
-        
+
         if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true) {
             return $code;
         }
 
         return true;
     }
-    
+
     /**
      * User can share this custom value
      * @return bool
@@ -1778,7 +1775,7 @@ abstract class CustomValue extends ModelBase
         if ($this->trashed()) {
             return false;
         }
-        
+
         $custom_table = $this->custom_table;
 
         // if master, false
@@ -1829,16 +1826,16 @@ abstract class CustomValue extends ModelBase
             ->get()
             ->unique();
     }
-    
+
     /**
      * Filter all accessible users on this value.
      */
-    public function filterAccessibleUsers($userIds) : \Illuminate\Support\Collection
+    public function filterAccessibleUsers($userIds): \Illuminate\Support\Collection
     {
         if (is_nullorempty($userIds)) {
             return collect();
         }
-        
+
         $accessibleUsers = $this->getAccessibleUsers();
 
         $result = collect();
@@ -1852,7 +1849,7 @@ abstract class CustomValue extends ModelBase
 
         return $result;
     }
-    
+
 
     /**
      * Get all accessible organization on this value. (get model)
@@ -1879,16 +1876,16 @@ abstract class CustomValue extends ModelBase
             ->get()
             ->unique();
     }
-    
+
     /**
      * Filter all accessible orgs on this value.
      */
-    public function filterAccessibleOrganizations($organizationIds) : \Illuminate\Support\Collection
+    public function filterAccessibleOrganizations($organizationIds): \Illuminate\Support\Collection
     {
         if (is_nullorempty($organizationIds)) {
             return collect();
         }
-        
+
         $accessibleOrganizations = $this->getAccessibleOrganizations();
 
         $result = collect();

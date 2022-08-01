@@ -22,7 +22,7 @@ class NavbarJob extends Notification implements ShouldQueue
      * @var string
      */
     protected $target_user_id;
-    
+
     /**
      * Notify triggered user id
      *
@@ -79,7 +79,7 @@ class NavbarJob extends Notification implements ShouldQueue
     public function toNavbar($notifiable)
     {
         // save data
-        $notify_navbar = new NotifyNavbar;
+        $notify_navbar = new NotifyNavbar();
         $notify_navbar->notify_id = $this->notify_id ?? -1;
         $notify_navbar->parent_id = $this->parent_id;
         $notify_navbar->parent_type = $this->parent_type;

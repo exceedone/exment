@@ -200,20 +200,19 @@ trait TestDataTrait
          * @param CustomValue|string|null $mail_template
          * @return CustomValue|null
          */
-    protected function getMailTemplateFromKey($mail_template) : ?CustomValue
+    protected function getMailTemplateFromKey($mail_template): ?CustomValue
     {
         if (is_null($mail_template)) {
             return null;
         } elseif ($mail_template instanceof CustomValue) {
             return $mail_template;
         }
-        
+
         $result = null;
         if (is_numeric($mail_template)) {
             $result = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         } else {
-            $result = getModelName(SystemTableName::MAIL_TEMPLATE)
-                ::where('value->mail_key_name', $mail_template)->first();
+            $result = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', $mail_template)->first();
         }
         // if not found, return exception
         if (is_null($result)) {

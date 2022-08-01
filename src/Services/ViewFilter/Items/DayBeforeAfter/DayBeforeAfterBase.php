@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\DayBeforeAfter;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -13,8 +14,8 @@ abstract class DayBeforeAfterBase extends ViewFilterBase
 
         $query->{"{$method_name}DateMarkExment"}($query_column, $target_day, $mark, $isDateTime);
     }
-    
+
     abstract protected function getTargetDay($query_value);
 
-    abstract protected function getMark() : string;
+    abstract protected function getMark(): string;
 }

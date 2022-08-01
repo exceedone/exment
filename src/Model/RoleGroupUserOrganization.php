@@ -18,7 +18,7 @@ class RoleGroupUserOrganization extends ModelBase
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
 
-        
+
         if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
             return;
         }

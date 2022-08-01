@@ -28,7 +28,7 @@ trait BetweenTrait
 
         $this->setupDefaultPresenter();
     }
-    
+
     /**
      * Set where null query.
      *

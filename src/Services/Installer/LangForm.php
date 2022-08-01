@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Enums\InitializeStatus;
@@ -15,7 +16,7 @@ class LangForm
     public function index()
     {
         \Artisan::call('exment:publish');
-        
+
         return view('exment::install.lang', [
             'locale_options' => SystemLocale::getLocaleOptions(),
             'timezone_options' => Timezone::TIMEZONE,
@@ -23,7 +24,7 @@ class LangForm
             'timezone_default' => config('exment.default_timezone', 'Asia_Tokyo'),
         ]);
     }
-    
+
     public function post()
     {
         $request = request();
@@ -31,7 +32,7 @@ class LangForm
         $rules = [
             'locale' => 'required',
         ];
-        
+
         $validation = \Validator::make($request->all(), $rules);
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);

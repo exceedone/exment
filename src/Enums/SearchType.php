@@ -4,16 +4,16 @@ namespace Exceedone\Exment\Enums;
 
 class SearchType extends EnumBase
 {
-    const SELF = 0;
-    const ONE_TO_MANY = 1;
-    const MANY_TO_MANY = 2;
-    const SELECT_TABLE = 3;
+    public const SELF = 0;
+    public const ONE_TO_MANY = 1;
+    public const MANY_TO_MANY = 2;
+    public const SELECT_TABLE = 3;
 
 
     // Only use Search service summary ----------------------------------------------------
-    const SUMMARY_ONE_TO_MANY = 51;
-    const SUMMARY_MANY_TO_MANY = 52;
-    const SUMMARY_SELECT_TABLE = 53;
+    public const SUMMARY_ONE_TO_MANY = 51;
+    public const SUMMARY_MANY_TO_MANY = 52;
+    public const SUMMARY_SELECT_TABLE = 53;
 
     public static function isSummarySearchType($search_type)
     {

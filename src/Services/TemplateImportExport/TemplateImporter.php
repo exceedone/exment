@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\TemplateImportExport;
 
 use Illuminate\Support\Facades\File;
@@ -41,7 +42,7 @@ class TemplateImporter
     {
         return array_merge($this->getUserTemplates(), $this->getLocalTemplates());
     }
-    
+
     /**
      * Import template (from display. select item)
      */
@@ -49,7 +50,7 @@ class TemplateImporter
     {
         try {
             $importKeys = (array)$importKeys;
-            
+
             $items = $this->getTemplates();
             foreach (array_filter($importKeys) as $importKey) {
                 $item = collect($items)->first(function ($item) use ($importKey) {
@@ -72,7 +73,7 @@ class TemplateImporter
                     }
 
                     $path = "$templates_path/$templateName/config.json";
-                            
+
                     // If file not exists
                     if (!File::exists($path)) {
                         // TODO:Error
@@ -87,11 +88,11 @@ class TemplateImporter
                     $this->diskService->isNeedDownload = true;
                     $this->diskService->syncFromDisk();
                     $path = path_join($this->diskService->localSyncDiskItem()->dirFullPath(), $templateName, 'config.json');
-    
+
                     if (!File::exists($path)) {
                         continue;
                     }
-                            
+
                     $this->importFromFile(File::get($path), [
                         'basePath' => path_join($this->diskService->localSyncDiskItem()->dirFullPath(), $templateName),
                     ]);
@@ -103,8 +104,8 @@ class TemplateImporter
             }
         }
     }
- 
-    
+
+
     /**
      * Get json from zip
      */
@@ -125,7 +126,7 @@ class TemplateImporter
                 File::delete($fullpath);
                 //unlink($fullpath);
             }
-            
+
             $this->diskService->deleteTmpDirectory();
         }
     }
@@ -145,7 +146,7 @@ class TemplateImporter
         $disk->deleteDirectory($teplate_name);
     }
 
-    
+
     /**
      * get user uploaded template list (get from storage folder)
      */
@@ -225,7 +226,7 @@ class TemplateImporter
                         $json['thumbnail_file'] = base64_encode(file_get_contents($thumbnail_fullpath));
                     }
                 }
-                
+
                 $json['template_type'] = 'local';
                 $templates[] = $json;
             } catch (\Exception $exception) {
@@ -299,7 +300,7 @@ class TemplateImporter
                 File::delete($fullpath);
                 //unlink($fullpath);
             }
-            
+
             $this->diskService->deleteTmpDirectory();
         }
     }
@@ -311,7 +312,7 @@ class TemplateImporter
      * @param [type] $uploadFile
      * @return array offset 0: json, 1: tmpfolderpath, 2: fullpath. 3: config_path, 4: thumbnail_path, 5:tmpDiskItem
      */
-    protected function extractZip($uploadFile) : array
+    protected function extractZip($uploadFile): array
     {
         $emptyResult = [null, null, null, null, null, null];
         $tmpDiskItem = $this->diskService->tmpDiskItem();
@@ -323,7 +324,7 @@ class TemplateImporter
         $fullpath = $tmpDisk->path($filename);
 
         // zip
-        $zip = new ZipArchive;
+        $zip = new ZipArchive();
         $res = $zip->open($fullpath);
         if ($res !== true) {
             return $emptyResult;
@@ -343,7 +344,7 @@ class TemplateImporter
             }
         }
         $zip->close();
-        
+
         //
         if (isset($config_path)) {
             // get config.json
@@ -416,7 +417,7 @@ class TemplateImporter
         // loop for excel sheets
         $reader = IOFactory::createReader('Xlsx');
         $spreadsheet = $reader->load($file->getRealPath());
-        
+
         $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET, false);
 
         foreach (Define::TEMPLATE_IMPORT_EXCEL_SHEETNAME as $sheetname) {
@@ -451,7 +452,7 @@ class TemplateImporter
         if (array_key_exists('custom_columns', $settings) && array_key_exists('custom_tables', $settings)) {
             $custom_columns = array_get($settings, 'custom_columns');
             foreach ($custom_columns as &$custom_column) {
-                
+
                 // get table name
                 $table_name = array_get($custom_column, 'table_name');
                 // find $settings->custom_tables
@@ -527,11 +528,11 @@ class TemplateImporter
         }
         // forget custom_column_multisettings array
         array_forget($settings, 'custom_column_multisettings');
-        
+
         // convert custom_columns to custom_tables->custom_columns
         if (array_key_exists('custom_relations', $settings) && array_key_exists('custom_tables', $settings)) {
             foreach ($settings['custom_relations'] as &$custom_relation) {
-                
+
                 // get table name
                 $table_name = array_get($custom_relation, 'parent_custom_table_name');
                 // find $settings->custom_tables
@@ -601,7 +602,7 @@ class TemplateImporter
         $files = collect($files)->filter(function ($value) {
             return in_array(pathinfo($value)['extension'], ['csv', 'xlsx']);
         });
-        
+
         // loop csv file
         foreach ($files as $file) {
             $table_name = file_ext_strip(pathinfo($file)['basename']);
@@ -635,7 +636,7 @@ class TemplateImporter
     public function import($json, $system_flg = false, $is_update = false, $fromExcel = false)
     {
         System::clearCache();
-        
+
         \ExmentDB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
             // tables for default form and views
             $createDefaultTables = [];
@@ -666,7 +667,7 @@ class TemplateImporter
                         'parent' => $obj_table,
                     ]);
                 }
-                
+
                 // Create columnmultis. --------------------------------------------------
                 $custom_column_multisettings = array_get($table, 'custom_column_multisettings', []);
                 // delete all data related custom_table before insert

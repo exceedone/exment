@@ -42,8 +42,8 @@ class DefaultGrid extends GridBase
     public function grid()
     {
         $classname = getModelName($this->custom_table);
-        $grid = new Grid(new $classname);
-        
+        $grid = new Grid(new $classname());
+
         // if modal, Change view model
         if ($this->modal) {
             $this->gridFilterForModal($grid, $this->callback);
@@ -53,7 +53,7 @@ class DefaultGrid extends GridBase
         }
 
         $this->setCustomGridFilters($grid);
-        
+
         // create grid
         $this->setGrid($grid);
 
@@ -145,7 +145,7 @@ class DefaultGrid extends GridBase
             $grid_per_pages = Define::PAGER_GRID_COUNTS;
         }
         $grid->perPages($grid_per_pages);
-        
+
         // set with
         $custom_table->setQueryWith($grid->model(), $this->custom_view);
     }
@@ -198,7 +198,7 @@ class DefaultGrid extends GridBase
      *
      * @return string
      */
-    protected function getFilterUrl() : string
+    protected function getFilterUrl(): string
     {
         if (!$this->modal) {
             $query = array_filter(request()->all([
@@ -225,8 +225,8 @@ class DefaultGrid extends GridBase
     public function getFilterHtml()
     {
         $classname = getModelName($this->custom_table);
-        $grid = new Grid(new $classname);
-        
+        $grid = new Grid(new $classname());
+
         $this->setCustomGridFilters($grid, true);
 
         // get html force
@@ -293,7 +293,7 @@ class DefaultGrid extends GridBase
      *
      * @return \Illuminate\Support\Collection
      */
-    protected function getFilterColumns($filter) : \Illuminate\Support\Collection
+    protected function getFilterColumns($filter): \Illuminate\Support\Collection
     {
         $filterItems = [];
 
@@ -304,7 +304,7 @@ class DefaultGrid extends GridBase
 
             foreach ($custom_view_grid_filters as $custom_view_grid_filter) {
                 $service->setRelationJoin($custom_view_grid_filter);
-                
+
                 $filterItems[] = $custom_view_grid_filter->column_item;
             }
 
@@ -315,7 +315,7 @@ class DefaultGrid extends GridBase
             if ($this->custom_table->gridFilterDisable($filterKey)) {
                 continue;
             }
-            
+
             $filterItems[] = ColumnItems\SystemItem::getItem($this->custom_table, $filterKey);
         }
 
@@ -328,7 +328,7 @@ class DefaultGrid extends GridBase
                 if ($this->custom_table->gridFilterDisable($filterKey)) {
                     continue;
                 }
-            
+
                 $filterItems[] = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
             }
         }
@@ -367,7 +367,7 @@ class DefaultGrid extends GridBase
         $filterItems[] = $column_item;
     }
 
-    
+
     /**
      * Set column filter. Consider modal.
      *
@@ -422,10 +422,10 @@ class DefaultGrid extends GridBase
         // create exporter
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
-        
+
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::GRID_MENUBUTTON, $this->custom_table);
-            
+
             // validate export and import
             $import = $this->custom_table->enableImport();
             $export = $this->custom_table->enableExport();
@@ -433,7 +433,7 @@ class DefaultGrid extends GridBase
                 $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $export === true, $import === true);
                 $tools->append($button->setCustomTable($this->custom_table));
             }
-            
+
             if ($this->custom_table->enableCreate(true) === true) {
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
             }
@@ -445,14 +445,14 @@ class DefaultGrid extends GridBase
             if ($this->custom_table->enableViewMenuButton()) {
                 $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
             }
-            
+
             // add plugin button
             if ($listButtons !== null && count($listButtons) > 0) {
                 foreach ($listButtons as $listButton) {
                     $tools->append(new Tools\PluginMenuButton($listButton, $this->custom_table));
                 }
             }
-            
+
             // manage batch --------------------------------------------------
             $tools->batch(function ($batch) {
                 if ($this->custom_table->enableEdit() === true) {
@@ -499,13 +499,13 @@ class DefaultGrid extends GridBase
 
                 // if has relations, add link
                 if (count($relationTables) > 0) {
-                    $linker = (new Linker)
+                    $linker = (new Linker())
                         ->url($actions->row->getRelationSearchUrl())
                         ->icon('fa-compress')
                         ->tooltip(exmtrans('search.header_relation'));
                     $actions->prepend($linker);
                 }
-                
+
                 // append restore url
                 if ($actions->row->trashed() && $custom_table->enableEdit() === true && $custom_table->enableShowTrashed() === true) {
                     $enableHardDelete = true;
@@ -515,11 +515,11 @@ class DefaultGrid extends GridBase
                 if ($actions->row->enableEdit(true) !== true) {
                     $enableEdit = false;
                 }
-                
+
                 if ($actions->row->enableDelete(true) !== true) {
                     $enableDelete = false;
                 }
-                
+
                 if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
                     $enableEdit = false;
                     $enableDelete = false;
@@ -536,10 +536,10 @@ class DefaultGrid extends GridBase
                 if ($enableHardDelete) {
                     $actions->disableView();
                     $actions->disableDelete();
-                        
+
                     // add restore link
                     $restoreUrl = $actions->row->getUrl() . '/restoreClick';
-                    $linker = (new Linker)
+                    $linker = (new Linker())
                         ->icon('fa-undo')
                         ->script(true)
                         ->linkattributes([
@@ -552,11 +552,11 @@ class DefaultGrid extends GridBase
                         ])
                         ->tooltip(exmtrans('custom_value.restore'));
                     $actions->append($linker);
-                    
+
                     // append show url
                     $showUrl = $actions->row->getUrl() . '?trashed=1';
                     // add new edit link
-                    $linker = (new Linker)
+                    $linker = (new Linker())
                         ->url($showUrl)
                         ->icon('fa-eye')
                         ->tooltip(trans('admin.show'));
@@ -564,7 +564,7 @@ class DefaultGrid extends GridBase
 
                     // add hard delete link
                     $deleteUrl = $actions->row->getUrl() . '?trashed=1';
-                    $linker = (new Linker)
+                    $linker = (new Linker())
                         ->icon('fa-trash')
                         ->script(true)
                         ->linkattributes([
@@ -583,7 +583,7 @@ class DefaultGrid extends GridBase
             });
         }
     }
-    
+
     /**
      * @param Request $request
      */
@@ -738,7 +738,7 @@ class DefaultGrid extends GridBase
         }
     }
 
-    
+
 
     /**
      * Set column gridfilter item form
@@ -764,7 +764,7 @@ class DefaultGrid extends GridBase
 
         $form->hasManyTable('custom_view_grid_filters', exmtrans("custom_view.custom_view_grid_filters"), function ($form) use ($custom_table, $column_options) {
             $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
-            
+
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions);
 

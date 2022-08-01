@@ -22,7 +22,7 @@ class CustomCopyController extends AdminControllerTableBase
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
-        
+
         $title = exmtrans("custom_copy.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
         $this->setPageInfo($title, $title, exmtrans("custom_copy.description"), 'fa-copy');
     }
@@ -41,7 +41,7 @@ class CustomCopyController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
-    
+
     /**
      * Edit
      *
@@ -84,17 +84,17 @@ class CustomCopyController extends AdminControllerTableBase
      */
     protected function grid()
     {
-        $grid = new Grid(new CustomCopy);
+        $grid = new Grid(new CustomCopy());
         $grid->column('from_custom_table.table_view_name', exmtrans("custom_copy.from_custom_table_view_name"))->sortable();
         $grid->column('to_custom_table.table_view_name', exmtrans("custom_copy.to_custom_table_view_name"))->sortable();
         $grid->column('label', exmtrans("plugin.options.label"))->sortable()->display(function ($value) {
             return array_get($this, 'options.label');
         });
-        
+
         if (isset($this->custom_table)) {
             $grid->model()->where('from_custom_table_id', $this->custom_table->id);
         }
-        
+
         $grid->disableCreateButton();
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(view('exment::custom-value.new-button-copy', [
@@ -103,12 +103,12 @@ class CustomCopyController extends AdminControllerTableBase
             //$tools->append($this->createNewModal());
             $tools->append(new Tools\CustomTableMenuButton('copy', $this->custom_table));
         });
-        
+
         $grid->disableExport();
         $grid->actions(function ($actions) {
             $actions->disableView();
         });
-        
+
         // filter
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
@@ -159,7 +159,7 @@ class CustomCopyController extends AdminControllerTableBase
      */
     protected function form($id = null)
     {
-        $form = new Form(new CustomCopy);
+        $form = new Form(new CustomCopy());
         $form->internal('from_custom_table_id')->default($this->custom_table->id);
         $form->display('from_custom_table.table_view_name', exmtrans("custom_copy.from_custom_table_view_name"))->default($this->custom_table->table_view_name);
 
@@ -273,7 +273,7 @@ class CustomCopyController extends AdminControllerTableBase
         $table_name = $this->custom_table->table_name;
         $path = admin_urls('copy', $table_name, 'create');
         // create form fields
-        $form = new ModalForm;
+        $form = new ModalForm();
         $form->action($path);
         $form->method('GET');
         $form->modalHeader(trans('admin.setting'));
@@ -285,7 +285,7 @@ class CustomCopyController extends AdminControllerTableBase
             ->setWidth(8, 3)
             ->required()
             ->help(exmtrans('custom_copy.help.to_custom_table_view_name'));
-        
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),

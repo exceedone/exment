@@ -60,7 +60,7 @@ class BatchCommand extends Command
             $this->error('Plugin not found. Please select plugin.');
             return;
         }
-        
+
         if (!$plugin->matchPluginType(PluginType::BATCH)) {
             $this->error('Plugin not not batch. Please select batch plugin.');
             return;

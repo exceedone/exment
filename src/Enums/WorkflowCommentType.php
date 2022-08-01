@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Enums;
 
 class WorkflowCommentType extends EnumBase
 {
-    const REQUIRED = "required";
-    const NULLABLE = "nullable";
-    const NOTUSE = "not_use";
+    public const REQUIRED = "required";
+    public const NULLABLE = "nullable";
+    public const NOTUSE = "not_use";
 }

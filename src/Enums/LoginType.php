@@ -29,7 +29,7 @@ class LoginType extends EnumBase
      *
      * @return string
      */
-    public static function getLoginServiceClassName($login_type) : string
+    public static function getLoginServiceClassName($login_type): string
     {
         switch ($login_type) {
             case LoginType::PURE:
@@ -37,7 +37,7 @@ class LoginType extends EnumBase
             case LoginType::OAUTH:
                 return LoginServiceRoot\OAuth\OAuthService::class;
             case LoginType::SAML:
-            return LoginServiceRoot\Saml\SamlService::class;
+                return LoginServiceRoot\Saml\SamlService::class;
             case LoginType::LDAP:
                 return LoginServiceRoot\Ldap\LdapService::class;
         }

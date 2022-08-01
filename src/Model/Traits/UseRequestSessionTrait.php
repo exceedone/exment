@@ -15,7 +15,7 @@ trait UseRequestSessionTrait
     {
         return static::_allRecords('requestSession', $filter, $isGetAll, $with);
     }
-    
+
     /**
      * get all records. use cache
      */
@@ -23,7 +23,7 @@ trait UseRequestSessionTrait
     {
         return static::_allRecords('cache', $filter, $isGetAll, $with);
     }
-    
+
     /**
      * get first record. use system session
      */
@@ -31,7 +31,7 @@ trait UseRequestSessionTrait
     {
         return static::_allRecords('requestSession', $filter, $isGetAll, $with, true);
     }
-    
+
     /**
      * get first record. use cache
      */
@@ -39,7 +39,7 @@ trait UseRequestSessionTrait
     {
         return static::_allRecords('cache', $filter, $isGetAll, $with, true);
     }
-    
+
     /**
      * get children like hasMany. use cache
      */
@@ -49,7 +49,7 @@ trait UseRequestSessionTrait
             return $record->{$keyName} == $this->{$idName};
         }, false);
     }
-    
+
     /**
      * get all records.
      */

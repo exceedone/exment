@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\Null;
 
 use Exceedone\Exment\Enums\FilterOption;

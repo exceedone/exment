@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Notify;
 
 use Illuminate\Support\Collection;
@@ -24,17 +25,17 @@ class Column extends NotifyTargetBase
     public function __construct(Notify $notify, array $action_setting, $column)
     {
         parent::__construct($notify, $action_setting);
-        
+
         $this->column = $column;
     }
 
-    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
+    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         $result = collect();
 
         $custom_table = $custom_value->custom_table;
         $custom_column = CustomColumn::getEloquent($this->column, $custom_table);
-        
+
         if (!isset($custom_column)) {
             return $result;
         }
@@ -71,7 +72,7 @@ class Column extends NotifyTargetBase
             elseif ($custom_column->column_type == ColumnType::USER) {
                 $result->push(NotifyTarget::getModelAsUser($v));
             }
-            
+
             // if select table(cotains user)
             elseif (ColumnType::isSelectTable($custom_column->column_type)) {
                 // get email column
@@ -92,7 +93,7 @@ class Column extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
-    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->getModels($custom_value, null);
     }

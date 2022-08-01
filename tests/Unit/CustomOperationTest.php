@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -18,7 +19,8 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomOperationTest extends UnitTestBase
 {
-    use DatabaseTransactions, CustomTableTrait;
+    use DatabaseTransactions;
+    use CustomTableTrait;
 
     /**
      * update data at once
@@ -245,13 +247,13 @@ class CustomOperationTest extends UnitTestBase
                             $value = \Carbon\Carbon::parse($value);
                             $this->assertTrue($value->isToday());
                             break;
-                            
+
                         case OperationValueType::LOGIN_USER:
                             $login_user = \Exment::user();
                             $this->assertTrue($value instanceof CustomValue);
                             $this->assertEquals($value->id, $login_user->getUserId());
                             break;
-                            
+
                         case OperationValueType::BERONG_ORGANIZATIONS:
                             $login_user = \Exment::user();
                             // get joined user's id
@@ -317,7 +319,7 @@ class CustomOperationTest extends UnitTestBase
                 'view_column_target_id' => $target_column->id,
                 'update_value_text' => $update_column['update_value_text'],
                 'options' => [
-                    'operation_update_type' => isset($update_column['update_type'])? $update_column['update_type']: 'default'
+                    'operation_update_type' => isset($update_column['update_type']) ? $update_column['update_type'] : 'default'
                 ],
             ]);
         }

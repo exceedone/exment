@@ -29,7 +29,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
     {
         return redirect(admin_urls('form', $this->custom_table->table_name));
     }
-    
+
     /**
      * Make a form builder.
      *
@@ -37,7 +37,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
      */
     protected function form($id = null)
     {
-        $form = new Form(new CustomFormPriority);
+        $form = new Form(new CustomFormPriority());
         $custom_table = $this->custom_table;
         $form->select('custom_form_id', exmtrans("custom_form_priority.custom_form_id"))->required()
             ->options(function ($value) use ($custom_table) {

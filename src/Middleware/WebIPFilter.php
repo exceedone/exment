@@ -14,7 +14,7 @@ class WebIPFilter extends IpFilterBase
     {
         return $this->handleBase($request, $next, 'web_ip_filters');
     }
-    
+
     protected function returnError()
     {
         return response(view('exment::exception.ipfilter'));

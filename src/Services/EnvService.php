@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services;
 
 /**
@@ -17,7 +18,7 @@ class EnvService
 
         $newEnvs = [];
 
-        
+
         // Loop through .env-data
         foreach ($env as $env_value) {
 
@@ -51,7 +52,7 @@ class EnvService
             }
         }
 
-        
+
         // Loop through given data
         foreach ((array)$data as $key => $value) {
             if (array_has($newEnvs, $key)) {
@@ -83,7 +84,7 @@ class EnvService
         }
         return $value;
     }
-    
+
     public static function removeEnv($data = [])
     {
         if (empty($data)) {

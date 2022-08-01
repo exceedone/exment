@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\SystemRequire;
 
 use Exceedone\Exment\Enums\SystemRequireResult;
@@ -11,12 +12,12 @@ class MaxInputVars extends SystemRequireBase
         $this->result = $input_vars_limit;
     }
 
-    public function getLabel() : string
+    public function getLabel(): string
     {
         return exmtrans('system_require.type.max_input_vars.label');
     }
 
-    public function getExplain() : string
+    public function getExplain(): string
     {
         return exmtrans('system_require.type.max_input_vars.explain');
     }
@@ -26,7 +27,7 @@ class MaxInputVars extends SystemRequireBase
      *
      * @return ?string
      */
-    public function getResultText() : ?string
+    public function getResultText(): ?string
     {
         return $this->result;
     }
@@ -36,7 +37,7 @@ class MaxInputVars extends SystemRequireBase
      *
      * @return string
      */
-    public function checkResult() : string
+    public function checkResult(): string
     {
         if ($this->result >= 3000) {
             return SystemRequireResult::OK;
@@ -44,12 +45,12 @@ class MaxInputVars extends SystemRequireBase
         return SystemRequireResult::WARNING;
     }
 
-    protected function getMessageWarning() : ?string
+    protected function getMessageWarning(): ?string
     {
         return exmtrans('system_require.type.max_input_vars.warning');
     }
 
-    public function getSettingUrl() : ?string
+    public function getSettingUrl(): ?string
     {
         return \Exment::getManualUrl('additional_php_ini');
     }

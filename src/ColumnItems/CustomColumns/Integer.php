@@ -41,11 +41,11 @@ class Integer extends CustomItem
     {
         return Field\Number::class;
     }
-    
+
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
-        
+
         if (!boolval(array_get($options, 'updown_button'))) {
             $field->disableUpdown();
             $field->defaultEmpty();
@@ -80,7 +80,7 @@ class Integer extends CustomItem
     {
         $this->getAdminFilterWhereQueryNumber($query, $input);
     }
-    
+
     protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
@@ -90,12 +90,12 @@ class Integer extends CustomItem
 
         $number_min = max(array_get($options, 'number_min')?? $min_size_number, $min_size_number);
         $number_max = min(array_get($options, 'number_max')?? $max_size_number, $max_size_number);
-        
+
         // value size
         $validates[] = new Validator\NumberMinRule($number_min);
         $validates[] = new Validator\NumberMaxRule($number_max);
 
-        $validates[] = new Validator\IntegerCommaRule;
+        $validates[] = new Validator\IntegerCommaRule();
     }
 
     protected function getRemoveValidates()
@@ -110,8 +110,8 @@ class Integer extends CustomItem
     {
         return[DatabaseDataType::TYPE_INTEGER, true, []];
     }
-    
-    
+
+
     /**
      * Convert filter value.
      * Ex. If value is decimal and Column Type is decimal, return floatval.
@@ -141,6 +141,6 @@ class Integer extends CustomItem
 
         $form->switchbool('updown_button', exmtrans("custom_column.options.updown_button"))
             ->help(exmtrans("custom_column.help.updown_button"))
-            ;
+        ;
     }
 }

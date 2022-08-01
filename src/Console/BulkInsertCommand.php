@@ -5,11 +5,12 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Exceedone\Exment\Model\Define;
-use \File;
+use File;
 
 class BulkInsertCommand extends Command
 {
-    use CommandTrait, ImportTrait;
+    use CommandTrait;
+    use ImportTrait;
 
     /**
      * The name and signature of the console command.
@@ -211,7 +212,7 @@ class BulkInsertCommand extends Command
         }
         $ary = [];
         foreach ($keys as $key => $value) {
-            $data = array_key_exists($key, $line)? $line[$key] : '';
+            $data = array_key_exists($key, $line) ? $line[$key] : '';
             $targets = explode('.', $value);
             if (count($targets) == 1) {
                 return $data;

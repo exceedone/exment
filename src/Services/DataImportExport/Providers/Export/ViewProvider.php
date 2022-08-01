@@ -9,7 +9,7 @@ class ViewProvider extends DefaultTableProvider
     protected $custom_view;
 
     protected $summary_index_and_view_columns;
-    
+
     public function __construct($args = [])
     {
         parent::__construct($args);
@@ -47,25 +47,25 @@ class ViewProvider extends DefaultTableProvider
     {
         // create 2 rows.
         $rows = [];
-        
+
         // 1st row, column name
         $rows[] = collect($this->summary_index_and_view_columns)->map(function ($summary_index_and_view_column) {
             $item = array_get($summary_index_and_view_column, 'item');
             return $item->column_item->name() ?? null;
         })->toArray();
-        
+
         $rows[] = collect($this->summary_index_and_view_columns)->map(function ($summary_index_and_view_column) {
             $item = array_get($summary_index_and_view_column, 'item');
             return array_get($item, 'view_column_name')?? $item->column_item->label();
         })->toArray();
-        
+
         return $rows;
     }
 
     /**
      * get target chunk records
      */
-    public function getRecords() : Collection
+    public function getRecords(): Collection
     {
         $this->grid->applyQuickSearch();
 
@@ -73,10 +73,10 @@ class ViewProvider extends DefaultTableProvider
         if ($result instanceof Collection) {
             $records = $result;
         } else {
-            $records = new Collection;
+            $records = new Collection();
             $records = $records->merge($result);
         }
-        
+
         $this->count = count($records);
         return $records;
     }
@@ -89,7 +89,7 @@ class ViewProvider extends DefaultTableProvider
         if (!isset($records)) {
             return [];
         }
-        
+
         $bodies = [];
 
         foreach ($records as $record) {

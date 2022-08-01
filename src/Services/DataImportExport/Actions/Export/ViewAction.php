@@ -7,7 +7,7 @@ use Exceedone\Exment\Services\DataImportExport\Providers\Export;
 class ViewAction extends CustomTableAction
 {
     protected $custom_view;
-    
+
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
@@ -22,7 +22,7 @@ class ViewAction extends CustomTableAction
         $providers = [];
 
         $providers[] = $this->getProvider();
-        
+
         $datalist = [];
         foreach ($providers as $provider) {
             if (!$provider->isOutput()) {

@@ -54,7 +54,7 @@ class MySqlProcessor extends BaseMySqlProcessor
             return collect((object) $result)->first();
         }, $results);
     }
-    
+
     /**
      * Process the results of a Column Definitions query.
      *
@@ -73,7 +73,7 @@ class MySqlProcessor extends BaseMySqlProcessor
             ];
         })->toArray();
     }
-    
+
     /**
      * Process the results of a index listing query.
      *

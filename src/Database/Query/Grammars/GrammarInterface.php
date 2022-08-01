@@ -11,7 +11,7 @@ interface GrammarInterface
      *
      * @return bool
      */
-    public function isSupportWhereInMultiple() : bool;
+    public function isSupportWhereInMultiple(): bool;
 
     /**
      * wherein string.
@@ -25,7 +25,7 @@ interface GrammarInterface
      * @return \Illuminate\Database\Query\Builder
      */
     public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false);
-        
+
     /**
      * wherein column.
      * Ex. column is 1,12,23,31 , and want to match 1, getting.
@@ -78,7 +78,7 @@ interface GrammarInterface
      * @return void
      */
     public function getDateFormatString($groupCondition, $column, $groupBy = false, $wrap = true);
-    
+
     /**
      * convert carbon date to date format
      *

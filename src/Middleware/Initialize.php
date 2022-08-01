@@ -20,7 +20,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
-use \Html;
+use Html;
 use PDO;
 
 /**
@@ -58,10 +58,10 @@ class Initialize
             elseif (shouldPassThrough(true) && $initialized) {
                 return redirect()->guest(admin_base_path('auth/login'));
             }
-    
+
             static::initializeConfig();
         }
-        
+
         //static::requireBootstrap();
 
         return $next($request);
@@ -133,8 +133,8 @@ class Initialize
         Config::set('auth.providers.exment-auth-login', [
             'driver' => 'exment-auth',
         ]);
-    
-        
+
+
         // for login publicform
         Config::set('auth.guards.publicform', [
             'driver' => 'publicformtoken',
@@ -166,7 +166,7 @@ class Initialize
                 'permissions' => $permissions,
             ]);
         }
-        
+
         if (!Config::has('filesystems.disks.backup')) {
             Config::set('filesystems.disks.backup', [
                 'driver' => 'local',
@@ -182,7 +182,7 @@ class Initialize
                 'permissions' => $permissions,
             ]);
         }
-        
+
         if (!Config::has('filesystems.disks.template')) {
             Config::set('filesystems.disks.template', [
                 'driver' => 'local',
@@ -218,7 +218,7 @@ class Initialize
             'mergeFrom' => 'exment',
             'permissions' => $permissions,
         ]);
-        
+
         Config::set('filesystems.disks.plugin_sync', [
             'driver' => 'exment-driver-plugin',
             'mergeFrom' => 'plugin',
@@ -232,7 +232,7 @@ class Initialize
             'root' => storage_path('app/backup'),
             'permissions' => $permissions,
         ]);
-        
+
         Config::set('filesystems.disks.template_sync', [
             'driver' => 'exment-driver-template',
             'mergeFrom' => 'template',
@@ -378,7 +378,7 @@ class Initialize
                 Config::set('admin.datetime_format', 'Y-m-d H:i:s');
                 Config::set('admin.time_format', 'H:i:s');
             }
-        
+
             // favicon
             if (!is_null(System::site_favicon())) {
                 \Admin::setFavicon(admin_url('favicon'));
@@ -424,7 +424,7 @@ class Initialize
                     }
                 }
             }
-            
+
             // Google reCAPTCHA ----------------------------------------------------
             if (!is_null($val = Model\PublicForm::recaptchaSiteKey())) {
                 Config::set('no-captcha.sitekey', $val);
@@ -533,7 +533,7 @@ class Initialize
             'changeField'          => Field\ChangeField::class,
             'progressTracker'          => Field\ProgressTracker::class,
             'systemValues'          => Field\SystemValues::class,
-            
+
             ///// workflow
             'workflowStatusSelects'          => Field\Workflow\StatusSelects::class,
             'workflowOptions'          => Field\Workflow\Options::class,

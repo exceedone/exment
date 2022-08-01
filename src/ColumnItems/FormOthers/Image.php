@@ -27,7 +27,7 @@ class Image extends FormOtherItem
             if (!$file) {
                 return null;
             }
-    
+
             $public_form = $this->isPublicForm() ? array_get($this->options, 'public_form') : null;
             $url = ExmentFile::getUrl($file, [
                 'asPublicForm' => $this->isPublicForm(),

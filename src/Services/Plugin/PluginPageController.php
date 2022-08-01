@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use App\Http\Controllers\Controller;
@@ -11,7 +12,7 @@ class PluginPageController extends Controller
 {
     protected $pluginPage;
     protected $plugin;
-    
+
     public function __construct(?PluginPublicBase $pluginPage)
     {
         $this->pluginPage = $pluginPage;
@@ -45,7 +46,7 @@ class PluginPageController extends Controller
             return $result;
         }
 
-        $content = new Content;
+        $content = new Content();
         $content->row($result);
         if (method_exists($this->pluginPage, '_showHeader') && $this->pluginPage->_showHeader()) {
             $content->header($this->plugin->plugin_view_name)
@@ -59,7 +60,7 @@ class PluginPageController extends Controller
     {
         // get file path
         $path = implode('/', $args);
-        
+
         // get base path
         $base_path = $this->plugin->getFullPath();
         $filePath = path_join($base_path, 'public', $path);
@@ -83,7 +84,7 @@ class PluginPageController extends Controller
                 $mimeType = \File::mimeType($filePath);
                 break;
         }
-        
+
         // create response
         $response = Response::make($file, 200);
         $response->header("Content-Type", $mimeType);

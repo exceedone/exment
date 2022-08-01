@@ -44,14 +44,14 @@ class LoginUserProvider extends ProviderBase
 
             // combine value
             $value_custom = array_combine($headers, $value);
-            
+
             // get model
             $modelName = getModelName(SystemTableName::USER);
             // select $model using primary key and value
             $primary_value = array_get($value_custom, $this->primary_key);
             // if not exists, new instance
             if (is_nullorempty($primary_value)) {
-                $model = new $modelName;
+                $model = new $modelName();
             }
             // if exists, firstOrNew
             else {
@@ -69,7 +69,7 @@ class LoginUserProvider extends ProviderBase
 
         return $results;
     }
-    
+
     /**
      * validate imported all data.
      * @param mixed $dataObjects
@@ -90,7 +90,7 @@ class LoginUserProvider extends ProviderBase
         }
         return [$success_data, $error_data];
     }
-    
+
     /**
      * validate data row
      * @param int $line_no
@@ -150,7 +150,7 @@ class LoginUserProvider extends ProviderBase
         $use_loginuser = array_get($data, 'use_loginuser');
         // if not set $login_user and $use_loginuser is true, create
         if (strcmp_ex($use_loginuser, '1') == 0  && is_null($model->login_user)) {
-            $model->login_user = new LoginUser;
+            $model->login_user = new LoginUser();
             $model->login_user->base_user_id = array_get($data, 'id');
         }
         // if set $login_user and $use_loginuser is false, remove
@@ -158,11 +158,11 @@ class LoginUserProvider extends ProviderBase
             $model->login_user->delete();
             return;
         }
-        
+
         if (is_null($model->login_user)) {
             return;
         }
-        
+
         // set password
         $password = null;
         if (boolval(array_get($data, 'create_password_auto'))) {

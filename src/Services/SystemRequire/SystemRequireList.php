@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\SystemRequire;
 
 use Exceedone\Exment\Enums\SystemRequireResult;
@@ -56,7 +57,7 @@ class SystemRequireList
 
         return static::$requireClassesCommand;
     }
-    
+
 
     public function setItem($item)
     {
@@ -71,13 +72,13 @@ class SystemRequireList
     }
 
 
-    public function hasResultWarning() : bool
+    public function hasResultWarning(): bool
     {
         return collect($this->items)->contains(function ($item) {
             return $item->checkResult() == SystemRequireResult::WARNING;
         });
     }
-    public function hasResultNg() : bool
+    public function hasResultNg(): bool
     {
         return collect($this->items)->contains(function ($item) {
             return $item->checkResult() == SystemRequireResult::NG;
@@ -90,13 +91,13 @@ class SystemRequireList
      *
      * @return Collection
      */
-    public static function make(string $systemRequireCalledType) : SystemRequireList
+    public static function make(string $systemRequireCalledType): SystemRequireList
     {
-        $result = new self;
+        $result = new self();
 
         $classes = static::getRequireClasses($systemRequireCalledType);
         foreach ($classes as $className) {
-            $obj = new $className;
+            $obj = new $className();
             $obj->systemRequireCalledType($systemRequireCalledType);
 
             $result->setItem($obj);

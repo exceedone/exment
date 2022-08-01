@@ -7,7 +7,8 @@ use Exceedone\Exment\Services\DataImportExport;
 
 class FileColumnImportCommand extends Command
 {
-    use CommandTrait, ImportTrait;
+    use CommandTrait;
+    use ImportTrait;
 
     /**
      * The name and signature of the console command.
@@ -85,14 +86,14 @@ class FileColumnImportCommand extends Command
                 $this->line(($index + 1) . exmtrans('command.import.file_info', $file_name));
 
                 $format = file_ext($file_name);
-    
+
                 $custom_table = $this->getTableFromFile($file_name);
                 if (!isset($custom_table)) {
                     $this->error(exmtrans('command.import.error_info') . exmtrans('command.import.error_table', $file_name));
                     $resultCode = -1;
                     continue;
                 }
-    
+
                 $service = (new DataImportExport\DataImportExportService())
                     ->filebasename($file_name)
                     ->importAction(new static::$actionClassName(
@@ -107,7 +108,7 @@ class FileColumnImportCommand extends Command
                 $result = $service->importBackground($this, $file_name, $file->getRealPath(), [
                     'checkCount' => false,  // whether checking count
                 ]);
-                
+
                 if (boolval($result['result'] ?? true)) {
                     $this->line(($index + 1) . exmtrans('command.import.success_message', $file_name, array_get($result, 'data_import_cnt')));
                 } else {

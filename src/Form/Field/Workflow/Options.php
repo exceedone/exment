@@ -58,7 +58,7 @@ class Options extends Select
 
         return $value;
     }
-    
+
     public function render()
     {
         $configs = array_merge([

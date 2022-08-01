@@ -20,8 +20,8 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
         $client = BlobRestProxy::createBlobService($key);
         return new self($client, array_get($mergeConfig, 'container'));
     }
-    
-    public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array
+
+    public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array
     {
         return [
             'container' => config('exment.rootpath.azure.' . $mergeFrom),
@@ -34,7 +34,7 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
      * @param array $config
      * @return array
      */
-    public static function getConfig($config) : array
+    public static function getConfig($config): array
     {
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = static::mergeFileConfig('filesystems.disks.azure', "filesystems.disks.$mergeFrom", $mergeFrom);

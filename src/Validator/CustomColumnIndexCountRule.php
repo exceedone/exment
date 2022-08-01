@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -13,7 +14,7 @@ class CustomColumnIndexCountRule implements Rule
 {
     protected $custom_table;
     protected $custom_column_id;
-    
+
     public function __construct(...$parameters)
     {
         $this->custom_table = CustomTable::getEloquent($parameters[0]);
@@ -46,7 +47,7 @@ class CustomColumnIndexCountRule implements Rule
 
         return true;
     }
-    
+
     /**
      * get validation error message
      *

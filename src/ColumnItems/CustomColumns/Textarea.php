@@ -37,7 +37,7 @@ class Textarea extends CustomItem
     {
         return Field\Textarea::class;
     }
-    
+
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
@@ -45,7 +45,7 @@ class Textarea extends CustomItem
 
         $field->attribute(['maxlength' => $this->getMaxLength($options)]);
     }
-    
+
     protected function setValidates(&$validates)
     {
         // value size
@@ -92,13 +92,13 @@ class Textarea extends CustomItem
             ->rows(3);
     }
 
-    
+
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
      * @return string
      */
-    protected function getGridFilterOption() : ?string
+    protected function getGridFilterOption(): ?string
     {
         return FilterOption::LIKE;
     }

@@ -26,12 +26,13 @@ use Illuminate\Http\Request;
 
 class CustomNotifyController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, NotifyTrait;
+    use HasResourceTableActions;
+    use NotifyTrait;
 
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
-        
+
         $title = exmtrans("notify.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
         $this->setPageInfo($title, $title, exmtrans("notify.description"), 'fa-bell');
     }
@@ -58,7 +59,7 @@ class CustomNotifyController extends AdminControllerTableBase
      */
     protected function grid()
     {
-        $grid = new Grid(new Notify);
+        $grid = new Grid(new Notify());
 
         $grid->column('target_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val) {
             $custom_table = CustomTable::getEloquent($val);
@@ -73,7 +74,7 @@ class CustomNotifyController extends AdminControllerTableBase
         });
 
         $this->setBasicGrid($grid);
-        
+
         $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
             return collect($val)->map(function ($v) {
                 $enum = NotifyAction::getEnum(array_get($v, 'notify_action'));
@@ -84,7 +85,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->sortable()->display(function ($val) {
             return \Exment::getTrueMark($val);
         })->escape(false);
-        
+
         // filter only custom table user has permission custom table
         if (!\Exment::user()->isAdministrator()) {
             $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
@@ -101,19 +102,19 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
             $actions->disableView();
-            
-            $linker = (new Linker)
+
+            $linker = (new Linker())
                 ->url(admin_urls("notify/{$custom_table->table_name}/create?copy_id={$actions->row->id}"))
                 ->icon('fa-copy')
                 ->tooltip(exmtrans('common.copy_item', exmtrans('notify.notify')));
             $actions->prepend($linker);
         });
-        
+
         $this->setFilterGrid($grid, function ($filter) {
             $filter->equal('notify_trigger', exmtrans("notify.notify_trigger"))->select(function ($val) {
                 return NotifyTrigger::transKeyArray("notify.notify_trigger_options");
             });
-            
+
             $filter->equal('target_id', exmtrans("notify.target_id"))->select(function ($val) {
                 return CustomTable::filterList()->pluck('table_view_name', 'id');
             });
@@ -134,7 +135,7 @@ class CustomNotifyController extends AdminControllerTableBase
             return;
         }
 
-        $form = new Form(new Notify);
+        $form = new Form(new Notify());
         $notify = Notify::find($id);
         if ($notify && !in_array($notify->notify_trigger, NotifyTrigger::CUSTOM_TABLES())) {
             Checker::error(exmtrans('common.message.wrongdata'));
@@ -145,11 +146,11 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $form->internal('target_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
-        
+
         $this->setBasicForm($form, $notify);
 
         $form->exmheader(exmtrans('notify.header_trigger'))->hr();
-        
+
         $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
             ->options(NotifyTrigger::transKeyArrayFilter("notify.notify_trigger_options", NotifyTrigger::CUSTOM_TABLES()))
             ->required()
@@ -198,14 +199,14 @@ class CustomNotifyController extends AdminControllerTableBase
                 ->help(exmtrans("notify.help.notify_day"))
                 ->min(0)
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
-                ;
+            ;
             $form->select('notify_beforeafter', exmtrans("notify.notify_beforeafter"))
                 ->options(NotifyBeforeAfter::transKeyArray('notify.notify_beforeafter_options'))
                 ->default(NotifyBeforeAfter::BEFORE)
                 ->required()
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ->help(exmtrans("notify.help.notify_beforeafter") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))));
-                
+
             $form->number('notify_hour', exmtrans("notify.notify_hour"))
                 ->min(0)
                 ->max(23)
@@ -218,13 +219,13 @@ class CustomNotifyController extends AdminControllerTableBase
                 ->options(NotifySavedType::transArray('common'))
                 ->default(NotifySavedType::arrays())
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::CREATE_UPDATE_DATA]])])
-                ;
+            ;
 
             $form->text('notify_button_name', exmtrans("notify.notify_button_name"))
                 ->required()
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::BUTTON]])])
                 ->rules("max:40");
-                    
+
             $form->switchbool('notify_myself', exmtrans("notify.notify_myself"))
             ->attribute([
                 'data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::CREATE_UPDATE_DATA]]),
@@ -253,7 +254,7 @@ class CustomNotifyController extends AdminControllerTableBase
         })->required()->disableHeader();
 
         $this->setMailTemplateForm($form, $notify);
-        
+
         $this->setFooterForm($form, $notify);
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
@@ -276,8 +277,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
     protected function getTargetDateColumnOptions($custom_table_id, $table_name = null)
     {
-        return CustomColumn
-            ::where('custom_table_id', $custom_table_id)
+        return CustomColumn::where('custom_table_id', $custom_table_id)
             ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
             ->get(['id', 'column_view_name as text'])
             ->map(function (&$item) use ($table_name) {
@@ -335,7 +335,7 @@ class CustomNotifyController extends AdminControllerTableBase
             ->getValueModel()
             ->where('value->mail_key_name', $mailKeyName)
             ->first();
-    
+
         if (!isset($mail_template)) {
             return [$keyName => null];
         }

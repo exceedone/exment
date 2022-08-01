@@ -60,7 +60,7 @@ class TestDataSeeder extends Seeder
         $this->createSystem();
 
         $users = $this->createUserOrg();
-       
+
         $menu = $this->createMenuParent();
 
         $custom_tables = $this->createTables($users, $menu);
@@ -136,7 +136,7 @@ class TestDataSeeder extends Seeder
             if (!isset($custom_table)) {
                 continue;
             }
-            
+
             foreach ($typevalue as $user_key => &$user) {
                 $model = $custom_table->getValueModel();
                 foreach ($user['value'] as $key => $value) {
@@ -153,7 +153,7 @@ class TestDataSeeder extends Seeder
                 }
 
                 if (array_has($user, 'password')) {
-                    $loginUser = new LoginUser;
+                    $loginUser = new LoginUser();
                     $loginUser->base_user_id = $model->id;
                     $loginUser->password = $user['password'];
                     $loginUser->avatar = $avatar;
@@ -170,7 +170,7 @@ class TestDataSeeder extends Seeder
 
                 if (isset($rolegroups[$type][$user_key]) && is_array($rolegroups[$type][$user_key])) {
                     foreach ($rolegroups[$type][$user_key] as $rolegroup) {
-                        $roleGroupUserOrg = new RoleGroupUserOrganization;
+                        $roleGroupUserOrg = new RoleGroupUserOrganization();
                         $roleGroupUserOrg->role_group_id = $rolegroup;
                         $roleGroupUserOrg->role_group_user_org_type = $type;
                         $roleGroupUserOrg->role_group_target_id = $model->id;
@@ -213,7 +213,7 @@ class TestDataSeeder extends Seeder
             ];
             $parent_table = $this->createTable('parent_table' . $relationItem['suffix'], $parentOptions);
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $parent_table]);
-            
+
             $createRelationCallback = function ($custom_table) use ($parent_table, $relationItem) {
                 if (isset($relationItem['relation_type'])) {
                     CustomRelation::create([
@@ -343,7 +343,7 @@ class TestDataSeeder extends Seeder
                             'username' => $key,
                             'password' => array_get($user, 'password')
                         ]);
-            
+
                         $user_id = array_get($user, 'id');
 
                         for ($i = 1; $i <= 10; $i++) {
@@ -367,11 +367,11 @@ class TestDataSeeder extends Seeder
                             $custom_value->created_user_id = $user_id;
                             $custom_value->updated_user_id = $user_id;
                             $custom_value->save();
-            
+
                             $custom_values[] = $custom_value;
                         }
                     }
-        
+
                     return $custom_values;
                 }
             ]);
@@ -497,7 +497,7 @@ class TestDataSeeder extends Seeder
             ]);
         $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
     }
-    
+
     protected function createAllColumnsTableForTest($menu, $users)
     {
         $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
@@ -560,16 +560,16 @@ class TestDataSeeder extends Seeder
                             'username' => $key,
                             'password' => array_get($user, 'password')
                         ]);
-            
+
                         $user_id = array_get($user, 'id');
-            
+
                         for ($i = 1; $i <= 10; $i++) {
                             $index++;
                             $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                             $custom_value = $custom_table->getValueModel();
                             // only use rand
-                            $custom_value->setValue("text", rand(0, 1) == 0 ? null: 'text_'.$i);
+                            $custom_value->setValue("text", rand(0, 1) == 0 ? null : 'text_'.$i);
                             $custom_value->setValue("user", ($new_id % 5 == 0 ? null : $user_id));
                             $custom_value->setValue("organization", ($new_id % 7) + 1);
                             $custom_value->setValue("email", "foovartest{$i}@test.com.test");
@@ -593,17 +593,17 @@ class TestDataSeeder extends Seeder
                             $custom_value->created_user_id = $user_id;
                             $custom_value->updated_user_id = $user_id;
                             $custom_value->save();
-            
+
                             $custom_values[] = $custom_value;
                         }
                     }
-            
+
                     return $custom_values;
                 }
             ]);
         $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
     }
-    
+
     protected function createUnicodeDataTable($menu, $users)
     {
         $select_array = ['日本', 'アメリカ', '中国', 'イタリア', 'カナダ'];
@@ -645,9 +645,9 @@ class TestDataSeeder extends Seeder
                         'username' => $key,
                         'password' => array_get($user, 'password')
                     ]);
-        
+
                     $user_id = array_get($user, 'id');
-        
+
                     for ($i = 1; $i <= 10; $i++) {
                         $index++;
                         $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
@@ -668,11 +668,11 @@ class TestDataSeeder extends Seeder
                         $custom_value->created_user_id = $user_id;
                         $custom_value->updated_user_id = $user_id;
                         $custom_value->save();
-        
+
                         $custom_values[] = $custom_value;
                     }
                 }
-        
+
                 return $custom_values;
             }
         ]);
@@ -865,7 +865,7 @@ class TestDataSeeder extends Seeder
         $createValue = $options['createValue'];
         $createValueCallback = $options['createValueCallback'];
         $createCustomView = $options['createCustomView'];
-        
+
         $customTableOptions = array_merge([
             'search_enabled' => 1,
         ], $customTableOptions);
@@ -904,7 +904,7 @@ class TestDataSeeder extends Seeder
                 ['column_name' => 'init_text', 'column_view_name' => 'init_text', 'column_type' => ColumnType::TEXT, 'options' => ['init_only' => '1']],
                 ['column_name' => 'email', 'column_view_name' => 'email', 'column_type' => ColumnType::EMAIL, 'options' => []],
             ];
-    
+
             foreach ($columns as $column) {
                 $custom_column = CustomColumn::create([
                     'custom_table_id' => $custom_table->id,
@@ -913,7 +913,7 @@ class TestDataSeeder extends Seeder
                     'column_type' => $column['column_type'],
                     'options' => $column['options'],
                 ]);
-        
+
                 $custom_columns[] = $custom_column;
 
                 if (boolval(array_get($column, 'label'))) {
@@ -967,7 +967,7 @@ class TestDataSeeder extends Seeder
     protected function createPermission($custom_tables)
     {
         foreach ($custom_tables as $permission => $custom_table) {
-            $roleGroupPermission = new RoleGroupPermission;
+            $roleGroupPermission = new RoleGroupPermission();
             $roleGroupPermission->role_group_id = 4;
             $roleGroupPermission->role_group_permission_type = 1;
             $roleGroupPermission->role_group_target_id = $custom_table->id;
@@ -1048,8 +1048,8 @@ class TestDataSeeder extends Seeder
 
         return $custom_values;
     }
-    
-    
+
+
     protected function createMailTemplate()
     {
         $custom_table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
@@ -1070,14 +1070,14 @@ class TestDataSeeder extends Seeder
             'mail_body' => 'test_mail_2 ${prms1} ${prms2}',
         ])->save();
     }
-    
+
 
     /**
      * Create date value
      *
      * @return string ymd string
      */
-    protected function getDateValue($user_id, $new_id) : ?string
+    protected function getDateValue($user_id, $new_id): ?string
     {
         //$date = \Carbon\Carbon::now();
         // fixed date
@@ -1127,7 +1127,7 @@ class TestDataSeeder extends Seeder
         }
         return null;
     }
-    
+
     /**
      * Create Notify
      *
@@ -1135,7 +1135,7 @@ class TestDataSeeder extends Seeder
      */
     protected function createNotify($custom_table)
     {
-        $notify = new Notify;
+        $notify = new Notify();
         $notify->notify_view_name = $custom_table->table_name . '_notify';
         $notify->target_id = $custom_table->id;
         $notify->notify_trigger = Enums\NotifyTrigger::CREATE_UPDATE_DATA;
@@ -1185,7 +1185,7 @@ class TestDataSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
-            $notify = new Notify;
+            $notify = new Notify();
             $notify->notify_view_name = $item['name'];
             $notify->target_id = $custom_table->id;
             $notify->notify_trigger = Enums\NotifyTrigger::BUTTON;
@@ -1208,7 +1208,7 @@ class TestDataSeeder extends Seeder
         if (!isset($column)) {
             return null;
         }
-        $notify = new Notify;
+        $notify = new Notify();
         $notify->notify_view_name = $custom_table->table_name . '_notify_limit';
         $notify->target_id = $custom_table->id;
         $notify->notify_trigger = 1;
@@ -1255,17 +1255,17 @@ class TestDataSeeder extends Seeder
                 'default_flg' => ($index === 1),
             ]);
             CustomForm::getDefault($custom_table);
-        
+
             if (count($condition) == 0) {
                 continue;
             }
-            
+
             $custom_form_priority = CustomFormPriority::create([
                 'custom_form_id' => $custom_form->id,
                 'order' => $index + 1,
             ]);
 
-            $custom_form_condition = new Condition;
+            $custom_form_condition = new Condition();
             $custom_form_condition->morph_type = 'custom_form_priority';
             $custom_form_condition->morph_id = $custom_form_priority->id;
             foreach ($condition as $k => $c) {
@@ -1321,13 +1321,13 @@ class TestDataSeeder extends Seeder
         ///// create AllData view
         $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::ALLDATA, $custom_table->table_name . '-view-all', []);
         $order = 1;
-        
+
         $this->createSystemViewColumn($custom_view->id, $custom_table->id, $order++);
 
         foreach ($custom_columns as $custom_column) {
             $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $order++);
         }
-    
+
         if (!$createCustomView) {
             return;
         }
@@ -1486,7 +1486,7 @@ class TestDataSeeder extends Seeder
 
     protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text)
     {
-        $custom_view_filter = new CustomViewFilter;
+        $custom_view_filter = new CustomViewFilter();
         $custom_view_filter->custom_view_id = $custom_view_id;
         $custom_view_filter->view_column_type = $view_column_type;
         $custom_view_filter->view_column_table_id = $view_column_table_id;
@@ -1538,7 +1538,7 @@ class TestDataSeeder extends Seeder
 
     protected function createCustomViewSort($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $sort, $priority, $view_pivot_table_id = null, $view_pivot_column_id = null)
     {
-        $custom_view_sort = new CustomViewSort;
+        $custom_view_sort = new CustomViewSort();
         $custom_view_sort->custom_view_id = $custom_view_id;
         $custom_view_sort->view_column_type = $view_column_type;
         $custom_view_sort->view_column_table_id = $view_column_table_id;
@@ -1553,10 +1553,10 @@ class TestDataSeeder extends Seeder
         }
         $custom_view_sort->save();
     }
-    
+
     protected function createSystemViewColumn($custom_view_id, $view_column_table_id, $order, array $options = [])
     {
-        $custom_view_column = new CustomViewColumn;
+        $custom_view_column = new CustomViewColumn();
         $custom_view_column->custom_view_id = $custom_view_id;
         $custom_view_column->view_column_type = ConditionType::SYSTEM;
         $custom_view_column->view_column_table_id = $view_column_table_id;
@@ -1567,10 +1567,10 @@ class TestDataSeeder extends Seeder
         }
         $custom_view_column->save();
     }
-    
+
     protected function createViewColumn($custom_view_id, $view_column_table_id, $view_column_target_id, $order, array $options = [])
     {
-        $custom_view_column = new CustomViewColumn;
+        $custom_view_column = new CustomViewColumn();
         $custom_view_column->custom_view_id = $custom_view_id;
         $custom_view_column->view_column_type = ConditionType::COLUMN;
         $custom_view_column->view_column_table_id = $view_column_table_id;
@@ -1581,7 +1581,7 @@ class TestDataSeeder extends Seeder
         }
         $custom_view_column->save();
     }
-    
+
     /**
      * Create Notify Navibar
      *
@@ -1589,7 +1589,7 @@ class TestDataSeeder extends Seeder
      */
     protected function createNotifyNavbar($custom_table, $notify_id, $custom_value, $read_flg)
     {
-        $notify_navbar = new NotifyNavbar;
+        $notify_navbar = new NotifyNavbar();
         $notify_navbar->notify_id = $notify_id;
         $notify_navbar->parent_type = $custom_table->table_name;
         $notify_navbar->parent_id = $custom_value->id;
@@ -1600,17 +1600,17 @@ class TestDataSeeder extends Seeder
         $notify_navbar->notify_body = 'notify body test';
         $notify_navbar->save();
     }
-    
+
     protected function createApiSetting()
     {
         // init api
-        $clientRepository = new ApiClientRepository;
+        $clientRepository = new ApiClientRepository();
         $client = $clientRepository->createPasswordGrantClient(
             1,
             Define::API_FEATURE_TEST,
             'http://localhost'
         );
-        
+
         $clientRepository->createApiKey(
             1,
             Define::API_FEATURE_TEST_APIKEY,

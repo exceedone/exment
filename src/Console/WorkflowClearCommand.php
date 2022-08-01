@@ -45,7 +45,7 @@ class WorkflowClearCommand extends Command
     {
         $table_name = $this->argument("table_name");
         $id = $this->argument("id");
-        
+
         if (is_nullorempty($table_name) || is_nullorempty($id)) {
             return;
         }

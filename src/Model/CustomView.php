@@ -31,9 +31,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
     //protected $with = ['custom_table', 'custom_view_columns'];
-    
+
     private $_grid_item;
-    
+
     /**
      * Custom Value search service.
      *
@@ -193,7 +193,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected static function boot()
     {
         parent::boot();
-        
+
         static::saving(function ($model) {
             $model->prepareJson('options');
         });
@@ -210,7 +210,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // Delete items
             $model->deletingChildren();
         });
-        
+
         static::created(function ($model) {
             if ($model->view_type == ViewType::USER) {
                 // save Authoritable
@@ -242,18 +242,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     // custom function --------------------------------------------------
-    
+
     /**
      * get search service.
      */
-    public function getSearchService() : SearchService
+    public function getSearchService(): SearchService
     {
         if (!$this->_search_service) {
             $this->_search_service = new SearchService($this->custom_table);
         }
         return $this->_search_service;
     }
-    
+
     /**
      * reset search service.
      */
@@ -262,7 +262,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->_search_service = null;
     }
 
-    
+
     /**
      * get eloquent using request settion.
      * now only support only id.
@@ -276,7 +276,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return static::getEloquentDefault($id, $withs, 'id');
     }
 
-    
+
     /**
      * Get database query
      *
@@ -324,7 +324,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $paginate = $this->custom_table->searchValue(null, $options);
         return $paginate;
     }
-    
+
 
     /**
      * set DataTable using custom_view
@@ -343,13 +343,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $custom_table = $this->custom_table;
         // get custom view columns and custom view summaries
         $view_column_items = $this->getSummaryIndexAndViewColumns();
-        
+
         // create headers and column_styles
         $headers = [];
         $columnStyles = [];
         $columnClasses = [];
         $columnItems = [];
-        
+
         foreach ($view_column_items as $view_column_item) {
             $item = array_get($view_column_item, 'item');
             $headers[] = $item
@@ -364,7 +364,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (boolval($options['appendLink']) && $this->view_kind_type != ViewKindType::AGGREGATE) {
             $headers[] = trans('admin.action');
         }
-        
+
         // get table bodies
         $bodies = [];
         if (isset($datalist)) {
@@ -403,14 +403,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ///// add show and edit link
                 if (boolval($options['appendLink']) && $this->view_kind_type != ViewKindType::AGGREGATE) {
                     // using role
-                    $link .= (new Linker)
+                    $link .= (new Linker())
                         ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
                         //->linkattributes(['style' => "margin:0 3px;"])
                         ->icon('fa-eye')
                         ->tooltip(trans('admin.show'))
                         ->render();
                     if ($data->enableEdit(true) === true) {
-                        $link .= (new Linker)
+                        $link .= (new Linker())
                             ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
                             ->icon('fa-edit')
                             ->tooltip(trans('admin.edit'))
@@ -439,7 +439,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public static function getAllData($tableObj)
     {
         $tableObj = CustomTable::getEloquent($tableObj);
-        
+
         // get all data view
         $view = $tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
 
@@ -524,7 +524,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     && array_get($record, 'view_kind_type') != ViewKindType::FILTER;
             })->first();
         }
-        
+
         // if default view is not setting, show all data view
         if (!isset($view)) {
             // get all data view
@@ -586,14 +586,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public static function createDefaultView($tableObj)
     {
         $tableObj = CustomTable::getEloquent($tableObj);
-        
-        $view = new CustomView;
+
+        $view = new CustomView();
         $view->custom_table_id = $tableObj->id;
         $view->view_type = ViewType::SYSTEM;
         $view->view_kind_type = ViewKindType::ALLDATA;
         $view->view_view_name = exmtrans('custom_view.alldata_view_name');
         $view->saveOrFail();
-        
+
         return $view;
     }
 
@@ -609,7 +609,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // if simple eloquent, throw
         if ($model instanceof \Illuminate\Database\Eloquent\Model) {
-            throw new \Exception;
+            throw new \Exception();
         }
 
         // view filter setting --------------------------------------------------
@@ -660,7 +660,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $filter = ['default' => true, ($isHeader ? 'header' : 'footer') => true];
             // set default view_column
             foreach (SystemColumn::getOptions($filter) as $view_column_system) {
-                $view_column = new CustomViewColumn;
+                $view_column = new CustomViewColumn();
                 $view_column->custom_view_id = $this->id;
                 $view_column->view_column_target = array_get($view_column_system, 'name');
                 $view_column->order = array_get($view_column_system, 'order');
@@ -676,7 +676,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $custom_columns = $this->custom_table->getSearchEnabledColumns();
             $order = 20;
             foreach ($custom_columns as $custom_column) {
-                $view_column = new CustomViewColumn;
+                $view_column = new CustomViewColumn();
                 $view_column->custom_view_id = $this->id;
                 $view_column->view_column_type = ConditionType::COLUMN;
                 $view_column->view_column_table_id = $custom_column->custom_table_id;
@@ -709,7 +709,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // set from view column
         foreach ($fromView->custom_view_columns_cache as $from_view_column) {
-            $view_column = new CustomViewColumn;
+            $view_column = new CustomViewColumn();
             $view_column->custom_view_id = $this->id;
             $view_column->view_column_target = array_get($from_view_column, 'view_column_target');
             $view_column->order = array_get($from_view_column, 'order');
@@ -855,10 +855,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get view columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
      * @param bool $is_y
      */
-    public function getViewColumnsSelectOptions(bool $is_y) : array
+    public function getViewColumnsSelectOptions(bool $is_y): array
     {
         $options = [];
-        
+
         // is summary view
         if ($this->view_kind_type == ViewKindType::AGGREGATE) {
             // if x column, set x as chart column
@@ -885,7 +885,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $this->setViewColumnsOptions($options, ViewKindType::DEFAULT, $custom_view_column, $is_y ? true : null);
             }
         }
-        
+
         return $options;
     }
 
@@ -901,7 +901,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $condition_item = $custom_view_column->condition_item;
         $view_column_id = $column_type . '_' . array_get($custom_view_column, 'id');
-        
+
         $column_view_name = $condition_item ? $condition_item->getSelectColumnText($custom_view_column, $this->custom_table) : null;
         $is_number = $condition_item ? $condition_item->isSelectColumnNumber($custom_view_column) : false;
 
@@ -910,7 +910,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         return ['id' => $view_column_id, 'text' => $column_view_name, 'is_number' => $is_number];
     }
-    
+
     public function getViewCalendarTargetAttribute()
     {
         $custom_view_columns = $this->custom_view_columns_cache;
@@ -928,7 +928,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         $custom_view_columns[0]->view_column_target = $view_calendar_target;
     }
-    
+
     public function getPagerCountAttribute()
     {
         return $this->getOption('pager_count');
@@ -940,7 +940,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         return $this;
     }
-    
+
     public function getConditionJoinAttribute()
     {
         return $this->getOption('condition_join');

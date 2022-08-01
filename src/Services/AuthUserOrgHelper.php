@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\Define;
@@ -43,7 +44,7 @@ class AuthUserOrgHelper
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS, $target_table->id);
         return static::_getRoleUserOrOrgQueryTable(SystemTableName::ORGANIZATION, $key, $target_table, $tablePermission, $builder);
     }
-    
+
 
     /**
      * get users who has roles for target table.
@@ -75,7 +76,7 @@ class AuthUserOrgHelper
         }
         $target_table = CustomTable::getEloquent($target_table);
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS_ORGS, $target_table->id);
-        
+
         return static::_getRoleUserOrOrgQueryTable(SystemTableName::USER, $key, $target_table, $tablePermission, $builder, function ($target_ids, $target_table) use ($tablePermission) {
             // joined organization belongs user ----------------------------------------------------
             if (!System::organization_available()) {
@@ -108,11 +109,11 @@ class AuthUserOrgHelper
             return [];
         }
         $target_table = CustomTable::getEloquent($target_table);
-        
+
         // get custom_value's users
         $target_ids = [];
         $all = false;
-        
+
         if ($target_table->allUserAccessable()) {
             $all = true;
         } else {
@@ -130,7 +131,7 @@ class AuthUserOrgHelper
                 }
             }
         }
-    
+
         $target_ids = array_unique($target_ids);
         // return target values
         if (!isset($builder)) {
@@ -165,7 +166,7 @@ class AuthUserOrgHelper
             SystemTableName::USER => [],
             SystemTableName::ORGANIZATION => [],
         ];
-        
+
         // check request session
         $key = sprintf(Define::SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS, $custom_table->id, $custom_value->id ?? null);
         // if set $tablePermission, always call
@@ -202,7 +203,7 @@ class AuthUserOrgHelper
                 System::requestSession($key, $results);
             }
         }
-        
+
         return $results;
     }
 
@@ -216,7 +217,7 @@ class AuthUserOrgHelper
     protected static function getRoleUserOrgId($target_table, $related_type, $tablePermission = null)
     {
         $target_table = CustomTable::getEloquent($target_table);
-        
+
         // Get role group contains target_table's
         $roleGroups = RoleGroup::whereHas('role_group_permissions', function ($query) use ($target_table) {
             $query->where(function ($query) use ($target_table) {
@@ -250,7 +251,7 @@ class AuthUserOrgHelper
                 if (!isset($tablePermission)) {
                     $tablePermission = Permission::AVAILABLE_ACCESS_CUSTOM_VALUE;
                 }
-                
+
                 // check contains $tablePermission in $role_group_permission
                 return collect($tablePermission)->contains(function ($p) use ($role_group_permission) {
                     return in_array($p, $role_group_permission->permissions);
@@ -276,7 +277,7 @@ class AuthUserOrgHelper
         return $target_ids->filter()->unique()->toArray();
     }
 
-    
+
     /**
      * get organization ids for query.
      *
@@ -291,10 +292,10 @@ class AuthUserOrgHelper
         if (!System::organization_available()) {
             return [];
         }
-        
+
         // get organization and ids
         $orgsArray = static::getOrganizationTreeArray();
-                
+
         if (!isset($targetUserId)) {
             $targetUserId = \Exment::getUserId();
         }
@@ -312,7 +313,7 @@ class AuthUserOrgHelper
      *
      * @return array
      */
-    protected static function getOrganizationTreeArray() : array
+    protected static function getOrganizationTreeArray(): array
     {
         return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_TREE, function () {
             $modelname = getModelName(SystemTableName::ORGANIZATION);
@@ -438,11 +439,11 @@ class AuthUserOrgHelper
             ->get(['child_id'])->pluck('child_id');
 
         $target_users = $target_users->merge($user->getUserId())->unique();
-        
+
         // get only login user's organization user
         $builder->whereIn("$db_table_name.id", $target_users->toArray());
     }
-    
+
     /**
      * Filtering user. Only join. set by filter_multi_user.
      *

@@ -272,7 +272,7 @@ class PublicContent implements Renderable
             'background_color' => $this->background_color,
             'header_background_color' => $this->header_background_color,
             'footer_background_color' => $this->footer_background_color,
-            
+
             'container' => $this->container,
 
             'header_logo_url' => $this->header_logo_url,

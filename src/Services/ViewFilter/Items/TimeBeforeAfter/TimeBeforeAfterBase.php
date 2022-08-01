@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\TimeBeforeAfter;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -12,8 +13,8 @@ abstract class TimeBeforeAfterBase extends ViewFilterBase
 
         $query->{$method_name}($query_column, $mark, $target_day);
     }
-    
+
     abstract protected function getTargetDay($query_value);
 
-    abstract protected function getMark() : string;
+    abstract protected function getMark(): string;
 }

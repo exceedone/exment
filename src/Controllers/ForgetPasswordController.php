@@ -34,7 +34,7 @@ class ForgetPasswordController extends Controller
     {
         return view('exment::auth.email', $this->getLoginPageData());
     }
-    
+
     //defining which password broker to use, in our case its the exment
     protected function broker()
     {

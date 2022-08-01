@@ -237,7 +237,7 @@ EOT;
 
         return $this;
     }
-    
+
     /**
      * Callback hidden value
      *
@@ -250,7 +250,7 @@ EOT;
 
         return $this;
     }
-    
+
     /**
      * {@inheritdoc}
      */
@@ -281,7 +281,7 @@ EOT;
         if ($this->hiddenFormat instanceof \Closure) {
             $hidden = call_user_func($this->hiddenFormat, $this->value, $this);
         }
-        
+
         $nullValue = $this->nullValue;
         if ($this->nullValue instanceof \Closure) {
             $nullValue = call_user_func($this->nullValue, $this->value, $this);
@@ -291,12 +291,12 @@ EOT;
         if (is_null($this->buttonlabel)) {
             $this->buttonlabel = exmtrans('common.change');
         }
- 
+
         // set button class
         if (is_null($this->buttonClass)) {
             $this->buttonClass = 'btn-default';
         }
- 
+
         // set script
         $this->script();
 

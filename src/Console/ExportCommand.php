@@ -11,7 +11,8 @@ use Exceedone\Exment\Services\DataImportExport;
 
 class ExportCommand extends Command
 {
-    use CommandTrait, ExportCommandTrait;
+    use CommandTrait;
+    use ExportCommandTrait;
 
     /**
      * The name and signature of the console command.
@@ -101,8 +102,8 @@ class ExportCommand extends Command
             // get parameters
             list($custom_table, $options) = $this->getParameters();
             $classname = getModelName($custom_table);
-            
-            $grid = new Grid(new $classname);
+
+            $grid = new Grid(new $classname());
             if ($options['type'] == 'page') {
                 $grid->model()->setPerPageArguments([$options['count'], ['*'], 'page', $options['page']])
                     ->disableHandleInvalidPage();
@@ -113,12 +114,12 @@ class ExportCommand extends Command
             if (isset($options['view']) && $options['view'] instanceof CustomView) {
                 $options['view']->filterSortModel($grid->model());
             }
-    
+
             $service = (new DataImportExport\DataImportExportService())
                 ->exportAction($this->getExportAction($custom_table, $grid, $options))
                 ->format($options['format'])
                 ->filebasename($custom_table->table_name);
-            
+
             $result = $service->exportBackground($options);
 
             $message = array_get($result, 'message');

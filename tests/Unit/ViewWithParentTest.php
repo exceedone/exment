@@ -20,7 +20,9 @@ use Encore\Admin\Grid;
  */
 class ViewWithParentTest extends TestCase
 {
-    use TestTrait, CustomViewTrait, DatabaseTransactions;
+    use TestTrait;
+    use CustomViewTrait;
+    use DatabaseTransactions;
 
     protected function init()
     {
@@ -549,7 +551,9 @@ class ViewWithParentTest extends TestCase
             }
             $parent = $data?->getParentValue();
             $user = $data?->getValue('user');
-            if (is_null($user)) return false;
+            if (is_null($user)) {
+                return false;
+            }
             return strpos($user?->getValue('user_name'), 'user') !== 0 &&
                 $parent?->getValue('text') != 'test_2';
         }, $options);
@@ -1165,7 +1169,7 @@ class ViewWithParentTest extends TestCase
                 $refer_column = $parts[2];
             }
         }
-        
+
         $column_setting = [
             'column_name' => $column,
         ];
@@ -1194,7 +1198,7 @@ class ViewWithParentTest extends TestCase
         list($custom_table, $custom_view) = $this->createCustomViewAll($options);
 
         $classname = getModelName($custom_table->table_name);
-        $grid = new Grid(new $classname);
+        $grid = new Grid(new $classname());
         $grid->paginate(100);
 
         $custom_view->filterSortModel($grid->model());
@@ -1230,7 +1234,7 @@ class ViewWithParentTest extends TestCase
             // get filter matched count.
             foreach ($collection as $data) {
                 $matchResult = $testCallback($data?->model(), $custom_view);
-                
+
                 $this->assertTrue($matchResult, 'matchResult is false. Target id is ' . $data?->id);
             }
 
@@ -1240,10 +1244,10 @@ class ViewWithParentTest extends TestCase
                 return array_get($data?->model(), 'id');
             })->toArray();
             $notMatchedValues = $custom_table->getValueQuery()->whereNotIn('id', $ids)->get();
-            
+
             foreach ($notMatchedValues as $data) {
                 $matchResult = $testCallback($data, $custom_view);
-                
+
                 $this->assertTrue(!$matchResult, 'Expect matchResult is false, but matched. Target id is ' . $data?->id);
             }
         }

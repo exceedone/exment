@@ -179,7 +179,7 @@ class FileController extends AdminControllerBase
 
         $path = $data->path;
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
-        
+
         if (!$exists) {
             if ($options['asApi']) {
                 return abortJson(404, ErrorCode::DATA_NOT_FOUND());
@@ -231,7 +231,7 @@ class FileController extends AdminControllerBase
         $filename = pathinfo($uuid, PATHINFO_FILENAME);
 
         $exists = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($uuid);
-        
+
         if (!$exists) {
             abort(404);
         }
@@ -285,7 +285,7 @@ class FileController extends AdminControllerBase
 
         $path = $data->path;
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
-        
+
         // if exists, delete file
         if ($exists) {
             Storage::disk(config('admin.upload.disk'))->delete($path);
@@ -295,7 +295,7 @@ class FileController extends AdminControllerBase
         if (boolval($options['removeDocumentInfo'])) {
             File::deleteDocumentModel($uuid, false);
         }
-        
+
         // delete file info
         if (boolval($options['removeFileInfo'])) {
             $file = File::getData($uuid);
@@ -305,7 +305,7 @@ class FileController extends AdminControllerBase
         if ($options['asApi']) {
             return response(null, 204);
         }
-        
+
         return response([
             'status'  => true,
             'message' => trans('admin.delete_succeeded'),
@@ -373,13 +373,13 @@ class FileController extends AdminControllerBase
     {
         // delete old temporary files
         $this->removeTempFiles();
-        
+
         // check image file.
         $rules = [
             'file' => ['required']
         ];
         if ($isImage) {
-            $rules['file'][] = new ImageRule;
+            $rules['file'][] = new ImageRule();
         }
 
         $validator = \Validator::make($request->all(), $rules);
@@ -464,20 +464,20 @@ class FileController extends AdminControllerBase
         return true;
     }
 
-    
+
     /**
      * Whether this file downloads as inline
      *
      * @param string $fileName
      * @return boolean
      */
-    protected static function isDispositionInline($fileName) : bool
+    protected static function isDispositionInline($fileName): bool
     {
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
         if (is_nullorempty($ext)) {
             return false;
         }
-        
+
         // get inlines
         $inlines = stringToArray(config('exment.file_download_inline_extensions', []));
         $inlines = collect($inlines)->map(function ($inline) {

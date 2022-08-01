@@ -10,7 +10,8 @@ use Encore\Admin\Form;
  */
 class Condition extends ModelBase
 {
-    use Traits\ColumnOptionQueryTrait, Traits\ConditionTypeTrait;
+    use Traits\ColumnOptionQueryTrait;
+    use Traits\ConditionTypeTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['condition_target'];
@@ -32,7 +33,7 @@ class Condition extends ModelBase
     {
         return $this->getConditionTarget();
     }
-    
+
     /**
      * set condition_target.
      */
@@ -53,7 +54,7 @@ class Condition extends ModelBase
     {
         return $this->condition_item ? $this->condition_item->getQueryKey($this) : null;
     }
-    
+
     /**
      * get priority condition text.
      */
@@ -87,7 +88,7 @@ class Condition extends ModelBase
         }
         return $condition_value;
     }
-    
+
     /**
      * set condition_value_text.
      * * we have to convert int if view_filter_condition_value is array*
@@ -113,10 +114,10 @@ class Condition extends ModelBase
         if (is_null($item)) {
             return false;
         }
-        
+
         return $item->isMatchCondition($this, $custom_value);
     }
-    
+
     /**
      * get work conditions.
      * *Convert to "_X" format to array. ex.enabled_0
@@ -138,7 +139,7 @@ class Condition extends ModelBase
                 $new_work_conditions[array_get($match, 'no')][array_get($match, 'key')][array_get($match, 'index')][array_get($match, 'name')] = $work_condition;
                 continue;
             }
-            
+
             // preg_match using key (as enabled)
             preg_match('/(?<key>.+)_(?<no>[0-9])/u', $key, $match);
             if (!is_nullorempty($match)) {

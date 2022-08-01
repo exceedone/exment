@@ -80,7 +80,7 @@ class HasManyTable extends HasMany
 
         return $this;
     }
-    
+
     /**
      * set bootstrap table Column width
      */
@@ -99,7 +99,7 @@ class HasManyTable extends HasMany
     public function descriptionHtml($description)
     {
         $this->escapeDescription = false;
-        
+
         return $this->description($description);
     }
 
@@ -116,14 +116,14 @@ class HasManyTable extends HasMany
         $this->power = $power;
         return $this;
     }
-    
+
     public function disableHeader()
     {
         $this->enableHeader = false;
 
         return $this;
     }
-    
+
     /**
      * Disable Options.
      *
@@ -155,7 +155,7 @@ class HasManyTable extends HasMany
         $hiddens = [];
         $requires = [];
         $helps = [];
-        
+
         foreach ($form->fields() as &$field) {
             // when embeds item,
             if ($field instanceof NestedEmbeds) {
@@ -204,7 +204,7 @@ class HasManyTable extends HasMany
             $helps[] = null;
         }
     }
-    
+
     /**
      * Setup default template script.
      *
@@ -358,7 +358,7 @@ EOT;
 
         // set header and body info
         $form = $this->buildNestedForm($this->column, $this->builder);
-                
+
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
         list($tableitems, $hiddens, $requires, $helps) = $this->getTableItem($form);
 
@@ -399,7 +399,7 @@ EOT;
         ]);
     }
 
-    
+
     protected function getParentRenderClass()
     {
         return get_parent_class(get_parent_class(get_parent_class($this)));

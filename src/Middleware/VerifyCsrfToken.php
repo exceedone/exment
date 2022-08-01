@@ -21,7 +21,7 @@ class VerifyCsrfToken extends BaseVerifier
             admin_base_path('login_setting/*/testcallback'),
             admin_base_path('saml/login/*/acs'),
         ];
- 
+
         parent::__construct($app, $encrypter);
     }
 }

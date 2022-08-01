@@ -8,7 +8,7 @@ use Encore\Admin\Form;
 class SelectValtext extends Select
 {
     use ImportValueTrait;
-    
+
     protected function getReturnsValue($select_options, $val, $label)
     {
         // switch column_type and get return value
@@ -24,7 +24,7 @@ class SelectValtext extends Select
         }
         return $returns;
     }
-    
+
     protected function setValidates(&$validates)
     {
         $select_options = $this->custom_column->createSelectOptions();
@@ -65,7 +65,7 @@ class SelectValtext extends Select
 
         return null;
     }
-    
+
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
@@ -80,7 +80,7 @@ class SelectValtext extends Select
         $form->textarea('select_item_valtext', exmtrans("custom_column.options.select_item"))
             ->required()
             ->help(exmtrans("custom_column.help.select_item_valtext"))
-            ->rules([new Validator\SelectValTextSettingRule]);
+            ->rules([new Validator\SelectValTextSettingRule()]);
 
         // enable multiple
         $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))

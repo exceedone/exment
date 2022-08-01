@@ -20,21 +20,21 @@ class Url extends CustomItem
         $url = $this->_value($v);
 
         $value = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($value) : $value;
-        
+
         return \Exment::getUrlTag($url, $value, UrlTagType::BLANK);
     }
-    
+
     protected function getAdminFieldClass()
     {
         return Field\Url::class;
     }
-    
+
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
      * @return string
      */
-    protected function getGridFilterOption() : ?string
+    protected function getGridFilterOption(): ?string
     {
         return FilterOption::LIKE;
     }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\SystemRequire;
 
 use Exceedone\Exment\Enums\SystemRequireResult;
@@ -22,12 +23,12 @@ class FilePermission extends SystemRequireBase
         }
     }
 
-    public function getLabel() : string
+    public function getLabel(): string
     {
         return exmtrans('system_require.type.file_permission.label');
     }
 
-    public function getExplain() : string
+    public function getExplain(): string
     {
         return exmtrans('system_require.type.file_permission.explain');
     }
@@ -38,7 +39,7 @@ class FilePermission extends SystemRequireBase
      *
      * @return ?string
      */
-    public function getResultText() : ?string
+    public function getResultText(): ?string
     {
         if (is_nullorempty($this->result)) {
             return exmtrans('common.success');
@@ -51,7 +52,7 @@ class FilePermission extends SystemRequireBase
      *
      * @return string
      */
-    public function checkResult() : string
+    public function checkResult(): string
     {
         if (is_nullorempty($this->result)) {
             return SystemRequireResult::OK;
@@ -59,12 +60,12 @@ class FilePermission extends SystemRequireBase
         return SystemRequireResult::NG;
     }
 
-    protected function getMessageNg() : ?string
+    protected function getMessageNg(): ?string
     {
         return exmtrans('system_require.type.file_permission.ng');
     }
 
-    public function getSettingUrl() : ?string
+    public function getSettingUrl(): ?string
     {
         return \Exment::getManualUrl('troubleshooting');
     }

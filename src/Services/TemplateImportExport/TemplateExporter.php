@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\TemplateImportExport;
 
 use Illuminate\Support\Facades\File;
@@ -38,7 +39,7 @@ class TemplateExporter
         $config = static::getExportData($template_name, $template_view_name, $description, $options);
         // set language info
         $lang = static::getExportData($template_name, $template_view_name, $description, $options, true);
-        
+
         // create ZIP file --------------------------------------------------
         $tmpdir = \Exment::getTmpFolderPath('template', false);
         $tmpFulldir = getFullpath($tmpdir, Define::DISKNAME_ADMIN_TMP, true);
@@ -51,7 +52,7 @@ class TemplateExporter
         if ($zip->open($zipfillpath, ZipArchive::CREATE) !== true) {
             //TODO:error
         }
-        
+
         // add thumbnail
         if (isset($thumbnail)) {
             // save thumbnail
@@ -140,8 +141,7 @@ class TemplateExporter
         $config['custom_tables'] = $configTables;
 
         // get relations --------------------------------------------------
-        $custom_relations = CustomRelation
-            ::with('parent_custom_table')
+        $custom_relations = CustomRelation::with('parent_custom_table')
             ->with('child_custom_table')
             ->get();
         $configRelations = [];
@@ -152,7 +152,7 @@ class TemplateExporter
             $configRelations[] = $custom_relation->getTemplateExportItems($is_lang);
         }
         $config['custom_relations'] = $configRelations;
-        
+
         // get forms --------------------------------------------------
         $custom_forms = CustomForm::with('custom_form_blocks')
             ->with('custom_table')
@@ -170,8 +170,7 @@ class TemplateExporter
         $config['custom_forms'] = $configForms;
 
         // get views --------------------------------------------------
-        $custom_views = CustomView
-            ::with('custom_view_columns')
+        $custom_views = CustomView::with('custom_view_columns')
             ->with('custom_view_filters')
             ->with('custom_view_sorts')
             ->with('custom_view_summaries')
@@ -189,10 +188,9 @@ class TemplateExporter
             $configViews[] = $custom_view->getTemplateExportItems($is_lang);
         }
         $config['custom_views'] = $configViews;
-        
+
         // get copies --------------------------------------------------
-        $custom_copies = CustomCopy
-            ::with('custom_copy_columns')
+        $custom_copies = CustomCopy::with('custom_copy_columns')
             ->get();
         $configCopies = [];
         foreach ($custom_copies as $custom_copy) {
@@ -203,14 +201,14 @@ class TemplateExporter
         }
         $config['custom_copies'] = $configCopies;
     }
-    
+
     /**
      * set menu info to config
      */
     protected static function setTemplateMenu(&$config, $target_tables, $is_lang = false)
     {
         // get menu --------------------------------------------------
-        $menuTree = (new Menu)->toTree(); // menutree:hierarchy
+        $menuTree = (new Menu())->toTree(); // menutree:hierarchy
         $menus = [];
 
         // loop for menutree
@@ -227,8 +225,7 @@ class TemplateExporter
     protected static function setTemplateDashboard(&$config, $is_lang = false)
     {
         // get dashboards --------------------------------------------------
-        $dashboards = Dashboard
-            ::with('dashboard_boxes')
+        $dashboards = Dashboard::with('dashboard_boxes')
             ->where('dashboard_type', DashboardType::SYSTEM)
             ->get();
         $configDashboards = [];
@@ -252,7 +249,7 @@ class TemplateExporter
         }
         $config['roles'] = $configRoles;
     }
-    
+
 
     /**
      * Export public form
@@ -265,7 +262,7 @@ class TemplateExporter
         }
         $config['public_form'] = $public_form->getTemplateExportItems($is_lang);
     }
-    
+
 
     protected static function getTemplateMenuItems($menu, $target_tables, $is_lang = false)
     {
@@ -273,10 +270,10 @@ class TemplateExporter
         if (count($target_tables) > 0 && !\Admin::user()->visible($menu, $target_tables)) {
             return [];
         }
-        
+
         $menus = [];
         $menus[] = Menu::find(array_get($menu, 'id'))->getTemplateExportItems($is_lang);
-        
+
         // if has children, loop
         if (array_key_value_exists('children', $menu)) {
             foreach (array_get($menu, 'children') as $child) {

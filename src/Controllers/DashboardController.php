@@ -41,8 +41,8 @@ class DashboardController extends AdminControllerBase
     {
         return redirect(admin_url(''));
     }
-    
-    
+
+
     /**
      * Edit interface.
      *
@@ -54,7 +54,7 @@ class DashboardController extends AdminControllerBase
     public function edit(Request $request, Content $content, $id)
     {
         $this->setDashboardInfo($request);
-        
+
         // check has system permission
         $dashboard = Dashboard::find($id);
         if (!$dashboard || !$dashboard->hasEditPermission()) {
@@ -235,7 +235,7 @@ EOT;
      */
     protected function form($id = null)
     {
-        $form = new Form(new Dashboard);
+        $form = new Form(new Dashboard());
 
         if (isset($id)) {
             $model = Dashboard::getEloquent($id);
@@ -313,7 +313,7 @@ EOT;
                     admin_urls(ShareTargetType::DASHBOARD()->lowerkey(), $id, "shareClick")
                 ));
             }
-    
+
             // addhome button
             $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
@@ -384,7 +384,7 @@ EOT;
                     $icons = array_prepend($icons, ['link' => admin_url('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog', 'tooltip' => trans('admin.edit')]);
                     $icons[] = ['widget' => 'delete', 'icon' => 'fa-trash', 'tooltip' => trans('admin.delete')];
                 }
-                
+
                 // set column. use grid system
                 $grids = [
                     'xs' => 12,
@@ -410,7 +410,7 @@ EOT;
         if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
             return;
         }
-        
+
         if (boolval(config('exment.disable_latest_version_dashboard', false))) {
             return;
         }
@@ -430,7 +430,7 @@ EOT;
         $model = Dashboard::getEloquent($id);
 
         $form = DataShareAuthoritable::getShareDialogForm($model);
-        
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),

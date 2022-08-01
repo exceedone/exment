@@ -286,7 +286,7 @@ class PatchDataCommand extends Command
     protected function appendCustomColumn(string $target_table_name, string $target_column_name)
     {
         // get system template
-        $template = new TemplateImporter;
+        $template = new TemplateImporter();
         $json = $template->getMergeJson();
 
         try {
@@ -712,8 +712,7 @@ class PatchDataCommand extends Command
 
         foreach ($defaultViews as $defaultView) {
             // if not found alldata view in same custom table, create
-            $alldata_view_count = CustomView
-                ::where('view_kind_type', ViewKindType::ALLDATA)
+            $alldata_view_count = CustomView::where('view_kind_type', ViewKindType::ALLDATA)
                 ->where('custom_table_id', $defaultView->custom_table_id)
                 ->count();
 
@@ -725,7 +724,7 @@ class PatchDataCommand extends Command
 
             $view_columns = [];
             foreach ($defaultView->custom_view_columns as $custom_view_column) {
-                $view_column = new CustomViewColumn;
+                $view_column = new CustomViewColumn();
                 $view_column->custom_view_id = $aldata_view->id;
                 $view_column->view_column_target = array_get($custom_view_column, 'view_column_target');
                 $view_column->order = array_get($custom_view_column, 'order');
@@ -735,7 +734,7 @@ class PatchDataCommand extends Command
 
             $view_sorts = [];
             foreach ($defaultView->custom_view_sorts as $custom_view_sort) {
-                $view_sort = new CustomViewSort;
+                $view_sort = new CustomViewSort();
                 $view_sort->custom_view_id = $aldata_view->id;
                 $view_sort->view_column_target = array_get($custom_view_sort, 'view_column_target');
                 $view_sort->sort = array_get($custom_view_sort, 'sort');

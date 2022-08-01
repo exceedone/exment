@@ -4,8 +4,8 @@ namespace Exceedone\Exment\Enums;
 
 class SystemLocale extends EnumBase
 {
-    const JA = 'ja';
-    const EN = 'en';
+    public const JA = 'ja';
+    public const EN = 'en';
 
     /**
      * Get System Locale. Getting from config

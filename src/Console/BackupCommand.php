@@ -10,7 +10,8 @@ use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 
 class BackupCommand extends Command
 {
-    use CommandTrait, EnvTrait;
+    use CommandTrait;
+    use EnvTrait;
 
     /**
      * The name and signature of the console command.
@@ -36,10 +37,10 @@ class BackupCommand extends Command
     public function __construct()
     {
         parent::__construct();
-        
+
         $this->initExmentCommand();
 
-        $this->backup = new BackupRestore\Backup;
+        $this->backup = new BackupRestore\Backup();
     }
 
     /**
@@ -52,7 +53,7 @@ class BackupCommand extends Command
         try {
             $target = $this->option("target") ?? BackupTarget::arrays();
             $schedule = boolval($this->option("schedule") ?? false);
-            
+
             if (is_string($target)) {
                 $target = collect(explode(",", $target))->map(function ($t) {
                     return new BackupTarget($t) ?? null;

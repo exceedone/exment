@@ -16,16 +16,16 @@ use Exceedone\Exment\Model\System;
  */
 class JoinedMultiUserFilterType extends EnumBase
 {
-    const NOT_FILTER = '-1';
-    
+    public const NOT_FILTER = '-1';
+
     /**
      * *This "ALL" is upper and downer.*
      * Mistake naming...
      */
-    const ALL = '99';
-    const ONLY_DOWNER = '2';
-    const ONLY_UPPER = '1';
-    const ONLY_JOIN = '0';
+    public const ALL = '99';
+    public const ONLY_DOWNER = '2';
+    public const ONLY_UPPER = '1';
+    public const ONLY_JOIN = '0';
 
 
     public static function getOptions()

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\DayYear;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -12,6 +13,6 @@ abstract class DayYearBase extends ViewFilterBase
 
         $query->{"{$method_name}YearExment"}($query_column, $target_day, $isDateTime);
     }
-    
+
     abstract protected function getTargetDay($query_value);
 }

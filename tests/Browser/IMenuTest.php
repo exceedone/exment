@@ -33,7 +33,7 @@ class IMenuTest extends ExmentKitTestCase
             ->seeInElement('label', trans('admin.icon'))
             ->seeInElement('button', trans('admin.save'));
     }
-    
+
 
     public function testCreateMenuParent()
     {
@@ -46,7 +46,7 @@ class IMenuTest extends ExmentKitTestCase
             'icon' =>'fa-user',
         ]);
     }
-    
+
 
     public function testCreateMenuSystem()
     {
@@ -77,7 +77,7 @@ class IMenuTest extends ExmentKitTestCase
             'icon' => $custom_table->getOption('icon') ?? 'fa-table',
         ]);
     }
-    
+
 
     public function testCreateMenuTableView()
     {
@@ -95,7 +95,7 @@ class IMenuTest extends ExmentKitTestCase
             'icon' => $custom_table->getOption('icon') ?? 'fa-table',
         ]);
     }
-    
+
 
     public function testCreateMenuCustomUrl()
     {
@@ -132,7 +132,7 @@ class IMenuTest extends ExmentKitTestCase
             'icon' => 'fa-table',
         ]);
     }
-    
+
 
     public function testEditMenuTable()
     {
@@ -144,7 +144,7 @@ class IMenuTest extends ExmentKitTestCase
             'icon' => $custom_table->getOption('icon') ?? 'fa-table',
         ]);
     }
-    
+
 
     public function testEditMenuCustomUrl()
     {
@@ -177,7 +177,7 @@ class IMenuTest extends ExmentKitTestCase
         }
     }
 
-    
+
     /**
      * Test edit menu
      *
@@ -206,7 +206,7 @@ class IMenuTest extends ExmentKitTestCase
 
         $this->put(admin_urls('auth', 'menu', $menu->id), $data);
         $this->assertPostResponse($this->response, admin_url('auth/menu'));
-        
+
         $model = Menu::find($menu->id);
         foreach ($data as $key => $value) {
             $this->assertMatch($model->{$key}, $value);
@@ -214,13 +214,13 @@ class IMenuTest extends ExmentKitTestCase
     }
 
 
-    protected function getParentMenuTestModel() : Menu
+    protected function getParentMenuTestModel(): Menu
     {
         return $this->getMenuTestModel('parent_menu_name');
     }
 
-    
-    protected function getMenuTestModel(string $menu_name) : Menu
+
+    protected function getMenuTestModel(string $menu_name): Menu
     {
         $model = Menu::where('menu_name', $menu_name)->first();
         $this->assertTrue(isset($model), 'menu not found');
@@ -228,7 +228,7 @@ class IMenuTest extends ExmentKitTestCase
     }
 
 
-    protected function getMenuEditTestModel(string $menu_type) : Menu
+    protected function getMenuEditTestModel(string $menu_type): Menu
     {
         $parent_menu = $this->getParentMenuTestModel();
         $model = Menu::where('menu_type', $menu_type)->where('parent_id', $parent_menu->id)->first();

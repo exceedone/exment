@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Services\Login\LoginService as NewLoginService;
@@ -32,7 +33,7 @@ class LoginService
     {
         return NewLoginService::getAccessToken();
     }
-    
+
     /**
      * Get refresh token
      *

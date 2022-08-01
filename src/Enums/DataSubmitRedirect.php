@@ -4,8 +4,8 @@ namespace Exceedone\Exment\Enums;
 
 class DataSubmitRedirect extends EnumBase
 {
-    const LIST = '4';
-    const VIEW = '3';
-    const CONTINUE_CREATING = '2';
-    const CONTINUE_EDITING = '1';
+    public const LIST = '4';
+    public const VIEW = '3';
+    public const CONTINUE_CREATING = '2';
+    public const CONTINUE_EDITING = '1';
 }

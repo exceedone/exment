@@ -16,7 +16,7 @@ abstract class ExmentKitTestCase extends BaseTestCase
 
     protected $baseUrl;
 
-    
+
     /**
      * pre-excecute process before test.
      */
@@ -27,7 +27,7 @@ abstract class ExmentKitTestCase extends BaseTestCase
         parent::setUp();
         System::clearCache();
     }
-    
+
     /**
      * Boot the testing helper traits.
      *

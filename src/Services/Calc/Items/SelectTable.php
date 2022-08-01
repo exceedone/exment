@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Calc\Items;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -16,13 +17,13 @@ class SelectTable extends ItemBase
      * @var CustomColumn
      */
     public $select_pivot_column;
-    
+
     public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomColumn $select_pivot_column)
     {
         parent::__construct($custom_column, $custom_table);
         $this->select_pivot_column = $select_pivot_column;
     }
-    
+
     public function type()
     {
         return 'select_table';
@@ -50,7 +51,7 @@ class SelectTable extends ItemBase
      *
      * @return array
      */
-    public function getTriggeredKeys() : array
+    public function getTriggeredKeys(): array
     {
         $trigger_block = (!$this->custom_form_block || $this->custom_form_block->form_block_type == FormBlockType::DEFAULT) ? 'default' : $this->getRelationName();
         return [
@@ -95,7 +96,7 @@ class SelectTable extends ItemBase
                 if (!ColumnType::isCalc(array_get($select_pivot_column, 'column_type'))) {
                     return false;
                 }
-    
+
                 return true;
             })->each(function ($select_target_column) use ($custom_column, $custom_table, $options) {
                 $options->push(static::getItem($select_target_column, $custom_table, $custom_column));

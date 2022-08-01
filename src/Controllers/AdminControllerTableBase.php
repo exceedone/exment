@@ -27,7 +27,7 @@ abstract class AdminControllerTableBase extends Controller
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         $this->custom_table = $custom_table;
-        
+
         if (!isset($this->custom_table)) {
             return;
         }
@@ -50,7 +50,7 @@ abstract class AdminControllerTableBase extends Controller
         if (!$this->custom_table) {
             abort(404);
         }
-        
+
         return $this->{$method}(...array_values($parameters));
     }
 
@@ -100,7 +100,7 @@ abstract class AdminControllerTableBase extends Controller
         }
         return true;
     }
-    
+
     /**
      * Index interface.
      *

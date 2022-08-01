@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Formats;
 
 trait XlsxTrait
 {
-    public function getFormat() : string
+    public function getFormat(): string
     {
         return 'xlsx';
     }

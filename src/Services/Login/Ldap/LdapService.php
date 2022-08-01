@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Login\Ldap;
 
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
@@ -88,7 +89,7 @@ class LdapService implements LoginServiceInterface
      * @param LoginSetting $login_setting
      * @return string
      */
-    public static function getLdapUserName($username, LoginSetting $login_setting) : string
+    public static function getLdapUserName($username, LoginSetting $login_setting): string
     {
         $prefix = $login_setting->getOption('ldap_account_prefix');
         $suffix = $login_setting->getOption('ldap_account_suffix');
@@ -133,7 +134,7 @@ class LdapService implements LoginServiceInterface
         return $form;
     }
 
-    
+
 
     public static function setLdapForm($form, $login_setting, $errors)
     {
@@ -143,12 +144,12 @@ class LdapService implements LoginServiceInterface
             return;
         }
 
-        
+
         if (!isset($login_setting)) {
             $form->text('ldap_name', exmtrans('login.ldap_name'))
             ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'))
             ->required()
-            ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule])
+            ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule()])
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
         } else {
             $form->display('ldap_name_text', exmtrans('login.ldap_name'))->default(function () use ($login_setting) {
@@ -163,30 +164,30 @@ class LdapService implements LoginServiceInterface
         $form->text('ldap_hosts', exmtrans('login.ldap_hosts'))
         ->required()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
-        
+
         $form->text('ldap_port', exmtrans('login.ldap_port'))
         ->required()
         ->rules('numeric|nullable')
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
-        
+
         $form->text('ldap_base_dn', exmtrans('login.ldap_base_dn'))
         ->help(exmtrans('login.help.ldap_base_dn'))
         ->default('dc=example,dc=co,dc=jp')
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
-        
+
         $form->text('ldap_search_key', exmtrans('login.ldap_search_key'))
         ->help(exmtrans('login.help.ldap_search_key'))
         ->required()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
-        
+
         $form->text('ldap_account_prefix', exmtrans('login.ldap_account_prefix'))
         ->help(exmtrans('login.help.ldap_account_prefix'))
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
-        
+
         $form->text('ldap_account_suffix', exmtrans('login.ldap_account_suffix'))
         ->help(exmtrans('login.help.ldap_account_suffix'))
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
-        
+
         $form->switchbool('ldap_use_ssl', exmtrans('login.ldap_use_ssl'))
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
         ->default(false);
@@ -197,7 +198,7 @@ class LdapService implements LoginServiceInterface
     }
 
 
-    
+
     /**
      * Execute login test
      *
@@ -207,7 +208,7 @@ class LdapService implements LoginServiceInterface
     public static function loginTest(Request $request, $login_setting)
     {
         list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback($request, $login_setting);
-        
+
         return getAjaxResponse([
             'result' => $result === true,
             'reload' => false,
@@ -236,11 +237,11 @@ class LdapService implements LoginServiceInterface
 
         $custom_login_user = null;
         try {
-            
+
             // attempt to ldap
             $ad = new \Adldap\Adldap(static::getLdapConfig($login_setting));
             $provider = $ad->getDefaultProvider();
-            
+
             $provider->connect();
             if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
                 return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
@@ -255,11 +256,11 @@ class LdapService implements LoginServiceInterface
 
             // mapping to loginuser
             $custom_login_user = LdapUser::with($login_setting, $ldapUser);
-            
+
             if (!is_nullorempty($custom_login_user->mapping_errors)) {
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, exmtrans('login.sso_provider_error'), $custom_login_user->mapping_errors);
             }
-            
+
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
                 return LoginService::getLoginResult(
@@ -281,7 +282,7 @@ class LdapService implements LoginServiceInterface
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
-    
+
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting)
     {
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);

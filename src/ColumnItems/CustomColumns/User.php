@@ -31,7 +31,7 @@ class User extends SelectTable
 
         $options = $this->custom_column->options;
         list($default_type, $default) = $this->getDefaultSetting();
-        
+
         // default (login user)
         if (isMatchString($default_type, ColumnDefaultType::LOGIN_USER)) {
             return \Exment::getUserId();
@@ -45,7 +45,7 @@ class User extends SelectTable
         return null;
     }
 
-    
+
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
@@ -76,11 +76,11 @@ class User extends SelectTable
             ->attribute(['data-filtertrigger' =>true])
             ->help(exmtrans("custom_column.help.default_type"))
             ->options(getTransArray(ColumnDefaultType::COLUMN_DEFAULT_TYPE_USER(), 'custom_column.column_default_type_options'));
-            
+
         $form->text('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_USER])])
-            ;
+        ;
     }
 
     /**

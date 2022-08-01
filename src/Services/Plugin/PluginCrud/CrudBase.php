@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Exceedone\Exment\Enums\PluginCrudAuthType;
@@ -15,14 +16,14 @@ abstract class CrudBase
 
     protected $plugin;
     protected $pluginClass;
-    
+
 
     /**
      * Get full url
      *
      * @return string
      */
-    public function getFullUrl(...$endpoint) : string
+    public function getFullUrl(...$endpoint): string
     {
         return $this->pluginClass->getFullUrl(...$endpoint);
     }
@@ -33,7 +34,7 @@ abstract class CrudBase
      *
      * @return string
      */
-    public function getRootFullUrl(...$endpoint) : string
+    public function getRootFullUrl(...$endpoint): string
     {
         return $this->pluginClass->getRootFullUrl(...$endpoint);
     }
@@ -48,7 +49,7 @@ abstract class CrudBase
         if (!$this->pluginClass->enableOAuthLogoutButton()) {
             return null;
         }
-        
+
         return view('exment::tools.button', [
             'href' => $this->getRootFullUrl('oauthlogout'),
             'label' => trans('admin.logout'),

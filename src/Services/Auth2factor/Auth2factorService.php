@@ -43,7 +43,7 @@ class Auth2factorService
             throw new \Exception("Login 2factor provider [$provider] does not exist.");
         }
 
-        return new static::$providers[$provider];
+        return new static::$providers[$provider]();
     }
 
     /**
@@ -109,7 +109,7 @@ class Auth2factorService
             return false;
         }
     }
-    
+
     /**
      * Add database
      *
@@ -136,7 +136,7 @@ class Auth2factorService
 
         return true;
     }
-    
+
     /**
      * Send verify
      *
@@ -144,7 +144,7 @@ class Auth2factorService
      * @param array $mail_prms
      * @return MailSender
      */
-    protected static function sendVerify($mail_template, $mail_prms = []) : MailSender
+    protected static function sendVerify($mail_template, $mail_prms = []): MailSender
     {
         $loginuser = \Admin::user();
 

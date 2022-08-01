@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Encore\Admin\Widgets\Box;
@@ -11,7 +12,7 @@ class PluginCrudController extends Controller
 {
     protected $pluginPage;
     protected $plugin;
-    
+
     public function __construct(?PluginCrudBase $pluginPage)
     {
         $this->pluginPage = $pluginPage;
@@ -158,7 +159,7 @@ class PluginCrudController extends Controller
         ]);
     }
 
-    
+
     /**
      * Execute login oauth
      *
@@ -250,9 +251,9 @@ class PluginCrudController extends Controller
     public function noauth($endpoint = null)
     {
         $targetClass = $this->getClass($endpoint, false, true);
-        
+
         $content = $targetClass->getContent();
-       
+
         if (!$targetClass->enableAccessCrud()) {
             admin_error($targetClass->getCannotAccessTitle(), $targetClass->getCannotAccessMessage());
         } else {
@@ -306,7 +307,7 @@ class PluginCrudController extends Controller
         if ($isCheckAuthorize && ($response = $this->authorizePlugin($endpoint, $class)) instanceof Response) {
             return $response;
         }
-        
+
         return $class;
     }
 

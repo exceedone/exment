@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Console;
 
 use Exceedone\Exment\Middleware;

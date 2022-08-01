@@ -24,12 +24,14 @@ class SystemItem implements ItemInterface
     use ItemTrait{
         ItemTrait::getAdminFilterWhereQuery as getAdminFilterWhereQueryTrait;
     }
-    use SystemColumnItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
-    
+    use SystemColumnItemTrait;
+    use SummaryItemTrait;
+    use ColumnOptionQueryTrait;
+
     protected $column_name;
-    
+
     protected $custom_value;
-    
+
     public function __construct($custom_table, $table_column_name, $custom_value)
     {
         // if view_pivot(like select table), custom_table is target's table
@@ -79,7 +81,7 @@ class SystemItem implements ItemInterface
     /**
      * get sqlname for summary
      */
-    public function getSummaryWrapTableColumn() : string
+    public function getSummaryWrapTableColumn(): string
     {
         $table_column_name = $this->getSqlColumnName(true);
 
@@ -112,7 +114,7 @@ class SystemItem implements ItemInterface
      * @param boolean $asSqlAsName if true, get sqlname as name.
      * @return string group by column name
      */
-    public function getGroupByWrapTableColumn(bool $asSelect = false, bool $asSqlAsName = false) : string
+    public function getGroupByWrapTableColumn(bool $asSelect = false, bool $asSqlAsName = false): string
     {
         $table_column_name = $asSqlAsName ? $this->getTableColumn($this->sqlAsName()) : $this->getSqlColumnName(true);
 
@@ -236,7 +238,7 @@ class SystemItem implements ItemInterface
         return $this->label = $label;
     }
 
-    
+
     /**
      * set default label
      */
@@ -271,7 +273,7 @@ class SystemItem implements ItemInterface
         }
 
         $this->prepare();
-        
+
         return $this;
     }
 
@@ -309,7 +311,7 @@ class SystemItem implements ItemInterface
 
         return array_get($custom_value, $this->column_name);
     }
-    
+
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $field = new Field\Display($this->name(), [$this->label()]);
@@ -317,7 +319,7 @@ class SystemItem implements ItemInterface
 
         return $field;
     }
-    
+
     public function getFilterField($value_type = null)
     {
         if (is_null($value_type)) {
@@ -331,7 +333,7 @@ class SystemItem implements ItemInterface
                 $field = new Date($this->name(), [$this->label()]);
                 $field->default($this->value);
                 break;
-            // Now "select" is only user
+                // Now "select" is only user
             case 'user':
             case 'select':
                 $field = new MultipleSelect($this->name(), [$this->label()]);
@@ -380,7 +382,7 @@ class SystemItem implements ItemInterface
         return in_array($value_type, ['datetime']);
     }
 
-    
+
     /**
      * get view filter type
      */
@@ -403,13 +405,13 @@ class SystemItem implements ItemInterface
         return FilterType::DEFAULT;
     }
 
-    
+
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
      * @return string
      */
-    protected function getGridFilterOption() : ?string
+    protected function getGridFilterOption(): ?string
     {
         switch ($this->column_name) {
             case SystemColumn::ID:
@@ -440,7 +442,7 @@ class SystemItem implements ItemInterface
         return ExmWhere::class;
     }
 
-    
+
     /**
      * Set where query for grid filter. If class is "ExmWhere".
      *
@@ -475,7 +477,7 @@ class SystemItem implements ItemInterface
         }
     }
 
- 
+
     protected function getSystemColumnOption()
     {
         return SystemColumn::getOption(['name' => $this->column_name]);

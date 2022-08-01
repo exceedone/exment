@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\Number;
 
 use Exceedone\Exment\Enums\FilterOption;
@@ -10,7 +11,7 @@ class NumberGte extends NumberCompareBase
         return FilterOption::NUMBER_GTE;
     }
 
-    protected function getMark() : string
+    protected function getMark(): string
     {
         return '>=';
     }
@@ -23,7 +24,7 @@ class NumberGte extends NumberCompareBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         if (is_null($value) || is_null($conditionValue)) {
             return false;

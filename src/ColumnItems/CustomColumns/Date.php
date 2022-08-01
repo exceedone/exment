@@ -29,7 +29,7 @@ class Date extends CustomItem
         if (is_nullorempty($format)) {
             $format = $this->getDisplayFormat();
         }
-        
+
         if (!isset($v)) {
             return null;
         }
@@ -94,7 +94,7 @@ class Date extends CustomItem
         }
         return Field\Date::class;
     }
-    
+
 
     protected function getCustomField($classname, $column_name_prefix = null)
     {
@@ -111,7 +111,7 @@ class Date extends CustomItem
             $field->options(['useCurrent' => false]);
         }
     }
-    
+
     protected function setValidates(&$validates)
     {
         $validates[] = 'date';
@@ -156,7 +156,7 @@ class Date extends CustomItem
         elseif (!isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))) {
             $autoDate = true;
         }
-        
+
         if ($autoDate) {
             $this->required = false;
             return true;
@@ -194,7 +194,7 @@ class Date extends CustomItem
     {
         return true;
     }
-    
+
     /**
      * Compare two values.
      */
@@ -209,28 +209,28 @@ class Date extends CustomItem
                     if ($this_date->gt($target_date)) {
                         return true;
                     }
-    
+
                     return $compare_column->getCompareErrorMessage('validation.not_gt_date', $compare_column->compare_column1, $compare_column->compare_column2);
-                    
+
                 case FilterOption::COMPARE_GTE:
                     if ($this_date->gte($target_date)) {
                         return true;
                     }
-    
+
                     return $compare_column->getCompareErrorMessage('validation.not_gte_date', $compare_column->compare_column1, $compare_column->compare_column2);
-                    
+
                 case FilterOption::COMPARE_LT:
                     if ($this_date->lt($target_date)) {
                         return true;
                     }
-    
+
                     return $compare_column->getCompareErrorMessage('validation.not_lt_date', $compare_column->compare_column1, $compare_column->compare_column2);
-                    
+
                 case FilterOption::COMPARE_LTE:
                     if ($this_date->lte($target_date)) {
                         return true;
                     }
-    
+
                     return $compare_column->getCompareErrorMessage('validation.not_lte_date', $compare_column->compare_column1, $compare_column->compare_column2);
             }
         }
@@ -239,7 +239,7 @@ class Date extends CustomItem
             return true;
         }
     }
-    
+
 
     /**
      * Get default value.
@@ -276,7 +276,7 @@ class Date extends CustomItem
             ->default("0");
     }
 
-    
+
     /**
      * Set Custom Column Option default value Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
@@ -294,6 +294,6 @@ class Date extends CustomItem
         $form->date('default', exmtrans("custom_column.options.default"))
             ->help(exmtrans("custom_column.help.default"))
             ->attribute(['data-filter' => json_encode(['parent' => !$asCustomForm, 'key' => $asCustomForm ? 'default_type' : 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATE])])
-            ;
+        ;
     }
 }

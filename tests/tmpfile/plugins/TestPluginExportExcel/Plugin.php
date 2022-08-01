@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Plugins\TestPluginExportExcel;
 
 // PluginExportExcelに変更
@@ -40,7 +41,7 @@ class Plugin extends PluginExportExcel
 
             $column++;
         }
-    
+
         // 枠の設定
         $laseRow = $column - 1;
         $sheet->getStyle("A2:D{$laseRow}")->applyFromArray([
@@ -53,7 +54,7 @@ class Plugin extends PluginExportExcel
                 ],
             ],
         ]);
-        
+
         // 印刷範囲の設定
         $sheet->getPageSetup()->setPrintArea("A1:D{$laseRow}");
         ///// データの独自の出力処理---ここまで
@@ -69,7 +70,7 @@ class Plugin extends PluginExportExcel
      *
      * @return string
      */
-    public function getFileName() : string
+    public function getFileName(): string
     {
         return "test.xlsx";
     }

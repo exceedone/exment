@@ -11,23 +11,23 @@ class MailInfo
      * @var string
      */
     protected $from;
-    
+
     /**
      * from name
      * @var string
      */
     protected $fromName;
-    
+
     /**
      * @var array
      */
     protected $to = [];
-    
+
     /**
      * @var array
      */
     protected $cc = [];
-    
+
     /**
      * @var array
      */
@@ -37,7 +37,7 @@ class MailInfo
      * @var string
      */
     protected $subject;
-    
+
     /**
      * @var string
      */
@@ -65,11 +65,11 @@ class MailInfo
      */
     protected $password;
 
-    
+
     /**
      * @return string
      */
-    public function getFrom() : string
+    public function getFrom(): string
     {
         return !is_nullorempty($this->from) ? $this->from : config('mail.from.address') ?? System::system_mail_from();
     }
@@ -77,7 +77,7 @@ class MailInfo
     /**
      * @return string
      */
-    public function getFromName() : ?string
+    public function getFromName(): ?string
     {
         $fromName = !is_nullorempty($this->fromName) ? $this->fromName : config('mail.from.name', System::system_mail_from_view_name());
         if (isMatchString($fromName, $this->getFrom())) {
@@ -89,7 +89,7 @@ class MailInfo
     /**
      * @return array
      */
-    public function getTo() : array
+    public function getTo(): array
     {
         return NotifyService::getAddresses($this->to);
     }
@@ -97,7 +97,7 @@ class MailInfo
     /**
      * @return array
      */
-    public function getCc() : array
+    public function getCc(): array
     {
         return NotifyService::getAddresses($this->cc);
     }
@@ -105,7 +105,7 @@ class MailInfo
     /**
      * @return array
      */
-    public function getBcc() : array
+    public function getBcc(): array
     {
         return NotifyService::getAddresses($this->bcc);
     }
@@ -113,7 +113,7 @@ class MailInfo
     /**
      * @return string
      */
-    public function getSubject() : ?string
+    public function getSubject(): ?string
     {
         return $this->subject;
     }
@@ -121,7 +121,7 @@ class MailInfo
     /**
      * @return string
      */
-    public function getBody() : ?string
+    public function getBody(): ?string
     {
         return $this->body;
     }
@@ -129,7 +129,7 @@ class MailInfo
     /**
      * @return string
      */
-    public function getBodyType() : ?string
+    public function getBodyType(): ?string
     {
         return $this->bodyType;
     }
@@ -137,7 +137,7 @@ class MailInfo
     /**
      * @return array
      */
-    public function getAttachments() : array
+    public function getAttachments(): array
     {
         return array_filter($this->attachments);
     }
@@ -146,7 +146,7 @@ class MailInfo
      * Get using password. Only contains attachments
      * @return bool
      */
-    public function getUsePassword() : bool
+    public function getUsePassword(): bool
     {
         return $this->usePassword && count($this->getAttachments()) > 0;
     }
@@ -154,7 +154,7 @@ class MailInfo
     /**
      * @return string
      */
-    public function getPassword() : ?string
+    public function getPassword(): ?string
     {
         return $this->password;
     }

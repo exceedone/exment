@@ -227,7 +227,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
         $this->checkTestResult($url, $filterType);
     }
 
-    
+
     /**
      * Test condition api result for system
      * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
@@ -253,7 +253,7 @@ class ApiFilterConditionTest extends ExmentKitTestCase
 
         $this->checkTestResult($url, $filterType);
     }
-    
+
     /**
      * Test condition api result for condition detail
      * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}

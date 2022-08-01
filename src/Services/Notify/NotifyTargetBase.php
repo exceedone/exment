@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Notify;
 
 use Illuminate\Support\Collection;
@@ -39,12 +40,12 @@ abstract class NotifyTargetBase
      * @param Notify $notify model
      * @return NotifyTargetBase|null
      */
-    public static function make($notify_action_target, Notify $notify, array $action_setting) : ?NotifyTargetBase
+    public static function make($notify_action_target, Notify $notify, array $action_setting): ?NotifyTargetBase
     {
         if ($notify_action_target instanceof CustomColumn) {
             return new Column($notify, $action_setting, $notify_action_target);
         }
-        
+
         switch ($notify_action_target) {
             case NotifyActionTarget::ADMINISTRATOR:
                 return new Administrator($notify, $action_setting);
@@ -74,7 +75,7 @@ abstract class NotifyTargetBase
         return new Column($notify, $action_setting, $notify_action_target);
     }
 
-    
+
 
 
     /**
@@ -83,7 +84,7 @@ abstract class NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection Please return Notify target's collection
      */
-    abstract public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection;
+    abstract public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection;
 
 
     /**
@@ -95,7 +96,7 @@ abstract class NotifyTargetBase
      * @param mixed $statusTo
      * @return Collection Please return Notify target's collection
      */
-    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return collect();
     }

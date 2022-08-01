@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services;
 
 /**
@@ -69,7 +70,7 @@ class PartialCrudService
     {
         return static::getItem($custom_table, function ($item) use (&$form, $id) {
             $result = $item->saved($form, $id);
-            
+
             if ($result instanceof \Symfony\Component\HttpFoundation\Response || $result instanceof \Illuminate\Http\Response) {
                 return $result;
             }
@@ -87,7 +88,7 @@ class PartialCrudService
             $item = $classname::getItem($custom_table);
 
             $result = $callback($item);
-            
+
             if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
                 return $result;
             }

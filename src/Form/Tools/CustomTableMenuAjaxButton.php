@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\CustomTable;
 class CustomTableMenuAjaxButton extends ModalTileAjaxMenuButton
 {
     use CustomTableMenuTrait;
-    
+
     public function __construct()
     {
         $this->page_name = 'table';
@@ -31,11 +31,11 @@ class CustomTableMenuAjaxButton extends ModalTileAjaxMenuButton
     {
         $this->custom_table = CustomTable::getEloquent($id);
     }
-    
+
     protected function script()
     {
         $uuid = $this->uuid;
-        
+
         return <<<EOT
 
         $('.block_custom_table').find('.grid-row-checkbox').off('ifChanged').on('ifChanged',function(ev){
@@ -58,7 +58,7 @@ EOT;
     public function ajaxHtml()
     {
         $items = $this->getItems();
-        
+
         // if no menu, return
         if (count($items) == 0) {
             return null;

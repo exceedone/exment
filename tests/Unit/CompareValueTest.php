@@ -13,7 +13,6 @@ use Exceedone\Exment\Model\System;
 
 class CompareValueTest extends UnitTestBase
 {
-
     // TEXT Equal ----------------------------------------------------
     public function testMatchTextMatch()
     {
@@ -283,7 +282,7 @@ class CompareValueTest extends UnitTestBase
 
 
 
-    
+
     // INT GTE ----------------------------------------------------
     public function testGteIntegerMatch()
     {
@@ -399,7 +398,7 @@ class CompareValueTest extends UnitTestBase
 
 
 
-    
+
     // INT LTE ----------------------------------------------------
     public function testLteIntegerMatch()
     {
@@ -458,7 +457,7 @@ class CompareValueTest extends UnitTestBase
 
 
 
-    
+
 
 
     // DECIMAL Equal ----------------------------------------------------
@@ -634,7 +633,7 @@ class CompareValueTest extends UnitTestBase
 
 
 
-    
+
     // DECIMAL GTE ----------------------------------------------------
     public function testGteDecimalMatch()
     {
@@ -750,7 +749,7 @@ class CompareValueTest extends UnitTestBase
 
 
 
-    
+
     // DECIMAL LTE ----------------------------------------------------
     public function testLteDecimalMatch()
     {
@@ -984,7 +983,7 @@ class CompareValueTest extends UnitTestBase
     }
 
 
-    
+
     // Date GTE ----------------------------------------------------
     public function testGteDateMatch()
     {
@@ -1329,7 +1328,7 @@ class CompareValueTest extends UnitTestBase
     }
 
 
-    
+
     // Time GTE ----------------------------------------------------
     public function testGteTimeMatch()
     {
@@ -1673,7 +1672,7 @@ class CompareValueTest extends UnitTestBase
     }
 
 
-    
+
     // DateTime GTE ----------------------------------------------------
     public function testGteDateTimeMatch()
     {
@@ -1846,17 +1845,17 @@ class CompareValueTest extends UnitTestBase
 
 
 
-    
 
 
 
 
 
 
-    protected function initCompareValueTest($column_type, $filter_option) : CustomTable
+
+    protected function initCompareValueTest($column_type, $filter_option): CustomTable
     {
         $custom_table = CustomTable::getEloquent('custom_value_view_all');
-        
+
         $columns = [
             ColumnType::TEXT => [
                 ['column_name' => 'text1', 'column_view_name' => 'text1', 'column_type' => ColumnType::TEXT],
@@ -1891,12 +1890,12 @@ class CompareValueTest extends UnitTestBase
         $dummy_id = 900000;
 
         $column_blocks = $columns[$column_type];
-        
+
         $custom_column_id1 = null;
         $custom_column_id2 = null;
-        
+
         foreach ($column_blocks as $index => $column) {
-            $custom_column = new CustomColumn;
+            $custom_column = new CustomColumn();
             $custom_column->custom_table_id = $custom_table->id;
             $custom_column->column_name = $column['column_name'];
             $custom_column->column_view_name = $column['column_view_name'];
@@ -1912,7 +1911,7 @@ class CompareValueTest extends UnitTestBase
             }
         }
 
-        $custom_column_multi = new CustomColumnMulti;
+        $custom_column_multi = new CustomColumnMulti();
         $custom_column_multi->custom_table_id = $custom_table->id;
         $custom_column_multi->multisetting_type = MultisettingType::COMPARE_COLUMNS;
         $custom_column_multi->compare_column1_id = $custom_column_id1;

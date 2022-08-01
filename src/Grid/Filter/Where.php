@@ -48,7 +48,7 @@ class Where extends BaseWhere
             $func($query, $value, $this);
         });
     }
-    
+
     /**
      * Get query where null condition from filter.
      *

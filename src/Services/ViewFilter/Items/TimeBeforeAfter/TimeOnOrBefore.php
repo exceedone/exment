@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\TimeBeforeAfter;
 
 use Exceedone\Exment\Enums\FilterOption;
@@ -15,8 +16,8 @@ class TimeOnOrBefore extends TimeBeforeAfterBase
     {
         return Carbon::parse($query_value)->format('H:i:s');
     }
-    
-    protected function getMark() : string
+
+    protected function getMark(): string
     {
         return "<=";
     }
@@ -29,7 +30,7 @@ class TimeOnOrBefore extends TimeBeforeAfterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         // This method is not currently used
         return false;

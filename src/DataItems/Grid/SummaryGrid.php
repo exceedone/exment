@@ -26,7 +26,7 @@ class SummaryGrid extends GridBase
     public function grid()
     {
         $classname = getModelName($this->custom_table);
-        $grid = new Grid(new $classname);
+        $grid = new Grid(new $classname());
 
         $this->setSummaryGrid($grid);
 
@@ -50,7 +50,7 @@ class SummaryGrid extends GridBase
         if (!$isShowViewSummaryDetail) {
             $grid->disableActions();
         }
-        
+
         $_this = $this;
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($_this, $isShowViewSummaryDetail, $custom_view, $table_name) {
             $actions->disableDelete();
@@ -60,7 +60,7 @@ class SummaryGrid extends GridBase
             if ($isShowViewSummaryDetail) {
                 $params = $_this->getCallbackGroupKeys($actions->row);
 
-                $linker = (new Grid\Linker)
+                $linker = (new Grid\Linker())
                     ->url(admin_urls_query('data', $table_name, ['view' => CustomView::getAllData($table_name)->suuid, 'group_view' => $custom_view->suuid, 'group_key' => json_encode($params)]))
                     ->icon('fa-list')
                     ->tooltip(exmtrans('custom_value.view_summary_detail'));
@@ -78,7 +78,7 @@ class SummaryGrid extends GridBase
                 ]
             ));
         $grid->exporter($service);
-        
+
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             // have edit flg
             $edit_flg = $this->custom_table->enableEdit(true) === true;
@@ -86,12 +86,12 @@ class SummaryGrid extends GridBase
                 $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false);
                 $tools->append($button->setCustomTable($this->custom_table));
             }
-            
+
             // if user have edit permission, add button
             if ($edit_flg) {
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
             }
-            
+
             if ($this->custom_table->enableTableMenuButton()) {
                 $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
             }
@@ -143,7 +143,7 @@ class SummaryGrid extends GridBase
         foreach ($this->custom_view->custom_view_columns_cache as $custom_view_column) {
             // set option item
             $this->setSummaryItem($custom_view_column);
-            
+
             // set group by
             $searchSearvice->groupByCustomViewColumn($custom_view_column);
 
@@ -151,7 +151,7 @@ class SummaryGrid extends GridBase
             $this->setGridColumn($grid, $custom_view_column);
         }
 
-        
+
         ///// set summary's "select" columns.
         // using custom_view_summary
         foreach ($this->custom_view->custom_view_summaries_cache as $custom_view_summary) {
@@ -164,11 +164,11 @@ class SummaryGrid extends GridBase
             // set grid column
             $this->setGridColumn($grid, $custom_view_summary);
         }
-        
+
 
         ///// set filter columns.
         $this->custom_view->setValueFilters($query);
-        
+
         // if request not has "_sort", execute Summary OrderBy
         if (!request()->has('_sort')) {
             $searchSearvice->executeSummaryOrderBy();
@@ -179,7 +179,7 @@ class SummaryGrid extends GridBase
 
         return $query;
     }
-    
+
 
     /**
      * Set grid column
@@ -206,7 +206,7 @@ class SummaryGrid extends GridBase
         return $this;
     }
 
-    
+
     /**
      * Set summary item
      *
@@ -262,7 +262,7 @@ class SummaryGrid extends GridBase
         static::setViewInfoboxFields($form);
 
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
-        
+
         // group columns setting
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
             $targetOptions = $custom_table->getColumnsSelectOptions([
@@ -284,7 +284,7 @@ class SummaryGrid extends GridBase
                 $targetGroups = static::convertGroups($targetOptions, $custom_table);
                 $field->groups($targetGroups);
             }
-            
+
             $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);
 
             $form->select('view_group_condition', exmtrans("custom_view.view_group_condition"))
@@ -307,7 +307,7 @@ class SummaryGrid extends GridBase
             ->help(exmtrans('custom_view.help.sort_type'))
                 ->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                 ->disableClear()->default(Enums\ViewColumnSort::ASC);
-                
+
             $form->hidden('order')->default(0);
         })->required()->rowUpDown('order')->setTableColumnWidth(4, 2, 2, 1, 2, 1)
         ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_groups"), $manualUrl));
@@ -361,7 +361,7 @@ class SummaryGrid extends GridBase
         static::setFilterFields($form, $custom_table, true);
     }
 
-    
+
     /**
      * get group condition
      */

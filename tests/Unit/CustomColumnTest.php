@@ -11,7 +11,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 class CustomColumnTest extends UnitTestBase
 {
     use CustomColumnTrait;
-    
+
     // Text ----------------------------------------------------
     public function _testText($value_type)
     {
@@ -36,7 +36,7 @@ class CustomColumnTest extends UnitTestBase
 
 
     // TextArea ----------------------------------------------------
-    const TEXTAREA_VALUE = 'text1\r\ntext2\r\ntext3\r\n<a href="abc">aaa</a>';
+    public const TEXTAREA_VALUE = 'text1\r\ntext2\r\ntext3\r\n<a href="abc">aaa</a>';
     public function _testTextarea($value_type, $matchedValue)
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::TEXTAREA);
@@ -58,11 +58,11 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testTextarea(ValueType::HTML, preg_replace('/ /', '<span style="margin-right: 0.5em;"></span>', replaceBreakEsc(static::TEXTAREA_VALUE)));
     }
 
-    
+
 
 
     // Editor ----------------------------------------------------
-    const EDITOR_VALUE = "<p>normal</p>\r\n<p><strong>bold</strong></p>\r\n<p><span style=\"text-decoration: underline;\">under</span></p>\r\n<p><span style=\"color: #ff0000;\">red</span></p>";
+    public const EDITOR_VALUE = "<p>normal</p>\r\n<p><strong>bold</strong></p>\r\n<p><span style=\"text-decoration: underline;\">under</span></p>\r\n<p><span style=\"color: #ff0000;\">red</span></p>";
     public function _testEditor($value_type, $matchedValue)
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::EDITOR);
@@ -84,12 +84,12 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testEditor(ValueType::HTML, '<div class="show-tinymce">'.replaceBreak(html_clean(static::EDITOR_VALUE), false).'</div>');
     }
 
-    
-    
+
+
 
 
     // URL ----------------------------------------------------
-    const URL_VALUE = "https://github.com/exceedone/exment/";
+    public const URL_VALUE = "https://github.com/exceedone/exment/";
     public function _testUrl($value_type, $matchedValue)
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::URL);
@@ -112,11 +112,11 @@ class CustomColumnTest extends UnitTestBase
     }
 
 
-    
+
 
 
     // EMAIL ----------------------------------------------------
-    const EMAIL_VALUE = "test@foobar.test";
+    public const EMAIL_VALUE = "test@foobar.test";
     public function _testEmail($value_type, $matchedValue)
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::EMAIL);
@@ -138,11 +138,11 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testEmail(ValueType::HTML, static::EMAIL_VALUE);
     }
 
-    
+
 
 
     // INTEGER ----------------------------------------------------
-    const INTEGER_VALUE = 1000;
+    public const INTEGER_VALUE = 1000;
     public function _testInteger($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::INTEGER, $options);
@@ -177,13 +177,13 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testInteger(ValueType::HTML, '1,000', ['number_format' => 1]);
     }
 
-    
+
 
 
     // DECIMAL ----------------------------------------------------
-    const DECIMAL_VALUE = 1000.25;
-    const DECIMAL_VALUE2 = 1000;
-    const DECIMAL_VALUE3 = 1000.2;
+    public const DECIMAL_VALUE = 1000.25;
+    public const DECIMAL_VALUE2 = 1000;
+    public const DECIMAL_VALUE3 = 1000.2;
     public function _testDecimal($value_type, $matchedValue, $options = [], $originalValue = null)
     {
         $originalValue = $originalValue?? static::CURRENCY_VALUE;
@@ -250,11 +250,11 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // CURRENCY ----------------------------------------------------
-    const CURRENCY_VALUE = 1000.25;
-    const CURRENCY_VALUE2 = 1000;
-    const CURRENCY_VALUE3 = 1000.2;
+    public const CURRENCY_VALUE = 1000.25;
+    public const CURRENCY_VALUE2 = 1000;
+    public const CURRENCY_VALUE3 = 1000.2;
     public function _testCurrency($value_type, $matchedValue, $options = [], $originalValue = null)
     {
         $originalValue = $originalValue?? static::CURRENCY_VALUE;
@@ -334,10 +334,10 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // DATE ----------------------------------------------------
-    const DATE_VALUE = '2020/06/12';
-    const DATE_VALUE_FORMAT = '2020-06-12';
+    public const DATE_VALUE = '2020/06/12';
+    public const DATE_VALUE_FORMAT = '2020-06-12';
     public function _testDate($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::DATE, $options);
@@ -377,10 +377,10 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // TIME ----------------------------------------------------
-    const TIME_VALUE = '20:10:00';
-    const TIME_VALUE_FORMAT = '201000';
+    public const TIME_VALUE = '20:10:00';
+    public const TIME_VALUE_FORMAT = '201000';
     public function _testTime($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::TIME, $options);
@@ -420,10 +420,10 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // DATETIME ----------------------------------------------------
-    const DATETIME_VALUE = '2020/06/12 20:10:00';
-    const DATETIME_VALUE_FORMAT = '2020-06-12 201000';
+    public const DATETIME_VALUE = '2020/06/12 20:10:00';
+    public const DATETIME_VALUE_FORMAT = '2020-06-12 201000';
     public function _testDateTime($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::DATETIME, $options);
@@ -461,9 +461,9 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // SELECT ----------------------------------------------------
-    const SELECT_VALUE = 'orange';
+    public const SELECT_VALUE = 'orange';
     public function _testSelect($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::SELECT, $options);
@@ -484,9 +484,9 @@ class CustomColumnTest extends UnitTestBase
     {
         return $this->_testSelect(ValueType::HTML, static::SELECT_VALUE, ["select_item" => "orange\r\nbanana\r\napple"]);
     }
-    
+
     // SELECT(multiple) ----------------------------------------------------
-    const SELECT_VALUE_MULTIPLE = ['orange', 'banana'];
+    public const SELECT_VALUE_MULTIPLE = ['orange', 'banana'];
     public function _testSelectMultiple($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::SELECT, $options);
@@ -511,10 +511,10 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // SELECT_VALTEXT ----------------------------------------------------
-    const SELECT_VALTEXT_VALUE = 'orange';
-    const SELECT_VALTEXT_TEXT = 'Orange';
+    public const SELECT_VALTEXT_VALUE = 'orange';
+    public const SELECT_VALTEXT_TEXT = 'Orange';
     public function _testSelectValText($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_VALTEXT, $options);
@@ -537,8 +537,8 @@ class CustomColumnTest extends UnitTestBase
     }
 
     // SELECT_VALTEXT(multiple) ----------------------------------------------------
-    const SELECT_VALTEXT_VALUE_MULTIPLE = ['orange', 'banana'];
-    const SELECT_VALTEXT_TEXT_MULTIPLE = ['Orange', 'Banana'];
+    public const SELECT_VALTEXT_VALUE_MULTIPLE = ['orange', 'banana'];
+    public const SELECT_VALTEXT_TEXT_MULTIPLE = ['Orange', 'Banana'];
     public function _testSelectValTextMultiple($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::SELECT_VALTEXT, $options);
@@ -562,7 +562,7 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // SELECT_TABLE ----------------------------------------------------
     public function _testSelectTable($value_type, $matchedValue, $options = [])
     {
@@ -617,7 +617,7 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // USER ----------------------------------------------------
     public function _testUser($value_type, $matchedValue, $options = [])
     {
@@ -644,7 +644,7 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // ORGANIZATION ----------------------------------------------------
     public function _testOrganization($value_type, $matchedValue, $options = [])
     {
@@ -669,9 +669,9 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // YESNO ----------------------------------------------------
-    const YESNO_VALUE = 1;
+    public const YESNO_VALUE = 1;
     public function _testYesNo($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::YESNO, $options);
@@ -696,10 +696,10 @@ class CustomColumnTest extends UnitTestBase
 
 
 
-    
+
     // BOOLEAN ----------------------------------------------------
-    const BOOLEAN_VALUE = 'man';
-    const BOOLEAN_TEXT = 'MAN';
+    public const BOOLEAN_VALUE = 'man';
+    public const BOOLEAN_TEXT = 'MAN';
     public function _testBoolean($value_type, $matchedValue, $options = [])
     {
         $custom_column = $this->getCustomColumnModel(ColumnType::BOOLEAN, $options);

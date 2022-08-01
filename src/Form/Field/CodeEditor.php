@@ -22,7 +22,7 @@ class CodeEditor extends Textarea
         $this->height = $height;
         return $this;
     }
-    
+
 
     public function render()
     {

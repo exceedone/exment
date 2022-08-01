@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 abstract class ProviderBase
 {
-    
     /**
      * Whether this row reads.
      *
@@ -12,7 +11,7 @@ abstract class ProviderBase
      * @param array $options
      * @return boolean
      */
-    protected function isReadRow(int $row_no, array $options = []) : bool
+    protected function isReadRow(int $row_no, array $options = []): bool
     {
         // get options
         list($start, $end) = [
@@ -35,7 +34,7 @@ abstract class ProviderBase
         return true;
     }
 
-    
+
     /**
      * get data object
      */

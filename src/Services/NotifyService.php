@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomOperation;
@@ -29,11 +30,11 @@ use Exceedone\Exment\Enums\NotifyActionTarget;
 class NotifyService
 {
     protected $notify;
-    
+
     protected $targetid;
 
     protected $custom_table;
-    
+
     protected $custom_value;
 
     public function __construct(Notify $notify, $targetid, $tableKey, $id)
@@ -66,7 +67,7 @@ class NotifyService
         if (count($values) <= 1) {
             return $this->getSendForm($values);
         }
-        
+
         // create form fields
         $tableKey = $this->custom_table->table_name;
         $id = $this->custom_value->id;
@@ -152,7 +153,7 @@ class NotifyService
             $mail_subject = replaceTextFromFormat($mail_subject, $this->custom_value);
             $mail_body = replaceTextFromFormat($mail_body, $this->custom_value);
         }
-        
+
         // create form fields
         $form = new ModalForm();
         $form->disableReset();
@@ -187,7 +188,7 @@ class NotifyService
             $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
                 ->options($options);
         }
-    
+
         $form->textarea('send_error_message', exmtrans('custom_value.sendmail.send_error_message'))
             ->attribute(['readonly' => true, 'placeholder' => ''])
             ->rows(1)
@@ -218,7 +219,7 @@ class NotifyService
 
         // get target users
         $target_user_keys = json_decode_ex($request->get('target_users'), true);
-        
+
         if (!isset($mail_key_name) || !isset($mail_template_id)) {
             abort(404);
         }
@@ -256,7 +257,7 @@ class NotifyService
             ]);
         }
     }
-    
+
 
     /**
      * has notify User By Button action
@@ -264,7 +265,7 @@ class NotifyService
      * @param \Illuminate\Support\Collection $values
      * @return boolean
      */
-    protected function hasNotifyUserByButton(\Illuminate\Support\Collection $values) : bool
+    protected function hasNotifyUserByButton(\Illuminate\Support\Collection $values): bool
     {
         // Exists user, return true
         if ($values->count() > 0) {
@@ -288,7 +289,7 @@ class NotifyService
      * @param \Illuminate\Support\Collection $notifyTargets
      * @return string
      */
-    protected function getNotifyTargetLabel(\Illuminate\Support\Collection $notifyTargets) : string
+    protected function getNotifyTargetLabel(\Illuminate\Support\Collection $notifyTargets): string
     {
         $targets = clone $notifyTargets;
         $targets = $targets->map(function ($notifyTarget) {
@@ -311,14 +312,14 @@ class NotifyService
     }
 
 
-    
+
     /**
      * Execute Notify test
      *
      * @param array $params
      * @return Notifications\SenderBase
      */
-    public static function executeTestNotify($params = []) : Notifications\SenderBase
+    public static function executeTestNotify($params = []): Notifications\SenderBase
     {
         $params = array_merge(
             [
@@ -349,7 +350,7 @@ class NotifyService
             throw $ex;
         }
     }
-    
+
     /**
      * Execute Notify action
      *
@@ -400,7 +401,7 @@ class NotifyService
             if (NotifyAction::isChatMessage($notify_action) != $params['is_chat']) {
                 continue;
             }
-            
+
             switch ($notify_action) {
                 case NotifyAction::EMAIL:
                     static::notifyMail($params);
@@ -414,7 +415,7 @@ class NotifyService
                     $params['webhook_url'] = array_get($action_setting, 'webhook_url');
                     static::notifySlack($params);
                     break;
-    
+
                 case NotifyAction::MICROSOFT_TEAMS:
                     $params['webhook_url'] = array_get($action_setting, 'webhook_url');
                     static::notifyTeams($params);
@@ -464,7 +465,7 @@ class NotifyService
             if (boolval($params['disableHistoryBody'])) {
                 $sender->disableHistoryBody();
             }
-            
+
             $sender->prms($params['prms'])
                 ->user($params['user'])
                 ->to($params['to'])
@@ -492,7 +493,7 @@ class NotifyService
      * @param array $params
      * @return Notifications\SenderBase
      */
-    public static function notifyNavbar(array $params = []) : Notifications\SenderBase
+    public static function notifyNavbar(array $params = []): Notifications\SenderBase
     {
         $params = array_merge(
             [
@@ -572,7 +573,7 @@ class NotifyService
      * @param string $className
      * @return Notifications\SenderBase
      */
-    protected static function notifyWebHook(array $params, string $className) : Notifications\SenderBase
+    protected static function notifyWebHook(array $params, string $className): Notifications\SenderBase
     {
         $params = array_merge(
             [
@@ -608,7 +609,7 @@ class NotifyService
     }
 
 
-    
+
     /**
      * replace subject and body from mail template
      */
@@ -630,7 +631,7 @@ class NotifyService
         if (!isset($mail_template) && isset($notify)) {
             $mail_template = array_get($notify, 'mail_template_id');
         }
-        
+
         if (is_numeric($mail_template)) {
             $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         } elseif (is_string($mail_template)) {
@@ -719,7 +720,7 @@ class NotifyService
             'as_has_roles' => false, // Only use "as_default" is false
             'as_created_user' => false, // Only use "as_default" is false
             'as_fixed_email' => true, // If true, set "FIXED_EMAIL"
-            
+
             'get_email' => false, // Get email's columns.
             'get_select_table_email' => false, // Get select table where has email column
             'get_user' => false, // Get users column.
@@ -734,7 +735,7 @@ class NotifyService
         // }
 
         if ($options['as_default']) {
-            $array = getTransArray(($options['as_workflow'] ? NotifyActionTarget::ACTION_TARGET_WORKFLOW() :  NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE()), 'notify.notify_action_target_options');
+            $array = getTransArray(($options['as_workflow'] ? NotifyActionTarget::ACTION_TARGET_WORKFLOW() : NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE()), 'notify.notify_action_target_options');
         } else {
             $array = [];
             if ($options['as_administrator']) {
@@ -771,7 +772,7 @@ class NotifyService
                 }
             }
         }
-        
+
         if (!isset($custom_table)) {
             return $items;
         }
@@ -787,21 +788,21 @@ class NotifyService
                         continue;
                     }
                 }
-    
+
                 if ($options['get_user']) {
                     if (ismatchString($custom_column->column_type, ColumnType::USER)) {
                         $column_items[] = $custom_column;
                         continue;
                     }
                 }
-    
+
                 if ($options['get_organization']) {
                     if (ismatchString($custom_column->column_type, ColumnType::ORGANIZATION)) {
                         $column_items[] = $custom_column;
                         continue;
                     }
                 }
-                
+
                 if ($options['get_select_table_email']) {
                     // if select table, getting column
                     if (ColumnType::isSelectTable($custom_column->column_type)) {
@@ -815,7 +816,7 @@ class NotifyService
                     }
                 }
             }
-            
+
             foreach ($column_items as $column_item) {
                 $items[] = ['id' => $column_item->id, 'text' => exmtrans('common.custom_column') . ' : ' . $column_item->column_view_name];
             }
@@ -835,7 +836,7 @@ class NotifyService
                         if (!ismatchString($custom_column->column_type, ColumnType::EMAIL)) {
                             return;
                         }
-                        
+
                         // Set item. Contains pivot column and table.
                         if ($relationTable->searchType == SearchType::SELECT_TABLE || $relationTable->searchType == SearchType::SUMMARY_SELECT_TABLE) {
                             $view_pivot_column_id = $relationTable->selectTablePivotColumn->id;
@@ -861,19 +862,19 @@ class NotifyService
      * @param string|array|CustomValue|NotifyTarget $user
      * @return array
      */
-    public static function getAddress($user) : ?string
+    public static function getAddress($user): ?string
     {
         $result = static::getAddresses($user);
         return is_nullorempty($result) ? null : $result[0];
     }
-    
+
     /**
      * Get User Mail Address list
      *
      * @param string|array|CustomValue|NotifyTarget $users
      * @return array
      */
-    public static function getAddresses($users) : array
+    public static function getAddresses($users): array
     {
         // Convert "," string to array
         if (is_string($users)) {

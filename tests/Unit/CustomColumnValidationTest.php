@@ -11,7 +11,7 @@ use Exceedone\Exment\Tests\TestDefine;
 class CustomColumnValidationTest extends UnitTestBase
 {
     use CustomColumnTrait;
-    
+
     // required, unneccesarry, etc ----------------------------------------------------
     public function testSuccess()
     {
@@ -407,7 +407,7 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
-    
+
 
 
     // TIME ----------------------------------------------------
@@ -547,7 +547,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATETIME => [$this->getErrorMessage('date', ColumnType::DATETIME)],
         ]);
     }
-    
+
 
 
     // SELECT ----------------------------------------------------
@@ -713,7 +713,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::SELECT_TABLE => ['1', '2'],
         ]);
     }
-    
+
     public function testSelectTableNot()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
@@ -868,7 +868,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::YESNO => 'false',
         ]);
     }
-    
+
     public function testYesNoNot()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
@@ -890,7 +890,7 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
-    
+
 
     // BOOLEAN ----------------------------------------------------
     public function testSuccessBoolean()
@@ -949,7 +949,7 @@ class CustomColumnValidationTest extends UnitTestBase
 
         $this->executeTest($custom_value, $values, $errors, $matches);
     }
-    
+
     protected function executeTestAllColumns($column_type, array $values, array $errors = [], array $matches = [])
     {
         $custom_column = $this->getCustomColumnModel($column_type);
@@ -963,7 +963,7 @@ class CustomColumnValidationTest extends UnitTestBase
         $isSuccess = count($errors) == 0;
         try {
             $custom_value->setValueStrictly($values);
-    
+
             if (!$isSuccess) {
                 $this->assertTrue(false, 'This test excepts exception, but success validation.');
                 return;

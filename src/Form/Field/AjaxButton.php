@@ -7,13 +7,13 @@ use Encore\Admin\Form\Field;
 class AjaxButton extends Field
 {
     protected $view = 'exment::form.field.ajax-button';
-    
+
     protected $url;
-    
+
     protected $button_label;
-    
+
     protected $button_class;
-    
+
     protected $beforesubmit_events;
 
     protected $send_params;
@@ -71,7 +71,7 @@ class AjaxButton extends Field
         return $this;
     }
 
-    
+
     /**
      * confirm_title
      *
@@ -84,7 +84,7 @@ class AjaxButton extends Field
 
         return $this;
     }
-    
+
     /**
      * confirm_text
      *
@@ -97,7 +97,7 @@ class AjaxButton extends Field
 
         return $this;
     }
-    
+
     /**
      * confirm_error
      *
@@ -111,7 +111,7 @@ class AjaxButton extends Field
         return $this;
     }
 
-    
+
     public function render()
     {
         $url = $this->url;

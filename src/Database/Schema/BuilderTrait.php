@@ -33,7 +33,7 @@ trait BuilderTrait
         $dbValueFilter = $settings['dbValueFilter'];
         $dbDeleteFilter = $settings['dbDeleteFilter'];
         $matchFilter = $settings['matchFilter'];
-        
+
         // get DB values
         $dbValueQuery = \DB::table($table);
 
@@ -193,7 +193,7 @@ trait BuilderTrait
         $results = $this->getUniqueIndexDefinitionsSelect($sql, $tableName, $columnName, $unique);
         return $this->connection->getPostProcessor()->processIndexDefinitions($baseTableName, $results);
     }
-    
+
 
     /**
      * get database constraint list
@@ -202,7 +202,7 @@ trait BuilderTrait
      * @param string $columnName
      * @return array
      */
-    protected function getConstraints($tableName, $columnName) : array
+    protected function getConstraints($tableName, $columnName): array
     {
         if (!\Schema::hasTable($tableName)) {
             return [];
@@ -219,8 +219,8 @@ trait BuilderTrait
         $results = $this->connection->select($sql, ['column_name' => $columnName]);
         return $this->connection->getPostProcessor()->processConstraints($results);
     }
-    
-    
+
+
     /**
      * Create Value Table if it not exists.
      *
@@ -304,8 +304,8 @@ trait BuilderTrait
             });
         }
     }
-    
-    
+
+
     /**
      * drop constraint list
      *
@@ -313,7 +313,7 @@ trait BuilderTrait
      * @param string $columnName
      * @return void
      */
-    public function dropConstraints($tableName, $columnName) : void
+    public function dropConstraints($tableName, $columnName): void
     {
         if (!\Schema::hasTable($tableName)) {
             return;

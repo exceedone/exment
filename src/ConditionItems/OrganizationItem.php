@@ -14,12 +14,12 @@ use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 class OrganizationItem extends ConditionDetailBase implements ConditionItemInterface
 {
     use UserOrganizationItemTrait;
-    
+
     public function getFilterOption()
     {
         return $this->getFilterOptionConditon();
     }
-    
+
     /**
      * Get change field
      *
@@ -43,7 +43,7 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
         $ids = \Exment::user()->belong_organizations->pluck('id')->toArray();
         return $this->compareValue($condition, $ids);
     }
-    
+
     /**
      * get text.
      *
@@ -69,8 +69,8 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
 
         return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');
     }
-    
-    
+
+
     /**
      * Check has workflow authority with this item.
      *
@@ -84,7 +84,7 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
         $ids = $targetUser->belong_organizations->pluck('id')->toArray();
         return in_array($workflow_authority->related_id, $ids);
     }
-    
+
     public static function setWorkflowConditionQuery($query, $tableName, $custom_table)
     {
         $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();

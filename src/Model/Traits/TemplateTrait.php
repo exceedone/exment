@@ -72,7 +72,7 @@ trait TemplateTrait
             }
             return true;
         });
-        
+
         if (isset($find) && is_array($find)) {
             $find = array_dot_only($find, $items);
         }
@@ -120,7 +120,7 @@ trait TemplateTrait
                     $getEnumArgs = collect($replaceNames)->map(function ($replaceName) use ($array) {
                         return array_get($array, $replaceName['replacingName']);
                     })->toArray();
-                    
+
                     // get enum
                     $enum = call_user_func_array([$uniqueKeyReplace['uniqueKeySystemEnum'], 'getEnum'], array_values($getEnumArgs));
                     if (isset($enum)) {
@@ -151,7 +151,7 @@ trait TemplateTrait
                         }
                     }
                 }
-                
+
                 foreach ($replaceNames as $replaceName) {
                     array_forget($array, array_get($replaceName, 'replacingName'));
                 }
@@ -353,7 +353,7 @@ trait TemplateTrait
                 if (array_key_exists('ignoreImportChildren', $templateItems) && in_array($key, $templateItems['ignoreImportChildren'])) {
                     continue;
                 }
-    
+
                 // Create children
                 foreach (array_get($json, $key, []) as $count => $child) {
                     $classname::importTemplate($child, $is_update, [
@@ -367,7 +367,7 @@ trait TemplateTrait
         return $obj;
     }
 
-    
+
     /**
      * get unique key name.
      * Ex1. CustomTable:table_name.

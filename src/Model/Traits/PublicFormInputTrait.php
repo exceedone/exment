@@ -26,8 +26,8 @@ trait PublicFormInputTrait
     protected $tmp_notify_mail_template_complete_user;
     protected $tmp_notify_mail_template_complete_admin;
 
-    
-    
+
+
 
     // For tab ----------------------------------------------------
     public function getBasicSettingAttribute()
@@ -232,7 +232,7 @@ trait PublicFormInputTrait
             }
         }
     }
-    
+
 
     /**
      * Export template replace json
@@ -340,7 +340,7 @@ trait PublicFormInputTrait
         }
     }
 
-    
+
 
     /**
      * Callback template import event
@@ -358,7 +358,7 @@ trait PublicFormInputTrait
         } else {
             $this->setOption('plugin_css', $plugin_css);
         }
-        
+
         if (is_nullorempty($plugin_js)) {
             $this->forgetOption('plugin_js');
         } else {

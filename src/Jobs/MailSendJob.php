@@ -24,7 +24,7 @@ class MailSendJob extends Notification implements ShouldQueue
      */
     protected $mailHistory;
 
-    
+
     /**
      * Get the notification's delivery channels.
      *
@@ -44,7 +44,7 @@ class MailSendJob extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->setMailInfo($this->mailInfo)
             ->setMailHistory($this->mailHistory);
     }

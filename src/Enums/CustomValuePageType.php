@@ -4,17 +4,17 @@ namespace Exceedone\Exment\Enums;
 
 class CustomValuePageType extends EnumBase
 {
-    const CREATE = 'create';
-    const EDIT = 'edit';
-    const GRID = 'grid';
-    const SHOW = 'show';
-    const DELETE = 'delete';
- 
+    public const CREATE = 'create';
+    public const EDIT = 'edit';
+    public const GRID = 'grid';
+    public const SHOW = 'show';
+    public const DELETE = 'delete';
+
     // For page validation ----------------------------------------------------
-    const EXPORT = 'export';
-    const IMPORT = 'import';
-    
-    const GRIDMODAL = 'gridmodal';
+    public const EXPORT = 'export';
+    public const IMPORT = 'import';
+
+    public const GRIDMODAL = 'gridmodal';
 
     public static function getFormDataType($pageType)
     {

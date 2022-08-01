@@ -33,7 +33,7 @@ class CalendarGrid extends GridBase
             'locale' => \App::getLocale(),
         ]);
     }
-    
+
 
     /**
      * Set custom view columns form. For controller.
@@ -45,9 +45,9 @@ class CalendarGrid extends GridBase
     public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         static::setViewInfoboxFields($form);
-        
+
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
-        
+
         // columns setting
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_start_date"))

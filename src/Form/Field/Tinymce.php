@@ -16,7 +16,7 @@ class Tinymce extends Textarea
     protected $config = [];
 
     protected $disableImage = false;
-    
+
     /**
      * POST url. If null, return adminurl, else, return this value
      *
@@ -67,7 +67,7 @@ class Tinymce extends Textarea
         if (!is_null($c = config('exment.html_allowed_editor'))) {
             $tags = $c;
         }
-        
+
         return $tags;
     }
 

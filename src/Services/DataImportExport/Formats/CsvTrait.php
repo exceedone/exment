@@ -6,7 +6,7 @@ use Exceedone\Exment\Model\Define;
 
 trait CsvTrait
 {
-    public function getFormat() : string
+    public function getFormat(): string
     {
         return 'csv';
     }
@@ -43,7 +43,7 @@ trait CsvTrait
             return $datalist;
         });
     }
-    
+
     public function getDataCount($request)
     {
         return $this->_getData($request, function ($files) {
@@ -62,13 +62,13 @@ trait CsvTrait
         if ($extension == 'zip' && isset($file)) {
             $tmpdir = \Exment::getTmpFolderPath('data', false);
             $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
-            
+
             $filename = $file->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
             $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
 
             // open zip file
             try {
-                $zip = new \ZipArchive;
+                $zip = new \ZipArchive();
                 //Define variable like flag to check exitsed file config (config.json) before extract zip file
                 $res = $zip->open($fullpath);
                 if ($res !== true) {

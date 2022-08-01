@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Exceedone\Exment\Enums\ColumnType;
@@ -53,7 +54,7 @@ class ExmentCustomValidator extends AdminValidator
         return $this;
     }
 
-    public function getMessageStrings() : array
+    public function getMessageStrings(): array
     {
         $messages = collect();
         foreach ($this->getMessages() as $messageItems) {
@@ -125,7 +126,7 @@ class ExmentCustomValidator extends AdminValidator
         }
         return true;
     }
-    
+
     /**
     * Validate relations between tables are circular reference
     *
@@ -213,7 +214,7 @@ class ExmentCustomValidator extends AdminValidator
         } finally {
             restore_error_handler();
         }
-    
+
         return true;
     }
 }

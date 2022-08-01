@@ -27,7 +27,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
 {
     protected $custom_table;
     protected $target;
-    
+
     /**
      * Dynamic field element name
      *
@@ -70,7 +70,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
 
         return $this;
     }
-    
+
     public function filterKind($filterKind = null)
     {
         if (isset($filterKind)) {
@@ -79,7 +79,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
 
         return $this;
     }
-    
+
 
     /**
      * Get condition item
@@ -89,7 +89,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         if (is_nullorempty($target)) {
             return null;
         }
-        
+
         return static::getConditionItem($custom_table, $target, $target_column_id);
     }
 
@@ -111,7 +111,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
             $column_item = CustomViewFilter::getColumnItem($target_query);
             $custom_table = $column_item->getCustomTable();
         }
-        
+
         // convert enum using target_query
         $enum = ConditionType::getEnumByTargetKey(strtolower($target));
         return static::getConditionItem($custom_table, $enum, $target);
@@ -130,7 +130,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         return static::getConditionDetailItem($custom_table, $authority->related_type);
     }
 
-    
+
     /**
      * Get condition type
      *
@@ -192,12 +192,12 @@ abstract class ConditionItemBase implements ConditionItemInterface
     public function getFilterCondition()
     {
         $options = $this->getFilterOption();
-        
+
         return collect($options)->map(function ($array) {
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.filter_condition_options.'.array_get($array, 'name'))];
         });
     }
-    
+
     /**
      * get Update Type Condition
      */
@@ -207,7 +207,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
             return ['id' => $val, 'text' => exmtrans('custom_operation.operation_update_type_options.'.$val)];
         });
     }
-    
+
     /**
      * get Update Type Condition
      */
@@ -215,7 +215,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     {
         return $this->getFilterValue($target_key, $target_name, $show_condition_key);
     }
-    
+
     /**
      * get filter value
      */
@@ -225,7 +225,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         if (is_null($field)) {
             return [];
         }
-        
+
         $view = $field->render();
         return json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
     }
@@ -278,7 +278,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         return $viewFilterItem->compareValue($value, $condition->condition_value);
     }
 
-    
+
     /**
      * get condition value text.
      *
@@ -296,7 +296,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      *
      * @return string|null
      */
-    public function getQueryKey(Condition $condition) : ?string
+    public function getQueryKey(Condition $condition): ?string
     {
         return $condition->target_column_id;
     }
@@ -321,7 +321,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      * @param Model\CustomTable $custom_table
      * @return string|null
      */
-    public function getSelectColumnText($custom_view_column, Model\CustomTable $custom_table) : ?string
+    public function getSelectColumnText($custom_view_column, Model\CustomTable $custom_table): ?string
     {
         return null;
     }
@@ -333,7 +333,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      * @param Model\CustomViewColumn|Model\CustomViewSummary $custom_view_column
      * @return boolean
      */
-    public function isSelectColumnNumber($custom_view_column) : bool
+    public function isSelectColumnNumber($custom_view_column): bool
     {
         return false;
     }
@@ -346,11 +346,11 @@ abstract class ConditionItemBase implements ConditionItemInterface
      * @param Model\CustomColumn $custom_column
      * @return string|null
      */
-    public function getColumnValueKey($column_type_target, $custom_column) : ?string
+    public function getColumnValueKey($column_type_target, $custom_column): ?string
     {
         return null;
     }
-    
+
 
 
     /**
@@ -358,7 +358,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      *
      * @return array offset 0 : column id, 1 : table id
      */
-    public function getColumnAndTableId($column_name, $custom_table) : array
+    public function getColumnAndTableId($column_name, $custom_table): array
     {
         return [null, null];
     }

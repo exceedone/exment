@@ -7,7 +7,7 @@ use Illuminate\Support\Arr;
 class Between extends \Encore\Admin\Grid\Filter\Between
 {
     use BetweenTrait;
-    
+
     /**
      * Where constructor.
      *
@@ -24,7 +24,7 @@ class Between extends \Encore\Admin\Grid\Filter\Between
      * {@inheritdoc}
      */
     protected $view = 'admin::filter.between';
-    
+
     /**
      * Get condition of this filter.
      *

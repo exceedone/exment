@@ -41,7 +41,7 @@ class MicrosoftTeamsChannel
             $notification->toChat($notifiable)
         ));
     }
-    
+
     /**
      * Build up a JSON payload for the Slack webhook.
      *

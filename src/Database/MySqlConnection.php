@@ -14,7 +14,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     use ConnectionTrait;
 
     protected static $isContainsColumnStatistics = null;
-    
+
     /**
      * Get a schema builder instance for the connection.
      *
@@ -36,9 +36,9 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix(new SchemaGrammar);
+        return $this->withTablePrefix(new SchemaGrammar());
     }
-    
+
     /**
      * Get the default query grammar instance.
      *
@@ -46,7 +46,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefaultQueryGrammar()
     {
-        return $this->withTablePrefix(new QueryGrammar);
+        return $this->withTablePrefix(new QueryGrammar());
     }
 
     /**
@@ -56,10 +56,10 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefaultPostProcessor()
     {
-        return new MySqlProcessor;
+        return new MySqlProcessor();
     }
 
-    
+
     /**
      * dumpDatabase mysqldump for backup table definition or table data.
      *
@@ -127,7 +127,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     }
 
 
-    public function getDatabaseDriverName() : string
+    public function getDatabaseDriverName(): string
     {
         return 'MySQL';
     }
@@ -139,7 +139,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      * @return bool
      * @throws BackupRestoreCheckException
      */
-    public function checkBackup() : bool
+    public function checkBackup(): bool
     {
         $commands = [static::getMysqlDumpPath(), static::getMysqlPath()];
         foreach ($commands as $command) {
@@ -159,12 +159,12 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      *
      * @return boolean
      */
-    public function isUseUnicodeMultipleColumn() : bool
+    public function isUseUnicodeMultipleColumn(): bool
     {
         return false;
     }
 
-    
+
     /**
      * Restore database
      *
@@ -190,7 +190,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             }
         }
     }
-    
+
     /**
      * backup table data except virtual generated column.
      *
@@ -274,7 +274,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
             foreach ($files as $file) {
                 $command = sprintf('%s < %s', $mysqlcmd, $file->getRealPath());
-                
+
                 $table = $file->getBasename('.' . $file->getExtension());
                 if (\Schema::hasTable($table)) {
                     \DB::table($table)->truncate();
@@ -287,7 +287,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         }
     }
 
-    
+
     /**
      * insert table data from backup tsv files.
      *
@@ -355,7 +355,7 @@ __EOT__;
         \DB::statement("DROP VIEW IF EXISTS " . $viewName);
     }
 
-    
+
     protected static function getMysqlPath()
     {
         return path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysql');

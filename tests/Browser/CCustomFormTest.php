@@ -84,7 +84,7 @@ class CCustomFormTest extends ExmentKitTestCase
                 ->seeInElement('span', '見出し')
                 ->seeInElement('span', '説明文')
                 ->seeInElement('span', 'HTML')
-            ;
+        ;
     }
 
     /**
@@ -101,7 +101,7 @@ class CCustomFormTest extends ExmentKitTestCase
                 ->seePageIs(admin_url('form/exmenttest_form'))
                 ->seeInElement('td', '新しいフォーム')
                 ->assertEquals($pre_cnt + 1, CustomForm::count())
-                ;
+        ;
 
         $raw = CustomForm::orderBy('created_at', 'desc')->first();
         $id = array_get($raw, 'id');

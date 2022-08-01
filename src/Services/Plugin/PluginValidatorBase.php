@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Exceedone\Exment\Model\CustomTable;
@@ -11,7 +12,7 @@ use Exceedone\Exment\Model\Plugin as PluginModel;
 class PluginValidatorBase
 {
     use PluginBase;
-    
+
     /**
      * Tagret custom table
      *

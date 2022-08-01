@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -13,7 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class CustomViewSummaryTest extends UnitTestBase
 {
-    use CustomViewTrait, DatabaseTransactions;
+    use CustomViewTrait;
+    use DatabaseTransactions;
 
     /**
      * FilterOption = Group(id), Summary(id), Filter(id)
@@ -964,7 +966,7 @@ class CustomViewSummaryTest extends UnitTestBase
     {
         return $this->getCustomViewData($options, ViewKindType::AGGREGATE)->map(function ($data) {
             $values = array_values($data->getAttributes());
-            $key = count($values) > 2 ? array_slice($values, 0, count($values) - 1): $values[0];
+            $key = count($values) > 2 ? array_slice($values, 0, count($values) - 1) : $values[0];
             return [
                 'key' => $key,
                 'value' => end($values)
@@ -1023,7 +1025,7 @@ class CustomViewSummaryTest extends UnitTestBase
                 $reference_column = array_get($column_setting, 'reference_column');
                 $is_parent = array_get($column_setting, 'is_parent');
                 $is_child = array_get($column_setting, 'is_child');
-        
+
                 if (isset($reference_table)) {
                     $reference_key = "$reference_table.$column_name";
                     if ($is_parent) {

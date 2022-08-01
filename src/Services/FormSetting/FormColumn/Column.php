@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Encore\Admin\Form;
@@ -26,14 +27,14 @@ class Column extends ColumnBase
     {
         parent::__construct($custom_form_column);
         $this->custom_column = $custom_form_column->custom_column_cache;
-        
+
         // get from form_column_target_id
         if (!isset($this->custom_column)) {
             $this->custom_column = CustomColumn::getEloquent(array_get($custom_form_column, 'form_column_target_id'));
         }
     }
 
-    public static function make(CustomFormColumn $custom_form_column) : ColumnBase
+    public static function make(CustomFormColumn $custom_form_column): ColumnBase
     {
         $custom_column = $custom_form_column->custom_column_cache;
         if (ColumnType::isSelectTable(array_get($custom_column, 'column_type'))) {
@@ -41,15 +42,15 @@ class Column extends ColumnBase
         }
         return new Column($custom_form_column);
     }
-    
+
     /**
      * Get object for suggest
      *
      * @return self
      */
-    public static function makeBySuggest(CustomColumn $custom_column) : ColumnBase
+    public static function makeBySuggest(CustomColumn $custom_column): ColumnBase
     {
-        $form_column = new CustomFormColumn;
+        $form_column = new CustomFormColumn();
         $form_column->form_column_type = FormColumnType::COLUMN;
         $form_column->form_column_target_id = $custom_column->id;
 
@@ -62,7 +63,7 @@ class Column extends ColumnBase
      *
      * @return string|null
      */
-    public function getColumnViewName() : ?string
+    public function getColumnViewName(): ?string
     {
         if (!isset($this->custom_column)) {
             return null;
@@ -70,13 +71,13 @@ class Column extends ColumnBase
         return $this->custom_column->column_view_name;
     }
 
-    
+
     /**
      * Whether this column is required
      *
      * @return boolean
      */
-    public function isRequired() : bool
+    public function isRequired(): bool
     {
         return boolval(array_get($this->custom_form_column, 'required')) || boolval(array_get($this->custom_column, 'required'));
     }
@@ -87,7 +88,7 @@ class Column extends ColumnBase
      *
      * @return array
      */
-    public function prepareSavingOptions(array $options) : array
+    public function prepareSavingOptions(array $options): array
     {
         // convert field_showing_type
         if (!is_null($key = $this->convertFieldDisplayType($options))) {
@@ -129,7 +130,7 @@ class Column extends ColumnBase
      * @param array $options
      * @return string
      */
-    protected function convertFieldDisplayType(array $options) : ?string
+    protected function convertFieldDisplayType(array $options): ?string
     {
         foreach (['view_only','read_only','hidden','internal'] as $key) {
             if (isMatchString($key, array_get($options, 'field_showing_type'))) {
@@ -146,7 +147,7 @@ class Column extends ColumnBase
      *
      * @return WidgetForm
      */
-    public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
+    public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         $form = new WidgetForm($parameters);
         $column_item = $this->custom_column->column_item;
@@ -161,7 +162,7 @@ class Column extends ColumnBase
             ->default(function () use ($parameters) {
                 return array_get($parameters, 'field_label_type', FormLabelType::FORM_DEFAULT);
             });
-    
+
         $form->radio('field_showing_type', exmtrans('custom_form.field_showing_type'))->options([
             'default' => exmtrans('custom_form.field_default'),
             'read_only' => exmtrans('custom_form.read_only'),
@@ -189,7 +190,7 @@ class Column extends ColumnBase
         $column_item->setCustomColumnDefaultValueForm($form, true);
 
         $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
-            
+
         $selectColumns = $this->getSelectTableColumns($block_item)->filter(function ($selectColumn, $key) {
             return !isMatchString($key, $this->custom_column->id);
         });
@@ -224,17 +225,17 @@ class Column extends ColumnBase
                     return $select_target_table->custom_columns_cache->pluck('column_view_name', 'id');
                 });
         }
-        
+
         return $form;
     }
 
-    
+
     /**
      * Get select table's columns in this block.
      *
      * @return Collection
      */
-    protected function getSelectTableColumns(BlockBase $block_item) : Collection
+    protected function getSelectTableColumns(BlockBase $block_item): Collection
     {
         if (!isset($this->custom_column)) {
             return collect();
@@ -248,7 +249,7 @@ class Column extends ColumnBase
         $custom_columns = $custom_table->custom_columns_cache->filter(function ($custom_column) {
             return ColumnType::isSelectTable(array_get($custom_column, 'column_type'));
         });
-            
+
         // if form block type is 1:n or n:n, get parent tables columns too.
         if ($block_item instanceof RelationBase) {
             $custom_columns = $custom_columns->merge(
@@ -279,8 +280,8 @@ class Column extends ColumnBase
         return collect($result);
     }
 
-    
-    public function getFontAwesomeClass() : ?string
+
+    public function getFontAwesomeClass(): ?string
     {
         return $this->custom_column->getFontAwesomeClass();
     }

@@ -48,7 +48,7 @@ class ApiClient extends Client
             return ApiClientType::CLIENT_CREDENTIALS;
         }
     }
-    
+
     public function getClientTypeTextAttribute()
     {
         $client_type = $this->client_type;
@@ -61,7 +61,7 @@ class ApiClient extends Client
                 return exmtrans('api.client_type_options.client_credentials');
         }
     }
-    
+
     public static function boot()
     {
         parent::boot();
@@ -71,7 +71,7 @@ class ApiClient extends Client
                 $model->client_api_key->delete();
             }
         });
-        
+
         static::addGlobalScope('only_self', function ($builder) {
             $user = \Exment::user();
             if (!isset($user)) {

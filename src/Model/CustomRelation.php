@@ -69,7 +69,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
             ],
         ]
     ];
-    
+
     public function parent_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'parent_custom_table_id');
@@ -198,7 +198,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         if ($isCallAsParent) {
             $child_custom_table = CustomTable::getEloquent($this->child_custom_table_id);
             $pivot_table_name = $this->getRelationName();
-    
+
             // Get Parent and child table Name.
             // case 1 to many
             if ($this->relation_type == RelationType::ONE_TO_MANY) {
@@ -210,7 +210,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 if (!hasTable($pivot_table_name)) {
                     \Schema::createRelationValueTable($pivot_table_name);
                 }
-    
+
                 return $custom_value->belongsToMany(getModelName($child_custom_table), $pivot_table_name, "parent_id", "child_id")->withPivot("id");
             }
         } else {
@@ -249,10 +249,10 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 return $sheetname;
             }
         }
-        
+
         return $this->child_custom_table->table_name;
     }
-    
+
     /**
      * get eloquent using request settion.
      * now only support only id.
@@ -261,17 +261,17 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         return static::getEloquentCache($id, $withs);
     }
-    
+
     public function getParentImportColumnAttribute()
     {
         return CustomColumn::getEloquent($this->getOption('parent_import_column_id'));
     }
-    
+
     public function getParentExportColumnAttribute()
     {
         return CustomColumn::getEloquent($this->getOption('parent_export_column_id'));
     }
-    
+
     public static function importReplaceJson(&$json, $options = [])
     {
         static::importReplaceJsonCustomColumn($json, 'options.parent_import_column_id', 'options.parent_import_column_name', 'options.parent_import_table_name', $options);
@@ -281,7 +281,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     protected static function boot()
     {
         parent::boot();
-        
+
         // saved event
         static::saved(function ($model) {
             // Create pivot table
@@ -294,7 +294,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 \Schema::createRelationValueTable($pivot_table_name);
             }
         });
-        
+
         // update event
         static::updating(function ($model) {
             if ($model->isDirty('child_custom_table_id')) {
@@ -302,14 +302,14 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 $model->deletingChildren();
             }
         });
-        
+
         // delete event
         static::deleting(function ($model) {
             // Delete items
             $model->deletingChildren();
         });
     }
-    
+
     /**
      * Delete children items
      */

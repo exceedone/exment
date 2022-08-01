@@ -24,7 +24,7 @@ class SearchServiceTest extends UnitTestBase
             $this->assertMatch($value->getValue('index_text'), 'index_001_001');
         });
     }
-    
+
     // execute search service test
     public function testSearchDefaultMultiWhere()
     {
@@ -41,7 +41,7 @@ class SearchServiceTest extends UnitTestBase
             $this->assertMatch($value->getValue('odd_even'), 'odd');
         });
     }
-    
+
     public function testSearchRelationOneMany()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
@@ -82,7 +82,7 @@ class SearchServiceTest extends UnitTestBase
             $this->assertMatch($value->getValue('odd_even'), 'odd');
         });
     }
-    
+
     public function testSearchRelationManyMany()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
@@ -105,8 +105,8 @@ class SearchServiceTest extends UnitTestBase
             }));
         });
     }
-    
-    
+
+
     public function testSearchSelectTable()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_SELECT);
@@ -126,7 +126,7 @@ class SearchServiceTest extends UnitTestBase
         });
     }
 
-    
+
 
     // Order ----------------------------------------------------
 
@@ -145,7 +145,7 @@ class SearchServiceTest extends UnitTestBase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
         $this->_testOrderDefault(CustomColumn::getEloquent('index_text', $custom_table));
     }
-    
+
     public function _testOrderDefault($column, $direction = 'asc')
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
@@ -155,7 +155,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        
+
         $checkValue = null;
         $values->each(function ($value) use (&$checkValue, $direction) {
             $this->assertTrue(is_null($checkValue) || ($direction == 'asc' ? $value->getValue('index_text') >= $checkValue : $value->getValue('index_text') <= $checkValue));
@@ -164,7 +164,7 @@ class SearchServiceTest extends UnitTestBase
     }
 
 
-    
+
     public function testOrderOneMany()
     {
         $parent_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
@@ -177,7 +177,7 @@ class SearchServiceTest extends UnitTestBase
         $this->_testOrderOneMany(CustomColumn::getEloquent('index_text', $parent_table), 'desc');
     }
 
-    
+
     public function _testOrderOneMany($column, $direction = 'asc')
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
@@ -187,19 +187,19 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        
+
         $checkValue = null;
         $values->each(function ($value) use (&$checkValue, $direction) {
             // get parent value
             $parent_value = $value->getParentValue();
-            
+
             $this->assertTrue(is_null($checkValue) || ($direction == 'asc' ? $parent_value->getValue('index_text') >= $checkValue : $parent_value->getValue('index_text') <= $checkValue));
             $checkValue = $parent_value->getValue('index_text');
         });
     }
-    
 
-    
+
+
     public function testOrderManyMany()
     {
         // Not support order by many-to-many relation
@@ -226,16 +226,16 @@ class SearchServiceTest extends UnitTestBase
         $parent_custom_column = CustomColumn::getEloquent('index_text', $parent_custom_table);
         // get parent custom column
         $service->orderBy($parent_custom_column);
-        
+
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        
+
         $checkValue = null;
         $direction = 'asc';
         $values->each(function ($value) use (&$checkValue, $direction) {
             // get parent value
             $parent_value = $value->getValue('parent_select_table');
-            
+
             $this->assertTrue(is_null($checkValue) || ($direction == 'asc' ? $parent_value->getValue('index_text') >= $checkValue : $parent_value->getValue('index_text') <= $checkValue));
             $checkValue = $parent_value->getValue('index_text');
         });

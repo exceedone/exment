@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Update;
 
 use Composer\Composer;
@@ -18,7 +19,7 @@ class UpdateService
     public static function update(array $options = [])
     {
         \Exment::setTimeLimitLong();
-        
+
         $options = array_merge([
             'maintenance' => true, // whether execute maintenance
             'backup' => true, // whether execute backup
@@ -33,9 +34,9 @@ class UpdateService
             if (boolval($options['backup'])) {
                 static::callBackup();
             }
-            
+
             static::updateExment();
-            
+
             if (boolval($options['publish'])) {
                 static::callPublish();
             }
@@ -49,8 +50,8 @@ class UpdateService
 
     public static function callBackup()
     {
-        $backup = new Backup;
-        
+        $backup = new Backup();
+
         // check backup execute
         try {
             $backup->check();
@@ -84,12 +85,12 @@ class UpdateService
             $event = new ScriptEvent(
                 'upgrade-carbon',
                 $composer,
-                new NullIO
+                new NullIO()
             );
         }
 
         $helper = new UpdateHelper($event);
-        
+
         $upgrades = array(
             Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN => '*',
             Define::COMPOSER_PACKAGE_NAME => '*',

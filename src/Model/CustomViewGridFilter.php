@@ -61,11 +61,11 @@ class CustomViewGridFilter extends ModelBase
     {
         return static::getEloquentDefault($id, $withs);
     }
-    
+
     protected static function boot()
     {
         parent::boot();
-        
+
         static::saving(function ($model) {
             $model->prepareJson('options');
         });
@@ -82,7 +82,7 @@ class CustomViewGridFilter extends ModelBase
     {
         return $this->setViewPivotIdTrait('view_pivot_column_id', $view_pivot_column_id);
     }
-    
+
     public function getViewPivotTableIdAttribute()
     {
         return $this->getViewPivotIdTrait('view_pivot_table_id');

@@ -30,7 +30,7 @@ class CustomValueModelScope implements Scope
         if (!isset($user)) {
             // no access role
             //throw new \Exception;
-            
+
             // set no filter. Because when this function called, almost after login or pass oauth authonize.
             // if throw exception, Cannot execute batch.
             return;
@@ -49,7 +49,7 @@ class CustomValueModelScope implements Scope
         elseif ($table_name == SystemTableName::ORGANIZATION) {
             AuthUserOrgHelper::filterOrganizationOnlyJoin($builder, $user, $db_table_name);
         }
-        
+
         // Add document skip logic
         elseif ($table_name == SystemTableName::DOCUMENT) {
             //TODO

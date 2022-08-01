@@ -5,11 +5,11 @@ namespace Exceedone\Exment\Enums;
 class FormColumnType extends EnumBase
 {
     use EnumOptionTrait;
-    
-    const COLUMN = 0;
-    const SYSTEM = 1;
-    const OTHER = 99;
-    
+
+    public const COLUMN = 0;
+    public const SYSTEM = 1;
+    public const OTHER = 99;
+
     protected static $options = [
         1 => ['id' => 1, 'column_name' => 'header'],
         2 => ['id' => 2, 'column_name' => 'explain'],
@@ -18,7 +18,7 @@ class FormColumnType extends EnumBase
         5 => ['id' => 5, 'column_name' => 'image'],
         6 => ['id' => 6, 'column_name' => 'hr'],
     ];
-    
+
     public static function getEnum($value, $default = null)
     {
         $enum = parent::getEnum($value, $default);

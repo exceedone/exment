@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Notify;
 
 use Illuminate\Support\Collection;
@@ -11,11 +12,11 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class FixedOrganization extends NotifyTargetBase
 {
-    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
+    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         return $this->getFixedOrganization();
     }
-    
+
 
     /**
      * Get notify target model for workflow
@@ -23,13 +24,13 @@ class FixedOrganization extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
-    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         return $this->getFixedOrganization();
     }
 
 
-    protected function getFixedOrganization() : Collection
+    protected function getFixedOrganization(): Collection
     {
         $orgs = array_get($this->action_setting, 'target_organizations');
 

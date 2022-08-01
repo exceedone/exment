@@ -117,8 +117,8 @@ class DefaultTableSettingProvider extends ProviderBase
     }
 
 
-    public function getRecords() : Collection
+    public function getRecords(): Collection
     {
-        return new Collection;
+        return new Collection();
     }
 }

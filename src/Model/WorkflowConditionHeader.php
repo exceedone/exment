@@ -15,7 +15,7 @@ class WorkflowConditionHeader extends ModelBase
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
     }
-    
+
     public function workflow_conditions()
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
@@ -49,7 +49,7 @@ class WorkflowConditionHeader extends ModelBase
             $model->deletingChildren();
         });
     }
-    
+
     public function deletingChildren()
     {
         $keys = ['workflow_conditions'];

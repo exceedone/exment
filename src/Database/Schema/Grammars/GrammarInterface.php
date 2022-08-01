@@ -40,9 +40,9 @@ interface GrammarInterface
      * @return string
      */
     public function compileCreateRelationValueTable(string $tableName);
-    
+
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column);
-    
+
     public function compileGetIndex($tableName);
 
     public function compileGetUnique($tableName);

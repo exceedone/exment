@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\SystemRequire;
 
 class FilePermissionInstaller extends FilePermission
@@ -14,7 +15,7 @@ class FilePermissionInstaller extends FilePermission
     ];
 
 
-    public function getExplain() : string
+    public function getExplain(): string
     {
         return exmtrans('system_require.type.file_permission_installer.explain');
     }

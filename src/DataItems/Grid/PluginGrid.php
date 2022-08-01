@@ -57,7 +57,7 @@ class PluginGrid extends GridBase
      *
      * @return array
      */
-    protected function getBoxTools() : array
+    protected function getBoxTools(): array
     {
         $tools = [];
 
@@ -66,11 +66,11 @@ class PluginGrid extends GridBase
                 case 'newButton':
                     $this->setNewButton($tools);
                     break;
-                    
+
                 case 'menuButton':
                     $this->setTableMenuButton($tools);
                     break;
-                    
+
                 case 'viewButton':
                     $this->setViewMenuButton($tools);
                     break;
@@ -80,7 +80,7 @@ class PluginGrid extends GridBase
     }
 
 
-    
+
     /**
      * Set custom view columns form. For controller.
      *

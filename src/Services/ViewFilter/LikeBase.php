@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter;
 
 use Exceedone\Exment\Model\System;
@@ -12,5 +13,5 @@ abstract class LikeBase extends ViewFilterBase
         $query->{$method_name}($query_column, $this->isLike() ? 'LIKE' : 'NOT LIKE', $query_value);
     }
 
-    abstract protected function isLike() : bool;
+    abstract protected function isLike(): bool;
 }

@@ -56,7 +56,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
             if (!isset($saml2Auth)) {
                 abort(404);
             }
-            
+
             $saml2Auth->login();
         }
         // Sso exception
@@ -64,7 +64,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
             if ($ex->hasAdminError()) {
                 \Log::error($ex);
             }
-            
+
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );
@@ -87,11 +87,11 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         if ($this->guard()->check()) {
             return redirect($this->redirectPath());
         }
-        
+
         $error_url = admin_url('auth/login');
         try {
             $saml2Auth = LoginSetting::getSamlAuth($provider_name);
-            
+
             $credentials = [
                 'login_type' => LoginType::SAML,
                 'login_setting' => LoginSetting::getSamlSetting($provider_name),
@@ -101,7 +101,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
 
             if ($this->guard()->attempt($credentials)) {
                 session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
-            
+
                 session([Define::SYSTEM_KEY_SESSION_SAML_SESSION => [
                     'sessionIndex' => $saml2Auth->getSaml2User()->getSessionIndex(),
                     'nameId' => $saml2Auth->getSaml2User()->getNameId(),
@@ -109,12 +109,12 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
 
                 return $this->sendLoginResponse($request);
             }
-    
+
             // If the login attempt was unsuccessful we will increment the number of attempts
             // to login and redirect the user back to the login form. Of course, when this
             // user surpasses their maximum number of attempts they will get locked out.
             $this->incrementLoginAttempts($request);
-    
+
             return back()->withInput()->withErrors([
                 'sso_error' => $this->getFailedLoginMessage(),
             ]);
@@ -124,7 +124,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
             if ($ex->hasAdminError()) {
                 \Log::error($ex);
             }
-            
+
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Installer;
 
 use Encore\Admin\Widgets\Form as WidgetForm;
@@ -23,11 +24,11 @@ trait InitializeFormTrait
      * @param boolean $isInitialize
      * @return WidgetForm
      */
-    protected function getInitializeForm($routeName, $isInitialize = false) : WidgetForm
+    protected function getInitializeForm($routeName, $isInitialize = false): WidgetForm
     {
         $form = new WidgetForm(System::get_system_values(['initialize', 'system']));
         $form->disableReset();
-        
+
         if ($isInitialize) {
             $form->exmheader(exmtrans('system.header'))->hr();
         } else {
@@ -40,7 +41,7 @@ trait InitializeFormTrait
         $form->text('site_name_short', exmtrans("system.site_name_short"))
             ->required()
             ->help(exmtrans("system.help.site_name_short"));
-            
+
         $fileOption = array_merge(
             Define::FILE_OPTION(),
             [
@@ -58,23 +59,23 @@ trait InitializeFormTrait
             ->options($fileOption)
             ->removable()
             ->attribute(['accept' => "image/*"])
-            ;
-            
+        ;
+
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_logo_mini');
         $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
             ->help(exmtrans("system.help.site_logo_mini"))
             ->options($fileOption)
             ->removable()
             ->attribute(['accept' => "image/*"])
-            ;
+        ;
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_favicon');
         $form->favicon('site_favicon', exmtrans("system.site_favicon"))
             ->help(exmtrans("system.help.site_favicon"))
             ->options($fileOption)
             ->removable()
             ->attribute(['accept' => ".ico"])
-            ;
-    
+        ;
+
         $form->select('site_skin', exmtrans("system.site_skin"))
             ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
             ->disableClear()
@@ -83,7 +84,7 @@ trait InitializeFormTrait
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
             ->disableClear()
             ->help(exmtrans("system.help.site_layout"));
-                    
+
         $form->switchbool('api_available', exmtrans("system.api_available"))
             ->default(0)
             ->help(exmtrans("system.help.api_available"));
@@ -91,27 +92,27 @@ trait InitializeFormTrait
         $form->switchbool('outside_api', exmtrans("system.outside_api"))
             ->default(!config('exment.outside_api') ? 1 : 0)
             ->help(exmtrans("system.help.outside_api"));
-    
+
         $form->switchbool('permission_available', exmtrans("system.permission_available"))
             ->help(exmtrans("system.help.permission_available"));
-        
+
         $form->switchbool('organization_available', exmtrans("system.organization_available"))
             ->help(exmtrans("system.help.organization_available"));
-        
+
         // template list
         if ($isInitialize) {
             $this->addTemplateTile($form);
         }
         return $form;
     }
-    
+
 
     /**
      * get sendmail test box.
      *
      * @return Box
      */
-    protected function getsendmailTestBox() : Box
+    protected function getsendmailTestBox(): Box
     {
         $form = new WidgetForm();
         $form->action(admin_urls('system/2factor'));
@@ -146,11 +147,11 @@ trait InitializeFormTrait
 
             $form->text('system_mail_encryption', exmtrans("system.system_mail_encryption"))
                 ->help(exmtrans("system.help.system_mail_encryption"));
-                
+
             $form->text('system_mail_username', exmtrans("system.system_mail_username"));
 
             $form->password('system_mail_password', exmtrans("system.system_mail_password"));
-            
+
             $form->email('system_mail_from', exmtrans("system.system_mail_from"))
                 ->help(exmtrans("system.help.system_mail_from"));
 
@@ -161,7 +162,7 @@ trait InitializeFormTrait
             ->help(exmtrans("system.help.system_mail_body_type"))
             ->disableClear()
             ->options(Enums\MailBodyType::transArray('system.system_mail_body_type_options'));
-       
+
         $form->exmheader(exmtrans('system.system_slack'))->hr();
 
         $form->select('system_slack_user_column', exmtrans('system.system_slack_user_column'))
@@ -193,10 +194,10 @@ trait InitializeFormTrait
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);
         }
-        
+
         $inputs = $request->all(System::get_system_keys($group));
         array_forget($inputs, 'initialized');
-        
+
         // set system_key and value
         foreach ($inputs as $k => $input) {
             System::{$k}($input);
@@ -205,12 +206,12 @@ trait InitializeFormTrait
         $this->uploadTemplate($request);
         // import template
         if ($request->has('template')) {
-            $importer = new TemplateImportExport\TemplateImporter;
+            $importer = new TemplateImportExport\TemplateImporter();
             $importer->importTemplate($request->input('template'));
         }
         return true;
     }
-    
+
     protected function addTemplateTile($form)
     {
         $form->exmheader(exmtrans('template.header'))->hr();
@@ -218,7 +219,7 @@ trait InitializeFormTrait
         $form->tile('template', exmtrans("system.template"))
             ->help(exmtrans("system.help.template"))
             ->overlay()
-            ;
+        ;
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip,xlsx|nullable')
             ->attribute(['accept' => ".zip,.xlsx"])
@@ -270,7 +271,7 @@ EOT;
     {
         // upload zip file
         $upload_template = null;
-        $importer = new TemplateImportExport\TemplateImporter;
+        $importer = new TemplateImportExport\TemplateImporter();
         if ($request->has('upload_template')) {
             // get upload file
             $file = $request->file('upload_template');
@@ -287,7 +288,7 @@ EOT;
             }
         }
     }
-    
+
     /**
      * file delete system.
      */
@@ -301,13 +302,13 @@ EOT;
             'message' => trans('admin.delete_succeeded'),
         ]);
     }
-    
+
     protected function guard()
     {
         return Auth::guard('admin');
     }
 
-    
+
     protected function getUserOrgSlackColumns(string $table_name)
     {
         return $this->getUserOrgColumns($table_name, Enums\ColumnType::TEXT);
@@ -326,14 +327,14 @@ EOT;
             })->pluck('column_view_name', 'id');
     }
 
-    
+
     /**
      * Get progress info
      *
      * @param bool $isAdvanced
      * @return array
      */
-    protected function getProgressInfo(bool $isAdvanced) : array
+    protected function getProgressInfo(bool $isAdvanced): array
     {
         $steps = [];
 
@@ -350,7 +351,7 @@ EOT;
             'url' => admin_urls_query('system', ['advanced' => 1]),
             'description' => exmtrans('common.detail_setting'),
         ];
-        
+
         return $steps;
     }
 }

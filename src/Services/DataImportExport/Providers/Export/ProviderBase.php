@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 
 abstract class ProviderBase
 {
-    
     /**
      * Whether this output is as template
      */
@@ -26,7 +25,7 @@ abstract class ProviderBase
     {
         $this->template = boolval(app('request')->query('temp'));
     }
-    
+
     /**
      * get data name
      */
@@ -46,11 +45,11 @@ abstract class ProviderBase
     {
         return true;
     }
-    
+
     public function getCount()
     {
         return $this->count;
     }
 
-    abstract public function getRecords() : Collection;
+    abstract public function getRecords(): Collection;
 }

@@ -6,7 +6,6 @@ use Exceedone\Exment\Model\CustomColumn;
 
 trait UniqueKeyCustomColumnTrait
 {
-
     /**
      * get Table And Column Name
      */
@@ -33,7 +32,7 @@ trait UniqueKeyCustomColumnTrait
             'column_name' => $custom_column->column_name,
         ];
     }
-    
+
     protected static function importReplaceJsonCustomColumn(&$json, $replace_custom_column_key, $custom_column_key, $custom_table_key, $options = [])
     {
         $custom_column = CustomColumn::getEloquent(array_get($json, $custom_column_key), array_get($json, $custom_table_key));

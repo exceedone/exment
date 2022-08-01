@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -13,7 +14,7 @@ use Exceedone\Exment\Model\CustomViewSort;
 class CustomColumnUsingIndexRule implements Rule
 {
     protected $custom_column_id;
-    
+
     public function __construct(...$parameters)
     {
         $this->custom_column_id = $parameters[0];
@@ -76,7 +77,7 @@ class CustomColumnUsingIndexRule implements Rule
 
         return true;
     }
-    
+
     /**
      * get validation error message
      *

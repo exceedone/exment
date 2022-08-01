@@ -56,13 +56,13 @@ class RoutePublicFormServiceProvider extends ServiceProvider
             $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFilePublicForm');
         });
 
-        
+
         // Append Plugin public ----------------------------------------------------
         $public_form = PublicForm::getPublicFormByRequest();
         if (!$public_form) {
             return;
         }
-        
+
         foreach ($public_form->getCssJsPlugins() as $plugin) {
             $this->pluginScriptStyleRoute($plugin, $public_form->getBasePath(), 'publicform_plugin_public');
         }

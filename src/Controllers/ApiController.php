@@ -25,13 +25,13 @@ use Carbon\Carbon;
 class ApiController extends AdminControllerBase
 {
     use ApiTrait;
-    
+
     /**
      * get Exment version
      */
     public function version(Request $request)
     {
-        return response()->json(['version' => (new \Exceedone\Exment\Exment)->version(false)]);
+        return response()->json(['version' => (new \Exceedone\Exment\Exment())->version(false)]);
     }
 
     /**
@@ -201,8 +201,7 @@ class ApiController extends AdminControllerBase
             return [];
         }
 
-        return CustomView
-            ::where('custom_table_id', $table->id)
+        return CustomView::where('custom_table_id', $table->id)
             ->where('view_kind_type', ViewKindType::FILTER)
             ->get();
     }
@@ -253,7 +252,7 @@ class ApiController extends AdminControllerBase
 
         return $query->first();
     }
-    
+
 
 
     /**
@@ -413,7 +412,7 @@ class ApiController extends AdminControllerBase
 
         foreach ($target_users as $target_user) {
             $notify = new NotifyNavbar();
-    
+
             $notify->fill([
                 'notify_id' => 0,
                 'target_user_id' => $target_user,
@@ -421,7 +420,7 @@ class ApiController extends AdminControllerBase
                 'notify_body' => $request->get('notify_body'),
                 'trigger_user_id' => \Exment::getUserId()
             ]);
-    
+
             $notify->saveOrFail();
 
             $response[] = $notify;
@@ -433,7 +432,7 @@ class ApiController extends AdminControllerBase
             return $response;
         }
     }
-    
+
     /**
      * Get notify List
      *
@@ -448,7 +447,7 @@ class ApiController extends AdminControllerBase
 
         // get notify NotifyNavbar list
         $query = NotifyNavbar::where('target_user_id', \Exment::getUserId());
-                
+
         if (!boolval($request->get('all', false))) {
             $query->where('read_flg', false);
         }
@@ -480,7 +479,7 @@ class ApiController extends AdminControllerBase
         // get notify NotifyNavbar list
         $query = NotifyNavbar::where('target_user_id', \Exment::getUserId())
             ->where('read_flg', false);
-        
+
         $count = $query->count();
         $list = $query->take(5)->get();
 
@@ -541,7 +540,7 @@ class ApiController extends AdminControllerBase
 
             // filtered query
             $q = $request->get('q');
-            
+
             if (($count = $this->getCount($request)) instanceof Response) {
                 return $count;
             }

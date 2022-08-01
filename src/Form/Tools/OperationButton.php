@@ -15,7 +15,7 @@ class OperationButton
     protected $id;
     // set this operation type
     protected $operation_type;
-    
+
     public function __construct($listButton, $custom_table, $id = null)
     {
         if ($listButton instanceof CustomOperation) {
@@ -61,7 +61,7 @@ class OperationButton
         });
 EOT;
     }
-    
+
     protected function scriptModal($suuid)
     {
         $table_name = array_get($this->custom_table, 'table_name');
@@ -112,7 +112,7 @@ EOT;
             'icon' => array_get($this->operation, 'options.button_icon') ?? '',
         ]);
     }
-    
+
     /**
      * @return string
      */

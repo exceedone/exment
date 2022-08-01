@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Enums\SystemTableName;
@@ -15,7 +16,7 @@ class InstallService
     {
         static::setSettingTmp();
         $status = static::getStatus();
-        
+
         if (($response = static::redirect($status)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
@@ -46,7 +47,7 @@ class InstallService
         if (\ExmentDB::canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0) {
             return InitializeStatus::INITIALIZE;
         }
-        
+
         if (is_null($status = static::getInitializeStatus())) {
             return InitializeStatus::LANG;
         }
@@ -58,7 +59,7 @@ class InstallService
         if ($status == InitializeStatus::LANG) {
             return InitializeStatus::DATABASE;
         }
-        
+
         if ($status == InitializeStatus::DATABASE) {
             return InitializeStatus::SYSTEM_REQUIRE;
         }
@@ -84,27 +85,27 @@ class InstallService
                 if (!$isInstallPath) {
                     return redirect(admin_url('install'));
                 }
-                return new LangForm;
+                return new LangForm();
             case InitializeStatus::DATABASE:
                 if (!$isInstallPath) {
                     return redirect(admin_url('install'));
                 }
-                return new DatabaseForm;
+                return new DatabaseForm();
             case InitializeStatus::SYSTEM_REQUIRE:
                 if (!$isInstallPath) {
                     return redirect(admin_url('install'));
                 }
-                return new SystemRequireForm;
+                return new SystemRequireForm();
             case InitializeStatus::INSTALLING:
                 if (!$isInstallPath) {
                     return redirect(admin_url('install'));
                 }
-                return new InstallingForm;
+                return new InstallingForm();
             case InitializeStatus::INITIALIZE:
                 if ($isInstallPath) {
                     return redirect(admin_url('initialize'));
                 }
-                return new InitializeForm;
+                return new InitializeForm();
         }
     }
 
@@ -112,18 +113,18 @@ class InstallService
     {
         switch ($status) {
             case InitializeStatus::LANG:
-                return new LangForm;
+                return new LangForm();
             case InitializeStatus::DATABASE:
-                return new DatabaseForm;
+                return new DatabaseForm();
             case InitializeStatus::SYSTEM_REQUIRE:
-                return new SystemRequireForm;
+                return new SystemRequireForm();
             case InitializeStatus::INSTALLING:
-                return new InstallingForm;
+                return new InstallingForm();
             case InitializeStatus::INITIALIZE:
-                return new InitializeForm;
+                return new InitializeForm();
         }
 
-        return new InitializeForm;
+        return new InitializeForm();
     }
 
     public static function getInitializeStatus()
@@ -152,11 +153,11 @@ class InstallService
         session([Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS => $session_inputs]);
     }
 
-    public static function getInputParams() : array
+    public static function getInputParams(): array
     {
         return session(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS, []);
     }
-    
+
     public static function forgetInputParams()
     {
         session()->forget(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS);
@@ -179,7 +180,7 @@ class InstallService
             \Config::set('app.timezone', $env);
             date_default_timezone_set($env);
         }
-        
+
         ////// set db setting
         // set database.default
         $val = array_get($inputs, 'DB_CONNECTION');

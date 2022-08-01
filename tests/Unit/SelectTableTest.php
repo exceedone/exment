@@ -16,7 +16,6 @@ use Illuminate\Support\Collection;
 
 class SelectTableTest extends UnitTestBase
 {
-
     // Default Select Table ----------------------------------------------------
     public function testSelectTableUser()
     {
@@ -71,7 +70,7 @@ class SelectTableTest extends UnitTestBase
     {
         $this->executeSelectTableTest(ColumnType::SELECT_TABLE, ['relation_filter' => SearchType::ONE_TO_MANY]);
     }
-    
+
 
     public function testSelectTableRelationOneManyAjax()
     {
@@ -96,7 +95,7 @@ class SelectTableTest extends UnitTestBase
     {
         $this->executeSelectTableTest(ColumnType::SELECT_TABLE, ['relation_filter' => SearchType::MANY_TO_MANY]);
     }
-    
+
 
     public function testSelectTableRelationManyManyAjax()
     {
@@ -122,7 +121,7 @@ class SelectTableTest extends UnitTestBase
     {
         $this->executeSelectTableTest(ColumnType::SELECT_TABLE, ['relation_filter' => SearchType::SELECT_TABLE]);
     }
-    
+
 
     public function testSelectTableRelationSelectTableAjax()
     {
@@ -196,7 +195,7 @@ class SelectTableTest extends UnitTestBase
     {
         $this->executeSelectTableTest(ColumnType::USER, ['relation_filter' => SearchType::MANY_TO_MANY]);
     }
-    
+
 
     public function testUserRelationAjax()
     {
@@ -220,7 +219,7 @@ class SelectTableTest extends UnitTestBase
 
 
     // common ----------------------------------------------------
-    
+
     /**
      * Execute select table test.
      * (1)Get options using select table's method.
@@ -259,7 +258,7 @@ class SelectTableTest extends UnitTestBase
 
         // get column item
         $custom_item = $custom_column->column_item;
-        
+
         $field = $custom_item->getAdminField();
         list($parentValue, $linkage) = $this->getParentValueAndLinkage($custom_column, $options);
         $fieldOptions = $this->getSelectFieldOptions($custom_column, $linkage, $parentValue, $options);
@@ -284,10 +283,10 @@ class SelectTableTest extends UnitTestBase
             if (isset($options['relation_filter'])) {
                 return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['user_relation_filter'], $options);
             }
-    
+
             return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['user'], $options);
         }
-        
+
         if ($column_type == ColumnType::ORGANIZATION) {
             return $this->getTargetColumnTable(TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG, TestDefine::TESTDATA_COLUMN_NAMES['organization'], $options);
         }
@@ -349,7 +348,7 @@ class SelectTableTest extends UnitTestBase
             if (!$linkage) {
                 return;
             }
-            
+
             $linkage->setQueryFilter($query, $parentValue);
         };
         $selectOption = $this->callProtectedMethod($column_item, 'getSelectFieldOptions', $callback);

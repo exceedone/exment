@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Plugins\TestPluginApi;
 
 use Exceedone\Exment\Enums\ErrorCode;

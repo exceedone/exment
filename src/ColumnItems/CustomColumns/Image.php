@@ -38,7 +38,7 @@ class Image extends File
         }
         return Field\Image::class;
     }
-    
+
     protected function setAdminOptions(&$field)
     {
         parent::setAdminOptions($field);
@@ -48,17 +48,17 @@ class Image extends File
 
     protected function setValidates(&$validates)
     {
-        $validates[] = new \Exceedone\Exment\Validator\ImageRule;
+        $validates[] = new \Exceedone\Exment\Validator\ImageRule();
 
         parent::setValidates($validates);
     }
-    
+
     /**
      * Get separate word for multiple
      *
      * @return string|null
      */
-    protected function getSeparateWord() : ?string
+    protected function getSeparateWord(): ?string
     {
         if (boolval(array_get($this->options, 'as_confirm'))) {
             return parent::getSeparateWord();

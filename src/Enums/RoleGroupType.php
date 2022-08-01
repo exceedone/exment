@@ -15,12 +15,12 @@ use Exceedone\Exment\Model\System;
  */
 class RoleGroupType extends EnumBase
 {
-    const SYSTEM = "system";
-    const TABLE = "table";
-    const MASTER = "master";
-    const PLUGIN = "plugin";
-    const ROLE_GROUP = "role_group";
-    
+    public const SYSTEM = "system";
+    public const TABLE = "table";
+    public const MASTER = "master";
+    public const PLUGIN = "plugin";
+    public const ROLE_GROUP = "role_group";
+
     public function getRoleGroupOptions()
     {
         $permissions = $this->getRoleGroupPermissions();
@@ -28,7 +28,7 @@ class RoleGroupType extends EnumBase
             return [$permission => exmtrans("role_group.role_type_option_{$this->lowerKey()}.$permission.label")];
         });
     }
-    
+
     public function getRoleGroupHelps()
     {
         $permissions = $this->getRoleGroupPermissions();

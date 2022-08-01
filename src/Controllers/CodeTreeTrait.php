@@ -56,7 +56,7 @@ trait CodeTreeTrait
      * @param string $nodeId
      * @return string|null
      */
-    protected function getNodePath($nodeId) : ?string
+    protected function getNodePath($nodeId): ?string
     {
         $nodelist = session(static::node_key);
         if (is_nullorempty($nodelist)) {
@@ -70,7 +70,7 @@ trait CodeTreeTrait
 
             return str_replace('//', '/', array_get($node, 'path'));
         }
-        
-        throw new \Exception;
+
+        throw new \Exception();
     }
 }

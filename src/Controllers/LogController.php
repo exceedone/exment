@@ -51,11 +51,11 @@ class LogController extends AdminControllerBase
             $filter->like('path', exmtrans('operation_log.path'));
             $filter->equal('ip', exmtrans('operation_log.ip'));
         });
-        
+
         // create exporter
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
-        
+
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $button = new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true, false);
             $button->setBaseKey('common');
@@ -121,7 +121,7 @@ class LogController extends AdminControllerBase
 
         return response()->json($data);
     }
-    
+
     protected function getImportExportService($grid = null)
     {
         // create exporter

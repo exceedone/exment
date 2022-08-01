@@ -20,7 +20,7 @@ class PluginDiskService extends DiskServiceBase
     {
         $this->plugin = $plugin;
         $path = isset($plugin) ? $plugin->getPath() : null;
-        
+
         $this->diskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_SYNC), $path, $path);
         $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_ADMIN_TMP), $path, $this->now);
         $this->localSyncDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_LOCAL), $path, $path);
@@ -81,7 +81,7 @@ class PluginDiskService extends DiskServiceBase
         return true;
     }
 
-    
+
     /**
      * copy file from disk to tmp disk
      *
@@ -114,7 +114,7 @@ class PluginDiskService extends DiskServiceBase
             } catch (\Exception $ex) {
             }
         }
-        
+
         // create updated_at file
         $localSyncDisk->put(path_join($localSyncDirName, 'updated_at.txt'), $this->plugin->updated_at->format('YmdHis'));
 

@@ -35,7 +35,7 @@ trait UserTrait
     {
         return $this->hasOne(Model\UserSetting::class, "user_id");
     }
-    
+
     /**
      * get organizations that this_user joins.
      *
@@ -63,7 +63,7 @@ trait UserTrait
         $db_table_name_pivot = Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
         return $this->{$db_table_name_pivot}();
     }
-    
+
     /**
      * get role_group user joined.
      *
@@ -75,7 +75,7 @@ trait UserTrait
             $query->where('role_group_target_id', $this->id);
         })->get();
     }
-    
+
     /**
      * get role_group user or org joined.
      *
@@ -130,12 +130,12 @@ trait UserTrait
         // get default avatar
         return asset(Define::USER_IMAGE_LINK);
     }
-    
+
     public function isAdministrator()
     {
         return collect(System::system_admin_users())->contains($this->id);
     }
-    
+
     /**
      * Get User Model's ID
      * "This function name defines Custom value's user and login user. But this function always return Custom value's user

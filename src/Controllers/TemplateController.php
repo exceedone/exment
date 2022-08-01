@@ -16,7 +16,7 @@ use GuzzleHttp\Client;
 class TemplateController extends AdminControllerBase
 {
     use InitializeFormTrait;
-    
+
     public function __construct()
     {
         $this->setPageInfo(exmtrans("template.header"), exmtrans("template.header"), exmtrans("template.description"), 'fa-clone');
@@ -61,7 +61,7 @@ class TemplateController extends AdminControllerBase
             // ]);
             // $contents = $response->getBody()->getContents();
             // $json = json_decode_ex($contents, true);
-    
+
             // // create paginator
             // $paginator = new LengthAwarePaginator(
             //     collect($json['data']),
@@ -69,9 +69,9 @@ class TemplateController extends AdminControllerBase
             //     $json['per_page'],
             //     $json['current_page']
             // );
-    
+
             // $paginator->setPath(admin_urls('template', 'search'));
-            
+
             // // create datalist
             // $datalist = [];
             // foreach($json['data'] as $d){
@@ -83,14 +83,14 @@ class TemplateController extends AdminControllerBase
             //         'author_url' => array_get($d, 'value.author_url'),
             //     ];
             // }
-    
-            $importer = new TemplateImportExport\TemplateImporter;
+
+            $importer = new TemplateImportExport\TemplateImporter();
             $array = $importer->getTemplates();
             if (is_null($array)) {
                 $array = [];
             }
             $no_thumbnail_file = base64_encode(file_get_contents(exment_package_path('templates/noimage.png')));
-        
+
             $datalist = [];
             foreach ($array as $a) {
                 // get thumbnail_path
@@ -157,7 +157,7 @@ class TemplateController extends AdminControllerBase
         $form = $this->exportBoxForm();
         $content->row((new Box(exmtrans('template.header_export'), $form))->style('info'));
     }
-    
+
 
     /**
      * create export box
@@ -197,8 +197,8 @@ class TemplateController extends AdminControllerBase
             ->options(TemplateExportTarget::transArrayFilter('template.export_target_options', TemplateExportTarget::TEMPLATE_EXPORT_OPTIONS()))
             ->help(exmtrans('template.help.export_target'))
             ->default([TemplateExportTarget::TABLE, TemplateExportTarget::MENU])
-            ;
-        
+        ;
+
         $form->listbox('target_tables', exmtrans('template.target_tables'))
             ->options(CustomTable::filterList()->pluck('table_view_name', 'table_name'))
             ->help(exmtrans('template.help.target_tables'))
@@ -257,13 +257,13 @@ class TemplateController extends AdminControllerBase
     public function import(Request $request)
     {
         \Exment::setTimeLimitLong();
-        
+
         // upload template file and install
         $this->uploadTemplate($request);
 
         // install templates selected tiles.
         if ($request->has('template')) {
-            $importer = new TemplateImportExport\TemplateImporter;
+            $importer = new TemplateImportExport\TemplateImporter();
             $importer->importTemplate($request->input('template'));
         }
 
@@ -278,7 +278,7 @@ class TemplateController extends AdminControllerBase
     {
         // install templates selected tiles.
         if ($request->has('template')) {
-            $importer = new TemplateImportExport\TemplateImporter;
+            $importer = new TemplateImportExport\TemplateImporter();
             $importer->deleteTemplate($request->input('template'));
         }
 

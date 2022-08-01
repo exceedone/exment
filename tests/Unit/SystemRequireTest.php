@@ -61,7 +61,7 @@ class SystemRequireTest extends UnitTestBase
         return $this->_test(SystemRequire\Composer::class, function () {
             //$command = 'composer --version';
             $command = 'composer%s --version';
-            
+
             foreach ([''] as $suffix) {
                 $c = sprintf($command, $suffix);
                 exec($c, $output, $return_var);

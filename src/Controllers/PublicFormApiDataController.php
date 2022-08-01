@@ -38,7 +38,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
         if (!$this->custom_table || !$this->public_form) {
             return abortJson(404);
         }
-        
+
         return $this->{$method}(...array_values($parameters));
     }
 
@@ -84,7 +84,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
         }
         return $this->_columnData($request, $column_name);
     }
-    
+
     /**
      * get selected id's children values
      * *parent_select_table_id(required) : The select_table of the parent column(Changed by user) that executed Linkage. .
@@ -101,7 +101,7 @@ class PublicFormApiDataController extends AdminControllerTableBase
         return $this->_relatedLinkage($request);
     }
 
-    
+
     /**
      * Check custom form columns in custom table
      *

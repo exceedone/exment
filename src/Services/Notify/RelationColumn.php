@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Notify;
 
 use Illuminate\Support\Collection;
@@ -39,7 +40,7 @@ class RelationColumn extends Column
         $this->column = !is_nullorempty($column) ? CustomColumn::getEloquent(explode('?', $column)[0]) : null;
     }
 
-    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
+    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         $result = collect();
         if (!$this->relationTable || !$this->column) {

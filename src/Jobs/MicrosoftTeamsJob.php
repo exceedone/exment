@@ -44,7 +44,7 @@ class MicrosoftTeamsJob extends Notification implements ShouldQueue
      */
     public function toChat($notifiable)
     {
-        return (new MicrosoftTeamsMessage)
+        return (new MicrosoftTeamsMessage())
             ->content($this->content)
             ->title($this->subject);
     }

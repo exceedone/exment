@@ -85,7 +85,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
                 'uniqueKeyFunctionArgs' => ['unique3'],
             ],
-            
+
             [
                 'replaceNames' => [
                     [
@@ -166,7 +166,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         $this->setOption('unique3_id', $unique3);
         return $this;
     }
-    
+
     public function getShareTriggerTypeAttribute()
     {
         return $this->getOption('share_trigger_type');
@@ -216,12 +216,12 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         $this->setOption('compare_column2_id', $compare_column);
         return $this;
     }
-    
+
     public function getShareColumnAttribute()
     {
         return CustomColumn::getEloquent($this->share_column_id);
     }
-    
+
     public function getCompareColumn1Attribute()
     {
         return CustomColumn::getEloquent($this->compare_column1_id);
@@ -283,7 +283,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                 return CompareColumnType::getCompareValue($column);
             }
 
-            $prefix = $options['addValue']? 'value.': '';
+            $prefix = $options['addValue'] ? 'value.' : '';
 
             // if key has value in input
             if (array_has($input, "$prefix{$column->column_name}")) {
@@ -367,7 +367,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
 
 
     // Template Output ----------------------------------------
-    
+
     /**
      * Set json value calling import
      *
@@ -412,11 +412,11 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         array_forget($json, "options.{$key}_table_name");
         array_forget($json, "options.{$key}_column_name");
     }
-    
+
     protected static function boot()
     {
         parent::boot();
-        
+
         static::addGlobalScope(new OrderScope('priority'));
     }
 }

@@ -63,7 +63,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
 
 
-    
+
     // textarea ----------------------------------------------------
     public function testConditionValueColumnTextareaEqual()
     {
@@ -94,7 +94,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $this->__testConditionValueApiColumn(ColumnType::TEXTAREA, $filterOption, $hasHtml, 'textarea');
     }
 
-    
+
     // editor ----------------------------------------------------
     public function testConditionValueColumnEditorEqual()
     {
@@ -156,7 +156,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $this->__testConditionValueApiColumn(ColumnType::URL, $filterOption, $hasHtml, 'input[type="url"]');
     }
 
-    
+
     // email ----------------------------------------------------
     public function testConditionValueColumnEmailEqual()
     {
@@ -187,7 +187,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $this->__testConditionValueApiColumn(ColumnType::EMAIL, $filterOption, $hasHtml, 'input[type="email"]');
     }
 
-    
+
     // integer ----------------------------------------------------
     public function testConditionValueColumnIntegerEqual()
     {
@@ -226,7 +226,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $this->__testConditionValueApiColumn(ColumnType::INTEGER, $filterOption, $hasHtml, 'input[type="number"]');
     }
 
-    
+
 
     // decimal ----------------------------------------------------
     public function testConditionValueColumnDecimalEqual()
@@ -267,7 +267,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
 
 
-    
+
 
     // currency ----------------------------------------------------
     public function testConditionValueColumnCurrencyEqual()
@@ -310,7 +310,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
 
 
 
-    
+
     // date ----------------------------------------------------
     public function testConditionValueColumnDateDayOn()
     {
@@ -431,7 +431,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
 
 
 
-    
+
     // datetime ----------------------------------------------------
     public function testConditionValueColumnDatetimeDayOn()
     {
@@ -590,7 +590,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $this->__testConditionValueApiColumn(ColumnType::SELECT_TABLE, $filterOption, $hasHtml, 'select', $multiple);
     }
 
-    
+
 
     // yes-no ----------------------------------------------------
     public function testConditionValueColumnYesNoEqual()
@@ -807,7 +807,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->__testConditionValueApiSystem(SystemColumn::ID, $filterOption, $hasHtml, 'input[type="text"]');
     }
-    
+
 
 
     // system suuid ----------------------------------------------------
@@ -841,7 +841,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     }
 
 
-    
+
     // system CREATED_AT ----------------------------------------------------
     public function testConditionValueSystemCreatedAtDayOn()
     {
@@ -927,11 +927,11 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->__testConditionValueApiSystem(SystemColumn::CREATED_AT, $filterOption, $hasHtml, 'input[type="text"]');
     }
-  
 
 
 
-    
+
+
     // system UPDATED_AT ----------------------------------------------------
     public function testConditionValueSystemUpdatedAtDayOn()
     {
@@ -1204,7 +1204,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $this->checkTestResult($url, $hasHtml, $selector, $multiple);
     }
 
-    
+
     /**
      * Test condition api result for system
      * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
@@ -1217,7 +1217,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         $custom_table = CustomTable::getEloquent($table_name);
         $syetem_column = SystemColumn::getOption(['name' => $system_column_name]);
-        
+
         $url = admin_urls_query('webapi', $custom_table->table_name, 'filter-value', [
             'target' => $syetem_column['name'],
             'table_id' => $custom_table->id,
@@ -1232,7 +1232,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
 
         $this->checkTestResult($url, $hasHtml, $selector, $multiple);
     }
-    
+
     /**
      * Test condition api result for system
      * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}

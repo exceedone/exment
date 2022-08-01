@@ -6,7 +6,6 @@ use Exceedone\Exment\Model\CustomTable;
 
 trait ExmentKitPrepareTrait
 {
-
     /**
      * Prepare custom relation for form test.
      */
@@ -38,7 +37,7 @@ trait ExmentKitPrepareTrait
             $this->assertTrue(true);
             return;
         }
-        
+
         $redirectPath = admin_url("column/$table_name");
 
         $data = [

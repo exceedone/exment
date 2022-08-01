@@ -10,7 +10,7 @@ use Illuminate\Contracts\Support\Renderable;
 class SwalMenuButton implements Renderable
 {
     protected $label;
-    
+
     /**
      * Menu Button list
      *

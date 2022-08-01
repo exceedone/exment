@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class FilterSearchType extends EnumBase
 {
-    const FORWARD = 'forward';
-    const ALL = 'all';
+    public const FORWARD = 'forward';
+    public const ALL = 'all';
 }

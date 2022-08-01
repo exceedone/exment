@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Exceedone\Exment\Model\CustomColumn;
@@ -33,7 +34,7 @@ class InitOnlyRule implements Rule
         if (is_null($this->custom_value) || !$this->custom_value->exists) {
             return true;
         }
-        
+
         // if has custom_value, checking value
         $v = $this->getOriginalValue();
 

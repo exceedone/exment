@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\Null;
 
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -24,8 +25,8 @@ abstract class NullBase extends ViewFilterBase
             $query->{$method_name. 'Null'}($query_column);
         }
     }
-    
-    
+
+
     /**
      * compare 2 value
      *
@@ -33,7 +34,7 @@ abstract class NullBase extends ViewFilterBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         return is_nullorempty($value);
     }

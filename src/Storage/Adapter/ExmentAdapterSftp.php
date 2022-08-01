@@ -9,7 +9,7 @@ use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
 class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
 {
     use AdapterTrait;
-    
+
     /**
      * get adapter class
      */
@@ -25,21 +25,21 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
         );
         return $driver;
     }
-    
-    public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array
+
+    public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array
     {
         return [
             'root' => config('exment.rootpath.sftp.' . $mergeFrom),
         ];
     }
-    
+
     /**
      * Get config. Execute merge.
      *
      * @param array $config
      * @return array
      */
-    public static function getConfig($config) : array
+    public static function getConfig($config): array
     {
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = static::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);

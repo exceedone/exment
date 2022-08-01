@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Enums\SystemTableName;
@@ -15,7 +16,8 @@ use Illuminate\Support\Facades\DB;
  */
 class InitializeForm
 {
-    use EnvTrait, InitializeFormTrait;
+    use EnvTrait;
+    use InitializeFormTrait;
 
     public function index()
     {
@@ -37,18 +39,18 @@ class InitializeForm
             'description' => exmtrans('system.initialize_description'),
         ]);
     }
-    
+
     public function post()
     {
         $request = request();
         \DB::beginTransaction();
-        
+
         try {
             $result = $this->postInitializeForm($request, 'initialize', true, true);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }
-            
+
             // add user table
             $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
             $user->value = [
@@ -58,7 +60,7 @@ class InitializeForm
             ];
             $user->saveOrFail();
             // add login_user table
-            $loginuser = new LoginUser;
+            $loginuser = new LoginUser();
             $loginuser->base_user_id = $user->getUserId();
             $loginuser->password = $request->get('password');
             $loginuser->saveOrFail();

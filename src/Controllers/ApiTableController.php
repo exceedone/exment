@@ -28,7 +28,7 @@ class ApiTableController extends AdminControllerTableBase
         if (!$this->custom_table) {
             return abortJson(404);
         }
-        
+
         return $this->{$method}(...array_values($parameters));
     }
 
@@ -58,10 +58,10 @@ class ApiTableController extends AdminControllerTableBase
     {
         return $this->responseColumn($request, CustomColumn::getEloquent($column_name, $tableKey));
     }
-    
+
 
     // View ----------------------------------------------------
-    
+
     /**
      * get view datalist
      * @param mixed $request request value
@@ -101,7 +101,7 @@ class ApiTableController extends AdminControllerTableBase
         }
         return $item->getFilterCondition();
     }
-    
+
     /**
      * get filter condition
      */
@@ -142,7 +142,7 @@ class ApiTableController extends AdminControllerTableBase
         }
         return $item->getOperationUpdateType();
     }
-    
+
     /**
      * get filter condition
      */

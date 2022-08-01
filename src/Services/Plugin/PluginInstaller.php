@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Encore\Admin\Facades\Admin;
@@ -38,15 +39,15 @@ class PluginInstaller
             // store file
             $filename = $tmpDiskItem->disk()->put($tmpdir, $uploadFile);
             $fullpath = $tmpDiskItem->disk()->path($filename);
-            
+
             // open zip file
-            $zip = new ZipArchive;
+            $zip = new ZipArchive();
             //Define variable like flag to check exitsed file config (config.json) before extract zip file
             $res = $zip->open($fullpath);
             if ($res !== true) {
                 //TODO:error
             }
-                    
+
             //Get folder into zip file
             //Check existed file config (config.json)
             $config_path = null;
@@ -140,7 +141,7 @@ class PluginInstaller
      * @param PluginDiskService $diskService
      * @return array
      */
-    protected static function getTemplateDirectories(string $pluginFileBasePath, PluginDiskService $diskService, $tmpDiskItem) : array
+    protected static function getTemplateDirectories(string $pluginFileBasePath, PluginDiskService $diskService, $tmpDiskItem): array
     {
         $result = [];
         $checkFunc = function ($directory, &$result) use ($tmpDiskItem) {
@@ -192,7 +193,7 @@ class PluginInstaller
                 $plugineExistByName = Plugin::getPluginByName(array_get($json, 'plugin_name'));
                 //Check if the uuid of the plugin has existed
                 $plugineExistByUUID = Plugin::getPluginByUUID(array_get($json, 'uuid'));
-                
+
                 //If json pass validation, prepare data to do continue
                 $plugin = static::prepareData($json);
                 //Make path of folder where contain plugin with name is plugin's name
@@ -234,7 +235,7 @@ class PluginInstaller
 
         return null;
     }
-    
+
     /**
      * Function validate config.json file with field required
      *
@@ -278,12 +279,12 @@ class PluginInstaller
 
         $plugin_type = array_get($json, 'plugin_type');
         $plugin->plugin_types = $plugin_type;
-        
+
         foreach (['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key) {
             $plugin->{$key} = array_get($json, $key);
         }
         $plugin->active_flg = PluginType::getEnum($plugin_type) != PluginType::BATCH;
-        
+
         // set options
         $options = array_get($plugin, 'options', []);
         // set if exists

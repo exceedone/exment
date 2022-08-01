@@ -58,8 +58,8 @@ class CheckLangCommand extends Command
         }
         return $hasError ? 1 : 0;
     }
-    
-    protected function checkTrans(array $keys, $jat, $lang): bool
+
+    protected function checkTrans(array $keys, $jat, $lang)
     {
         $hasError = false;
         foreach ($jat as $key => $value) {

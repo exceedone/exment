@@ -153,7 +153,7 @@ class ApiUserTest extends ApiTestBase
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'avatar'));
-        
+
         $content = $response->streamedContent();
         $this->assertMatch(base64_encode($content), TestDefine::FILE_USER_BASE64);
     }
@@ -166,7 +166,7 @@ class ApiUserTest extends ApiTestBase
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls_query('api', 'avatar', ['default' => '1']));
-        
+
         $content = $response->streamedContent();
         $this->assertMatch(base64_encode($content), TestDefine::FILE_USER_BASE64);
     }
@@ -179,11 +179,11 @@ class ApiUserTest extends ApiTestBase
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
             ])->get(admin_urls_query('api', 'avatar', ['default' => '1']));
-        
+
         $content = $response->streamedContent();
         $this->assertMatch(base64_encode($content), TestDefine::FILE_USERDEFALUT_BASE64);
     }
-    
+
     public function testGetAvatarNotHas()
     {
         // User1 has not icon.
@@ -192,7 +192,7 @@ class ApiUserTest extends ApiTestBase
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'avatar'));
-        
+
         // Response is not file.
         $this->assertTrue($response->baseResponse instanceof \Illuminate\Http\Response);
         $this->assertFalse($response->baseResponse instanceof \Symfony\Component\HttpFoundation\BinaryFileResponse);

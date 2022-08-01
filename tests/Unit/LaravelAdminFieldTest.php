@@ -10,7 +10,7 @@ use Tests\TestCase;
 class LaravelAdminFieldTest extends TestCase
 {
     use TestTrait;
-    
+
 
     // number ----------------------------------------------------
 
@@ -69,7 +69,7 @@ class LaravelAdminFieldTest extends TestCase
             ->min(0);
         }, 1, true);
     }
-    
+
     public function testNumberMinError()
     {
         $this->_testLaravelField(function ($form) {
@@ -97,7 +97,7 @@ class LaravelAdminFieldTest extends TestCase
                 ->max(100);
         }, 1, true);
     }
-    
+
     public function testNumberMaxError()
     {
         $this->_testLaravelField(function ($form) {
@@ -125,7 +125,7 @@ class LaravelAdminFieldTest extends TestCase
             ->between(0, 100);
         }, 1, true);
     }
-    
+
     public function testNumberBetweenSuccess3()
     {
         $this->_testLaravelField(function ($form) {
@@ -133,7 +133,7 @@ class LaravelAdminFieldTest extends TestCase
             ->between(0, 100);
         }, 99, true);
     }
-    
+
     public function testNumberBetweenSuccess4()
     {
         $this->_testLaravelField(function ($form) {
@@ -141,7 +141,7 @@ class LaravelAdminFieldTest extends TestCase
             ->between(0, 100);
         }, 100, true);
     }
-    
+
     public function testNumberBetweenError1()
     {
         $this->_testLaravelField(function ($form) {
@@ -211,7 +211,7 @@ class LaravelAdminFieldTest extends TestCase
         ]);
     }
 
-    
+
 
 
     // multipleSelect ----------------------------------------------------
@@ -434,7 +434,7 @@ class LaravelAdminFieldTest extends TestCase
     }
 
 
-    
+
     // checkboxone ----------------------------------------------------
     public function testCheckboxOneSuccess1()
     {
@@ -472,9 +472,9 @@ class LaravelAdminFieldTest extends TestCase
         ]);
     }
 
-    
 
-    
+
+
     // radio ----------------------------------------------------
     public function testRadioSuccess1()
     {
@@ -530,14 +530,14 @@ class LaravelAdminFieldTest extends TestCase
 
         $this->initAllTest();
 
-        $form = new Form;
+        $form = new Form();
 
         $fieldOptionCallback($form);
 
         $messages = $form->validationMessages([
             'foo' => $value,
         ]);
-        
+
         if ($testResult === true) {
             $this->assertTrue($messages === false, 'This test expects true, but result is false. message is ' . json_encode($messages));
         } else {

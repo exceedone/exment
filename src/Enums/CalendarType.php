@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class CalendarType extends EnumBase
 {
-    const MONTH = 'month';
-    const LIST = 'list';
+    public const MONTH = 'month';
+    public const LIST = 'list';
 }

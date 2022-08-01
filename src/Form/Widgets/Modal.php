@@ -8,7 +8,7 @@ namespace Exceedone\Exment\Form\Widgets;
 class Modal
 {
     use ModalTrait;
-    
+
     protected $modalBody;
 
     public function body($modalBody)

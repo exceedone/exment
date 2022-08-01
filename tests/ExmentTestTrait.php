@@ -9,9 +9,8 @@ use Exceedone\Exment\Middleware\Morph;
 
 trait ExmentTestTrait
 {
-    public static $databaseSetup = false;
-    
     use DatabaseMigrations;
+    public static $databaseSetup = false;
 
     /**
      * Boots the application.
@@ -31,7 +30,7 @@ trait ExmentTestTrait
     {
         \App::setLocale('en');
     }
-    
+
     /**
      * Define hooks to migrate the database before and after each test.
      *
@@ -42,18 +41,18 @@ trait ExmentTestTrait
         if (!\App::environment('local', 'testing')) {
             return;
         }
-        
+
         if (!static::$databaseSetup) {
             $this->dropAllTables();
             \Artisan::call('migrate');
-            
+
             System::clearRequestSession();
             Morph::defineMorphMap();
 
             \Artisan::call('exment:install');
 
             static::$databaseSetup = true;
-                
+
             // $this->beforeApplicationDestroyed(function () {
             //     \Artisan::call('migrate:reset');
             //     $tables = \DB::connection()->getDoctrineSchemaManager()->listTableNames();

@@ -26,7 +26,7 @@ class ExmentPasswordBroker extends PasswordBroker
 
         // $user = $this->users->retrieveByCredentials($credentials);
         $user = LoginUserProvider::findByCredential($credentials);
-        
+
         if ($user && ! $user instanceof CanResetPasswordContract) {
             throw new UnexpectedValueException('User must implement CanResetPassword interface.');
         }

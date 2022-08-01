@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Encore\Admin\Widgets\Form as WidgetForm;
@@ -10,7 +11,7 @@ use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
  */
 class SelectTable extends Column
 {
-    public function isSelectTable() : bool
+    public function isSelectTable(): bool
     {
         return true;
     }
@@ -35,10 +36,10 @@ class SelectTable extends Column
      *
      * @return WidgetForm
      */
-    public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
+    public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm
     {
         $form = parent::getSettingModalForm($block_item, $parameters);
-        
+
         $relationColumns = $this->getRelationFileterColumns();
         if ($relationColumns->count() > 0) {
             $form->exmheader(exmtrans('custom_form.relation_filter'))->hr();
@@ -49,7 +50,7 @@ class SelectTable extends Column
                 ->options($relationColumns->mapWithKeys(function ($column) {
                     return [$column->parent_column->id => $column->parent_column->column_view_name];
                 })->toArray())
-                ;
+            ;
         }
 
         return $form;
@@ -60,7 +61,7 @@ class SelectTable extends Column
      *
      * @return Collection
      */
-    public function getRelationFileterColumns() : Collection
+    public function getRelationFileterColumns(): Collection
     {
         // get relation columns.
         $relationColumns = Linkage::getLinkages(null, $this->custom_column);

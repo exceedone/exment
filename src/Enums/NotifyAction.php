@@ -6,10 +6,10 @@ use Exceedone\Exment\Model\System;
 
 class NotifyAction extends EnumBase
 {
-    const EMAIL = "1";
-    const SHOW_PAGE = "2";
-    const SLACK = "3";
-    const MICROSOFT_TEAMS = "4";
+    public const EMAIL = "1";
+    public const SHOW_PAGE = "2";
+    public const SLACK = "3";
+    public const MICROSOFT_TEAMS = "4";
 
     /**
      * Whether this action is chat message.
@@ -17,7 +17,7 @@ class NotifyAction extends EnumBase
      * @param string|array $action_setting
      * @return boolean
      */
-    public static function isChatMessage($action_setting) : bool
+    public static function isChatMessage($action_setting): bool
     {
         if (is_nullorempty($action_setting)) {
             return false;
@@ -38,13 +38,13 @@ class NotifyAction extends EnumBase
      * @param string|array $action_setting
      * @return boolean
      */
-    public static function isUserTarget($action_setting) : bool
+    public static function isUserTarget($action_setting): bool
     {
         if (is_nullorempty($action_setting)) {
             return false;
         }
         $notify_action = is_array($action_setting) ? array_get($action_setting, 'notify_action') : $action_setting;
-        
+
         if (in_array($notify_action, [static::EMAIL, static::SHOW_PAGE])) {
             return true;
         }
@@ -59,7 +59,7 @@ class NotifyAction extends EnumBase
                     'get_email' => true,
                     'get_select_table_email' => true,
                 ];
-                
+
             case static::SHOW_PAGE:
                 return [
                     'get_user' => true,
@@ -75,7 +75,7 @@ class NotifyAction extends EnumBase
                     'get_user' => true,
                     //'get_organization' => true,
                 ];
-                
+
             case static::MICROSOFT_TEAMS:
                 return [
                 ];

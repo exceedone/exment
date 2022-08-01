@@ -32,11 +32,11 @@ class Morph
             if (!canConnection() || !hasTable(SystemTableName::CUSTOM_TABLE)) {
                 return;
             }
-            
+
             $tables = Model\CustomTable::allRecords();
-                
+
             $morphMaps = static::getMorphs();
-            
+
             Relation::morphMap($morphMaps);
         } catch (\Exception $ex) {
             logger($ex);
@@ -51,7 +51,7 @@ class Morph
     public static function getMorphs()
     {
         $tables = Model\CustomTable::allRecords();
-            
+
         $morphMaps = [
             "table" => Model\CustomTable::class,
             "custom_form_priority" => Model\CustomFormPriority::class,

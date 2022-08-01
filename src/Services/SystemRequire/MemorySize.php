@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\SystemRequire;
 
 use Exceedone\Exment\Enums\SystemRequireResult;
@@ -11,12 +12,12 @@ class MemorySize extends SystemRequireBase
         $this->result = $memory_limit;
     }
 
-    public function getLabel() : string
+    public function getLabel(): string
     {
         return exmtrans('system_require.type.memory.label');
     }
 
-    public function getExplain() : string
+    public function getExplain(): string
     {
         return exmtrans('system_require.type.memory.explain');
     }
@@ -26,7 +27,7 @@ class MemorySize extends SystemRequireBase
      *
      * @return ?string
      */
-    public function getResultText() : ?string
+    public function getResultText(): ?string
     {
         if ($this->result == -1) {
             return $this->result . '(Unlimited)';
@@ -39,7 +40,7 @@ class MemorySize extends SystemRequireBase
      *
      * @return string
      */
-    public function checkResult() : string
+    public function checkResult(): string
     {
         if ($this->result >= 512 || $this->result == -1) {
             return SystemRequireResult::OK;
@@ -47,12 +48,12 @@ class MemorySize extends SystemRequireBase
         return SystemRequireResult::WARNING;
     }
 
-    protected function getMessageWarning() : ?string
+    protected function getMessageWarning(): ?string
     {
         return exmtrans('system_require.type.memory.warning');
     }
 
-    public function getSettingUrl() : ?string
+    public function getSettingUrl(): ?string
     {
         return \Exment::getManualUrl('additional_php_ini');
     }

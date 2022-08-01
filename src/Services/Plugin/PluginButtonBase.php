@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Plugin;
 
 use Illuminate\Contracts\Support\Renderable;
@@ -8,8 +9,10 @@ use Illuminate\Contracts\Support\Renderable;
  */
 class PluginButtonBase
 {
-    use PluginBase, PluginButtonTrait, PluginPageTrait;
-    
+    use PluginBase;
+    use PluginButtonTrait;
+    use PluginPageTrait;
+
     public $custom_table;
     public $custom_value;
 

@@ -77,7 +77,7 @@ class SwalInputButton
         });
         
 SCRIPT;
-        
+
         Admin::script($script);
     }
 
@@ -96,7 +96,7 @@ SCRIPT;
             'url' => $this->url
         ]);
     }
-    
+
     /**
      * @return string
      */

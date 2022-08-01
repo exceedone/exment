@@ -14,7 +14,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
-    
+
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];
 
@@ -98,7 +98,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     {
         return $this->belongsTo(Dashboard::class, 'dashboard_id');
     }
-    
+
     public function getDashboardBoxItemAttribute()
     {
         $enum_class = DashboardBoxType::getEnum($this->dashboard_box_type)->getDashboardBoxItemClass();
@@ -119,7 +119,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
      *
      * @return array
      */
-    public function getBoxHtmlAttr() : array
+    public function getBoxHtmlAttr(): array
     {
         $attributes = [
             'row_no' => $this->row_no,
@@ -182,8 +182,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 })['id'] ?? null;
                 array_set($json, 'options.target_system_id', $id);
                 break;
-            
-            // list
+
+                // list
             case DashboardBoxType::LIST:
             case DashboardBoxType::CALENDAR:
             case DashboardBoxType::CHART:
@@ -193,7 +193,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 array_set($json, 'options.target_view_id', CustomView::findBySuuid(array_get($json, 'options.target_view_suuid'))->id ?? null);
                 break;
         }
-        
+
         // replace chartx and y
         static::importReplaceJsonCustomColumn('chart_axisx', $json);
         static::importReplaceJsonCustomColumn('chart_axisy', $json);

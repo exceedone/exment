@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\SystemRequire;
 
 use Exceedone\Exment\Enums\SystemRequireResult;
@@ -10,12 +11,12 @@ class TimeoutTime extends SystemRequireBase
         $this->result = ini_get('max_execution_time');
     }
 
-    public function getLabel() : string
+    public function getLabel(): string
     {
         return exmtrans('system_require.type.timeout_time.label');
     }
 
-    public function getExplain() : string
+    public function getExplain(): string
     {
         return exmtrans('system_require.type.timeout_time.explain');
     }
@@ -25,7 +26,7 @@ class TimeoutTime extends SystemRequireBase
      *
      * @return ?string
      */
-    public function getResultText() : ?string
+    public function getResultText(): ?string
     {
         if ($this->result == 0) {
             return $this->result .  '(Unlimited)';
@@ -38,7 +39,7 @@ class TimeoutTime extends SystemRequireBase
      *
      * @return string
      */
-    public function checkResult() : string
+    public function checkResult(): string
     {
         if ($this->result >= 180 || $this->result == 0) {
             return SystemRequireResult::OK;
@@ -46,12 +47,12 @@ class TimeoutTime extends SystemRequireBase
         return SystemRequireResult::WARNING;
     }
 
-    protected function getMessageWarning() : ?string
+    protected function getMessageWarning(): ?string
     {
         return exmtrans('system_require.type.timeout_time.warning');
     }
 
-    public function getSettingUrl() : ?string
+    public function getSettingUrl(): ?string
     {
         return \Exment::getManualUrl('additional_php_ini');
     }

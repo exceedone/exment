@@ -9,7 +9,7 @@ class ContainsSelectOption extends ExactSelectOption
      *
      * @return bool
      */
-    protected function test2Array() : bool
+    protected function test2Array(): bool
     {
         return $this->contains2Array($this->options, $this->realOptions);
     }

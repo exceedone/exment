@@ -15,7 +15,7 @@ class PluginMenuButton
     protected $id;
     // set this plugin type
     protected $plugin_type;
-    
+
     public function __construct($listButton, $custom_table, $id = null)
     {
         if ($listButton instanceof Plugin) {
@@ -103,7 +103,7 @@ EOT;
             'icon' => array_get($this->plugin, 'options.icon') ?? '',
         ]);
     }
-    
+
     /**
      * @return string
      */

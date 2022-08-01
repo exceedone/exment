@@ -32,7 +32,7 @@ class RoleGroup extends ModelBase
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id');
     }
-    
+
     public function role_group_users()
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')
@@ -75,7 +75,7 @@ class RoleGroup extends ModelBase
                         foreach ((array)$organization_ids as $organization_id) {
                             // ge check contains parent and child organizaions.
                             $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
-                            
+
                             $targetOrgIds = $org->getOrganizationIdsForQuery($enum);
                             if (in_array($organization_id, $targetOrgIds)) {
                                 return true;
@@ -96,7 +96,7 @@ class RoleGroup extends ModelBase
     protected static function boot()
     {
         parent::boot();
-        
+
         // delete event
         static::deleting(function ($model) {
             $model->role_group_permissions()->delete();

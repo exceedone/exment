@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -14,7 +15,8 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomCopyTest extends UnitTestBase
 {
-    use DatabaseTransactions, CustomTableTrait;
+    use DatabaseTransactions;
+    use CustomTableTrait;
 
     protected function init()
     {
@@ -188,7 +190,7 @@ class CustomCopyTest extends UnitTestBase
 
         $custom_copy = CustomCopy::create([
             'from_custom_table_id' => $custom_table->id,
-            'to_custom_table_id' => isset($custom_table_to)? $custom_table_to->id: $custom_table->id,
+            'to_custom_table_id' => isset($custom_table_to) ? $custom_table_to->id : $custom_table->id,
         ]);
 
         foreach ($custom_table->custom_columns as $custom_column) {

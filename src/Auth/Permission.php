@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Auth;
 
 use Illuminate\Http\Request;
@@ -121,7 +122,7 @@ class Permission
      *
      * @return bool
      */
-    public function shouldPassThrough(Request $request) : bool
+    public function shouldPassThrough(Request $request): bool
     {
         // get target endpoint
         $endpoint = $this->getEndPoint($request->url());
@@ -137,7 +138,7 @@ class Permission
      *
      * @return bool
      */
-    public function shouldPassEndpoint(?string $endpoint) : bool
+    public function shouldPassEndpoint(?string $endpoint): bool
     {
         // get target endpoint
         $endpoint = $this->getEndPoint($endpoint);
@@ -153,7 +154,7 @@ class Permission
      *
      * @return bool
      */
-    protected function shouldPass(?string $endpoint, bool $isMenu) : bool
+    protected function shouldPass(?string $endpoint, bool $isMenu): bool
     {
         // checking booting function
         $result = $this->fireShouldPasses($endpoint);
@@ -198,7 +199,7 @@ class Permission
      * @param boolean $recursive Whether this method is recursive.
      * @return boolean
      */
-    protected function hasPermissionByEndpoint(string $endpoint, bool $isMenu, ?string $target = null, bool $recursive = false) : bool
+    protected function hasPermissionByEndpoint(string $endpoint, bool $isMenu, ?string $target = null, bool $recursive = false): bool
     {
         if (!isset($target)) {
             $target = $endpoint;
@@ -229,7 +230,7 @@ class Permission
             case "tmpfiles":
             case "tmpimages":
                 return true;
-            ///// only system permission
+                ///// only system permission
             case "system":
             case "backup":
             case "login_setting":
@@ -240,7 +241,7 @@ class Permission
                     return array_key_exists('system', $this->permission_details);
                 }
                 return false;
-            ///// each permissions
+                ///// each permissions
             case "plugin":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
@@ -334,7 +335,7 @@ class Permission
             case "data":
                 return $this->validateCustomValuePermission($endpoint, $isMenu);
         }
-        
+
         if ($recursive) {
             return false;
         }
@@ -354,7 +355,7 @@ class Permission
      * @param ?string $endpoint
      * @return string|null
      */
-    protected function getEndPoint(?string $endpoint) : ?string
+    protected function getEndPoint(?string $endpoint): ?string
     {
         // not admin page's (for custom url), return $endpoint
         if ($this->isNotAdminUrl($endpoint)) {
@@ -363,7 +364,7 @@ class Permission
 
         // remove admin url from request url.
         $url = str_replace_ex(admin_url(), '', $endpoint);
-        
+
         // remove after query
         $url = $this->removeAfterQuery($url);
 

@@ -6,15 +6,15 @@ use Exceedone\Exment\Model\System;
 
 class NotifyActionTarget extends EnumBase
 {
-    const ADMINISTRATOR = 'administrator';
-    const HAS_ROLES = 'has_roles';
-    const CREATED_USER = 'created_user';
-    const WORK_USER = 'work_user';
-    const FIXED_EMAIL = 'fixed_email';
-    const CUSTOM_COLUMN = 'custom_column';
-    const FIXED_USER = 'fixed_user';
-    const FIXED_ORGANIZATION = 'fixed_organization';
-    const ACTION_USER = 'action_user';
+    public const ADMINISTRATOR = 'administrator';
+    public const HAS_ROLES = 'has_roles';
+    public const CREATED_USER = 'created_user';
+    public const WORK_USER = 'work_user';
+    public const FIXED_EMAIL = 'fixed_email';
+    public const CUSTOM_COLUMN = 'custom_column';
+    public const FIXED_USER = 'fixed_user';
+    public const FIXED_ORGANIZATION = 'fixed_organization';
+    public const ACTION_USER = 'action_user';
 
     public static function ACTION_TARGET_CUSTOM_TABLE()
     {
@@ -31,7 +31,7 @@ class NotifyActionTarget extends EnumBase
 
         return $targets;
     }
-    
+
     public static function ACTION_TARGET_WORKFLOW()
     {
         $targets = [

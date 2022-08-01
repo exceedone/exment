@@ -46,7 +46,7 @@ class CCustomRelationTest extends ExmentKitTestCase
                 ->seeInElement('label', '親テーブル')
                 ->seeInElement('label', '子テーブル')
                 ->seeInElement('label', 'リレーション種類')
-            ;
+        ;
     }
 
     /**
@@ -68,7 +68,7 @@ class CCustomRelationTest extends ExmentKitTestCase
                 ->seeInElement('td', 'Exmenttest Contract Relation')
                 ->seeInElement('td', '1対多')
                 ->assertEquals($pre_cnt + 1, CustomRelation::count())
-                ;
+        ;
 
         $row = CustomRelation::orderBy('created_at', 'desc')->first();
         $id = array_get($row, 'id');
@@ -82,7 +82,7 @@ class CCustomRelationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url('relation/exmenttest_contract'))
                 ->seeInElement('td', 'Exmenttest Contract Relation')
                 ->seeInElement('td', '多対多')
-                ;
+        ;
     }
 
     /**

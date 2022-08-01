@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
@@ -10,9 +11,9 @@ use Illuminate\Validation\Concerns\ValidatesAttributes;
 class FileRule implements Rule
 {
     use ValidatesAttributes;
-    
+
     protected $extensions = [];
-    
+
     public function __construct(array $extensions = [])
     {
         $this->extensions = $extensions;
@@ -37,7 +38,7 @@ class FileRule implements Rule
             if (is_nullorempty($value)) {
                 return true;
             }
-            
+
             foreach ($value as $v) {
                 if (!$this->validateExtension($attribute, $v)) {
                     return false;

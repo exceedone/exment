@@ -66,7 +66,7 @@ class ApiAuthTest extends ApiTestBase
 
         $this->get(admin_urls('api', 'data', 'custom_value_edit', 5))
             ->assertStatus(401);
-            
+
         $this->get(asset_urls('publicformapi', 'data', 'custom_value_edit'))
             ->assertStatus(404);
 
@@ -86,7 +86,7 @@ class ApiAuthTest extends ApiTestBase
             ]
         ])
         ->assertStatus(401);
-        
+
         // not allowed
         $response = $this->post(asset_urls('publicformapi', 'data', 'custom_value_edit'), [
             'value' => [
@@ -142,7 +142,7 @@ class ApiAuthTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit', 5))
             ->assertStatus(401);
-            
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(asset_urls('publicformapi', 'data', 'custom_value_edit'))
@@ -167,7 +167,7 @@ class ApiAuthTest extends ApiTestBase
                 'user' => 3
             ]
         ])->assertStatus(401);
-        
+
         // not allowed
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
@@ -212,7 +212,7 @@ class ApiAuthTest extends ApiTestBase
         $this->withHeaders([
         ])->get(admin_urls('webapi', 'data', 'custom_value_edit', 5))
             ->assertStatus(401);
-            
+
         $this->withHeaders([
         ])->get(asset_urls('publicformapi', 'data', 'custom_value_edit'))
             ->assertStatus(404);
@@ -236,7 +236,7 @@ class ApiAuthTest extends ApiTestBase
                 'user' => 3
             ]
         ])->assertStatus(404);
-        
+
         // not allowed
         $response = $this->withHeaders([
         ])->post(asset_urls('publicformapi', 'data', 'custom_value_edit'), [

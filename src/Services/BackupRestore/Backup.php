@@ -8,7 +8,8 @@ use Exceedone\Exment\Services\Installer\EnvTrait;
 
 class Backup
 {
-    use BackupRestoreTrait, EnvTrait;
+    use BackupRestoreTrait;
+    use EnvTrait;
 
     /**
      * Create a new command instance.
@@ -48,27 +49,27 @@ class Backup
                     return new BackupTarget($t) ?? null;
                 })->filter()->toArray();
             }
-    
+
             $this->initBackupRestore();
-    
+
             // backup database tables
             if (in_array(BackupTarget::DATABASE, $target)) {
                 \ExmentDB::backupDatabase($this->diskService->tmpDiskItem()->dirFullPath());
             }
-    
+
             // backup directory
             if (!$this->copyFiles($target)) {
                 return -1;
             }
-    
+
             // archive whole folder to zip
             $this->createZip();
-    
+
             // if call as batch
             if ($schedule) {
                 $this->removeOldBackups();
             }
-    
+
             return 0;
         } catch (\Exception $e) {
             throw $e;
@@ -90,7 +91,7 @@ class Backup
         })->filter(function ($val) {
             return isset($val);
         })->toArray();
-        
+
         foreach ($settings as $setting) {
             $s = $setting[0];
 
@@ -102,7 +103,7 @@ class Backup
                 }
 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
-                
+
                 \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
 
                 \File::copyDirectory($from, $this->tmpDisk()->path($to));
@@ -110,9 +111,9 @@ class Backup
             // is croud file
             else {
                 $disk = $setting[0];
-                
+
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
-                
+
                 \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
 
                 $files = $disk->allFiles('');
@@ -132,7 +133,7 @@ class Backup
                 }
             }
         }
-            
+
         // if contains 'config' in $settings, copy env file
         if (collect($settings)->contains(function ($setting) {
             if (is_array($setting)) {
@@ -148,7 +149,7 @@ class Backup
 
         return true;
     }
-    
+
     /**
      * archive whole folder(sql and tsv only) to zip.
      *
@@ -182,7 +183,7 @@ class Backup
 
         $this->diskService->upload($uploadPaths);
     }
-    
+
     /**
      * Remove old backup
      *
@@ -218,7 +219,7 @@ class Backup
             $disk->delete(array_get($file, 'name'));
         }
     }
-    
+
     /**
      * get matched env data
      *
@@ -251,7 +252,7 @@ class Backup
                     continue;
                 }
 
-                $results = array_merge(collect($lines)->filter(function ($line) use($ignoreKeys) {
+                $results = array_merge(collect($lines)->filter(function ($line) use ($ignoreKeys) {
                     return !in_array($line[0], $ignoreKeys);
                 })->map(function ($line) {
                     return "{$line[0]}={$line[1]}";

@@ -45,7 +45,7 @@ class HasMany extends AdminHasMany
             'enableHeader' => $this->enableHeader,
         ]);
     }
-    
+
     /**
      * TODO: I don't know the best way
      * set html and script. It has bug about nested
@@ -199,18 +199,18 @@ EOT;
                 if (!$fieldRules = $field->getRules()) {
                     continue;
                 }
-    
+
                 if (is_array($column)) {
                     foreach ($column as $key => $name) {
                         $rules[$name.$key] = ['hasmany' => false, 'rules' => $fieldRules];
                     }
-    
+
                     $this->resetInputKey($input, $column);
                 } else {
                     $rules[$column] = ['hasmany' => false, 'rules' => $fieldRules];
                 }
             }
-            
+
             $attributes = array_merge(
                 $attributes,
                 $this->formatValidationAttribute($input, $field->label(), $column)

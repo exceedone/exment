@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class LoginBgImageType extends EnumBase
 {
-    const REPEAT = 'repeat';
-    const COVER = 'cover';
+    public const REPEAT = 'repeat';
+    public const COVER = 'cover';
 }

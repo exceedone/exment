@@ -49,7 +49,7 @@ abstract class GridBase
     {
         return [];
     }
-    
+
     /**
      * Get database query
      *
@@ -84,13 +84,13 @@ abstract class GridBase
         if (is_nullorempty($group_view)) {
             return null;
         }
-        
+
         // replace view
         $this->custom_view = CustomView::getAllData($this->custom_table);
         $filters = [];
         foreach ($group_keys as $key => $value) {
             $custom_view_column = CustomViewColumn::findByCkey($key);
-            $custom_view_filter = new CustomViewFilter;
+            $custom_view_filter = new CustomViewFilter();
             $custom_view_filter->custom_view_id = $custom_view_column->custom_view_id;
             $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
             $custom_view_filter->view_column_target = $custom_view_column->view_column_target;
@@ -131,7 +131,7 @@ abstract class GridBase
             ->disableImage()
             ->attribute(['data-filter' => json_encode(['key' => 'use_view_infobox', 'value' => '1'])]);
     }
-    
+
     protected static function convertGroups($targetOptions, $defaultCustomTable)
     {
         $options = collect($targetOptions)->mapToDictionary(function ($item, $query) {
@@ -231,7 +231,7 @@ abstract class GridBase
 
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table, $column_options) {
             $targetOptions = $custom_table->getColumnsSelectOptions($column_options);
-    
+
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($targetOptions);
 
@@ -239,7 +239,7 @@ abstract class GridBase
                 $targetGroups = static::convertGroups($targetOptions, $custom_table);
                 $field->groups($targetGroups);
             }
-    
+
             $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
             $form->hidden('order')->default(0);
         })->required()->setTableColumnWidth(7, 3, 2)
@@ -247,7 +247,7 @@ abstract class GridBase
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_columns"));
     }
 
-    
+
     /**
      * Set sort fileds form
      *
@@ -259,7 +259,7 @@ abstract class GridBase
     public static function setSortFields(&$form, $custom_table, $include_parent = false)
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
-        
+
         // sort setting
         $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table, $include_parent) {
             $targetOptions = $custom_table->getColumnsSelectOptions([

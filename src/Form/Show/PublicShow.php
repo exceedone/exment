@@ -15,7 +15,7 @@ class PublicShow extends \Exceedone\Exment\Form\Show
     {
         $this->panel = new PublicShowPanel($this);
     }
-    
+
 
     public function setAction(string $action)
     {

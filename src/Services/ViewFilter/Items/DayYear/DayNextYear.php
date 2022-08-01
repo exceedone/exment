@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\DayYear;
 
 use Exceedone\Exment\Enums\FilterOption;
@@ -15,7 +16,7 @@ class DayNextYear extends DayYearBase
         return new \Carbon\Carbon('first day of next year');
     }
 
-    
+
     /**
      * compare 2 value
      *
@@ -23,7 +24,7 @@ class DayNextYear extends DayYearBase
      * @param mixed $conditionValue condition value. Sometimes, this value is not set(Ex. check value is not null)
      * @return boolean is match, return true
      */
-    protected function _compareValue($value, $conditionValue) : bool
+    protected function _compareValue($value, $conditionValue): bool
     {
         return \Carbon\Carbon::parse($value)->isNextYear();
     }

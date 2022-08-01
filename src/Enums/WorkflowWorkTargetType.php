@@ -11,9 +11,9 @@ namespace Exceedone\Exment\Enums;
  */
 class WorkflowWorkTargetType extends EnumBase
 {
-    const ACTION_SELECT = "action_select";
-    const GET_BY_USERINFO = "get_by_userinfo";
-    const FIX = "fix";
+    public const ACTION_SELECT = "action_select";
+    public const GET_BY_USERINFO = "get_by_userinfo";
+    public const FIX = "fix";
 
 
     public static function getTargetTypeDefault($index)

@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\Notify;
 
 use Illuminate\Support\Collection;
@@ -12,12 +13,12 @@ use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 
 class WorkUser extends NotifyTargetBase
 {
-    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table) : Collection
+    public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         // work user not use getModels
         return collect();
     }
-    
+
 
     /**
      * Get notify target model for workflow
@@ -25,7 +26,7 @@ class WorkUser extends NotifyTargetBase
      * @param CustomValue $custom_value
      * @return Collection
      */
-    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
+    public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
         $workflow = $workflow_action->workflow_cache;
         $users = collect();

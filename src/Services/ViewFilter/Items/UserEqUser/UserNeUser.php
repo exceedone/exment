@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Services\ViewFilter\Items\UserEqUser;
 
 use Exceedone\Exment\Enums\FilterOption;
@@ -10,13 +11,13 @@ class UserNeUser extends UserEqUserBase
         return FilterOption::USER_NE_USER;
     }
 
-    protected function getMark() : string
+    protected function getMark(): string
     {
         return '<>';
     }
 
 
-    protected function isExists() : bool
+    protected function isExists(): bool
     {
         return false;
     }

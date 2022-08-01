@@ -1,4 +1,5 @@
 <?php
+
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\DatabaseTransactions;
@@ -9,7 +10,8 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewFilterTest extends UnitTestBase
 {
-    use CustomViewTrait, DatabaseTransactions;
+    use CustomViewTrait;
+    use DatabaseTransactions;
 
     /**
      * FilterOption = EQ

@@ -21,7 +21,7 @@ use Validator;
 class ApiWorkflowController extends AdminControllerBase
 {
     use ApiTrait;
- 
+
     /**
      * get workflow data by id
      * @param mixed $id
@@ -43,7 +43,7 @@ class ApiWorkflowController extends AdminControllerBase
 
         return abortJson(400, ErrorCode::DATA_NOT_FOUND());
     }
-    
+
     /**
      * get workflow status by id
      * @param mixed $id
@@ -58,7 +58,7 @@ class ApiWorkflowController extends AdminControllerBase
         }
         return abortJson(400, ErrorCode::DATA_NOT_FOUND());
     }
-    
+
     /**
      * get workflow action by id
      * @param mixed $id
@@ -73,7 +73,7 @@ class ApiWorkflowController extends AdminControllerBase
         }
         return abortJson(400, ErrorCode::DATA_NOT_FOUND());
     }
-    
+
     /**
      * get workflow status list by workflow_id
      * @param mixed $id
@@ -91,7 +91,7 @@ class ApiWorkflowController extends AdminControllerBase
 
         return $workflow->workflow_statuses;
     }
-    
+
     /**
      * get workflow action list by workflow_id
      * @param mixed $id
@@ -128,7 +128,7 @@ class ApiWorkflowController extends AdminControllerBase
         } elseif (!boolval($request->get('all', false))) {
             $query->where('setting_completed_flg', 1);
         }
-        
+
         $join_tables = $this->getJoinTables($request, 'workflow');
 
         foreach ($join_tables as $join_table) {
@@ -137,7 +137,7 @@ class ApiWorkflowController extends AdminControllerBase
 
         return $query->paginate($count ?? config('exment.api_default_data_count'));
     }
- 
+
     /**
      * get workflow value by custom_value
      * @param mixed $tableKey
@@ -149,7 +149,7 @@ class ApiWorkflowController extends AdminControllerBase
         if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
             return abortJson(400, ErrorCode::INVALID_PARAMS());
         }
-        
+
         if (($code = $custom_table->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
         }
@@ -168,7 +168,7 @@ class ApiWorkflowController extends AdminControllerBase
         if (!is_nullorempty($join_tables)) {
             $workflow_value->load($join_tables);
         }
-        
+
         $result = $workflow_value->toArray();
         if (in_array('workflow_status_from', $join_tables) && is_null($workflow_value->workflow_status_from_id)) {
             $result['workflow_status_from'] = WorkflowStatus::getWorkflowStartStatus($workflow_value->workflow_cache);
@@ -180,7 +180,7 @@ class ApiWorkflowController extends AdminControllerBase
 
         return $result;
     }
- 
+
     /**
      * get workflow users by custom_value
      * @param mixed $tableKey
@@ -192,7 +192,7 @@ class ApiWorkflowController extends AdminControllerBase
         if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
             return abortJson(400, ErrorCode::INVALID_PARAMS());
         }
-        
+
         if (($code = $custom_table->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
         }
@@ -224,7 +224,7 @@ class ApiWorkflowController extends AdminControllerBase
 
         return $result->unique();
     }
-  
+
     /**
      * get workflow actions by custom_value
      * @param mixed $tableKey
@@ -236,11 +236,11 @@ class ApiWorkflowController extends AdminControllerBase
         if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
             return abortJson(400, ErrorCode::INVALID_PARAMS());
         }
-        
+
         if (($code = $custom_table->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
         }
-        
+
         if (($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
@@ -256,7 +256,7 @@ class ApiWorkflowController extends AdminControllerBase
 
         return $workflow_actions;
     }
-  
+
     /**
      * get workflow histories by custom_value
      * @param mixed $tableKey
@@ -268,7 +268,7 @@ class ApiWorkflowController extends AdminControllerBase
         if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
             return abortJson(400, ErrorCode::INVALID_PARAMS());
         }
-        
+
         if (($code = $custom_table->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
         }
@@ -303,7 +303,7 @@ class ApiWorkflowController extends AdminControllerBase
         if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
             return abortJson(400, ErrorCode::INVALID_PARAMS());
         }
-        
+
         if (($code = $custom_table->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
         }
@@ -329,7 +329,7 @@ class ApiWorkflowController extends AdminControllerBase
             $rules['comment'] = 'required';
         }
         $statusTo = $workflow_action->getStatusToId($custom_value);
-        $currentTo = isset($custom_value->workflow_value)? $custom_value->workflow_value->workflow_status_to_id: null;
+        $currentTo = isset($custom_value->workflow_value) ? $custom_value->workflow_value->workflow_status_to_id : null;
 
         $next_get_by_userinfo = null;
         if ($currentTo != $statusTo) {
@@ -365,7 +365,7 @@ class ApiWorkflowController extends AdminControllerBase
             if (is_nullorempty($nextUserAndOrgs) && $next_get_by_userinfo->isActionNext($custom_value)) {
                 return abortJson(400, ErrorCode::WORKFLOW_NOT_HAS_NEXT_USER());
             }
-            
+
             $params['get_by_userinfo_action'] = $next_get_by_userinfo->id;
         }
 

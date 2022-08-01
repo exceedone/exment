@@ -154,7 +154,7 @@ class ResetPasswordController extends Controller
     {
         return Password::broker('exment_admins');
     }
-        
+
     protected function guard()
     {
         return Auth::guard('admin');

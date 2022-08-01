@@ -4,6 +4,6 @@ namespace Exceedone\Exment\Enums;
 
 class ViewColumnSort extends EnumBase
 {
-    const ASC = '1';
-    const DESC = '-1';
+    public const ASC = '1';
+    public const DESC = '-1';
 }

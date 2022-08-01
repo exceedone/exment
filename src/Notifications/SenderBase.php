@@ -26,7 +26,7 @@ abstract class SenderBase
     {
         return $this->body;
     }
-    
+
     /**
      * Send notify
      *

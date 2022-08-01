@@ -101,7 +101,7 @@ trait ModalTrait
             'id' => 'modal-form',
             'class' => 'modal fade',
         ], $this->modalAttributes);
-        
+
         $this->modalInnerAttributes = array_merge([
             'role' => 'document',
             'class' => 'exment-modal-dialog modal-dialog modal-lg',

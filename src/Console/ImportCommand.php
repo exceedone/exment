@@ -7,7 +7,8 @@ use Exceedone\Exment\Services\DataImportExport;
 
 class ImportCommand extends Command
 {
-    use CommandTrait, ImportTrait;
+    use CommandTrait;
+    use ImportTrait;
 
     /**
      * The name and signature of the console command.
@@ -82,7 +83,7 @@ class ImportCommand extends Command
                     $this->error(exmtrans('command.import.error_info') . exmtrans('command.import.error_table', $file_name));
                     continue;
                 }
-    
+
                 $service = (new DataImportExport\DataImportExportService())
                     ->filebasename($custom_table->table_name)
                     ->importAction(new DataImportExport\Actions\Import\CustomTableAction(
@@ -97,7 +98,7 @@ class ImportCommand extends Command
                     'checkCount' => false,  // whether checking count
                     'take' => 100           // if set, taking data count
                 ]);
-                
+
                 if (boolval($result['result'] ?? true)) {
                     $this->line(($index + 1) . exmtrans('command.import.success_message', $file_name, array_get($result, 'data_import_cnt')));
                 }

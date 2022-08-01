@@ -42,11 +42,11 @@ class PluginController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
-        
+
         if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
             $content->row(view('exment::plugin.upload'));
         }
-        
+
         $content->body($this->grid());
         return $content;
     }
@@ -66,7 +66,7 @@ class PluginController extends AdminControllerBase
         }
 
         \Artisan::call('exment:batch', ['id' => $id]);
-        
+
         admin_toastr(exmtrans('common.message.success_execute'));
         return back();
     }
@@ -78,7 +78,7 @@ class PluginController extends AdminControllerBase
      */
     protected function grid()
     {
-        $grid = new Grid(new Plugin);
+        $grid = new Grid(new Plugin());
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
             $filter->like('uuid', exmtrans("plugin.uuid"));
@@ -106,7 +106,7 @@ class PluginController extends AdminControllerBase
 
         $grid->disableCreateButton();
         $grid->disableExport();
-        
+
         $grid->actions(function ($actions) {
             $actions->disableView();
 
@@ -179,7 +179,7 @@ class PluginController extends AdminControllerBase
             Checker::error();
             return false;
         }
-        
+
         if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
             $options = $request->get('options');
@@ -205,7 +205,7 @@ class PluginController extends AdminControllerBase
         $command_only = boolval(array_get($plugin, 'options.command_only'));
 
         // create form
-        $form = new Form(new Plugin);
+        $form = new Form(new Plugin());
         $form->exmheader(exmtrans("common.basic_setting"))->hr();
 
         $form->display('uuid', exmtrans("plugin.uuid"));
@@ -220,7 +220,7 @@ class PluginController extends AdminControllerBase
         $form->display('author', exmtrans("plugin.author"));
         $form->display('version', exmtrans("plugin.version"));
         $form->switchbool('active_flg', exmtrans("plugin.active_flg"));
-        
+
         $form->exmheader(exmtrans("common.detail_setting"))->hr();
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin, $command_only) {
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())) {
@@ -238,19 +238,19 @@ class PluginController extends AdminControllerBase
                 } elseif ($plugin->matchPluginType(PluginType::TRIGGER)) {
                     $enumClass = PluginEventTrigger::class;
                 }
-                
+
                 if (isset($enumClass)) {
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))
                     ->options($enumClass::transArray("plugin.options.event_trigger_options"))
                     ->help(exmtrans("plugin.help.event_triggers"));
                 }
             }
-            
+
             if ($plugin->matchPluginType(PluginType::PAGE)) {
                 // Plugin_type = 'page'
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
             }
-                        
+
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
                 $form->text('uri', exmtrans("plugin.options.uri"))->required();
 
@@ -287,7 +287,7 @@ class PluginController extends AdminControllerBase
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
                     ->default(3);
-                
+
                 $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
                     ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
                     ->rules('max:100');
@@ -372,7 +372,7 @@ class PluginController extends AdminControllerBase
                     'btn_class' => 'btn-purple',
                 ]));
             }
-            
+
             if ($plugin->matchPluginType(PluginType::BATCH) && !$command_only) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_urls('plugin', $plugin->id, 'executeBatch'),
@@ -382,7 +382,7 @@ class PluginController extends AdminControllerBase
                 ]));
             }
         });
-        
+
         $form->disableReset();
         $form->disableEditingCheck(false);
         return $form;
@@ -400,7 +400,7 @@ class PluginController extends AdminControllerBase
         if (!isset($pluginClass)) {
             return;
         }
-        
+
         if (!$pluginClass->useCustomOption()) {
             return;
         }
@@ -423,12 +423,12 @@ class PluginController extends AdminControllerBase
         if (!isset($plugin)) {
             return;
         }
-        
+
         $pluginClass = $plugin->getClass(null, ['throw_ex' => false, 'as_setting' => true]);
         if (!isset($pluginClass)) {
             return null;
         }
-        
+
         return $pluginClass;
     }
 }
