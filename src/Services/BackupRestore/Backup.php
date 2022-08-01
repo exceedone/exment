@@ -243,6 +243,8 @@ class Backup
             ],
         ];
 
+        $ignoreKeys = ['EXMENT_COMPOSER_PATH', 'EXMENT_MYSQL_BIN_DIR'];
+
         $results = [];
         foreach ($matchKeys as $item) {
             foreach ($item['keys'] as $key) {
@@ -250,7 +252,9 @@ class Backup
                     continue;
                 }
 
-                $results = array_merge(collect($lines)->map(function ($line) {
+                $results = array_merge(collect($lines)->filter(function ($line) use($ignoreKeys) {
+                    return !in_array($line[0], $ignoreKeys);
+                })->map(function ($line) {
                     return "{$line[0]}={$line[1]}";
                 })->toArray(), $results);
             }

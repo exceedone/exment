@@ -5,8 +5,10 @@ namespace Exceedone\Exment\Tests\Feature;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\OperationLog;
@@ -502,6 +504,50 @@ class Api2Test extends ApiTestBase
             ->assertJsonCount(3, 'data');
     }
 
+    /**
+     * Getting values children, and match ids
+     */
+    public function testGetValuesWithChildren()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE).'?children=1&count=5')
+            ->assertStatus(200)
+            ->assertJsonCount(5, 'data');
+
+        // check children
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
+        $data = array_get($json, 'data');
+
+        foreach ($data as $d) {
+            $this->_testChildrenValues($d, TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE, array_get($d, 'id'));
+        }
+    }
+
+    /**
+    * Getting values children, and match ids
+    */
+    public function testGetValuesWithChildren2()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+           'Authorization' => "Bearer $token",
+       ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY).'?children=1&count=5')
+           ->assertStatus(200)
+           ->assertJsonCount(5, 'data');
+
+        // check children
+        $json = json_decode_ex($response->baseResponse->getContent(), true);
+        $data = array_get($json, 'data');
+
+        foreach ($data as $d) {
+            $this->_testChildrenValues($d, TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY, array_get($d, 'id'));
+        }
+    }
+
     public function testWrongScopeGetValues()
     {
         $token = $this->getAdminAccessToken([ApiScope::ME]);
@@ -582,6 +628,46 @@ class Api2Test extends ApiTestBase
             ->assertJsonFragment([
                 'id' => 1
             ]);
+    }
+
+    /**
+     * Getting value children, and match ids
+     */
+    public function testGetValueWithChildren()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE, '1?children=1'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'id' => 1
+            ]);
+
+        // check children
+        $d = json_decode_ex($response->baseResponse->getContent(), true);
+        $this->_testChildrenValues($d, TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE, array_get($d, 'id'));
+    }
+
+    /**
+     * Getting value children, and match ids
+     */
+    public function testGetValueWithChildren2()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY, '1?children=1'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'id' => 1
+            ]);
+
+        // check children
+        $d = json_decode_ex($response->baseResponse->getContent(), true);
+        $this->_testChildrenValues($d, TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE_MANY_TO_MANY, array_get($d, 'id'));
     }
 
     public function testWrongScopeGetValue()
@@ -2444,6 +2530,53 @@ class Api2Test extends ApiTestBase
             $file = $response->baseResponse->getContent();
 
             $this->assertMatch($file, $matchValues[$index]);
+        }
+    }
+
+    protected function _testChildrenValues($data, $table_name, $id)
+    {
+        $relations = CustomRelation::getRelationsByParent($table_name);
+
+        // Whether has children
+        $this->assertTrue(array_has($data, 'children'));
+        foreach ($relations as $relation) {
+            $this->assertTrue(array_has($data, 'children.' . $relation->child_custom_table_cache->table_name));
+            $children = array_get($data, 'children.' . $relation->child_custom_table_cache->table_name);
+
+            // get children id
+            $children_ids = collect($children)->map(function ($child) {
+                return array_get($child, 'id');
+            })->toArray();
+
+
+            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                // Get value directly with parent_id
+                $childValueQuery = $relation->child_custom_table_cache->getValueQuery();
+                $childValueQuery->where('parent_id', $id);
+                $childIds = $childValueQuery->select('id')->get()->pluck('id')->toArray();
+            }
+            ////// Check as n:n
+            else {
+                // Get value using pivot table
+                $childIds = \DB::table($relation->getRelationName())
+                    ->where('parent_id', $id)
+                    ->select('child_id')
+                    ->distinct()
+                    ->get()
+                    ->pluck('child_id')
+                    ->toArray();
+            }
+
+            if (count($childIds) == 0) {
+                $this->assertTrue(count($children_ids) == 0, "{$id}' children's count expects 0, but real count is " . count($children_ids));
+            } else {
+                foreach ($childIds as $childId) {
+                    $this->assertTrue(in_array($childId, $children_ids), "{$childId} expects containing {$id}' children, but not has.");
+                }
+                foreach ($children_ids as $childId) {
+                    $this->assertTrue(in_array($childId, $childIds), "{$childId} expects containing {$id}' children, but not has.");
+                }
+            }
         }
     }
 }

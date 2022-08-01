@@ -593,6 +593,14 @@ abstract class CustomItem implements ItemInterface
         }
     }
 
+    /**
+     * get original field value
+     * @return mix
+     */
+    protected function getOriginalValue()
+    {
+        return array_get($this->custom_value->getOriginal(), 'value.' . $this->custom_column->column_name);
+    }
 
     protected function getCastOptions()
     {

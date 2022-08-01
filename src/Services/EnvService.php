@@ -120,14 +120,14 @@ class EnvService
 
             // Turn the value into an array and stop after the first split
             // So it's not possible to split e.g. the App-Key by accident
-            $entry = explode("=", $env_value, 2);
+            $entry = array_map('trim', explode("=", $env_value, 2));
 
             if (count($entry) == 0) {
                 continue;
             }
 
             if ($matchPrefix) {
-                if (strpos($entry[0], $key) === false) {
+                if (strpos($entry[0], $key) !== 0) {
                     continue;
                 }
             } else {

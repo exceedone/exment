@@ -77,6 +77,9 @@ class ApiDataController extends AdminControllerTableBase
             $model->whereIn('id', $ids);
         }
 
+        // set query
+        $this->setQueryInfo($model);
+
         // set order by
         $this->setOrderByQuery($model, $orderby_list);
 

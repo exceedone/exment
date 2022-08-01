@@ -36,6 +36,20 @@ class DocumentExcelService
     protected $model;
 
     /**
+     * Before saving callback
+     *
+     * @var \Closure
+     */
+    protected $savingCallback;
+    
+    /**
+     * after called callback
+     *
+     * @var \Closure
+     */
+    protected $calledCallback;
+    
+    /**
      * construct
      *
      * @param CustomValue $model output's model
@@ -59,6 +73,10 @@ class DocumentExcelService
         try {
             $reader = IOFactory::createReader('Xlsx');
             $spreadsheet = $reader->load($this->templateFileFullPath);
+    
+            if($this->calledCallback){
+                call_user_func($this->calledCallback, $spreadsheet);
+            }
 
             // output all sheets
             $showGridlines = [];
@@ -87,6 +105,10 @@ class DocumentExcelService
             for ($i = 0; $i < $sheetCount; $i++) {
                 $sheet = $spreadsheet->getSheet($i);
                 $sheet->setShowGridlines($showGridlines[$i]);
+            }
+    
+            if($this->savingCallback){
+                call_user_func($this->savingCallback, $spreadsheet);
             }
 
             $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -431,5 +453,27 @@ class DocumentExcelService
         $this->diskServies[] = $diskService;
 
         return $drawing;
+    }
+
+    /**
+     * After called event
+     *
+     * @param \Closure $callback
+     * @return $this
+     */
+    public function setCalledCallback(\Closure $callback){
+        $this->calledCallback = $callback;
+        return $this;
+    }
+    
+    /**
+     * Before save event
+     *
+     * @param \Closure $callback
+     * @return $this
+     */
+    public function setSavingCallback(\Closure $callback){
+        $this->savingCallback = $callback;
+        return $this;
     }
 }

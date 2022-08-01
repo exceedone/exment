@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Linkage;
@@ -34,7 +35,12 @@ trait ApiDataTrait
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        $model = getModelName($this->custom_table->table_name)::find($id);
+        $query = $this->custom_table->getValueQuery();
+
+        // set query
+        $this->setQueryInfo($query);
+
+        $model = $query->where('id', $id)->first();
         // not contains data, return empty data.
         if (!isset($model)) {
             $code = $this->custom_table->getNoDataErrorCode($id);
@@ -193,6 +199,7 @@ trait ApiDataTrait
                     'q',
                     'id',
                     'target_view_id',
+                    'children',
                 ]),
                 $options['appends']
             );
@@ -232,6 +239,14 @@ trait ApiDataTrait
     }
 
 
+    /**
+     * Modify cystom value result
+     *
+     * @param Request $request
+     * @param CustomValue|array|mixed $custom_value
+     * @param bool $recursive if true, this is $recursive, so not call children
+     * @return void
+     */
     protected function modifyCustomValue(Request $request, $custom_value)
     {
         // append label
@@ -239,6 +254,11 @@ trait ApiDataTrait
             $custom_value->append('label');
         }
 
+        // Change relation key name
+        if(!$recursive && $request->has('children') && boolval($request->get('children'))){
+            $custom_value = $this->modifyChildrenValue($request, $custom_value);
+        }
+        
         // convert to custom values
         $valuetype = $request->get('valuetype');
         if ($request->has('valuetype') && ValueType::isRegetApiCustomValue($valuetype)) {
@@ -330,6 +350,7 @@ trait ApiDataTrait
             'relationColumnValue' => $linkage_value_id ?? null,
             'display_table' => $request->get('display_table_id'),
             'all' => $column ? $column->isGetAllUserOrganization() : false,
+            'withChildren' => boolval($request->get('children')) ? CustomRelation::getRelationsByParent($this->custom_table) : null,
         ]);
 
         return $this->modifyAfterGetValue($request, $paginator, [
@@ -338,5 +359,53 @@ trait ApiDataTrait
                 'count' => $count,
             ]
         ]);
+    }
+    
+
+    /**
+     * Set query
+     * (1)Get children.
+     *
+     * @param mixed $query
+     * @return mixed $query
+     */
+    protected function setQueryInfo($query)
+    {
+        $request = request();
+        if ($request->has('children') && boolval($request->get('children'))) {
+            $relations = CustomRelation::getRelationsByParent($this->custom_table);
+            foreach ($relations as $relation) {
+                $query->with($relation->getRelationName());
+            }
+        }
+
+        return $query;
+    }
+
+    protected function modifyChildrenValue(Request $request, $custom_value){
+        $relations = CustomRelation::getRelationsByParent($this->custom_table);
+
+        $results = [];
+        foreach($relations as $relation){
+            // If getted relation name, change key name
+            $reltionName = $relation->getRelationName();
+            if(array_has($custom_value, $reltionName)){
+                $relationValues = $custom_value[$reltionName];
+                $makeHiddenArray = $relation->child_custom_table_cache->getMakeHiddenArray();
+                $relationValues = $relationValues->map(function($relationValue) use($makeHiddenArray, $request, $relation){
+                    // Call makehidden
+                    $relationValue = $relationValue->makeHidden($makeHiddenArray);
+                    // Call modify custom value
+                    $relationValue = $this->modifyCustomValue($request, $relationValue, true);
+                    return $relationValue;
+                });
+                // Set key name
+                $results[$relation->child_custom_table_cache->table_name] = $relationValues;
+                unset($custom_value[$reltionName]);
+            }
+        }
+
+        $custom_value['children'] = $results;
+        return $custom_value;
     }
 }

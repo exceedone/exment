@@ -368,8 +368,7 @@ class Plugin extends ModelBase
     {
         list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk($path, $diskService);
 
-        $meta = $disk->getDriver()->getMetadata($filePath);
-        return isMatchString(array_get($meta, 'type'), 'dir');
+        return $disk->getDriver()->directoryExists($filePath);
     }
 
     /**
