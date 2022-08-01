@@ -1,0 +1,53 @@
+name: check lang
+
+on:
+  pull_request:
+    paths:
+      - 'resources/lang/**'
+
+env:
+  DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: oreno4649/exment-boilerplate
+
+jobs:
+  check-lang:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
+          path: ./docker-exment
+
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
+          path: ./docker-exment/exment-boilerplate
+
+      - uses: actions/checkout@v3
+        with:
+          path: ./docker-exment/exment-boilerplate/exment
+
+      - name: Docker Compose Version
+        run: docker-compose --version
+
+      - name: Make mysql up
+        working-directory: docker-exment
+        run: |
+          make mysql-up
+
+      - name: copy compose.dev.json
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
+          docker-compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
+
+      - name: Make mysql Initialize
+        working-directory: docker-exment
+        run: |
+          make mysql-init
+
+      - name: Run artisan exment:checklang
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml run -T php php artisan exment:checklang
