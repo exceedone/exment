@@ -1310,9 +1310,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // set with
             $this->setQueryWith($query, $target_view);
-                
+
             // set with relation
-            if(isset($options['withChildren'])){
+            if (isset($options['withChildren'])) {
                 $this->setQueryWithRelation($query, $options['withChildren']);
             }
 
@@ -1353,7 +1353,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $this->setQueryWith($query, $target_view);
 
         // set with relation
-        if(isset($options['withChildren'])){
+        if (isset($options['withChildren'])) {
             $this->setQueryWithRelation($query, $options['withChildren']);
         }
 
@@ -1488,11 +1488,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        if(!is_list($relations)){
+        if (!is_list($relations)) {
             $relations = [$relations];
         }
 
-        foreach($relations as $relation){
+        foreach ($relations as $relation) {
             $query->with($relation->getRelationName());
         }
     }

@@ -255,10 +255,10 @@ trait ApiDataTrait
         }
 
         // Change relation key name
-        if(!$recursive && $request->has('children') && boolval($request->get('children'))){
+        if (!$recursive && $request->has('children') && boolval($request->get('children'))) {
             $custom_value = $this->modifyChildrenValue($request, $custom_value);
         }
-        
+
         // convert to custom values
         $valuetype = $request->get('valuetype');
         if ($request->has('valuetype') && ValueType::isRegetApiCustomValue($valuetype)) {
@@ -360,7 +360,7 @@ trait ApiDataTrait
             ]
         ]);
     }
-    
+
 
     /**
      * Set query
@@ -382,17 +382,18 @@ trait ApiDataTrait
         return $query;
     }
 
-    protected function modifyChildrenValue(Request $request, $custom_value){
+    protected function modifyChildrenValue(Request $request, $custom_value)
+    {
         $relations = CustomRelation::getRelationsByParent($this->custom_table);
 
         $results = [];
-        foreach($relations as $relation){
+        foreach ($relations as $relation) {
             // If getted relation name, change key name
             $reltionName = $relation->getRelationName();
-            if(array_has($custom_value, $reltionName)){
+            if (array_has($custom_value, $reltionName)) {
                 $relationValues = $custom_value[$reltionName];
                 $makeHiddenArray = $relation->child_custom_table_cache->getMakeHiddenArray();
-                $relationValues = $relationValues->map(function($relationValue) use($makeHiddenArray, $request, $relation){
+                $relationValues = $relationValues->map(function ($relationValue) use ($makeHiddenArray, $request, $relation) {
                     // Call makehidden
                     $relationValue = $relationValue->makeHidden($makeHiddenArray);
                     // Call modify custom value

@@ -252,7 +252,7 @@ class Backup
                     continue;
                 }
 
-                $results = array_merge(collect($lines)->filter(function ($line) use($ignoreKeys) {
+                $results = array_merge(collect($lines)->filter(function ($line) use ($ignoreKeys) {
                     return !in_array($line[0], $ignoreKeys);
                 })->map(function ($line) {
                     return "{$line[0]}={$line[1]}";

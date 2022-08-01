@@ -41,14 +41,14 @@ class DocumentExcelService
      * @var \Closure
      */
     protected $savingCallback;
-    
+
     /**
      * after called callback
      *
      * @var \Closure
      */
     protected $calledCallback;
-    
+
     /**
      * construct
      *
@@ -73,8 +73,8 @@ class DocumentExcelService
         try {
             $reader = IOFactory::createReader('Xlsx');
             $spreadsheet = $reader->load($this->templateFileFullPath);
-    
-            if($this->calledCallback){
+
+            if ($this->calledCallback) {
                 call_user_func($this->calledCallback, $spreadsheet);
             }
 
@@ -106,8 +106,8 @@ class DocumentExcelService
                 $sheet = $spreadsheet->getSheet($i);
                 $sheet->setShowGridlines($showGridlines[$i]);
             }
-    
-            if($this->savingCallback){
+
+            if ($this->savingCallback) {
                 call_user_func($this->savingCallback, $spreadsheet);
             }
 
@@ -461,18 +461,20 @@ class DocumentExcelService
      * @param \Closure $callback
      * @return $this
      */
-    public function setCalledCallback(\Closure $callback){
+    public function setCalledCallback(\Closure $callback)
+    {
         $this->calledCallback = $callback;
         return $this;
     }
-    
+
     /**
      * Before save event
      *
      * @param \Closure $callback
      * @return $this
      */
-    public function setSavingCallback(\Closure $callback){
+    public function setSavingCallback(\Closure $callback)
+    {
         $this->savingCallback = $callback;
         return $this;
     }

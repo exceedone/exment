@@ -45,10 +45,10 @@ abstract class PluginDocumentBase
             $template_path,
             $output_filename
         );
-        $service->setCalledCallback(function($spreadsheet){
+        $service->setCalledCallback(function ($spreadsheet) {
             $this->called($spreadsheet);
         });
-        $service->setSavingCallback(function($spreadsheet){
+        $service->setSavingCallback(function ($spreadsheet) {
             $this->saving($spreadsheet);
         });
         $service->makeExcel();
