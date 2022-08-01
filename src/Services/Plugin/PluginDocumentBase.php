@@ -44,6 +44,12 @@ abstract class PluginDocumentBase
             $template_path,
             $output_filename
         );
+        $service->setCalledCallback(function($spreadsheet){
+            $this->called($spreadsheet);
+        });
+        $service->setSavingCallback(function($spreadsheet){
+            $this->saving($spreadsheet);
+        });
         $service->makeExcel();
 
         // set path and file info
@@ -143,6 +149,24 @@ abstract class PluginDocumentBase
      * execute after creating document
      */
     protected function executed()
+    {
+    }
+
+    /**
+     * After called document service. If set custom value to document. Please override this.
+     *
+     * @return void
+     */
+    protected function called($spreadsheet)
+    {
+    }
+
+    /**
+     * Before saving document. If set custom value to document. Please override this.
+     *
+     * @return void
+     */
+    protected function saving($spreadsheet)
     {
     }
 }
