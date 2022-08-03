@@ -100,10 +100,12 @@ composer require pragmarx/google2fa
 composer require simplesoftwareio/simple-qrcode=^2.0.0
 composer require laravel/socialite=~5.1
 composer require aacotroneo/laravel-saml2
-composer require league/flysystem-sftp=~1.0
-composer require league/flysystem-aws-s3-v3=~1.0
-composer require league/flysystem-azure-blob-storage=~0.1.6
-composer require spatie/flysystem-dropbox=^1.2.0
+composer require league/flysystem-ftp ~3.0
+composer require phpseclib/phpseclib ^2.0
+composer require league/flysystem-sftp ~3.0
+composer require league/flysystem-aws-s3-v3 ~3.0
+composer require league/flysystem-azure-blob-storage ~3.0
+composer require spatie/flysystem-dropbox=^2.0.5
 ```
 
 - Copy setting file.
