@@ -33,7 +33,7 @@ class CopyMenuButton implements Renderable
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
-        $label = sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('common.copy')));
+        $label = esc_html(sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('common.copy'))));
         return <<<EOT
 
         $('#menu_button_$uuid').off('click').on('click', function(){
