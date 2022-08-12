@@ -819,7 +819,7 @@ class WorkflowAction extends ModelBase
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
-            'title' => esc_html($this->action_name),
+            'title' => $this->action_name,
             'showSubmit' => $showSubmit,
         ]);
     }
