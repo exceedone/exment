@@ -882,6 +882,7 @@ return [
         'saml_option_authn_request_signed' => 'Sign AuthnRequest',
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
+        'saml_option_requested_authn_context' => 'Sign RequestedAuthnContext',
         'saml_option_proxy_vars' => 'Use Proxy',
         
         'ldap_setting' => 'LDAP Setting',
@@ -949,6 +950,7 @@ return [
             'saml_option_authn_request_signed' => 'Set to YES to sign the authentication request sent by the SP.',
             'saml_option_logout_request_signed' => 'Set to YES to sign the logout request sent by the SP.',
             'saml_option_logout_response_signed' => 'Set to YES to sign the logout response sent by the SP.',
+            'saml_option_requested_authn_context' => 'Set to YES to limit the IdP authentication method to password authentication.',
             'saml_option_proxy_vars' => 'Set to YES if use Reverse Proxy.',
             'saml_key_path' => '<br />*When reading from a file, place the file in the following path.<br/>%s',
 

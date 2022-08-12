@@ -882,6 +882,7 @@ return [
         'saml_option_authn_request_signed' => 'Sign AuthnRequest',
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
+        'saml_option_requested_authn_context' => 'Sign RequestedAuthnContext',
         'saml_option_proxy_vars' => 'Proxy使用',
         
         'ldap_setting' => 'LDAP設定',
@@ -949,6 +950,7 @@ return [
             'saml_option_authn_request_signed' => 'SPによって送信する認証リクエストを署名する場合は、YESにしてください。',
             'saml_option_logout_request_signed' => 'SPによって送信するログアウトリクエストを署名する場合は、YESにしてください。',
             'saml_option_logout_response_signed' => 'SPによって送信するログアウトレスポンスを署名する場合は、YESにしてください。',
+            'saml_option_requested_authn_context' => 'IdPの認証方式をパスワード認証に限定する場合は、YESにしてください。',
             'saml_option_proxy_vars' => 'リバースプロキシなどを使用している場合に、YESにしてください。',
             'saml_key_path' => '<br />※ファイルから読み込みを行う場合、以下のパスにファイルを配置してください。<br/>%s',
 
