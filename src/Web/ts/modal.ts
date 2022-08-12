@@ -346,7 +346,7 @@ namespace Exment {
                     }
                 }
                 if (res.title) {
-                    $('#modal-showmodal .modal-title').html(res.title);
+                    $('#modal-showmodal .modal-title').text(res.title);
                 }
                 if (res.actionurl) {
                     $('#modal-showmodal .modal-action-url').val(res.actionurl);
@@ -354,7 +354,7 @@ namespace Exment {
             } else {
                 $('#modal-showmodal .modal-body').html(res);
                 if(hasValue(original_title)){
-                    $('#modal-showmodal .modal-title').html(original_title);
+                    $('#modal-showmodal .modal-title').text(original_title);
                 }
                 $('#modal-showmodal button.modal-submit').addClass('d-none');
             }
