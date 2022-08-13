@@ -1,13 +1,13 @@
 name: phpstan
 
-on: [push]
-#  pull_request:
-#    paths:
-#      - 'config/**'
-#      - 'database/**'
-#      - 'resources/**'
-#      - 'src/**'
-#      - 'tests/**'
+on:
+  pull_request:
+    paths:
+      - 'config/**'
+      - 'database/**'
+      - 'resources/**'
+      - 'src/**'
+      - 'tests/**'
 
 env:
   DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
@@ -53,10 +53,9 @@ jobs:
       - name: setup phpstan
         working-directory: docker-exment
         run: |
-          docker-compose -f docker-compose.yml exec -T php composer require --dev nunomaduro/larastan=~1.0
           docker-compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
 
       - name: run phpstan
         working-directory: docker-exment
         run: |
-          docker-compose -f docker-compose.yml exec -T php ./vendor/bin/phpstan analyse
+          docker-compose -f docker-compose.yml exec -T php ./vendor/bin/phpstan analyse --memory-limit=1G
