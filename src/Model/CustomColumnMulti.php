@@ -307,11 +307,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                     if (empty($value2)) {
                         return true;
                     }
-                } elseif (empty($value2)) {
-                    if (empty($value1)) {
-                        return true;
-                    }
-                } else {
+                } elseif (!empty($value2)) {
                     if ($value1 == $value2) {
                         return true;
                     }
@@ -325,9 +321,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                         return true;
                     }
                 } elseif (empty($value2)) {
-                    if (!empty($value1)) {
-                        return true;
-                    }
+                    return true;
                 } else {
                     if ($value1 != $value2) {
                         return true;

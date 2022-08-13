@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RoleGroup extends ModelBase
 {
@@ -23,23 +24,23 @@ class RoleGroup extends ModelBase
         ],
     ];
 
-    public function role_group_permissions()
+    public function role_group_permissions(): HasMany
     {
         return $this->hasMany(RoleGroupPermission::class, 'role_group_id');
     }
 
-    public function role_group_user_organizations()
+    public function role_group_user_organizations(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id');
     }
 
-    public function role_group_users()
+    public function role_group_users(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')
             ->where('role_group_user_org_type', 'user');
     }
 
-    public function role_group_organizations()
+    public function role_group_organizations(): HasMany
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')
             ->where('role_group_user_org_type', 'organization');

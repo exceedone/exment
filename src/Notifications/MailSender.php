@@ -15,6 +15,7 @@ use Exceedone\Exment\Notifications\Mail\MailInfoTrait;
 use Exceedone\Exment\Notifications\Mail\MailHistoryTrait;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
  * Send Mail System
@@ -195,7 +196,6 @@ class MailSender extends SenderBase
 
     /**
      * Send Mail
-     *
      */
     public function send()
     {

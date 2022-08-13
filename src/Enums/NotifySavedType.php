@@ -40,7 +40,7 @@ class NotifySavedType extends EnumBase
      * @param \Exceedone\Exment\Model\CustomValue $custom_value
      * @return string
      */
-    public function getTargetUserName($custom_value)
+    public function getTargetUserName($custom_value): string
     {
         switch ($this) {
             case static::CREATE:
@@ -53,5 +53,6 @@ class NotifySavedType extends EnumBase
             case static::ATTACHMENT:
                 return \Exment::user()->base_user->label;
         }
+        return '';
     }
 }

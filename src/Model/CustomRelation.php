@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ConditionType;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -70,12 +71,12 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         ]
     ];
 
-    public function parent_custom_table()
+    public function parent_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'parent_custom_table_id');
     }
 
-    public function child_custom_table()
+    public function child_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'child_custom_table_id');
     }

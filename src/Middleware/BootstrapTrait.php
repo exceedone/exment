@@ -72,7 +72,7 @@ trait BootstrapTrait
             $items = collect($pluginClass->{$p}(true))->map(function ($item) use ($pluginClass, $asPublicForm) {
                 return $pluginClass->getCssJsUrl($item, $asPublicForm);
             });
-            if (!empty($items)) {
+            if ($items->isEmpty()) {
                 foreach ($items as $item) {
                     Ad::{$p.'last'}($item);
                 }

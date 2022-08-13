@@ -14,6 +14,7 @@ use Exceedone\Exment\Services\Search\SearchService;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
  * Notify user.
@@ -210,7 +211,7 @@ class Notify extends ModelBase
                         ]);
                     }
                     // throw mailsend Exception
-                    catch (\Swift_TransportException $ex) {
+                    catch (TransportExceptionInterface $ex) {
                         \Log::error($ex);
                     }
                 }
@@ -346,7 +347,7 @@ class Notify extends ModelBase
                     ]);
                 }
                 // throw mailsend Exception
-                catch (\Swift_TransportException $ex) {
+                catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
@@ -418,7 +419,7 @@ class Notify extends ModelBase
                     ]);
                 }
                 // throw mailsend Exception
-                catch (\Swift_TransportException $ex) {
+                catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
@@ -560,7 +561,7 @@ class Notify extends ModelBase
                     ]);
                 }
                 // throw mailsend Exception
-                catch (\Swift_TransportException $ex) {
+                catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));

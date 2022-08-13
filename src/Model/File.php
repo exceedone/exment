@@ -438,7 +438,7 @@ class File extends ModelBase
                 $val = $funcUuid($pathOrUuid) ?: $funcPath($pathOrUuid) ?: null;
             }
 
-            if (isset($val)) {
+            if ($val !== null) {
                 return $val;
             }
         }

@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\Traits\SerializeDateTrait;
 use Illuminate\Database\Eloquent\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 
+/** @property-read string $id */
 class ModelBase extends Model
 {
     use SerializeDateTrait;

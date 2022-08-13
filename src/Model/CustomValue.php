@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
+/** @property-read string $display_avatar */
 abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;

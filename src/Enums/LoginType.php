@@ -41,5 +41,6 @@ class LoginType extends EnumBase
             case LoginType::LDAP:
                 return LoginServiceRoot\Ldap\LdapService::class;
         }
+        return '';
     }
 }

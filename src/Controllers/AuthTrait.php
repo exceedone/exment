@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\Response;
  * Auth trait, use from Auth Controller.
  *
  * @method string redirectPath()
- * @method string getFailedLoginMessage()
  */
 trait AuthTrait
 {
@@ -120,6 +119,8 @@ trait AuthTrait
         if (Lang::has('exment::exment.error.login_failed')) {
             return exmtrans('error.login_failed');
         }
+        /* TODO:used in a class that does not implement `getFailedLoginMessage` in the parent. */
+        /* @phpstan-ignore-next-line */
         return parent::getFailedLoginMessage();
     }
 }

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -52,27 +53,27 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         ]
     ];
 
-    public function custom_copy()
+    public function custom_copy(): BelongsTo
     {
         return $this->belongsTo(CustomCopy::class, 'custom_copy_id');
     }
 
-    public function from_custom_column()
+    public function from_custom_column(): BelongsTo
     {
         return $this->belongsTo(CustomColumn::class, 'from_column_target_id');
     }
 
-    public function to_custom_column()
+    public function to_custom_column(): BelongsTo
     {
         return $this->belongsTo(CustomColumn::class, 'to_column_target_id');
     }
 
-    public function from_custom_table()
+    public function from_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'from_column_table_id');
     }
 
-    public function to_custom_table()
+    public function to_custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'to_column_table_id');
     }
