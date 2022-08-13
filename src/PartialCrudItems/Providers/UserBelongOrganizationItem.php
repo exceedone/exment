@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomRelation;
 
 /**
  * Organization item for User
+ * @phpstan-consistent-constructor
  */
 class UserBelongOrganizationItem extends ProviderBase
 {

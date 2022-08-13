@@ -8,6 +8,9 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\AutoSUuidTrait;

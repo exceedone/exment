@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class WorkflowValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;

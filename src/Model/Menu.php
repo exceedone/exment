@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
  * @property int $id
  *
  * @method where($parent_id, $id)
+ * @phpstan-consistent-constructor
  */
 class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 {

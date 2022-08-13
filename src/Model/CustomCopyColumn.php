@@ -7,6 +7,12 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @phpstan-consistent-constructor
+ * @property string $view_pivot_column_id
+ * @property string $view_pivot_table_id
+ * @property string $view_column_type
+ */
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;

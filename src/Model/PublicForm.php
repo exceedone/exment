@@ -15,6 +15,9 @@ use Exceedone\Exment\DataItems\Form\PublicFormForm;
 use Exceedone\Exment\Form\Field\ReCaptcha;
 use Exceedone\Exment\Enums\SystemTableName;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class PublicForm extends ModelBase
 {
     use Traits\UseRequestSessionTrait;

@@ -6,7 +6,10 @@ use Exceedone\Exment\Model\Traits\SerializeDateTrait;
 use Illuminate\Database\Eloquent\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 
-/** @property-read string $id */
+/**
+ * @property-read string $id
+ * @phpstan-consistent-constructor
+ */
 class ModelBase extends Model
 {
     use SerializeDateTrait;
@@ -19,6 +22,14 @@ class ModelBase extends Model
      * @var boolean
      */
     public $saving_users = true;
+
+    /**
+     * @param array $attributes
+     */
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+    }
 
     /**
      * Get CreatedUser. Only name.

@@ -6,6 +6,9 @@ use Exceedone\Exment\Services\Login as LoginServiceRoot;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\LoginProviderType;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class LoginSetting extends ModelBase
 {
     use Traits\DatabaseJsonOptionTrait;

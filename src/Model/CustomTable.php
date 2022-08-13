@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\Request;
 
 /**
  * Custom Table Class
+ *
+ * @phpstan-consistent-constructor
  */
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {

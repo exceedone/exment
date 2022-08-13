@@ -21,6 +21,8 @@ use Webpatser\Uuid\Uuid;
  *     *Update custom value id or table
  *     *Delete file info.
  *     *Get attachment url.
+ *
+ * @phpstan-consistent-constructor
  */
 class File extends ModelBase
 {

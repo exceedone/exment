@@ -6,6 +6,9 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ConditionType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\TemplateTrait;

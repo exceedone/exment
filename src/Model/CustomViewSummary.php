@@ -3,7 +3,11 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionType;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class CustomViewSummary extends ModelBase
 {
     use Traits\CustomViewColumnTrait;
@@ -55,12 +59,12 @@ class CustomViewSummary extends ModelBase
         ],
     ];
 
-    public function custom_view()
+    public function custom_view(): BelongsTo
     {
         return $this->belongsTo(CustomView::class, 'custom_view_id');
     }
 
-    public function custom_column()
+    public function custom_column(): ?BelongsTo
     {
         if ($this->view_column_type != ConditionType::COLUMN) {
             return null;
@@ -68,7 +72,7 @@ class CustomViewSummary extends ModelBase
         return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
     }
 
-    public function custom_table()
+    public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'view_column_table_id');
     }

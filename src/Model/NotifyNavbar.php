@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class NotifyNavbar extends ModelBase
 {
     protected static function boot()

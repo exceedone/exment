@@ -4,6 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class WorkflowTable extends ModelBase
 {
     use Traits\UseRequestSessionTrait;

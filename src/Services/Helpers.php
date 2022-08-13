@@ -1322,9 +1322,6 @@ if (!function_exists('getModelName')) {
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
-            if (!isset($suuid)) {
-                return null;
-            }
             $table = CustomTable::findBySuuid($suuid);
             if (!is_null($table)) {
                 $table->createTable();
@@ -1737,9 +1734,7 @@ if (!function_exists('admin_exclusion_path')) {
             $path = substr($path, strlen_ex($prefix));
         }
 
-        $path = trim($path, '/');
-
-        return $path?? '/';
+        return trim($path, '/');
     }
 
     if (!function_exists('unicode_decode')) {
