@@ -18,23 +18,31 @@ class SwitchField extends AdminSwitchField
         if (is_null($this->value()) && is_null($this->getOld())) {
             $this->value = $this->states['off']['value'];
         }
-        
+
+        $onText = esc_html($this->states['on']['text']);
+        $offText = esc_html($this->states['off']['text']);
+        $onColor = esc_html($this->states['on']['color']);
+        $offColor = esc_html($this->states['off']['color']);
+        $onValue = esc_html($this->states['on']['value']);
+        $offValue = esc_html($this->states['off']['value']);
         $this->script = <<<EOT
 
 $('{$this->getElementClassSelector()}.la_checkbox').bootstrapSwitch({
     size:'small',
-    onText: '{$this->states['on']['text']}',
-    offText: '{$this->states['off']['text']}',
-    onColor: '{$this->states['on']['color']}',
-    offColor: '{$this->states['off']['color']}',
+    onText: '{$onText}',
+    offText: '{$offText}',
+    onColor: '{$onColor}',
+    offColor: '{$offColor}',
     onSwitchChange: function(event, state) {
-        $(event.target).closest('.bootstrap-switch').next().val(state ? '{$this->states['on']['value']}' : '{$this->states['off']['value']}').change();
+        let onValue = $( '<span/>' ).html( '{$onValue}' ).text();
+        let offValue = $( '<span/>' ).html( '{$offValue}' ).text();
+        $(event.target).closest('.bootstrap-switch').next().val(state ? onValue : offValue).change();
     }
 });
 
 EOT;
 
-        $this->attribute(['data-onvalue' => $this->states['on']['value'], 'data-offvalue' => $this->states['off']['value']]);
+        $this->attribute(['data-onvalue' => $onValue, 'data-offvalue' => $offValue]);
 
         $grandParent = $this->getParentClassname();
         return $grandParent::render()->with([
