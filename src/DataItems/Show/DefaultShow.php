@@ -389,10 +389,11 @@ class DefaultShow extends ShowBase
                 }
                 // many to many
                 elseif ($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY) {
+                    $table_name = getDBTableName($target_table);
                     // first, getting children ids
                     $children_ids = $this->custom_value->{$relation_name}()->get()->pluck('id');
                     // second, filtering children ids
-                    $grid->model()->whereIn('id', $children_ids->toArray());
+                    $grid->model()->whereIn("$table_name.id", $children_ids->toArray());
                 }
 
                 $custom_view = CustomView::getAllData($target_table);
