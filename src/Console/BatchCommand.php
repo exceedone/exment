@@ -43,8 +43,7 @@ class BatchCommand extends Command
      */
     public function handle()
     {
-        $this->pluginBatch();
-        return 0;
+        return $this->pluginBatch();
     }
 
     /**
@@ -58,18 +57,26 @@ class BatchCommand extends Command
 
         if (!isset($plugin)) {
             $this->error('Plugin not found. Please select plugin.');
-            return;
+            return 1;
         }
 
         if (!$plugin->matchPluginType(PluginType::BATCH)) {
             $this->error('Plugin not not batch. Please select batch plugin.');
-            return;
+            return 1;
         }
 
         $batch = $plugin->getClass(PluginType::BATCH, [
             'command_options' => $this->options()
         ]);
-        $batch->execute();
+        $result = $batch->execute();
+
+        if($result === false){
+            return 1;
+        }
+        if(is_null($result)){
+            return 0;
+        }
+        return $result;
     }
 
     protected function findPlugin()
