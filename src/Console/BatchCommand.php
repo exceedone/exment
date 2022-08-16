@@ -70,10 +70,10 @@ class BatchCommand extends Command
         ]);
         $result = $batch->execute();
 
-        if($result === false){
+        if ($result === false) {
             return 1;
         }
-        if(is_null($result)){
+        if (is_null($result)) {
             return 0;
         }
         return $result;
