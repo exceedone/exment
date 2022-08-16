@@ -89,4 +89,20 @@ class EmbeddedForm extends EmbeddedFormBase
     {
         return $this->fieldAndOptions;
     }
+
+    /**
+     * Prepare for insert or update.
+     *
+     * @param array $input
+     *
+     * @return mixed
+     */
+    public function prepare($input, bool $asConfirm = false)
+    {
+        if (is_null($input)) {
+            return $input;
+        }
+
+        return parent::prepare($input, $asConfirm);
+    }
 }
