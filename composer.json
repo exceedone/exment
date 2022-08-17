@@ -37,7 +37,7 @@
         "laravel/slack-notification-channel": "^2.3",
         "lcobucci/jwt": "3.3.*",
         "composer/composer": "^2.0",
-        "exceedone/laravel-admin": "~2.2",
+        "exceedone/laravel-admin": "^2.2.3",
         "kylekatarnls/update-helper": "^1.2",
         "renatomarinho/laravel-page-speed": "^1.8.11",
         "laravel/socialite": "^5.2",
