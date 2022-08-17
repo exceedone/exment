@@ -232,6 +232,7 @@ var Exment;
                 postEvent: null,
                 showCancelButton: true,
                 confirmCallback: null,
+                htmlTitle: false,
             }, options);
             let data = $.extend({
                 _pjax: true,
@@ -240,6 +241,10 @@ var Exment;
             if (options.method.toLowerCase() == 'delete') {
                 data._method = 'delete';
                 options.method = 'POST';
+            }
+            // Escape title
+            if (!options.htmlTitle) {
+                options.title = $('<span/>').text(options.title).html();
             }
             let swalOptions = {
                 title: options.title,
