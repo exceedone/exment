@@ -230,18 +230,24 @@ class PluginController extends AdminControllerBase
                 })->help(exmtrans("plugin.help.target_tables"));
 
                 // only trigger
-                $enumClass = null;
+                $enumClass = [];
                 if ($plugin->matchPluginType(PluginType::BUTTON)) {
-                    $enumClass = PluginButtonType::class;
-                } elseif ($plugin->matchPluginType(PluginType::EVENT)) {
-                    $enumClass = PluginEventType::class;
-                } elseif ($plugin->matchPluginType(PluginType::TRIGGER)) {
-                    $enumClass = PluginEventTrigger::class;
+                    $enumClass[] = PluginButtonType::class;
+                }
+                if ($plugin->matchPluginType(PluginType::EVENT)) {
+                    $enumClass[] = PluginEventType::class;
+                }
+                if ($plugin->matchPluginType(PluginType::TRIGGER)) {
+                    $enumClass[] = PluginEventTrigger::class;
                 }
 
-                if (isset($enumClass)) {
+                if (!empty($enumClass)) {
+                    $options = [];
+                    collect($enumClass)->each(function($class) use(&$options) {
+                        $options = array_merge($options, $class::transArray("plugin.options.event_trigger_options"));
+                    });
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))
-                    ->options($enumClass::transArray("plugin.options.event_trigger_options"))
+                    ->options($options)
                     ->help(exmtrans("plugin.help.event_triggers"));
                 }
             }
