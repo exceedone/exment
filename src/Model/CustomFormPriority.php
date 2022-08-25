@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class CustomFormPriority extends ModelBase
 {
     use Traits\ClearCacheTrait;

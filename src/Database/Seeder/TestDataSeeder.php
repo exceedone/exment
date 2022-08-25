@@ -278,7 +278,7 @@ class TestDataSeeder extends Seeder
                         ->where('value->text', "test_$i")
                         ->get()
                         ->pluck('id');
-                    if (empty($parent_custom_value_ids)) {
+                    if (count($parent_custom_value_ids) === 0) {
                         return;
                     }
 

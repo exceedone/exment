@@ -4,6 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\RoleType;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class RoleGroupPermission extends ModelBase
 {
     use Traits\TemplateTrait;

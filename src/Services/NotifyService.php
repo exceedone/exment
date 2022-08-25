@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Notifications;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
  * Notify dialog, send mail etc.
@@ -229,7 +230,7 @@ class NotifyService
         if (isset($title) && isset($message)) {
             try {
                 $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
-            } catch (\Swift_TransportException $ex) {
+            } catch (TransportExceptionInterface $ex) {
                 return getAjaxResponse([
                     'result'  => false,
                     'errors' => ['send_error_message' => ['type' => 'input',
@@ -346,7 +347,7 @@ class NotifyService
             return $sender;
         }
         // throw mailsend Exception
-        catch (\Swift_TransportException $ex) {
+        catch (TransportExceptionInterface $ex) {
             throw $ex;
         }
     }
@@ -481,7 +482,7 @@ class NotifyService
             return $sender;
         }
         // throw mailsend Exception
-        catch (\Swift_TransportException $ex) {
+        catch (TransportExceptionInterface $ex) {
             throw $ex;
         }
     }

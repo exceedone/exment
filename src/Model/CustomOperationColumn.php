@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class CustomOperationColumn extends ModelBase
 {
     use Traits\CustomViewColumnTrait;

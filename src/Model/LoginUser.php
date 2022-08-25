@@ -7,6 +7,7 @@ use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Traits\AdminBuilder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,9 @@ use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenticatable, \Illuminate\Contracts\Auth\CanResetPassword
 {
     use AdminBuilder;
@@ -37,7 +41,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     /**
      * taale "user"
      */
-    public function base_user()
+    public function base_user(): BelongsTo
     {
         return $this->belongsTo(getModelName(SystemTableName::USER), 'base_user_id');
     }

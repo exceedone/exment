@@ -9,6 +9,8 @@ abstract class ShowBase
     protected $custom_value;
     protected $modal = false;
 
+    abstract public function __construct($custom_table, $custom_form);
+
     public static function getItem(...$args)
     {
         list($custom_table, $custom_form) = $args + [null, null, null];

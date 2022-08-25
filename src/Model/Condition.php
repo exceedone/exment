@@ -7,6 +7,8 @@ use Encore\Admin\Form;
 
 /**
  * Custom value condition. Use form priority, workflow action.
+ *
+ * @phpstan-consistent-constructor
  */
 class Condition extends ModelBase
 {

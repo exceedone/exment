@@ -6,6 +6,8 @@ use Exceedone\Exment\Enums\ConditionType;
 
 /**
  * Custom view's header "Filter" button's setting
+ *
+ * @phpstan-consistent-constructor
  */
 class CustomViewGridFilter extends ModelBase
 {

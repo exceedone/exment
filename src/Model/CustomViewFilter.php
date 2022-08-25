@@ -6,6 +6,9 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class CustomViewFilter extends ModelBase
 {
     use Traits\CustomViewColumnTrait;

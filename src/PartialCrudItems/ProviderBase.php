@@ -4,6 +4,7 @@ namespace Exceedone\Exment\PartialCrudItems;
 
 /**
  * ProviderBase
+ * @phpstan-consistent-constructor
  */
 abstract class ProviderBase
 {

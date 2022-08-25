@@ -78,5 +78,6 @@ class CheckRequireCommand extends Command
             case SystemRequireResult::NG:
                 return 'error';
         }
+        return '';
     }
 }

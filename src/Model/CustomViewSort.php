@@ -4,6 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionType;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class CustomViewSort extends ModelBase
 {
     use Traits\CustomViewColumnTrait;
