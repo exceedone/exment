@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Exceedone\Exment\Services\NotifyService;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class NotifyTestCommand extends Command
 {
@@ -60,7 +61,7 @@ class NotifyTestCommand extends Command
             return 0;
         }
         // throw mailsend Exception
-        catch (\Swift_TransportException $ex) {
+        catch (TransportExceptionInterface  $ex) {
             $this->error('Send mail Error. Please check log.');
             \Log::error($ex);
         } catch (\Exception $ex) {

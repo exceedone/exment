@@ -989,7 +989,7 @@ class ApiDataController extends AdminControllerTableBase
     }
 
 
-    protected function getFileValue(CustomColumn $file_column, $file_value): array
+    protected function getFileValue(CustomColumn $file_column, $file_value): ?array
     {
         // whether is_vector, set as array
         if (!is_vector($file_value)) {

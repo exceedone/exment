@@ -14,6 +14,9 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class WorkflowAction extends ModelBase
 {
     use Traits\DatabaseJsonOptionTrait;

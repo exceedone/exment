@@ -47,7 +47,7 @@ class WorkflowItem extends SystemItem implements ConditionItemInterface
      * @param Condition $condition
      * @return string
      */
-    public function getConditionText(Condition $condition)
+    public function getConditionText(Condition $condition): string
     {
         $enum = SystemColumn::getEnum($condition->target_column_id);
         switch ($enum) {
@@ -57,6 +57,7 @@ class WorkflowItem extends SystemItem implements ConditionItemInterface
                 // now only work user
                 return exmtrans('custom_view.filter_condition_options.eq-user');
         }
+        return '';
     }
 
 

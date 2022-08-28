@@ -64,7 +64,7 @@ class PublicFormUserProvider extends \Illuminate\Auth\EloquentUserProvider
      *
      * @param  \Illuminate\Contracts\Auth\Authenticatable  $user
      * @param  array  $credentials
-     * @return bool
+     * @return void
      */
     public function validateCredentials(Authenticatable $user, array $credentials)
     {

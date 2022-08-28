@@ -6,6 +6,9 @@ use Exceedone\Exment\Services\Login as LoginServiceRoot;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\LoginProviderType;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class LoginSetting extends ModelBase
 {
     use Traits\DatabaseJsonOptionTrait;
@@ -79,6 +82,7 @@ class LoginSetting extends ModelBase
         } elseif ($this->login_type == LoginType::SAML) {
             return $this->exment_callback_url_default;
         }
+        return '';
     }
 
     /**
@@ -95,6 +99,7 @@ class LoginSetting extends ModelBase
         } elseif ($this->login_type == LoginType::SAML) {
             return admin_urls("saml/login/{$this->provider_name}/acs");
         }
+        return '';
     }
 
     /**
@@ -110,6 +115,7 @@ class LoginSetting extends ModelBase
         } elseif ($this->login_type == LoginType::SAML) {
             return route('exment.logintest_acs', ['id' => $this->id]);
         }
+        return '';
     }
 
     /**

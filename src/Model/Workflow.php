@@ -5,6 +5,9 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;

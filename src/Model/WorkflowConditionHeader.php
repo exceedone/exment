@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class WorkflowConditionHeader extends ModelBase
 {
     use Traits\UseRequestSessionTrait;

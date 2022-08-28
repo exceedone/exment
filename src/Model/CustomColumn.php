@@ -7,8 +7,13 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
@@ -92,54 +97,54 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         ]
     ];
 
-    public function custom_table()
+    public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
-    public function custom_form_columns()
+    public function custom_form_columns(): HasMany
     {
         return $this->hasMany(CustomFormColumn::class, 'form_column_target_id')
             ->where('form_column_type', FormColumnType::COLUMN);
     }
 
-    public function custom_view_columns()
+    public function custom_view_columns(): HasMany
     {
         return $this->hasMany(CustomViewColumn::class, 'view_column_target_id')
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
-    public function custom_view_sorts()
+    public function custom_view_sorts(): HasMany
     {
         return $this->hasMany(CustomViewSort::class, 'view_column_target_id')
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
-    public function custom_view_filters()
+    public function custom_view_filters(): HasMany
     {
         return $this->hasMany(CustomViewFilter::class, 'view_column_target_id')
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
-    public function custom_view_summaries()
+    public function custom_view_summaries(): HasMany
     {
         return $this->hasMany(CustomViewSummary::class, 'view_column_target_id')
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
-    public function custom_view_grid_filters()
+    public function custom_view_grid_filters(): HasMany
     {
         return $this->hasMany(CustomViewGridFilter::class, 'view_column_target_id')
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
-    public function custom_operation_columns()
+    public function custom_operation_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'view_column_target_id')
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
-    public function conditions()
+    public function conditions(): HasMany
     {
         return $this->hasMany(Condition::class, 'target_column_id')
             ->where('condition_type', ConditionType::COLUMN);

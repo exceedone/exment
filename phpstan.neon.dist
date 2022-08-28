@@ -5,5 +5,10 @@ parameters:
 	paths:
 		- vendor/exceedone/exment
 	ignoreErrors:
-		- "#__construct\\(\\) does not call parent constructor#"
 		- "#Constructor of class .* an unused parameter#"
+		- "#Call to an undefined static method Exceedone(.*)::.*#"
+		- "#Call to an undefined method Exceedone(.*)::.*#"
+		- "#Access to an undefined property Exceedone(.*)::.*#"
+
+
+
