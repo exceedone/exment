@@ -15,13 +15,14 @@
 - GitHubの [https://github.com/exceedone/exment] にアクセスし、ページ右上の「Fork」ボタンをクリックしてください。
 
 - Exmentをあなたのリポジトリにフォークしてください。また、あなたのリポジトリをコピーしてください。  
-(ex. https://github.com/hirossyi73/exment。以後、あなたのGitHubユーザー名・オーナー名を、"hirossyi73"として記載しています。)
+(ex. https://github.com/hirossyi73/exment
+以後、あなたのGitHubユーザー名・オーナー名を、"hirossyi73"として記載しています。)
 
 ## Laravelのプロジェクト作成
 - Laravelのプロジェクトを作成します。
 
 ~~~
-composer create-project "laravel/laravel=6.*" (プロジェクト名)
+composer create-project "laravel/laravel=9.*" (プロジェクト名)
 cd (プロジェクト名)
 ~~~
 
@@ -40,6 +41,12 @@ mkdir hirossyi73
 cd hirossyi73
 ~~~
 
+- 以下のコマンドを実行します。
+~~~
+composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
+composer require psr/simple-cache=^2.0.0
+~~~
+
 - あなたのリポジトリをクローンします。
 (ex. https://github.com/hirossyi73/exment.git)
 
@@ -52,21 +59,21 @@ git clone https://github.com/hirossyi73/exment.git
 
 ~~~
     "require": {
-        "php": "^7.1.3",
-        "fideloper/proxy": "^4.0",
-        "laravel/framework": "6.*",
-        "laravel/tinker": "^1.0",
+        "php": "^8.0.2",
+        "guzzlehttp/guzzle": "^7.2",
+        "laravel/framework": "^9.19",
+        "laravel/sanctum": "^3.0",
+        "laravel/tinker": "^2.7",
+        "psr/simple-cache": "2.0.0",
         // 行追加
         "exceedone/exment": "dev-master"
     },
 
     "autoload": {
-        "classmap": [
-            "database/seeds",
-            "database/factories"
-        ],
         "psr-4": {
             "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/",
             // 行追加。また、"hirossyi73"部分は書き換えてください
             "Exceedone\\Exment\\": "packages/hirossyi73/exment/src/"
         }
