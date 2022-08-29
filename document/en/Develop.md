@@ -21,7 +21,7 @@ This page explains how to set up developing Exment engine.
 - Please execute this command on any path.
 
 ~~~
-composer create-project "laravel/laravel=6.*" (project name)
+composer create-project "laravel/laravel=9.*" (project name)
 cd (project name)
 ~~~
 
@@ -40,6 +40,13 @@ mkdir hirossyi73
 cd hirossyi73
 ~~~
 
+- Execute the following command.
+~~~
+composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
+composer require psr/simple-cache=^2.0.0
+~~~
+
+
 - Clone your repository.
 (ex. https://github.com/hirossyi73/exment.git)
 
@@ -52,27 +59,27 @@ git clone https://github.com/hirossyi73/exment.git
 
 ~~~
     "require": {
-        "php": "^7.2.0",
-        "fideloper/proxy": "^4.0",
-        "laravel/framework": "6.*",
-        "laravel/tinker": "^1.0",
+        "php": "^8.0.2",
+        "guzzlehttp/guzzle": "^7.2",
+        "laravel/framework": "^9.19",
+        "laravel/sanctum": "^3.0",
+        "laravel/tinker": "^2.7",
+        "psr/simple-cache": "2.0.0",
         // Add this line
         "exceedone/exment": "dev-master"
     },
 
     "autoload": {
-        "classmap": [
-            "database/seeds",
-            "database/factories"
-        ],
         "psr-4": {
             "App\\": "app/",
-            // Add this line
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/",
+            // Add this line.Please rewrite the "hirossyi73" part
             "Exceedone\\Exment\\": "packages/hirossyi73/exment/src/"
         }
     },
 
-    // Add this block
+    // Add this block.Please rewrite the "hirossyi73" part
     "repositories": [
         {
             "type": "path",
