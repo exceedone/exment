@@ -2533,7 +2533,7 @@ return [
         ],
         'resetpassword' => [
             'notify_password' => 'Executed password reset. A new password is : %s',
-            'success' => 'Executed password reset.',
+            'success' => 'Password reset successfull!!!',
         ],
     ],
     
