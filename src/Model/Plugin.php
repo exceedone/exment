@@ -719,7 +719,7 @@ class Plugin extends ModelBase
                 }
 
                 return pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
-                    || $plugin->getOption('uri') == $pluginName
+                    || $plugin->getOptionUri() == $pluginName
                 ;
             });
 

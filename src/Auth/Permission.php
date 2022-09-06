@@ -416,7 +416,7 @@ class Permission
     {
         // Get plugin data by Endpoint
         $plugin = Plugin::firstRecord(function ($plugin) use ($endpoint) {
-            return strcmp_ex($plugin->getOption('uri'), $endpoint) == 0;
+            return strcmp_ex($plugin->getOptionUri(), $endpoint) == 0;
         }, false);
         if (!isset($plugin)) {
             return false;
