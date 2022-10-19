@@ -461,6 +461,7 @@ abstract class CustomValue extends ModelBase
             // delete hard
             if ($model->isForceDeleting()) {
                 $model->deleteFile();
+                $model->deleteComments();
                 $model->deleteRelationValues();
             }
             // Execute only not force deleting
@@ -769,6 +770,30 @@ abstract class CustomValue extends ModelBase
                 }
                 File::deleteDocumentModel($file);
             });
+    }
+
+
+    /**
+     * delete comments.
+     */
+    public function deleteComments()
+    {
+        $deleteForce = $this->isForceDeleting();
+
+        getModelName(SystemTableName::COMMENT)::where('parent_id', $this->id)
+            ->where('parent_type', $this->custom_table_name)
+            ->withTrashed()
+            ->get()
+            ->each(function ($comment) use ($deleteForce) {
+                // disable notify
+                $comment->saved_notify(false);
+                if ($deleteForce) {
+                    $comment->forceDelete();
+                } else {
+                    $comment->delete();
+                }
+            });
+        ;
     }
 
 
