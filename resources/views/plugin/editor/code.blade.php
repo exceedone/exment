@@ -1,6 +1,11 @@
 <div class="form-group ">
     <span>{{$filepath}}</span>
 </div>
+<style>
+    .CodeMirror {
+        height: 78vh;
+    }
+</style>
 <div class="form-group">
     <textarea id="edit_plugin_file" class="form-control">{{$filedata}}</textarea>
 </div>

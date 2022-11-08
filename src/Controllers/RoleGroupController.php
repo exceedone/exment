@@ -24,6 +24,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Auth\Permission as Checker;
+use Encore\Admin\Form as AdminForm;
 
 class RoleGroupController extends AdminControllerBase
 {
@@ -44,6 +45,7 @@ class RoleGroupController extends AdminControllerBase
         $grid = new Grid(new RoleGroup());
         $grid->column('role_group_name', exmtrans('role_group.role_group_name'));
         $grid->column('role_group_view_name', exmtrans('role_group.role_group_view_name'));
+        $grid->column('role_group_order', exmtrans('role_group.role_group_order'))->sortable()->editable();
         $grid->column('role_group_users', exmtrans('role_group.users_count'))->display(function ($counts) {
             return is_null($counts) ? null : count($counts);
         });
@@ -170,6 +172,8 @@ class RoleGroupController extends AdminControllerBase
             ->disable(!$enable)
             ->rows(3);
 
+        $form->number('role_group_order', exmtrans("role_group.role_group_order"))->rules("integer");    
+
         $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::SYSTEM()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
 
         $form->descriptionHtml(exmtrans('role_group.description_system_admin'));
@@ -190,7 +194,7 @@ class RoleGroupController extends AdminControllerBase
         $form->checkboxTable("system_permission_permissions", "")
             ->options(RoleGroupType::SYSTEM()->getRoleGroupOptions())
             ->disable(!$enable)
-            ->checkWidth(120)
+            ->checkWidth(150)
             ->headerHelp(RoleGroupType::SYSTEM()->getRoleGroupHelps())
             ->items($items)
             ->setWidth(10, 2);
@@ -214,7 +218,7 @@ class RoleGroupController extends AdminControllerBase
         $form->checkboxTable("role_permission_permissions", "")
             ->options(RoleGroupType::ROLE_GROUP()->getRoleGroupOptions())
             ->disable(!$enable)
-            ->checkWidth(120)
+            ->checkWidth(150)
             ->headerHelp(RoleGroupType::ROLE_GROUP()->getRoleGroupHelps())
             ->items($items)
             ->setWidth(10, 2);
@@ -286,7 +290,7 @@ class RoleGroupController extends AdminControllerBase
         $form->checkboxTable("master_permission_permissions", "")
             ->options(RoleGroupType::MASTER()->getRoleGroupOptions())
             ->disable(!$enable)
-            ->checkWidth(100)
+            ->checkWidth(150)
             ->headerHelp(RoleGroupType::MASTER()->getRoleGroupHelps())
             ->items($items)
             ->setWidth(10, 2);
@@ -316,7 +320,7 @@ class RoleGroupController extends AdminControllerBase
         $form->checkboxTable("table_permission_permissions", "")
             ->options(RoleGroupType::TABLE()->getRoleGroupOptions())
             ->disable(!$enable)
-            ->checkWidth(100)
+            ->checkWidth(150)
             ->headerHelp(RoleGroupType::TABLE()->getRoleGroupHelps())
             ->items($items)
             ->headerEsacape(false)
@@ -408,7 +412,20 @@ class RoleGroupController extends AdminControllerBase
      */
     public function update($id)
     {
-        return request()->get('form_type') == 2 ? $this->saveUserOrganization($id) : $this->saveRolePermission($id);
+        if(request()->get('_editable') == 1 && request()->get('_method') == 'PUT') {
+
+            if (!$this->hasPermission_UserOrganization()) {
+                Checker::error();
+                return false;
+            }
+            
+            $model = RoleGroup::findOrFail($id);
+            $form = new AdminForm($model);
+            $form->number('role_group_order', exmtrans("role_group.role_group_order"))->rules("integer");
+            $form->update($id);
+        } else {
+            return request()->get('form_type') == 2 ? $this->saveUserOrganization($id) : $this->saveRolePermission($id);
+        }
     }
 
     /**
@@ -451,6 +468,7 @@ class RoleGroupController extends AdminControllerBase
             }
             $role_group->role_group_view_name = $request->get('role_group_view_name');
             $role_group->description = $request->get('description');
+            $role_group->role_group_order = $request->get('role_group_order');
             $role_group->save();
 
             $items = [
