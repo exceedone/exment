@@ -132,13 +132,14 @@ trait NotifyTrait
                 ])
             ]);
 
-        list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
-            'display_table' => $custom_table,
-        ]);
+        $select_options = ['display_table' => $custom_table];
 
         $field = $form->multipleSelect('target_users', exmtrans('notify.target_users'))
-            ->options($users)
-            ->ajax($ajax)
+            ->options(function ($value, $field) use ($select_options) {
+                $select_options['selected_value'] = (!empty($field) ? $field->getOld() : null) ?? $value;
+                return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions($select_options);
+            })
+            ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl($select_options))
             ->attribute([
                 'data-filter' => json_encode([
                     ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_USER]],
@@ -153,13 +154,12 @@ trait NotifyTrait
         }
 
         if (System::organization_available()) {
-            list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
-                'display_table' => $custom_table,
-            ]);
-
             $field = $form->multipleSelect('target_organizations', exmtrans('notify.target_organizations'))
-                ->options($organizations)
-                ->ajax($ajax)
+                ->options(function ($value, $field) use ($select_options) {
+                    $select_options['selected_value'] = (!empty($field) ? $field->getOld() : null) ?? $value;
+                    return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions($select_options);
+                })
+                ->ajax(CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptionAjaxUrl($select_options))
                 ->attribute(['data-filter' => json_encode(['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_ORGANIZATION]])])
             ;
 
