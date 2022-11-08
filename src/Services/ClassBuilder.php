@@ -187,7 +187,7 @@ class ClassBuilder
                 ->addProperty("protected", 'table', "'".getDBTableName($table)."'")
                 ->addMethod("public", "getCustomTableNameAttribute()", "return '".$table->table_name."';")
                 //->addProperty("public", 'custom_table_name', "'".$table->table_name."'")
-                ;
+        ;
 
         // set revision property
         $revisionEnabled = boolval($table->getOption('revision_flg', true));

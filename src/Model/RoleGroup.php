@@ -102,5 +102,9 @@ class RoleGroup extends ModelBase
             $model->role_group_permissions()->delete();
             $model->role_group_user_organizations()->delete();
         });
+
+        if (config('exment.sort_role_group_by_order', false)) {
+            static::addGlobalScope(new OrderScope('role_group_order'));
+        }
     }
 }
