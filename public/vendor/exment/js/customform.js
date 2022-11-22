@@ -710,6 +710,10 @@ var Exment;
                 $('.changedata_column_id').children('option').remove();
                 $('.changedata_column_id').append($('<option>').val('').text(''));
                 $.each(data, function (value, name) {
+                    if(name.view_id) {
+                        value = name.view_id;
+                        name = name.view_name;
+                    }
                     var $option = $('<option>')
                         .val(value)
                         .text(name)

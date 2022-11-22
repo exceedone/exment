@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomView;
 
 /**
  * Organization item for User
@@ -89,8 +90,15 @@ class UserBelongOrganizationItem extends ProviderBase
 
     protected function setOptions()
     {
-        $this->options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
+        $custom_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+        if (config('exment.sort_org_by_default_view', false)) {
+            $custom_view = CustomView::getDefault($custom_table);
+        } else {
+            $custom_view = null;
+        }
+        $this->options = $custom_table->getSelectOptions([
             'notAjax' => true,
+            'target_view' => $custom_view
         ]);
     }
 }

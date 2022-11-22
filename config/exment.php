@@ -1066,4 +1066,24 @@ return [
     |
     */
     'show_workflow_id' => env('EXMENT_SHOW_WORKFLOW_ID', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Specifies that the select box of role_group should be sorted by order column
+    |--------------------------------------------------------------------------
+    |
+    | If true, sort select box of organizations by default view.
+    |
+    */
+    'sort_org_by_default_view' => env('EXMENT_SORT_ORG_BY_DEFAULT_VIEW', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Specifies that the select box of role_group should be sorted by order column
+    |--------------------------------------------------------------------------
+    |
+    | If true, sort select box of role_group by order column.
+    |
+    */
+    'sort_role_group_by_order' => env('EXMENT_SORT_ROLE_GROUP_BY_ORDER', false),
 ];
