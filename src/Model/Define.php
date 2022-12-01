@@ -383,12 +383,14 @@ class Define
         'mysql' => 'MySQL',
         'mariadb' => 'MariaDB',
         'sqlsrv' => 'SQLServer',
+        'pgsql' => 'PostgreSQL',
     ];
 
     public const DATABASE_VERSION = [
         'mysql' => ['min' => '5.7.8', 'max_lt' => '8.0.0'],
         'mariadb' => ['min' => '10.2.7'],
         'sqlsrv' => ['min' => '13.0.0.0'],
+        'pgsql' => ['min' => '12.0'],
     ];
 
     public const PHP_VERSION = [

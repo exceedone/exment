@@ -42,13 +42,33 @@ trait ConnectionTrait
     }
 
     /**
-     * Check SqlServer
+     * Check postgresql
+     *
+     * @return bool
+     */
+    public function isPostgres()
+    {
+        return false;
+    }
+
+    /**
+     * Check sqlserver
      *
      * @return bool
      */
     public function isSqlServer()
     {
-        return $this->getSchemaBuilder()->isSqlServer();
+        return false;
+    }
+
+    /**
+     * Check whether casting column compare
+     *
+     * @return bool
+     */
+    public function isCastColumnCompare() : bool
+    {
+        return $this->getSchemaBuilder()->isCastColumnCompare();
     }
 
     public function canConnection()

@@ -198,19 +198,27 @@ class Api3WorkflowTest extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
 
+        $assert_json = [
+            'id' => 4,
+            'workflow_id' => '2',
+            'status_type'=> '0',
+            'order'=> '0',
+            'status_name' => 'waiting',
+            'datalock_flg'=> '0',
+            'completed_flg'=> '0',
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['completed_flg'] = false;
+            $assert_json['datalock_flg'] = false;
+            $assert_json['order'] = 0;
+            $assert_json['status_type'] = 0;
+            $assert_json['workflow_id'] = 2;
+        }
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'wf', 'status', '4'))
             ->assertStatus(200)
-            ->assertJsonFragment([
-                'id' => 4,
-                'workflow_id' => '2',
-                'status_type'=> '0',
-                'order'=> '0',
-                'status_name' => 'waiting',
-                'datalock_flg'=> '0',
-                'completed_flg'=> '0',
-            ]);
+            ->assertJsonFragment($assert_json);
     }
 
     public function testGetWorkflowStatusNotFound()
@@ -230,23 +238,29 @@ class Api3WorkflowTest extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
 
+        $assert_json = [
+            'id' => 4,
+            'workflow_id' => '2',
+            'status_from' => 'start',
+            'action_name' => 'send',
+            'ignore_work'=> '0',
+            'options'=> [
+                'comment_type' => 'nullable',
+                'flow_next_type' => 'some',
+                'flow_next_count' => '1',
+                'work_target_type' => 'fix'
+            ],
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['ignore_work'] = false;
+            $assert_json['workflow_id'] = 2;
+        }
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'wf', 'action', '4'))
             ->assertStatus(200)
-            ->assertJsonFragment([
-                'id' => 4,
-                'workflow_id' => '2',
-                'status_from' => 'start',
-                'action_name' => 'send',
-                'ignore_work'=> '0',
-                'options'=> [
-                    'comment_type' => 'nullable',
-                    'flow_next_type' => 'some',
-                    'flow_next_count' => '1',
-                    'work_target_type' => 'fix'
-                ],
-            ]);
+            ->assertJsonFragment($assert_json);
     }
 
     public function testGetWorkflowActionNotFound()
@@ -266,20 +280,31 @@ class Api3WorkflowTest extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
 
+        $assert_json = [
+            'workflow_id' => '2',
+            'morph_type' => 'custom_value_access_all',
+            'morph_id' => '1000',
+            'workflow_action_id'=> '5',
+            'workflow_status_from_id'=> '4',
+            'workflow_status_to_id'=> '5',
+            'action_executed_flg'=> '0',
+            'latest_flg'=> '1',
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['morph_id'] = 1000;
+            $assert_json['action_executed_flg'] = false;
+            $assert_json['workflow_id'] = 2;
+            $assert_json['workflow_action_id'] = 5;
+            $assert_json['workflow_status_from_id'] = 4;
+            $assert_json['workflow_status_to_id'] = 5;
+            $assert_json['latest_flg'] = true;
+        }
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'wf', 'data', 'custom_value_access_all', '1000', 'value'))
             ->assertStatus(200)
-            ->assertJsonFragment([
-                'workflow_id' => '2',
-                'morph_type' => 'custom_value_access_all',
-                'morph_id' => '1000',
-                'workflow_action_id'=> '5',
-                'workflow_status_from_id'=> '4',
-                'workflow_status_to_id'=> '5',
-                'action_executed_flg'=> '0',
-                'latest_flg'=> '1',
-            ]);
+            ->assertJsonFragment($assert_json);
     }
 
     public function testGetWorkflowDataExpand()
@@ -707,6 +732,15 @@ class Api3WorkflowTest extends ApiTestBase
         $token = $this->getUserAccessToken('dev0-userB', 'dev0-userB', [ApiScope::WORKFLOW_EXECUTE]);
 
         $comment = 'comment' . date('YmdHis');
+        $assert_json = [
+            'workflow_action_id' => 2,
+            'comment' => $comment,
+            'created_user_id' => "6" //dev0-userB
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['created_user_id'] = 6;
+        }
+
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '1000', 'value'), [
@@ -716,11 +750,7 @@ class Api3WorkflowTest extends ApiTestBase
             'comment' => $comment
         ])
         ->assertStatus(201)
-        ->assertJsonFragment([
-            'workflow_action_id' => 2,
-            'comment' => $comment,
-            'created_user_id' => "6" //dev0-userB
-        ]);
+        ->assertJsonFragment($assert_json);
 
         $json = json_decode_ex($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
@@ -773,6 +803,16 @@ class Api3WorkflowTest extends ApiTestBase
 
         $comment = 'comment' . date('YmdHis');
 
+        $assert_json = [
+            'workflow_action_id' => 3,
+            'workflow_status_to_id' => '2',
+            'created_user_id' => "3", //User1
+            'comment' => $comment
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['created_user_id'] = 3;
+        }
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '1000', 'value'), [
@@ -780,12 +820,7 @@ class Api3WorkflowTest extends ApiTestBase
             'comment' => $comment
         ])
         ->assertStatus(201)
-        ->assertJsonFragment([
-            'workflow_action_id' => 3,
-            'workflow_status_to_id' => '2',
-            'created_user_id' => "3", //User1
-            'comment' => $comment
-        ]);
+        ->assertJsonFragment($assert_json);
     }
 
     public function testExecuteWorkflowMultiUser()
@@ -794,6 +829,16 @@ class Api3WorkflowTest extends ApiTestBase
 
         $comment = 'comment' . date('YmdHis');
 
+        $assert_json = [
+            'workflow_action_id' => 3,
+            'workflow_status_to_id' => '3',
+            'created_user_id' => "6", //User1
+            'comment' => $comment
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['created_user_id'] = 6;
+        }
+
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit_all', '1000', 'value'), [
@@ -801,12 +846,7 @@ class Api3WorkflowTest extends ApiTestBase
             'comment' => $comment
         ])
         ->assertStatus(201)
-        ->assertJsonFragment([
-            'workflow_action_id' => 3,
-            'workflow_status_to_id' => '3',
-            'created_user_id' => "6", //User1
-            'comment' => $comment
-        ]);
+        ->assertJsonFragment($assert_json);
     }
 
     public function testExecuteWorkflowNoAction()
@@ -925,6 +965,16 @@ class Api3WorkflowTest extends ApiTestBase
         $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_EXECUTE]);
 
         $comment = 'comment' . date('YmdHis');
+        $assert_json = [
+            'workflow_action_id' => 9,
+            'workflow_status_to_id' => '8',
+            'comment' => $comment,
+            'created_user_id' => "7" //dev1-userC
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['created_user_id'] = 7;
+        }
+
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'wf', 'data', 'workflow1', '61', 'value'), [
@@ -932,12 +982,7 @@ class Api3WorkflowTest extends ApiTestBase
             'comment' => $comment
         ])
         ->assertStatus(201)
-        ->assertJsonFragment([
-            'workflow_action_id' => 9,
-            'workflow_status_to_id' => '8',
-            'comment' => $comment,
-            'created_user_id' => "7" //dev1-userC
-        ]);
+        ->assertJsonFragment($assert_json);
 
         $json = json_decode_ex($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
@@ -988,6 +1033,15 @@ class Api3WorkflowTest extends ApiTestBase
         $token = $this->getDevUserBAccessToken([ApiScope::WORKFLOW_EXECUTE]);
 
         $comment = 'comment' . date('YmdHis');
+        $assert_json = [
+            'workflow_action_id' => 10,
+            'workflow_status_to_id' => '9',
+            'created_user_id' => "6", //dev0-userB
+            'comment' => $comment
+        ];
+        if (\ExmentDB::isPostgres()) {
+            $assert_json['created_user_id'] = 6;
+        }
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
@@ -996,11 +1050,6 @@ class Api3WorkflowTest extends ApiTestBase
             'comment' => $comment
         ])
         ->assertStatus(201)
-        ->assertJsonFragment([
-            'workflow_action_id' => 10,
-            'workflow_status_to_id' => '9',
-            'created_user_id' => "6", //dev0-userB
-            'comment' => $comment
-        ]);
+        ->assertJsonFragment($assert_json);
     }
 }

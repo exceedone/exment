@@ -108,7 +108,7 @@ class SummaryGrid extends GridBase
      */
     public function setSummaryGrid($grid)
     {
-        $query = $grid->model();
+        $query = $grid->model()->withoutGlobalScopes();
         return $this->getQuery($query, ['grid' => $grid]);
     }
 

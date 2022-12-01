@@ -65,6 +65,7 @@ class NotifyNavbar
             $body = [];
 
             $read_flg = array_get($item, 'read_flg') ?? 0;
+            $read_flg = boolval($read_flg) ? '1' : '0';
             $body[] = exmtrans("notify_navbar.read_flg_options.$read_flg");
 
             $parent_type = array_get($item, 'parent_type');

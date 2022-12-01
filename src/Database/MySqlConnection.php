@@ -134,6 +134,16 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
 
     /**
+     * Is enable execute backup driver
+     *
+     * @return bool
+     */
+    public function isEnableBackup() : bool
+    {
+        return true;
+    }
+
+    /**
      * Check execute backup database
      *
      * @return bool
@@ -160,6 +170,16 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      * @return boolean
      */
     public function isUseUnicodeMultipleColumn(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Whether update sequence used for column default value
+     *
+     * @return boolean
+     */
+    public function isUpdateDefaultSequence() : bool
     {
         return false;
     }

@@ -70,6 +70,7 @@ class SearchServiceTest extends UnitTestBase
         // get parent custom column
         $parent_custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
         $parent_custom_column = CustomColumn::getEloquent('integer', $parent_custom_table);
+        // TODO PostgreSQLの場合に型変換が必要
         $service->where($parent_custom_column, '>', 1000)
             ->where('odd_even', 'odd');
 

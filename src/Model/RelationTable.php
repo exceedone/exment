@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Illuminate\Support\Collection;
 
 /**
@@ -660,7 +661,13 @@ class RelationTable
             if ($custom_item->isMultipleEnabled()) {
                 $join->whereInArrayColumn("$unique_table_name.id", "$child_table_name.$query_key");
             } else {
-                $join->whereColumn("$unique_table_name.id", "=", "$child_table_name.$query_key");
+                if (\ExmentDB::isPostgres()) {
+                    $grammar = \DB::getQueryGrammar();
+                    $cast_column = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, "$unique_table_name.id");
+                    $join->whereRaw("$cast_column = " . $grammar->wrap("$child_table_name.$query_key"));
+                } else {
+                    $join->whereColumn("$unique_table_name.id", "=", "$child_table_name.$query_key");
+                }
             }
         })
         ;
@@ -825,7 +832,13 @@ class RelationTable
             if ($custom_item->isMultipleEnabled()) {
                 $join->whereInArrayColumn("$parent_table_name.id", "$unique_table_name.$query_key");
             } else {
-                $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$query_key");
+                if (\ExmentDB::isPostgres()) {
+                    $grammar = \DB::getQueryGrammar();
+                    $cast_column = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, "$parent_table_name.id");
+                    $join->whereRaw("$cast_column = " . $grammar->wrap("$unique_table_name.$query_key"));
+                } else {
+                    $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$query_key");
+                }
             }
         });
 

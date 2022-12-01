@@ -184,6 +184,7 @@ class DatabaseForm
     {
         switch ($this->database_default) {
             case DatabaseType::SQLSRV:
+            case DatabaseType::PGSQL:
                 return true;
             case DatabaseType::MYSQL:
                 if (!$this->connection()->isMariaDB() === true) {

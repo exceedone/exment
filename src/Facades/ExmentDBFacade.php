@@ -27,6 +27,9 @@ namespace Exceedone\Exment\Facades;
  * @method static string getDatabaseDriverName();
  * @method static bool canConnection();
  * @method static bool isUseUnicodeMultipleColumn();
+ * @method static bool isCastColumnCompare();
+ * @method static bool isEnableBackup();
+ * @method static bool isPostgres();
  * @method static bool isSqlServer();
  * @method static bool checkBackup();
  * @method static void backupDatabase($tempDir)

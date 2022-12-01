@@ -165,7 +165,7 @@ class ExmentCustomValidator extends AdminValidator
     {
         // get count reverse relation in table;
         $query = CustomRelation::where($attr1, $custom_table_id);
-        if (isset($relation_id)) {
+        if (!is_nullorempty($relation_id)) {
             $query = $query->where('id', '<>', $relation_id);
         }
         $rows = $query->get();

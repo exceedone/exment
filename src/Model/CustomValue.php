@@ -72,6 +72,12 @@ abstract class CustomValue extends ModelBase
     protected $already_updated = false;
 
     /**
+     * update_sequence.
+     * if true, update primary sequence.
+     */
+    protected $update_sequence = false;
+
+    /**
      * label work.
      * get label only first time.
      */
@@ -417,6 +423,16 @@ abstract class CustomValue extends ModelBase
     {
         parent::boot();
 
+        if (config('database.default') !='sqlsrv') {
+            // add default order
+            static::addGlobalScope(new OrderScope((new static)->getKeyName()));
+        }
+
+        static::creating(function ($model) {
+            if (\ExmentDB::isUpdateDefaultSequence() && isset($model->id)) {
+                $model->update_sequence = true;
+            }
+        });
         static::saving(function ($model) {
             if ($model->disable_saving_event) {
                 return;
@@ -441,6 +457,9 @@ abstract class CustomValue extends ModelBase
             $model->preSave();
         });
         static::created(function ($model) {
+            if ($model->update_sequence) {
+                \Schema::updateDefaultSequence($model->getTable(), $model->id);
+            }
             $model->savedEvent(true);
         });
         static::updated(function ($model) {
@@ -1357,9 +1376,18 @@ abstract class CustomValue extends ModelBase
         // Add join query to child
         RelationTable::setChildJoinManyMany($query, $parent_table, $child_table);
 
-        $query->where(getDBTableName($child_table) . '.id', $this->id)
-            ->select(getDBTableName($parent_table) . '.*')
-            ->distinct();
+        if (\ExmentDB::isPostgres()) {
+            $ids = $query->where(getDBTableName($child_table) . '.id', $this->id)
+                ->select(getDBTableName($parent_table) . '.id')
+                ->distinct()
+                ->get()->pluck('id')->toArray();
+            $query = $parent_table->getValueQuery()
+                ->whereIn('id', $ids);
+        } else {
+            $query->where(getDBTableName($child_table) . '.id', $this->id)
+                ->select(getDBTableName($parent_table) . '.*')
+                ->distinct();
+        }
         return $query->get();
     }
 
