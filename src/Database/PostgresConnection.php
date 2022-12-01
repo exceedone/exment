@@ -92,7 +92,17 @@ class PostgresConnection extends BaseConnection implements ConnectionInterface
      */
     public function checkBackup() : bool
     {
-        throw new BackupRestoreNotSupportedException(exmtrans('backup.message.not_support_driver', $this->getDatabaseDriverName()));
+        $commands = [static::getPgDumpPath(), static::getPsqlPath()];
+        foreach ($commands as $command) {
+            $execCommand = '"' . $command . '" --version';
+            exec($execCommand, $output, $return_var);
+
+            if ($return_var != 0) {
+                throw new BackupRestoreCheckException(exmtrans('backup.message.cmd_check_error', ['cmd' => $execCommand]));
+            }
+        }
+
+        return true;
     }
     
     /**
@@ -117,6 +127,8 @@ class PostgresConnection extends BaseConnection implements ConnectionInterface
 
     public function backupDatabase($tempDir)
     {
+        // export database
+        $this->dumpDatabase($tempDir);
     }
     
     /**
@@ -127,6 +139,32 @@ class PostgresConnection extends BaseConnection implements ConnectionInterface
      */
     public function restoreDatabase($dirFullPath)
     {
+        // get table connect info
+        $host = config('database.connections.pgsql.host', '');
+        $username = config('database.connections.pgsql.username', '');
+        $password = config('database.connections.pgsql.password', '');
+        $database = config('database.connections.pgsql.database', '');
+        $dbport = config('database.connections.pgsql.port', '');
+
+        // restore database file
+        $file = path_join($dirFullPath, config('exment.backup_info.def_file'));
+
+        $command = sprintf(
+            '"%s" -h %s -U %s -f %s -p %s -d %s',
+            static::getPsqlPath(),
+            $host,
+            $username,
+            $file,
+            $dbport,
+            $database
+        );
+
+        if (\File::exists($file)) {
+            putenv("PGPASSWORD={$password}");
+            exec($command);
+            putenv("PGPASSWORD=");
+            \File::delete($file);
+        }
     }
 
     /**
@@ -157,5 +195,48 @@ class PostgresConnection extends BaseConnection implements ConnectionInterface
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
         \DB::statement("DROP VIEW IF EXISTS " . $viewName);
+    }
+
+    protected static function getPgDumpPath()
+    {
+        return path_join_os(config('exment.backup_info.postgres_dir', ''), 'pg_dump');
+    }
+
+    protected static function getPsqlPath()
+    {
+        return path_join_os(config('exment.backup_info.postgres_dir', ''), 'psql');
+    }
+    
+    /**
+     * dumpDatabase pg_dump for backup table definition or table data.
+     *
+     * @param string $tempDir backup target table (default:null)
+     * @param string $table
+     * @return void
+     */
+    protected function dumpDatabase($tempDir)
+    {
+        // get table connect info
+        $host = config('database.connections.pgsql.host', '');
+        $username = config('database.connections.pgsql.username', '');
+        $password = config('database.connections.pgsql.password', '');
+        $database = config('database.connections.pgsql.database', '');
+        $dbport = config('database.connections.pgsql.port', '');
+        $file = path_join($tempDir, config('exment.backup_info.def_file', 'table_definition.sql'));
+
+        $pg_dump = static::getPgDumpPath();
+        $command = sprintf(
+            '"%s" -h %s -U %s -f %s -p %s -c --if-exists %s',
+            $pg_dump,
+            $host,
+            $username,
+            $file,
+            $dbport,
+            $database
+        );
+
+        putenv("PGPASSWORD={$password}");
+        exec($command);
+        putenv("PGPASSWORD=");
     }
 }

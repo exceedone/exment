@@ -6,9 +6,11 @@
                     <i class="fa fa-download"></i> {{exmtrans("backup.backup")}}
                 </button>
 
+                @if($restore_enabled)
                 <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal')}}" type="button" class="btn btn-sm btn-twitter">
                     <i class="fa fa-upload"></i> {{exmtrans("backup.restore")}}
                 </a>
+                @endif
             </div>
         </div>
         <span>
@@ -60,9 +62,11 @@
                         {{ $file['created'] }}
                     </td>
                     <td class="column-__actions__">
+                        @if($restore_enabled)
                         <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal', $file['file_key'])}}" data-toggle="tooltip" title="{{exmtrans('backup.restore')}}">
                             <i class="fa fa-undo"></i>
                         </a>
+                        @endif
                         <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{trans('admin.delete')}}" class="grid-row-delete">
                             <i class="fa fa-trash"></i>
                         </a>

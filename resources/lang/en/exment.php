@@ -747,6 +747,7 @@ return [
         'restore_zipfile' => 'Restore file',
         'upload_zipfile' => 'Upload(zip)',
         'filesize_over' => 'If the file size is too large to upload',
+        'disabled_restore' => 'Restore cannot be performed.',
         'backup_target_options' => [
             'database' => 'Database',
             'plugin' => 'Plugin File',
@@ -772,6 +773,7 @@ return [
             'restore_caution' => 'When migrating to another environment, problems may occur due to the difference between the original environment and the destination environment.<br>In particular, if the OS is different (Windows or Linux), the type of database (MySQL or MariaDB), the version, etc., it will not be completed normally due to various factors.<br>Be sure to check in advance.',
             'cmd_check_error' => 'The following command did not complete successfully. Please double check the server settings and database settings.  :cmd',
             'not_support_driver' => 'Currently, %s does not support backup / restore. Please note.',
+            'disabled_restore' => 'If you are using PostgreSQL, you cannot perform a restore from the screen. Please use restore by command.',
         ],
         'help' =>[
             'file_name' => 'Please select the backup zip file.%s<br>*Up to the size listed can be uploaded from the screen. If you want to restore larger files, please refer to <a href="%s" target="_blank">here <i class="fa fa-external-link"></i></a>.',
