@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Login\LoginService;
 
 class ResetPasswordCommand extends Command
@@ -87,8 +89,13 @@ class ResetPasswordCommand extends Command
 
         $login_user = $user->login_user;
 
+        // If not has login user, define.
         if (!isset($login_user)) {
-            throw new \Exception('target user does not have login authority.');
+            $login_user = new LoginUser([
+                'base_user_id' => $user->id,
+                'login_type' => Enums\LoginType::PURE,
+                'password_reset_flg' => 0,
+            ]);
         }
 
         if ($options['password']) {

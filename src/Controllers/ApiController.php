@@ -280,7 +280,10 @@ class ApiController extends AdminControllerBase
         if (!isset($select_target_table)) {
             return [];
         }
-        return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
+        return CustomTable::getEloquent($select_target_table)
+            ->custom_columns()
+            ->selectRaw('id as view_id, column_view_name as view_name')
+            ->get();
     }
 
 
