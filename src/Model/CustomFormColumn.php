@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $view_column_target_id
+ * @property mixed $form_column_target_id
+ * @property mixed $form_column_type
+ * @property mixed $order
+ * @property mixed $custom_form_block_id
+ * @property mixed $column_no
  */
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {

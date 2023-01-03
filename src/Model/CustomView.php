@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Builder;
-use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Services\Search\SearchService;
@@ -21,6 +20,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $view_type
+ * @property mixed $view_kind_type
+ * @property mixed $default_flg
+ * @property mixed $custom_table_id
+ * @property mixed $created_user_id
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {

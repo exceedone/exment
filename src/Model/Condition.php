@@ -9,6 +9,10 @@ use Encore\Admin\Form;
  * Custom value condition. Use form priority, workflow action.
  *
  * @phpstan-consistent-constructor
+ * @property mixed $target_column_id
+ * @property mixed $morph_type
+ * @property mixed $morph_id
+ * @property mixed $condition_type
  */
 class Condition extends ModelBase
 {

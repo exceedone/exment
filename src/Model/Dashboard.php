@@ -13,6 +13,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $default_flg
+ * @property mixed $dashboard_type
+ * @property mixed $created_user_id
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface
 {

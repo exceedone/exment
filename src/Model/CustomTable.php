@@ -34,6 +34,13 @@ use Illuminate\Support\Facades\Request;
  * Custom Table Class
  *
  * @phpstan-consistent-constructor
+ * @property mixed $table_name
+ * @property mixed $system_flg
+ * @property mixed $showlist_flg
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @method static \Illuminate\Database\Query\Builder whereNotIn($column, $values, $boolean = 'and')
+ * @method static \Illuminate\Database\Query\Builder join($table, $first, $operator = null, $second = null, $type = 'inner', $where = false)
  */
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {

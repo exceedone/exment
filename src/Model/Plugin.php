@@ -14,6 +14,8 @@ use Illuminate\Support\Collection;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $plugin_name
+ * @property mixed $plugin_view_name
  */
 class Plugin extends ModelBase
 {
@@ -706,6 +708,7 @@ class Plugin extends ModelBase
         foreach ($patterns as $pattern) {
             preg_match($pattern, request()->url(), $matches);
 
+            // @phpstan-ignore-next-line
             if (!isset($matches) || count($matches) <= 1) {
                 continue;
             }
