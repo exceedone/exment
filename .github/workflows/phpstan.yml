@@ -1,13 +1,13 @@
 name: phpstan
 
-on: [push]
-#  pull_request:
-#    paths:
-#      - 'config/**'
-#      - 'database/**'
-#      - 'resources/**'
-#      - 'src/**'
-#      - 'tests/**'
+on:
+  pull_request:
+    paths:
+      - 'config/**'
+      - 'database/**'
+      - 'resources/**'
+      - 'src/**'
+      - 'tests/**'
 
 env:
   DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
