@@ -2179,6 +2179,7 @@ return [
         'soft_deleted_data' => '削除済データ',
         'restore' => '復元',
         'hard_delete' => '完全に削除する',
+        'custom_valule_button_label' => 'データ',
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',
