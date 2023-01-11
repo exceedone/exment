@@ -493,7 +493,7 @@ class DefaultGrid extends GridBase
 
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
                 $custom_table->setGridAuthoritable($actions->grid->getOriginalCollection());
-                $enableCreate = true;
+                $enableCopy = true;
                 $enableEdit = true;
                 $enableDelete = true;
                 $enableHardDelete = false;
@@ -522,7 +522,11 @@ class DefaultGrid extends GridBase
                 }
 
                 if ($custom_table->enableCreate(true) !== true) {
-                    $enableCreate = false;
+                    $enableCopy = false;
+                }
+
+                if (in_array($custom_table->table_name, Enums\SystemTableName::SYSTEM_TABLE_NAME_IGNORE_COPY())) {
+                    $enableCopy = false;
                 }
 
                 if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
@@ -584,7 +588,7 @@ class DefaultGrid extends GridBase
                     $actions->append($linker);
                 }
 
-                if ($enableCreate && boolval(config('exment.gridrow_show_copy_button', false))) {
+                if ($enableCopy && boolval(config('exment.gridrow_show_copy_button', false))) {
                     $linker = (new Linker())
                         ->url(admin_urls('data', $custom_table->table_name, "create?copy_id={$actions->row->id}"))
                         ->icon('fa-copy')

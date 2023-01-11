@@ -54,6 +54,17 @@ class SystemTableName extends EnumBase
         ];
     }
 
+    public static function SYSTEM_TABLE_NAME_IGNORE_COPY()
+    {
+        return [
+            SystemTableName::USER,
+            SystemTableName::ORGANIZATION,
+            SystemTableName::COMMENT,
+            SystemTableName::DOCUMENT,
+            SystemTableName::MAIL_SEND_LOG,
+        ];
+    }
+
     public static function SYSTEM_TABLE_NAME_MASTER()
     {
         return [
