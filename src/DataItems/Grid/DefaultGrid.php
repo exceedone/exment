@@ -526,7 +526,6 @@ class DefaultGrid extends GridBase
                 }
 
                 if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
-                    $enableCreate = false;
                     $enableEdit = false;
                     $enableDelete = false;
                 }
