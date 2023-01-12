@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterOption;
@@ -109,6 +110,20 @@ class CustomTableController extends AdminControllerBase
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));
                 $actions->append($linker);
+            }
+
+            if (\Exment::user()->hasPermission(Permission::CUSTOM_TABLE) &&
+                !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+                $actions->append((new Tools\ModalLink(
+                    admin_urls('table', $actions->getKey(), 'copyModal'),
+                    [
+                        'icon' => 'fa-copy',
+                        'modal_title' => exmtrans('common.copy_item', exmtrans('custom_table.table')),
+                        'attributes' => [
+                            'data-toggle' => "tooltip",
+                        ],
+                    ]
+                ))->render());
             }
         });
 
@@ -616,5 +631,79 @@ HTML;
             'title' => exmtrans("change_page_menu.change_page_label"),
             'showSubmit' => false,
         ]);
+    }
+
+    /**
+     * Showing copy modal
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return Response
+     */
+    public function copyModal(Request $request, $id)
+    {
+        $copy_table = CustomTable::getEloquent($id);
+        $actionPath = admin_urls('table', $id, 'copy');
+        // create form fields
+        $form = new ModalForm();
+        $form->action($actionPath);
+
+        $form->descriptionHtml(exmtrans('custom_table.help.copy_custom_table'));
+
+        $form->display('copy_from_table', exmtrans("custom_table.copy_from_table"))
+            ->displayText($copy_table->table_view_name);
+
+        $form->text('table_name', exmtrans("custom_table.table_name"))
+            ->required()
+            ->rules("max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/")
+            ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
+
+        $form->text('table_view_name', exmtrans("custom_table.table_view_name"))
+            ->required()
+            ->rules("max:40")
+            ->help(exmtrans('common.help.view_name'));
+
+        $form->setWidth(9, 2);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_table.copy_custom_table')
+        ]);
+    }
+
+    /**
+     * Copy custom_table
+     *
+     * @param Request $request
+     * @param string|int $id
+     * @return void
+     */
+    public function copyTable(Request $request, $id)
+    {
+        $validator = \Validator::make($request->all(), [
+            'table_name' => "max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
+            'table_view_name' => "max:40"
+        ], [], [
+            'table_name' => exmtrans("custom_table.table_name"),
+            'table_view_name' => exmtrans("custom_table.table_view_name")
+        ]);
+
+        if (!$validator->passes()) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => implode(' ', $validator->getMessageStrings()),
+                'errors' => [],
+            ]);
+        }
+
+        $target_table = CustomTable::getEloquent($id);
+        $inputs = $request->only(['table_name','table_view_name']);
+        $response = $target_table->copyTable($inputs);
+
+        if (isset($response)) {
+            return getAjaxResponse($response);
+        }
+        return getAjaxResponse(false);
     }
 }

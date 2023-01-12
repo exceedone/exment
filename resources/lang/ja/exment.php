@@ -1178,6 +1178,8 @@ return [
         'add_parent_menu' => '追加先の親メニュー',
         'default_setting' => '通常設定',
         'expand_setting' => '拡張設定',
+        'copy_from_table' => 'コピー元テーブル',
+        'copy_custom_table' => 'カスタムテーブルをコピーする',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
@@ -1198,6 +1200,7 @@ return [
             'saved_redirect_column' => '保存しました！次はカスタム列を設定してください。',
             'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
             'delete_confirm_error' => 'キーワードが正しくありません。',
+            'copy_custom_table' => '通常設定、拡張設定、カスタム列をコピーします。<br />その他の設定は対象外になります。手動で設定を行ってください。',
         ],
 
         'custom_column_multi' => [

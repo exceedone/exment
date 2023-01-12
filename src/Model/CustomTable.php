@@ -3219,4 +3219,51 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         return $positon;
     }
+
+    /**
+     * copy this table
+     */
+    public function copyTable($inputs = null)
+    {
+        \ExmentDB::transaction(function () use ($inputs) {
+            $new_table = $this->replicate(['suuid'])->setRelations([]);
+            foreach($inputs as $key => $input) {
+                $new_table->{$key} = $input;
+            }
+            $new_table->saveOrFail();
+
+            $replaceColumns = [];
+            foreach ($this->custom_columns_cache as $custom_column) {
+                $new_column = $custom_column->replicate(['suuid']);
+                $new_column->custom_table_id = $new_table->id;
+                $new_column->saveOrFail();
+                // stack old column id => new column id
+                $replaceColumns[$custom_column->id] = $new_column->id;
+            }
+
+            $targetOptions = ['unique1_id', 'unique2_id', 'unique3_id', 'compare_column1_id', 'compare_column2_id', 'table_label_id', 'share_column_id'];
+
+            foreach($this->custom_column_multisettings as $custom_column_multi) {
+                $new_setting = $custom_column_multi->replicate(['suuid']);
+                $new_setting->custom_table_id = $new_table->id;
+
+                // convert column id
+                foreach ($targetOptions as $targetOption) {
+                    $oldval = $custom_column_multi->getOption($targetOption);
+                    if (isset($oldval) && array_key_exists($oldval, $replaceColumns)) {
+                        $new_setting->setOption($targetOption, array_get($replaceColumns, $oldval));
+                    }
+                }
+                $new_setting->saveOrFail();
+            }
+
+            return true;
+        });
+
+        return [
+            'result'  => true,
+            'toastr' => sprintf(exmtrans('common.message.success_execute')),
+            'redirect' => admin_url('table'),
+        ];
+    }
 }
