@@ -277,4 +277,76 @@ class DCustomDataTest extends ExmentKitTestCase
             ->seeInElement('td.column-select_valtext_multiple', '四国')
         ;
     }
+
+    /**
+     * copy and create custom data.
+     */
+    public function testCopyRecordSuccess()
+    {
+        config(['exment.gridrow_show_copy_button' => true]);
+
+        $target_table = CustomTable::getEloquent('exmenttest_data');
+
+        $row = $target_table->getValueModel()->orderBy('created_at')->first();
+        $pre_cnt = $target_table->getValueModel()->count();
+
+        // Create custom data from other data
+        $response = $this->visit(admin_url('data/exmenttest_data/create?copy_id=' . $row->id))
+                ->seeInField('value[integer]', $row->getValue('integer'))
+                ->seeInField('value[decimal]', $row->getValue('decimal'))
+                ->seeInField('value[onelinetext]', $row->getValue('onelinetext'))
+                ->seeInField('value[multiplelinetext]', $row->getValue('multiplelinetext'))
+                ->seeInField('value[dateandtime]', $row->getValue('dateandtime'))
+                ->seeInField('value[date]', $row->getValue('date'))
+                ->seeInField('value[time]', $row->getValue('time'))
+                ->seeInField('value[email]', $row->getValue('email'))
+                ->seeInField('value[url]', $row->getValue('url'))
+                ;
+        foreach ($row->getValue('selectfromstaticvalue') as $value) {
+            $response = $response->seeIsSelected('value[selectfromstaticvalue][]', $value);
+        }
+        foreach ($row->getValue('selectsavevalueandlabel') as $value) {
+            $response = $response->seeIsSelected('value[selectsavevalueandlabel][]', $value);
+        }
+        foreach ($row->getValue('user') as $value) {
+            $response = $response->seeIsSelected('value[user][]', $value->id);
+        }
+        foreach ($row->getValue('organization') as $value) {
+            $response = $response->seeIsSelected('value[organization][]', $value->id);
+        }
+        foreach ($row->getValue('selectfromtable') as $value) {
+            $response = $response->seeIsSelected('value[selectfromtable][]', $value->id);
+        }
+        $response->type('EXMENT Test Data 2 Copied', 'value[onelinetext]')
+                ->select('2', 'value[user_single]')
+                ->select(['Option 1'], 'value[selectfromstaticvalue][]')
+                ->select(['1'], 'value[selectsavevalueandlabel][]')
+                ->select(['1'], 'value[user][]')
+                ->select(['1'], 'value[organization][]')
+                ->select(['1'], 'value[selectfromtable][]')
+                ->press('admin-submit')
+                ->seePageIs('/admin/data/exmenttest_data')
+                ->assertEquals($pre_cnt + 1, $target_table->getValueModel()->count())
+        ;
+
+        // check copied data
+        $new_id = $target_table->getValueModel()->orderBy('created_at', 'desc')->first()->id;
+        $response = $this->visit(admin_url('data/exmenttest_data/'. $new_id . '/edit'))
+                ->seeInField('value[integer]', $row->getValue('integer'))
+                ->seeInField('value[decimal]', $row->getValue('decimal'))
+                ->seeInField('value[onelinetext]', 'EXMENT Test Data 2 Copied')
+                ->seeInField('value[multiplelinetext]', $row->getValue('multiplelinetext'))
+                ->seeInField('value[dateandtime]', $row->getValue('dateandtime'))
+                ->seeInField('value[date]', $row->getValue('date'))
+                ->seeInField('value[time]', $row->getValue('time'))
+                ->seeInField('value[email]', $row->getValue('email'))
+                ->seeInField('value[url]', $row->getValue('url'))
+                ->seeIsSelected('value[user_single]', '2')
+                ->seeIsSelected('value[selectfromstaticvalue][]', 'Option 1')
+                ->seeIsSelected('value[selectsavevalueandlabel][]', '1')
+                ->seeIsSelected('value[user][]', '1')
+                ->seeIsSelected('value[organization][]', '1')
+                ->seeIsSelected('value[selectfromtable][]', '1')
+                ;
+    }
 }
