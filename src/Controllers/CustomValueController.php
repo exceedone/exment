@@ -651,13 +651,18 @@ class CustomValueController extends AdminControllerTableBase
 
         $custom_value = $this->custom_table->getValueModel($id);
 
-        //TODO:validation
-
-        $action->executeAction($custom_value, [
-            'comment' => $request->get('comment'),
-            'next_work_users' => $request->get('next_work_users'),
-            'get_by_userinfo_action' => $request->get('get_by_userinfo_action'),
-        ]);
+        try {
+            $action->executeAction($custom_value, [
+                'comment' => $request->get('comment'),
+                'next_work_users' => $request->get('next_work_users'),
+                'get_by_userinfo_action' => $request->get('get_by_userinfo_action'),
+            ]);
+        } catch (\Exception $e) {
+            return [
+                'result' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
 
         return ([
             'result'  => true,
@@ -800,7 +805,14 @@ class CustomValueController extends AdminControllerTableBase
 
         // execute copy
         $custom_value = getModelName($this->custom_table)::find($id);
-        $response = $copy->executeRequest($custom_value, $request);
+        try {
+            $response = $copy->executeRequest($custom_value, $request);
+        } catch (\Exception $e) {
+            return [
+                'result' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
 
         if (isset($response)) {
             return getAjaxResponse($response);
