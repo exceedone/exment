@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 $finder = PhpCsFixer\Finder::create()->in([
-    'src/',
-    'tests/',
+    __DIR__ . '/src/',
+    __DIR__ . '/tests/',
 ]);
 $config = new PhpCsFixer\Config();
 
