@@ -699,7 +699,15 @@ HTML;
 
         $target_table = CustomTable::getEloquent($id);
         $inputs = $request->only(['table_name','table_view_name']);
-        $response = $target_table->copyTable($inputs);
+        try {
+            $response = $target_table->copyTable($inputs);
+        } catch (\Exception $e) {
+            $response = [
+                'result' => false,
+                'toastr' => $e->getMessage(),
+                'errors' => [],
+            ];
+        }
 
         if (isset($response)) {
             return getAjaxResponse($response);
