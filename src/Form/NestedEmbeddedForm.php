@@ -42,7 +42,11 @@ class NestedEmbeddedForm extends EmbeddedForm
         $elementClass = [];
 
         // get key (before "[" and split)
-        $key = explode("[", $this->column)[0];
+        $splits = explode("[", $this->column);
+        $key = $splits[0];
+        if (count($splits) > 1) {
+            $row_no = explode("]", $splits[1])[0];
+        }
 
         if (is_array($column)) {
             foreach ($column as $k => $name) {
@@ -50,6 +54,9 @@ class NestedEmbeddedForm extends EmbeddedForm
             }
         } else {
             $elementClass = [$key. "_" . $column, $column];
+            if (isset($row_no) && is_numeric($row_no)) {
+                $elementClass[] = "rownum_$row_no";
+            }
         }
 
         return $field
@@ -79,5 +86,37 @@ class NestedEmbeddedForm extends EmbeddedForm
         }
 
         return implode("\r\n", $scripts);
+    }
+
+    /**
+     * Set original values for fields.
+     *
+     * @param array $data
+     *
+     * @return $this
+     */
+    public function setOriginal($data)
+    {
+        if (empty($data)) {
+            $data = [];
+        }
+
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        $this->original = $data;
+
+        return $this;
+    }
+
+    /**
+     * Get column of current form.
+     *
+     * @return Collection
+     */
+    public function column()
+    {
+        return $this->column;
     }
 }

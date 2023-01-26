@@ -212,6 +212,17 @@ EOT;
     protected function setCustomFormColumns($form, $custom_form_block)
     {
         $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
+        $target_id = $this->id;
+        if ($form instanceof \Exceedone\Exment\Form\NestedEmbeddedForm) {
+            $form_name = $form->column();
+            if (is_string($form_name)) {
+                if (preg_match('/\[(\w+)\]/u', $form_name, $matched)) {
+                    if (is_numeric(end($matched))) {
+                        $target_id = end($matched);
+                    }
+                }
+            }            
+        }
         foreach ($custom_form_columns as $form_column) {
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
@@ -219,8 +230,8 @@ EOT;
             }
 
             $item = $form_column->column_item;
-            if (isset($this->id)) {
-                $item->id($this->id);
+            if (isset($target_id)) {
+                $item->id($target_id);
             }
             $this->setColumnItemOption($item, $custom_form_columns);
 
