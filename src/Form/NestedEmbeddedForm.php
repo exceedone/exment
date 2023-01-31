@@ -85,7 +85,8 @@ class NestedEmbeddedForm extends EmbeddedForm
             }
         }
 
-        return implode("\r\n", $scripts);
+        return $scripts;
+//        return implode("\r\n", $scripts);
     }
 
     /**
