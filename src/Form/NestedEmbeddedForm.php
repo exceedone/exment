@@ -7,6 +7,20 @@ use Encore\Admin\Form\Field;
 
 class NestedEmbeddedForm extends EmbeddedForm
 {
+    protected $data_key;
+
+    /**
+     * EmbeddedForm constructor.
+     *
+     * @param string $column
+     */
+    public function __construct($column, $data_key = null)
+    {
+        $this->data_key = $data_key;
+
+        parent::__construct($column);
+    }
+
     /**
      * Set `elementClass` for fields inside nestedembed fields.
      *
@@ -42,11 +56,7 @@ class NestedEmbeddedForm extends EmbeddedForm
         $elementClass = [];
 
         // get key (before "[" and split)
-        $splits = explode("[", $this->column);
-        $key = $splits[0];
-        if (count($splits) > 1) {
-            $row_no = explode("]", $splits[1])[0];
-        }
+        $key = explode("[", $this->column)[0];
 
         if (is_array($column)) {
             foreach ($column as $k => $name) {
@@ -54,8 +64,8 @@ class NestedEmbeddedForm extends EmbeddedForm
             }
         } else {
             $elementClass = [$key. "_" . $column, $column];
-            if (isset($row_no) && is_numeric($row_no)) {
-                $elementClass[] = "rownum_$row_no";
+            if (isset($this->data_key) && is_numeric($this->data_key)) {
+                $elementClass[] = "rownum_" . $this->data_key;
             }
         }
 
@@ -112,12 +122,12 @@ class NestedEmbeddedForm extends EmbeddedForm
     }
 
     /**
-     * Get column of current form.
+     * Get data key.
      *
-     * @return Collection
+     * @return int|string
      */
-    public function column()
+    public function getDataKey()
     {
-        return $this->column;
+        return $this->data_key;
     }
 }
