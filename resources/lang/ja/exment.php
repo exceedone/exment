@@ -1938,6 +1938,7 @@ return [
         'permission_setting' => '権限設定',
         'user_organization_setting' => 'ユーザー・組織設定',
         'users_count' => 'ユーザー数',
+        'role_group_order' => '表示順',
         'organizations_count' => '組織数',
         'share_description' => 'このデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このデータにアクセスすることができるようになります。',
         'data_share_description' => 'この%1$sを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、この%1$sにアクセスすることができるようになります。',

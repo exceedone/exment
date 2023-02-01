@@ -1937,6 +1937,7 @@ return [
         'permission_setting' => 'Permission Setting',
         'user_organization_setting' => 'User/organization setting',
         'users_count' => 'User count',
+        'role_group_order' => 'Order',
         'organizations_count' => 'Organization count',
         'share_description' => 'Share this data with other users and organizations. Sharing enables other users and organizations to access this data.',
         'data_share_description' => 'Share this %1$s with other users and organizations. Sharing enables other users and organizations to access this data.',
