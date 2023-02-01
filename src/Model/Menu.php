@@ -192,7 +192,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 default:
                     break;
 
-                // database-row has icon column, set icon
+                    // database-row has icon column, set icon
             }
 
             if (!$result) {
