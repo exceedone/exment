@@ -122,6 +122,23 @@ class NestedEmbeddedForm extends EmbeddedForm
     }
 
     /**
+     * Set original data for each field.
+     *
+     * @param string $key
+     *
+     * @return void
+     */
+    protected function setFieldOriginalValue($key)
+    {
+        $this->fields->each(function (Field $field) use ($key) {
+            if ($field->column() === $key) {
+                $field->setOriginal($this->original);
+                return false;
+            }
+        });
+    }
+
+    /**
      * Get data key.
      *
      * @return int|string
