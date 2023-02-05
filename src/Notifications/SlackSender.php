@@ -88,6 +88,7 @@ class SlackSender extends SenderBase
 
         preg_match_all(Define::RULES_REGEX_LINK_FORMAT, $content, $matches);
 
+        // @phpstan-ignore-next-line
         if (isset($matches)) {
             for ($i = 0; $i < count($matches[1]); $i++) {
                 $match = $matches[1][$i];
