@@ -100,7 +100,7 @@ class ModelBase extends Model
 
     public static function getTableName()
     {
-        return with(new static())->getTable();
+        return (new static())->getTable();
     }
 
     /**

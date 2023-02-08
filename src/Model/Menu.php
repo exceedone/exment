@@ -92,7 +92,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
     public static function getTableName()
     {
-        return with(new static())->getTable();
+        return (new static())->getTable();
     }
 
     /**
