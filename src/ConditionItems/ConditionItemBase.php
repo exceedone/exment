@@ -137,9 +137,9 @@ abstract class ConditionItemBase implements ConditionItemInterface
      * @param CustomTable|null $custom_table
      * @param string $target Condition Type or key name
      * @param string|null $target_column_id
-     * @return self
+     * @return self|null
      */
-    protected static function getConditionItem(?CustomTable $custom_table, string $target, ?string $target_column_id)
+    protected static function getConditionItem(?CustomTable $custom_table, string $target, ?string $target_column_id): ?self
     {
         $enum = ConditionType::getEnum(strtolower($target));
         switch ($enum) {
@@ -154,6 +154,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
             case ConditionType::CONDITION:
                 return static::getConditionDetailItem($custom_table, $target_column_id);
         }
+        return null;
     }
 
 
@@ -162,9 +163,9 @@ abstract class ConditionItemBase implements ConditionItemInterface
      *
      * @param CustomTable|null $custom_table
      * @param string $target
-     * @return ConditionItemBase
+     * @return ConditionItemBase|null
      */
-    protected static function getConditionDetailItem(?CustomTable $custom_table, string $target)
+    protected static function getConditionDetailItem(?CustomTable $custom_table, string $target): ?self
     {
         $enum = ConditionTypeDetail::getEnum(strtolower($target));
         switch ($enum) {
@@ -183,6 +184,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
             case ConditionTypeDetail::FORM:
                 return new FormDataItem($custom_table, $target);
         }
+        return null;
     }
 
 

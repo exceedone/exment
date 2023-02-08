@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Builder;
-use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Services\Search\SearchService;
@@ -17,7 +16,18 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\SearchType;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @phpstan-consistent-constructor
+ * @property mixed $view_type
+ * @property mixed $view_kind_type
+ * @property mixed $default_flg
+ * @property mixed $custom_table_id
+ * @property mixed $created_user_id
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ */
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
@@ -85,32 +95,32 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         //return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
-    public function custom_view_columns()
+    public function custom_view_columns(): HasMany
     {
         return $this->hasMany(CustomViewColumn::class, 'custom_view_id');
     }
 
-    public function custom_view_filters()
+    public function custom_view_filters(): HasMany
     {
         return $this->hasMany(CustomViewFilter::class, 'custom_view_id');
     }
 
-    public function custom_view_sorts()
+    public function custom_view_sorts(): HasMany
     {
         return $this->hasMany(CustomViewSort::class, 'custom_view_id');
     }
 
-    public function custom_view_summaries()
+    public function custom_view_summaries(): HasMany
     {
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
     }
 
-    public function custom_view_grid_filters()
+    public function custom_view_grid_filters(): HasMany
     {
         return $this->hasMany(CustomViewGridFilter::class, 'custom_view_id');
     }
 
-    public function data_share_authoritables()
+    public function data_share_authoritables(): HasMany
     {
         return $this->hasMany(DataShareAuthoritable::class, 'parent_id')
             ->where('parent_type', '_custom_view');
@@ -734,7 +744,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
         $custom_view_filters = $this->custom_view_filters;
 
-        if (!empty($custom_view_filters)) {
+        if (count($custom_view_filters) !== 0) {
             $service = $this->getSearchService()->setQuery($query);
             foreach ($custom_view_filters as $filter) {
                 $service->setRelationJoin($filter);
@@ -759,7 +769,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
         $custom_view_filters = $this->custom_view_filters;
 
-        if (!empty($custom_view_filters)) {
+        if (count($custom_view_filters) !== 0) {
             $service = $this->getSearchService()->setQuery($query);
 
             // Get $relationTables.
@@ -1082,5 +1092,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 'message' => exmtrans('custom_view.message.used_column_error'),
             ];
         }
+        return [];
     }
 }

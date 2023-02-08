@@ -60,8 +60,6 @@ abstract class PluginExportBase
 
     /**
      * Get grid data.
-     *
-     * @return void
      */
     protected function getData()
     {
@@ -100,8 +98,6 @@ abstract class PluginExportBase
 
     /**
      * Get CustomValue's records.
-     *
-     * @return void
      */
     protected function getRecords()
     {

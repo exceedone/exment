@@ -43,7 +43,9 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
     /**
      * Login page using provider (SSO).
      *
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
+     * @param Request $request
+     * @param $provider_name
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
      */
     public function login(Request $request, $provider_name)
     {

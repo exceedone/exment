@@ -41,15 +41,13 @@ class BatchCommand extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         return $this->pluginBatch();
     }
 
     /**
      * Execute Plugin Batch
-     *
-     * @return void
      */
     protected function pluginBatch()
     {

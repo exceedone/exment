@@ -2,6 +2,11 @@
 
 namespace Exceedone\Exment\Model;
 
+/**
+ * @phpstan-consistent-constructor
+ * @method static \Illuminate\Database\Query\Builder take($value)
+ * @method static \Illuminate\Database\Query\Builder whereIn($column, $values, $boolean = 'and', $not = false)
+ */
 class NotifyNavbar extends ModelBase
 {
     protected static function boot()
