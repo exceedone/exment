@@ -11,9 +11,11 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\Search\SearchService;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
  * Notify user.
@@ -22,6 +24,8 @@ use Carbon\Carbon;
  * - custom_table_id to target_id
  * - workflow_id to target_id
  * - notify_actions to action_settings
+ * @property $custom_view
+ * @phpstan-consistent-constructor
  */
 class Notify extends ModelBase
 {
@@ -36,7 +40,7 @@ class Notify extends ModelBase
 
     protected $_schedule_date_column_item;
 
-    public function custom_table()
+    public function custom_table(): ?BelongsTo
     {
         if (!in_array($this->notify_trigger, NotifyTrigger::CUSTOM_TABLES())) {
             return null;
@@ -45,7 +49,7 @@ class Notify extends ModelBase
         ;
     }
 
-    public function custom_view()
+    public function custom_view(): BelongsTo
     {
         if (isset($this->custom_view_id)) {
             return $this->belongsTo(CustomView::class, 'custom_view_id');
@@ -210,7 +214,7 @@ class Notify extends ModelBase
                         ]);
                     }
                     // throw mailsend Exception
-                    catch (\Swift_TransportException $ex) {
+                    catch (TransportExceptionInterface $ex) {
                         \Log::error($ex);
                     }
                 }
@@ -346,7 +350,7 @@ class Notify extends ModelBase
                     ]);
                 }
                 // throw mailsend Exception
-                catch (\Swift_TransportException $ex) {
+                catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
@@ -418,7 +422,7 @@ class Notify extends ModelBase
                     ]);
                 }
                 // throw mailsend Exception
-                catch (\Swift_TransportException $ex) {
+                catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
@@ -560,7 +564,7 @@ class Notify extends ModelBase
                     ]);
                 }
                 // throw mailsend Exception
-                catch (\Swift_TransportException $ex) {
+                catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));

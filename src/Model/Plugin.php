@@ -9,8 +9,12 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Carbon\Carbon;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Collection;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class Plugin extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
@@ -27,7 +31,7 @@ class Plugin extends ModelBase
             $this->attributes['plugin_types'] = PluginType::getEnum($pluginTypes)->getValue() ?? null;
         } else {
             $array = collect(explode(',', $pluginTypes))->filter(function ($value, $key) {
-                return isset($value) && strlen($value) > 0;
+                return $value !== null && strlen($value) > 0;
             })->map(function ($pluginType) {
                 return PluginType::getEnum($pluginType)->getValue() ?? null;
             })->toArray();
@@ -413,12 +417,12 @@ class Plugin extends ModelBase
         $dirName = $diskService->diskItem()->dirName();
 
         if (!$disk->exists($dirName)) {
-            throw new \League\Flysystem\FileNotFoundException($dirName);
+            throw new FileNotFoundException($dirName);
         }
 
         $filePath = path_join($dirName, $path);
         if (!$disk->exists($filePath) && boolval($options['exceptionFileNotFound'])) {
-            throw new \League\Flysystem\FileNotFoundException($filePath);
+            throw new FileNotFoundException($filePath);
         }
 
         return [$diskService, $disk, $dirName, $filePath];
@@ -437,7 +441,7 @@ class Plugin extends ModelBase
     {
         $plugins = static::getPluginsByTable($custom_table, false);
 
-        if (isset($event) && !isset($options['event_type'])) {
+        if ($event !== null && !isset($options['event_type'])) {
             $options['event_type'] = $event;
         }
 
@@ -702,6 +706,7 @@ class Plugin extends ModelBase
         foreach ($patterns as $pattern) {
             preg_match($pattern, request()->url(), $matches);
 
+            // @phpstan-ignore-next-line
             if (!isset($matches) || count($matches) <= 1) {
                 continue;
             }
@@ -737,13 +742,14 @@ class Plugin extends ModelBase
      *
      * @return string
      */
-    public function getRootUrl($plugin_type)
+    public function getRootUrl($plugin_type): string
     {
         if ($plugin_type == PluginType::PAGE || $plugin_type == PluginType::CRUD) {
             return admin_urls($this->getRouteUri());
         } elseif ($plugin_type == PluginType::API) {
             return admin_urls('api', $this->getRouteUri());
         }
+        return '';
     }
 
     /**

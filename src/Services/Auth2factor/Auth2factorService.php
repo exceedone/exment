@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
  * For login 2 factor
@@ -104,7 +105,7 @@ class Auth2factorService
             return true;
         }
         // throw mailsend Exception
-        catch (\Swift_TransportException $ex) {
+        catch (TransportExceptionInterface $ex) {
             \Log::error($ex);
             return false;
         }

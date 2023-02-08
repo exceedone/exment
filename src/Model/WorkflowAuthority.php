@@ -8,6 +8,9 @@ use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
 {
     use Traits\UseRequestSessionTrait;

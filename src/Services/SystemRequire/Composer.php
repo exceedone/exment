@@ -148,6 +148,7 @@ class Composer extends SystemRequireBase
             case SystemRequireResult::NG:
                 return exmtrans('common.error');
         }
+        return null;
     }
 
     /**
