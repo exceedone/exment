@@ -3,16 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\FormBlockType;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * @phpstan-consistent-constructor
- * @property mixed $available
- * @property mixed $custom_form_id
- * @property mixed $form_block_target_table_id
- * @property mixed $form_block_view_name
- */
 class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
@@ -61,17 +52,17 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         ],
     ];
 
-    public function custom_form(): BelongsTo
+    public function custom_form()
     {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }
 
-    public function custom_form_columns(): HasMany
+    public function custom_form_columns()
     {
         return $this->hasMany(CustomFormColumn::class, 'custom_form_block_id');
     }
 
-    public function target_table(): BelongsTo
+    public function target_table()
     {
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
     }

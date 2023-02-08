@@ -9,9 +9,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Laravel\BrowserKitTesting\TestCase as BaseTestCase;
 
-/**
- * @method \Exceedone\Exment\Tests\DatabaseTransactions beginDatabaseTransaction()
- */
 abstract class ExmentKitTestCase extends BaseTestCase
 {
     use \Tests\CreatesApplication;

@@ -7,10 +7,6 @@ namespace Exceedone\Exment\Validator;
  */
 class FaviconRule extends FileRule
 {
-    /**
-     * @param array $extensions
-     * @phpstan-ignore-next-line
-     */
     public function __construct(array $extensions = [])
     {
         $this->extensions = ['ico'];

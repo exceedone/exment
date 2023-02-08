@@ -170,7 +170,7 @@ trait ApiDataTrait
     /**
      * Modify logic for getting value
      *
-     * @return mixed
+     * @return \Illuminate\Pagination\LengthAwarePaginator|CustomValue
      */
     protected function modifyAfterGetValue(Request $request, $target, $options = [])
     {
@@ -245,7 +245,7 @@ trait ApiDataTrait
      * @param Request $request
      * @param CustomValue|array|mixed $custom_value
      * @param bool $recursive if true, this is $recursive, so not call children
-     * @return mixed
+     * @return void
      */
     protected function modifyCustomValue(Request $request, $custom_value, $recursive = false)
     {
@@ -393,7 +393,7 @@ trait ApiDataTrait
             if (array_has($custom_value, $reltionName)) {
                 $relationValues = $custom_value[$reltionName];
                 $makeHiddenArray = $relation->child_custom_table_cache->getMakeHiddenArray();
-                $relationValues = $relationValues->map(function ($relationValue) use ($makeHiddenArray, $request) {
+                $relationValues = $relationValues->map(function ($relationValue) use ($makeHiddenArray, $request, $relation) {
                     // Call makehidden
                     $relationValue = $relationValue->makeHidden($makeHiddenArray);
                     // Call modify custom value

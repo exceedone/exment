@@ -15,7 +15,6 @@ use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\PartialCrudItems\Providers\LoginUserItem;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class LoginUserController extends AdminControllerBase
 {
@@ -163,7 +162,7 @@ class LoginUserController extends AdminControllerBase
                 return $result;
             }
             DB::commit();
-        } catch (TransportExceptionInterface $ex) {
+        } catch (\Swift_TransportException $ex) {
             \Log::error($ex);
             admin_error('Error', exmtrans('error.mailsend_failed'));
             DB::rollback();

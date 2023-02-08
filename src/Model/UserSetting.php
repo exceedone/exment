@@ -2,9 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-/**
- * @phpstan-consistent-constructor
- */
 class UserSetting extends ModelBase
 {
     use Traits\DatabaseJsonTrait;

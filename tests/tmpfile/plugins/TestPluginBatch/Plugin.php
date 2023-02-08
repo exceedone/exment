@@ -16,7 +16,7 @@ class Plugin extends PluginBatchBase
 
         foreach ($tables as $table) {
             $modelname = getModelName($table);
-            if ($modelname === null) {
+            if (!isset($modelname)) {
                 continue;
             }
 

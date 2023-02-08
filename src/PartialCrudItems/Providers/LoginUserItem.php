@@ -13,7 +13,6 @@ use Exceedone\Exment\Services\Login\LoginService;
 
 /**
  * Login User item
- * @phpstan-consistent-constructor
  */
 class LoginUserItem extends ProviderBase
 {

@@ -4,7 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Services\Uuids;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\FileType;
 use Illuminate\Support\Facades\Storage;
+use Webpatser\Uuid\Uuid;
 
 /**
  * Exment file model.
@@ -19,16 +21,6 @@ use Illuminate\Support\Facades\Storage;
  *     *Update custom value id or table
  *     *Delete file info.
  *     *Get attachment url.
- *
- * @phpstan-consistent-constructor
- * @property mixed $uuid
- * @property mixed $parent_type
- * @property mixed $parent_id
- * @property mixed $local_filename
- * @property mixed $local_dirname
- * @property mixed $custom_column_id
- * @method static \Illuminate\Database\Query\Builder whereNull($columns, $boolean = 'and', $not = false)
- * @method static \Illuminate\Database\Query\Builder whereNotNull($columns, $boolean = 'and')
  */
 class File extends ModelBase
 {
@@ -446,7 +438,7 @@ class File extends ModelBase
                 $val = $funcUuid($pathOrUuid) ?: $funcPath($pathOrUuid) ?: null;
             }
 
-            if ($val !== null) {
+            if (isset($val)) {
                 return $val;
             }
         }

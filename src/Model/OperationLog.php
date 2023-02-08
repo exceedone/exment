@@ -2,9 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-/**
- * @property mixed $user_id
- */
 class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
 {
     use Traits\SerializeDateTrait;

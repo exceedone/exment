@@ -9,7 +9,6 @@ use Encore\Admin\Widgets\Box;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\Permission;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Validator;
@@ -194,7 +193,7 @@ class PluginCodeController extends AdminControllerBase
      *
      * @param Request $request
      * @param int $id
-     * @return array|void
+     * @return array
      */
     protected function getFileEditFormView(Request $request, $id)
     {
@@ -255,7 +254,7 @@ class PluginCodeController extends AdminControllerBase
                 'can_delete' => $can_delete,
                 'message' => $message
             ]), false];
-        } catch (FileNotFoundException $ex) {
+        } catch (\League\Flysystem\FileNotFoundException $ex) {
             //Todo:FileNotFoundException
         }
     }

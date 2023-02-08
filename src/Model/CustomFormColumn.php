@@ -4,17 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @phpstan-consistent-constructor
- * @property mixed $view_column_target_id
- * @property mixed $form_column_target_id
- * @property mixed $form_column_type
- * @property mixed $order
- * @property mixed $custom_form_block_id
- * @property mixed $column_no
- */
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
@@ -107,12 +97,12 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         ]
     ];
 
-    public function custom_form_block(): BelongsTo
+    public function custom_form_block()
     {
         return $this->belongsTo(CustomFormBlock::class, 'custom_form_block_id');
     }
 
-    public function custom_column(): BelongsTo
+    public function custom_column()
     {
         return $this->belongsTo(CustomColumn::class, 'form_column_target_id');
     }

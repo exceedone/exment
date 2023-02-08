@@ -11,10 +11,7 @@ class NotifySavedType extends EnumBase
     public const COMMENT = "comment";
     public const ATTACHMENT = "attachmented";
 
-    /**
-     * @return string|null
-     */
-    public function getLabel(): ?string
+    public function getLabel()
     {
         switch ($this) {
             case static::CREATE:
@@ -35,16 +32,15 @@ class NotifySavedType extends EnumBase
             case static::ATTACHMENT:
                 return exmtrans('common.attachmented');
         }
-        return null;
     }
 
     /**
      * Get target user name.
      *
      * @param \Exceedone\Exment\Model\CustomValue $custom_value
-     * @return string|null
+     * @return string
      */
-    public function getTargetUserName($custom_value): ?string
+    public function getTargetUserName($custom_value)
     {
         switch ($this) {
             case static::CREATE:
@@ -57,6 +53,5 @@ class NotifySavedType extends EnumBase
             case static::ATTACHMENT:
                 return \Exment::user()->base_user->label;
         }
-        return null;
     }
 }

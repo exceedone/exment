@@ -448,7 +448,7 @@ class CustomFormController extends AdminControllerTableBase
      *
      * Make a form
      *
-     * @return Form|void
+     * @return Form
      */
     protected function createForm($content, $id = null, $copy_id = null)
     {

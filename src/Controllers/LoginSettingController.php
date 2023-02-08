@@ -27,7 +27,6 @@ use Exceedone\Exment\Services\Login as LoginServiceBase;
 use Encore\Admin\Layout\Content;
 use Carbon\Carbon;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class LoginSettingController extends AdminControllerBase
 {
@@ -705,7 +704,7 @@ class LoginSettingController extends AdminControllerBase
             ]);
         }
         // throw mailsend Exception
-        catch (TransportExceptionInterface $ex) {
+        catch (\Swift_TransportException $ex) {
             \Log::error($ex);
             return getAjaxResponse([
                 'result'  => false,

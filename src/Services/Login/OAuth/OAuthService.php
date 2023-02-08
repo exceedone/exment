@@ -168,6 +168,7 @@ class OAuthService implements LoginServiceInterface
      * Execute login for plugin clud
      *
      * @param Request $request
+     * @return void
      */
     public static function loginPluginClud(Request $request, $login_setting, string $callbackUrl)
     {

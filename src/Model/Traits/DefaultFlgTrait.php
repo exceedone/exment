@@ -2,9 +2,6 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
-/**
- * @method whereIn($column, $values, $boolean = 'and', $not = false)
- */
 trait DefaultFlgTrait
 {
     /**

@@ -40,7 +40,6 @@ use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
 
-/** @phpstan-consistent-constructor */
 class DefaultShow extends ShowBase
 {
     protected static $showClassName = \Exceedone\Exment\Form\Show::class;
@@ -514,7 +513,7 @@ class DefaultShow extends ShowBase
 
             $.pjax({container:'#pjax-container-revision', url: url +'?' + $.param(query) });
         });
-
+    
 EOT;
         Admin::script($script);
 

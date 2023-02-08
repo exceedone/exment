@@ -4,9 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 
-/**
- * @phpstan-consistent-constructor
- */
 class RoleGroupUserOrganization extends ModelBase
 {
     use Traits\ClearCacheTrait;

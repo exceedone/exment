@@ -3,15 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\CopyColumnType;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * @phpstan-consistent-constructor
- * @method static \Illuminate\Database\Query\Builder whereIn($column, $values, $boolean = 'and', $not = false)
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
- */
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
@@ -53,23 +45,23 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         ],
     ];
 
-    public function from_custom_table(): BelongsTo
+    public function from_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'from_custom_table_id');
     }
 
-    public function to_custom_table(): BelongsTo
+    public function to_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'to_custom_table_id');
     }
 
-    public function custom_copy_columns(): HasMany
+    public function custom_copy_columns()
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
         ->where('copy_column_type', CopyColumnType::DEFAULT);
     }
 
-    public function custom_copy_input_columns(): HasMany
+    public function custom_copy_input_columns()
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
         ->where('copy_column_type', CopyColumnType::INPUT);

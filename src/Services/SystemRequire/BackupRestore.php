@@ -54,7 +54,6 @@ class BackupRestore extends SystemRequireBase
             case SystemRequireResult::NG:
                 return exmtrans('common.error');
         }
-        return null;
     }
 
     /**

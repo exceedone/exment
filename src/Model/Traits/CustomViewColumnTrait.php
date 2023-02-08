@@ -13,15 +13,11 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Exceedone\Exment\ColumnItems;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @method getOption($key, $default = null))
  * @method setOption($key, $val = null, $forgetIfNull = false)
  * @method static mixed findBySuuid($key)
- * @property string $view_pivot_column_id
- * @property string $view_pivot_table_id
- * @property string $view_column_type
  */
 trait CustomViewColumnTrait
 {
@@ -29,7 +25,7 @@ trait CustomViewColumnTrait
 
     private $_custom_item;
 
-    public function custom_view(): BelongsTo
+    public function custom_view()
     {
         return $this->belongsTo(CustomView::class, 'custom_view_id');
     }
@@ -41,7 +37,7 @@ trait CustomViewColumnTrait
         }
     }
 
-    public function custom_table(): BelongsTo
+    public function custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'view_column_table_id');
     }

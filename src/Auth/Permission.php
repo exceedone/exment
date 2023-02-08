@@ -490,16 +490,14 @@ class Permission
     /**
      * not admin page's (for custom url), return true
      *
-     * @param string|null $endpoint
      * @return boolean
      */
-    protected function isNotAdminUrl(?string $endpoint): bool
+    protected function isNotAdminUrl(?string $endpoint)
     {
         $parse_url = parse_url_ex($endpoint);
         if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
             return true;
         }
-        return false;
     }
 
     protected function removeAfterQuery($url)

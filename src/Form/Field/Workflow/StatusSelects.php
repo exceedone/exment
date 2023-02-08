@@ -15,11 +15,6 @@ class StatusSelects extends Select
      */
     protected $column = [];
 
-    /**
-     * @param $column
-     * @param $arguments
-     * @phpstan-ignore-next-line
-     */
     public function __construct($column = '', $arguments = [])
     {
         $this->column['action_name'] = 'action_name';

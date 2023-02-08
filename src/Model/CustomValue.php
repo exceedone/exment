@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Collection;
+use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
@@ -21,22 +22,6 @@ use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
-/**
- * @property-read string $display_avatar
- * @phpstan-consistent-constructor
- * @property mixed $workflow_values
- * @property mixed $workflow_value
- * @property mixed $value
- * @property mixed $titleColumn
- * @property mixed $revisionFormattedFields
- * @property mixed $revisionFormattedFieldNames
- * @property mixed $parent_type
- * @property mixed $parent_id
- * @property mixed $parentColumn
- * @property mixed $orderColumn
- * @property mixed $dontKeepRevisionOf
- * @property mixed $custom_table_name
- */
 abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;

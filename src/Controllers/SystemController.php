@@ -28,7 +28,6 @@ use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Enums\SystemRequireResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Validator;
 
 class SystemController extends AdminControllerBase
@@ -517,7 +516,7 @@ class SystemController extends AdminControllerBase
             ]);
         }
         // throw mailsend Exception
-        catch (TransportExceptionInterface $ex) {
+        catch (\Swift_TransportException $ex) {
             \Log::error($ex);
 
             return getAjaxResponse([

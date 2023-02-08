@@ -5,16 +5,6 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 
-/**
- * @phpstan-consistent-constructor
- * @property mixed $workflow_type
- * @property mixed $workflow_tables
- * @property mixed $workflow_statuses
- * @property mixed $workflow_actions
- * @property mixed $start_status_name
- * @property mixed $setting_completed_flg
- * @property mixed $notifies
- */
 class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;

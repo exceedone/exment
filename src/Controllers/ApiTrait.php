@@ -59,7 +59,7 @@ trait ApiTrait
      * Get count parameter for list count
      *
      * @param Request $request
-     * @return int|null
+     * @return int
      */
     protected function getCount(Request $request)
     {

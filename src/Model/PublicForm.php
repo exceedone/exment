@@ -15,19 +15,6 @@ use Exceedone\Exment\DataItems\Form\PublicFormForm;
 use Exceedone\Exment\Form\Field\ReCaptcha;
 use Exceedone\Exment\Enums\SystemTableName;
 
-/**
- * @phpstan-consistent-constructor
- * @property mixed $uuid
- * @property mixed $public_form_view_name
- * @property mixed $options
- * @property mixed $notify_error
- * @property mixed $notify_complete_user
- * @property mixed $notify_complete_admin
- * @property mixed $custom_form_id
- * @property mixed $custom_form
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
- */
 class PublicForm extends ModelBase
 {
     use Traits\UseRequestSessionTrait;

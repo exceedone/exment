@@ -7,7 +7,6 @@ use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Enums\LoginType;
 use Password;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ForgetPasswordController extends Controller
 {
@@ -67,7 +66,7 @@ class ForgetPasswordController extends Controller
             return $response == Password::RESET_LINK_SENT
                         ? $this->sendResetLinkResponse($request, $response)
                         : $this->sendResetLinkFailedResponse($request, $response);
-        } catch (TransportExceptionInterface $ex) {
+        } catch (\Swift_TransportException $ex) {
             \Log::error($ex);
             return back()->with('status_error', exmtrans('error.mailsend_failed'));
         }

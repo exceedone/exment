@@ -5,25 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @phpstan-consistent-constructor
- * @property mixed $view_pivot_column_id
- * @property mixed $view_pivot_table_id
- * @property mixed $view_column_type
- * @property mixed $view_column_target_id
- * @property mixed $view_column_table_id
- * @property mixed $to_column_type
- * @property mixed $to_column_target_id
- * @property mixed $to_column_table_id
- * @property mixed $suuid
- * @property mixed $from_column_type
- * @property mixed $from_column_target_id
- * @property mixed $from_column_table_id
- * @property mixed $custom_view_id
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- */
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
@@ -70,27 +52,27 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         ]
     ];
 
-    public function custom_copy(): BelongsTo
+    public function custom_copy()
     {
         return $this->belongsTo(CustomCopy::class, 'custom_copy_id');
     }
 
-    public function from_custom_column(): BelongsTo
+    public function from_custom_column()
     {
         return $this->belongsTo(CustomColumn::class, 'from_column_target_id');
     }
 
-    public function to_custom_column(): BelongsTo
+    public function to_custom_column()
     {
         return $this->belongsTo(CustomColumn::class, 'to_column_target_id');
     }
 
-    public function from_custom_table(): BelongsTo
+    public function from_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'from_column_table_id');
     }
 
-    public function to_custom_table(): BelongsTo
+    public function to_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'to_column_table_id');
     }

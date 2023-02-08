@@ -8,13 +8,6 @@ use Carbon\Carbon;
  *
  * @property mixed $query
  * @property mixed $model
- * @method orWhere($column, $operator = null, $value = null)
- * @method whereRaw($sql, $bindings = [], $boolean = 'and')
- * @method orWhereRaw($sql, $bindings = [])
- * @method whereIn($column, $values, $boolean = 'and', $not = false)
- * @method orWhereIn($column, $values)
- * @method whereNotIn($column, $values, $boolean = 'and')
- * @method orWhereNotIn($column, $values)
  */
 trait ExtendedBuilderTrait
 {
@@ -98,7 +91,7 @@ trait ExtendedBuilderTrait
             return $this->orWhereIn($column, toArray($checkArray));
         }
 
-        return $this->orWhere($column, $operator, $value);
+        return $this->orWhere($column, $operator, $value, $boolean);
     }
 
     /**
@@ -150,7 +143,7 @@ trait ExtendedBuilderTrait
                         ->whereIn($columns[1], $values);
                 });
             }
-        })->select(['id'])->pluck('id');
+        })->select(['id'])->get()->pluck('id');
 
         // set id filter
         return $this->whereIn('id', $ids);
@@ -556,7 +549,7 @@ trait ExtendedBuilderTrait
      * get table name
      * @return string table name
      */
-    protected function _getTableExment(): string
+    protected function _getTableExment()
     {
         if ($this instanceof \Illuminate\Database\Query\JoinClause) {
             return $this->table;
@@ -569,6 +562,5 @@ trait ExtendedBuilderTrait
         if ($this instanceof \Illuminate\Database\Query\Builder) {
             return $this->from;
         }
-        return '';
     }
 }

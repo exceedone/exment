@@ -9,17 +9,7 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\DataItems\Show as ShowItem;
 use Exceedone\Exment\DataItems\Form as FormItem;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
-/**
- * @phpstan-consistent-constructor
- * @property mixed $default_flg
- * @property mixed $custom_table_id
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
- */
 class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
@@ -74,27 +64,27 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     private $_show_item;
 
-    public function custom_table(): BelongsTo
+    public function custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
-    public function custom_form_blocks(): HasMany
+    public function custom_form_blocks()
     {
         return $this->hasMany(CustomFormBlock::class, 'custom_form_id');
     }
 
-    public function custom_form_priorities(): HasMany
+    public function custom_form_priorities()
     {
         return $this->hasMany(CustomFormPriority::class, 'custom_form_id');
     }
 
-    public function public_forms(): HasMany
+    public function public_forms()
     {
         return $this->hasMany(PublicForm::class, 'custom_form_id');
     }
 
-    public function custom_form_columns(): HasManyThrough
+    public function custom_form_columns()
     {
         return $this->hasManyThrough(CustomFormColumn::class, CustomFormBlock::class, 'custom_form_id', 'custom_form_block_id');
     }

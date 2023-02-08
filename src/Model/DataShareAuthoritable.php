@@ -8,9 +8,6 @@ use Exceedone\Exment\Enums\ShareTargetType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
 
-/**
- * @phpstan-consistent-constructor
- */
 class DataShareAuthoritable extends ModelBase
 {
     use Traits\DataShareTrait;

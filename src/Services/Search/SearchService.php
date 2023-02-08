@@ -464,6 +464,8 @@ class SearchService
 
     /**
      * Execute  order by if for summary
+     *
+     * @return $this
      */
     public function executeSummaryOrderBy()
     {
@@ -475,6 +477,8 @@ class SearchService
 
     /**
      * Execute summary join.
+     *
+     * @return $this
      */
     public function executeSummaryJoin()
     {

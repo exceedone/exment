@@ -97,7 +97,6 @@ class CaptchaRule implements Rule
             return true;
         }
 
-        /** @phpstan-ignore-next-line */
         return no_captcha($this->version)
             ->verify($value, $ip)
             ->isSuccess();

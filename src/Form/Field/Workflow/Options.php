@@ -16,11 +16,6 @@ class Options extends Select
      */
     protected $column = [];
 
-    /**
-     * @param $column
-     * @param $arguments
-     * @phpstan-ignore-next-line
-     */
     public function __construct($column = '', $arguments = [])
     {
         $this->column['comment_type'] = 'comment_type';

@@ -57,7 +57,7 @@ abstract class SystemRequireBase
         return null;
     }
 
-    public function getResultClassSet(): ?array
+    public function getResultClassSet(): array
     {
         switch ($this->checkResult()) {
             case SystemRequireResult::OK:
@@ -76,7 +76,6 @@ abstract class SystemRequireBase
                     'color' => '#d9534f',
                 ];
         }
-        return null;
     }
 
 

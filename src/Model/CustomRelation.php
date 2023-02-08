@@ -4,16 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ConditionType;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @phpstan-consistent-constructor
- * @property mixed $relation_type
- * @property mixed $parent_custom_table_id
- * @property mixed $child_custom_table_id
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
- */
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\TemplateTrait;
@@ -79,12 +70,12 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         ]
     ];
 
-    public function parent_custom_table(): BelongsTo
+    public function parent_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'parent_custom_table_id');
     }
 
-    public function child_custom_table(): BelongsTo
+    public function child_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'child_custom_table_id');
     }

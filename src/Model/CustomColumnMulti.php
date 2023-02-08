@@ -4,12 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\FilterOption;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Custom column multiple settings
- *
- * @phpstan-consistent-constructor
  */
 class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -24,7 +21,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     protected $guarded = ['id', 'suuid'];
     protected $table = 'custom_column_multisettings';
 
-    public function custom_table(): BelongsTo
+    public function custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
@@ -310,7 +307,11 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                     if (empty($value2)) {
                         return true;
                     }
-                } elseif (!empty($value2)) {
+                } elseif (empty($value2)) {
+                    if (empty($value1)) {
+                        return true;
+                    }
+                } else {
                     if ($value1 == $value2) {
                         return true;
                     }
@@ -324,7 +325,9 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                         return true;
                     }
                 } elseif (empty($value2)) {
-                    return true;
+                    if (!empty($value1)) {
+                        return true;
+                    }
                 } else {
                     if ($value1 != $value2) {
                         return true;

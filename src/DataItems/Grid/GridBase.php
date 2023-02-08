@@ -28,8 +28,6 @@ abstract class GridBase
     {
         list($custom_table, $custom_view) = $args + [null, null];
 
-        /** Unsafe usage of new static(). */
-        /** @phpstan-ignore-next-line */
         return new static($custom_table, $custom_view);
     }
 

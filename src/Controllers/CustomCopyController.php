@@ -128,7 +128,7 @@ class CustomCopyController extends AdminControllerTableBase
     /**
      * get child table copy options.
      *
-     * @return array|null child copy options
+     * @return array child copy options
      */
     protected function getChildCopyOptions($to_table)
     {
@@ -150,7 +150,6 @@ class CustomCopyController extends AdminControllerTableBase
                   )];
               })->toArray();
         }
-        return null;
     }
 
     /**

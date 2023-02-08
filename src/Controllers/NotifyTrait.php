@@ -23,6 +23,8 @@ trait NotifyTrait
 {
     /**
      * Make a grid builder.
+     *
+     * @return Grid
      */
     protected function setBasicGrid($grid)
     {
@@ -36,6 +38,8 @@ trait NotifyTrait
 
     /**
      * Make a grid builder.
+     *
+     * @return Grid
      */
     protected function setFilterGrid($grid, ?\Closure $callback = null)
     {

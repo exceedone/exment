@@ -24,23 +24,12 @@ use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Encore\Admin\Facades\Admin;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Request;
 
 /**
  * Custom Table Class
- *
- * @phpstan-consistent-constructor
- * @property mixed $table_name
- * @property mixed $system_flg
- * @property mixed $showlist_flg
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
- * @method static \Illuminate\Database\Query\Builder whereNotIn($column, $values, $boolean = 'and')
- * @method static \Illuminate\Database\Query\Builder join($table, $first, $operator = null, $second = null, $type = 'inner', $where = false)
  */
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -73,99 +62,99 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     protected $cached_custom_columns = [];
 
-    public function custom_columns(): HasMany
+    public function custom_columns()
     {
         return $this->hasMany(CustomColumn::class, 'custom_table_id');
     }
 
-    public function custom_views(): HasMany
+    public function custom_views()
     {
         return $this->hasMany(CustomView::class, 'custom_table_id')
             ->orderBy('view_type')
             ->orderBy('id');
     }
 
-    public function custom_forms(): HasMany
+    public function custom_forms()
     {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
     }
 
-    public function custom_operations(): HasMany
+    public function custom_operations()
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
 
-    public function custom_relations(): HasMany
+    public function custom_relations()
     {
         return $this->hasMany(CustomRelation::class, 'parent_custom_table_id');
     }
 
-    public function child_custom_relations(): HasMany
+    public function child_custom_relations()
     {
         return $this->hasMany(CustomRelation::class, 'child_custom_table_id');
     }
 
-    public function from_custom_copies(): HasMany
+    public function from_custom_copies()
     {
         return $this->hasMany(CustomCopy::class, 'from_custom_table_id');
     }
 
-    public function to_custom_copies(): HasMany
+    public function to_custom_copies()
     {
         return $this->hasMany(CustomCopy::class, 'to_custom_table_id');
     }
 
-    public function notifies(): HasMany
+    public function notifies()
     {
         return $this->hasMany(Notify::class, 'target_id')
             ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES())
             ->where('active_flg', 1);
     }
 
-    public function operations(): HasMany
+    public function operations()
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
 
-    public function custom_form_block_target_tables(): HasMany
+    public function custom_form_block_target_tables()
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
 
-    public function custom_column_multisettings(): HasMany
+    public function custom_column_multisettings()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id');
     }
 
-    public function custom_form_priorities(): HasManyThrough
+    public function custom_form_priorities()
     {
         return $this->hasManyThrough(CustomFormPriority::class, CustomForm::class, 'custom_table_id', 'custom_form_id');
     }
 
-    public function workflow_tables(): HasMany
+    public function workflow_tables()
     {
         return $this->hasMany(WorkflowTable::class, 'custom_table_id');
     }
 
-    public function multi_uniques(): HasMany
+    public function multi_uniques()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
             ->where('multisetting_type', MultisettingType::MULTI_UNIQUES);
     }
 
-    public function table_labels(): HasMany
+    public function table_labels()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
             ->where('multisetting_type', MultisettingType::TABLE_LABELS);
     }
 
-    public function compare_columns(): HasMany
+    public function compare_columns()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
             ->where('multisetting_type', MultisettingType::COMPARE_COLUMNS);
     }
 
-    public function share_settings(): HasMany
+    public function share_settings()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
             ->where('multisetting_type', MultisettingType::SHARE_SETTINGS);
@@ -212,7 +201,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'message' => exmtrans('custom_value.help.reference_error'),
             ];
         }
-        return [];
     }
 
     /**

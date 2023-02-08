@@ -130,13 +130,7 @@ class LoginUserColumnItem extends ColumnItem
     }
 
 
-    /**
-     * @param WorkflowAuthorityInterface $workflow_authority
-     * @param CustomValue|null $custom_value
-     * @param $targetUser
-     * @return bool
-     */
-    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser): bool
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $custom_column = CustomColumn::getEloquent($workflow_authority->related_id);
         $workflow_action = WorkflowAction::getEloquent($workflow_authority->workflow_action_id);
@@ -154,7 +148,6 @@ class LoginUserColumnItem extends ColumnItem
                     return collect($ids)->contains($auth_value);
                 });
         }
-        return false;
     }
 
 

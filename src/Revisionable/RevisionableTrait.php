@@ -127,6 +127,8 @@ trait RevisionableTrait
 
     /**
     * Invoked before a model is saved. Return false to abort the operation.
+    *
+    * @return bool
     */
     public function preSave()
     {

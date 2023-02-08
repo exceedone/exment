@@ -8,12 +8,6 @@ use Exceedone\Exment\Enums\PluginCrudAuthType;
  */
 abstract class CrudBase
 {
-    /**
-     * @param $plugin
-     * @param $pluginClass
-     * @param $options
-     * @phpstan-ignore-next-line
-     */
     public function __construct($plugin, $pluginClass, $options = [])
     {
         $this->plugin = $plugin;

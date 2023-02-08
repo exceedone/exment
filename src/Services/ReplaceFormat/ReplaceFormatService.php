@@ -32,7 +32,6 @@ class ReplaceFormatService
         try {
             // check string
             preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $format, $matches);
-            // @phpstan-ignore-next-line
             if (isset($matches)) {
                 // loop for matches. because we want to get inner {}, loop $matches[1].
                 for ($i = 0; $i < count($matches[1]); $i++) {

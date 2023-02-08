@@ -8,7 +8,6 @@ use Encore\Admin\Tree;
 
 /**
  * OrgazanizationTreeItem
- * @phpstan-consistent-constructor
  */
 class OrgazanizationTreeItem extends ProviderBase
 {

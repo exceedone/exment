@@ -89,7 +89,7 @@ class Backup
         $settings = collect($target)->map(function ($val) {
             return BackupTarget::dirOrDisk($val);
         })->filter(function ($val) {
-            return $val !== null;
+            return isset($val);
         })->toArray();
 
         foreach ($settings as $setting) {
