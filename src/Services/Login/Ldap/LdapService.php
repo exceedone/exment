@@ -70,7 +70,7 @@ class LdapService implements LoginServiceInterface
     {
         return [
             'exment' => [
-                'schema' => \Adldap\Schemas\ActiveDirectory::class,
+                'schema' => '\Adldap\Schemas\\' . ($login_setting->getOption('ldap_schema')),
                 'hosts' => stringToArray($login_setting->getOption('ldap_hosts')),
                 'port' => $login_setting->getOption('ldap_port') ?? 389,
                 'timeout' => 10,
@@ -100,6 +100,20 @@ class LdapService implements LoginServiceInterface
     }
 
     /**
+     * Get login user dn.
+     *
+     * @param Provider $provider
+     * @param string $username
+     * @param LoginSetting $login_setting
+     * @return string
+     */
+    public static function getLdapUserDN($provider, $username, LoginSetting $login_setting): string
+    {
+        $ldapUser = $provider->search()->rawFilter([$login_setting->getOption('ldap_filter')])->findBy($login_setting->getOption('ldap_search_key'), $username);
+        return (!empty($ldapUser["dn"])) ? $ldapUser["dn"][0] : false;
+    }
+
+    /**
      * Sync user from ldap Provider
      *
      * @param \Adldap\Connections\ProviderInterface $provider
@@ -109,7 +123,12 @@ class LdapService implements LoginServiceInterface
      */
     public static function syncLdapUser($provider, LoginSetting $login_setting, $username)
     {
-        return $provider->search()->users()->findBy($login_setting->getOption('ldap_search_key'), $username);
+        if ($login_setting->getOption('ldap_schema') != "ActiveDirectory" && !empty($login_setting->getOption('ldap_filter'))) {
+            $builder = $provider->search()->rawFilter([$login_setting->getOption('ldap_filter')]);
+        } else {
+            $builder = $provider->search()->users();
+        }
+        return $builder->findBy($login_setting->getOption('ldap_search_key'), $username);
     }
 
     public static function getTestForm(LoginSetting $login_setting)
@@ -147,10 +166,10 @@ class LdapService implements LoginServiceInterface
 
         if (!isset($login_setting)) {
             $form->text('ldap_name', exmtrans('login.ldap_name'))
-            ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'))
-            ->required()
-            ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule()])
-            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+                ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'))
+                ->required()
+                ->rules(["max:30", "regex:/" . Define::RULES_REGEX_SYSTEM_NAME . "/", new \Exceedone\Exment\Validator\SamlNameUniqueRule()])
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
         } else {
             $form->display('ldap_name_text', exmtrans('login.ldap_name'))->default(function () use ($login_setting) {
                 return $login_setting->getOption('ldap_name');
@@ -159,42 +178,48 @@ class LdapService implements LoginServiceInterface
         }
 
         $form->exmheader(exmtrans('login.ldap_setting'))->hr()
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
-
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        $form->select('ldap_schema', "スキーマ")->options(["OpenLDAP" => "OpenLDAP", "ActiveDirectory" => "ActiveDirectory"])
+            ->required()
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
         $form->text('ldap_hosts', exmtrans('login.ldap_hosts'))
-        ->required()
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            ->required()
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
 
         $form->text('ldap_port', exmtrans('login.ldap_port'))
-        ->required()
-        ->rules('numeric|nullable')
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            ->required()
+            ->rules('numeric|nullable')
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
 
         $form->text('ldap_base_dn', exmtrans('login.ldap_base_dn'))
-        ->help(exmtrans('login.help.ldap_base_dn'))
-        ->default('dc=example,dc=co,dc=jp')
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            ->help(exmtrans('login.help.ldap_base_dn'))
+            ->default('dc=example,dc=co,dc=jp')
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
 
         $form->text('ldap_search_key', exmtrans('login.ldap_search_key'))
-        ->help(exmtrans('login.help.ldap_search_key'))
-        ->required()
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            ->help(exmtrans('login.help.ldap_search_key'))
+            ->required()
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+
+        $form->text('ldap_filter', "ユーザ検索フィルタ")
+            ->help(exmtrans('login.help.ldap_filter'))
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
 
         $form->text('ldap_account_prefix', exmtrans('login.ldap_account_prefix'))
-        ->help(exmtrans('login.help.ldap_account_prefix'))
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            ->help(exmtrans('login.help.ldap_account_prefix'))
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
 
         $form->text('ldap_account_suffix', exmtrans('login.ldap_account_suffix'))
-        ->help(exmtrans('login.help.ldap_account_suffix'))
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            ->help(exmtrans('login.help.ldap_account_suffix'))
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
 
         $form->switchbool('ldap_use_ssl', exmtrans('login.ldap_use_ssl'))
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
-        ->default(false);
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
+            ->default(false);
 
         $form->switchbool('ldap_use_tls', exmtrans('login.ldap_use_tls'))
-        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
-        ->default(false);
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
+            ->default(false);
     }
 
 
@@ -243,7 +268,10 @@ class LdapService implements LoginServiceInterface
             $provider = $ad->getDefaultProvider();
 
             $provider->connect();
-            if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
+            $bindDN = ($login_setting->getOption('ldap_schema') == "ActiveDirectory") ?
+                $username :
+                static::getLdapUserDN($provider, $credentials['username'], $login_setting);
+            if (!$bindDN || !$provider->auth()->attempt($bindDN, $credentials['password'], true)) {
                 return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 

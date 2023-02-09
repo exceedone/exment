@@ -933,6 +933,7 @@ return [
             'login_test_sso' => 'テスト用の:login_typeリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダの:login_type設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
                 
             'ldap_base_dn' => '認証に使用する基本DN(識別名)を入力してください。',
+            'ldap_filter' => 'openLDAPの認証時に利用する、属性と属性値を入力してください。(例：(objectClass=inetOrgPerson)(objectClass=person))',
             'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
             'ldap_account_prefix' => '認証時、ユーザーが入力したログインコードに自動的に付与する接頭辞があれば、入力してください。(例：COMPNAME\\)',
             'ldap_account_suffix' => '認証時、ユーザーが入力したログインコードに自動的に付与する接尾辞があれば、入力してください。(例：@example.co.jp)',
