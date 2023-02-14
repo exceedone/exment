@@ -406,7 +406,7 @@ class RoleGroupController extends AdminControllerBase
     /**
      * Update the specified resource in storage.
      *
-     * @param $id
+     * @param mixed $id
      * @return bool|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
