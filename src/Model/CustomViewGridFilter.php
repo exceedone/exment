@@ -8,6 +8,12 @@ use Exceedone\Exment\Enums\ConditionType;
  * Custom view's header "Filter" button's setting
  *
  * @phpstan-consistent-constructor
+ * @property mixed $view_column_target_id
+ * @property mixed $view_column_table_id
+ * @property mixed $suuid
+ * @property mixed $custom_view_id
+ * @property mixed $view_filter_condition_value_text
+ * @property mixed $view_filter_condition
  */
 class CustomViewGridFilter extends ModelBase
 {

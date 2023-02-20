@@ -14,7 +14,7 @@ env:
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
 
 jobs:
-  exment-analyse:
+  phpstan:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2

@@ -24,8 +24,15 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
  * - custom_table_id to target_id
  * - workflow_id to target_id
  * - notify_actions to action_settings
- * @property $custom_view
+ *
  * @phpstan-consistent-constructor
+ * @property mixed $custom_view
+ * @property mixed $suuid
+ * @property mixed $notify_trigger
+ * @property mixed $custom_table
+ * @property mixed $action_settings
+ * @method static \Illuminate\Database\Query\Builder whereIn($column, $values, $boolean = 'and', $not = false)
+ * @method static \Illuminate\Database\Query\Builder whereNotIn($column, $values, $boolean = 'and')
  */
 class Notify extends ModelBase
 {

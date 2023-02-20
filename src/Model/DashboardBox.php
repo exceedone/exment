@@ -10,6 +10,13 @@ use Exceedone\Exment\Enums\ViewKindType;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $row_no
+ * @property mixed $dashboard_box_view_name
+ * @property mixed $dashboard_box_type
+ * @property mixed $column_no
+ * @method static \Illuminate\Database\Query\Builder whereNotNull($columns, $boolean = 'and')
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
 {

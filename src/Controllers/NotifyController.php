@@ -6,11 +6,14 @@ use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Http\Request;
 
 class NotifyController extends AdminControllerBase
 {
+    /**
+     * @param Request $request
+     * @phpstan-ignore-next-line
+     */
     public function __construct(Request $request)
     {
         $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
