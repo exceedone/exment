@@ -164,14 +164,12 @@ class DefaultGrid extends GridBase
         // set request session data url disabled;
         System::setRequestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG, true);
 
-        $modal_target_view = CustomView::getEloquent(request()->get('target_view_id'));
-
-        // modal use alldata view
-        $this->custom_view = CustomView::getAllData($this->custom_table);
-
         // filter using modal_target_view, and display table
-        if (isset($modal_target_view)) {
+        if (null !== request()->get('target_view_id')) {
+            $modal_target_view = CustomView::getEloquent(request()->get('target_view_id'));
             $modal_target_view->filterSortModel($grid->model(), ['callback' => $filter_func]);
+        } else {
+            $this->custom_view->filterSortModel($grid->model(), ['callback' => $this->callback]);
         }
 
         // filter display table
