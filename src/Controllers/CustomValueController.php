@@ -75,6 +75,8 @@ class CustomValueController extends AdminControllerTableBase
     public function update($tableKey, $id)
     {
         $request = request();
+
+        
         if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
             return $response;
         }

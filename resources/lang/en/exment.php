@@ -3,7 +3,7 @@
 return [
     'label' => 'English',
     'common' => [
-        'home' => 'HOME',
+        'home' => 'HOMEs',
         'success' => 'Success',
         'error' => 'Error',
         'warning' => 'Warning',
