@@ -77,7 +77,7 @@ trait BuilderTrait
     /**
      * Get database version.
      *
-     * @return void
+     * @return string
      */
     public function getVersion()
     {
@@ -89,7 +89,7 @@ trait BuilderTrait
     /**
      * Check mariadb
      *
-     * @return void
+     * @return bool
      */
     public function isMariaDB()
     {

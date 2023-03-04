@@ -18,7 +18,7 @@ class Column extends NotifyTargetBase
     /**
      * CustomColumn
      *
-     * @var string||CustomColumn
+     * @var string|CustomColumn
      */
     protected $column;
 

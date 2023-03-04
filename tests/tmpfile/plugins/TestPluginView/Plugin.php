@@ -38,12 +38,13 @@ class Plugin extends PluginViewBase
     /**
      * Set view option form for setting
      *
-     * @param Form $form
+     * @param \Form $form
      * @return void
      */
     public function setViewOptionForm($form)
     {
-        //　独自設定を追加する場合
+        // 独自設定を追加する場合
+        // @phpstan-ignore-next-line
         $form->embeds('custom_options', '詳細設定', function ($form) {
             $form->select('category', 'カテゴリ列')
                 ->options($this->custom_table->getFilteredTypeColumns([ColumnType::SELECT, ColumnType::SELECT_VALTEXT])->pluck('column_view_name', 'id'))

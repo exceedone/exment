@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
@@ -52,6 +53,7 @@ class NotifyTest extends UnitTestBase
 
     public function testNotifyMailTemplate()
     {
+        /** @var mixed $mail_template */
         $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_1')->first();
 
         $subject = $mail_template->getValue('mail_subject');
@@ -177,6 +179,7 @@ class NotifyTest extends UnitTestBase
 
     public function testNotifyMailDisdableHistory()
     {
+        /** @var mixed $mail_template */
         $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_1')->first();
 
         $subject = $mail_template->getValue('mail_subject');
@@ -284,6 +287,7 @@ class NotifyTest extends UnitTestBase
     {
         $this->init(false);
 
+        /** @var User $user */
         $user = CustomTable::getEloquent('user')->getValueModel()->first();
         $subject = 'テスト';
         $body = '本文です';
@@ -309,6 +313,7 @@ class NotifyTest extends UnitTestBase
 
         $table_name = 'custom_value_edit_all';
         $user_id = \Exment::user()->base_user_id;
+        /** @var mixed $model */
         $model = CustomTable::getEloquent($table_name)->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
         $model->update([
@@ -334,8 +339,11 @@ class NotifyTest extends UnitTestBase
         // Login user.
         $user = \Exment::user()->base_user;
 
+        /** @var Notify $notify */
         $notify = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)->first();
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::find($notify->target_id);
+        /** @var Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user->id)->first();
         $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);

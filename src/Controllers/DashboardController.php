@@ -133,7 +133,7 @@ class DashboardController extends AdminControllerBase
                     cancel:"$cancel",
                 });
             });
-            
+
             ///// reload click event
             $('[data-exment-widget="reload"]').off('click').on('click', function(ev){
                 // get suuid
@@ -163,7 +163,7 @@ class DashboardController extends AdminControllerBase
                 return true;
             }
             target.addClass('loading');
-            
+
             // set height
             var inner_body = target.find('.box-body-inner-body');
             var height = inner_body.height();
@@ -197,7 +197,7 @@ class DashboardController extends AdminControllerBase
                     if(data.footer){
                         target.find('.box-body .box-body-inner-footer').html(data.footer);
                     }
-                    
+
                     // remove height
                     this.inner_body.css('height', '');
 
@@ -207,7 +207,7 @@ class DashboardController extends AdminControllerBase
                     target.trigger('exment:dashboard_loaded');
 
                     target.removeClass('loading');
-                    
+
                     Exment.CommonEvent.tableHoverLink();
                 },
                 error: function () {
@@ -217,7 +217,7 @@ class DashboardController extends AdminControllerBase
 
                     target.find('.overlay').hide();
                     target.removeClass('loading');
-                   
+
                     // show error
                     target.find('.box-body .box-body-inner-body').html('$error');
                 },
@@ -416,7 +416,7 @@ EOT;
         }
 
         $versionCheck = \Exment::checkLatestVersion();
-        if ($versionCheck == SystemVersion::HAS_NEXT) {
+        if ($versionCheck === SystemVersion::HAS_NEXT) {
             list($latest, $current) = \Exment::getExmentVersion();
             admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. admin_url('system').'">'.exmtrans("system.update_guide").'</a>');
         }

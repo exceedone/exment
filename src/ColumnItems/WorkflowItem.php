@@ -141,12 +141,13 @@ class WorkflowItem extends SystemItem
         return $this->getTableName();
     }
 
-
     /**
      * Set admin filter options
      *
-     * @param [type] $filter
+     * @param $filter
      * @return void
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function setAdminFilterOptions(&$filter)
     {

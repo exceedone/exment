@@ -18,7 +18,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get a schema builder instance for the connection.
      *
-     * @return \Illuminate\Database\Schema\Builder
+     * @return MySqlBuilder
      */
     public function getSchemaBuilder()
     {
@@ -194,7 +194,9 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * backup table data except virtual generated column.
      *
-     * @param string backup target table
+     * @param $tempDir
+     * @param $table
+     * @return void
      */
     protected function backupTable($tempDir, $table)
     {
@@ -313,14 +315,14 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 \DB::table($table)->truncate();
 
                 $cmd =<<<__EOT__
-                LOAD DATA local INFILE '%s' 
-                INTO TABLE %s 
-                CHARACTER SET 'UTF8' 
-                FIELDS TERMINATED BY '\t' 
-                OPTIONALLY ENCLOSED BY '\"' 
-                ESCAPED BY '\"' 
-                LINES TERMINATED BY '\\n' 
-                IGNORE 1 LINES 
+                LOAD DATA local INFILE '%s'
+                INTO TABLE %s
+                CHARACTER SET 'UTF8'
+                FIELDS TERMINATED BY '\t'
+                OPTIONALLY ENCLOSED BY '\"'
+                ESCAPED BY '\"'
+                LINES TERMINATED BY '\\n'
+                IGNORE 1 LINES
                 SET created_at = nullif(created_at, '0000-00-00 00:00:00'),
                     updated_at = nullif(updated_at, '0000-00-00 00:00:00'),
                     deleted_at = nullif(deleted_at, '0000-00-00 00:00:00'),
@@ -345,7 +347,7 @@ __EOT__;
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
         \DB::statement("
-            CREATE OR REPLACE VIEW $viewName 
+            CREATE OR REPLACE VIEW $viewName
             AS " . $query->toSql(), $query->getBindings());
     }
 

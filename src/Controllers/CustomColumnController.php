@@ -218,6 +218,7 @@ class CustomColumnController extends AdminControllerTableBase
             ->help(exmtrans('common.help.view_name'));
 
         if (!isset($id)) {
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $id = $form->model()->id;
         }
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
@@ -401,6 +402,7 @@ class CustomColumnController extends AdminControllerTableBase
                 $order++;
 
                 // get width
+                /** @phpstan-ignore-next-line need test 'Called 'first' on Laravel collection, but could have been retrieved as a query.' */
                 $width = $form_block->custom_form_columns()
                     ->where('row_no', 1)
                     ->where('column_no', 1)

@@ -141,12 +141,11 @@ class SearchService
         return $this;
     }
 
-
     /**
      * Get query's value.
      *
      * @param  array|string  $columns
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function get($columns = ['*'])
     {
@@ -274,7 +273,7 @@ class SearchService
 
         if (!$relationTable) {
             $this->query->whereNotMatch();
-        } elseif ($relationTable->searchType == SearchType::MANY_TO_MANY) {
+        } elseif ((int)$relationTable->searchType === SearchType::MANY_TO_MANY) {
             throw new \Exception('Many to many relation not support order by.');
         }
         // set relation query using relation type class.
@@ -568,7 +567,7 @@ class SearchService
 
             if (!$relationTable) {
                 $this->query->whereNotMatch();
-            } elseif ($asOrderBy && $relationTable->searchType == SearchType::MANY_TO_MANY) {
+            } elseif ($asOrderBy && (int)$relationTable->searchType === SearchType::MANY_TO_MANY) {
                 throw new \Exception('Many to many relation not support order by.');
             }
             // set relation query using relation type class.

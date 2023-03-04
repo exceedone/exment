@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
@@ -20,13 +21,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $suuid
  * @property mixed $view_type
  * @property mixed $view_kind_type
+ * @property mixed $view_view_name
  * @property mixed $default_flg
  * @property mixed $custom_table_id
  * @property mixed $created_user_id
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -744,7 +748,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
         $custom_view_filters = $this->custom_view_filters;
 
-        if (count($custom_view_filters) !== 0) {
+        if ($custom_view_filters->count() > 0) {
             $service = $this->getSearchService()->setQuery($query);
             foreach ($custom_view_filters as $filter) {
                 $service->setRelationJoin($filter);
@@ -769,7 +773,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
         $custom_view_filters = $this->custom_view_filters;
 
-        if (count($custom_view_filters) !== 0) {
+        if ($custom_view_filters->count() > 0) {
             $service = $this->getSearchService()->setQuery($query);
 
             // Get $relationTables.

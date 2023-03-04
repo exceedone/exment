@@ -462,11 +462,10 @@ class SystemItem implements ItemInterface
         $this->getAdminFilterWhereQueryTrait($query, $input);
     }
 
-
     /**
      * Set admin filter options
      *
-     * @param [type] $filter
+     * @param $filter
      * @return void
      */
     protected function setAdminFilterOptions(&$filter)

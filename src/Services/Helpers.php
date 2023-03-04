@@ -749,9 +749,11 @@ if (!function_exists('array_key_value_exists')) {
 }
 
 if (!function_exists('array_value_exists')) {
+
     /**
      * whether has array_value
-     * @param mixed $key
+     *
+     * @param mixed $value
      * @param array|\Illuminate\Support\Collection $array
      * @return bool
      */
@@ -1738,13 +1740,13 @@ if (!function_exists('admin_exclusion_path')) {
     }
 
     if (!function_exists('unicode_decode')) {
+
         /**
          * Get admin exclusion url.
          * Ex. admin/data/testtable to data/testtable
          *
-         * @param string $path
-         *
-         * @return string
+         * @param string $str
+         * @return array|string|string[]|null
          */
         function unicode_decode($str)
         {
@@ -1760,9 +1762,8 @@ if (!function_exists('admin_exclusion_path')) {
          * Get admin exclusion url.
          * Ex. admin/data/testtable to data/testtable
          *
-         * @param string $path
-         *
-         * @return string
+         * @param string $str
+         * @return array|string|string[]|null
          */
         function unicode_encode($str)
         {

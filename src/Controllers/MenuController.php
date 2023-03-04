@@ -279,6 +279,11 @@ class MenuController extends AdminControllerBase
      * @param string $menu_target string
      * @param boolean $isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
      */
+    /**
+     * @param $custom_table
+     * @param bool $isApi
+     * @return array|mixed[]
+     */
     protected function getViewList($custom_table, $isApi)
     {
         $custom_table = CustomTable::getEloquent($custom_table);

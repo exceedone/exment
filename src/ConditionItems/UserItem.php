@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Model\ModelBase;
 
 class UserItem extends ConditionDetailBase implements ConditionItemInterface
 {
@@ -57,6 +58,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
         $model = getModelName(SystemTableName::USER)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
             $result = $model->filter()->map(function ($row) {
+                /** @var CustomValue $row */
                 return $row->getValue('user_name');
             })->implode(',');
         } else {

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 /**
+ * @property mixed $settings
  * @phpstan-consistent-constructor
  */
 class UserSetting extends ModelBase

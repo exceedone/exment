@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Form;
 
 use Encore\Admin\Form\Footer as FooterBase;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 
 class PublicFormFooter extends FooterBase
 {
@@ -62,10 +64,11 @@ class PublicFormFooter extends FooterBase
     /**
      * Render footer.
      *
-     * @return string
+     * @return Factory|View
      */
     public function render()
     {
+        /** @phpstan-ignore-next-line Maybe mistake laravel-admin type */
         return parent::render()->with([
             'useRecaptchaV2' => $this->useRecaptchaV2,
             'useRecaptchaV3' => $this->useRecaptchaV3,

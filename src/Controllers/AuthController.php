@@ -339,7 +339,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 // if not contains $form->password, return
                 $form_password = $form->password;
                 if (!isset($form_password)) {
+                    /** @phpstan-ignore-next-line fix laravel-admin documentation */
                     $form->password = $form->model()->password;
+                    /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 } elseif ($form_password && $form->model()->password != $form_password) {
                     $form->password = $form_password;
                 }

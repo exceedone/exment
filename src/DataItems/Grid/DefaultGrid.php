@@ -492,6 +492,7 @@ class DefaultGrid extends GridBase
             $relationTables = $custom_table->getRelationTables();
 
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
+                /** @var mixed $actions */
                 $custom_table->setGridAuthoritable($actions->grid->getOriginalCollection());
                 $enableEdit = true;
                 $enableDelete = true;

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Notifications\Navbar;
 
+use Exceedone\Exment\Jobs\NavbarJob;
 use Illuminate\Notifications\Notification;
 
 class NavbarChannel
@@ -9,12 +10,13 @@ class NavbarChannel
     /**
      * Notify
      *
-     * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
+     * @param $notifiable
+     * @param Notification $notification
      * @return void
      */
     public function send($notifiable, Notification $notification)
     {
+        /** @var NavbarJob $notification */
         $notification->toNavbar($notifiable);
     }
 }

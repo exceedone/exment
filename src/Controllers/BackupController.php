@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Exceedone\Exment\Model\System;
@@ -421,6 +422,7 @@ class BackupController extends AdminControllerBase
         $data = $request->all();
 
         // validate "\", "/", "."
+        /** @var ExmentCustomValidator $validator */
         $validator = Validator::make($data, [
             'file' => ['required'],
             'filename' => ['required', 'max:30', 'regex:/^' . Define::RULES_REGEX_BACKUP_FILENAME . '$/'],

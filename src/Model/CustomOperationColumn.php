@@ -2,14 +2,17 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
+
 /**
  * @phpstan-consistent-constructor
  * @property mixed $view_column_target_id
  * @property mixed $suuid
  * @property mixed $custom_view_id
  * @property mixed $custom_operation
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomOperationColumn extends ModelBase
 {

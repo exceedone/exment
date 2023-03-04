@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 
 /**
- * @property-read string $id
+ * @property string $id
  * @phpstan-consistent-constructor
  */
 class ModelBase extends Model

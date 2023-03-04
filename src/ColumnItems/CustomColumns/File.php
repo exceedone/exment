@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -352,6 +353,11 @@ class File extends CustomItem
     }
 
 
+    /**
+     * @param ExtendedBuilder $query
+     * @param $input
+     * @return void
+     */
     public function getAdminFilterWhereQuery($query, $input)
     {
         list($mark, $value) = \Exment::getQueryMarkAndValue(true, $input);

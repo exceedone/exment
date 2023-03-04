@@ -8,6 +8,8 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\RoleGroupPermission;
+use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
@@ -236,6 +238,7 @@ class AuthUserOrgHelper
             // check permission
             if (!$roleGroup->role_group_permissions->contains(function ($role_group_permission) use ($target_table, $tablePermission) {
                 // check as system
+                /** @var RoleGroupPermission $role_group_permission */
                 if ($role_group_permission->role_group_permission_type == RoleType::SYSTEM) {
                     $tablePermission = [Permission::SYSTEM, Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_EDIT_ALL];
                 }
@@ -260,6 +263,7 @@ class AuthUserOrgHelper
                 continue;
             }
 
+            /** @var RoleGroupUserOrganization $role_group_user_organization */
             foreach ($roleGroup->role_group_user_organizations as $role_group_user_organization) {
                 // merge users from $role_group_user_organization
                 if ($role_group_user_organization->role_group_user_org_type != $related_type) {

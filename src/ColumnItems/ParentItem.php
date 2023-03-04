@@ -323,7 +323,7 @@ class ParentItem implements ItemInterface
     /**
      * Set admin filter options
      *
-     * @param [type] $filter
+     * @param $filter
      * @return void
      */
     protected function setAdminFilterOptions(&$filter)

@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -261,6 +262,7 @@ class LdapService implements LoginServiceInterface
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, exmtrans('login.sso_provider_error'), $custom_login_user->mapping_errors);
             }
 
+            /** @var ExmentCustomValidator $validator */
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
                 return LoginService::getLoginResult(

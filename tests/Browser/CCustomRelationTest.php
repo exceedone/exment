@@ -121,7 +121,10 @@ class CCustomRelationTest extends ExmentKitTestCase
      */
     public function testDropOneLineTextColumn()
     {
-        $table_id = CustomTable::where('table_name', 'exmenttest_contract')->first()->id;
+        /** @var CustomTable $custom_table */
+        $custom_table = CustomTable::where('table_name', 'exmenttest_contract')->first();
+        $table_id = $custom_table->id;
+        /** @var CustomRelation $row */
         $row = CustomRelation::where('parent_custom_table_id', $table_id)->first();
 
         $pre_cnt = CustomRelation::count();

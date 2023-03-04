@@ -64,8 +64,10 @@ class ApiTableController extends AdminControllerTableBase
 
     /**
      * get view datalist
-     * @param mixed $request request value
-     * @return mixed
+     *
+     * @param Request $request
+     * @param $tableKey
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function views(Request $request, $tableKey)
     {

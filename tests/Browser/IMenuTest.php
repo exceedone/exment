@@ -177,13 +177,11 @@ class IMenuTest extends ExmentKitTestCase
         }
     }
 
-
     /**
      * Test edit menu
      *
      * @param Menu $menu
-     * @param array $diffData
-     * @param \Closure|null $checkFunc
+     * @param array $editData
      * @return void
      */
     protected function _testEditMenu(Menu $menu, array $editData)

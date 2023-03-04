@@ -865,8 +865,13 @@ class ApiDataController extends AdminControllerTableBase
      * Get calendar query
      * ex. display: 4/1 - 4/30
      *
-     * @param mixed $query
-     * @return \Illuminate\Database\Query\Builder
+     * @param $model
+     * @param $start
+     * @param $end
+     * @param $target_start_column
+     * @param $target_end_column
+     * @return mixed
+     * @throws \Exception
      */
     protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column)
     {
@@ -1022,14 +1027,13 @@ class ApiDataController extends AdminControllerTableBase
         return [$names, $result];
     }
 
-
     /**
      * Save fileinfo after custom_value save
      *
      * @param CustomTable $custom_table
      * @param array $files
      * @param array $value
-     * @param array $oroginalValue
+     * @param array $originalValue
      * @return void
      */
     protected function saveFile($custom_table, $files, &$value, $originalValue)

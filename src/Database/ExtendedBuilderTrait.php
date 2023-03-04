@@ -8,6 +8,7 @@ use Carbon\Carbon;
  *
  * @property mixed $query
  * @property mixed $model
+ * @property mixed $grammar
  * @method orWhere($column, $operator = null, $value = null)
  * @method whereRaw($sql, $bindings = [], $boolean = 'and')
  * @method orWhereRaw($sql, $bindings = [])
@@ -292,14 +293,12 @@ trait ExtendedBuilderTrait
         return $this;
     }
 
-
-
     /**
      * Where between, but call as (start) <= column and column <= (end). for performance
-     * @param  string                                          $column
-     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @param string $column
+     * @param array $values
+     * @return Eloquent\ExtendedBuilder|Query\ExtendedBuilder|Query\JoinClause
      */
     public function whereBetweenQuery($column, array $values)
     {
@@ -308,10 +307,10 @@ trait ExtendedBuilderTrait
 
     /**
      * Where between, but call as (start) <= column and column < (end)
-     * @param  string                                          $column
-     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @param string $column
+     * @param array $values
+     * @return Eloquent\ExtendedBuilder|Query\ExtendedBuilder|Query\JoinClause
      */
     public function whereBetweenLt($column, array $values)
     {
@@ -456,7 +455,7 @@ trait ExtendedBuilderTrait
 
         return $this->_setWhereDate($column, [
             'date' => [$value, $value],
-            'datetime' => [$value, $value->copy()->addDay(1)],
+            'datetime' => [$value, $value->copy()->addDays(1)],
         ], $isDatetime, $isOr);
     }
 
@@ -492,7 +491,7 @@ trait ExtendedBuilderTrait
         }
 
         return $this->_setWhereDate($column, [
-            'date' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month + 1, 1)->addDay(-1)],
+            'date' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month + 1, 1)->addDays(-1)],
             'datetime' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month + 1, 1)],
         ], $isDatetime, $isOr);
     }
@@ -533,7 +532,7 @@ trait ExtendedBuilderTrait
         $boolean = $isOr ? 'or' : 'and';
 
         if ($isDatetime) {
-            $date = (in_array($mark, ['<', '<=']) ? $value->copy()->addDay(1) : $value);
+            $date = (in_array($mark, ['<', '<=']) ? $value->copy()->addDays(1) : $value);
             return $this->where($column, $mark, $date->format('Y-m-d'), $boolean);
         }
 

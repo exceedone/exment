@@ -39,7 +39,7 @@ class RelationTable
     /**
      * Search type
      *
-     * @var SearchType
+     * @var int
      */
     public $searchType;
 
@@ -68,7 +68,7 @@ class RelationTable
      * Sub query's callbacks. Use for summary.
      * If set, call for sub query select, group by etc.
      *
-     * @var []
+     * @var array
      */
     public $subQueryCallbacks = [];
 
@@ -349,13 +349,12 @@ class RelationTable
         return $results;
     }
 
-
     /**
      * Get custom tables as "relation tables".
      *
      * @param CustomTable $custom_table
      * @param array $options
-     * @return array
+     * @return Collection
      */
     protected static function _getTablesRelation(CustomTable $custom_table, array $options): Collection
     {
@@ -382,13 +381,12 @@ class RelationTable
         return $results;
     }
 
-
     /**
      * Get custom tables as "relation tables" to parent.
      *
      * @param CustomTable $custom_table
      * @param array $options
-     * @return array
+     * @return Collection
      */
     protected static function _getParentTablesRelation(CustomTable $custom_table, array $options): Collection
     {

@@ -1164,6 +1164,7 @@ class Api2Test extends ApiTestBase
 
     public function testUpdateValue()
     {
+        /** @var mixed $data */
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('updated_user_id', '<>', '1')->first();
         $index_text = array_get($data->value, 'index_text');
@@ -1193,6 +1194,7 @@ class Api2Test extends ApiTestBase
 
     public function testUpdateValueWithFindKey()
     {
+        /** @var mixed $data */
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('updated_user_id', '<>', '2')->first();
         $old_text = array_get($data->value, 'text');
@@ -1226,6 +1228,7 @@ class Api2Test extends ApiTestBase
 
     public function testUpdateValueWithParent()
     {
+        /** @var mixed $data */
         $data = CustomTable::getEloquent('child_table')->getValueModel()
             ->where('parent_id', 1)->first();
 
@@ -1254,6 +1257,7 @@ class Api2Test extends ApiTestBase
 
     public function testUpdateValueOnlyParent()
     {
+        /** @var mixed $data */
         $data = CustomTable::getEloquent('child_table')->getValueModel()
             ->where('parent_id', 3)->first();
 
@@ -1279,6 +1283,7 @@ class Api2Test extends ApiTestBase
 
     public function testUpdateValueWithParent2()
     {
+        /** @var mixed $data */
         $data = CustomTable::getEloquent('child_table')->getValueModel()
             ->where('parent_id', 2)->first();
 
@@ -1328,6 +1333,7 @@ class Api2Test extends ApiTestBase
 
     public function testUpdateValueNoPermissionData()
     {
+        /** @var mixed $data */
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('created_user_id', '<>', '3')->first();
 
@@ -1349,6 +1355,7 @@ class Api2Test extends ApiTestBase
 
     public function testUpdateValueInitOnly()
     {
+        /** @var mixed $data */
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('updated_user_id', '<>', '1')->first();
         $init_text = array_get($data->value, 'init_text');
@@ -1413,6 +1420,7 @@ class Api2Test extends ApiTestBase
         for ($i = 0; $i < 100; $i++) {
             $query = CustomTable::getEloquent('custom_value_edit')->getValueModel()->query();
             if ($isAlreadyTrashed) {
+                /** @phpstan-ignore-next-line */
                 $query->onlyTrashed();
             }
             $data = $query->find($id + $i);
@@ -1434,6 +1442,7 @@ class Api2Test extends ApiTestBase
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find($id);
         $this->assertTrue(!isset($data));
 
+        /** @phpstan-ignore-next-line */
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()->query()->onlyTrashed()->find($id);
         $this->assertTrue($isGetTrashed ? isset($data) : !isset($data));
     }
@@ -1457,6 +1466,7 @@ class Api2Test extends ApiTestBase
 
     public function testDeleteValueNoPermissionData()
     {
+        /** @var mixed $data */
         $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
             ->where('created_user_id', '<>', '3')->first();
 
@@ -1850,6 +1860,7 @@ class Api2Test extends ApiTestBase
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
         $custom_column = CustomColumn::getEloquent('file_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
 
+        /** @var CustomTable $custom_value */
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
             ->getValueQuery()
             ->whereNull($custom_column->getQueryKey())
@@ -1884,6 +1895,7 @@ class Api2Test extends ApiTestBase
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
         $custom_column = CustomColumn::getEloquent('file_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
 
+        /** @var CustomTable $custom_value */
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)
             ->getValueQuery()
             ->whereNull($custom_column->getQueryKey())

@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Services\Login\OAuth\OAuthUser;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -540,6 +541,7 @@ class LoginService
         try {
             // if socialiteProvider implements ProviderAvatar, call getAvatar
             if (isset($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderAvatar::class)) {
+                /** @var OAuthUser $custom_login_user */
                 $stream = $socialiteProvider->getAvatar($custom_login_user->token);
             }
             // if user obj has avatar, download avatar.

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ColumnItems;
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionType;
@@ -16,12 +17,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property mixed $custom_table_id
  * @property mixed $column_type
  * @property mixed $column_name
+ * @property mixed $column_view_name
+ * @property mixed $options
+ * @property mixed $index_enabled
  * @method static \Exceedone\Exment\ColumnItems\CustomItem|\Exceedone\Exment\ColumnItems\ItemTrait indexEnabled()
- * @method static \Illuminate\Database\Query\Builder whereIn($column, $values, $boolean = 'and', $not = false)
- * @method static \Illuminate\Database\Query\Builder whereNotIn($column, $values, $boolean = 'and')
- * @method static \Illuminate\Database\Query\Builder whereNotNull($columns, $boolean = 'and')
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder whereIn($column, $values, $boolean = 'and', $not = false)
+ * @method static ExtendedBuilder whereNotIn($column, $values, $boolean = 'and')
+ * @method static ExtendedBuilder whereNotNull($columns, $boolean = 'and')
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder create(array $attributes = [])
+ * @method static ExtendedBuilder where($column, $operator = null, $value = null, $boolean = 'and')
  */
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {

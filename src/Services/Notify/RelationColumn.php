@@ -20,7 +20,7 @@ class RelationColumn extends Column
     /**
      * CustomColumn
      *
-     * @var string||CustomColumn
+     * @var string|CustomColumn
      */
     protected $column;
 

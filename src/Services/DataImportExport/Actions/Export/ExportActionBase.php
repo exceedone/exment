@@ -22,10 +22,8 @@ abstract class ExportActionBase
 
     /**
      * Get format class(SpOut\Xlsx, PhpSpreadSheet\Csv, ...)
-     *
      * @param string|null $format
      * @param string $library
-     * @param bool $isExport
      * @return FormatBase
      */
     public function getFormatClass(?string $format, string $library): FormatBase

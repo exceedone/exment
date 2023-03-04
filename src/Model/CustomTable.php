@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -24,6 +25,7 @@ use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Arr;
@@ -34,13 +36,17 @@ use Illuminate\Support\Facades\Request;
  * Custom Table Class
  *
  * @phpstan-consistent-constructor
+ * @property mixed $suuid
  * @property mixed $table_name
  * @property mixed $system_flg
  * @property mixed $showlist_flg
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
- * @method static \Illuminate\Database\Query\Builder whereNotIn($column, $values, $boolean = 'and')
- * @method static \Illuminate\Database\Query\Builder join($table, $first, $operator = null, $second = null, $type = 'inner', $where = false)
+ * @property mixed $table_view_name
+ * @property mixed $options
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder whereNotIn($column, $values, $boolean = 'and')
+ * @method static ExtendedBuilder join($table, $first, $operator = null, $second = null, $type = 'inner', $where = false)
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -300,6 +306,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (isset($custom_value)) {
             $custom_form_priorities = $this->custom_form_priorities->sortBy('order');
             foreach ($custom_form_priorities as $custom_form_priority) {
+                /** @var CustomFormPriority $custom_form_priority */
                 if ($custom_form_priority->isMatchCondition($custom_value)) {
                     return $custom_form_priority->custom_form;
                 }
@@ -500,6 +507,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $item->deletingChildren();
         }
 
+        /** @var WorkflowValue $item */
         foreach (WorkflowValue::where('morph_type', $this->table_name)->get() as $item) {
             $item->deletingChildren();
             $item->delete();
@@ -584,6 +592,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
 
         // execute validation
+        /** @var ExmentCustomValidator $validator */
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
         $errors = $this->validatorUniques($value, $custom_value, $options);
@@ -1308,6 +1317,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // set eloquent data using ids
             $ids = collect($paginates->items())->map(function ($item) {
+                /** @var mixed $item */
                 return $item->id;
             });
 
@@ -1331,7 +1341,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $paginates->setCollection($query->get());
 
             if (boolval($options['makeHidden'])) {
+                /** @phpstan-ignore-next-line  */
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
+                /** @phpstan-ignore-next-line  */
                 $paginates->data = $data;
             }
 
@@ -1695,6 +1707,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query->whereIn($databaseKeyName, $chunk);
 
             if ($withTrashed) {
+                /** @phpstan-ignore-next-line  */
                 $query->withTrashed();
             }
 
@@ -1951,6 +1964,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // add table info
         $field->attribute(['data-target_table_name' => array_get($this, 'table_name')]);
+        /** @phpstan-ignore-next-line */
         $field->buttons($options['buttons']);
 
         $field->options(function ($value, $field) use ($thisObj, $selectOption) {
@@ -2114,6 +2128,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $selected_custom_values->each(function ($selected_custom_value) use (&$items) {
+            /** @var mixed $selected_custom_value */
             $items->put($selected_custom_value->id, $selected_custom_value->label);
         });
 
@@ -2763,8 +2778,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get CustomValue's query.
      *
-     * @param null|int|string $id CustomValue's id
-     * @param bool $withTrashed if true, get already trashed value.
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getValueQuery(): \Illuminate\Database\Eloquent\Builder
@@ -3036,7 +3049,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     *
+     * @param $action_type
+     * @return bool
      */
     public function formActionDisable($action_type)
     {
@@ -3045,7 +3059,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     *
+     * @param $action_type
+     * @return bool
      */
     public function gridFilterDisable($action_type)
     {
@@ -3070,7 +3085,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can view this custom value
      *
-     * @return void
+     * @return ErrorCode|true
      */
     public function enableView()
     {
@@ -3084,7 +3099,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can create value custom value
      *
-     * @return void
+     * @param $checkFormAction
+     * @return ErrorCode|true
      */
     public function enableCreate($checkFormAction = false)
     {
@@ -3101,9 +3117,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * User can edit value custom value
-     * *This function checks as table. If have to check as data, please call $custom_value->enableEdit().
+     * This function checks as table. If have to check as data, please call $custom_value->enableEdit().
      *
-     * @return void
+     * @param $checkFormAction
+     * @return ErrorCode|true
      */
     public function enableEdit($checkFormAction = false)
     {
@@ -3121,7 +3138,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can export this custom value
      *
-     * @return void
+     * @return ErrorCode|true
      */
     public function enableExport()
     {
@@ -3143,7 +3160,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can import this custom value
      *
-     * @return void
+     * @return ErrorCode|true
      */
     public function enableImport()
     {
@@ -3165,7 +3182,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can show trashed value
      *
-     * @return void
+     * @return ErrorCode|true
      */
     public function enableShowTrashed()
     {
@@ -3179,7 +3196,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can view customtable menu button
      *
-     * @return void
+     * @return bool
      */
     public function enableTableMenuButton()
     {

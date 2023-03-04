@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
  * @property mixed $workflow_authorities
  * @property mixed $status_from
  * @property mixed $action_name
+ * @property mixed $ignore_work
  */
 class WorkflowAction extends ModelBase
 {
@@ -900,7 +901,8 @@ class WorkflowAction extends ModelBase
     {
         // if sql server, append cast
         if (\Exment::isSqlServer()) {
-            /// create where raw query
+            // create where raw query
+            /** @phpstan-ignore-next-line */
             $column = \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_ACTION . '.status_from');
             $whereStatusStart = $column . ' = ' . \Exment::wrapValue($workflow_status);
             $query->whereRaw($whereStatusStart);
@@ -919,7 +921,8 @@ class WorkflowAction extends ModelBase
     {
         // if sql server, append cast
         if (\Exment::isSqlServer()) {
-            /// create where raw query
+            // create where raw query
+            /** @phpstan-ignore-next-line */
             $whereStatusStart = \Exment::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
             $query->whereRaw($whereStatusStart);
         } else {

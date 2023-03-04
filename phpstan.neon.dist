@@ -3,4 +3,40 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
-    level: 1
+    level: 2
+    ignoreErrors:
+        -
+            message: "#^Call to an undefined method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Result of method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Laravel\\\\Passport\\\\Client.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Query\\\\Grammars\\\\Grammar.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Schema\\\\Grammars\\\\Grammar.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Query\\\\Processors\\\\Processor.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Illuminate\\\\Support\\\\Fluent::.#"
+            path: vendor/exceedone/exment/src/*

@@ -18,8 +18,12 @@ use Illuminate\Support\Facades\Hash;
  * @phpstan-consistent-constructor
  * @property mixed $password
  * @property mixed $login_provider
+ * @property mixed $password_reset_flg
  * @property mixed $base_user_id
  * @property mixed $avatar
+ * @property mixed $base_user
+ * @property mixed $created_at
+ * @property mixed $updated_at
  * @method static \Illuminate\Database\Query\Builder whereNull($columns, $boolean = 'and', $not = false)
  */
 class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenticatable, \Illuminate\Contracts\Auth\CanResetPassword
@@ -81,6 +85,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
                 $title = exmtrans('common.created_at');
                 $value = $this->base_user->created_at;
             } else {
+                /** @var CustomColumn|null $column */
                 $column = CustomColumn::find($field);
                 if (!isset($column)) {
                     continue;
@@ -210,15 +215,16 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             return null;
         }
         // set User Setting table
-        $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->getUserId()]);
-        $settings = $usersetting->settings;
+        /** @var UserSetting $userSetting */
+        $userSetting = UserSetting::firstOrCreate(['base_user_id' => $this->getUserId()]);
+        $settings = $userSetting->settings;
         if (!isset($settings)) {
             $settings = [];
         }
         // set value
         array_set($settings, $key, $value);
-        $usersetting->settings = $settings;
-        $usersetting->saveOrFail();
+        $userSetting->settings = $settings;
+        $userSetting->saveOrFail();
 
         // set settings from settion
         System::clearRequestSession("user_setting");
@@ -236,14 +242,15 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             return null;
         }
         // set User Setting table
-        $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->getUserId()]);
-        $usersetting->forgetSetting($key);
-        $usersetting->saveOrFail();
+        /** @var UserSetting $userSetting */
+        $userSetting = UserSetting::firstOrCreate(['base_user_id' => $this->getUserId()]);
+        $userSetting->forgetSetting($key);
+        $userSetting->saveOrFail();
 
         // set settings from settion
         System::clearRequestSession("user_setting");
 
-        return $usersetting;
+        return $userSetting;
     }
 
     protected function setBcryptPassword()

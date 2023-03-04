@@ -18,8 +18,7 @@ class CrudForm extends CrudBase
     /**
      * Create
      *
-     * @param Request $request
-     * @return void
+     * @return mixed
      */
     public function create()
     {
@@ -228,7 +227,8 @@ class CrudForm extends CrudBase
     /**
      * Set form tools.
      *
-     * @param Box $Box
+     * @param $id
+     * @param Box $box
      * @return void
      */
     protected function setFormTools($id, Box $box)

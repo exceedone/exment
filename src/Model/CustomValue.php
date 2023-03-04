@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\ColumnItems\CustomItem;
@@ -24,9 +27,12 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
 /**
  * @property-read string $display_avatar
  * @phpstan-consistent-constructor
+ * @property mixed $users
  * @property mixed $workflow_values
  * @property mixed $workflow_value
  * @property mixed $value
+ * @property mixed $belong_role_groups
+ * @property mixed $belong_organizations
  * @property mixed $titleColumn
  * @property mixed $revisionFormattedFields
  * @property mixed $revisionFormattedFieldNames
@@ -36,6 +42,13 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
  * @property mixed $orderColumn
  * @property mixed $dontKeepRevisionOf
  * @property mixed $custom_table_name
+ * @property mixed $created_user_id
+ * @property mixed $login_user
+ * @property mixed $login_users
+ * @property mixed $created_at
+ * @method mixed getUserId()
+ * @method static ExtendedBuilder withoutGlobalScopes(array $scopes = null)
+ * @method static ExtendedBuilder where($column, $operator = null, $value = null, $boolean = 'and')
  */
 abstract class CustomValue extends ModelBase
 {
@@ -1291,7 +1304,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Get document list
      *
-     * @return Collection
+     * @return \Illuminate\Database\Eloquent\Collection|AbstractPaginator
      */
     public function getDocuments($options = [])
     {
