@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\Login\Ldap;
 
+use Adldap\Connections\ProviderInterface;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\System;
@@ -103,7 +104,7 @@ class LdapService implements LoginServiceInterface
     /**
      * Get login user dn.
      *
-     * @param Provider $provider
+     * @param ProviderInterface $provider
      * @param string $username
      * @param LoginSetting $login_setting
      * @return string
