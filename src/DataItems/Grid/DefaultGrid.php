@@ -47,6 +47,8 @@ class DefaultGrid extends GridBase
         // if modal, Change view model
         if ($this->modal) {
             $this->gridFilterForModal($grid, $this->callback);
+            $db_table_name = getDBTableName($this->custom_table);
+            $grid->model()->select("$db_table_name.*");
         } else {
             // filter
             $this->custom_view->filterSortModel($grid->model(), ['callback' => $this->callback]);

@@ -4226,3 +4226,11 @@ tr.header-right th {
     width: 1140px;
   }
 }
+
+.fc-event-container .tooltip {
+  word-break: break-all;
+}
+
+.fc-scroller.fc-day-grid-container {
+  overflow: visible !important;
+}

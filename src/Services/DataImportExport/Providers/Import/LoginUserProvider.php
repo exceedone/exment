@@ -44,6 +44,10 @@ class LoginUserProvider extends ProviderBase
             }
 
             // combine value
+            $null_merge_array = collect(range(1, count($headers)))->map(function () {
+                return null;
+            })->toArray();
+            $value = $value + $null_merge_array;
             $value_custom = array_combine($headers, $value);
 
             // get model
