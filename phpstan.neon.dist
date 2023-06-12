@@ -1,14 +1,6 @@
 includes:
     - ./vendor/nunomaduro/larastan/extension.neon
 parameters:
-	level: 1
-	paths:
-		- vendor/exceedone/exment
-	ignoreErrors:
-		- "#Constructor of class .* an unused parameter#"
-		- "#Call to an undefined static method Exceedone(.*)::.*#"
-		- "#Call to an undefined method Exceedone(.*)::.*#"
-		- "#Access to an undefined property Exceedone(.*)::.*#"
-
-
-
+    paths:
+        - vendor/exceedone/exment
+    level: 1

@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $available
+ * @property mixed $custom_form_id
+ * @property mixed $form_block_target_table_id
+ * @property mixed $form_block_view_name
  */
 class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterInterface
 {

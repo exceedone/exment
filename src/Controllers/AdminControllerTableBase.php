@@ -24,6 +24,11 @@ abstract class AdminControllerTableBase extends Controller
     protected $custom_view;
     protected $custom_form;
 
+    /**
+     * @param CustomTable|null $custom_table
+     * @param Request $request
+     * @phpstan-ignore-next-line
+     */
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         $this->custom_table = $custom_table;

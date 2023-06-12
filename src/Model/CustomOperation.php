@@ -12,6 +12,11 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $operation_type
+ * @property mixed $custom_table_id
+ * @method static \Illuminate\Database\Query\Builder whereNull($columns, $boolean = 'and', $not = false)
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class CustomOperation extends ModelBase
 {

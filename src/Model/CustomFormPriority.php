@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $custom_form_priority_conditions
  */
 class CustomFormPriority extends ModelBase
 {
