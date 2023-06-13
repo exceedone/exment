@@ -120,7 +120,10 @@ class DefaultGrid extends GridBase
                 ->sort($item->sortable())
                 ->sortName($item->getSortName())
                 //->cast($item->getCastName())
-                ->sortCallback(function ($query, $args) use ($custom_view_column) {
+                ->sortCallback(function (&$query, $args) use ($custom_view_column) {
+                    if ($query instanceof Model) {
+                        $query = $query->newQuery();
+                    }
                     $this->custom_view->getSearchService()->setQuery($query)->addSelect()->orderByCustomViewColumn($custom_view_column, (count($args) > 0 ? $args[0] : 'asc'));
                 })
                 ->style($item->gridStyle())
