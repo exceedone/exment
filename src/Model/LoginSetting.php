@@ -8,6 +8,8 @@ use Exceedone\Exment\Enums\LoginProviderType;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $login_view_name
+ * @property mixed $login_type
  */
 class LoginSetting extends ModelBase
 {

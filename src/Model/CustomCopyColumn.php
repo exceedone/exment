@@ -9,9 +9,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @phpstan-consistent-constructor
- * @property string $view_pivot_column_id
- * @property string $view_pivot_table_id
- * @property string $view_column_type
+ * @property mixed $view_pivot_column_id
+ * @property mixed $view_pivot_table_id
+ * @property mixed $view_column_type
+ * @property mixed $view_column_target_id
+ * @property mixed $view_column_table_id
+ * @property mixed $to_column_type
+ * @property mixed $to_column_target_id
+ * @property mixed $to_column_table_id
+ * @property mixed $suuid
+ * @property mixed $from_column_type
+ * @property mixed $from_column_target_id
+ * @property mixed $from_column_table_id
+ * @property mixed $custom_view_id
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
  */
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {

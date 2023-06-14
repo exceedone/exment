@@ -6,6 +6,9 @@ use Tests\TestCase;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 
+/**
+ * @method \Exceedone\Exment\Tests\DatabaseTransactions beginDatabaseTransaction()
+ */
 abstract class UnitTestBase extends TestCase
 {
     use TestTrait;

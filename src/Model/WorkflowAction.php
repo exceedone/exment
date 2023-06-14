@@ -16,6 +16,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $workflow
+ * @property mixed $workflow_id
+ * @property mixed $workflow_condition_headers
+ * @property mixed $workflow_authorities
+ * @property mixed $status_from
+ * @property mixed $action_name
  */
 class WorkflowAction extends ModelBase
 {

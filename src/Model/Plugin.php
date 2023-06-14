@@ -14,6 +14,8 @@ use Illuminate\Support\Collection;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $plugin_name
+ * @property mixed $plugin_view_name
  */
 class Plugin extends ModelBase
 {

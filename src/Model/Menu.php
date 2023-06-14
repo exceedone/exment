@@ -6,7 +6,6 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\TemplateImportResult;
 use Encore\Admin\Auth\Database\Menu as AdminMenu;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 /**

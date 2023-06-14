@@ -890,6 +890,7 @@ return [
         'ldap_port' => 'Port No',
         'ldap_base_dn' => 'Base DN',
         'ldap_search_key' => 'Search Key',
+        'ldap_filter' => 'User search filter',
         'ldap_account_prefix' => 'Login Code Prefix',
         'ldap_account_suffix' => 'Login Code Suffix',
         'ldap_use_ssl' => 'Use SSL',
@@ -933,6 +934,7 @@ return [
             'login_test_sso' => 'The :login_type redirect URL for testing.<span class="red">*When performing the test, temporarily add or change the above URL to the callback URL of the provider\'s :login_type setting.</span>',
                 
             'ldap_base_dn' => 'Enter the basic DN (distinguished name) used for authentication.',
+            'ldap_filter' => 'Enter the attributes and attribute values ​​used for openLDAP authentication. (Ex: (objectClass=inetOrgPerson)(objectClass=person))',
             'ldap_search_key' => 'Enter the login code attribute used for authentication.',
             'ldap_account_prefix' => 'If there is a prefix that is automatically added to the login code entered by the user during authentication, enter it.(Ex：COMPNAME\\)',
             'ldap_account_suffix' => 'If there is a suffix automatically added to the login code entered by the user during authentication, enter it.(Ex：@example.co.jp)',
@@ -952,7 +954,7 @@ return [
             'saml_option_proxy_vars' => 'Set to YES if use Reverse Proxy.',
             'saml_key_path' => '<br />*When reading from a file, place the file in the following path.<br/>%s',
 
-            'activate' => 'Enable this login. We recommend that you perform a "login test" in advance to confirm that you can successfully log in. Do you want to activate it?',
+            'activate' => 'Enable this login. We recommend that you perform a [login test] in advance to confirm that you can successfully log in. Do you want to activate it?',
             'activate_ldap_error' => 'Other LDAP authentication is enabled. If you want to enable this authentication, please disable the corresponding LDAP authentication first.',
             'deactivate' => 'Disable this login. is this good?',
         ],

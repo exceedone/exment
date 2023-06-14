@@ -9,6 +9,10 @@ use Laravel\Passport\Client;
 /**
  * Extend Laravel\Passport\Client
  * For view Api Setting
+ *
+ * @property mixed $personal_access_client
+ * @property mixed $password_client
+ * @property mixed $api_key_client
  */
 class ApiClient extends Client
 {

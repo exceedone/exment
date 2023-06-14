@@ -9,10 +9,19 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\DB;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $system_flg
+ * @property mixed $custom_table_id
+ * @property mixed $column_type
+ * @property mixed $column_name
+ * @method static \Exceedone\Exment\ColumnItems\CustomItem|\Exceedone\Exment\ColumnItems\ItemTrait indexEnabled()
+ * @method static \Illuminate\Database\Query\Builder whereIn($column, $values, $boolean = 'and', $not = false)
+ * @method static \Illuminate\Database\Query\Builder whereNotIn($column, $values, $boolean = 'and')
+ * @method static \Illuminate\Database\Query\Builder whereNotNull($columns, $boolean = 'and')
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
