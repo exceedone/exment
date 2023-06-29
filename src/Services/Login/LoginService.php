@@ -19,6 +19,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
  * LoginService
@@ -67,7 +68,7 @@ class LoginService
                     $login_user->sendPassword($password);
                 }
                 // throw mailsend Exception
-                catch (\Swift_TransportException $ex) {
+                catch (TransportExceptionInterface $ex) {
                     \Log::error($ex);
                     admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
                     return back()->withInput();

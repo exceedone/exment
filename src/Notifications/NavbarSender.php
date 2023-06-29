@@ -21,6 +21,7 @@ class NavbarSender extends SenderBase
      * Create a new notification instance.
      *
      * @return void
+     * @phpstan-ignore-next-line
      */
     public function __construct($notify_id, $subject, $body, array $options = [])
     {

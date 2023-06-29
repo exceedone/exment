@@ -13,6 +13,11 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
+/**
+ * @phpstan-consistent-constructor
+ * @property mixed $authoritable_user_org_type
+ * @property mixed $authoritable_target_id
+ */
 class CustomValueAuthoritable extends ModelBase
 {
     use Traits\DataShareTrait;

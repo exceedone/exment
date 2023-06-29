@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\Permission;
 
 /**
  * Role group item for User and organizaiton
+ * @phpstan-consistent-constructor
  */
 class UserOrgRoleGroupItem extends ProviderBase
 {

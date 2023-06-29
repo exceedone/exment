@@ -2,6 +2,17 @@
 
 namespace Exceedone\Exment\Model;
 
+/**
+ * @phpstan-consistent-constructor
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @property mixed $workflow_id
+ * @property mixed $workflow_status_to_id
+ * @property mixed $workflow_action_id
+ * @property mixed $workflow
+ * @property mixed $workflow_value_authorities
+ * @property mixed $morph_type
+ * @property mixed $morph_id
+ */
 class WorkflowValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;

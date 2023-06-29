@@ -16,6 +16,10 @@ class ReCaptcha extends Hidden
 
     protected $rules = 'required';
 
+    /**
+     * @param $arguments
+     * @phpstan-ignore-next-line
+     */
     public function __construct($arguments = [])
     {
         // if (!\Exment::isAvailableGoogleRecaptcha()) {

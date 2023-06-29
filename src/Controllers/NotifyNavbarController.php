@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
+use Exceedone\Exment\Model\CustomValue;
 use Illuminate\Http\Request;
 use Encore\Admin\Show;
 use Exceedone\Exment\Form\Tools\SwalMenuButton;
@@ -152,6 +153,7 @@ class NotifyNavbarController extends AdminControllerBase
         }
 
         $custom_value = null;
+        /** @var CustomValue|null $custom_table */
         $custom_table = null;
         if (!is_null($parent_type = array_get($model, 'parent_type'))) {
             if (!is_null($custom_table = CustomTable::getEloquent($parent_type))) {

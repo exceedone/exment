@@ -6,6 +6,15 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
+/**
+ * @phpstan-consistent-constructor
+ * @property mixed $suuid
+ * @property mixed $view_column_target_id
+ * @property mixed $view_column_table_id
+ * @property mixed $custom_view_id
+ * @property mixed $view_filter_condition_value_text
+ * @property mixed $view_filter_condition
+ */
 class CustomViewFilter extends ModelBase
 {
     use Traits\CustomViewColumnTrait;

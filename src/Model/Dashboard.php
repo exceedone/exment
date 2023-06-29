@@ -9,7 +9,16 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @phpstan-consistent-constructor
+ * @property mixed $default_flg
+ * @property mixed $dashboard_type
+ * @property mixed $created_user_id
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ */
 class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\AutoSUuidTrait;
@@ -42,7 +51,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         ],
     ];
 
-    public function dashboard_boxes()
+    public function dashboard_boxes(): HasMany
     {
         return $this->hasMany(DashboardBox::class, 'dashboard_id')
         ->orderBy('row_no')
@@ -68,7 +77,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         }, false)->sortBy('column_no');
     }
 
-    public function data_share_authoritables()
+    public function data_share_authoritables(): HasMany
     {
         return $this->hasMany(DataShareAuthoritable::class, 'parent_id')
             ->where('parent_type', '_dashboard');

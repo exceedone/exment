@@ -7,6 +7,12 @@ use Exceedone\Exment\Model;
 
 class PluginOptionCrud extends PluginOptionBase
 {
+    /**
+     * @param $plugin
+     * @param $pluginClass
+     * @param $options
+     * @phpstan-ignore-next-line
+     */
     public function __construct($plugin, $pluginClass, $options = [])
     {
         $this->plugin = $plugin;

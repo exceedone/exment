@@ -32,4 +32,14 @@ class RadioButton extends Radio
 
         return parent::render();
     }
+
+    /**
+     * Set as Modal.
+     *
+     * @return $this
+     */
+    public function asModal()
+    {
+        return $this;
+    }
 }

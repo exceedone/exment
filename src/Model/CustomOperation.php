@@ -5,8 +5,19 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @phpstan-consistent-constructor
+ * @property mixed $operation_type
+ * @property mixed $custom_table_id
+ * @method static \Illuminate\Database\Query\Builder whereNull($columns, $boolean = 'and', $not = false)
+ * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ */
 class CustomOperation extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
@@ -18,24 +29,24 @@ class CustomOperation extends ModelBase
     protected $appends = ['condition_join'];
 
 
-    public function custom_table()
+    public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
-    public function custom_operation_columns()
+    public function custom_operation_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
             ->where('operation_column_type', CopyColumnType::DEFAULT);
     }
 
-    public function custom_operation_input_columns()
+    public function custom_operation_input_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
             ->where('operation_column_type', CopyColumnType::INPUT);
     }
 
-    public function custom_operation_conditions()
+    public function custom_operation_conditions(): MorphMany
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
     }
