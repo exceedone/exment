@@ -9,6 +9,7 @@ class CheckboxTable extends Checkbox
     protected $view = 'exment::form.field.checkboxtable';
 
     protected $checkWidth = 100;
+    protected $scrollx = false;
     protected $items = [];
     protected $headerHelps = [];
     protected $headerEsacape = true;
@@ -16,6 +17,13 @@ class CheckboxTable extends Checkbox
     public function checkWidth($checkWidth)
     {
         $this->checkWidth = $checkWidth;
+
+        return $this;
+    }
+
+    public function scrollx($scrollx)
+    {
+        $this->scrollx = $scrollx;
 
         return $this;
     }
@@ -102,6 +110,7 @@ class CheckboxTable extends Checkbox
         // get items error message
         return parent::render()->with([
             'checkWidth' => $this->checkWidth,
+            'scrollx' => $this->scrollx,
             'items' => $this->getItems(),
             'headerHelps' => collect($this->headerHelps)->toArray(),
             'hasError' => $this->hasError(),
