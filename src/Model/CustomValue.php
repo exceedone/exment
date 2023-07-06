@@ -142,8 +142,6 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get all workflow values
-     *
-     * @return void
      */
     public function workflow_values()
     {
@@ -222,8 +220,6 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get workflow status tag. Please escape workflow_status_name
-     *
-     * @return void
      */
     public function getWorkflowStatusTagAttribute()
     {

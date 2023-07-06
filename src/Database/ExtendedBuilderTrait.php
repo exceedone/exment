@@ -46,7 +46,7 @@ trait ExtendedBuilderTrait
      * Update a removing json key.
      *
      * @param  string  $key
-     * @return int
+     * @return bool
      */
     public function updateRemovingJsonKey(string $key)
     {
@@ -541,7 +541,8 @@ trait ExtendedBuilderTrait
 
     /**
      * get query instance
-     * @return \Exceedone\Exment\Database\Query\ExtendedBuilder
+     *
+     * @return $this|\Illuminate\Database\Query\Builder|mixed
      */
     protected function _getQueryExment()
     {

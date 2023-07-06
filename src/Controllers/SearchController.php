@@ -94,10 +94,13 @@ class SearchController extends AdminControllerBase
             return $this->getFreeWord($request, $content);
         }
     }
+
     /**
      * Get free word result page. this function is called when user input word end click enter.
+     *
      * @param Request $request
-     * @return Content
+     * @param Content $content
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     protected function getFreeWord(Request $request, Content $content)
     {
@@ -240,8 +243,10 @@ class SearchController extends AdminControllerBase
     // For relation search  --------------------------------------------------
     /**
      * Get relation search result page. this function is called when user select suggest.
+     *
      * @param Request $request
-     * @return Content
+     * @param Content $content
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
      */
     protected function getRelationSearch(Request $request, Content $content)
     {

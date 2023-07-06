@@ -32,7 +32,8 @@ class LoginService
      *
      * @param LoginUser|CustomValue $user CustomValue(user) or login user
      * @param array $options
-     * @return void
+     * @return \Illuminate\Http\RedirectResponse|void
+     * @throws \Exception
      */
     public static function resetPassword($user, array $options = [])
     {
@@ -572,7 +573,7 @@ class LoginService
     /**
      * Get the guard to be used during authentication.
      *
-     * @return \Illuminate\Contracts\Auth\StatefulGuard
+     * @return mixed
      */
     protected static function guard()
     {

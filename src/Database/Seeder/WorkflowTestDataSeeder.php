@@ -57,14 +57,17 @@ class WorkflowTestDataSeeder extends Seeder
 
                 'statuses' => [
                     [
+                        'id' => 1,
                         'status_name' => 'middle',
                         'datalock_flg' => 0,
                     ],
                     [
+                        'id' => 1,
                         'status_name' => 'temp',
                         'datalock_flg' => 1,
                     ],
                     [
+                        'id' => 1,
                         'status_name' => 'end',
                         'datalock_flg' => 1,
                         'completed_flg' => 1,
@@ -164,10 +167,12 @@ class WorkflowTestDataSeeder extends Seeder
 
                 'statuses' => [
                     [
+                        'id' => 1,
                         'status_name' => 'waiting',
                         'datalock_flg' => 0,
                     ],
                     [
+                        'id' => 1,
                         'status_name' => 'completed',
                         'datalock_flg' => 1,
                         'completed_flg' => 1,
@@ -247,10 +252,12 @@ class WorkflowTestDataSeeder extends Seeder
 
                 'statuses' => [
                     [
+                        'id' => 1,
                         'status_name' => 'status1',
                         'datalock_flg' => 0,
                     ],
                     [
+                        'id' => 1,
                         'status_name' => 'status2',
                         'datalock_flg' => 1,
                         'completed_flg' => 1,
@@ -357,14 +364,17 @@ class WorkflowTestDataSeeder extends Seeder
 
                 'statuses' => [
                     [
+                        'id' => 1,
                         'status_name' => 'waiting',
                         'datalock_flg' => 0,
                     ],
                     [
+                        'id' => 1,
                         'status_name' => 'waiting2',
                         'datalock_flg' => 1,
                     ],
                     [
+                        'id' => 1,
                         'status_name' => 'completed',
                         'datalock_flg' => 1,
                         'completed_flg' => 1,
@@ -689,7 +699,8 @@ class WorkflowTestDataSeeder extends Seeder
      * Create workflow notify
      *
      * @param Workflow $workflow
-     * @return void
+     * @return false|void
+     * @throws \Exceedone\Exment\Exceptions\NoMailTemplateException
      */
     protected function createNotify(Workflow $workflow)
     {

@@ -346,7 +346,7 @@ class RoleGroupController extends AdminControllerBase
     /**
      * Make a form builder for User Organization.
      *
-     * @return Form
+     * @return Form|false
      */
     protected function formUserOrganization($id = null)
     {

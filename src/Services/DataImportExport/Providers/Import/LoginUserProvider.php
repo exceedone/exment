@@ -98,9 +98,10 @@ class LoginUserProvider extends ProviderBase
 
     /**
      * validate data row
-     * @param int $line_no
-     * @param array $dataAndModel
-     * @return array
+     *
+     * @param $line_no
+     * @param $dataAndModel
+     * @return array|true
      */
     public function validateDataRow($line_no, $dataAndModel)
     {

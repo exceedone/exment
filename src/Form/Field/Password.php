@@ -8,8 +8,6 @@ class Password extends \Encore\Admin\Form\Field\Password
 
     /**
      * set toggle icon password display
-     *
-     * @return void
      */
     public function toggleShowEvent()
     {
@@ -29,7 +27,7 @@ class Password extends \Encore\Admin\Form\Field\Password
 
     // get input
     var input = $(this).closest('.input-group').find('input');
-    
+
     // toggle type
     if (input.attr("type") == "password") {
         input.attr("type", "text");

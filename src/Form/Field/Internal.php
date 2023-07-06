@@ -31,6 +31,6 @@ class Internal extends Field
      */
     public function render()
     {
-        return null;
+        return '';
     }
 }

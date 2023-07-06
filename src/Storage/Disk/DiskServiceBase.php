@@ -102,6 +102,9 @@ abstract class DiskServiceBase
      *
      * @return void
      */
+    /**
+     * @return boolean
+     */
     public function syncFromDisk()
     {
         if (!$this->isNeedDownload()) {
@@ -113,5 +116,9 @@ abstract class DiskServiceBase
 
     abstract protected function isNeedDownload();
     abstract protected function isDeleteTmpAfterExecute();
+
+    /**
+     * @return boolean
+     */
     abstract protected function sync();
 }

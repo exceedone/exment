@@ -205,9 +205,8 @@ class WorkflowController extends AdminControllerBase
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
@@ -581,7 +580,7 @@ class WorkflowController extends AdminControllerBase
     /**
      * Make a beginning form builder.
      *
-     * @return Form
+     * @return Content
      */
     protected function beginningForm()
     {
@@ -686,7 +685,8 @@ class WorkflowController extends AdminControllerBase
     /**
      * save beginning info
      *
-     * @return Form
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     protected function beginningPost(Request $request)
     {
@@ -810,8 +810,8 @@ class WorkflowController extends AdminControllerBase
      * Activate workflow
      *
      * @param Request $request
-     * @param string|int $id
-     * @return void
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|Response
      */
     public function activate(Request $request, $id)
     {
@@ -851,8 +851,8 @@ class WorkflowController extends AdminControllerBase
      * deactivate workflow
      *
      * @param Request $request
-     * @param string|int $id
-     * @return void
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|Response
      */
     public function deactivate(Request $request, $id)
     {
@@ -1036,8 +1036,8 @@ class WorkflowController extends AdminControllerBase
      * Get target modal html
      *
      * @param Request $request
-     * @param string|int $id
-     * @return void
+     * @param $id
+     * @return Response
      */
     public function targetModal(Request $request, $id)
     {
@@ -1128,8 +1128,8 @@ class WorkflowController extends AdminControllerBase
      * Get condition modal html
      *
      * @param Request $request
-     * @param string|int $id
-     * @return void
+     * @param $id
+     * @return Response
      */
     public function conditionModal(Request $request, $id)
     {
@@ -1228,7 +1228,9 @@ class WorkflowController extends AdminControllerBase
     /**
      * Render Setting modal form.
      *
-     * @return Content
+     * @param Request $request
+     * @param $id
+     * @return Response
      */
     public function activateModal(Request $request, $id)
     {
@@ -1258,7 +1260,9 @@ class WorkflowController extends AdminControllerBase
     /**
      * Render deactivate modal form.
      *
-     * @return Content
+     * @param Request $request
+     * @param $id
+     * @return Response
      */
     public function deactivateModal(Request $request, $id)
     {

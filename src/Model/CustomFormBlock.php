@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $id
  * @property mixed $label
  * @property mixed $options
  * @property mixed $available

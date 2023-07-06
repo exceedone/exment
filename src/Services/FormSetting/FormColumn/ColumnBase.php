@@ -32,7 +32,7 @@ abstract class ColumnBase
         $this->custom_form_column = $custom_form_column;
     }
 
-    public static function make(CustomFormColumn $custom_form_column): ColumnBase
+    public static function make(CustomFormColumn $custom_form_column): ?ColumnBase
     {
         switch (array_get($custom_form_column, 'form_column_type', FormColumnType::COLUMN)) {
             case FormColumnType::COLUMN:
@@ -243,9 +243,11 @@ abstract class ColumnBase
     /**
      * Get setting modal form
      *
-     * @return WidgetForm
+     * @param BlockBase $block_item
+     * @param array $parameters
+     * @return WidgetForm|null
      */
-    abstract public function getSettingModalForm(BlockBase $block_item, array $parameters): WidgetForm;
+    abstract public function getSettingModalForm(BlockBase $block_item, array $parameters): ?WidgetForm;
 
     /**
      * prepare saving option.

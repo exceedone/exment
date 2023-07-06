@@ -357,10 +357,9 @@ trait DataImportExportServiceTrait
         }
     }
 
-
     /**
      * @param Request $request
-     * @return bool
+     * @return array|boolean
      */
     public function validateRequest($request)
     {
@@ -409,7 +408,7 @@ trait DataImportExportServiceTrait
      * Import Modal
      *
      * @param array $pluginlist
-     * @return array
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function getImportModal($pluginlist = null)
     {

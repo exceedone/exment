@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $id
  * @property mixed $system_flg
  * @property mixed $custom_table_id
  * @property mixed $column_type
@@ -48,7 +49,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     /**
      * $custom available_characters
-     * @var \Closure[]
+     * @var array
      */
     protected static $customAvailableCharacters = [];
 

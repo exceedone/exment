@@ -163,12 +163,10 @@ class Exment
         \Auth::shouldUse($guard);
     }
 
-
     /**
      * Get User Model's ID
-     * "This function name defines Custom value's user and login user. But this function always return Custom value's user
-     *
-     * @return string|int
+     * This function name defines Custom value's user and login user. But this function always return Custom value's user
+     * @return string|int|null
      */
     public function getUserId()
     {
@@ -399,10 +397,13 @@ class Exment
         ])->render();
     }
 
-
     /**
      * get_password_rule(for validation)
-     * @return string
+     *
+     * @param $required
+     * @param LoginUser|null $login_user
+     * @param array $options
+     * @return array
      */
     public function get_password_rule($required = true, ?LoginUser $login_user = null, array $options = [])
     {

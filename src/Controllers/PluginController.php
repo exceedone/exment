@@ -55,8 +55,8 @@ class PluginController extends AdminControllerBase
      * execute batch
      *
      * @param Request $request
-     * @param string|int|null $id
-     * @return void
+     * @param $id
+     * @return false|\Illuminate\Http\RedirectResponse
      */
     public function executeBatch(Request $request, $id)
     {

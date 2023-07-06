@@ -22,7 +22,7 @@ class PluginDashboardBase extends PluginPublicBase
     /**
      * Get Dashboard Box Header html
      *
-     * @return string
+     * @return string|null
      */
     public function header()
     {
@@ -32,7 +32,7 @@ class PluginDashboardBase extends PluginPublicBase
     /**
      * Get Dashboard Box body html
      *
-     * @return string
+     * @return string|null
      */
     public function body()
     {
@@ -42,7 +42,7 @@ class PluginDashboardBase extends PluginPublicBase
     /**
      * Get Dashboard Box footer html
      *
-     * @return string
+     * @return string|null
      */
     public function footer()
     {

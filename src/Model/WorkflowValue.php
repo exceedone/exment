@@ -31,7 +31,7 @@ class WorkflowValue extends ModelBase
     /**
      * Get "Executed" workflow action
      *
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function workflow_action()
     {
@@ -87,9 +87,9 @@ class WorkflowValue extends ModelBase
 
     /**
      * Get Workflow Value Authorities.
-     * Check from worklfow value header, and check has workflow value authorities. If has, return
+     * Check from workflow value header, and check has workflow value authorities. If has, return
      *
-     * @return void
+     * @return mixed
      */
     public function getWorkflowValueAutorities()
     {

@@ -56,14 +56,13 @@ class OAuthService implements LoginServiceInterface
      *
      * @param Authenticatable $login_user
      * @param array $credentials
-     * @return void
+     * @return boolean
      */
     public static function validateCredential(Authenticatable $login_user, array $credentials)
     {
         // always true.
         return true;
     }
-
 
 
     public static function getTestForm(LoginSetting $login_setting)
@@ -151,12 +150,12 @@ class OAuthService implements LoginServiceInterface
         }
     }
 
-
     /**
      * Execute login test
      *
      * @param Request $request
-     * @return void
+     * @param $login_setting
+     * @return mixed
      */
     public static function loginTest(Request $request, $login_setting)
     {

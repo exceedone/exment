@@ -24,7 +24,7 @@ class PluginPageBase extends PluginPublicBase
     /**
      * whether showing content header
      *
-     * @return void
+     * @return bool|mixed
      */
     public function _showHeader()
     {
@@ -34,7 +34,7 @@ class PluginPageBase extends PluginPublicBase
     /**
      * Get route uri for page
      *
-     * @return string
+     * @return string|null
      */
     public function getRouteUri($endpoint = null)
     {

@@ -177,7 +177,7 @@ trait BuilderTrait
      * @param string $tableName
      * @param string $columnName
      * @param bool $unique
-     * @return array
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|array
      */
     protected function getUniqueIndexDefinitions($tableName, $columnName, $unique)
     {

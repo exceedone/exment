@@ -20,8 +20,6 @@ class PublicShowPanelChild extends \Encore\Admin\Show\Panel
 
     /**
      * Render this panel.
-     *
-     * @return View|Factory
      */
     public function render()
     {

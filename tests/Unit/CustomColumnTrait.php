@@ -29,7 +29,7 @@ trait CustomColumnTrait
      * Get Custom Value and column item.
      * *We can create custom value model if not save database.
      *
-     * @return CustomColumn
+     * @return array
      */
     protected function getCustomValueAndColumnItem(&$custom_column, $value)
     {

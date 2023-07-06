@@ -1201,7 +1201,7 @@ class TestDataSeeder extends Seeder
     /**
      * Create Notify
      *
-     * @return string|int notify id
+     * @return string|int|null notify id
      */
     protected function createNotifyLimit($custom_table)
     {

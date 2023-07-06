@@ -63,8 +63,6 @@ class PublicFormFooter extends FooterBase
 
     /**
      * Render footer.
-     *
-     * @return Factory|View
      */
     public function render()
     {

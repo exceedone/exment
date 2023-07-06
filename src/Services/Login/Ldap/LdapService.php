@@ -59,7 +59,7 @@ class LdapService implements LoginServiceInterface
      *
      * @param Authenticatable $login_user
      * @param array $credentials
-     * @return void
+     * @return boolean
      */
     public static function validateCredential(Authenticatable $login_user, array $credentials)
     {
@@ -224,13 +224,12 @@ class LdapService implements LoginServiceInterface
             ->default(false);
     }
 
-
-
     /**
      * Execute login test
      *
      * @param Request $request
-     * @return void
+     * @param $login_setting
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public static function loginTest(Request $request, $login_setting)
     {

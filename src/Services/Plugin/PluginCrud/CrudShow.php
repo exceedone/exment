@@ -28,11 +28,11 @@ class CrudShow extends CrudBase
         return $content;
     }
 
-
     /**
      * Make a show builder.
      *
-     * @return Form
+     * @param $id
+     * @return Box
      */
     protected function detail($id)
     {

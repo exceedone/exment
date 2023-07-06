@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemColumn;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Custom Value's Search model.
@@ -221,7 +222,7 @@ class SearchService
      * @param  mixed  $operator
      * @param  mixed  $value
      * @param  string  $boolean
-     * @return $this
+     * @return $this|Builder
      */
     protected function whereCustomColumn(CustomColumn $column, $operator = null, $value = null, $boolean = 'and')
     {
@@ -539,11 +540,13 @@ class SearchService
         return $this;
     }
 
-
     /**
      * Join relation table for filter or sort
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter|Notify $column
+     * @param $column
+     * @param array $options
+     * @return RelationTable|null
+     * @throws \Exception
      */
     public function setRelationJoin($column, array $options = []): ?RelationTable
     {
@@ -578,6 +581,7 @@ class SearchService
                 $column_item = $this->getColumnItem($column);
                 if (!isset($column_item)) {
                     $this->query->whereNotMatch();
+                    // @phpstan-ignore-next-line Maybe function type hinting miss
                     return $this;
                 }
                 $column_item->setUniqueTableName($relationTable->tableUniqueName);

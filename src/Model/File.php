@@ -259,7 +259,7 @@ class File extends ModelBase
     /**
      * delete file info to database
      * @param string|File $file
-     * @return File|null
+     * @return File|null|void
      */
     public static function deleteFileInfo($file)
     {
@@ -300,12 +300,13 @@ class File extends ModelBase
         getModelName(SystemTableName::DOCUMENT)::where($column_name, $file->uuid)
             ->delete();
     }
+
     /**
      * Get file object(laravel)
      *
      * @param string $uuid
-     * @param \Closure $authCallback
-     * @return \Illuminate\Contracts\Filesystem\Filesystem
+     * @param \Closure|null $authCallback
+     * @return string|null
      */
     public static function getFile($uuid, \Closure $authCallback = null)
     {

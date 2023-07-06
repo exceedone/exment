@@ -308,7 +308,7 @@ class Workflow extends ModelBase
     /**
      * Target Custom Table
      *
-     * @return boolean
+     * @return boolean|null
      */
     public function getTargetTableAttribute()
     {

@@ -37,7 +37,7 @@ class Driver extends EnumBase
      * @param mixed $app
      * @param array $config
      * @param string $driverKey
-     * @return Filesystem
+     * @return Filesystem|FilesystemAdapter
      */
     public static function getExmentDriver($app, $config, $driverKey)
     {

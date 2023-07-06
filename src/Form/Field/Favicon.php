@@ -11,8 +11,12 @@ class Favicon extends \Encore\Admin\Form\Field\Image
      */
     protected $rules = [];
 
+    /**
+     * @return array|string
+     */
     protected function getRules()
     {
+        /** @var array $rules */
         $rules = parent::getRules();
         $rules[] = new \Exceedone\Exment\Validator\FaviconRule();
         return $rules;
