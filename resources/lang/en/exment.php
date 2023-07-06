@@ -1394,7 +1394,7 @@ return [
             'help' => 'Help string displayed below the field.',
             'min_max_width' => 'Enter the minimum and maximum values ​​of the column width when displaying the list as integers(px).',
             'text_align' => 'Please select the layout when displaying the list.',
-            'number_format' => 'If set to YES, the text field will be displayed as a comma value.',
+            'number_format' => 'If set to YES, the text field will be displayed as a comma value',
             'percent_format' => 'If set to YES, the list page and display page are displayed as percentages.',
             'rows' => 'Set input form height.',
             'updown_button' => 'By turning YES, Add "+" and "-" buttons.',
