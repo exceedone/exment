@@ -8,6 +8,7 @@ class Favicon extends \Encore\Admin\Form\Field\Image
      *  Validation rules.
      *
      * @var array
+     * @phpstan-ignore-next-line
      */
     protected $rules = [];
 

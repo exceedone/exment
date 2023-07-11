@@ -486,9 +486,10 @@ HTML;
     /**
      * Edit interface.
      *
-     * @param mixed   $id
+     * @param Request $request
      * @param Content $content
-     * @return Content
+     * @param $id
+     * @return Content|void
      */
     public function edit(Request $request, Content $content, $id)
     {

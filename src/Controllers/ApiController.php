@@ -60,8 +60,9 @@ class ApiController extends AdminControllerBase
 
     /**
      * get login user avatar
+     *
      * @param Request $request
-     * @return null|\Symfony\Component\HttpFoundation\StreamedResponse
+     * @return \Illuminate\Http\JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse|null
      */
     public function avatar(Request $request)
     {
@@ -445,7 +446,7 @@ class ApiController extends AdminControllerBase
      * Get notify List
      *
      * @param Request $request
-     * @return void
+     * @return \Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|mixed|Response|null
      */
     public function notifyList(Request $request)
     {
@@ -480,7 +481,7 @@ class ApiController extends AdminControllerBase
      * Get notify for page
      *
      * @param Request $request
-     * @return void
+     * @return array
      */
     public function notifyPage(Request $request)
     {
@@ -518,7 +519,7 @@ class ApiController extends AdminControllerBase
      * Get user or organization for select
      *
      * @param Request $request
-     * @return void
+     * @return \Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|LengthAwarePaginator|mixed|Response|null
      */
     public function userOrganizationSelect(Request $request)
     {

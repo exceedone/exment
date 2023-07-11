@@ -59,9 +59,10 @@ class MenuController extends AdminControllerBase
     /**
      * Redirect to edit page.
      *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * @param Request $request
+     * @param Content $content
+     * @param $id
+     * @return Content|\Illuminate\Http\RedirectResponse
      */
     public function show(Request $request, Content $content, $id)
     {

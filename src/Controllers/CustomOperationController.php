@@ -40,15 +40,14 @@ class CustomOperationController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
-
     /**
      * Edit
      *
      * @param Request $request
      * @param Content $content
-     * @param string $tableKey
-     * @param string|int|null $id
-     * @return Response|null
+     * @param $tableKey
+     * @param $id
+     * @return Content|false|void
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -76,7 +75,9 @@ class CustomOperationController extends AdminControllerTableBase
     /**
      * Create interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return Content|void
      */
     public function create(Request $request, Content $content)
     {

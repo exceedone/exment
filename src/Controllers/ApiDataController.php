@@ -486,7 +486,9 @@ class ApiDataController extends AdminControllerTableBase
      * Get Attachment files
      *
      * @param Request $request
-     * @return void
+     * @param $tableKey
+     * @param $id
+     * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|\Illuminate\Database\Eloquent\Collection|\Illuminate\Pagination\AbstractPaginator|mixed|Response|null
      */
     public function getDocuments(Request $request, $tableKey, $id)
     {
@@ -527,7 +529,9 @@ class ApiDataController extends AdminControllerTableBase
      * create Attachment files
      *
      * @param Request $request
-     * @return void
+     * @param $tableKey
+     * @param $id
+     * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response|Response
      */
     public function createDocument(Request $request, $tableKey, $id)
     {
@@ -1086,7 +1090,7 @@ class ApiDataController extends AdminControllerTableBase
      * Get order by array from request
      *
      * @param Request $request
-     * @return array offset 0 : target column name, 1 : 'asc' or 'desc'
+     * @return array|Response offset 0 : target column name, 1 : 'asc' or 'desc'
      */
     protected function getOrderBy(Request $request)
     {

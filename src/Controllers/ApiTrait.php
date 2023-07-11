@@ -59,7 +59,7 @@ trait ApiTrait
      * Get count parameter for list count
      *
      * @param Request $request
-     * @return int|null
+     * @return \Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|mixed|\Symfony\Component\HttpFoundation\Response|null
      */
     protected function getCount(Request $request)
     {

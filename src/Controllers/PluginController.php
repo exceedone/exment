@@ -193,7 +193,9 @@ class PluginController extends AdminControllerBase
     /**
      * Make a form builder.
      *
-     * @return Form
+     * @param $id
+     * @param $isDelete
+     * @return Form|false
      */
     protected function form($id = null, $isDelete = false)
     {

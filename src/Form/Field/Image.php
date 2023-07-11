@@ -6,8 +6,7 @@ class Image extends \Encore\Admin\Form\Field\Image
 {
     /**
      *  Validation rules.
-     *
-     * @phpstan-ignore-next-line Need to fix laravel-admin
+     * @phpstan-ignore-next-line
      */
     protected $rules = [];
 

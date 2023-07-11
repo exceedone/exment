@@ -461,8 +461,8 @@ class LoginSettingController extends AdminControllerBase
      * execute login test for form
      *
      * @param Request $request
-     * @param string|int|null $id
-     * @return void
+     * @param $id
+     * @return mixed
      */
     public function loginTestForm(Request $request, $id)
     {

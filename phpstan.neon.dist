@@ -5,7 +5,7 @@ parameters:
         - vendor/exceedone/exment
     level: 3
     stubFiles:
-        - exment/stubs/exceedone/laravel-admin/Form/Field.stub
+        - exment/stubs/laravel/passport/Client.stub
     ignoreErrors:
         -
             message: "#^Call to an undefined method Encore\\\\Admin.#"

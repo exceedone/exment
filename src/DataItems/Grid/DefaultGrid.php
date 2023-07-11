@@ -282,6 +282,7 @@ class DefaultGrid extends GridBase
                 });
                 $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
                     for ($i = $separate; $i < count($filterItems); $i++) {
+                        /** @var int $i */
                         $filterItems[$i]->setAdminFilter($filter);
                     }
                 });
@@ -292,8 +293,6 @@ class DefaultGrid extends GridBase
 
     /**
      * Get filter showing columns
-     *
-     * @return \Illuminate\Support\Collection
      */
     protected function getFilterColumns($filter): \Illuminate\Support\Collection
     {
