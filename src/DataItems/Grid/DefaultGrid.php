@@ -25,6 +25,8 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
 use Encore\Admin\Form;
+// todo 一覧ソートバグ対応用の追加です
+use Illuminate\Database\Eloquent\Model;
 
 class DefaultGrid extends GridBase
 {
@@ -122,7 +124,11 @@ class DefaultGrid extends GridBase
                 ->sort($item->sortable())
                 ->sortName($item->getSortName())
                 //->cast($item->getCastName())
-                ->sortCallback(function ($query, $args) use ($custom_view_column) {
+                // todo 一覧ソートバグ対応用の修正です パラメータ$queryの頭に&が追加されているのに注意
+                ->sortCallback(function (&$query, $args) use ($custom_view_column) {
+                    if ($query instanceof Model) {
+                        $query = $query->newQuery();
+                    }
                     $this->custom_view->getSearchService()->setQuery($query)->addSelect()->orderByCustomViewColumn($custom_view_column, (count($args) > 0 ? $args[0] : 'asc'));
                 })
                 ->style($item->gridStyle())
@@ -432,7 +438,8 @@ class DefaultGrid extends GridBase
             $import = $this->custom_table->enableImport();
             $export = $this->custom_table->enableExport();
             if ($import === true || $export === true) {
-                $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $export === true, $import === true);
+                // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
+                $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $export === true, $import === true, $export === true);
                 $tools->append($button->setCustomTable($this->custom_table));
             }
 

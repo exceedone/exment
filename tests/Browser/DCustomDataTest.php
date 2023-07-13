@@ -277,4 +277,28 @@ class DCustomDataTest extends ExmentKitTestCase
             ->seeInElement('td.column-select_valtext_multiple', '四国')
         ;
     }
+
+    // todo 一覧ソートバグ対応用の追加です
+    /**
+     * Check sorted custom data grid display.
+     */
+    public function testDisplayGridSort()
+    {
+        $table_name = \getDBTableName('custom_value_view_all');
+        $colname1 = CustomColumn::getEloquent('index_text', 'custom_value_view_all')->getIndexColumnName();
+        $sort_str = "_sort%5Bcolumn%5D={$table_name}.{$colname1}&_sort%5Btype%5D=-1&_sort%5Bdirect%5D=1";
+        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('value->index_text', 'desc')->first();
+        $row = json_decode($row->value);
+
+        // Check custom view data
+        $this->visit(admin_url("data/custom_value_view_all?$sort_str"))
+            ->seeInElement('td.column-index_text', $row->index_text)
+        ;
+
+        $sort_str = "_sort%5Bcolumn%5D={$table_name}.id&_sort%5Btype%5D=1&_sort%5Bdirect%5D=1";
+        // Check custom view data
+        $this->visit(admin_url("data/custom_value_view_all?$sort_str"))
+            ->seeInElement('td.column-id', '1')
+        ;
+    }
 }
