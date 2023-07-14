@@ -36,7 +36,8 @@ class PluginAction extends CustomTableAction
         $providers = [];
 
         // get default data
-        $providers[] = new Export\SummaryProvider([
+        // todo プラグインエクスポートで通常ビューのプロバイダーを使うための修正です
+        $providers[] = new Export\ViewProvider([
             'custom_table' => $this->custom_table,
             'custom_view' => $this->custom_view,
             'grid' => $this->grid
@@ -71,7 +72,8 @@ class PluginAction extends CustomTableAction
             'grid' => $this->grid
         ]));
 
-        $pluginClass->viewProvider(new Export\SummaryProvider([
+        // todo プラグインエクスポートで通常ビューのプロバイダーを使うための修正です
+        $pluginClass->viewProvider(new Export\ViewProvider([
             'custom_table' => $this->custom_table,
             'custom_view' => $this->custom_view,
             'grid' => $this->grid

@@ -19,6 +19,8 @@ class ExportImportButton extends ModalTileMenuButton
     protected $export_flg;
     protected $import_flg;
     protected $view_flg;
+    // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
+    protected $plugin_flg;
     protected $base_key = 'custom_value';
 
     /**
@@ -28,13 +30,16 @@ class ExportImportButton extends ModalTileMenuButton
      */
     protected $custom_table;
 
-    public function __construct($endpoint, $grid, $view_flg = false, $export_flg = true, $import_flg = true)
+    // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
+    public function __construct($endpoint, $grid, $view_flg = false, $export_flg = true, $import_flg = true, $plugin_flg = false)
     {
         $this->grid = $grid;
         $this->endpoint = $endpoint;
         $this->export_flg = !boolval(config('exment.export_disabled', false)) && $export_flg;
         $this->import_flg = !boolval(config('exment.import_disabled', false)) && $import_flg;
         $this->view_flg = !boolval(config('exment.export_view_disabled', false)) && $view_flg;
+        // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
+        $this->plugin_flg = $plugin_flg;
 
         // switch label
         $this->total_export_flg = $this->export_flg || $this->view_flg;
@@ -199,7 +204,8 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         $plugins = $this->getPluginExports();
-        if ($this->total_export_flg && !is_nullorempty($plugins)) {
+        // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
+        if ($this->total_export_flg && $this->plugin_flg && !is_nullorempty($plugins)) {
             foreach ($plugins as $plugin) {
                 $button = [
                     'label' => exmtrans('custom_value.export'),
