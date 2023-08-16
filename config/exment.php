@@ -1086,4 +1086,17 @@ return [
     |
     */
     'sort_role_group_by_order' => env('EXMENT_SORT_ROLE_GROUP_BY_ORDER', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | class type of default show page 
+    |--------------------------------------------------------------------------
+    |
+    | set class for container of default show page.
+    | 1. only option boxes(default).
+    | 2. only show form.
+    | 3. both option boxes and show form.
+    |
+    */
+    'show_page_class_type' => env('EXMENT_SHOW_PAGE_CLASS_TYPE', 1),
 ];
