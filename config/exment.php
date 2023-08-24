@@ -1086,4 +1086,12 @@ return [
     |
     */
     'sort_role_group_by_order' => env('EXMENT_SORT_ROLE_GROUP_BY_ORDER', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maximum length of strings to display in the grid
+    |--------------------------------------------------------------------------
+    |
+    */
+    'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
 ];
