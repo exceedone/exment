@@ -13,6 +13,6 @@ class ExmentFacade extends Facade
 
     protected static function getFacadeAccessor(): string
     {
-        return "\Exceedone\Exment\Exment::class";
+        return (string)\Exceedone\Exment\Exment::class;
     }
 }
