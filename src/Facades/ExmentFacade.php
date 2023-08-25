@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Facade;
 class ExmentFacade extends Facade
 {
 
-    protected static function getFacadeAccessor(): string
+    protected static function getFacadeAccessor() // @phpstan-ignore-line
     {
-        return (string)\Exceedone\Exment\Exment::class;
+        return \Exceedone\Exment\Exment::class;
     }
 }
