@@ -324,6 +324,7 @@ class RoleGroupController extends AdminControllerBase
             ->options(RoleGroupType::TABLE()->getRoleGroupOptions())
             ->disable(!$enable)
             ->checkWidth(150)
+            ->scrollx(true)
             ->headerHelp(RoleGroupType::TABLE()->getRoleGroupHelps())
             ->items($items)
             ->headerEsacape(false)

@@ -72,7 +72,7 @@ class LdapService implements LoginServiceInterface
     {
         return [
             'exment' => [
-                'schema' => '\Adldap\Schemas\\' . ($login_setting->getOption('ldap_schema')),
+                'schema' => $login_setting->getOption('ldap_schema') ? '\Adldap\Schemas\\' . ($login_setting->getOption('ldap_schema')) : \Adldap\Schemas\ActiveDirectory::class,
                 'hosts' => stringToArray($login_setting->getOption('ldap_hosts')),
                 'port' => $login_setting->getOption('ldap_port') ?? 389,
                 'timeout' => 10,
