@@ -646,6 +646,7 @@ return [
                 'loading' => '画面読み込み前',
                 'loaded' => '画面読み込み後',
                 'grid_menubutton' => '一覧画面のメニューボタン',
+                'calendar_menubutton' => 'カレンダービューのメニューボタン',
                 'form_menubutton_show' => 'データ詳細のメニューボタン',
                 'form_menubutton_create' => 'フォームのメニューボタン（新規作成時）',
                 'form_menubutton_edit' => 'フォームのメニューボタン（更新時）',
