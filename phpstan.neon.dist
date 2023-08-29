@@ -1,9 +1,10 @@
 includes:
     - ./vendor/nunomaduro/larastan/extension.neon
 parameters:
-	level: 1
-	paths:
-		- vendor/exceedone/exment
-	ignoreErrors:
-		- "#__construct\\(\\) does not call parent constructor#"
-		- "#Constructor of class .* an unused parameter#"
+    paths:
+        - vendor/exceedone/exment
+    level: 1
+    ignoreErrors:
+        -
+            message: '#^Method Exceedone\\Exment\\Facades\\ExmentFacade::getFacadeAccessor\(\) should return string but return statement is missing.#'
+            path: vendor/exceedone/exment/src/*

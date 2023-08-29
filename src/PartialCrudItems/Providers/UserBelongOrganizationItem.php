@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomView;
 
 /**
  * Organization item for User
+ * @phpstan-consistent-constructor
  */
 class UserBelongOrganizationItem extends ProviderBase
 {

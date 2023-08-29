@@ -167,9 +167,19 @@ class DefaultForm extends FormBase
         // add calc_formula_array and changedata_array info
         if (count($calc_formula_array) > 0) {
             $json = json_encode($calc_formula_array);
+            $columns = CustomColumn::where('custom_table_id', $this->custom_table->id)->get()
+                ->filter(function ($column) {
+                    return $column->options ? array_key_exists("calc_formula", $column->options) : false;
+                })->map(function ($item) {
+                    return [
+                        'column_name' => $item->column_name,
+                        'force_caculate' => $item->options['force_caculate']
+                    ];
+                });
             $script = <<<EOT
             var json = $json;
-            Exment.CalcEvent.setCalcEvent(json);
+            var columns = $columns;
+            Exment.CalcEvent.setCalcEvent(json, columns);
 EOT;
             Admin::script($script);
         }

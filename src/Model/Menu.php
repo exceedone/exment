@@ -6,7 +6,6 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\TemplateImportResult;
 use Encore\Admin\Auth\Database\Menu as AdminMenu;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -15,6 +14,7 @@ use Illuminate\Support\Facades\DB;
  * @property int $id
  *
  * @method where($parent_id, $id)
+ * @phpstan-consistent-constructor
  */
 class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 {
@@ -91,7 +91,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
     public static function getTableName()
     {
-        return with(new static())->getTable();
+        return (new static())->getTable();
     }
 
     /**

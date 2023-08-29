@@ -1,18 +1,21 @@
-name: check lang
+name: phpstan
 
 on:
   pull_request:
     paths:
-      - 'resources/lang/**'
+      - 'config/**'
+      - 'database/**'
+      - 'resources/**'
+      - 'src/**'
+      - 'tests/**'
 
 env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
 
 jobs:
-  check-lang:
+  phpstan:
     runs-on: ubuntu-22.04
-
     steps:
       - uses: actions/checkout@v3
         with:
@@ -43,12 +46,17 @@ jobs:
           docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
           docker-compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
 
-      - name: Make mysql Initialize
+      - name: Make mysql init
         working-directory: docker-exment
         run: |
           make mysql-init
 
-      - name: Run artisan exment:checklang
+      - name: setup phpstan
         working-directory: docker-exment
         run: |
-          docker-compose -f docker-compose.yml run -T php php artisan exment:checklang
+          docker-compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
+
+      - name: run phpstan
+        working-directory: docker-exment
+        run: |
+          docker-compose -f docker-compose.yml exec -T php ./vendor/bin/phpstan analyse --memory-limit=1G

@@ -2562,7 +2562,6 @@ class Api2Test extends ApiTestBase
                     ->where('parent_id', $id)
                     ->select('child_id')
                     ->distinct()
-                    ->get()
                     ->pluck('child_id')
                     ->toArray();
             }

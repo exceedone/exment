@@ -59,7 +59,7 @@ class ParentIdItem extends SystemItem
         }
 
         return [
-            $target_column_id ?? null,
+            $target_column_id,
             $target_table_id ?? null,
         ];
     }

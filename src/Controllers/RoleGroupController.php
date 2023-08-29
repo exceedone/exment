@@ -321,6 +321,7 @@ class RoleGroupController extends AdminControllerBase
             ->options(RoleGroupType::TABLE()->getRoleGroupOptions())
             ->disable(!$enable)
             ->checkWidth(150)
+            ->scrollx(true)
             ->headerHelp(RoleGroupType::TABLE()->getRoleGroupHelps())
             ->items($items)
             ->headerEsacape(false)
@@ -406,9 +407,10 @@ class RoleGroupController extends AdminControllerBase
     /**
      * Update the specified resource in storage.
      *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @param mixed $id
+     * @return bool|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     public function update($id)
     {

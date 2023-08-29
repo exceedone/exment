@@ -16,10 +16,11 @@ use Exceedone\Exment\Model\CustomTable;
  * (c) Venture Craft <http://www.venturecraft.com.au>
  */
 
-/*
+/**
  * Customized for Exment
+ * @property mixed $revisionable_id
+ * @property mixed $revisionable_type
  */
-
 class Revision extends Eloquent
 {
     use \Exceedone\Exment\Model\Traits\AutoSUuidTrait;

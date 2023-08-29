@@ -56,6 +56,8 @@ abstract class FormBase
     {
         list($custom_table, $custom_form) = $args + [null, null];
 
+        /** Unsafe usage of new static(). */
+        /** @phpstan-ignore-next-line */
         return new static($custom_table, $custom_form);
     }
 

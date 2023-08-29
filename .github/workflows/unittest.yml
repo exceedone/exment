@@ -10,8 +10,8 @@ on:
       - 'tests/**'
 
 env:
-  DOCKER_EXMENT_REPOSITORY: oreno4649/docker-exment
-  EXMENT_BOILERPLATE_REPOSITORY: oreno4649/exment-boilerplate
+  DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
 
 jobs:
   exment-testing:
@@ -22,19 +22,20 @@ jobs:
         db: ["mysql", "mariadb", "sqlsrv"]
         test: ["feature", "unit", "browser"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
           path: ./docker-exment
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: ./docker-exment/exment-boilerplate/exment
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Docker Compose Version
         run: docker-compose --version

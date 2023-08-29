@@ -1203,8 +1203,12 @@ if (!function_exists('get_omitted_string')) {
      * if over string length. remove text, add "..."
      * @return string
      */
-    function get_omitted_string($text, $length = Define::GRID_MAX_LENGTH)
+    function get_omitted_string($text, $length = null)
     {
+        if (is_null($length)) {
+            $length = config('exment.grid_mat_length', Define::GRID_MAX_LENGTH);
+        }
+
         if (is_null($text)) {
             return $text;
         }
@@ -1322,9 +1326,6 @@ if (!function_exists('getModelName')) {
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
-            if (!isset($suuid)) {
-                return null;
-            }
             $table = CustomTable::findBySuuid($suuid);
             if (!is_null($table)) {
                 $table->createTable();
@@ -1737,9 +1738,7 @@ if (!function_exists('admin_exclusion_path')) {
             $path = substr($path, strlen_ex($prefix));
         }
 
-        $path = trim($path, '/');
-
-        return $path?? '/';
+        return trim($path, '/');
     }
 
     if (!function_exists('unicode_decode')) {
