@@ -103,7 +103,7 @@ class DefaultForm extends FormBase
                             $relation_name,
                             $block_label,
                             function ($form) use ($custom_form_block, $relation_name) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
+                                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
                                     $this->setCustomFormColumns($form, $custom_form_block);
                                 })->setRelationName($relation_name);
                             }
@@ -115,7 +115,7 @@ class DefaultForm extends FormBase
                             $relation_name,
                             $block_label,
                             function ($form, $model = null) use ($custom_form_block, $relation, $relation_name) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
+                                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
                                     ->disableHeader()
                                     ->setRelationName($relation_name)
                                     ->gridEmbeds();
@@ -222,6 +222,13 @@ EOT;
     protected function setCustomFormColumns($form, $custom_form_block)
     {
         $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
+        $target_id = $this->id;
+        if (method_exists($form, 'getDataKey')) {
+            $data_key = $form->getDataKey();
+            if (is_numeric($data_key)) {
+                $target_id = $data_key;
+            }
+        }
         foreach ($custom_form_columns as $form_column) {
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
@@ -229,8 +236,8 @@ EOT;
             }
 
             $item = $form_column->column_item;
-            if (isset($this->id)) {
-                $item->id($this->id);
+            if (isset($target_id)) {
+                $item->id($target_id);
             }
             $this->setColumnItemOption($item, $custom_form_columns);
 
