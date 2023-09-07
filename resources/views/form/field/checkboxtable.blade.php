@@ -32,7 +32,7 @@
 </style>
 
 <div class="checkboxtable form-group">
-    <div class="{{$viewClass['label']}} table-right">
+    <div class="{{$viewClass['label']}} table-right" style="{{ $scrollx ? 'margin-top: 20px' : '' }}">
     
         <div class="checkboxtable-header"></div>
         <div class="table-section table-container w-100 border-solid">
@@ -53,8 +53,10 @@
             </div>
         </div>
     </div>
-
-    <div class="{{$viewClass['field']}} table-left" style="overflow-y:hidden; overflow-x:auto; white-space: nowrap;">
+    @if($scrollx)
+        <div class="wrapper-scroll-top col-md-10"><div class="wrapper-scroll-top-content"></div></div>
+    @endif
+    <div class="{{$viewClass['field']}} table-left {{ $scrollx ? 'wrapper-scroll-bottom' : '' }}" style="overflow-y:hidden; overflow-x:auto; white-space: nowrap;">
         <div class="checkboxtable-header">
             <div class="table-section table-container border-solid">
                 <div class="table-body">
@@ -107,3 +109,34 @@
     </div>
 
 </div>
+@if($scrollx)
+    <style>
+        .wrapper-scroll-top{
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            height: 20px;
+        }
+        .wrapper-scroll-top-content{
+            width: 1950px;
+            height: 20px;
+        }
+    </style>
+    <script>
+        $(function () {
+            $(window).off("exment:loaded", changeText).on("exment:loaded", changeText);
+            function changeText() {
+                $(function(){
+                    $(".wrapper-scroll-top").scroll(function(){
+                        $(".wrapper-scroll-bottom")
+                            .scrollLeft($(".wrapper-scroll-top").scrollLeft());
+                    });
+                    $(".wrapper-scroll-bottom").scroll(function(){
+                        $(".wrapper-scroll-top")
+                            .scrollLeft($(".wrapper-scroll-bottom").scrollLeft());
+                    });
+                });
+            }
+        });
+    </script>
+@endif

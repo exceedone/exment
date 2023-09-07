@@ -4,3 +4,7 @@ parameters:
     paths:
         - vendor/exceedone/exment
     level: 1
+    ignoreErrors:
+        -
+            message: '#^Method Exceedone\\Exment\\Facades\\ExmentFacade::getFacadeAccessor\(\) should return string but return statement is missing.#'
+            path: vendor/exceedone/exment/src/*

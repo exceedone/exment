@@ -8,6 +8,7 @@
 
             <div class="checkbox">
             <label class="checkboxone-label">
+                <input type="hidden" name="{{$name}}">
                 <input type="checkbox" name="{{$name}}" value="{{$check_value}}" class="{{$class}}" {{ isMatchString($check_value, $old) ?'checked':'' }} {!! $attributes !!} />&nbsp;{{$check_label}}&nbsp;&nbsp;
             </label>
             </div>
