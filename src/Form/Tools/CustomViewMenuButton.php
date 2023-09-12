@@ -3,9 +3,11 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\RelationType;
 
 class CustomViewMenuButton extends ModalTileMenuButton
 {
@@ -197,6 +199,15 @@ class CustomViewMenuButton extends ModalTileMenuButton
                 'description' => exmtrans('custom_view.custom_view_menulist.help.create_calendar'),
                 'icon' => 'fa-calendar',
             ];
+            $relations = CustomRelation::getRelationsByParent($this->custom_table, RelationType::ONE_TO_MANY);
+            if ($relations && $relations->count() > 0) {
+                $items[] = [
+                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=5&from_data=1'),
+                    'header' => exmtrans('custom_view.custom_view_menulist.create_expansion'),
+                    'description' => exmtrans('custom_view.custom_view_menulist.help.create_expansion'),
+                    'icon' => 'fa-indent',
+                ];
+            }
 
             if ($this->custom_table->hasSystemViewPermission()) {
                 $items[] = [

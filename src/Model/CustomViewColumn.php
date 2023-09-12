@@ -23,7 +23,7 @@ class CustomViewColumn extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type'];
+    protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type', 'child_table_id'];
     //protected $with = ['custom_column'];
     protected $casts = ['options' => 'json'];
 
@@ -161,5 +161,17 @@ class CustomViewColumn extends ModelBase
     public function getViewColumnEndDateTypeAttribute()
     {
         return $this->getOption('end_date_type');
+    }
+
+    public function getChildTableIdAttribute()
+    {
+        return $this->getOption('child_table_id');
+    }
+
+    public function setChildTableIdAttribute($val)
+    {
+        $this->setOption('child_table_id', $val);
+
+        return $this;
     }
 }

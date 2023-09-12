@@ -14,6 +14,7 @@ class ViewKindType extends EnumBase
     public const CALENDAR = "2";
     public const FILTER = "3";
     public const PLUGIN = "4";
+    public const EXPANSION = "5";
     public const ALLDATA = "9";
 
     /**
@@ -62,6 +63,8 @@ class ViewKindType extends EnumBase
                 return GridItem\FilterGrid::class;
             case static::PLUGIN:
                 return GridItem\PluginGrid::class;
+            case static::EXPANSION:
+                return GridItem\ExpansionGrid::class;
             default:
                 return GridItem\DefaultGrid::class;
         }

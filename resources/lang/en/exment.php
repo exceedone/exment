@@ -1795,6 +1795,7 @@ return [
         'view_column_target' => 'View target column',
         'view_column_start_date' => 'Start date',
         'view_column_end_date' => 'End date',
+        'child_table_id' => 'Child table id',
         'color' => 'Display color',
         'font_color' => 'Letter color',
         'order' => 'Order',
@@ -1829,6 +1830,7 @@ return [
             'use_view_infobox' => 'By setting YES, you can set an information box at the top of the view where you can enter business details and messages to users.',
             'view_infobox_title' => 'Enter the title to be displayed in the information box.',
             'view_infobox' => 'Please fill in the HTML to be displayed in the information box. *Images and scripts cannot be entered.',
+            'child_table_id' => 'When you click a column for which a child table has been set on the list screen, the child table data will be displayed in accordion style.',
         ],
 
         'column_sort_options' => [

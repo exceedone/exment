@@ -1094,4 +1094,12 @@ return [
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maximum count of children data show in parent & children view
+    |--------------------------------------------------------------------------
+    |
+    */
+    'max_child_expand_count' => env('EXMENT_MAX_CHILD_EXPAND_COUNT', 10),
 ];

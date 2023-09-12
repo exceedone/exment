@@ -1796,6 +1796,7 @@ return [
         'view_column_target' => '対象列',
         'view_column_start_date' => '開始日',
         'view_column_end_date' => '終了日',
+        'child_table_id' => '子テーブル',
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
@@ -1830,6 +1831,7 @@ return [
             'use_view_infobox' => 'YESにすることで、ビューの上部に、業務内容や、ユーザーへのメッセージなどを記入できる、情報ボックスを設定することができます。',
             'view_infobox_title' => '情報ボックスに表示するタイトルを記入してください。',
             'view_infobox' => '情報ボックスに表示するHTMLを記入してください。※画像、スクリプトは入力できません。',
+            'child_table_id' => '子テーブルを設定した列を一覧画面でクリックすると子テーブルの情報がアコーディオン表示されます。',
         ],
 
         'column_sort_options' => [
@@ -1901,6 +1903,7 @@ return [
             'create_sum' => '集計ビュー新規作成',
             'create_calendar' => 'カレンダービュー新規作成',
             'create_filter' => '条件ビュー新規作成',
+            'create_expansion' => '親子ビュー新規作成',
 
             'help' => [
                 'current_view_edit' => '現在表示しているビューの設定を変更します。',
@@ -1909,6 +1912,7 @@ return [
                 'create_sum' => 'データの項目をグループ化し、合計値や最大値を集計し表示する、集計ビューを新規作成します。',
                 'create_calendar' => 'データの日付をカレンダー形式で表示する、カレンダービューを新規作成します。',
                 'create_filter' => '通知を実施する条件や、フォームの選択肢に表示するための条件を設定する、条件ビューを新規作成します。',
+                'create_expansion' => '親子データを合わせて一覧表示する、親子ビューを新規作成します。',
             ],
         ],
         'message' => [
@@ -1927,6 +1931,7 @@ return [
             'default' => '通常ビュー',
             'aggregate' => '集計ビュー',
             'calendar' => 'カレンダービュー',
+            'expansion' => '親子ビュー',
             'filter' => '条件ビュー',
             'plugin' => '独自ビュー',
             'alldata' => '全件ビュー',
