@@ -40,3 +40,7 @@ parameters:
         -
             message: "#^Access to an undefined property Illuminate\\\\Support\\\\Fluent::.#"
             path: vendor/exceedone/exment/src/*
+
+        -
+            message: '#^Method Exceedone\\Exment\\Facades\\ExmentFacade::getFacadeAccessor\(\) should return string but return statement is missing.#'
+            path: vendor/exceedone/exment/src/*
