@@ -53,17 +53,18 @@ class HasMany extends AdminHasMany
     protected function getTemplateHtmlAndScript($form)
     {
         list($template, $script) = $form->getTemplateHtmlAndScript();
+        return [$template, $script];
+        
+        // // re-set $script
+        // $scripts = [];
+        // foreach ($form->fields() as $field) {
+        //     // when NestedEmbeds item, get NestedEmbeds's getScript()
+        //     if (method_exists($field, 'getScript')) {
+        //         $scripts[] = $field->getScript();
+        //     }
+        // }
 
-        // re-set $script
-        $scripts = [];
-        foreach ($form->fields() as $field) {
-            // when NestedEmbeds item, get NestedEmbeds's getScript()
-            if (method_exists($field, 'getScript')) {
-                $scripts[] = $field->getScript();
-            }
-        }
-
-        return [$template, implode("\r\n", $scripts)];
+        // return [$template, implode("\r\n", $scripts)];
     }
 
     /**

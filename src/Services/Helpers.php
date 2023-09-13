@@ -1211,8 +1211,12 @@ if (!function_exists('get_omitted_string')) {
      * @param $length
      * @return mixed|string|null
      */
-    function get_omitted_string($text, $length = Define::GRID_MAX_LENGTH)
+    function get_omitted_string($text, $length = null)
     {
+        if (is_null($length)) {
+            $length = config('exment.grid_mat_length', Define::GRID_MAX_LENGTH);
+        }
+
         if (is_null($text)) {
             return $text;
         }

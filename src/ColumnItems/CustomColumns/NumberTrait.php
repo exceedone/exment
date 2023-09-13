@@ -94,5 +94,8 @@ trait NumberTrait
                 return CalcService::getCalcDisplayText($value, $custom_table);
             })
         ;
+
+        $form->switchbool('force_caculate', exmtrans("custom_column.options.force_caculate"))
+            ->help(exmtrans("custom_column.help.force_caculate"));
     }
 }
