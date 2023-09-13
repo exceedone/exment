@@ -104,7 +104,7 @@ class DefaultForm extends FormBase
                             $relation_name,
                             $block_label,
                             function ($form) use ($custom_form_block, $relation_name) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
+                                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
                                     $this->setCustomFormColumns($form, $custom_form_block);
                                 })->setRelationName($relation_name);
                             }
@@ -116,7 +116,7 @@ class DefaultForm extends FormBase
                             $relation_name,
                             $block_label,
                             function ($form, $model = null) use ($custom_form_block, $relation, $relation_name) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
+                                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
                                     ->disableHeader()
                                     ->setRelationName($relation_name)
                                     ->gridEmbeds();
@@ -168,9 +168,19 @@ class DefaultForm extends FormBase
         // add calc_formula_array and changedata_array info
         if (count($calc_formula_array) > 0) {
             $json = json_encode($calc_formula_array);
+            $columns = CustomColumn::where('custom_table_id', $this->custom_table->id)->get()
+                ->filter(function ($column) {
+                    return $column->options ? array_key_exists("calc_formula", $column->options) : false;
+                })->map(function ($item) {
+                    return [
+                        'column_name' => $item->column_name,
+                        'force_caculate' => $item->options['force_caculate']
+                    ];
+                });
             $script = <<<EOT
             var json = $json;
-            Exment.CalcEvent.setCalcEvent(json);
+            var columns = $columns;
+            Exment.CalcEvent.setCalcEvent(json, columns);
 EOT;
             Admin::script($script);
         }
@@ -213,6 +223,13 @@ EOT;
     protected function setCustomFormColumns($form, $custom_form_block)
     {
         $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
+        $target_id = $this->id;
+        if (method_exists($form, 'getDataKey')) {
+            $data_key = $form->getDataKey();
+            if (is_numeric($data_key)) {
+                $target_id = $data_key;
+            }
+        }
         foreach ($custom_form_columns as $form_column) {
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
@@ -220,8 +237,8 @@ EOT;
             }
 
             $item = $form_column->column_item;
-            if (isset($this->id)) {
-                $item->id($this->id);
+            if (isset($target_id)) {
+                $item->id($target_id);
             }
             $this->setColumnItemOption($item, $custom_form_columns);
 

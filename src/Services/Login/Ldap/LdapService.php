@@ -72,7 +72,7 @@ class LdapService implements LoginServiceInterface
     {
         return [
             'exment' => [
-                'schema' => '\Adldap\Schemas\\' . ($login_setting->getOption('ldap_schema')),
+                'schema' => $login_setting->getOption('ldap_schema') ? '\Adldap\Schemas\\' . ($login_setting->getOption('ldap_schema')) : \Adldap\Schemas\ActiveDirectory::class,
                 'hosts' => stringToArray($login_setting->getOption('ldap_hosts')),
                 'port' => $login_setting->getOption('ldap_port') ?? 389,
                 'timeout' => 10,
@@ -183,7 +183,8 @@ class LdapService implements LoginServiceInterface
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
         $form->select('ldap_schema', "スキーマ")->options(["OpenLDAP" => "OpenLDAP", "ActiveDirectory" => "ActiveDirectory"])
             ->required()
-            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
+			->default('ActiveDirectory');
         $form->text('ldap_hosts', exmtrans('login.ldap_hosts'))
             ->required()
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);

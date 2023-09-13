@@ -1184,7 +1184,7 @@ class WorkflowController extends AdminControllerBase
 
                 // filter setting
                 $hasManyTable = new ConditionHasManyTable($form, [
-                    'ajax' => admin_url("webapi/{$id}/filter-value"),
+                    'ajax' => admin_url("webapi/{$custom_table->table_name}/filter-value"),
                     'name' => "workflow_conditions_{$index}",
                     'linkage' => json_encode(['condition_key' => url_join($custom_table->table_name, 'filter-condition')]),
                     'targetOptions' => $custom_table->getColumnsSelectOptions([
