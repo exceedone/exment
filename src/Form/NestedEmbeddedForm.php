@@ -76,7 +76,7 @@ class NestedEmbeddedForm extends EmbeddedForm
     /**
      * Get script of template.
      *
-     * @return string
+     * @return string|array
      */
     public function getScripts()
     {
