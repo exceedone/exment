@@ -43,6 +43,8 @@ class DefaultGrid extends GridBase
      */
     public function grid()
     {
+        $this->loadGridParameters();
+
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname());
 
@@ -786,5 +788,41 @@ class DefaultGrid extends GridBase
         })->setTableColumnWidth(8, 4)
         ->rowUpDown('order', 10)
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters", $manualUrl));
+    }
+
+    /**
+     * Get the previous filter, sort order, page, etc. of the list from the session
+     */
+    protected function loadGridParameters()
+    {
+        if (!boolval(config('exment.keep_grid_parameters', false))) {
+            return;
+        }
+
+        $previous_url = parse_url(url()->previous());
+        $current_url = parse_url(url()->current());
+        $previous_path = $previous_url? array_get($previous_url, 'path'): null;
+        $current_path = $current_url? array_get($current_url, 'path'): null;
+
+        if ($previous_path == $current_path) {
+            session([Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS => [
+                'path' => $current_path,
+                'parameters' => request()->all()
+            ]]);
+        } else {
+            if (strpos($previous_path, $current_path . '/') !== false) {
+                $parameters = session(Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS);
+                if (is_array($parameters) && $parameters['path'] == $current_path) {
+                    request()->merge($parameters['parameters']);
+                } else {
+                    session([Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS => [
+                        'path' => $current_path,
+                        'parameters' => request()->all()
+                    ]]);
+                }
+            } else {
+                session()->forget(Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS);
+            }
+        }
     }
 }

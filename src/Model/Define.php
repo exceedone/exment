@@ -208,6 +208,7 @@ class Define
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT = "public_form_input";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_INPUT_FILENAMES = "public_form_input_filenames";
     public const SYSTEM_KEY_SESSION_PUBLIC_FORM_SAVED_FILENAMES = "public_form_saved_filenames";
+    public const SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS = "keep_grid_parameters";
 
 
     public const APPEND_QUERY_WORK_STATUS_SUB_QUERY = 'APPEND_QUERY_WORK_STATUS_SUB_QUERY';

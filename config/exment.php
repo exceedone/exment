@@ -1094,4 +1094,14 @@ return [
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | keep grid parameter
+    |--------------------------------------------------------------------------
+    |
+    | If true, keep grid filter, sort, page.
+    |
+    */
+    'keep_grid_parameters' => env('EXMENT_KEEP_GRID_PARAMETERS', false),
 ];
