@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\Login\Ldap;
 
+use Adldap\Connections\ProviderInterface;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\System;
@@ -12,6 +13,7 @@ use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -102,7 +104,7 @@ class LdapService implements LoginServiceInterface
     /**
      * Get login user dn.
      *
-     * @param Provider $provider
+     * @param ProviderInterface $provider
      * @param string $username
      * @param LoginSetting $login_setting
      * @return string
@@ -290,6 +292,7 @@ class LdapService implements LoginServiceInterface
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, exmtrans('login.sso_provider_error'), $custom_login_user->mapping_errors);
             }
 
+            /** @var ExmentCustomValidator $validator */
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
                 return LoginService::getLoginResult(

@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed $relation_type
  * @property mixed $parent_custom_table_id
  * @property mixed $child_custom_table_id
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static int count($columns = '*')
+ * @method static \Illuminate\Database\Query\Builder where($column, $operator = null, $value = null, $boolean = 'and')
  * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface

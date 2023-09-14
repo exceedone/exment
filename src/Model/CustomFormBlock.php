@@ -8,8 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $label
+ * @property mixed $options
  * @property mixed $available
  * @property mixed $custom_form_id
+ * @property mixed $target_table
+ * @property mixed $custom_form_columns
+ * @property mixed $form_block_type
  * @property mixed $form_block_target_table_id
  * @property mixed $form_block_view_name
  */

@@ -6,6 +6,7 @@ use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 
 class LoginUserProvider extends ProviderBase
 {
@@ -117,6 +118,7 @@ class LoginUserProvider extends ProviderBase
         $errors = [];
 
         // execute validation
+        /** @var ExmentCustomValidator $validator */
         $validator = \Validator::make($data, [
             // get validate password.
             // not check history.

@@ -11,12 +11,8 @@ class PublicFormGuard extends \Illuminate\Auth\TokenGuard
     /**
      * Create a new authentication guard.
      *
-     * @param  \Illuminate\Contracts\Auth\UserProvider  $provider
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $inputKey
-     * @param  string  $storageKey
-     * @param  bool  $hash
-     * @return void
+     * @param UserProvider $provider
+     * @param Request $request
      */
     public function __construct(
         UserProvider $provider,

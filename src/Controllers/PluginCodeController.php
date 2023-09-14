@@ -106,8 +106,7 @@ class PluginCodeController extends AdminControllerBase
      * Get file tree data
      *
      * @param Request $request
-     * @param int $id
-     * @return Response
+     * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
      */
     protected function getTreeDataJson(Request $request)
     {

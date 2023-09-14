@@ -57,6 +57,7 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
         $model = getModelName(SystemTableName::ORGANIZATION)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
             $result = $model->filter()->map(function ($row) {
+                /** @var CustomValue $row */
                 return $row->getValue('organization_name');
             })->implode(',');
         } else {

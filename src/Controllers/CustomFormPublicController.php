@@ -637,6 +637,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             $public_form->setPluginImported(array_get($json, 'public_form'));
         });
 
+        /** @phpstan-ignore-next-line fix laravel-admin documentation */
         return $form->setModel($public_form)->redirectAfterStore();
     }
 
@@ -658,10 +659,12 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         // Now, cannot set header logo by getModelByInputs.
         if ($original_public_form) {
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $model->setOption('header_logo', $original_public_form->getOption('header_logo'));
         }
 
         // get public form
+        /** @phpstan-ignore-next-line fix laravel-admin documentation */
         $preview_form = $model->getForm($request);
         if (!$preview_form) {
             throw new PublicFormNotFoundException();
@@ -676,6 +679,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         // set content
         $content = new PublicContent();
+        /** @phpstan-ignore-next-line fix laravel-admin documentation */
         $model->setContentOption($content);
         $content->row($preview_form);
 

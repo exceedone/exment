@@ -9,6 +9,9 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
+/**
+ * @used-by \Exceedone\Exment\Services\ClassBuilder
+ */
 trait UserTrait
 {
     use ClearCacheTrait;

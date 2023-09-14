@@ -137,7 +137,7 @@ class NotifyTest extends FeatureTestBase
 
         $user = \Exment::user();
         $verify_code = random_int(100000, 999999);
-        $valid_period_datetime = Carbon::now()->addMinute(config('exment.login_2factor_valid_period', 10));
+        $valid_period_datetime = Carbon::now()->addMinutes(config('exment.login_2factor_valid_period', 10));
         $mail_template = $this->getMailTemplate(MailKeyName::VERIFY_2FACTOR);
 
         // execute 2factor saving data
@@ -173,12 +173,13 @@ class NotifyTest extends FeatureTestBase
         $this->init(false);
 
         $hh = Carbon::now()->format('G');
-        $target_date = Carbon::today()->addDay(100)->format('Y-m-d');
+        $target_date = Carbon::today()->addDays(100)->format('Y-m-d');
 
         // Login user.
         $user_id = \Exment::user()->base_user_id;
 
         // change notify setting
+        /** @var Notify $notify */
         $notify = Notify::where('notify_trigger', NotifyTrigger::TIME)->first();
         $notify->setTriggerSetting('notify_hour', $hh);
         $notify->setTriggerSetting('notify_day', 100);
@@ -186,7 +187,9 @@ class NotifyTest extends FeatureTestBase
         $notify->save();
 
         // change target data's date value
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::find($notify->target_id);
+        /** @var Model\CustomValue $model */
         $model = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
         $model->update([
@@ -214,8 +217,11 @@ class NotifyTest extends FeatureTestBase
         // Login user.
         $user_id = \Exment::user()->base_user_id;
 
+        /** @var Notify $notify */
         $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
+        /** @var CustomTable $custom_table */
         $custom_table = CustomTable::find($notify->target_id);
+        /** @var Model\CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
 
@@ -254,11 +260,13 @@ class NotifyTest extends FeatureTestBase
         $this->init(false);
         $user_id = \Exment::user()->base_user_id;
 
+        /** @var Model\Workflow $workflow */
         $workflow = Model\Workflow::where('workflow_view_name', 'workflow_common_company')->first();
         $workflow_action = Model\WorkflowAction::where('action_name', 'middle_action')->where('workflow_id', $workflow->id)->first();
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
 
         // create customvalue
+        /** @var mixed $custom_value */
         $custom_value = $custom_table->getValueModel()->setValue([
             'text' => 'test',
         ]);
@@ -267,6 +275,7 @@ class NotifyTest extends FeatureTestBase
         // execute action and create workflow value
         $workflow_value = $this->callProtectedMethod($workflow_action, 'forwardWorkflowValue', $custom_value);
         // reget custom value
+        /** @var mixed $custom_value */
         $custom_value = $custom_table->getValueModel()->find($custom_value->id);
 
         // get notify users
@@ -275,13 +284,13 @@ class NotifyTest extends FeatureTestBase
         Model\WorkflowStatus::getActionsByFrom($status_to, $workflow, true)
             ->each(function ($workflow_action) use (&$users, $custom_value) {
                 $users = $users->merge(
-                    $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NOTIFY),
-                    $users
+                    $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NOTIFY)
                 );
             });
         $this->assertTrue($users->count() > 0, "Next user not contains.");
 
         // call notify
+        /** @var Notify $notify */
         $notify = Notify::where('notify_trigger', NotifyTrigger::WORKFLOW)->where('notify_view_name', 'workflow_common_company')->first();
         $notify->notifyWorkflow($custom_value, $workflow_action, $workflow_value, $status_to);
 

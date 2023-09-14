@@ -25,7 +25,9 @@ use Exceedone\Exment\Enums\SystemTableName;
  * @property mixed $notify_complete_admin
  * @property mixed $custom_form_id
  * @property mixed $custom_form
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @property mixed $active_flg
+ * @property mixed $proxy_user_id
+ * @method static int count($columns = '*')
  * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class PublicForm extends ModelBase
@@ -275,14 +277,13 @@ class PublicForm extends ModelBase
         return $result->unique();
     }
 
-
     /**
      * Get form
      *
      * @param Request $request
-     * @param CustomValue|null $custom_value input custom value
-     * @param boolean $setRecaptcha if true, set Recaptcha. If confirm→submit, set false
-     * @return Form
+     * @param CustomValue|null $custom_value
+     * @param array $options
+     * @return Form|null
      */
     public function getForm(Request $request, ?CustomValue $custom_value = null, array $options = [])
     {

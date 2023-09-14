@@ -13,9 +13,16 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Collection;
 
 /**
- * @phpstan-consistent-constructor
+ * @property mixed $plugin_type
  * @property mixed $plugin_name
  * @property mixed $plugin_view_name
+ * @property mixed $author
+ * @property mixed $description
+ * @property mixed $uuid
+ * @property mixed $version
+ * @property mixed $active_flg
+ * @property mixed $options
+ * @phpstan-consistent-constructor
  */
 class Plugin extends ModelBase
 {

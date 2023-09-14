@@ -567,7 +567,8 @@ trait ItemTrait
     /**
      * Set show field options
      *
-     * @param mixed $field
+     * @param ShowField $field
+     * @param array $options
      * @return void
      */
     public function setShowFieldOptions(ShowField $field, array $options = [])
@@ -845,7 +846,7 @@ trait ItemTrait
     /**
      * Set admin filter options
      *
-     * @param [type] $filter
+     * @param $filter
      * @return void
      */
     protected function setAdminFilterOptions(&$filter)
@@ -880,7 +881,6 @@ trait ItemTrait
      * Set where null query for grid filter. If class is "ExmWhere".
      *
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
-     * @param mixed $input
      * @return void
      */
     public function getAdminFilterWhereNullQuery($query)

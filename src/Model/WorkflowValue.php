@@ -3,15 +3,21 @@
 namespace Exceedone\Exment\Model;
 
 /**
- * @phpstan-consistent-constructor
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  * @property mixed $workflow_id
  * @property mixed $workflow_status_to_id
  * @property mixed $workflow_action_id
+ * @property mixed $workflow_action
  * @property mixed $workflow
  * @property mixed $workflow_value_authorities
+ * @property mixed $workflow_status_from_id
+ * @property mixed $latest_flg
+ * @property mixed $action_executed_flg
  * @property mixed $morph_type
  * @property mixed $morph_id
+ * @property mixed $comment
+ * @property mixed $created_user_id
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @phpstan-consistent-constructor
  */
 class WorkflowValue extends ModelBase
 {

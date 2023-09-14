@@ -257,7 +257,10 @@ class DashboardBoxController extends AdminControllerBase
 
     /**
      * get view columns using view id
-     * @param mixed custon_view id
+     *
+     * @param Request $request
+     * @param $axis_type
+     * @return array
      */
     public function chartAxis(Request $request, $axis_type)
     {

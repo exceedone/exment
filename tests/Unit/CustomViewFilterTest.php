@@ -359,7 +359,7 @@ class CustomViewFilterTest extends UnitTestBase
             }
             $date = \Carbon\Carbon::parse($date);
             $today = \Carbon\Carbon::today();
-            return $today->firstOfMonth()->subMonthNoOverflow(1)->format('Y-m') == $date->format('Y-m');
+            return $today->firstOfMonth()->subMonthNoOverflow()->format('Y-m') == $date->format('Y-m');
         });
     }
 
@@ -425,7 +425,7 @@ class CustomViewFilterTest extends UnitTestBase
             }
             $date = \Carbon\Carbon::parse($date);
             $today = \Carbon\Carbon::today();
-            return $today->subYearNoOverflow(1)->format('Y') == $date->format('Y');
+            return $today->subYearNoOverflow()->format('Y') == $date->format('Y');
         });
     }
 
@@ -447,7 +447,7 @@ class CustomViewFilterTest extends UnitTestBase
             }
             $date = \Carbon\Carbon::parse($date);
             $today = \Carbon\Carbon::today();
-            return $today->addYearNoOverflow(1)->format('Y') == $date->format('Y');
+            return $today->addYearNoOverflow()->format('Y') == $date->format('Y');
         });
     }
 
@@ -1926,6 +1926,7 @@ class CustomViewFilterTest extends UnitTestBase
         foreach ($notMatchedValues as $data) {
             $matchResult = $testCallback($data, $filter_settings);
 
+            /** @var mixed $data */
             $this->assertTrue(!$matchResult, 'Expect matchResult is false, but matched. Target id is ' . $data->id);
         }
     }

@@ -159,12 +159,11 @@ class PluginCrudController extends Controller
         ]);
     }
 
-
     /**
      * Execute login oauth
-     *
-     * @param Request $request
-     * @return void
+     * @param $endpoint
+     * @return Response
+     * @throws SsoLoginErrorException
      */
     public function oauth($endpoint = null)
     {
@@ -188,8 +187,9 @@ class PluginCrudController extends Controller
     /**
      * Execute login oauth callback
      *
-     * @param Request $request
-     * @return void
+     * @param $endpoint
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|Response
+     * @throws SsoLoginErrorException
      */
     public function oauthcallback($endpoint = null)
     {
@@ -220,8 +220,9 @@ class PluginCrudController extends Controller
     /**
      * Execute oauth logout
      *
-     * @param Request $request
-     * @return void
+     * @param $endpoint
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|Response
+     * @throws SsoLoginErrorException
      */
     public function oauthlogout($endpoint = null)
     {
@@ -314,7 +315,9 @@ class PluginCrudController extends Controller
     /**
      * Authorize plugin.
      *
-     * @return true|
+     * @param string|null $endpoint
+     * @param $targetClass
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|true|void
      */
     protected function authorizePlugin(?string $endpoint, $targetClass)
     {

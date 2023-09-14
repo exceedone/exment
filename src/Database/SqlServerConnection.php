@@ -17,7 +17,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get a schema builder instance for the connection.
      *
-     * @return \Illuminate\Database\Schema\Builder
+     * @return SqlServerBuilder
      */
     public function getSchemaBuilder()
     {

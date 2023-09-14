@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Services\Login as LoginServiceRoot;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\LoginProviderType;
@@ -10,6 +11,8 @@ use Exceedone\Exment\Enums\LoginProviderType;
  * @phpstan-consistent-constructor
  * @property mixed $login_view_name
  * @property mixed $login_type
+ * @property mixed $active_flg
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class LoginSetting extends ModelBase
 {

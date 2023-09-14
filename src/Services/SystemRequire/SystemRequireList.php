@@ -85,11 +85,11 @@ class SystemRequireList
         });
     }
 
-
     /**
      * Get require objects.
      *
-     * @return Collection
+     * @param string $systemRequireCalledType
+     * @return SystemRequireList
      */
     public static function make(string $systemRequireCalledType): SystemRequireList
     {

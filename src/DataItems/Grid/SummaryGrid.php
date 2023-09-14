@@ -126,7 +126,7 @@ class SummaryGrid extends GridBase
     /**
      * get query for summary
      *
-     * @return \Encore\Admin\Grid\Model|\Illuminate\Database\Eloquent\Builder query for summary
+     * @return \Illuminate\Database\Eloquent\Builder query for summary
      */
     public function getQuery($query, array $options = [])
     {

@@ -266,6 +266,7 @@ class LoginSettingController extends AdminControllerBase
         });
 
         $form->saved(function (Form $form) {
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             return redirect($this->getEditUrl($form->model()->id));
         });
 
@@ -579,12 +580,10 @@ class LoginSettingController extends AdminControllerBase
         ]);
     }
 
-
-
     /**
      * get 2factor setting box.
      *
-     * @return Content
+     * @return WidgetForm
      */
     protected function get2factorSettingForm(): WidgetForm
     {
@@ -681,7 +680,7 @@ class LoginSettingController extends AdminControllerBase
 
         // set 2factor params
         $verify_code = random_int(100000, 999999);
-        $valid_period_datetime = Carbon::now()->addMinute(60);
+        $valid_period_datetime = Carbon::now()->addMinutes(60);
 
         // send verify
         try {

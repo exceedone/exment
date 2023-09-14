@@ -24,9 +24,14 @@ use Illuminate\Support\Facades\Storage;
  * @property mixed $uuid
  * @property mixed $parent_type
  * @property mixed $parent_id
+ * @property mixed $value
  * @property mixed $local_filename
  * @property mixed $local_dirname
  * @property mixed $custom_column_id
+ * @property mixed $custom_form_column_id
+ * @property mixed $filename
+ * @property mixed $file_type
+ * @property mixed $created_user_id
  * @method static \Illuminate\Database\Query\Builder whereNull($columns, $boolean = 'and', $not = false)
  * @method static \Illuminate\Database\Query\Builder whereNotNull($columns, $boolean = 'and')
  */
@@ -376,15 +381,14 @@ class File extends ModelBase
         return $file;
     }
 
-
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
      * @param string|null $file_type file type
-     * @param  string|\Illuminate\Http\UploadedFile|\Symfony\Component\HttpFoundation\File\UploadedFile $content file content
-     * @param  string  $dirname directory path
-     * @param  string  $name file name. the name is shown by display
-     * @param  bool  $override if file already exists, override
+     * @param $content file content
+     * @param string $dirname directory path
+     * @param string $name file name. the name is shown by display
+     * @param array $options
      * @return File
      */
     public static function storeAs(?string $file_type, $content, string $dirname, string $name, array $options = []): File

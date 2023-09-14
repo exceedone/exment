@@ -85,7 +85,8 @@ class SystemController extends AdminControllerBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @param Request $request
+     * @return WidgetForm
      */
     protected function formBasic(Request $request): WidgetForm
     {
@@ -139,13 +140,11 @@ class SystemController extends AdminControllerBase
         return $content;
     }
 
-
     /**
      * index advanced setting
      *
      * @param Request $request
-     * @param Content $content
-     * @return Content
+     * @return WidgetForm
      */
     protected function formAdvanced(Request $request): WidgetForm
     {

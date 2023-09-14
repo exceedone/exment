@@ -26,8 +26,7 @@ class ModalTileMenuButton extends ModalMenuButton
      * 			   icon
      * 			   href
      * 			   label
-     *
-     * @param array $items
+     * @param $groups
      * @return $this
      */
     public function groups($groups)

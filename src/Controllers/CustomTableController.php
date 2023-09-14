@@ -8,6 +8,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
+use Exceedone\Exment\Model\Workflow;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
@@ -91,6 +92,7 @@ class CustomTableController extends AdminControllerBase
                 ->tooltip(exmtrans('custom_table.expand_setting'));
             $actions->append($linker);
 
+            /** @var CustomTable $custom_table */
             $custom_table = $actions->row;
 
             // add custom column
@@ -105,6 +107,7 @@ class CustomTableController extends AdminControllerBase
             // add data
             if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 $linker = (new Linker())
+                    /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 ->url($actions->row->getGridUrl())
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));
@@ -255,10 +258,12 @@ class CustomTableController extends AdminControllerBase
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $model->createTable();
 
             // redirect custom column page
             if (!$this->exists) {
+                /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
                 $custom_column_url = admin_urls('column', $table_name);
 
@@ -309,7 +314,7 @@ $('.{$class}-delete').unbind('click').click(function() {
         preConfirmValidate: function(input){
             if (input != "$keyword") {
                 return "{$trans['delete_keyword']}";
-            } 
+            }
 
             return true;
         }
@@ -456,6 +461,7 @@ HTML;
 
             $model = $form->model();
             admin_toastr(trans('admin.update_succeeded'));
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             return redirect(admin_urls_query('table', $model->id, 'edit', ['columnmulti' => 1, 'after-save' => 1]));
         });
 
@@ -466,7 +472,7 @@ HTML;
      * get columns select options.include system date
      * @param CustomTable $custom_table
      * @param array $selectOptions
-     * @param array items
+     * @return array|mixed[]
      */
     protected function getColumnsSelectOptions($custom_table, $selectOptions = [])
     {

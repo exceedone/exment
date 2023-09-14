@@ -143,9 +143,8 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
      * Fires 'Saml2LogoutEvent' event if its valid.
      * This means the user logged out of the SSO infrastructure, you 'should' log them out locally too.
      *
-     * @param Saml2Auth $saml2Auth
-     * @param $idpName
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function sls(Request $request)
     {

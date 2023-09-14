@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Custom column multiple settings
  *
+ * @property mixed $custom_table_id
+ * @property mixed $multisetting_type
  * @phpstan-consistent-constructor
  */
 class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporterInterface

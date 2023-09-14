@@ -10,7 +10,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      * Process the results of a get version.
      *
      * @param  array  $results
-     * @return array
+     * @return string
      */
     public function processGetVersion($results)
     {

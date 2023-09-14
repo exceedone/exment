@@ -141,6 +141,7 @@ class CustomOperationController extends AdminControllerTableBase
         $form = new Form(new CustomOperation());
 
         if (!isset($id)) {
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $id = $form->model()->id;
         }
         if (isset($id)) {

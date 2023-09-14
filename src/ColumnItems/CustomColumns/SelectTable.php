@@ -289,8 +289,8 @@ class SelectTable extends CustomItem
     /**
      * Whether showing Search modal button
      *
-     * @param mixed $form_column_options
-     * @return boolean
+     * @param $form_column_options
+     * @return bool
      */
     protected function isShowSearchButton($form_column_options): bool
     {
@@ -473,7 +473,9 @@ class SelectTable extends CustomItem
                 return array_get($d, 'value.' . $this->custom_column->column_name);
             })->flatten()->filter()->toArray();
 
+            /** @var CustomColumn|null $target_custom_column */
             $target_custom_column = CustomColumn::getEloquent($key, $this->target_table);
+            /** @phpstan-ignore-next-line Maybe error index_enabled property */
             $indexName = $target_custom_column ?? $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$key";
             $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
                 ->get()->mapWithKeys(function ($v) use ($key) {

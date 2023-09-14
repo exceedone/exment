@@ -860,8 +860,9 @@ class NotifyService
     /**
      * Get User Mail Address. Only single item.
      *
-     * @param string|array|CustomValue|NotifyTarget $user
-     * @return array
+     * @param $user
+     * @return string|null
+     * @throws \Exception
      */
     public static function getAddress($user): ?string
     {

@@ -18,6 +18,7 @@ use Exceedone\Exment\Model\CustomTable;
 
 /**
  * Customized for Exment
+ * @property mixed $revision_no
  * @property mixed $revisionable_id
  * @property mixed $revisionable_type
  */

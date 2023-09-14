@@ -20,7 +20,7 @@ class ExmentCustomValidator extends AdminValidator
     /**
      * The appended messages.
      *
-     * @var aray
+     * @var array
      */
     protected $appendedMessages = [];
 

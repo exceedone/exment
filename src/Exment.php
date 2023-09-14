@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment;
 
+use Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet\PhpSpreadSheet;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FilterSearchType;
@@ -99,7 +100,7 @@ class Exment
 
             if ($exception instanceof \Illuminate\Foundation\Http\Exceptions\MaintenanceModeException) {
                 $errorController = app(\Exceedone\Exment\Controllers\ErrorController::class);
-                return $errorController->maintenance($request, $exception);
+                return $errorController->maintenance();
             }
 
             if ($exception instanceof \Illuminate\Session\TokenMismatchException) {
@@ -323,7 +324,7 @@ class Exment
     /**
      * check exment's next version
      *
-     * @return array $latest: new version in package, $current: this version in server
+     * @return int $latest: new version in package, $current: this version in server
      */
     public function checkLatestVersion()
     {
@@ -462,6 +463,7 @@ class Exment
      */
     public function getDataFromSheet($sheet, $keyvalue = false, $isGetMerge = false)
     {
+        /** @var PhpSpreadSheet $format */
         $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET, false);
         return $format->getDataFromSheet($sheet, $keyvalue, $isGetMerge);
     }
@@ -472,6 +474,7 @@ class Exment
      */
     public function getCellValue($cell, $sheet, $isGetMerge = false)
     {
+        /** @var PhpSpreadSheet $format */
         $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET, false);
         return $format->getCellValue($cell, $sheet, $isGetMerge);
     }
@@ -543,8 +546,8 @@ class Exment
      * Push collection. if $item is Collection, loop
      *
      * @param Collection $collect
-     * @param Collection|mixed $item
-     * @return void
+     * @param $item
+     * @return Collection
      */
     public function pushCollection(Collection $collect, $item): Collection
     {
@@ -754,11 +757,10 @@ class Exment
         return $minsize * 1024 * 1024;
     }
 
-
     /**
      * Get file size
      *
-     * @param string $val
+     * @param $val
      * @return int
      */
     public function getFileMegaSizeValue($val)
@@ -767,6 +769,7 @@ class Exment
         $val = str_replace('m', '', $val);
 
         if (strpos($val, 'g') !== false) {
+            /** @phpstan-ignore-next-line Maybe error? */
             $val = str_replace('g', '', $val) * 1024;
         }
         return intval($val);
@@ -955,12 +958,11 @@ class Exment
     /**
      * save file request session. for after saved custom value, set custom value's id.
      *
-     * @param UploadField $field
-     * @param string|UploadedFile $file
-     * @param string $file_type
+     * @param ExmentFile $exmentfile
+     * @param string $column_name
      * @param CustomTable $custom_table
-     * @param boolean $replace
-     * @return string
+     * @param bool $replace
+     * @return mixed
      */
     public function setFileRequestSession(ExmentFile $exmentfile, string $column_name, CustomTable $custom_table, bool $replace = true)
     {

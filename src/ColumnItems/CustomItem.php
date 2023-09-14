@@ -595,7 +595,8 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * get original field value
-     * @return mix
+     *
+     * @return mixed
      */
     protected function getOriginalValue()
     {

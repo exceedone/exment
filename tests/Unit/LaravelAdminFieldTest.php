@@ -512,15 +512,13 @@ class LaravelAdminFieldTest extends TestCase
         ]);
     }
 
-
-
-
     /**
      * Execute laravel admin's test.
      *
+     * @param \Closure $fieldOptionCallback
      * @param mixed $value validation value.
-     * @param mixed $testResult expects test result.
-     * @param \Closure $fieldOptionCallback setting field to form.
+     * @param bool $testResult expects test result.
+     * @param array $errors setting field to form.
      * @return void
      */
     protected function _testLaravelField(\Closure $fieldOptionCallback, $value, bool $testResult, array $errors = [])

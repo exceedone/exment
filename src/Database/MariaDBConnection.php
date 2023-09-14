@@ -14,7 +14,7 @@ class MariaDBConnection extends MySqlConnection
     /**
      * Get a schema builder instance for the connection.
      *
-     * @return \Illuminate\Database\Schema\Builder
+     * @return MariaDBBuilder
      */
     public function getSchemaBuilder()
     {
