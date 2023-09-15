@@ -247,12 +247,10 @@ class WorkflowTestDataSeeder extends Seeder
 
                 'statuses' => [
                     [
-                        'id' => null,
                         'status_name' => 'status1',
                         'datalock_flg' => 0,
                     ],
                     [
-                        'id' => null,
                         'status_name' => 'status2',
                         'datalock_flg' => 1,
                         'completed_flg' => 1,
@@ -494,6 +492,7 @@ class WorkflowTestDataSeeder extends Seeder
                     $workflowaction->status_from = $action['status_from'];
                     $actionStatusFromTo['status_from'] = null;
                 } else {
+                    /** @phpstan-ignore-next-line  Because an error occurs in SQLServer's UT when the 'id' is set */
                     $workflowaction->status_from = $workflow['statuses'][$action['status_from']]['id'];
                     $actionStatusFromTo['status_from'] = $workflowaction->status_from;
                 }
@@ -522,6 +521,7 @@ class WorkflowTestDataSeeder extends Seeder
                         $header->status_to = $item['status_to'];
                         $actionStatusFromTo['status_to'] = null;
                     } else {
+                        /** @phpstan-ignore-next-line  Because an error occurs in SQLServer's UT when the 'id' is set */
                         $header->status_to = $workflow['statuses'][$item['status_to']]['id'];
                         $actionStatusFromTo['status_to'] = $header->status_to;
                     }
