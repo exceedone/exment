@@ -24,6 +24,7 @@ class ApiKeyGrant extends AbstractGrant
     ) {
         $this->setRefreshTokenRepository($refreshTokenRepository);
 
+        
         $this->refreshTokenTTL = new \DateInterval('P1M');
     }
 
