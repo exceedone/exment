@@ -622,6 +622,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             throw new \Exception();
         }
 
+        // bugfix to cases where SearchService is not set
+        $this->getSearchService()->setQuery($model);
+
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if ($options['callback'] instanceof \Closure) {
