@@ -119,16 +119,19 @@ class CCustomRelationTest extends ExmentKitTestCase
     /**
      * Drop custom relation.
      */
-    public function testDropOneLineTextColumn()
+    public function testDropOneRelationSuccess()
     {
-        $table_id = CustomTable::where('table_name', 'exmenttest_contract')->first()->id;
+        /** @var CustomTable $custom_table */
+        $custom_table = CustomTable::where('table_name', 'exmenttest_contract')->first();
+        $table_id = $custom_table->id;
+        /** @var CustomRelation $row */
         $row = CustomRelation::where('parent_custom_table_id', $table_id)->first();
 
         $pre_cnt = CustomRelation::count();
 
         if ($row) {
             // Delete custom relation
-            $this->delete('/admin/relation/exmenttest_contract/'. $row->id)
+            $this->delete(admin_url('relation/exmenttest_contract/'. $row->id))
                 ->assertEquals($pre_cnt - 1, CustomRelation::count())
             ;
         }

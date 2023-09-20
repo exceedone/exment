@@ -54,7 +54,7 @@ class DCustomDataTest extends ExmentKitTestCase
             ];
             $this->visit(admin_url('data/user/create'))
                     ->submitForm('admin-submit', $data)
-                    ->seePageIs('/admin/data/user')
+                    ->seePageIs(admin_url('data/user'))
             ;
         } else {
             $this->assertTrue(true);
@@ -78,7 +78,7 @@ class DCustomDataTest extends ExmentKitTestCase
             ];
             $this->visit(admin_url('data/organization/create'))
                     ->submitForm('admin-submit', $data)
-                    ->seePageIs('/admin/data/organization')
+                    ->seePageIs(admin_url('data/organization'))
             ;
             $data = [
                 'value[organization_code]' => 'EX2',
@@ -86,7 +86,7 @@ class DCustomDataTest extends ExmentKitTestCase
             ];
             $this->visit(admin_url('data/organization/create'))
                     ->submitForm('admin-submit', $data)
-                    ->seePageIs('/admin/data/organization')
+                    ->seePageIs(admin_url('data/organization'))
             ;
         } else {
             $this->assertTrue(true);
@@ -124,7 +124,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 ->select(['1'], 'value[user][]')
                 ->select(['1'], 'value[organization][]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/data/exmenttest_data')
+                ->seePageIs(admin_url('data/exmenttest_data'))
                 ->assertEquals($pre_cnt + 1, \DB::table($table_name)->whereNull('deleted_at')->count())
         ;
         // Get new data row
@@ -167,7 +167,7 @@ class DCustomDataTest extends ExmentKitTestCase
         ];
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->submitForm('admin-submit', $data)
-                ->seePageIs('/admin/data/exmenttest_data')
+                ->seePageIs(admin_url('data/exmenttest_data'))
         ;
         // Check custom data
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
@@ -203,7 +203,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 ->select(['2'], 'value[organization][]')
                 ->select(['2'], 'value[selectfromtable][]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/data/exmenttest_data')
+                ->seePageIs(admin_url('data/exmenttest_data'))
         ;
 
         // Check custom data

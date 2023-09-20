@@ -206,7 +206,7 @@ class EBackupDataTest extends ExmentKitTestCase
         ;
 
         // Backup data
-        $this->call('POST', '/admin/backup/save')
+        $this->call('POST', admin_url('backup/save'))
         ;
 
         // Check backup data count (after)
@@ -231,7 +231,7 @@ class EBackupDataTest extends ExmentKitTestCase
         if (count($files) > 0) {
             $file = pathinfo($files[0], PATHINFO_FILENAME);
             // Restore data
-            $this->call('POST', '/admin/backup/restore', ['file' => $file])
+            $this->call('POST', admin_url('backup/restore'), ['file' => $file])
             ;
             $this->seeJson(['result' => true])
             ;
