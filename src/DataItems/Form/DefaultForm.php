@@ -300,6 +300,7 @@ EOT;
             $force_caculate_column_key = $relation ? $relation->getRelationName() : 'default';
             $force_caculate_column[$force_caculate_column_key] = [];
             $calc_formula_array[$calc_formula_key] = CalcService::getCalcFormArray($this->custom_table, $custom_form_block);
+            /** @var CustomFormColumn $form_column */
             foreach ($custom_form_block->custom_form_columns as $form_column) {
                 if ($form_column->form_column_type != FormColumnType::COLUMN) {
                     continue;
