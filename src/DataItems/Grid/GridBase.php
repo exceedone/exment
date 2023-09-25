@@ -108,8 +108,22 @@ abstract class GridBase
             }
         }
         $filter_func = function ($model) use ($filters, $group_view) {
-            $group_view->custom_view_filters = collect($filters);
+            $filter_raws = [];
+            foreach ($filters as $filter) {
+                if (isset($filter->view_group_condition)) {
+                    $filter_raws[] = $filter;
+                } else {
+                    $group_view->custom_view_filters->push($filter);
+                }
+            }
             $group_view->filterModel($model);
+            foreach ($filter_raws as $filter_raw) {
+                $column_item = $filter_raw->column_item;
+                $value_table_column = $column_item->getTableColumn();
+                $column = \DB::getQueryGrammar()->getDateFormatString($filter_raw->view_group_condition, $value_table_column);
+                $query_value = $column_item->convertFilterValue($filter_raw->view_filter_condition_value_text);
+                $model->whereRaw("$column = '$query_value'");
+            }
             return $model;
         };
         return $filter_func;
