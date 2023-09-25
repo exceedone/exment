@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ColumnItems;
+use Exceedone\Exment\Database\Query\ExtendedBuilder;
 use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -14,6 +15,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed $order
  * @property mixed $custom_form_block_id
  * @property mixed $column_no
+ * @property mixed $row_no
+ * @property mixed $width
+ * @property mixed $options
+ * @method static ExtendedBuilder where($column, $operator = null, $value = null, $boolean = 'and')
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
  */
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {

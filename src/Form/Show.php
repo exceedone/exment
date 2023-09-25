@@ -65,7 +65,6 @@ class Show extends AdminShow
      * Push field and set for grid
      *
      * @param Field $field
-     * @param string $label
      * @param array $options
      * @return Field
      */

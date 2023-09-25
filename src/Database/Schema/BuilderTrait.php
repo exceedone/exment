@@ -77,7 +77,7 @@ trait BuilderTrait
     /**
      * Get database version.
      *
-     * @return void
+     * @return string
      */
     public function getVersion()
     {
@@ -89,7 +89,7 @@ trait BuilderTrait
     /**
      * Check mariadb
      *
-     * @return void
+     * @return bool
      */
     public function isMariaDB()
     {
@@ -177,7 +177,7 @@ trait BuilderTrait
      * @param string $tableName
      * @param string $columnName
      * @param bool $unique
-     * @return array
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|array
      */
     protected function getUniqueIndexDefinitions($tableName, $columnName, $unique)
     {

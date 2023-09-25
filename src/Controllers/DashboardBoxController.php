@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
+use Illuminate\Support\Collection;
 
 class DashboardBoxController extends AdminControllerBase
 {
@@ -28,6 +29,11 @@ class DashboardBoxController extends AdminControllerBase
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
     }
 
+    /**
+     * @param Request $request
+     * @param Content $content
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function index(Request $request, Content $content)
     {
         return redirect(admin_url(''));
@@ -36,7 +42,9 @@ class DashboardBoxController extends AdminControllerBase
     /**
      * Delete interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param $suuid
+     * @return \Illuminate\Http\JsonResponse
      */
     public function delete(Request $request, $suuid)
     {
@@ -84,7 +92,8 @@ class DashboardBoxController extends AdminControllerBase
     /**
      * Make a form builder.
      *
-     * @return Form
+     * @param $id
+     * @return Form|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     protected function form($id = null)
     {
@@ -204,13 +213,12 @@ class DashboardBoxController extends AdminControllerBase
         return [$dashboard, $dashboard_box_type, $row_no, $column_no];
     }
 
-
     /**
      * get views using table id
      *
      * @param Request $request
-     * @param string $dashboard_type
-     * @return array
+     * @param $dashboard_type
+     * @return array|Collection
      */
     public function tableViews(Request $request, $dashboard_type)
     {
@@ -257,7 +265,10 @@ class DashboardBoxController extends AdminControllerBase
 
     /**
      * get view columns using view id
-     * @param mixed custon_view id
+     *
+     * @param Request $request
+     * @param $axis_type
+     * @return array
      */
     public function chartAxis(Request $request, $axis_type)
     {

@@ -979,10 +979,12 @@ class CustomColumnValidationTest extends UnitTestBase
             }
         } catch (ValidationException $ex) {
             if ($isSuccess) {
+                /** @phpstan-ignore-next-line  */
                 $this->assertTrue(false, 'This test excepts success, but falls validation. Messages : ' . json_encode($ex->validator->getMessages()));
             }
 
             //TODO: Check error messages
+            /** @phpstan-ignore-next-line  */
             $messages = $ex->validator->getMessages();
             $this->assertJsonExment($errors, $messages);
         }

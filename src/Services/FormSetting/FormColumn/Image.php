@@ -69,12 +69,11 @@ class Image extends OtherBase
         return ExmentFile::getUrl($file);
     }
 
-
-
     /**
      * prepare saving option.
      *
-     * @return array|string
+     * @param array $options
+     * @return array
      */
     public function prepareSavingOptions(array $options): array
     {

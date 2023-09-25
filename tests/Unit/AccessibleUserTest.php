@@ -17,7 +17,7 @@ class AccessibleUserTest extends UnitTestBase
         })->toArray();
 
         $target_users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()
-            ->where('value->user_code', '<>', 'company2-userF')->get()->pluck('id')->toArray();
+            ->where('value->user_code', '<>', 'company2-userF')->pluck('id')->toArray();
 
         $this->_compareArray($users, $target_users);
     }
@@ -47,7 +47,7 @@ class AccessibleUserTest extends UnitTestBase
             ->where(function ($query) {
                 $query->orWhere('value->user_code', 'admin')
                       ->orWhere('value->user_code', 'user1');
-            })->get()->pluck('id')->toArray();
+            })->pluck('id')->toArray();
 
         $this->_compareArray($users, $target_users);
     }
@@ -70,7 +70,7 @@ class AccessibleUserTest extends UnitTestBase
                 $query->orWhere('value->user_code', 'admin')
                       ->orWhere('value->user_code', 'user1')
                       ->orWhere('value->user_code', 'dev1-userD');
-            })->get()->pluck('id')->toArray();
+            })->pluck('id')->toArray();
 
         $this->_compareArray($users, $target_users);
     }
@@ -93,7 +93,7 @@ class AccessibleUserTest extends UnitTestBase
                 $query->orWhere('value->user_code', 'admin')
                       ->orWhere('value->user_code', 'user1')
                       ->orWhere('value->user_code', 'dev1-userC');
-            })->get()->pluck('id')->toArray();
+            })->pluck('id')->toArray();
 
         $this->_compareArray($users, $target_users);
     }

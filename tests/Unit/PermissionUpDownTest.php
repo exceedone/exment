@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
@@ -320,6 +321,7 @@ class PermissionUpDownTest extends UnitTestBase
         $this->init();
 
         $user = CustomTable::getEloquent('user')->getValueModel($loginId);
+        /** @phpstan-ignore-next-line $user is generated class */
         $organizations = $user->getOrganizationIdsForQuery($joinedOrgFilterType);
 
         sort($organizations);
@@ -348,6 +350,7 @@ class PermissionUpDownTest extends UnitTestBase
         $this->init();
 
         $organization = CustomTable::getEloquent('organization')->getValueModel($id);
+        /** @phpstan-ignore-next-line $organization is generated class */
         $organizations = $organization->getOrganizationIdsForQuery($joinedOrgFilterType);
 
         sort($organizations);

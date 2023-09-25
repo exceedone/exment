@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\CustomOperationType;
@@ -13,10 +14,12 @@ use Illuminate\Validation\ValidationException;
 /**
  * @phpstan-consistent-constructor
  * @property mixed $operation_type
+ * @property mixed $operation_name
  * @property mixed $custom_table_id
- * @method static \Illuminate\Database\Query\Builder whereNull($columns, $boolean = 'and', $not = false)
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder whereNull($columns, $boolean = 'and', $not = false)
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomOperation extends ModelBase
 {
@@ -214,6 +217,7 @@ class CustomOperation extends ModelBase
         } catch (\Exception $ex) {
             \DB::rollback();
             if ($ex instanceof ValidationException) {
+                /** @phpstan-ignore-next-line */
                 return array_first(array_flatten($ex->validator->getMessages()));
             }
             throw $ex;

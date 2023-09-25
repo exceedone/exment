@@ -6,6 +6,9 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class WorkflowStatusNe extends WorkflowStatusBase
 {
+    /**
+     * @return int|string
+     */
     public static function getFilterOption()
     {
         return FilterOption::WORKFLOW_NE_STATUS;

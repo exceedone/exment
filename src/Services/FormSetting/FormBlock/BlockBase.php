@@ -49,7 +49,7 @@ abstract class BlockBase
         $this->custom_form_column_items = collect();
     }
 
-    public static function make(CustomFormBlock $custom_form_block, CustomTable $custom_table): BlockBase
+    public static function make(CustomFormBlock $custom_form_block, CustomTable $custom_table): ?BlockBase
     {
         switch (array_get($custom_form_block, 'form_block_type', FormBlockType::DEFAULT)) {
             case FormBlockType::DEFAULT:
@@ -245,7 +245,7 @@ abstract class BlockBase
     /**
      * get Custom Form Boxes using custom_form_column_items. Contains row_no, column_no, width.
      *
-     * @return  array
+     * @return Collection|\Tightenco\Collect\Support\Collection
      */
     public function getCustomFormRows()
     {

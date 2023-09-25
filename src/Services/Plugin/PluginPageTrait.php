@@ -11,7 +11,7 @@ trait PluginPageTrait
     /**
      * get load view if view exists and path
      *
-     * @return void
+     * @return array|null|void
      */
     public function _getLoadView()
     {

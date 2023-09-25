@@ -214,7 +214,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      * @param string $column column name
      * @param bool $groupBy if group by query, return true
      *
-     * @return void
+     * @return string|null
      */
     public function getDateFormatString($groupCondition, $column, $groupBy = false, $wrap = true)
     {
@@ -251,7 +251,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      * @param GroupCondition $groupCondition Y, YM, YMD, ...
      * @param \Carbon\Carbon $carbon
      *
-     * @return string
+     * @return string|null
      */
     public function convertCarbonDateFormat($groupCondition, $carbon)
     {

@@ -7,8 +7,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\RelationType;
 
-/**
- */
 abstract class RelationBase extends BlockBase
 {
     /**
@@ -24,11 +22,12 @@ abstract class RelationBase extends BlockBase
         return $this;
     }
 
-
     /**
-     * Get deafult block for create
+     * Get default block for create
      *
-     * @return array
+     * @param CustomTable $custom_table
+     * @param CustomRelation $custom_relation
+     * @return static
      */
     public static function getDefaultBlock(CustomTable $custom_table, CustomRelation $custom_relation): self
     {
@@ -46,6 +45,7 @@ abstract class RelationBase extends BlockBase
             'hasmany_type' => null
         ];
 
+        /** @phpstan-ignore-next-line */
         return BlockBase::make($block, $custom_table)->setCustomRelation($custom_relation);
     }
 }

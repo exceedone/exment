@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Exceedone\Exment\Model\System;
@@ -122,7 +123,9 @@ class BackupController extends AdminControllerBase
 
     /**
      * submit
+     *
      * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
      */
     public function postSetting(Request $request)
     {
@@ -156,7 +159,8 @@ class BackupController extends AdminControllerBase
     /**
      * Delete interface.
      *
-     * @return Content
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function delete(Request $request)
     {
@@ -191,7 +195,9 @@ class BackupController extends AdminControllerBase
     /**
      * execute backup command.
      *
-     * @return Content
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws BackupRestoreCheckException
      */
     public function save(Request $request)
     {
@@ -246,7 +252,8 @@ class BackupController extends AdminControllerBase
     /**
      * Render import modal form.
      *
-     * @return Content
+     * @param $file_key
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function importModal($file_key = null)
     {
@@ -374,7 +381,9 @@ class BackupController extends AdminControllerBase
     /**
      * restore from backup file.
      *
-     * @return Content
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function restore(Request $request)
     {
@@ -414,13 +423,15 @@ class BackupController extends AdminControllerBase
     /**
      * edit file name
      *
-     * @return Content
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function editname(Request $request)
     {
         $data = $request->all();
 
         // validate "\", "/", "."
+        /** @var ExmentCustomValidator $validator */
         $validator = Validator::make($data, [
             'file' => ['required'],
             'filename' => ['required', 'max:30', 'regex:/^' . Define::RULES_REGEX_BACKUP_FILENAME . '$/'],

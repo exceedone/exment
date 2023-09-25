@@ -36,8 +36,8 @@ class PluginCodeController extends AdminControllerBase
      *
      * @param Request $request
      * @param Content $content
-     * @param int $id
-     * @return Content
+     * @param $id
+     * @return Content|false
      */
     public function edit(Request $request, Content $content, $id)
     {
@@ -88,8 +88,8 @@ class PluginCodeController extends AdminControllerBase
      * Get file tree data
      *
      * @param Request $request
-     * @param int $id
-     * @return Response
+     * @param $id
+     * @return false|\Illuminate\Http\JsonResponse
      */
     public function getTreeData(Request $request, $id)
     {
@@ -106,8 +106,7 @@ class PluginCodeController extends AdminControllerBase
      * Get file tree data
      *
      * @param Request $request
-     * @param int $id
-     * @return Response
+     * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
      */
     protected function getTreeDataJson(Request $request)
     {
@@ -127,8 +126,9 @@ class PluginCodeController extends AdminControllerBase
      * Upload file to target folder
      *
      * @param Request $request
-     * @param int $id
-     * @return Response
+     * @param $id
+     * @return false|\Illuminate\Http\RedirectResponse
+     * @throws FileNotFoundException
      */
     public function fileupload(Request $request, $id)
     {
@@ -170,8 +170,9 @@ class PluginCodeController extends AdminControllerBase
      * Get child form html for selected file
      *
      * @param Request $request
-     * @param int $id
+     * @param $id
      * @return array
+     * @throws \Exception
      */
     public function getFileEditForm(Request $request, $id)
     {
@@ -188,13 +189,13 @@ class PluginCodeController extends AdminControllerBase
         ];
     }
 
-
     /**
      * Get child form html for selected file
      *
      * @param Request $request
-     * @param int $id
+     * @param $id
      * @return array|void
+     * @throws \Exception
      */
     protected function getFileEditFormView(Request $request, $id)
     {
@@ -310,8 +311,9 @@ class PluginCodeController extends AdminControllerBase
      * delete target file from plugin folder
      *
      * @param Request $request
-     * @param int $id
-     * @return Response
+     * @param $id
+     * @return false|Response
+     * @throws FileNotFoundException
      */
     public function delete(Request $request, $id)
     {
@@ -351,8 +353,9 @@ class PluginCodeController extends AdminControllerBase
      * update file in plugin folder
      *
      * @param Request $request
-     * @param int $id
-     * @return Response
+     * @param $id
+     * @return false|Response
+     * @throws FileNotFoundException
      */
     public function store(Request $request, $id)
     {

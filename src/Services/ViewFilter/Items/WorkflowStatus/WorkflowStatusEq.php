@@ -6,12 +6,13 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class WorkflowStatusEq extends WorkflowStatusBase
 {
+    /**
+     * @return int|string
+     */
     public static function getFilterOption()
     {
         return FilterOption::WORKFLOW_EQ_STATUS;
     }
-
-
 
     protected function isExists(): bool
     {

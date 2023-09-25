@@ -125,7 +125,7 @@ class ChangeField extends Field
     /**
      * Show Condition Key
      *
-     * @param string $showConditionKey
+     * @param bool $showConditionKey
      * @return $this
      */
     public function showConditionKey($showConditionKey)

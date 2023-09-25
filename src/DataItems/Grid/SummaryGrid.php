@@ -125,8 +125,6 @@ class SummaryGrid extends GridBase
 
     /**
      * get query for summary
-     *
-     * @return \Encore\Admin\Grid\Model|\Illuminate\Database\Eloquent\Builder query for summary
      */
     public function getQuery($query, array $options = [])
     {
@@ -180,11 +178,10 @@ class SummaryGrid extends GridBase
         return $query;
     }
 
-
     /**
      * Set grid column
      *
-     * @param Grid $grid
+     * @param Grid|null $grid
      * @param CustomViewColumn|CustomViewSummary $column
      * @return $this
      */

@@ -46,7 +46,7 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
      * execute login using each service.
      *
      * @param array $credentials
-     * @return ?Authenticatable
+     * @return Authenticatable|null|array
      */
     public static function RetrieveByCredential(array $credentials)
     {

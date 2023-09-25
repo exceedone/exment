@@ -75,11 +75,10 @@ trait ModalTrait
         }
         return $this;
     }
+
     /**
-     * @param string|array $attr
-     * @param string       $value
-     *
-     * @return $this
+     * @param $attributes
+     * @return string
      */
     protected function convert_attribute($attributes)
     {

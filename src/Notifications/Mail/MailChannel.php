@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Notifications\Mail;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Jobs\MailSendJob;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\ZipService;
 use Illuminate\Notifications\Notification;
@@ -20,6 +21,7 @@ class MailChannel
      */
     public function send($notifiable, Notification $notification)
     {
+        /** @var MailSendJob $notification */
         $mailMessage = $notification->toMail($notifiable);
         $this->sendMail($mailMessage);
 

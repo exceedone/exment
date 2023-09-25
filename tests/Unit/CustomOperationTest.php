@@ -107,6 +107,7 @@ class CustomOperationTest extends UnitTestBase
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_column = CustomColumn::getEloquent('integer', $custom_table);
+        /** @var mixed $custom_value */
         $custom_value = $custom_table->getValueModel()
             ->where($custom_column->getQueryKey(), '>', 500)->first();
 
@@ -142,6 +143,7 @@ class CustomOperationTest extends UnitTestBase
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_column = CustomColumn::getEloquent('integer', $custom_table);
+        /** @var mixed $custom_value */
         $custom_value = $custom_table->getValueModel()
             ->where($custom_column->getQueryKey(), '<=', 500)->first();
 
@@ -199,6 +201,7 @@ class CustomOperationTest extends UnitTestBase
         $operation = $this->_prepareCustomOperation($settings);
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        /** @var mixed $custom_value */
         $custom_value = $custom_table->getValueModel()
             ->where('value->organization', '<>', TestDefine::TESTDATA_ORGANIZATION_DEV)->first();
         $custom_value->setValue("text", 'test operation data update');
@@ -302,6 +305,7 @@ class CustomOperationTest extends UnitTestBase
 
         $custom_table = CustomTable::getEloquent($custom_table_name);
 
+        /** @var CustomOperation $custom_operation */
         $custom_operation = CustomOperation::create([
             'custom_table_id' => $custom_table->id,
             'operation_type' => $operation_type,

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
@@ -14,6 +15,8 @@ use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
  * @property mixed $custom_view_id
  * @property mixed $view_filter_condition_value_text
  * @property mixed $view_filter_condition
+ * @property mixed $view_group_condition
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomViewFilter extends ModelBase
 {

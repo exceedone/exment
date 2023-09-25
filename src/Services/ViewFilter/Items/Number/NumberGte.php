@@ -6,6 +6,9 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class NumberGte extends NumberCompareBase
 {
+    /**
+     * @return int|string
+     */
     public static function getFilterOption()
     {
         return FilterOption::NUMBER_GTE;

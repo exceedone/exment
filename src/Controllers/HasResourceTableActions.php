@@ -35,9 +35,9 @@ trait HasResourceTableActions
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @param $tableKey
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($tableKey, $id)
     {

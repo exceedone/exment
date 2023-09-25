@@ -9,8 +9,7 @@ use Exceedone\Exment\Model\CustomValue;
 class Plugin extends PluginDashboardBase
 {
     /**
-     *
-     * @return \Encore\Admin\Layout\Content|\Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|string|null
      */
     public function body()
     {
@@ -26,7 +25,9 @@ class Plugin extends PluginDashboardBase
     /**
      * 送信
      *
-     * @return void
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     public function post()
     {
@@ -53,7 +54,8 @@ class Plugin extends PluginDashboardBase
     /**
      * 現在のデータを取得
      *
-     * @return CustomValue|null
+     * @param $id
+     * @return \Exceedone\Exment\Database\Eloquent\ExtendedBuilder|CustomValue|\Illuminate\Database\Eloquent\Model|object|null
      */
     protected function getData($id = null)
     {

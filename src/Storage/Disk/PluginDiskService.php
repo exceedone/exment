@@ -81,11 +81,10 @@ class PluginDiskService extends DiskServiceBase
         return true;
     }
 
-
     /**
      * copy file from disk to tmp disk
      *
-     * @return void
+     * @return true
      */
     protected function sync()
     {

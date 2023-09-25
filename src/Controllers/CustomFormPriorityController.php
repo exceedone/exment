@@ -25,6 +25,11 @@ class CustomFormPriorityController extends AdminControllerTableBase
         $this->setPageInfo($title, $title, exmtrans("custom_form_priority.description"), 'fa-keyboard-o');
     }
 
+    /**
+     * @param Request $request
+     * @param Content $content
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function index(Request $request, Content $content)
     {
         return redirect(admin_urls('form', $this->custom_table->table_name));

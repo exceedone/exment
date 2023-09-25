@@ -4,6 +4,15 @@ namespace Exceedone\Exment\Form\Widgets;
 
 use Encore\Admin\Widgets\Form as WidgetForm;
 
+/**
+ * @method mixed hasManyTable($tableName, $columnName, $closure)
+ * @method mixed description($label)
+ * @method mixed descriptionHtml($description)
+ * @method mixed switchbool($optionName, $label)
+ * @method mixed modalAttribute($attribute, $modal)
+ * @method mixed modalHeader($label)
+ * @method mixed progressTracker()
+ */
 class ModalForm extends WidgetForm
 {
     /**

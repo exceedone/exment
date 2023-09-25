@@ -6,6 +6,12 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 
+/**
+ * @uses \Exceedone\Exment\Model\Traits\MailTemplateTrait
+ * @uses \Exceedone\Exment\Model\Traits\UserTrait
+ * @uses \Exceedone\Exment\Model\Traits\DocumentTrait
+ * @uses \Exceedone\Exment\Model\Traits\OrganizationTrait
+ */
 class ClassBuilder
 {
     private $isTrait;
