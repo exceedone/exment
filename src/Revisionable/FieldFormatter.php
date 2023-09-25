@@ -108,8 +108,8 @@ class FieldFormatter
      *
      * @param string $value
      * @param string $format
-     *
-     * @return string formatted datetime
+     * @return string|null
+     * @throws \Exception
      */
     public static function datetime($value, $format = 'Y-m-d H:i:s')
     {

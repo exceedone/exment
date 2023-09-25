@@ -26,6 +26,7 @@ use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Arr;
@@ -260,8 +261,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * Get Columns where select_target_table's id is this table.
-     *
-     * @return void
      */
     public function getSelectedItems()
     {
@@ -2798,7 +2797,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $column = CustomColumn::getEloquent($column, $this);
         }
 
-        return $this->getValueQuery()->where($column->getQueryKey(), $value)->first();
+        /** @var CustomValue|null $result */
+        $result = $this->getValueQuery()->where($column->getQueryKey(), $value)->first();
+        return $result;
     }
 
 
@@ -3213,8 +3214,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * User can view customview menu button
-     *
-     * @return void
      */
     public function enableViewMenuButton()
     {

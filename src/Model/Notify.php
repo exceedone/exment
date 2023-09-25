@@ -159,7 +159,7 @@ class Notify extends ModelBase
     /**
      * Get schedule date's column item.
      *
-     * @return void
+     * @return mixed|null
      */
     public function getScheduleDateColumnItemAttribute()
     {
@@ -622,7 +622,8 @@ class Notify extends ModelBase
      *
      * @param CustomValue $custom_value target custom value
      * @param array $action_setting
-     * @return array
+     * @param CustomTable|null $custom_table
+     * @return array|Collection|\Tightenco\Collect\Support\Collection
      */
     public function getNotifyTargetUsers($custom_value, array $action_setting, ?CustomTable $custom_table = null)
     {
@@ -643,13 +644,15 @@ class Notify extends ModelBase
         return $values;
     }
 
-
     /**
      * get notify target users for workflow
      *
-     * @param CustomValue $custom_value target custom value
+     * @param CustomValue $custom_value
      * @param array $action_setting
-     * @return array
+     * @param WorkflowAction $workflow_action
+     * @param WorkflowValue $workflow_value
+     * @param $statusTo
+     * @return array|Collection|\Tightenco\Collect\Support\Collection
      */
     public function getNotifyTargetUsersWorkflow(CustomValue $custom_value, array $action_setting, WorkflowAction $workflow_action, WorkflowValue $workflow_value, $statusTo)
     {

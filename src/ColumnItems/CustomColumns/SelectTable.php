@@ -37,6 +37,9 @@ class SelectTable extends CustomItem
         $this->target_view = CustomView::getEloquent(array_get($custom_column, 'options.select_target_view'));
     }
 
+    /**
+     * @return array|mixed|string|string[]|void|null
+     */
     public function saving()
     {
         if (is_nullorempty($this->value)) {
@@ -165,11 +168,11 @@ class SelectTable extends CustomItem
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
-     * @return string
+     * @return string|null
      */
     protected function getGridFilterOption(): ?string
     {
-        return FilterOption::SELECT_EXISTS;
+        return (string)FilterOption::SELECT_EXISTS;
     }
 
     protected function setAdminOptions(&$field)
@@ -269,7 +272,7 @@ class SelectTable extends CustomItem
     /**
      * Get relation filter object
      *
-     * @return Linkage|null
+     * @return Linkage|null|void
      */
     protected function getLinkage()
     {
@@ -316,7 +319,7 @@ class SelectTable extends CustomItem
     /**
      * get relation filter callback
      *
-     * @return \Closure|null
+     * @return \Closure|null|void
      */
     protected function getRelationFilterCallback($linkage)
     {
@@ -393,9 +396,9 @@ class SelectTable extends CustomItem
     /**
      * replace value for import
      *
-     * @param mixed $value
+     * @param $value
      * @param array $setting
-     * @return void
+     * @return array
      */
     public function getImportValue($value, $setting = [])
     {
@@ -457,7 +460,7 @@ class SelectTable extends CustomItem
      *
      * @param array $datalist
      * @param string $key
-     * @return void
+     * @return void|array
      */
     public function getKeyAndIdList($datalist, $key)
     {
@@ -617,11 +620,11 @@ class SelectTable extends CustomItem
      * Get Search queries for free text search
      *
      * @param string $mark
-     * @param mixed $value
+     * @param $value
      * @param int $takeCount
      * @param string $q
      * @param array $options
-     * @return void
+     * @return array
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {

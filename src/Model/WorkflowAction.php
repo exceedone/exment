@@ -103,7 +103,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get work conditions. Contains status_to, enabled_flg, workflow_conditions, etc
      *
-     * @return void
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
      */
     public function getWorkConditionsAttribute()
     {
@@ -140,7 +140,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get work condition select(for common action). Only return first item's status_to
      *
-     * @return void
+     * @return array
      */
     public function getWorkConditionSelectAttribute()
     {
@@ -303,7 +303,7 @@ class WorkflowAction extends ModelBase
      *
      * @param CustomValue $custom_value
      * @param array $data
-     * @return void
+     * @return WorkflowValue|null
      */
     public function executeAction($custom_value, $data = [])
     {

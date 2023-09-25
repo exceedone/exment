@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Encore\Admin\Show\Field as ShowField;
+use Illuminate\Contracts\Database\Query\Builder;
 
 /**
  *
@@ -596,7 +597,7 @@ trait ItemTrait
      *
      * @param  array  $form_column_options  Custom form column options
      *
-     * @return  self
+     * @return  self|void
      */
     public function setFormColumnOptions($form_column_options)
     {
@@ -616,7 +617,7 @@ trait ItemTrait
      *
      * @param  array  $other_form_columns Other form columns
      *
-     * @return  self
+     * @return  self|void
      */
     public function setOtherFormColumns($other_form_columns)
     {
@@ -736,11 +737,11 @@ trait ItemTrait
     /**
      * Set Search orWhere for free text search
      *
-     * @param Builder $mark
+     * @param Builder $query
      * @param string $mark
      * @param string $value
      * @param string|null $q
-     * @return void
+     * @return $this
      */
     public function setSearchOrWhere(&$query, $mark, $value, $q)
     {
@@ -856,11 +857,11 @@ trait ItemTrait
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
-     * @return string
+     * @return string|null
      */
     protected function getGridFilterOption(): ?string
     {
-        return FilterOption::EQ;
+        return (string)FilterOption::EQ;
     }
 
     /**

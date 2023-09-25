@@ -248,7 +248,7 @@ trait CustomViewColumnTrait
      * get custom view column or summary record.
      *
      * @param string $column_keys "view_kind_type" _ "view_column_id or view_summary_id"
-     * @return CustomViewColumn|CustomViewSummary
+     * @return mixed|null
      */
     public static function getSummaryViewColumn($column_keys)
     {

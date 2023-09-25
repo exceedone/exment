@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
+use Illuminate\Support\Collection;
 
 /**
  * Api about target table
@@ -67,7 +68,7 @@ class ApiTableController extends AdminControllerTableBase
      *
      * @param Request $request
      * @param $tableKey
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return Collection<int, CustomView>|\Symfony\Component\HttpFoundation\Response
      */
     public function views(Request $request, $tableKey)
     {

@@ -46,7 +46,8 @@ class Column extends ColumnBase
     /**
      * Get object for suggest
      *
-     * @return self
+     * @param CustomColumn $custom_column
+     * @return ColumnBase
      */
     public static function makeBySuggest(CustomColumn $custom_column): ColumnBase
     {

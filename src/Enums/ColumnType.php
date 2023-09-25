@@ -218,7 +218,7 @@ class ColumnType extends EnumBase
 
     /**
      * get text is date, or datetime
-     * @return ColumnType
+     * @return string|null
      */
     public static function getDateType($text)
     {

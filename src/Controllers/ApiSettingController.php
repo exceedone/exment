@@ -73,7 +73,8 @@ class ApiSettingController extends AdminControllerBase
     /**
      * Make a form builder.
      *
-     * @return Form
+     * @param $id
+     * @return Form|false
      */
     protected function form($id = null)
     {
@@ -146,9 +147,9 @@ class ApiSettingController extends AdminControllerBase
     }
 
     /**
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @param $id
+     * @return Response
+     * @throws \Exception
      */
     public function update($id)
     {
@@ -158,8 +159,11 @@ class ApiSettingController extends AdminControllerBase
     /**
      * create or update data
      *
-     * @param string $id
-     * @return Response
+     * @param $id
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|true
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws \Throwable
      */
     protected function saveData($id = null)
     {

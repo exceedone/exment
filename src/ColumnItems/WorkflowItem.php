@@ -77,7 +77,7 @@ class WorkflowItem extends SystemItem
      * Get workflow item as status name string
      *
      * @param bool $html is call as html, set true
-     * @return string
+     * @return string|null
      */
     protected function getWorkflowValue($val, $html)
     {

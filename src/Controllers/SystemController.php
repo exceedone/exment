@@ -315,11 +315,10 @@ class SystemController extends AdminControllerBase
         return $form;
     }
 
-
     /**
      * get exment version infoBox.
      *
-     * @return Content
+     * @return WidgetForm
      */
     protected function getVersionBox()
     {
@@ -428,11 +427,10 @@ class SystemController extends AdminControllerBase
     //         ->confirm_error(exmtrans('custom_table.help.delete_confirm_error'));
     // }
 
-
     /**
      * get system require box.
      *
-     * @return Content
+     * @return bool|\Illuminate\Auth\Access\Response|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|mixed
      */
     protected function getSystemRequireBox()
     {
@@ -443,10 +441,12 @@ class SystemController extends AdminControllerBase
         return $view;
     }
 
-
     /**
      * Send data
+     *
      * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|true
+     * @throws \Throwable
      */
     public function post(Request $request)
     {
@@ -485,7 +485,8 @@ class SystemController extends AdminControllerBase
     /**
      * send test mail
      *
-     * @return void
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function sendTestMail(Request $request)
     {
@@ -527,11 +528,11 @@ class SystemController extends AdminControllerBase
         }
     }
 
-
     /**
      * call update
      *
-     * @return void
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function callUpdate(Request $request)
     {

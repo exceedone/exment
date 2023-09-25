@@ -492,6 +492,7 @@ class WorkflowTestDataSeeder extends Seeder
                     $workflowaction->status_from = $action['status_from'];
                     $actionStatusFromTo['status_from'] = null;
                 } else {
+                    /** @phpstan-ignore-next-line  Because an error occurs in SQLServer's UT when the 'id' is set */
                     $workflowaction->status_from = $workflow['statuses'][$action['status_from']]['id'];
                     $actionStatusFromTo['status_from'] = $workflowaction->status_from;
                 }
@@ -520,6 +521,7 @@ class WorkflowTestDataSeeder extends Seeder
                         $header->status_to = $item['status_to'];
                         $actionStatusFromTo['status_to'] = null;
                     } else {
+                        /** @phpstan-ignore-next-line  Because an error occurs in SQLServer's UT when the 'id' is set */
                         $header->status_to = $workflow['statuses'][$item['status_to']]['id'];
                         $actionStatusFromTo['status_to'] = $header->status_to;
                     }
@@ -689,7 +691,8 @@ class WorkflowTestDataSeeder extends Seeder
      * Create workflow notify
      *
      * @param Workflow $workflow
-     * @return void
+     * @return false|void
+     * @throws \Exceedone\Exment\Exceptions\NoMailTemplateException
      */
     protected function createNotify(Workflow $workflow)
     {

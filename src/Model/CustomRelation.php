@@ -184,7 +184,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      * Get relation name using parent and child table.
      * @param CustomTable|string|null $parent
      * @param CustomTable|string|null $child
-     * @return string
+     * @return string|null
      */
     public static function getRelationNamebyTables($parent, $child)
     {

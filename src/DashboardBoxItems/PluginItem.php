@@ -65,7 +65,7 @@ class PluginItem implements ItemInterface
     /**
      * get dashboard attributes for display html
      *
-     * @return void
+     * @return array
      */
     public function attributes()
     {

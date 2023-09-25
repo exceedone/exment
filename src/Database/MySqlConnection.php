@@ -7,6 +7,7 @@ use Exceedone\Exment\Database\Schema\Grammars\MySqlGrammar as SchemaGrammar;
 use Exceedone\Exment\Database\Schema\MySqlBuilder;
 use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Illuminate\Database\Grammar;
 use Illuminate\Database\MySqlConnection as BaseConnection;
 
 class MySqlConnection extends BaseConnection implements ConnectionInterface
@@ -32,7 +33,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get the default schema grammar instance.
      *
-     * @return SchemaGrammar
+     * @return Grammar|SchemaGrammar
      */
     protected function getDefaultSchemaGrammar()
     {
@@ -42,7 +43,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get the default query grammar instance.
      *
-     * @return QueryGrammar
+     * @return Grammar|QueryGrammar
      */
     protected function getDefaultQueryGrammar()
     {

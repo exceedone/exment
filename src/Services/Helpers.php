@@ -151,8 +151,9 @@ if (!function_exists('parseIntN')) {
      * parseInt
      * if cannot parse, return null.
      * TODO:common lib
+     *
      * @param mixed $str
-     * @return double|integer|null
+     * @return float|int|string|null
      */
     function parseIntN($str)
     {
@@ -775,7 +776,9 @@ if (!function_exists('array_value_exists')) {
 if (!function_exists('array_dot_reverse')) {
     /**
      * convert dotted_array to array
-     * @return array
+     *
+     * @param $array
+     * @return array|null
      */
     function array_dot_reverse($array)
     {
@@ -822,8 +825,8 @@ if (!function_exists('jsonToArray')) {
     /**
      * json to array
      *
-     * @param mixed $value
-     * @return array
+     * @param $value
+     * @return array|bool|float|int|mixed|object|string|null
      */
     function jsonToArray($value)
     {
@@ -942,8 +945,8 @@ if (!function_exists('arrayToString')) {
     /**
      * array to string(comma) string
      *
-     * @param mixed $value
-     * @return string
+     * @param $value
+     * @return string|null
      */
     function arrayToString($value)
     {
@@ -1192,7 +1195,7 @@ if (!function_exists('pascalize')) {
 if (!function_exists('get_password_rule')) {
     /**
      * get_password_rule(for validation)
-     * @return string
+     * @return array|string
      */
     function get_password_rule($required = true, ?LoginUser $login_user = null)
     {
@@ -1203,7 +1206,10 @@ if (!function_exists('get_password_rule')) {
 if (!function_exists('get_omitted_string')) {
     /**
      * if over string length. remove text, add "..."
-     * @return string
+     *
+     * @param $text
+     * @param $length
+     * @return mixed|string|null
      */
     function get_omitted_string($text, $length = null)
     {
@@ -1287,8 +1293,10 @@ if (!function_exists('getModelName')) {
     /**
      * Get custom_value's model fullpath.
      * this function contains flow creating eloquent class dynamically.
-     * @param string|CustomTable|CustomValue $obj
-     * @return string
+     *
+     * @param $obj
+     * @param $get_name_only
+     * @return string|null
      */
     function getModelName($obj, $get_name_only = false)
     {
@@ -1359,7 +1367,7 @@ if (!function_exists('hasTable')) {
      * whether database has table
      * *CANNOT USE if create table dynamic (ex. install)
      * @param string $table_name *only table name
-     * @return string
+     * @return bool
      */
     function hasTable($table_name)
     {
@@ -1375,9 +1383,10 @@ if (!function_exists('hasTable')) {
 if (!function_exists('hasColumn')) {
     /**
      * whether database has column using table
+     *
      * @param string $table_name *only table name string. not object
      * @param string $column_name *only column name string. not object
-     * @return string
+     * @return bool
      */
     function hasColumn($table_name, $column_name)
     {
@@ -1394,9 +1403,11 @@ if (!function_exists('hasColumn')) {
 if (!function_exists('getDBTableName')) {
     /**
      * Get database table name.
+     *
      * @param string|CustomTable|array $obj
      * @param bool $isThrow if true and not has database, throwing
      * @return string
+     * @throws Exception
      */
     function getDBTableName($obj, $isThrow = true)
     {
@@ -1411,8 +1422,9 @@ if (!function_exists('getDBTableName')) {
 if (!function_exists('getEndpointName')) {
     /**
      * get endpoint name.
+     *
      * @param mixed $obj
-     * @return string
+     * @return string|null
      */
     function getEndpointName($obj)
     {
@@ -1686,8 +1698,11 @@ if (!function_exists('getCellAlphabet')) {
 if (!function_exists('getUserName')) {
     /**
      * Get database user name.
+     *
      * @param string $id
-     * @return string user name
+     * @param $link
+     * @param $addAvatar
+     * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|mixed|string|null
      */
     function getUserName($id, $link = false, $addAvatar = false)
     {

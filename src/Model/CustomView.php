@@ -51,7 +51,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Custom Value search service.
      *
-     * @var SearchService
+     * @var SearchService|null
      */
     private $_search_service;
 
@@ -315,8 +315,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * Get data paginate. default or summary
-     *
-     * @return void
      */
     public function getDataPaginate($options = [])
     {
@@ -663,7 +661,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * Create default columns
      *
      * @param boolean $appendIndexColumn if true, append custom column has index
-     * @return void
      */
     public function createDefaultViewColumns($appendIndexColumn = false)
     {
@@ -711,7 +708,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * copy from default view columns
      *
      * @param CustomView|null $fromView copied target view
-     * @return void
      */
     public function copyFromDefaultViewColumns(?CustomView $fromView)
     {

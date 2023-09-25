@@ -7,8 +7,8 @@ class PublicFormNotFoundException extends \Exception
     /**
      * PublicFormNotFoundException
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
+     * @param $request
+     * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|mixed|string|null
      */
     public function render($request)
     {

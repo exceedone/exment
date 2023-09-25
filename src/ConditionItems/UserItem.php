@@ -51,7 +51,7 @@ class UserItem extends ConditionDetailBase implements ConditionItemInterface
      * @param string $key
      * @param string $value
      * @param bool $showFilter
-     * @return string
+     * @return string|null
      */
     public function getText($key, $value, $showFilter = true)
     {

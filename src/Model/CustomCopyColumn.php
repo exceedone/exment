@@ -162,8 +162,6 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
 
     /**
      * getConditionTypeFromItemAttribute
-     *
-     * @return void
      */
     public function getFromConditionItemAttribute()
     {
@@ -172,8 +170,6 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
 
     /**
      * getConditionTypeFromItemAttribute
-     *
-     * @return void
      */
     public function getToConditionItemAttribute()
     {

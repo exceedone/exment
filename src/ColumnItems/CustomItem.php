@@ -610,8 +610,6 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * get value before saving
-     *
-     * @return void
      */
     public function saving()
     {
@@ -619,8 +617,6 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * get value after saving
-     *
-     * @return void
      */
     public function saved()
     {

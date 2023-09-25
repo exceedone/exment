@@ -14,6 +14,10 @@ class ReCaptcha extends Hidden
      */
     protected $view = 'admin::form.hidden';
 
+    /**
+     * @var string
+     * @phpstan-ignore-next-line
+     */
     protected $rules = 'required';
 
     /**

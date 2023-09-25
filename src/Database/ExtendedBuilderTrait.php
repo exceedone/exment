@@ -46,7 +46,7 @@ trait ExtendedBuilderTrait
      * Update a removing json key.
      *
      * @param  string  $key
-     * @return int
+     * @return bool
      */
     public function updateRemovingJsonKey(string $key)
     {
@@ -63,7 +63,6 @@ trait ExtendedBuilderTrait
      * @param  mixed   $operator
      * @param  mixed   $value
      * @param  string  $boolean
-     * @return $this
      */
     public function whereOrIn($column, $operator = null, $value = null, $boolean = 'and')
     {
@@ -86,7 +85,6 @@ trait ExtendedBuilderTrait
      * @param  mixed   $operator
      * @param  mixed   $value
      * @param  string  $boolean
-     * @return $this
      */
     public function orWhereOrIn($column, $operator = null, $value = null, $boolean = 'and')
     {
@@ -104,13 +102,13 @@ trait ExtendedBuilderTrait
 
     /**
      * Multiple wherein querys.
-     * *NOW Only support columns is 2 column. *
+     * NOW Only support columns is 2 column. *
      *
-     * @param  array                                          $columns
-     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
-     * @param  bool  $zeroQueryIfEmpty if true and values is empty, set "1 = 0(always false)" query.
-     *
-     * @return \Illuminate\Database\Query\Builder
+     * @param array $columns
+     * @param \Illuminate\Contracts\Support\Arrayable|array $values
+     * @param bool $zeroQueryIfEmpty if true and values is empty, set "1 = 0(always false)" query.
+     * @return Eloquent\ExtendedBuilder|Query\ExtendedBuilder|Query\JoinClause
+     * @throws \Exception
      */
     public function whereInMultiple(array $columns, $values, bool $zeroQueryIfEmpty = false)
     {
@@ -541,7 +539,8 @@ trait ExtendedBuilderTrait
 
     /**
      * get query instance
-     * @return \Exceedone\Exment\Database\Query\ExtendedBuilder
+     *
+     * @return $this|\Illuminate\Database\Query\Builder|mixed
      */
     protected function _getQueryExment()
     {

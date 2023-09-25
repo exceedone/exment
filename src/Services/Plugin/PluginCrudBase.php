@@ -336,7 +336,7 @@ abstract class PluginCrudBase extends PluginPublicBase
     /**
      * Get route uri for page
      *
-     * @return string
+     * @return string|null
      */
     public function getRouteUri($endpoint = null)
     {

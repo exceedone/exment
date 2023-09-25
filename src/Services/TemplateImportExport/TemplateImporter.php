@@ -814,9 +814,9 @@ class TemplateImporter
     /**
      * Get merged json
      *
-     * @param string $jsonString
+     * @param string|null $jsonString
      * @param array $options
-     * @return array
+     * @return array|void
      */
     public function getMergeJson(string $jsonString = null, array $options = [])
     {

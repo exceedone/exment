@@ -88,12 +88,13 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         return $this->executeLogin($request, $credentials);
     }
 
-
     /**
      * Execute login(for Default, LDAP)
      *
      * @param Request $request
-     * @return \Illuminate\Http\Response
+     * @param array $credentials
+     * @param LoginSetting|null $login_setting
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     protected function executeLogin(Request $request, array $credentials, ?LoginSetting $login_setting = null)
     {
@@ -202,7 +203,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     /**
      * User logout.
      *
-     * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse|\Illuminate\Support\Facades\Redirect
      */
     public function getLogout(Request $request)
     {

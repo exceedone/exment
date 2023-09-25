@@ -123,7 +123,9 @@ class NotifyService
     /**
      * Get Send Form. if only one user, Replace format.
      *
-     * @return ModalForm
+     * @param $notifyTargets
+     * @param $isFlow
+     * @return ModalForm|false
      */
     protected function getSendForm($notifyTargets, $isFlow = false)
     {
@@ -204,9 +206,12 @@ class NotifyService
     }
 
     /**
-     * send notfy mail
+     * send notify mail
      *
-     * @return void
+     * @param $custom_table
+     * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     public function sendNotifyMail($custom_table)
     {

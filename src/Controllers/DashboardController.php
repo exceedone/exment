@@ -37,11 +37,15 @@ class DashboardController extends AdminControllerBase
         $this->dashboard = Dashboard::getDefault();
     }
 
+    /**
+     * @param Request $request
+     * @param Content $content
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function index(Request $request, Content $content)
     {
         return redirect(admin_url(''));
     }
-
 
     /**
      * Edit interface.
@@ -49,7 +53,7 @@ class DashboardController extends AdminControllerBase
      * @param Request $request
      * @param Content $content
      * @param string|int|null $id
-     * @return Content
+     * @return Content|false
      */
     public function edit(Request $request, Content $content, $id)
     {
@@ -68,7 +72,9 @@ class DashboardController extends AdminControllerBase
     /**
      * Create interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return Content|false
      */
     public function create(Request $request, Content $content)
     {

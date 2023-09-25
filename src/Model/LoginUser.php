@@ -116,9 +116,8 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
     /**
      * Get organizations user joined.
-     * * ONLY JOIN. not contains upper and downer.
-     *
-     * @return void
+     * ONLY JOIN. not contains upper and downer.
+     * @return mixed
      */
     public function belong_organizations()
     {
@@ -234,7 +233,8 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
      * Clear setting value
      *
      * @param string $key
-     * @return UserSetting
+     * @return UserSetting|null
+     * @throws \Throwable
      */
     public function forgetSettingValue($key)
     {

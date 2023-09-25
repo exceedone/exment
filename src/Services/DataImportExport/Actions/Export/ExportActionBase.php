@@ -11,7 +11,7 @@ abstract class ExportActionBase
     /**
      * data's count
      *
-     * @var integer
+     * @var int|string
      */
     protected $count = 0;
 
