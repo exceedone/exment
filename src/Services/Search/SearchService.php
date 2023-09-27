@@ -380,7 +380,7 @@ class SearchService
         $this->query->selectRaw("$wrap_column AS $sqlAsName");
 
         // if has sort order, set order by
-        $this->setSummaryOrderBy($column, $wrap_column);
+        $this->setSummaryOrderBy($column, $sqlAsName);
 
         return $this;
     }
@@ -420,10 +420,10 @@ class SearchService
 
             // set to default query group by.
             // Need MIN, MAX.
-            $result_column = $column_item->getGroupByJoinResultWrapTableColumn();
-            if (!is_nullorempty($result_column)) {
-                $this->query->groupByRaw($result_column);
-            }
+            // $result_column = $column_item->getGroupByJoinResultWrapTableColumn();
+            // if (!is_nullorempty($result_column)) {
+            //     $this->query->groupByRaw($result_column);
+            // }
         }
         // default, set to default query.
         else {
@@ -431,7 +431,7 @@ class SearchService
         }
 
         // if has sort order, set order by
-        $this->setSummaryOrderBy($column, $wrap_column);
+        $this->setSummaryOrderBy($column, $sqlAsName);
 
         return $this;
     }

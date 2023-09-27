@@ -723,9 +723,9 @@ class CustomViewSummaryTest extends UnitTestBase
     }
 
     /**
-     * FilterOption = Group(user), Summary(integer/sum/child_table)
+     * FilterOption = Group(multiples_of_3), Summary/Order(integer/sum/child_table)
      */
-    public function testFuncSummaryChild()
+    public function testFuncSummaryChild1()
     {
         $this->init();
 
@@ -738,6 +738,10 @@ class CustomViewSummaryTest extends UnitTestBase
                 'reference_table' => 'child_table',
                 'is_child' => true,
                 'column_name' => 'integer',
+                'options' => [
+                    'sort_type' => '1',
+                    'sort_order' => '1'
+                ],
                 'summary_condition' => SummaryCondition::SUM
             ]],
         ];
@@ -746,6 +750,7 @@ class CustomViewSummaryTest extends UnitTestBase
 
         $defaults = $this->getCustomViewDataAll($options);
 
+        $prev_val = null;
         foreach ($summaries as $summary) {
             $result = collect($defaults)->filter(function ($data) use ($summary) {
                 return $data['multiples_of_3'] == $summary['key'];
@@ -753,6 +758,53 @@ class CustomViewSummaryTest extends UnitTestBase
                 return collect($data['child_table.integer'])->sum();
             });
             $this->assertTrue($result == $summary['value']);
+            if ($prev_val) {
+                $this->assertTrue($prev_val <= $summary['value']);
+            }
+            $prev_val = $summary['value'];
+        }
+    }
+
+    /**
+     * FilterOption = Group(date), Summary/Order(integer/min/child_table)
+     */
+    public function testFuncSummaryChild2()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => 'parent_table',
+            'column_settings' => [[
+                'column_name' => 'date',
+            ]],
+            'summary_settings' => [[
+                'reference_table' => 'child_table',
+                'is_child' => true,
+                'column_name' => 'decimal',
+                'options' => [
+                    'sort_type' => '-1',
+                    'sort_order' => '1'
+                ],
+                'summary_condition' => SummaryCondition::MIN
+            ]],
+        ];
+
+        $summaries = $this->getCustomViewSummary($options);
+
+        $defaults = $this->getCustomViewDataAll($options);
+
+        $prev_val = null;
+        foreach ($summaries as $summary) {
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
+                return $data['date'] == $summary['key'];
+            })->min(function ($data) {
+                return collect($data['child_table.decimal'])->min();
+            });
+            $this->assertTrue($result == $summary['value']);
+            if ($prev_val) {
+                $this->assertTrue($prev_val >= $summary['value']);
+            }
+            $prev_val = $summary['value'];
         }
     }
 

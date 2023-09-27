@@ -457,12 +457,10 @@ trait ItemTrait
         // get normal summary condition.
         $summary_condition = $this->getSummaryCondition();
 
-        $new_summary_condition = null;
-        switch ($summary_condition) {
-            case SummaryCondition::SUM:
-            case SummaryCondition::COUNT:
-                $new_summary_condition = SummaryCondition::getSummaryConditionName(SummaryCondition::SUM);
+        if ($summary_condition == SummaryCondition::COUNT) {
+            $summary_condition = SummaryCondition::SUM;
         }
+        $new_summary_condition = SummaryCondition::getSummaryConditionName($summary_condition);
 
         // get wraped, joined table, and sub query's as name.
         $wrapCastColumn = \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
