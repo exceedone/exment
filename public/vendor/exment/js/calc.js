@@ -45,15 +45,9 @@ var Exment;
                 // loop for calc target.
                 for (let j = 0; j < $tos.length; j++) {
                     let $to = $tos.eq(j);
-                    for (var key in columns) {
-                        if (columns.hasOwnProperty(key)) {
-                            for (var key_column in columns[key]) {
-                                if (columns[key].hasOwnProperty(key_column)) {
-                                    if (key_column == 'column_name' && columns[key][key_column] == $to[0].id) {
-                                        force_caculate = columns[key]['force_caculate'];
-                                    }
-                                }
-                            }
+                    for (let column of columns[calc_formula.target_block]) {
+                        if(column == $to[0].id) {
+                            force_caculate = true;
                         }
                     }
                     for (let i = 0; i < calc_formula.formulas.length; i++) {

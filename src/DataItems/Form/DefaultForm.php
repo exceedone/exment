@@ -72,7 +72,8 @@ class DefaultForm extends FormBase
         $calc_formula_array = [];
         $changedata_array = [];
         $relatedlinkage_array = [];
-        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array);
+        $force_caculate_column = [];
+        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array, $force_caculate_column);
 
         // loop for custom form blocks
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
@@ -166,17 +167,10 @@ class DefaultForm extends FormBase
         }
 
         // add calc_formula_array and changedata_array info
+        
         if (count($calc_formula_array) > 0) {
             $json = json_encode($calc_formula_array);
-            $columns = CustomColumn::where('custom_table_id', $this->custom_table->id)->get()
-                ->filter(function ($column) {
-                    return $column->options ? array_key_exists("calc_formula", $column->options) : false;
-                })->map(function ($item) {
-                    return [
-                        'column_name' => $item->column_name,
-                        'force_caculate' => $item->options['force_caculate']
-                    ];
-                });
+            $columns = json_encode($force_caculate_column);
             $script = <<<EOT
             var json = $json;
             var columns = $columns;
@@ -298,12 +292,14 @@ EOT;
     /**
      * set custom form columns
      */
-    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array)
+    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array, &$force_caculate_column)
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             // set calc rule for javascript
             $relation = $custom_form_block->getRelationInfo($this->custom_table)[0];
             $calc_formula_key = $relation ? $relation->getRelationName() : '';
+            $force_caculate_column_key = $relation ? $relation->getRelationName() : 'default';
+            $force_caculate_column[$force_caculate_column_key] = [];
             $calc_formula_array[$calc_formula_key] = CalcService::getCalcFormArray($this->custom_table, $custom_form_block);
             /** @var CustomFormColumn $form_column */
             foreach ($custom_form_block->custom_form_columns as $form_column) {
@@ -315,6 +311,9 @@ EOT;
                 }
                 /** @var CustomColumn $column */
                 $column = $form_column->custom_column;
+                if(array_get($column->options, 'force_caculate')) {
+                    $force_caculate_column[$force_caculate_column_key][]  = $column->column_name;
+                }
                 $form_column_options = $form_column->options;
                 $options = $column->options;
 
