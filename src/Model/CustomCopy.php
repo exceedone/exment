@@ -2,15 +2,18 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
- * @method static \Illuminate\Database\Query\Builder whereIn($column, $values, $boolean = 'and', $not = false)
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @property mixed $from_custom_table_id
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder whereIn($column, $values, $boolean = 'and', $not = false)
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -100,6 +103,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
 
             $child_copy_id = $this->getOption('child_copy');
             if (isset($child_copy_id)) {
+                /** @var CustomCopy $child_copy */
                 $child_copy = static::find($child_copy_id);
 
                 // get from-children values

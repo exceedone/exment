@@ -143,7 +143,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * Get Condition Label
      *
-     * @return void
+     * @return string|null
      */
     public function getConditionLabel(Condition $condition)
     {

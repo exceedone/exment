@@ -45,7 +45,7 @@ class ValueModal extends Field
     protected $modalContentname;
 
     /**
-     * @var \Closure
+     * @var \Closure|string
      */
     protected $hiddenFormat;
 
@@ -179,12 +179,12 @@ class ValueModal extends Field
                 if(!hasValue(valText)){
                     return;
                 }
-                
+
                 // set value and text
                 let target = getValueModalTarget();
                 target.find('.value-valuemodal').val(valText.value);
                 target.find('.text-valuemodal').html(valText.text);
-                
+
                 if(!hasValue(valText.text)){
                     let nullText = target.find('.nulltext-valuemodal').val();
                     target.find('.text-valuemodal').text(nullText);
@@ -195,7 +195,7 @@ class ValueModal extends Field
                 if(forms.length > 0 &&!forms[0].reportValidity()){
                     return;
                 }
-    
+
                 $('.modal').modal('hide');
             });
 

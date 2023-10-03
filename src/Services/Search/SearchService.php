@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemColumn;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Custom Value's Search model.
@@ -141,12 +142,11 @@ class SearchService
         return $this;
     }
 
-
     /**
      * Get query's value.
      *
      * @param  array|string  $columns
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function get($columns = ['*'])
     {
@@ -222,7 +222,7 @@ class SearchService
      * @param  mixed  $operator
      * @param  mixed  $value
      * @param  string  $boolean
-     * @return $this
+     * @return $this|Builder
      */
     protected function whereCustomColumn(CustomColumn $column, $operator = null, $value = null, $boolean = 'and')
     {
@@ -274,7 +274,7 @@ class SearchService
 
         if (!$relationTable) {
             $this->query->whereNotMatch();
-        } elseif ($relationTable->searchType == SearchType::MANY_TO_MANY) {
+        } elseif ((int)$relationTable->searchType === SearchType::MANY_TO_MANY) {
             throw new \Exception('Many to many relation not support order by.');
         }
         // set relation query using relation type class.
@@ -540,11 +540,13 @@ class SearchService
         return $this;
     }
 
-
     /**
      * Join relation table for filter or sort
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter|Notify $column
+     * @param $column
+     * @param array $options
+     * @return RelationTable|null
+     * @throws \Exception
      */
     public function setRelationJoin($column, array $options = []): ?RelationTable
     {
@@ -568,7 +570,7 @@ class SearchService
 
             if (!$relationTable) {
                 $this->query->whereNotMatch();
-            } elseif ($asOrderBy && $relationTable->searchType == SearchType::MANY_TO_MANY) {
+            } elseif ($asOrderBy && (int)$relationTable->searchType === SearchType::MANY_TO_MANY) {
                 throw new \Exception('Many to many relation not support order by.');
             }
             // set relation query using relation type class.
@@ -579,6 +581,7 @@ class SearchService
                 $column_item = $this->getColumnItem($column);
                 if (!isset($column_item)) {
                     $this->query->whereNotMatch();
+                    // @phpstan-ignore-next-line Maybe function type hinting miss
                     return $this;
                 }
                 $column_item->setUniqueTableName($relationTable->tableUniqueName);

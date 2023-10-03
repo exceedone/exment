@@ -49,7 +49,7 @@ class MailAttachment
      * Make instance
      *
      * @param File|array $attachment
-     * @return MailAttachment
+     * @return MailAttachment|null
      */
     public static function make($attachment)
     {

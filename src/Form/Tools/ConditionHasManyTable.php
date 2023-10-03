@@ -94,7 +94,7 @@ class ConditionHasManyTable
     /**
      * This condition's type.
      *
-     * @var FilterKind
+     * @var string
      */
     protected $filterKind = FilterKind::VIEW;
 

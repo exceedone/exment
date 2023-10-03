@@ -50,7 +50,9 @@ class CustomFormController extends AdminControllerTableBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return Content|void
      */
     public function index(Request $request, Content $content)
     {
@@ -201,15 +203,14 @@ class CustomFormController extends AdminControllerTableBase
         }
     }
 
-
     /**
      * Edit
      *
      * @param Request $request
      * @param Content $content
-     * @param string $tableKey
-     * @param string|int|null $id
-     * @return void|Response
+     * @param $tableKey
+     * @param $id
+     * @return Content|void
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -225,12 +226,11 @@ class CustomFormController extends AdminControllerTableBase
         return $content;
     }
 
-
     /**
      * Showing preview
      *
      * @param Request $request
-     * @return void
+     * @return Content
      */
     public function preview(Request $request)
     {
@@ -254,13 +254,11 @@ class CustomFormController extends AdminControllerTableBase
         return $this->getPreviewContent($request, $custom_form);
     }
 
-
-
     /**
      * Preview error. (If called as GET request)
      *
      * @param Request $request
-     * @return void
+     * @return Content
      */
     public function previewError(Request $request)
     {
@@ -269,13 +267,13 @@ class CustomFormController extends AdminControllerTableBase
         return $content;
     }
 
-
     /**
      * Showing preview by id
      *
      * @param Request $request
+     * @param string $tableKey
      * @param string $suuid
-     * @return void
+     * @return Content
      */
     public function previewBySuuid(Request $request, string $tableKey, string $suuid)
     {
@@ -284,6 +282,11 @@ class CustomFormController extends AdminControllerTableBase
     }
 
 
+    /**
+     * @param Request $request
+     * @param CustomForm $custom_form
+     * @return Content
+     */
     protected function getPreviewContent(Request $request, CustomForm $custom_form)
     {
         $form_item = $custom_form->form_item;
@@ -299,12 +302,12 @@ class CustomFormController extends AdminControllerTableBase
         return $content;
     }
 
-
-
     /**
      * Create interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return Content|void
      */
     public function create(Request $request, Content $content)
     {
@@ -323,9 +326,11 @@ class CustomFormController extends AdminControllerTableBase
     /**
      * Update the specified resource in storage.
      *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param $tableKey
+     * @param $id
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|null
+     * @throws \Exception
      */
     public function update(Request $request, $tableKey, $id)
     {
@@ -348,7 +353,9 @@ class CustomFormController extends AdminControllerTableBase
     /**
      * Store a newly created resource in storage.
      *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|null
+     * @throws \Exception
      */
     public function store(Request $request)
     {
@@ -401,8 +408,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->disableExport();
         $grid->disableRowSelector();
 
-        if ($custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
-        } else {
+        if (!$custom_table->hasPermission(Permission::EDIT_CUSTOM_FORM)) {
             $grid->disableCreateButton();
         }
 
@@ -445,10 +451,14 @@ class CustomFormController extends AdminControllerTableBase
     }
 
     /**
-     *
      * Make a form
      *
-     * @return Form|void
+     * @param $content
+     * @param $id
+     * @param $copy_id
+     * @return void
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function createForm($content, $id = null, $copy_id = null)
     {
@@ -485,11 +495,11 @@ class CustomFormController extends AdminControllerTableBase
         ]));
     }
 
-
     /**
      * Get header box ex. view name, label, default flg....
      *
      * @param CustomForm|null $custom_form
+     * @param string $formroot
      * @return Box
      */
     protected function getHeaderBox(?CustomForm $custom_form, string $formroot)
@@ -843,12 +853,11 @@ class CustomFormController extends AdminControllerTableBase
         });
     }
 
-
     /**
      * Get setting modal
      *
      * @param Request $request
-     * @return void
+     * @return Response
      */
     public function settingModal(Request $request)
     {
@@ -880,7 +889,6 @@ class CustomFormController extends AdminControllerTableBase
             'showReset' => true,
         ]);
     }
-
 
     /**
      * Save attachment and get column name

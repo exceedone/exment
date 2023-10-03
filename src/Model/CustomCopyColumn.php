@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
@@ -22,7 +23,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed $from_column_target_id
  * @property mixed $from_column_table_id
  * @property mixed $custom_view_id
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @property mixed $copy_column_type
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -159,8 +162,6 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
 
     /**
      * getConditionTypeFromItemAttribute
-     *
-     * @return void
      */
     public function getFromConditionItemAttribute()
     {
@@ -169,8 +170,6 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
 
     /**
      * getConditionTypeFromItemAttribute
-     *
-     * @return void
      */
     public function getToConditionItemAttribute()
     {

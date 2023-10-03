@@ -29,7 +29,7 @@ class PluginApiBase
     /**
      * Get route uri for page
      *
-     * @return string
+     * @return string|null
      */
     public function getRouteUri($endpoint = null)
     {
@@ -43,7 +43,7 @@ class PluginApiBase
     /**
      * override method.
      *
-     * @return void
+     * @return null
      */
     public function _getLoadView()
     {

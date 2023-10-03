@@ -12,6 +12,9 @@ use Exceedone\Exment\Model\System;
 use Encore\Admin\Traits\ModelTree;
 use Encore\Admin\Traits\AdminBuilder;
 
+/**
+ * @uses \Exceedone\Exment\Services\ClassBuilder
+ */
 trait OrganizationTrait
 {
     use AdminBuilder, ModelTree {

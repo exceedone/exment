@@ -26,7 +26,10 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
     /**
      * metadata
      *
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @param Request $request
+     * @param $provider_name
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response
+     * @throws \Exception
      */
     public function metadata(Request $request, $provider_name)
     {
@@ -82,7 +85,9 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
      * Process an incoming saml2 assertion request.
      * Fires 'Saml2LoginEvent' event if a valid user is found.
      *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param $provider_name
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function acs(Request $request, $provider_name)
     {
@@ -143,9 +148,8 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
      * Fires 'Saml2LogoutEvent' event if its valid.
      * This means the user logged out of the SSO infrastructure, you 'should' log them out locally too.
      *
-     * @param Saml2Auth $saml2Auth
-     * @param $idpName
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function sls(Request $request)
     {

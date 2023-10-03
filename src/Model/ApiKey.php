@@ -3,10 +3,12 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Passport\Client;
 use Laravel\Passport\Passport;
 
 /**
  * For API auth "api_key"
+ * @property Client $client
  */
 class ApiKey extends Model
 {

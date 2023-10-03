@@ -123,6 +123,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             'ignore_attachment' => true,
         ]));
 
+        /** @var Model\CustomValue $custom_value */
         $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exment::user()->base_user->id)->first();
         $target_id = $custom_value->id;
         $this->post(admin_url("data/$target_table_name/$target_id/operationClick"), [
@@ -130,6 +131,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ]);
         $this->assertPostResponse($this->response, admin_url("data/$target_table_name/$target_id/operationClick"));
 
+        /** @var Model\CustomValue $custom_value */
         $custom_value = $target_table->getValueModel()->find($target_id);
         $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
         $this->assertEquals($custom_value->getValue('date'), '2021-01-01');
@@ -268,6 +270,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             'suuid' => array_get($operation, 'suuid'),
             'id' => implode(',', $err_ids)
         ]);
+        /** @phpstan-ignore-next-line  */
         $this->assertFalse($this->response->getData()->result);
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -277,6 +280,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             'suuid' => array_get($operation, 'suuid'),
             'id' => implode(',', $ids)
         ]);
+        /** @phpstan-ignore-next-line  */
         $this->assertFalse($this->response->getData()->result);
     }
 
@@ -541,7 +545,7 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         // get last year's date
         $today = Carbon::today();
-        $lastYearDate = Carbon::createFromDate($today->year, 1, 1)->addDay(-1)->format('Y-m-d');
+        $lastYearDate = Carbon::createFromDate($today->year, 1, 1)->addDays(-1)->format('Y-m-d');
         $this->visit(admin_url("data/$target_table_name/create"))
                 ->type('operation multiple type', 'value[text]')
                 ->type($lastYearDate, 'value[date]')
@@ -561,7 +565,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get updated data row
-        $thisYearDate = Carbon::createFromDate($today->year, 1, 31)->addDay(-1)->format('Y-m-d');
+        $thisYearDate = Carbon::createFromDate($today->year, 1, 31)->addDays(-1)->format('Y-m-d');
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type update');
         $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);

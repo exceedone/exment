@@ -184,7 +184,7 @@ class PublicContent implements Renderable
      *
      * @param mixed $content
      *
-     * @return Content
+     * @return $this
      */
     public function body($content)
     {
@@ -219,7 +219,7 @@ class PublicContent implements Renderable
      * @param string $view
      * @param array  $data
      *
-     * @return Content
+     * @return $this
      */
     public function view($view, $data)
     {

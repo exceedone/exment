@@ -405,11 +405,10 @@ class SystemItem implements ItemInterface
         return FilterType::DEFAULT;
     }
 
-
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
-     * @return string
+     * @return string|null
      */
     protected function getGridFilterOption(): ?string
     {
@@ -417,15 +416,15 @@ class SystemItem implements ItemInterface
             case SystemColumn::ID:
             case SystemColumn::SUUID:
             case SystemColumn::PARENT_ID:
-                return FilterOption::EQ;
+                return (string)FilterOption::EQ;
             case SystemColumn::CREATED_AT:
             case SystemColumn::UPDATED_AT:
                 // Use custom query. So return null.
                 return null;
             case SystemColumn::WORKFLOW_STATUS:
-                return FilterOption::WORKFLOW_EQ_STATUS;
+                return (string)FilterOption::WORKFLOW_EQ_STATUS;
             case SystemColumn::WORKFLOW_WORK_USERS:
-                return FilterOption::WORKFLOW_EQ_WORK_USER;
+                return (string)FilterOption::WORKFLOW_EQ_WORK_USER;
         }
 
         return null;
@@ -462,11 +461,10 @@ class SystemItem implements ItemInterface
         $this->getAdminFilterWhereQueryTrait($query, $input);
     }
 
-
     /**
      * Set admin filter options
      *
-     * @param [type] $filter
+     * @param $filter
      * @return void
      */
     protected function setAdminFilterOptions(&$filter)

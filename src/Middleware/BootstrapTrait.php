@@ -32,12 +32,13 @@ trait BootstrapTrait
         return in_array($extension, ['js', 'css', 'png', 'jpg', 'jpeg', 'gif']);
     }
 
-
     /**
      * append Style and sript to page
      *
-     * @param mixed $pluginBase Exceedone\Exment\Services\Plugin\PluginBase
+     * @param $pl
+     * @param bool $asPublicForm
      * @return void
+     * @throws \Exception
      */
     protected static function appendStyleScript($pl, bool $asPublicForm = false)
     {

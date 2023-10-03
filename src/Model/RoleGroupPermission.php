@@ -6,8 +6,10 @@ use Exceedone\Exment\Enums\RoleType;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $role_group_id
  * @property mixed $role_group_target_id
  * @property mixed $role_group_permission_type
+ * @property mixed $permissions
  */
 class RoleGroupPermission extends ModelBase
 {

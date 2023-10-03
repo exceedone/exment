@@ -288,6 +288,7 @@ class DefaultGrid extends GridBase
                 });
                 $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
                     for ($i = $separate; $i < count($filterItems); $i++) {
+                        /** @var int $i */
                         $filterItems[$i]->setAdminFilter($filter);
                     }
                 });
@@ -298,8 +299,6 @@ class DefaultGrid extends GridBase
 
     /**
      * Get filter showing columns
-     *
-     * @return \Illuminate\Support\Collection
      */
     protected function getFilterColumns($filter): \Illuminate\Support\Collection
     {
@@ -501,6 +500,7 @@ class DefaultGrid extends GridBase
             $relationTables = $custom_table->getRelationTables();
 
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
+                /** @var mixed $actions */
                 $custom_table->setGridAuthoritable($actions->grid->getOriginalCollection());
                 $enableEdit = true;
                 $enableDelete = true;

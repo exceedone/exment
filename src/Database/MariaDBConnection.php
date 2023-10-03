@@ -6,6 +6,7 @@ use Exceedone\Exment\Database\Query\Grammars\MariaDBGrammar as QueryGrammar;
 use Exceedone\Exment\Database\Schema\Grammars\MariaDBGrammar as SchemaGrammar;
 use Exceedone\Exment\Database\Schema\MariaDBBuilder;
 use Exceedone\Exment\Database\Query\Processors\MariaDBProcessor;
+use Illuminate\Database\Grammar;
 
 class MariaDBConnection extends MySqlConnection
 {
@@ -14,7 +15,7 @@ class MariaDBConnection extends MySqlConnection
     /**
      * Get a schema builder instance for the connection.
      *
-     * @return \Illuminate\Database\Schema\Builder
+     * @return MariaDBBuilder
      */
     public function getSchemaBuilder()
     {
@@ -28,7 +29,7 @@ class MariaDBConnection extends MySqlConnection
     /**
      * Get the default schema grammar instance.
      *
-     * @return SchemaGrammar
+     * @return Grammar|SchemaGrammar
      */
     protected function getDefaultSchemaGrammar()
     {
@@ -38,7 +39,7 @@ class MariaDBConnection extends MySqlConnection
     /**
      * Get the default query grammar instance.
      *
-     * @return QueryGrammar
+     * @return Grammar|QueryGrammar
      */
     protected function getDefaultQueryGrammar()
     {

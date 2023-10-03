@@ -185,8 +185,11 @@ class DefaultTableProvider extends ProviderBase
     /**
      * Get body value
      *
-     * @param mixed $value
-     * @return string|null
+     * @param $values
+     * @param $column
+     * @param $view_column_type
+     * @param $record
+     * @return int|mixed|string|null
      */
     protected function getBodyValue($values, $column, $view_column_type, $record)
     {

@@ -9,11 +9,10 @@ class CheckForAnyScope
     /**
      * Handle the incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  mixed  ...$scopes
-     * @return \Illuminate\Http\Response
-     * @throws \Illuminate\Auth\AuthenticationException|\Laravel\Passport\Exceptions\MissingScopeException
+     * @param \Illuminate\Http\Request $request
+     * @param \Closure $next
+     * @param mixed ...$scopes
+     * @return mixed|\Symfony\Component\HttpFoundation\Response
      */
     public function handle($request, $next, ...$scopes)
     {

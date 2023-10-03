@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
@@ -29,6 +30,7 @@ class LoginUserColumnItem extends ColumnItem
         // get workflow
         $workflow = Workflow::getWorkflowByTable($custom_table);
         if (!$workflow) {
+            /** @var ExtendedBuilder $query */
             $query->whereNotMatch();
             return;
         }
@@ -157,14 +159,13 @@ class LoginUserColumnItem extends ColumnItem
         return false;
     }
 
-
     /**
      * Get Action target user and orgs
      *
      * @param CustomValue $custom_value
-     * @param Workflow $workflow
-     * @param mixed $custom_column_id
-     * @param boolean $asNextAction This action calls as next action. Actually, this is showing dialog.
+     * @param WorkflowAction $workflow_action
+     * @param $custom_column_id
+     * @param bool $asNextAction This action calls as next action. Actually, this is showing dialog.
      * @return array
      */
     public static function getTargetUserAndOrg(CustomValue $custom_value, WorkflowAction $workflow_action, $custom_column_id, bool $asNextAction = false): array

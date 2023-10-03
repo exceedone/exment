@@ -28,9 +28,16 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
  * @phpstan-consistent-constructor
  * @property mixed $custom_view
  * @property mixed $suuid
+ * @property mixed $target_id
+ * @property mixed $mail_template_id
  * @property mixed $notify_trigger
+ * @property mixed $notify_view_name
  * @property mixed $custom_table
  * @property mixed $action_settings
+ * @property mixed $notify_name
+ * @property mixed $notify_action
+ * @property mixed $custom_table_id
+ * @property mixed $workflow_id
  * @method static \Illuminate\Database\Query\Builder whereIn($column, $values, $boolean = 'and', $not = false)
  * @method static \Illuminate\Database\Query\Builder whereNotIn($column, $values, $boolean = 'and')
  */
@@ -152,7 +159,7 @@ class Notify extends ModelBase
     /**
      * Get schedule date's column item.
      *
-     * @return void
+     * @return mixed|null
      */
     public function getScheduleDateColumnItemAttribute()
     {
@@ -590,7 +597,7 @@ class Notify extends ModelBase
         $notify_day = intval(array_get($this->trigger_settings, 'notify_day'));
 
         // calc target date
-        $target_date = Carbon::today()->addDay($before_after_number * $notify_day * -1);
+        $target_date = Carbon::today()->addDays($before_after_number * $notify_day * -1);
         $target_date_str = $target_date->format('Y-m-d');
         $table = $this->custom_table;
         $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
@@ -615,7 +622,8 @@ class Notify extends ModelBase
      *
      * @param CustomValue $custom_value target custom value
      * @param array $action_setting
-     * @return array
+     * @param CustomTable|null $custom_table
+     * @return array|Collection|\Tightenco\Collect\Support\Collection
      */
     public function getNotifyTargetUsers($custom_value, array $action_setting, ?CustomTable $custom_table = null)
     {
@@ -636,13 +644,15 @@ class Notify extends ModelBase
         return $values;
     }
 
-
     /**
      * get notify target users for workflow
      *
-     * @param CustomValue $custom_value target custom value
+     * @param CustomValue $custom_value
      * @param array $action_setting
-     * @return array
+     * @param WorkflowAction $workflow_action
+     * @param WorkflowValue $workflow_value
+     * @param $statusTo
+     * @return array|Collection|\Tightenco\Collect\Support\Collection
      */
     public function getNotifyTargetUsersWorkflow(CustomValue $custom_value, array $action_setting, WorkflowAction $workflow_action, WorkflowValue $workflow_value, $statusTo)
     {

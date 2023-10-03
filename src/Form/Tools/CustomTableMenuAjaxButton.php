@@ -55,6 +55,9 @@ class CustomTableMenuAjaxButton extends ModalTileAjaxMenuButton
 EOT;
     }
 
+    /**
+     * @return string|null
+     */
     public function ajaxHtml()
     {
         $items = $this->getItems();

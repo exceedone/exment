@@ -13,7 +13,9 @@ trait PluginPublicTrait
     /**
      * routing plugin
      *
-     * @param PluginPageBase $pluginScriptStyle
+     * @param Plugin $plugin
+     * @param string $prefix
+     * @param string $middleware
      * @return void
      */
     protected function pluginScriptStyleRoute(Plugin $plugin, string $prefix, string $middleware)

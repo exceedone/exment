@@ -281,7 +281,7 @@ abstract class ViewFilterBase
     /**
      * Get Filter Option.
      *
-     * @return string
+     * @return string|int
      */
     abstract public static function getFilterOption();
 }

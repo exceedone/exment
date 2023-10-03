@@ -119,5 +119,20 @@
     .has-many-table .form-group{
         margin-bottom: 0;
     }
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+    .scrollable-table {
+        border-collapse: collapse;
+        width: 100%;
+        white-space: nowrap;
+    }
+    input {
+        min-width: 90px;
+    }
+    .select2 {
+        min-width: 100px;
+    }
     </style>
 </div>

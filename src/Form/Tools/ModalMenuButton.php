@@ -38,6 +38,9 @@ class ModalMenuButton implements Renderable
         $this->uuid = make_uuid();
     }
 
+    /**
+     * @return string|null
+     */
     public function render()
     {
         if (!is_nullorempty($this->menulist)) {

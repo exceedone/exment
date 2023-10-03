@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Tests\TestDefine;
 
@@ -200,6 +201,7 @@ class SomeTest extends UnitTestBase
         $this->assertTrue($result->count() > 0, "search query is 0");
         // check value match
         foreach ($result as $row) {
+            /** @var CustomValue $row */
             $this->assertMatch($row->getValue($custom_column), $search_value);
         }
 
@@ -213,6 +215,7 @@ class SomeTest extends UnitTestBase
 
         // check value match
         foreach ($notResult as $row) {
+            /** @var CustomValue $row */
             $this->assertNotMatch($row->getValue($custom_column), $search_value);
         }
     }

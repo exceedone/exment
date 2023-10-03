@@ -13,9 +13,16 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Collection;
 
 /**
- * @phpstan-consistent-constructor
+ * @property mixed $plugin_type
  * @property mixed $plugin_name
  * @property mixed $plugin_view_name
+ * @property mixed $author
+ * @property mixed $description
+ * @property mixed $uuid
+ * @property mixed $version
+ * @property mixed $active_flg
+ * @property mixed $options
+ * @phpstan-consistent-constructor
  */
 class Plugin extends ModelBase
 {
@@ -308,7 +315,8 @@ class Plugin extends ModelBase
      *
      * @param string $path file relative path
      * @param PluginDiskService|null $diskService
-     * @return void
+     * @return mixed
+     * @throws FileNotFoundException
      */
     public function getPluginFiledata(string $path, ?PluginDiskService $diskService = null)
     {
@@ -321,8 +329,10 @@ class Plugin extends ModelBase
      * Put plugin file. upload to crowd.
      *
      * @param string $path file relative path
+     * @param $file
      * @param PluginDiskService|null $diskService
-     * @return void
+     * @return mixed
+     * @throws FileNotFoundException
      */
     public function putPluginFile(string $path, $file, ?PluginDiskService $diskService = null)
     {
@@ -336,9 +346,10 @@ class Plugin extends ModelBase
      *
      * @param string|null $dirPath file relative path
      * @param string $fileName
-     * @param mixed $file
+     * @param $file
      * @param PluginDiskService|null $diskService
-     * @return void
+     * @return mixed
+     * @throws FileNotFoundException
      */
     public function putAsPluginFile(?string $dirPath, string $fileName, $file, ?PluginDiskService $diskService = null)
     {
@@ -352,7 +363,8 @@ class Plugin extends ModelBase
      *
      * @param string $path file relative path
      * @param PluginDiskService|null $diskService
-     * @return void
+     * @return mixed
+     * @throws FileNotFoundException
      */
     public function deletePluginFile(string $path, ?PluginDiskService $diskService = null)
     {
