@@ -16,8 +16,6 @@ class ModalTileAjaxMenuButton extends ModalTileMenuButton
 
     /**
      * Get tile html
-     *
-     * @return void
      */
     public function ajaxHtml()
     {

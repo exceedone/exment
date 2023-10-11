@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Services\Login as LoginServiceRoot;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\LoginProviderType;
@@ -10,6 +11,8 @@ use Exceedone\Exment\Enums\LoginProviderType;
  * @phpstan-consistent-constructor
  * @property mixed $login_view_name
  * @property mixed $login_type
+ * @property mixed $active_flg
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class LoginSetting extends ModelBase
 {
@@ -132,7 +135,7 @@ class LoginSetting extends ModelBase
     /**
      * Get login button
      *
-     * @return void
+     * @return array
      */
     public function getLoginButton()
     {
@@ -252,7 +255,7 @@ class LoginSetting extends ModelBase
      * Whether redirect sso page force.
      * System setting "sso_redirect_force" is true and show_default_login_provider is false and active_flg count is 1
      *
-     * @return boolean
+     * @return boolean|null
      */
     public static function getRedirectSSOForceUrl()
     {

@@ -3,8 +3,54 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
-    level: 1
+    level: 3
+    stubFiles:
+        - exment/stubs/laravel/passport/Client.stub
     ignoreErrors:
+        -
+            message: "#^Call to an undefined method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Result of method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Laravel\\\\Passport\\\\Client.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Query\\\\Grammars\\\\Grammar.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Schema\\\\Grammars\\\\Grammar.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Query\\\\Processors\\\\Processor.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Illuminate\\\\Support\\\\Fluent::.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Return type \\(Illuminate\\\\Contracts\\\\View\\\\Factory|Illuminate\\\\View\\\\View\\) of method Exceedone\\\\Exment\\\\Form\\\\Field\\\\Text::render\\(\\) should be compatible with return type \\(string\\) of method Illuminate\\\\Contracts\\\\Support\\\\Renderable::render\\(\\)#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Return type \\(Illuminate\\\\View\\\\View\\) of method Exceedone\\\\Exment\\\\Form\\\\Field\\\\NestedEmbeds::render\\(\\) should be compatible with return type \\(string\\) of method Illuminate\\\\Contracts\\\\Support\\\\Renderable::render\\(\\)#"
+            path: vendor/exceedone/exment/src/*
+
         -
             message: '#^Method Exceedone\\Exment\\Facades\\ExmentFacade::getFacadeAccessor\(\) should return string but return statement is missing.#'
             path: vendor/exceedone/exment/src/*

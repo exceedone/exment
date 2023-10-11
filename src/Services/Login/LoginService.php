@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Services\Login\OAuth\OAuthUser;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -31,7 +32,8 @@ class LoginService
      *
      * @param LoginUser|CustomValue $user CustomValue(user) or login user
      * @param array $options
-     * @return void
+     * @return \Illuminate\Http\RedirectResponse|void
+     * @throws \Exception
      */
     public static function resetPassword($user, array $options = [])
     {
@@ -540,6 +542,7 @@ class LoginService
         try {
             // if socialiteProvider implements ProviderAvatar, call getAvatar
             if (isset($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderAvatar::class)) {
+                /** @var OAuthUser $custom_login_user */
                 $stream = $socialiteProvider->getAvatar($custom_login_user->token);
             }
             // if user obj has avatar, download avatar.
@@ -570,7 +573,7 @@ class LoginService
     /**
      * Get the guard to be used during authentication.
      *
-     * @return \Illuminate\Contracts\Auth\StatefulGuard
+     * @return mixed
      */
     protected static function guard()
     {

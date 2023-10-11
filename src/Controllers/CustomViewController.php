@@ -37,7 +37,9 @@ class CustomViewController extends AdminControllerTableBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return Content|void
      */
     public function index(Request $request, Content $content)
     {
@@ -48,15 +50,14 @@ class CustomViewController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
-
     /**
      * Edit interface.
      *
      * @param Request $request
      * @param Content $content
-     * @param string $tableKey
-     * @param string|int|null $id
-     * @return void|bool
+     * @param $tableKey
+     * @param $id
+     * @return Content|false|void
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -81,7 +82,9 @@ class CustomViewController extends AdminControllerTableBase
     /**
      * Create interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return Content|void
      */
     public function create(Request $request, Content $content)
     {
@@ -122,6 +125,7 @@ class CustomViewController extends AdminControllerTableBase
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
             $table_name = $custom_table->table_name;
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             if (boolval($actions->row->hasEditPermission())) {
                 if (boolval($actions->row->disabled_delete)) {
                     $actions->disableDelete();
@@ -195,6 +199,7 @@ class CustomViewController extends AdminControllerTableBase
         $form = new Form(new CustomView());
 
         if (!isset($id)) {
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $id = $form->model()->id;
         }
 
@@ -309,6 +314,7 @@ class CustomViewController extends AdminControllerTableBase
             if (request()->has('plugin') && !is_null($plugin = request()->get('plugin'))) {
                 $plugin = Plugin::getPluginByUUID($plugin);
                 if (isset($plugin)) {
+                    /** @phpstan-ignore-next-line fix laravel-admin documentation */
                     $form->model()->setOption('plugin_id', $plugin->id);
                 }
             }
@@ -319,8 +325,10 @@ class CustomViewController extends AdminControllerTableBase
                 return;
             }
 
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             if (boolval($from_data) && $form->model()->view_kind_type != Enums\ViewKindType::FILTER) {
                 // get view suuid
+                /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 $suuid = $form->model()->suuid;
 
                 admin_toastr(trans('admin.save_succeeded'));

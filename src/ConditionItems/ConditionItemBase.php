@@ -259,7 +259,8 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * Get Condition Label
      *
-     * @return void
+     * @param Condition $condition
+     * @return array|bool|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|mixed|string|null
      */
     public function getConditionLabel(Condition $condition)
     {

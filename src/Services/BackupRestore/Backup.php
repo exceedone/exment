@@ -23,7 +23,7 @@ class Backup
     /**
      * Can check execute backup
      *
-     * @return void
+     * @return mixed
      */
     public function check()
     {

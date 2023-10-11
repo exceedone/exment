@@ -17,8 +17,6 @@ class DataShareAuthoritable extends ModelBase
 
     /**
      * Set Data Share Authoritable after custom value save
-     *
-     * @return void
      */
     public static function setDataAuthoritable($target_data)
     {
@@ -41,6 +39,7 @@ class DataShareAuthoritable extends ModelBase
     /**
      * Get share target type
      *
+     * @param $target_data
      * @return ShareTargetType
      */
     public static function getTargetType($target_data)

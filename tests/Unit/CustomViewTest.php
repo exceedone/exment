@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
+use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Enums\ConditionType;
@@ -168,6 +169,7 @@ class CustomViewTest extends UnitTestBase
             if (isset($relation)) {
                 $parent_value = $custom_value->getParentValue($relation);
             }
+            /** @var CustomViewColumn $custom_view_column */
             foreach ($custom_view->custom_view_columns as $custom_view_column) {
                 // get grid show value
                 $text = $custom_view_column->column_item->options([

@@ -254,6 +254,7 @@ class TestDataSeeder extends Seeder
                         return;
                     }
 
+                    /** @var Model\CustomValue|null $parent_custom_value */
                     $parent_custom_value = $parent_table->getValueQuery()
                         ->where('value->text', "test_$i")
                         ->first();
@@ -1200,7 +1201,7 @@ class TestDataSeeder extends Seeder
     /**
      * Create Notify
      *
-     * @return string|int notify id
+     * @return string|int|null notify id
      */
     protected function createNotifyLimit($custom_table)
     {

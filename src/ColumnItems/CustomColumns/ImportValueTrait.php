@@ -7,9 +7,9 @@ trait ImportValueTrait
     /**
      * replace value for import
      *
-     * @param mixed $value
+     * @param $value
      * @param array $setting
-     * @return void
+     * @return array
      */
     public function getImportValue($value, $setting = [])
     {

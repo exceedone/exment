@@ -15,7 +15,7 @@ class DayLastXDayOrBefore extends DayBeforeAfterBase
     protected function getTargetDay($query_value)
     {
         $today =  Carbon::today();
-        return $today->addDay(-1 * intval($query_value));
+        return $today->addDays(-1 * intval($query_value));
     }
 
     protected function getMark(): string
@@ -34,7 +34,7 @@ class DayLastXDayOrBefore extends DayBeforeAfterBase
     protected function _compareValue($value, $conditionValue): bool
     {
         $today = \Carbon\Carbon::today();
-        $target_day = $today->addDay(-1 * intval($conditionValue));
+        $target_day = $today->addDays(-1 * intval($conditionValue));
         return \Exment::getCarbonOnlyDay($value)->lte($target_day);
     }
 }

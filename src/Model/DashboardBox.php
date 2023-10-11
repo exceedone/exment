@@ -10,12 +10,14 @@ use Exceedone\Exment\Enums\ViewKindType;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $suuid
  * @property mixed $row_no
  * @property mixed $dashboard_box_view_name
  * @property mixed $dashboard_box_type
  * @property mixed $column_no
+ * @property mixed $options
  * @method static \Illuminate\Database\Query\Builder whereNotNull($columns, $boolean = 'and')
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @method static int count($columns = '*')
  * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -237,13 +239,16 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 break;
         }
 
+        /** @var mixed $id */
         if (isset($id) && \is_numeric($id)) {
             $table_type = array_get($json, $table_type_key);
             if ($table_type == ViewKindType::AGGREGATE) {
+                /** @var CustomViewColumn|null $view_column */
                 $view_column = CustomViewSummary::where('custom_view_id', array_get($json, 'options.target_view_id'))
                     ->where('view_column_type', $view_column_type)
                     ->where('view_column_target_id', $id)->first();
             } else {
+                /** @var CustomViewColumn|null $view_column */
                 $view_column = CustomViewColumn::where('custom_view_id', array_get($json, 'options.target_view_id'))
                     ->where('view_column_type', $view_column_type)
                     ->where('view_column_target_id', $id)->first();

@@ -4,15 +4,23 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Encore\Admin\Form;
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 
 /**
  * Custom value condition. Use form priority, workflow action.
  *
- * @phpstan-consistent-constructor
  * @property mixed $target_column_id
  * @property mixed $morph_type
  * @property mixed $morph_id
  * @property mixed $condition_type
+ * @property mixed $condition_item
+ * @property mixed $condition_key
+ * @property mixed $view_filter_condition
+ * @property mixed $view_filter_condition_value_text
+ * @property mixed $view_column_type
+ * @property mixed $view_column_target_id
+ * @method static ExtendedBuilder create(array $attributes = [])
+ * @phpstan-consistent-constructor
  */
 class Condition extends ModelBase
 {

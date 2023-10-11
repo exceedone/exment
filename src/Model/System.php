@@ -12,6 +12,7 @@ use Cache;
 /**
  * System definition.
  *
+ * @property mixed $system_value
  * @method static boolean|void initialized($arg = null)
  * @method static string|void site_name($arg = null)
  * @method static string|void site_name_short($arg = null)

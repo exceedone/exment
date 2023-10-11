@@ -50,7 +50,8 @@ class Header extends Field\Display
     /**
      * Toggle escape
      *
-     * @var boolean
+     * @param bool $escape
+     * @return $this|Header
      */
     public function escape(bool $escape = true)
     {

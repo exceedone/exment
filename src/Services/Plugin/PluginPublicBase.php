@@ -29,7 +29,8 @@ class PluginPublicBase
     /**
      * get js path
      *
-     * @return void
+     * @param $skipPath
+     * @return array
      */
     public function js($skipPath = false)
     {
@@ -39,7 +40,9 @@ class PluginPublicBase
     /**
      * get public path
      *
-     * @return array
+     * @param $path
+     * @param $type
+     * @return array|mixed[]
      */
     protected function getCssJsFiles($path, $type)
     {
@@ -60,11 +63,12 @@ class PluginPublicBase
         })->toArray();
     }
 
-
     /**
      * Get css and js url
      *
-     * @return void
+     * @param $fileName
+     * @param bool $asPublicForm
+     * @return mixed|string|null
      */
     public function getCssJsUrl($fileName, bool $asPublicForm = false)
     {

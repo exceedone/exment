@@ -14,10 +14,10 @@ use Exceedone\Exment\Form\Tools;
 class CrudShow extends CrudBase
 {
     /**
-     * Show. for detil.
+     * Show. for detail.
      *
-     * @param Request $request
-     * @return void
+     * @param $id
+     * @return mixed
      */
     public function show($id)
     {
@@ -28,11 +28,11 @@ class CrudShow extends CrudBase
         return $content;
     }
 
-
     /**
      * Make a show builder.
      *
-     * @return Form
+     * @param $id
+     * @return Box
      */
     protected function detail($id)
     {
@@ -75,7 +75,8 @@ class CrudShow extends CrudBase
     /**
      * Set form tools.
      *
-     * @param Box $Box
+     * @param $id
+     * @param Box $box
      * @return void
      */
     protected function setShowTools($id, Box $box)

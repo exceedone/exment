@@ -22,7 +22,7 @@ interface ConditionItemInterface
      * Get condition label.
      *
      * @param Condition $condition
-     * @return boolean
+     * @return string|null
      */
     public function getConditionLabel(Condition $condition);
 
@@ -30,7 +30,7 @@ interface ConditionItemInterface
      * get condition value text.
      *
      * @param Condition $condition
-     * @return boolean
+     * @return string
      */
     public function getConditionText(Condition $condition);
 

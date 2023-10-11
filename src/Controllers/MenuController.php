@@ -59,9 +59,10 @@ class MenuController extends AdminControllerBase
     /**
      * Redirect to edit page.
      *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\RedirectResponse
+     * @param Request $request
+     * @param Content $content
+     * @param $id
+     * @return Content|\Illuminate\Http\RedirectResponse
      */
     public function show(Request $request, Content $content, $id)
     {
@@ -278,6 +279,11 @@ class MenuController extends AdminControllerBase
      * get view option array
      * @param string $menu_target string
      * @param boolean $isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
+     */
+    /**
+     * @param $custom_table
+     * @param bool $isApi
+     * @return array|mixed[]
      */
     protected function getViewList($custom_table, $isApi)
     {

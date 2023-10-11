@@ -64,6 +64,7 @@ class Csv extends PhpSpreadSheet
 
     protected function createWriter($spreadsheet)
     {
+        /** @var \PhpOffice\PhpSpreadsheet\Writer\Csv $writer */
         $writer = IOFactory::createWriter($spreadsheet, 'Csv');
         // append bom if config
         if (boolval(config('exment.export_append_csv_bom', false))) {

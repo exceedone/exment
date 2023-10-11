@@ -40,10 +40,12 @@ abstract class ApiTestBase extends FeatureTestBase
 
         return [$client->id, $client->secret, $client->client_api_key->key];
     }
+
     /**
-     * Get Password token
-     *
-     * @return Illuminate\Testing\TestResponse
+     * @param $user_code
+     * @param $password
+     * @param $scope
+     * @return \Illuminate\Testing\TestResponse
      */
     protected function getPasswordToken($user_code, $password, $scope = [])
     {

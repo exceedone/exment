@@ -16,6 +16,9 @@ class WorkflowWorkUser extends ViewFilterBase
     protected static $isAppendDatabaseTable = false;
 
 
+    /**
+     * @return int|string
+     */
     public static function getFilterOption()
     {
         return FilterOption::WORKFLOW_EQ_WORK_USER;
@@ -28,6 +31,13 @@ class WorkflowWorkUser extends ViewFilterBase
      */
     protected static $isConditionNullIgnore = false;
 
+    /**
+     * @param $query
+     * @param $method_name
+     * @param $query_column
+     * @param $query_value
+     * @return \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder|void
+     */
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
         $or_option = $this->or_option;

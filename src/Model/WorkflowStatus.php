@@ -3,6 +3,17 @@
 namespace Exceedone\Exment\Model;
 
 /**
+ * @property mixed $workflow_id
+ * @property mixed $status_name
+ * @property mixed $status_type
+ * @property mixed $order
+ * @property mixed $ignore_work
+ * @property mixed $datalock_flg
+ * @property mixed $completed_flg
+ * @property mixed $created_user_id
+ * @property mixed $updated_user_id
+ * @property mixed $created_at
+ * @property mixed $updated_at
  * @phpstan-consistent-constructor
  */
 class WorkflowStatus extends ModelBase

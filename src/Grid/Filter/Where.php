@@ -52,9 +52,7 @@ class Where extends BaseWhere
     /**
      * Get query where null condition from filter.
      *
-     * @param array $inputs
-     *
-     * @return array|mixed|null
+     * @return array|array[]|mixed|null
      */
     public function whereNullCondition()
     {

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Services\Login\LoginService;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Login User item
@@ -161,7 +162,7 @@ class LoginUserItem extends ProviderBase
      *
      * @param array $data
      * @param null|string $id
-     * @return array|\Illuminate\Http\Response  if error, return redirect. if success, array.
+     * @return array|\Illuminate\Http\Response|RedirectResponse|void  if error, return redirect. if success, array.
      */
     protected function getLoginUserInfo($data, $id)
     {

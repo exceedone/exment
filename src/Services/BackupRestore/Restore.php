@@ -52,9 +52,10 @@ class Restore
     /**
      * Execute restore.
      *
-     * @param string $file target file
-     * @param bool $tmp if 1, unzip and restore
-     * @return void
+     * @param $file string|null target file
+     * @param bool|null $tmp if 1, unzip and restore
+     * @return int
+     * @throws \Exception
      */
     public function execute($file = null, ?bool $tmp = null)
     {

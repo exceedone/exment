@@ -10,7 +10,6 @@ use Exceedone\Exment\Enums\TemplateImportResult;
  *
  * @method static string|null|void importReplaceJson(&$json, $options = [])
  * @method static void exportReplaceJson(&$json)
- * @property array templateItems
  */
 trait TemplateTrait
 {
@@ -211,7 +210,7 @@ trait TemplateTrait
     /**
      * set template Export Items.
      *
-     * @return \Illuminate\Database\Eloquent\Model template items
+     * @return \Illuminate\Database\Eloquent\Model|void template items
      */
     public static function importTemplate($array, $is_update, $options = [])
     {

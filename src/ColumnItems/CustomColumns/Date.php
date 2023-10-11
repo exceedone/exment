@@ -76,7 +76,9 @@ class Date extends CustomItem
     /**
      * Get date again use format
      *
-     * @return \Carbon\Carbon|null
+     * @param $v
+     * @param $format
+     * @return string|null
      */
     protected function getDateUseValue($v, $format)
     {
@@ -142,7 +144,7 @@ class Date extends CustomItem
     /**
      * Whether this is autodate
      *
-     * @return true
+     * @return bool
      */
     protected function autoDate()
     {
