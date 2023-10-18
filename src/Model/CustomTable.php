@@ -3247,4 +3247,38 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         return $positon;
     }
+
+    /**
+     * User can share this custom value
+     * @return bool
+     */
+    public function enableShare(bool $needEditPermission = false)
+    {
+        // if system doesn't use role, return false
+        if (!System::permission_available()) {
+            return false;
+        }
+
+        // if master, false
+        if (in_array($this->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+            return false;
+        }
+
+        // if custom table has all_user_editable_flg, return false(not necessary use share)
+        if (boolval($this->getOption('all_user_editable_flg'))) {
+            return false;
+        }
+
+        // if not has edit data, return false
+        if ($needEditPermission && !$this->hasPermissionEditData(null)) {
+            return false;
+        }
+
+        // if not has share data, return false
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_SHARE])) {
+            return false;
+        }
+
+        return true;
+    }
 }

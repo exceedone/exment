@@ -175,6 +175,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
             $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');
+            $router->post("data/{tableKey}/sendBulkShares", 'CustomValueController@sendBulkShares');
             $router->get("data/{tableKey}/{id}/copyModal", 'CustomValueController@copyModal');
             $router->get("data/{tableKey}/{id}/operationModal", 'CustomValueController@operationModal');
             $router->get("data/{tableKey}/operationModal", 'CustomValueController@operationModal');

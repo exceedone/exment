@@ -312,6 +312,59 @@ class CustomValueAuthoritable extends ModelBase
     }
 
     /**
+     * Get bulk share form
+     *
+     * @return ModalForm
+     */
+    public static function getBulkShareDialogForm($tableKey, $ids)
+    {
+        $custom_table = CustomTable::getEloquent($tableKey);
+
+        $form = new ModalForm();
+        $form->modalAttribute('id', 'data_share_modal');
+        $form->modalHeader(exmtrans('common.shared'));
+        $form->action(admin_urls('data', $tableKey, 'sendBulkShares'));
+
+        $form->descriptionHtml(exmtrans('role_group.bulk_share_description'))->setWidth(9, 2);
+
+        // select target users
+        list($options, $ajax) = static::getUserOrgSelectOptions($custom_table, null, false);
+
+        // for validation options
+        $validationOptions = null;
+
+        $form->multipleSelect('custom_value_edit', exmtrans('role_group.role_type_option_value.bulk_share_edit.label'))
+            ->options($options)
+            ->validationOptions(function ($value) use (&$validationOptions, $custom_table) {
+                if (!is_null($validationOptions)) {
+                    return $validationOptions;
+                }
+                list($validationOptions, $ajax) = static::getUserOrgSelectOptions($custom_table, null, false, null, true);
+                return $validationOptions;
+            })
+            ->ajax($ajax)
+            ->help(exmtrans('role_group.role_type_option_value.bulk_share_edit.help'))
+            ->setWidth(9, 2);
+
+        list($options, $ajax) = static::getUserOrgSelectOptions($custom_table, null, false);
+        $form->multipleSelect('custom_value_view', exmtrans('role_group.role_type_option_value.bulk_share_view.label'))
+            ->options($options)
+            ->validationOptions(function ($value) use (&$validationOptions, $custom_table) {
+                if (!is_null($validationOptions)) {
+                    return $validationOptions;
+                }
+                list($validationOptions, $ajax) = static::getUserOrgSelectOptions($custom_table, null, false, null, true);
+                return $validationOptions;
+            })
+            ->ajax($ajax)
+            ->help(exmtrans('role_group.role_type_option_value.bulk_share_view.help'))
+            ->setWidth(9, 2);
+
+        $form->hidden('ids')->default($ids);
+        return $form;
+    }
+
+    /**
      * Set share form
      *
      * @param $custom_value
@@ -397,6 +450,109 @@ class CustomValueAuthoritable extends ModelBase
             });
 
             static::notifyUser($custom_value, $shares);
+
+            return getAjaxResponse([
+                'result'  => true,
+                'toastr' => trans('admin.save_succeeded'),
+            ]);
+        } catch (\Exception $exception) {
+            //TODO:error handling
+            \DB::rollback();
+            throw $exception;
+        }
+    }
+
+    /**
+     * Set share form
+     *
+     * @param $custom_value
+     * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
+    public static function saveBulkShareDialogForm($tableKey, $ids)
+    {
+        $custom_table = CustomTable::getEloquent($tableKey);
+
+        $request = request();
+        // create form fields
+        $tableKey = $custom_table->table_name;
+        $ids = explode(',', $ids);
+        $custom_values = collect($ids)->map(function($id) use($custom_table) {
+            return $custom_table->getValueModel($id);
+        });
+
+        // check permission
+        foreach($custom_values as $custom_value) {
+            if (!$custom_table->hasPermissionEditData($custom_value->id) || !$custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+                return getAjaxResponse([
+                    'result'  => false,
+                    'toastr' => trans('admin.deny'),
+                ]);
+            }
+
+            // validation
+            $form = static::getShareDialogForm($custom_value);
+            if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
+                return getAjaxResponse([
+                    'result'  => false,
+                    'toastr' => trans('admin.validation.not_in_option'),
+                ]);
+            }
+        }
+
+        \DB::beginTransaction();
+
+        try {
+            // get user and org
+            $items = [
+                ['name' => 'custom_value_edit'],
+                ['name' => 'custom_value_view'],
+            ];
+
+            $shares = [];
+            foreach ($custom_values as $custom_value) {
+                foreach ($items as $item) {
+                    $user_organizations = $request->get($item['name'], []);
+                    $user_organizations = collect($user_organizations)->filter()->map(function ($user_organization) use ($custom_value, $item) {
+                        list($authoritable_user_org_type, $authoritable_target_id) = explode('_', $user_organization);
+                        return [
+                            'authoritable_type' => $item['name'],
+                            'authoritable_user_org_type' => $authoritable_user_org_type,
+                            'authoritable_target_id' => $authoritable_target_id,
+                            'parent_type' => $custom_value->custom_table->table_name,
+                            'parent_id' => $custom_value->id,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ];
+                    });
+
+                    $shares = array_merge($shares, \Schema::insertDelete(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, $user_organizations, [
+                        'dbValueFilter' => function (&$model) use ($custom_value, $item) {
+                            $model->where('parent_type', $custom_value->custom_table->table_name)
+                            ->where('parent_id', $custom_value->id)
+                            ->where('authoritable_type', $item['name']);
+                        },
+                        null,
+                        'matchFilter' => function ($dbValue, $value) {
+                            return array_get((array)$dbValue, 'authoritable_user_org_type') == array_get($value, 'authoritable_user_org_type')
+                                && array_get((array)$dbValue, 'authoritable_target_id') == array_get($value, 'authoritable_target_id');
+                        },
+                    ]));
+                }
+            }
+            \DB::commit();
+
+            // send notify
+
+            foreach ($custom_values as $custom_value) {
+                $data_shares = collect($shares)->filter(function ($share) use($custom_value) {
+                    return $share['parent_id'] == $custom_value->id;
+                })->map(function ($share) {
+                    return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
+                });
+                static::notifyUser($custom_value, $data_shares);
+            }
 
             return getAjaxResponse([
                 'result'  => true,

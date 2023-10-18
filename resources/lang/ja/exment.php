@@ -1947,6 +1947,7 @@ return [
         'organizations_count' => '組織数',
         'share_description' => 'このデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このデータにアクセスすることができるようになります。',
         'data_share_description' => 'この%1$sを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、この%1$sにアクセスすることができるようになります。',
+        'bulk_share_description' => '選択したデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、データにアクセスすることができるようになります。<br />※すでに該当のユーザー・組織に共有されているデータは処理をスキップします。',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択します。',
@@ -2027,6 +2028,8 @@ return [
             'custom_value_view' => ['label' => '閲覧可能', 'help' => 'このデータを閲覧できるようになります。'],
             'data_share_edit' => ['label' => '編集可能', 'help' => 'この%sを編集できるようになります。'],
             'data_share_view' => ['label' => '閲覧可能', 'help' => 'この%sを閲覧できるようになります。'],
+            'bulk_share_edit' => ['label' => '編集可能', 'help' => '選択したデータを編集できるようになります。'],
+            'bulk_share_view' => ['label' => '閲覧可能', 'help' => '選択したデータを閲覧できるようになります。'],
         ],
         'role_type_option_plugin' => [
             'plugin_setting' => ['label' => '設定変更', 'help' => '設定変更をもつプラグインの場合、このプラグインの設定を変更できます。<br/>※プラグインの削除はできません。'],
@@ -2184,6 +2187,7 @@ return [
         'soft_deleted_data' => '削除済データ',
         'restore' => '復元',
         'hard_delete' => '完全に削除する',
+        'bulk_share' => '一括共有',
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',

@@ -865,9 +865,17 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function shareClick(Request $request, $tableKey, $id)
     {
-        // get customvalue
-        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
-        $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
+        if ($id == 'bulk') {
+            if ($request->input('ids') === null) {
+                abort(404);
+            }
+            $ids = $request->input('ids');
+            $form = CustomValueAuthoritable::getBulkShareDialogForm($tableKey, $ids);
+        } else {
+            // get customvalue
+            $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+            $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
+        }
 
         return getAjaxResponse([
             'body'  => $form->render(),
@@ -931,6 +939,16 @@ class CustomValueController extends AdminControllerTableBase
         // get customvalue
         $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
         return CustomValueAuthoritable::saveShareDialogForm($custom_value);
+    }
+
+    /**
+     * set share users organizations
+     */
+    public function sendBulkShares(Request $request, $tableKey)
+    {
+        // get customvalue
+        $ids = $request->input('ids');
+        return CustomValueAuthoritable::saveBulkShareDialogForm($tableKey, $ids);
     }
 
 

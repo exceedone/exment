@@ -469,6 +469,9 @@ class DefaultGrid extends GridBase
                         $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
                         $batch->add(exmtrans('custom_value.hard_delete'), new GridTools\BatchHardDelete(exmtrans('custom_value.hard_delete')));
                     } else {
+                        if ($this->custom_table->enableShare() === true) {
+                            $batch->add(exmtrans('custom_value.bulk_share'), new GridTools\BatchShare());
+                        }
                         foreach ($this->custom_table->custom_operations as $custom_operation) {
                             if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
                                 $title = $custom_operation->getOption('button_label') ?? $custom_operation->operation_name;
