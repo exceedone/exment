@@ -1738,6 +1738,7 @@ return [
         'update_value_text' => 'Update Value',
         'input_column_description' => 'When the data update timing is a button, a form (dialog) for setting the update value can be displayed. <br/> Please set the column to input.',
         'dialog_description' => "Enter the value to update the data of %s.",
+        'active_flg' => 'Active Flg',
         
         'operation_type_options' => [
             'bulk_update' => 'Pressing button on the list page',
