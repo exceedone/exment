@@ -96,9 +96,9 @@ class LdapService implements LoginServiceInterface
         $prefix = $login_setting->getOption('ldap_account_prefix');
         $suffix = $login_setting->getOption('ldap_account_suffix');
 
-        return ((isset($prefix) && strpos($username, $prefix) !== 0) ? $prefix : '').
-        $username .
-        ((isset($suffix) && strripos($username, $suffix) !== (mb_strlen($username) - mb_strlen($suffix))) ? $suffix : '');
+        return ((isset($prefix) && strpos($username, $prefix) !== 0) ? $prefix : '') .
+            $username .
+            ((isset($suffix) && strripos($username, $suffix) !== (mb_strlen($username) - mb_strlen($suffix))) ? $suffix : '');
     }
 
     /**
@@ -146,8 +146,7 @@ class LdapService implements LoginServiceInterface
 
         $form->textarea('resultarea', exmtrans('common.execute_result'))
             ->attribute(['readonly' => true])
-            ->rows(4)
-        ;
+            ->rows(4);
 
         $form->setWidth(10, 2);
 
@@ -184,7 +183,7 @@ class LdapService implements LoginServiceInterface
         $form->select('ldap_schema', "スキーマ")->options(["OpenLDAP" => "OpenLDAP", "ActiveDirectory" => "ActiveDirectory"])
             ->required()
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
-			->default('ActiveDirectory');
+            ->default('ActiveDirectory');
         $form->text('ldap_hosts', exmtrans('login.ldap_hosts'))
             ->required()
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
@@ -270,7 +269,7 @@ class LdapService implements LoginServiceInterface
             $provider = $ad->getDefaultProvider();
 
             $provider->connect();
-            $bindDN = ($login_setting->getOption('ldap_schema') == "ActiveDirectory") ?
+            $bindDN = (empty($login_setting->getOption('ldap_schema')) || $login_setting->getOption('ldap_schema') == "ActiveDirectory") ?
                 $username :
                 static::getLdapUserDN($provider, $credentials['username'], $login_setting);
             if (!$bindDN || !$provider->auth()->attempt($bindDN, $credentials['password'], true)) {
