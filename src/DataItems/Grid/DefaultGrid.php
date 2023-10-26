@@ -502,6 +502,7 @@ class DefaultGrid extends GridBase
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
                 /** @var mixed $actions */
                 $custom_table->setGridAuthoritable($actions->grid->getOriginalCollection());
+                $enableCreate = true;
                 $enableEdit = true;
                 $enableDelete = true;
                 $enableHardDelete = false;
@@ -529,7 +530,12 @@ class DefaultGrid extends GridBase
                     $enableDelete = false;
                 }
 
+                if ($custom_table->enableCreate(true) !== true) {
+                    $enableCreate = false;
+                }
+
                 if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
+                    $enableCreate = false;
                     $enableEdit = false;
                     $enableDelete = false;
                 }
@@ -585,6 +591,14 @@ class DefaultGrid extends GridBase
                             'data-add-swal-cancel' => trans('admin.cancel'),
                         ])
                         ->tooltip(exmtrans('custom_value.hard_delete'));
+                    $actions->append($linker);
+                }
+
+                if ($enableCreate && boolval(config('exment.gridrow_show_copy_button', false))) {
+                    $linker = (new Linker())
+                        ->url(admin_urls('data', $custom_table->table_name, "create?copy_id={$actions->row->id}"))
+                        ->icon('fa-copy')
+                        ->tooltip(exmtrans('common.copy_item', exmtrans('custom_value.custom_valule_button_label')));
                     $actions->append($linker);
                 }
 

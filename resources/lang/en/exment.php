@@ -2183,6 +2183,7 @@ return [
         'soft_deleted_data' => 'Deleted Data',
         'restore' => 'Restore',
         'hard_delete' => 'Permanently Delete',
+        'custom_valule_button_label' => 'Data',
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',
