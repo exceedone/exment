@@ -318,6 +318,240 @@
             ]
         },
         {
+            "table_name": "log_column",
+            "table_view_name": "Log Column",
+            "description": null,
+            "options": {
+                "search_enabled": "1",
+                "color": null,
+                "one_record_flg": "0",
+                "attachment_flg": "0",
+                "comment_flg": "0",
+                "all_user_accessable_flg": "1"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "log_table_id",
+                    "column_view_name": "Log Table ID",
+                    "column_type": "integer",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "required": "1",
+                        "number_max": null,
+                        "number_min": "0",
+                        "updown_button": "1"
+                    }
+                },
+                {
+                    "column_name": "column_id",
+                    "column_view_name": "Column ID",
+                    "column_type": "integer",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "required": "1",
+                        "number_max": null,
+                        "number_min": "0",
+                        "updown_button": "1"
+                    }
+                },
+                {
+                    "column_name": "column_name",
+                    "column_view_name": "Column name",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "log_table",
+            "table_view_name": "Log Table",
+            "description": null,
+            "options": {
+                "search_enabled": "1",
+                "color": null,
+                "one_record_flg": "0",
+                "attachment_flg": "0",
+                "comment_flg": "0",
+                "all_user_accessable_flg": "1"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "table_id",
+                    "column_view_name": "Table ID",
+                    "column_type": "integer",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "required": "1",
+                        "number_max": null,
+                        "number_min": "0",
+                        "updown_button": "1"
+                    }
+                },
+                {
+                    "column_name": "table_name",
+                    "column_view_name": "Table name",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "access_file_log",
+            "table_view_name": "アクセスログ管理",
+            "description": null,
+            "options": {
+                "search_enabled": "1",
+                "icon": "fa-file",
+                "color": null,
+                "one_record_flg": "0",
+                "attachment_flg": "0",
+                "comment_flg": "0",
+                "all_user_accessable_flg": "1"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "user",
+                    "column_view_name": "アクセスユーザ",
+                    "column_type": "user",
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "select_export_column_id": 26
+                    }
+                },
+                {
+                    "column_name": "ip_address",
+                    "column_view_name": "IPアドレス",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1"
+                    }
+                },
+                {
+                    "column_name": "table",
+                    "column_view_name": "対象テーブル",
+                    "column_type": "select_table",
+                    "system_flg": "1",
+                    "options": {
+                        "select_target_table_name": "log_table",
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "required": "1",
+                        "select_export_column_id": 32
+                    }
+                },
+                {
+                    "column_name": "column",
+                    "column_view_name": "対象カラム",
+                    "column_type": "select_table",
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "select_target_table_name": "log_column",
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "select_export_column_id": 30
+                    }
+                },
+                {
+                    "column_name": "data_id",
+                    "column_view_name": "対象データID",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1"
+                    }
+                },
+                {
+                    "column_name": "file_name",
+                    "column_view_name": "ファイル名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1"
+                    }
+                },
+                {
+                    "column_name": "user_action",
+                    "column_view_name": "ファイル操作",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "options": {
+                        "required": "1",
+                        "select_item_valtext": "Upload,Upload\nDownload,Download\nDelete,Delete",
+                        "use_label_flg": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1"
+                    }
+                },
+                {
+                    "column_name": "access_date",
+                    "column_view_name": "アクセス日付",
+                    "column_type": "datetime",
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "datetime_now_creating": "1"
+                    }
+                },
+                {
+                    "column_name": "org",
+                    "column_view_name": "アクセス組織",
+                    "column_type": "organization",
+                    "description": null,
+                    "system_flg": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "multiple_enabled": "1",
+                        "select_export_column_id": 43
+                    }
+                }
+            ]
+        },
+        {
             "table_name": "organization",
             "table_view_name": "Organization",
             "description": null,
@@ -926,6 +1160,135 @@
             "table_name": "organization"
         },
         {
+			"suuid": "nw5ra8cgdifjqt8v0dej",
+            "form_view_name": "Form",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "default",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "suuid": "jrnzzjxvmxpqwsue2oia",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "log_table_id"
+                        },
+                        {
+                            "suuid": "7iuq4ugwfnqdtidv9x57",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "column_id"
+                        },
+                        {
+                            "suuid": "7iuq4ugwfnqdtidv9x57",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "column_name"
+                        }
+                    ],
+                    "form_block_target_table_name": "log_column"
+                }
+            ],
+            "table_name": "log_column"
+        },
+        {
+			"suuid": "mnwdxou015w7ilmyc2d2",
+            "form_view_name": "Form",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "default",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "suuid": "bpqkwt841kri0eysoxsl",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "table_id"
+                        },
+                        {
+                            "suuid": "3hxizqr2ehdkd6f5y1g8",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "table_name"
+                        }
+                    ],
+                    "form_block_target_table_name": "log_table"
+                }
+            ],
+            "table_name": "log_table"
+        },
+        {
+			"suuid": "67lgbom3arq2ry2yrvwh",
+            "form_view_name": "Form",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "default",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "suuid": "x3rg7fzcq8ssv1fdxmaa",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "user"
+                        },
+                        {
+                            "suuid": "6lzg4e8znx6q12lql8ha",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "ip_address"
+                        },
+                        {
+                            "suuid": "lq375644i08g1xcx24nx",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "table"
+                        },
+                        {
+                            "suuid": "wseux6qy5d9a6c78w46f",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "column"
+                        },
+                        {
+                            "suuid": "knryejnsganp8yj95rlb",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "data_id"
+                        },
+                        {
+                            "suuid": "ozt4kypiirmqv98tsy62",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "file_name"
+                        },
+                        {
+                            "suuid": "vyvzu6dyg6u40ug3s04l",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "user_action"
+                        },
+                        {
+                            "suuid": "f6baipkj6ifjpkplttd7",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "access_date"
+                        },
+                        {
+                            "suuid": "eg1x2n1f47cw5ut2f9b6",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "org"
+                        }
+                    ],
+                    "form_block_target_table_name": "access_file_log"
+                }
+            ],
+            "table_name": "access_file_log"
+        },
+        {
 			"suuid": "96c4e4f7d8a86a4ba17e",
             "form_view_name": "Form",
             "custom_form_blocks": [
@@ -1102,6 +1465,91 @@
 			],
 			"custom_view_filters": [],
 			"table_name": "organization"
+		},
+        {
+            "suuid": "bada70507e0f11eea4d0",
+            "view_view_name": "Default view",
+            "view_kind_type": 9,
+            "custom_view_columns": [
+                {
+                    "view_column_target_name": "access_date",
+                    "order": "0",
+                    "view_column_type": 0
+                },
+                {
+                    "view_column_target_name": "user",
+                    "order": "1",
+                    "view_column_type": 0
+                },
+                {
+                    "view_column_target_name": "ip_address",
+                    "order": "2",
+                    "view_column_type": 0
+                },
+                {
+                    "view_column_target_name": "table",
+                    "order": "3",
+                    "view_column_type": 0
+                },
+                {
+                    "order": "4",
+                    "view_column_target_name": "column",
+                    "view_column_type": 0
+                },
+                {
+                    "order": "5",
+                    "view_column_target_name": "data_id",
+                    "view_column_type": 0
+                },
+                {
+                    "order": "6",
+                    "view_column_target_name": "file_name",
+                    "view_column_type": 0
+                },
+                {
+                    "order": "7",
+                    "view_column_target_name": "user_action",
+                    "view_column_type": 0
+                }
+            ],
+            "custom_view_grid_filters": [
+                {
+                    "view_column_target_name": "access_date",
+                    "order": "0",
+                    "view_column_type": 0
+                },
+                {
+                    "view_column_target_name": "org",
+                    "order": "1",
+                    "view_column_type": 0
+                },
+                {
+                    "view_column_target_name": "user",
+                    "order": "2",
+                    "view_column_type": 0
+                },
+                {
+                    "view_column_target_name": "table",
+                    "order": "3",
+                    "view_column_type": 0
+                },
+                {
+                    "order": "4",
+                    "view_column_target_name": "column",
+                    "view_column_type": 0
+                },
+                {
+                    "order": "5",
+                    "view_column_target_name": "file_name",
+                    "view_column_type": 0
+                },
+                {
+                    "order": "6",
+                    "view_column_target_name": "user_action",
+                    "view_column_type": 0
+                }
+            ],
+            "table_name": "access_file_log"
 		},
         {
             "suuid": "b6d5afcda4ce26091f36",

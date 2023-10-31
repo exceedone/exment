@@ -26,6 +26,8 @@ use Exceedone\Exment\Services\SystemRequire;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
 use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Enums\SystemRequireResult;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\Menu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -461,6 +463,31 @@ class SystemController extends AdminControllerBase
         DB::beginTransaction();
         try {
             $result = $this->postInitializeForm($request, ($advanced ? ['advanced', 'notify'] : ['initialize', 'system']), false, !$advanced);
+            if (System::log_available()) {
+                $log_menu = Menu::where('uri', SystemTableName::ACCESS_FILE_LOG)->first();
+                if (!$log_menu) {
+                    $admin_menu = Menu::where('menu_name', 'admin')->first();
+                    if ($admin_menu) {
+                        $order = Menu::where('parent_id', $admin_menu->id)->max('order') + 1;
+                        $menu_target = CustomTable::getEloquent(SystemTableName::ACCESS_FILE_LOG)->id;
+                        $log_menu = new Menu();
+                        $log_menu->parent_id = $admin_menu->id;
+                        $log_menu->order = $order;
+                        $log_menu->title = 'アクセスログ';
+                        $log_menu->icon = 'fa-file';
+                        $log_menu->uri = SystemTableName::ACCESS_FILE_LOG;
+                        $log_menu->menu_type = 'table';
+                        $log_menu->menu_name = SystemTableName::ACCESS_FILE_LOG;
+                        $log_menu->menu_target = $menu_target;
+                        $log_menu->save();
+                    }
+                }
+            } else {
+                $log_menu = Menu::where('uri', SystemTableName::ACCESS_FILE_LOG)->first();
+                if ($log_menu) {
+                    $log_menu->delete();
+                }
+            }
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }
@@ -546,5 +573,52 @@ class SystemController extends AdminControllerBase
             'swal' => exmtrans('system.call_update_success'),
             'swaltext' => exmtrans('system.call_update_success_text'),
         ]);
+    }
+
+    // Get user from organization
+    public function getUserOrg(Request $request)
+    {
+        $org_ids = $request->get('org_ids');
+        if (!$org_ids) {
+            $users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->get()->map(function ($item){
+                return [
+                    'value' => $item->id,
+                    'name' => $item->getValue('user_name')
+                ];
+            });
+        } else {
+            $relation_table = CustomRelation::getRelationNamebyTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+            $user_ids = DB::table($relation_table)->whereIn('parent_id', $org_ids)->get()->pluck('child_id')->toArray();
+            $users = CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->whereIn('id', $user_ids)->get()->map(function ($item){
+                return [
+                    'value' => $item->id,
+                    'name' => $item->getValue('user_name')
+                ];
+            });
+        }
+        return response()->json($users);
+    }
+
+    // Get log column from log table
+    public function getColumnTable(Request $request)
+    {
+        $log_table_ids = $request->get('log_table_ids');
+        if (!$log_table_ids) {
+            $log_columns = CustomTable::getEloquent(SystemTableName::LOG_COLUMN)->getValueModel()->get()->map(function ($item){
+                return [
+                    'value' => $item->id,
+                    'name' => $item->getValue('column_name')
+                ];
+            });
+        } else {
+            $log_columns = CustomTable::getEloquent(SystemTableName::LOG_COLUMN)->getValueModel()->whereIn('value->log_table_id', $log_table_ids)->get()
+                ->map(function ($item){
+                return [
+                    'value' => $item->id,
+                    'name' => $item->getValue('column_name')
+                ];
+            });
+        }
+        return response()->json($log_columns);
     }
 }

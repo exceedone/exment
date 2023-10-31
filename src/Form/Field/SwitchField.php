@@ -37,6 +37,11 @@ $('{$this->getElementClassSelector()}.la_checkbox').bootstrapSwitch({
         let onValue = $( '<span/>' ).html( '{$onValue}' ).text();
         let offValue = $( '<span/>' ).html( '{$offValue}' ).text();
         $(event.target).closest('.bootstrap-switch').next().val(state ? onValue : offValue).change();
+        if(event.target.classList[0] == 'log_available' && state == false) {
+            $(event.target).closest('.form-group').nextAll('.form-group:lt(2)').hide();
+        } else if (event.target.classList[0] == 'log_available' && state == true) {
+            $(event.target).closest('.form-group').nextAll('.form-group:lt(2)').show();
+        }
     }
 });
 
@@ -45,6 +50,12 @@ EOT;
         $this->attribute(['data-onvalue' => $onValue, 'data-offvalue' => $offValue]);
 
         $grandParent = $this->getParentClassname();
+        if ($this->getElementName() == 'log_available' && $this->value() == '0'){
+            $this->script .= <<<EOT
+                $('.form-group label[for="time_clear_log"]').closest('.form-group').hide();
+                $('.form-group label[for="time_clear_log_unit"]').closest('.form-group').hide();
+            EOT;
+        }
         return $grandParent::render()->with([
             'onValue'  => $this->states['on']['value'],
             'offValue'  => $this->states['off']['value'],

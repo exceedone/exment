@@ -47,6 +47,8 @@ class RouteServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'admin'],
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
+            $router->get('/is_delete_log', 'DashboardController@isDeleteLog');
+            $router->get('/delete_log', 'DashboardController@deleteLog');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
             $router->delete('dashboardbox/delete/{suuid}', 'DashboardBoxController@delete');
             $router->resource('dashboard', 'DashboardController');
@@ -258,6 +260,8 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'     => $this->namespace,
             'middleware'    => ['adminweb', 'admin_anonymous'],
         ], function (Router $router) {
+            $router->post('org/user', 'SystemController@getUserOrg');
+            $router->post('table/column', 'SystemController@getColumnTable');
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
             $router->put('initialize/filedelete', 'InitializeController@filedelete');

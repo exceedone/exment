@@ -4,6 +4,9 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Validator\ImageRule;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\LogAction;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -20,6 +23,10 @@ class FileController extends AdminControllerBase
      */
     public function download(Request $request, $uuid)
     {
+        $preview = request()->get('preview');
+        if (!$preview) {
+            $this->saveLog($uuid, LogAction::DOWNLOAD);
+        }
         return static::downloadFile($uuid);
     }
 
@@ -44,6 +51,7 @@ class FileController extends AdminControllerBase
      */
     public function delete(Request $request, $uuid)
     {
+        $this->saveLog($uuid, LogAction::DELETE);
         return static::deleteFile($uuid);
     }
 
@@ -221,6 +229,61 @@ class FileController extends AdminControllerBase
         $response->header('Content-Disposition', "$disposition; filename*=UTF-8''$name");
 
         return $response;
+    }
+
+    // Save log download or delete of attach column file and download custom column file
+    public function saveLog($uuid, $action)
+    {
+        $uuid_file = pathinfo($uuid, PATHINFO_FILENAME);
+        $file = \DB::table('files')->where('uuid', $uuid_file)->first();
+        if ($file) {
+            $custom_table = CustomTable::getEloquent($file->parent_type);
+            if (System::log_available() && $custom_table->options['log_enabled']) {
+                $log_table = CustomTable::getEloquent(SystemTableName::LOG_TABLE)
+                    ->getValueModel()->where('value->table_id', $custom_table->id)->first();
+                if ($log_table) {
+                    if ($file->custom_column_id) {
+                        $log_column = CustomTable::getEloquent(SystemTableName::LOG_COLUMN)->getValueModel()
+                            ->where('value->log_table_id', $log_table->id)
+                            ->where('value->column_id', $file->custom_column_id)
+                            ->first();
+                        if (!$log_column) {
+                            $log_column = CustomTable::getEloquent(SystemTableName::LOG_COLUMN)->getValueModel();
+                            $log_column->setValue('log_table_id', $log_table->id);
+                            $log_column->setValue('column_id', $file->custom_column_id);
+                            $column = CustomColumn::find($file->custom_column_id);
+                            if ($column) {
+                                $column_view_name = $column->column_view_name;
+                            }
+                            $log_column->setValue('column_name', $column_view_name);
+                            $log_column->save();
+                        }
+                    } else {
+                        $log_column = CustomTable::getEloquent(SystemTableName::LOG_COLUMN)->getValueModel()
+                            ->where('value->log_table_id', $log_table->id)
+                            ->where('value->column_name', LogAction::ATTACH_FILE)
+                            ->first();
+                        if (!$log_column) {
+                            $log_column = CustomTable::getEloquent(SystemTableName::LOG_COLUMN)->getValueModel();
+                            $log_column->setValue('log_table_id', $log_table->id);
+                            $log_column->setValue('column_name', LogAction::ATTACH_FILE);
+                            $log_column->save();
+                        }
+                    }
+                    $org_ids = \Exment::user()->belong_organizations()->getResults()->pluck('id')->toArray();
+                    $access_file_log = CustomTable::getEloquent(SystemTableName::ACCESS_FILE_LOG)->getValueModel();
+                    $access_file_log->setValue('user', \Exment::user()->base_user->id);
+                    $access_file_log->setValue('ip_address', request()->getClientIp());
+                    $access_file_log->setValue('table', $log_table->id);
+                    $access_file_log->setValue('column', $log_column->id);
+                    $access_file_log->setValue('data_id', $file->parent_id);
+                    $access_file_log->setValue('file_name', $file->filename);
+                    $access_file_log->setValue('user_action', $action);
+                    $access_file_log->setValue('org', $org_ids);
+                    $access_file_log->save();
+                }
+            }
+        }
     }
 
     /**

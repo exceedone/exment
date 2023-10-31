@@ -52,6 +52,9 @@ class Define
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
 
+        'log_available' => ['type' => 'boolean', 'group' => 'initialize'],
+        'time_clear_log' => ['type' => 'number', 'group' => 'initialize'],
+        'time_clear_log_unit' => ['type' => 'selectc', 'group' => 'initialize'],
         'api_available' => ['type' => 'boolean', 'config' => 'exment.api', 'group' => 'initialize'],
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],

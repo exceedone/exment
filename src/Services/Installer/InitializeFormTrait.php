@@ -85,6 +85,17 @@ trait InitializeFormTrait
             ->disableClear()
             ->help(exmtrans("system.help.site_layout"));
 
+        $form->switchbool('log_available', exmtrans("system.log_available"))
+            ->default(0)
+            ->help(exmtrans("system.help.log_available"));
+        
+        $form->number('time_clear_log', exmtrans("system.time_clear_log"))
+            ->default(1)
+            ->min(1);
+        $form->select('time_clear_log_unit', '')
+            ->options(['day' => '日間', 'month' => '月間', 'year' => '年間'])
+            ->default('day')
+            ->help(exmtrans("system.help.time_clear_log"));
         $form->switchbool('api_available', exmtrans("system.api_available"))
             ->default(0)
             ->help(exmtrans("system.help.api_available"));
@@ -197,7 +208,6 @@ trait InitializeFormTrait
 
         $inputs = $request->all(System::get_system_keys($group));
         array_forget($inputs, 'initialized');
-
         // set system_key and value
         foreach ($inputs as $k => $input) {
             System::{$k}($input);

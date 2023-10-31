@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Carbon\Carbon;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
@@ -21,6 +22,9 @@ use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\ShareTargetType;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\CustomTable;
+use Illuminate\Support\Facades\Artisan;
 
 class DashboardController extends AdminControllerBase
 {
@@ -154,6 +158,46 @@ class DashboardController extends AdminControllerBase
                 var url = $(ev.target).closest('[data-ajax-link]').data('ajax-link');
                 var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
                 loadDashboardBox(suuid, url);
+            });
+            $.ajax({
+                url: '/is_delete_log',
+                type: "GET",
+                success: function (data) {
+                    if (data) {
+                        Swal.fire({
+                            title: 'ログ保存期間外のログデータがあります。削除してもいいですか？',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'OK',
+                            cancelButtonText: 'キャンセル'
+                          }).then((result) => {
+                            if (result.value) {
+                                Swal.fire({
+                                    title: '削除してます。しばらくお待ちください。',
+                                    allowOutsideClick: false,
+                                    onBeforeOpen: () => {
+                                        Swal.showLoading();
+                                    }
+                                });
+                                $.ajax({
+                                    url: '/delete_log',
+                                    type: "GET",
+                                    success: function (data) {
+                                        if (data) {
+                                            Swal.close();
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Success',
+                                                text: '削除は終わりました。',
+                                                confirmButtonText: 'OK'
+                                            });
+                                        }
+                                    },
+                                });
+                            }
+                        });
+                    }
+                },
             });
         });
 
@@ -452,5 +496,50 @@ EOT;
         // get custom view
         $model = Dashboard::getEloquent($id);
         return DataShareAuthoritable::saveShareDialogForm($model);
+    }
+
+    /**
+     * check if there are logs that should delete
+     */
+    public function isDeleteLog()
+    {
+        $log_available = System::log_available();
+        $time_delete_log = System::time_clear_log();
+        $time_delete_log_unit = System::time_clear_log_unit();
+        if ($log_available) {
+            $range_time = null;
+            switch ($time_delete_log_unit) {
+                case 'day':
+                    $range_time = Carbon::now()->subDay($time_delete_log);
+                    break;
+                case 'month':
+                    $range_time = Carbon::now()->subMonth($time_delete_log);
+                    break;
+                case 'year':
+                    $range_time = Carbon::now()->subYear($time_delete_log);
+                    break;
+                default:
+                    break;
+            }
+            if ($range_time) {
+                $logs = CustomTable::getEloquent(SystemTableName::ACCESS_FILE_LOG)->getValueModel()
+                    ->where('created_at', '<', $range_time)
+                    ->get();
+                if ($logs->isNotEmpty()) {
+                    return response()->json(true);
+                }
+            }
+        }
+        return response()->json(false);
+    }
+
+    /**
+     * delete logs by command
+     */
+    public function deleteLog()
+    {
+        Artisan::call('exment:deletelog');
+
+        return response()->json(true);
     }
 }
