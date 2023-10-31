@@ -15,7 +15,6 @@ interface ConnectionInterface
      * Check execute backup database
      *
      * @return bool
-     * @throws BackupRestoreCheckException
      */
     public function checkBackup(): bool;
 

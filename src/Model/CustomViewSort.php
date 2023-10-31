@@ -2,14 +2,18 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\ConditionType;
 
 /**
- * @phpstan-consistent-constructor
  * @property mixed $view_column_target_id
  * @property mixed $view_column_table_id
  * @property mixed $suuid
  * @property mixed $custom_view_id
+ * @property mixed $sort
+ * @property mixed $priority
+ * @method static ExtendedBuilder create(array $attributes = [])
+ * @phpstan-consistent-constructor
  */
 class CustomViewSort extends ModelBase
 {

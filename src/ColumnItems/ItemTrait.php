@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Encore\Admin\Show\Field as ShowField;
+use Illuminate\Contracts\Database\Query\Builder;
 
 /**
  *
@@ -567,7 +568,8 @@ trait ItemTrait
     /**
      * Set show field options
      *
-     * @param mixed $field
+     * @param ShowField $field
+     * @param array $options
      * @return void
      */
     public function setShowFieldOptions(ShowField $field, array $options = [])
@@ -595,7 +597,7 @@ trait ItemTrait
      *
      * @param  array  $form_column_options  Custom form column options
      *
-     * @return  self
+     * @return  self|void
      */
     public function setFormColumnOptions($form_column_options)
     {
@@ -615,7 +617,7 @@ trait ItemTrait
      *
      * @param  array  $other_form_columns Other form columns
      *
-     * @return  self
+     * @return  self|void
      */
     public function setOtherFormColumns($other_form_columns)
     {
@@ -735,11 +737,11 @@ trait ItemTrait
     /**
      * Set Search orWhere for free text search
      *
-     * @param Builder $mark
+     * @param Builder $query
      * @param string $mark
      * @param string $value
      * @param string|null $q
-     * @return void
+     * @return $this
      */
     public function setSearchOrWhere(&$query, $mark, $value, $q)
     {
@@ -845,7 +847,7 @@ trait ItemTrait
     /**
      * Set admin filter options
      *
-     * @param [type] $filter
+     * @param $filter
      * @return void
      */
     protected function setAdminFilterOptions(&$filter)
@@ -855,11 +857,11 @@ trait ItemTrait
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
-     * @return string
+     * @return string|null
      */
     protected function getGridFilterOption(): ?string
     {
-        return FilterOption::EQ;
+        return (string)FilterOption::EQ;
     }
 
     /**
@@ -880,7 +882,6 @@ trait ItemTrait
      * Set where null query for grid filter. If class is "ExmWhere".
      *
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
-     * @param mixed $input
      * @return void
      */
     public function getAdminFilterWhereNullQuery($query)

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Form;
 
+use Exceedone\Exment\Model\CustomFormColumn;
 use Symfony\Component\HttpFoundation\Response;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
@@ -242,11 +243,11 @@ EOT;
     /**
      * set custom form columns
      *
-     * @param Form $form Laravel-admin's form
+     * @param Form $form
      * @param CustomFormBlock $custom_form_block
-     * @param CustomValue|null $target_custom_value target customvalue. if Child block, this arg is child custom value.
-     * @param CustomRelation|null $this form block's relation
-     * @return array
+     * @param CustomValue|null $target_custom_value
+     * @param CustomRelation|null $relation
+     * @return \Closure
      */
     protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null, ?CustomRelation $relation = null)
     {
@@ -308,6 +309,7 @@ EOT;
                 if (!isset($form_column->custom_column)) {
                     continue;
                 }
+                /** @var CustomColumn $column */
                 $column = $form_column->custom_column;
                 if(array_get($column->options, 'force_caculate')) {
                     $force_caculate_column[$force_caculate_column_key][]  = $column->column_name;

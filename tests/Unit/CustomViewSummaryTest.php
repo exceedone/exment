@@ -1044,11 +1044,13 @@ class CustomViewSummaryTest extends UnitTestBase
                 if ($column_data instanceof \Illuminate\Support\Collection) {
                     $column_data = $column_data->map(function ($item) {
                         if ($item instanceof Model) {
+                            /** @var mixed $item */
                             return $item->id;
                         }
                         return $item;
                     });
                 } elseif ($column_data instanceof Model) {
+                    /** @phpstan-ignore-next-line */
                     $column_data = $column_data->id;
                 }
                 return [($reference_key ?? $column_name) => $column_data];

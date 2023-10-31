@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\ConditionType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property mixed $view_column_table_id
  * @property mixed $suuid
  * @property mixed $custom_view_id
+ * @property mixed $custom_view
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomViewSummary extends ModelBase
 {

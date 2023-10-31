@@ -2,6 +2,17 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
+use Exceedone\Exment\Model\CustomForm;
+
+/**
+ * @method mixed getTableColumn()
+ * @method mixed setOtherFormColumns(array $other_form_columns)
+ * @method mixed setFormColumnOptions($form_column_options)
+ * @method mixed setCustomForm(CustomForm $custom_form)
+ * @method mixed isMultipleEnabled()
+ * @method string getCastWrapTableColumn(?string $column_name = null)
+ * @method mixed isDateTime()
+ */
 interface ItemInterface
 {
     /**

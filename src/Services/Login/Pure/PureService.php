@@ -24,7 +24,7 @@ class PureService implements LoginServiceInterface
      *
      * @param Authenticatable $login_user
      * @param array $credentials
-     * @return void
+     * @return bool
      */
     public static function validateCredential(Authenticatable $login_user, array $credentials)
     {
@@ -32,6 +32,7 @@ class PureService implements LoginServiceInterface
             return false;
         }
 
+        /** @phpstan-ignore-next-line Maybe need use $login_user->getAuthPassword() */
         $password = $login_user->password;
         $credential_password = array_get($credentials, 'password');
         // Verify the user with the username password in $ credentials, return `true` or `false`

@@ -5,6 +5,9 @@ namespace Exceedone\Exment\Model;
 /**
  * @phpstan-consistent-constructor
  * @property mixed $workflow_conditions
+ * @property mixed $workflow_action_id
+ * @property mixed $enabled_flg
+ * @property mixed $status_to
  */
 class WorkflowConditionHeader extends ModelBase
 {

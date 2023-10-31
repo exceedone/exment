@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
  * @property mixed $workflow_authorities
  * @property mixed $status_from
  * @property mixed $action_name
+ * @property mixed $ignore_work
  */
 class WorkflowAction extends ModelBase
 {
@@ -102,7 +103,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get work conditions. Contains status_to, enabled_flg, workflow_conditions, etc
      *
-     * @return void
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
      */
     public function getWorkConditionsAttribute()
     {
@@ -139,7 +140,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get work condition select(for common action). Only return first item's status_to
      *
-     * @return void
+     * @return array
      */
     public function getWorkConditionSelectAttribute()
     {
@@ -302,7 +303,7 @@ class WorkflowAction extends ModelBase
      *
      * @param CustomValue $custom_value
      * @param array $data
-     * @return void
+     * @return WorkflowValue|null
      */
     public function executeAction($custom_value, $data = [])
     {
@@ -900,7 +901,8 @@ class WorkflowAction extends ModelBase
     {
         // if sql server, append cast
         if (\Exment::isSqlServer()) {
-            /// create where raw query
+            // create where raw query
+            /** @phpstan-ignore-next-line */
             $column = \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_ACTION . '.status_from');
             $whereStatusStart = $column . ' = ' . \Exment::wrapValue($workflow_status);
             $query->whereRaw($whereStatusStart);
@@ -919,7 +921,8 @@ class WorkflowAction extends ModelBase
     {
         // if sql server, append cast
         if (\Exment::isSqlServer()) {
-            /// create where raw query
+            // create where raw query
+            /** @phpstan-ignore-next-line */
             $whereStatusStart = \Exment::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
             $query->whereRaw($whereStatusStart);
         } else {

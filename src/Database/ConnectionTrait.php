@@ -3,8 +3,14 @@
 namespace Exceedone\Exment\Database;
 
 use Closure;
+use Exceedone\Exment\Database\Schema\MariaDBBuilder;
+use Exceedone\Exment\Database\Schema\MySqlBuilder;
+use Exceedone\Exment\Database\Schema\SqlServerBuilder;
 use Throwable;
 
+/**
+ * @method MariaDBBuilder|MySqlBuilder|SqlServerBuilder getSchemaBuilder()
+ */
 trait ConnectionTrait
 {
     /**
@@ -24,7 +30,7 @@ trait ConnectionTrait
     /**
      * Get database version.
      *
-     * @return void
+     * @return string
      */
     public function getVersion()
     {

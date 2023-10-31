@@ -10,7 +10,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      * Process the results of a get version.
      *
      * @param  array  $results
-     * @return array
+     * @return string
      */
     public function processGetVersion($results)
     {
@@ -23,7 +23,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      * Process the results of a mariadb
      *
      * @param  array  $results
-     * @return array
+     * @return array|bool
      */
     public function processIsMariaDB($results)
     {

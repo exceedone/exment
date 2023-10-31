@@ -99,11 +99,13 @@ class News
         return $query;
     }
 
-
     /**
      * Set exment news items
      *
-     * @return void
+     * @return void|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function setItems()
     {

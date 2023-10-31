@@ -8,6 +8,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
+use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -33,6 +34,7 @@ use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\FormHelper;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Model\CustomValue;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -68,9 +70,9 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Update the specified resource in storage.
      *
+     * @param $tableKey
      * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
     public function update($tableKey, $id)
     {
@@ -98,9 +100,9 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Remove the specified resource from storage.
      *
+     * @param $tableKey
      * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
     public function destroy($tableKey, $id)
     {
@@ -118,7 +120,9 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function index(Request $request, Content $content)
     {
@@ -260,7 +264,9 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Create interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function create(Request $request, Content $content)
     {
@@ -274,7 +280,23 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::CREATE
         ]);
 
-        $row = new Row($this->form(null));
+        if (!is_null($copy_id = $request->get('copy_id'))) {
+            // ignore file and autonumber from target model
+            $form = $this->form(null)->editing(function($form) {
+                $model = $form->model();
+                $this->filterCopyColumn($model);
+                foreach ($model->getRelations() as $relations) {
+                    foreach ($relations as $relation) {
+                        $this->filterCopyColumn($relation);
+                    }
+                }
+            })->replicate($copy_id);
+        } else {
+            $form = $this->form(null);
+        }
+
+
+        $row = new Row($form);
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
             static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
@@ -289,15 +311,14 @@ class CustomValueController extends AdminControllerTableBase
         return $content;
     }
 
-
     /**
      * edit
      *
      * @param Request $request
      * @param Content $content
-     * @param string $tableKey
-     * @param string|int|null $id
-     * @return Response
+     * @param $tableKey
+     * @param $id
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -339,8 +360,11 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Show interface.
      *
+     * @param Request $request
+     * @param Content $content
+     * @param $tableKey
      * @param $id
-     * @return Content
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function show(Request $request, Content $content, $tableKey, $id)
     {
@@ -546,10 +570,13 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
-    //Function handle operation button click event
     /**
+     * Function handle operation button click event
+     *
      * @param Request $request
-     * @return Response
+     * @param $tableKey
+     * @param $id
+     * @return array|Response
      */
     public function operationClick(Request $request, $tableKey, $id = null)
     {
@@ -591,10 +618,14 @@ class CustomValueController extends AdminControllerTableBase
         return $response;
     }
 
-    //Function handle workflow history click event
+
     /**
+     * Function handle workflow history click event
+     *
      * @param Request $request
-     * @return Response
+     * @param $tableKey
+     * @param $id
+     * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|Response
      */
     public function workflowHistoryModal(Request $request, $tableKey, $id = null)
     {
@@ -633,10 +664,13 @@ class CustomValueController extends AdminControllerTableBase
         return $action->actionModal($this->custom_table->getValueModel($id));
     }
 
-    //Function handle workflow click event
     /**
+     * Function handle workflow click event
+     *
      * @param Request $request
-     * @return Response
+     * @param $tableKey
+     * @param $id
+     * @return array
      */
     public function actionClick(Request $request, $tableKey, $id)
     {
@@ -781,10 +815,12 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
-
-    //Function handle copy click event
     /**
+     * Function handle copy click event
+     *
      * @param Request $request
+     * @param $tableKey
+     * @param $id
      * @return Response
      */
     public function copyClick(Request $request, $tableKey, $id = null)
@@ -1111,5 +1147,20 @@ class CustomValueController extends AdminControllerTableBase
 
         // set form
         $this->custom_form = $this->custom_table->getPriorityForm($id);
+    }
+
+    /**
+     * delete file, image, autonumber column from customvalue
+     * 
+     * @param CustomValue $custom_value
+     */
+    protected function filterCopyColumn(CustomValue $custom_value) 
+    {
+        $custom_value->custom_table->custom_columns->filter(function($column) {
+            $column_type = $column->column_type;
+            return ColumnType::isAttachment($column_type) || $column_type == ColumnType::AUTO_NUMBER;
+        })->each(function($column) use($custom_value) {
+            $custom_value->setValue($column->column_name, null, true);
+        });
     }
 }

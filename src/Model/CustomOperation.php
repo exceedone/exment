@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\CustomOperationType;
@@ -13,10 +14,12 @@ use Illuminate\Validation\ValidationException;
 /**
  * @phpstan-consistent-constructor
  * @property mixed $operation_type
+ * @property mixed $operation_name
  * @property mixed $custom_table_id
- * @method static \Illuminate\Database\Query\Builder whereNull($columns, $boolean = 'and', $not = false)
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder whereNull($columns, $boolean = 'and', $not = false)
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomOperation extends ModelBase
 {
@@ -26,7 +29,7 @@ class CustomOperation extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
 
     protected $casts = ['options' => 'json', 'operation_type' => 'array'];
-    protected $appends = ['condition_join'];
+    protected $appends = ['condition_join', 'active_flg'];
 
 
     public function custom_table(): BelongsTo
@@ -73,6 +76,19 @@ class CustomOperation extends ModelBase
     public function setConditionJoinAttribute($val)
     {
         $this->setOption('condition_join', $val);
+
+        return $this;
+    }
+
+    public function getActiveFlgAttribute()
+    {
+        $active_flg = $this->getOption('active_flg');
+        return is_null($active_flg) || $active_flg;
+    }
+
+    public function setActiveFlgAttribute($val)
+    {
+        $this->setOption('active_flg', $val);
 
         return $this;
     }
@@ -165,7 +181,7 @@ class CustomOperation extends ModelBase
         if (count($operations) > 0) {
             foreach ($operations as $operation) {
                 // if $operation_type is trigger and custom-value is match for conditions, execute
-                if ($operation->isOperationTarget($custom_value, $operation_types)) {
+                if ($operation->active_flg && $operation->isOperationTarget($custom_value, $operation_types)) {
                     $updates = $operation->getUpdateValues($custom_value);
                     $custom_value->setValue($updates);
                     $update_flg = true;
@@ -214,6 +230,7 @@ class CustomOperation extends ModelBase
         } catch (\Exception $ex) {
             \DB::rollback();
             if ($ex instanceof ValidationException) {
+                /** @phpstan-ignore-next-line */
                 return array_first(array_flatten($ex->validator->getMessages()));
             }
             throw $ex;

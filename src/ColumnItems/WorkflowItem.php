@@ -77,7 +77,7 @@ class WorkflowItem extends SystemItem
      * Get workflow item as status name string
      *
      * @param bool $html is call as html, set true
-     * @return string
+     * @return string|null
      */
     protected function getWorkflowValue($val, $html)
     {
@@ -141,12 +141,13 @@ class WorkflowItem extends SystemItem
         return $this->getTableName();
     }
 
-
     /**
      * Set admin filter options
      *
-     * @param [type] $filter
+     * @param $filter
      * @return void
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function setAdminFilterOptions(&$filter)
     {

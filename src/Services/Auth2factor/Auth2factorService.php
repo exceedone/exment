@@ -53,7 +53,7 @@ class Auth2factorService
      * @param string $verify_type
      * @param string $verify_code
      * @param bool $matchDelete if true, remove match records
-     * @return bool
+     * @return mixed|bool
      */
     public static function verifyCode($verify_type, $verify_code, $matchDelete = false)
     {

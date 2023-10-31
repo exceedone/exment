@@ -28,7 +28,7 @@ trait ColumnSystemItemTrait
      *
      * @param string $key
      * @param bool $show_condition_key
-     * @return \Encore\Admin\Form\Field
+     * @return \Encore\Admin\Form\Field|null
      */
     public function getChangeField($key, $show_condition_key = true)
     {

@@ -76,6 +76,11 @@ trait AuthTrait
     /**
      * Initiate a logout request across all the SSO infrastructure.
      *
+     * @param Request $request
+     * @param $provider_name
+     * @param $options
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
+     * @throws \OneLogin\Saml2\Error
      */
     protected function logoutSaml(Request $request, $provider_name, $options = [])
     {
@@ -98,9 +103,8 @@ trait AuthTrait
     /**
      * Send the response after the user was authenticated.
      *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse|\Illuminate\Http\Response
      */
     protected function sendLoginResponse(Request $request)
     {

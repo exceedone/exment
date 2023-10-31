@@ -305,12 +305,13 @@ class TemplateImporter
         }
     }
 
-
     /**
      * Extract zip and get json etc
      *
-     * @param [type] $uploadFile
+     * @param $uploadFile
+     * @return array|null[]
      * @return array offset 0: json, 1: tmpfolderpath, 2: fullpath. 3: config_path, 4: thumbnail_path, 5:tmpDiskItem
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
     protected function extractZip($uploadFile): array
     {
@@ -418,6 +419,7 @@ class TemplateImporter
         $reader = IOFactory::createReader('Xlsx');
         $spreadsheet = $reader->load($file->getRealPath());
 
+        /** @var DataImportExport\Formats\PhpSpreadSheet\PhpSpreadSheet $format */
         $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET, false);
 
         foreach (Define::TEMPLATE_IMPORT_EXCEL_SHEETNAME as $sheetname) {
@@ -657,6 +659,7 @@ class TemplateImporter
             // Re-Loop by tables and create columns
             foreach (array_get($json, "custom_tables", []) as $table) {
                 // find tables. --------------------------------------------------
+                /** @var mixed $obj_table */
                 $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
                 // Create columns. --------------------------------------------------
                 foreach (array_get($table, 'custom_columns', []) as $column) {
@@ -811,9 +814,9 @@ class TemplateImporter
     /**
      * Get merged json
      *
-     * @param string $jsonString
+     * @param string|null $jsonString
      * @param array $options
-     * @return array
+     * @return array|void
      */
     public function getMergeJson(string $jsonString = null, array $options = [])
     {

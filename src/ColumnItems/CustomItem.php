@@ -595,7 +595,8 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * get original field value
-     * @return mix
+     *
+     * @return mixed
      */
     protected function getOriginalValue()
     {
@@ -609,8 +610,6 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * get value before saving
-     *
-     * @return void
      */
     public function saving()
     {
@@ -618,8 +617,6 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * get value after saving
-     *
-     * @return void
      */
     public function saved()
     {

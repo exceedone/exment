@@ -103,15 +103,11 @@ trait MailHistoryTrait
         return $this->mailHistory->isSetHistoryBody();
     }
 
-
-
-
     /**
      * Set the value of user
      *
      * @param  string|CustomValue|NotifyTarget|null  $user
-     *
-     * @return  self
+     * @return MailHistory
      */
     public function setUser($user)
     {
@@ -136,9 +132,8 @@ trait MailHistoryTrait
     /**
      * Set the value of mail_template
      *
-     * @param  string|CustomValue|null  $mail_template
-     *
-     * @return  self
+     * @param string|CustomValue|null $mail_template
+     * @return MailHistory
      */
     public function setMailTemplate($mail_template)
     {

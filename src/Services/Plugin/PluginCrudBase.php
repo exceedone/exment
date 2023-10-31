@@ -208,7 +208,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Get target all endpoints
      * If support multiple endpoints, override function, end return.
      *
-     * @return array|null
+     * @return Collection|null
      */
     public function getAllEndpoints(): ?Collection
     {
@@ -336,7 +336,7 @@ abstract class PluginCrudBase extends PluginPublicBase
     /**
      * Get route uri for page
      *
-     * @return string
+     * @return string|null
      */
     public function getRouteUri($endpoint = null)
     {
@@ -566,11 +566,10 @@ abstract class PluginCrudBase extends PluginPublicBase
     {
     }
 
-
     /**
      * Callback grid row action. If add event, definition.
      *
-     * @param Grid $grid
+     * @param $actions
      * @return void
      */
     public function callbackGridAction($actions)
@@ -666,7 +665,10 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Validate form
      *
      * @param WidgetForm $form
-     * @return array|MessageBag|ExmentCustomValidator
+     * @param array $values
+     * @param bool $isCreate
+     * @param $id
+     * @return bool|\Illuminate\Support\MessageBag
      */
     public function validate(WidgetForm $form, array $values, bool $isCreate, $id)
     {

@@ -28,7 +28,7 @@ trait ConditionTypeTrait
     /**
      * Undocumented function
      *
-     * @return void
+     * @return mixed|null
      */
     public function getConditionItemAttribute()
     {

@@ -18,6 +18,7 @@ use Exceedone\Exment\Model\CustomTable;
 
 /**
  * Customized for Exment
+ * @property mixed $revision_no
  * @property mixed $revisionable_id
  * @property mixed $revisionable_type
  */
@@ -55,10 +56,9 @@ class Revision extends Eloquent
 
     /**
      * Revisionable.
-     *
      * Grab the revision history for the model that is calling
      *
-     * @return array revision history
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
      */
     public function revisionable()
     {
@@ -71,7 +71,7 @@ class Revision extends Eloquent
      * Returns the field that was updated, in the case that it's a foreign key
      * denoted by a suffix of "_id", then "_id" is simply stripped
      *
-     * @return string field
+     * @return array|bool|Revision|string|string[]
      */
     public function fieldName()
     {
