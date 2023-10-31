@@ -1739,6 +1739,7 @@ return [
         'update_value_text' => '更新値',
         'input_column_description' => 'データ更新のタイミングがボタンの場合に、更新値を設定するフォーム(ダイアログ)を表示することができます。<br/>入力を行う列を設定してください。',
         'dialog_description' => "%sのデータを更新する値を記入してください。",
+        'active_flg' => '有効フラグ',
 
         'operation_type_options' => [
             'bulk_update' => '一覧画面のチェックボタン選択時',
@@ -2184,6 +2185,7 @@ return [
         'soft_deleted_data' => '削除済データ',
         'restore' => '復元',
         'hard_delete' => '完全に削除する',
+        'custom_valule_button_label' => 'データ',
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',

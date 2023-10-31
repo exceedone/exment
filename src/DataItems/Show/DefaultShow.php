@@ -238,7 +238,7 @@ class DefaultShow extends ShowBase
                             }
                         }
                         foreach ($operations as $operation) {
-                            if ($operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
+                            if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
                                 $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
                             }
                         }
