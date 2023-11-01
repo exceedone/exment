@@ -225,6 +225,12 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 $row = array_map(function ($key) use ($array) {
                     return $array[$key];
                 }, $outcols);
+
+                foreach($row as $key => $value) {
+                    if ($value === null) {
+                        $row[$key] = 'NULL';
+                    }
+                }
                 // write detail data
                 $file->fputcsv($row);
             }

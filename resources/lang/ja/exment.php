@@ -2278,7 +2278,7 @@ return [
         'old_revision' => '過去リビジョン',
         'new_revision' => '最新リビジョン',
         'revision_info' => 'リビジョン情報',
-        'restore_revision' => 'このリビジョンを復元',
+        'restore_revision' => 'この更新を復元',
         'new' => '最新',
         'compare_revision' => 'リビジョン比較',
     ],

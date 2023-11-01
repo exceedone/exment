@@ -554,8 +554,13 @@ EOT;
      */
     protected function useFileUpload()
     {
+        if (boolval(config('exment.view_user_available_attachment', false))) {
+            if ($this->custom_value->enableAccess() !== true) {
+                return false;
+            }
+        }
         // if no permission, return
-        if ($this->custom_value->enableEdit() !== true) {
+        elseif ($this->custom_value->enableEdit() !== true) {
             return false;
         }
 

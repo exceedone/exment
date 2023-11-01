@@ -1099,6 +1099,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Attachments are available to users with view permission
+    |--------------------------------------------------------------------------
+    |
+    | If true, attachments are available to users with view permission.
+    |
+    */
+    'view_user_available_attachment' => env('EXMENT_VIEW_USER_AVAILABLE_ATTACHMENT', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Maximum length of strings to display in the grid
     |--------------------------------------------------------------------------
     |
