@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Carbon\Carbon;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
@@ -21,6 +22,9 @@ use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\ShareTargetType;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\CustomTable;
+use Illuminate\Support\Facades\Artisan;
 
 class DashboardController extends AdminControllerBase
 {
@@ -115,7 +119,8 @@ class DashboardController extends AdminControllerBase
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
         $error = exmtrans('error.header');
-
+        $is_delete_log_url = admin_urls('is_delete_log');
+        $delete_log_url = admin_urls('delete_log');
         $script = <<<EOT
         $(function () {
             // get suuid inputs
@@ -230,6 +235,59 @@ class DashboardController extends AdminControllerBase
             });
         }
 EOT;
+        if (System::log_available()) {
+            $delete_log_text = exmtrans('system.delete_log_text');
+            $delete_log_title = exmtrans('system.delete_log_title');
+            $cancel_text = exmtrans('system.cancel');
+            $deleting_text = exmtrans('system.currently_delete_text');
+            $deleting_title = exmtrans('system.currently_delete_title');
+            $success_title = exmtrans('common.success');
+            $delete_success_text = exmtrans('system.delete_success_text');
+            $script .= <<<EOT
+                $.ajax({
+                    url: "$is_delete_log_url",
+                    type: "GET",
+                    success: function (data) {
+                        if (data) {
+                            Swal.fire({
+                                type: 'warning',
+                                title: "$delete_log_title",
+                                text: "$delete_log_text",
+                                showCancelButton: true,
+                                confirmButtonText: "OK",
+                                cancelButtonText: "$cancel_text"
+                            }).then((result) => {
+                                if (result.value) {
+                                    Swal.fire({
+                                        title: "$deleting_title",
+                                        text: "$deleting_text",
+                                        allowOutsideClick: false,
+                                        onBeforeOpen: () => {
+                                            Swal.showLoading();
+                                        }
+                                    });
+                                    $.ajax({
+                                        url: "$delete_log_url",
+                                        type: "GET",
+                                        success: function (data) {
+                                            if (data) {
+                                                Swal.close();
+                                                Swal.fire({
+                                                    type: 'success',
+                                                    title: "$success_title",
+                                                    text: "$delete_success_text",
+                                                    confirmButtonText: "OK"
+                                                });
+                                            }
+                                        },
+                                    });
+                                }
+                            });
+                        }
+                    },
+                });
+            EOT;
+        }
         Admin::script($script);
         return $content;
     }
@@ -452,5 +510,50 @@ EOT;
         // get custom view
         $model = Dashboard::getEloquent($id);
         return DataShareAuthoritable::saveShareDialogForm($model);
+    }
+
+    /**
+     * check if there are logs that should delete
+     */
+    public function isDeleteLog()
+    {
+        $log_available = System::log_available();
+        $time_delete_log = System::time_clear_log();
+        $time_delete_log_unit = System::time_clear_log_unit();
+        if ($log_available) {
+            $range_time = null;
+            switch ($time_delete_log_unit) {
+                case 'day':
+                    $range_time = Carbon::now()->subDay($time_delete_log);
+                    break;
+                case 'month':
+                    $range_time = Carbon::now()->subMonth($time_delete_log);
+                    break;
+                case 'year':
+                    $range_time = Carbon::now()->subYear($time_delete_log);
+                    break;
+                default:
+                    break;
+            }
+            if ($range_time) {
+                $logs = CustomTable::getEloquent(SystemTableName::ACCESS_FILE_LOG)->getValueModel()
+                    ->where('created_at', '<', $range_time)
+                    ->get();
+                if ($logs->isNotEmpty()) {
+                    return response()->json(true);
+                }
+            }
+        }
+        return response()->json(false);
+    }
+
+    /**
+     * delete logs by command
+     */
+    public function deleteLog()
+    {
+        Artisan::call('exment:deletelog');
+
+        return response()->json(true);
     }
 }

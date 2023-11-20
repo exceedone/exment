@@ -27,6 +27,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Encore\Admin\Admin;
 use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\LogAction;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Finder\Finder;
 use League\Flysystem\PathPrefixer;
@@ -937,6 +938,9 @@ class Exment
      */
     public function setFileInfo($field, $file, $file_type, $custom_table, bool $replace = true)
     {
+        $parts = explode('/', request()->path());
+        $end_url = end($parts);
+        $this->saveLog($end_url, $field->column(), $custom_table, $file->getClientOriginalName());
         $dirname = $field->getDirectory();
 
         if ($file instanceof UploadedFile) {
@@ -954,6 +958,49 @@ class Exment
 
         // return filename
         return $exmentfile->local_filename;
+    }
+
+    // Save log upload custom column file
+    public function saveLog($end_url, $column, $custom_table, $document_name) {
+        if (System::log_available() && array_get($custom_table, 'options.log_enabled')) {
+            $log_table = CustomTable::getEloquent(SystemTableName::LOG_TABLE)
+                ->getValueModel()->where('value->table_id', $custom_table->id)->first();
+                if ($log_table) {
+                    $custom_column = CustomColumn::where('custom_table_id', $custom_table->id)
+                        ->where('column_name', $column)
+                        ->first();
+                    if ($custom_column) {
+                        $log_column = CustomTable::getEloquent(SystemTableName::LOG_COLUMN)->getValueModel()
+                            ->where('parent_id', $log_table->id)
+                            ->where('value->column_id', $custom_column->id)
+                            ->first();
+                        if (!$log_column) {
+                            $log_column = CustomTable::getEloquent(SystemTableName::LOG_COLUMN)->getValueModel();
+                            $log_column->parent_type = SystemTableName::LOG_TABLE;
+                            $log_column->parent_id = $log_table->id;
+                            $log_column->setValue('column_id', $custom_column->id);
+                            $log_column->setValue('column_name', $column);
+                            $log_column->save();
+                        }
+                        $org_ids = \Exment::user()->belong_organizations()->getResults()->pluck('id')->toArray();
+                        $access_file_log = CustomTable::getEloquent(SystemTableName::ACCESS_FILE_LOG)->getValueModel();
+                        $access_file_log->setValue('user', \Exment::user()->base_user->id);
+                        $access_file_log->setValue('ip_address', request()->getClientIp());
+                        $access_file_log->setValue('table', $log_table->id);
+                        $access_file_log->setValue('column', $log_column->id);
+                        if (is_numeric($end_url)) {
+                            $access_file_log->setValue('data_id', (int)$end_url);
+                        } else {
+                            $data_id = $custom_table->getValueModel()->max('id') + 1;
+                            $access_file_log->setValue('data_id', $data_id);
+                        }
+                        $access_file_log->setValue('file_name', $document_name);
+                        $access_file_log->setValue('user_action', LogAction::UPLOAD);
+                        $access_file_log->setValue('org', $org_ids);
+                        $access_file_log->save();
+                    }
+            }
+        }
     }
 
     /**

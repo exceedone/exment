@@ -327,6 +327,76 @@
                     }
                 }
             ]
+        },
+        {
+            "table_name": "log_column",
+            "table_view_name": "ログ列",
+            "custom_columns": [
+                {
+                    "column_name": "column_id",
+                    "column_view_name": "列ID"
+                },
+                {
+                    "column_name": "column_name",
+                    "column_view_name": "列名"
+                }
+            ]
+        },
+        {
+            "table_name": "log_table",
+            "table_view_name": "ログテーブル",
+            "custom_columns": [
+                {
+                    "column_name": "table_id",
+                    "column_view_name": "テーブルID"
+                },
+                {
+                    "column_name": "table_name",
+                    "column_view_name": "テーブル名"
+                }
+            ]
+        },
+        {
+            "table_name": "access_file_log",
+            "table_view_name": "アクセスログ管理",
+            "custom_columns": [
+                {
+                    "column_name": "user",
+                    "column_view_name": "アクセスユーザ"
+                },
+                {
+                    "column_name": "ip_address",
+                    "column_view_name": "IPアドレス"
+                },
+                {
+                    "column_name": "table",
+                    "column_view_name": "対象テーブル"
+                },
+                {
+                    "column_name": "column",
+                    "column_view_name": "対象カラム"
+                },
+                {
+                    "column_name": "data_id",
+                    "column_view_name": "対象データID"
+                },
+                {
+                    "column_name": "file_name",
+                    "column_view_name": "ファイル名"
+                },
+                {
+                    "column_name": "user_action",
+                    "column_view_name": "ファイル操作"
+                },
+                {
+                    "column_name": "access_date",
+                    "column_view_name": "アクセス日付"
+                },
+                {
+                    "column_name": "org",
+                    "column_view_name": "アクセス組織"
+                }
+            ]
         }
     ],
     "custom_forms": [
@@ -355,6 +425,18 @@
         {
 			"suuid": "96c4e4f7d8a86a4ba17e",
             "form_view_name": "フォーム"
+        },
+        {
+			"suuid": "nw5ra8cgdifjqt8v0dej",
+            "form_view_name": "フォーム"
+        },
+        {
+			"suuid": "mnwdxou015w7ilmyc2d2",
+            "form_view_name": "フォーム"
+        },
+        {
+			"suuid": "67lgbom3arq2ry2yrvwh",
+            "form_view_name": "フォーム"
         }
     ],
 	"custom_views": [
@@ -381,6 +463,10 @@
         {
             "suuid": "99120fd4b360e15993d2",
             "view_view_name": "お知らせ一覧"
+        },
+        {
+            "suuid": "bada70507e0f11eea4d0",
+            "view_view_name": "全件ビュー"
         }
 	],
     "dashboards": [

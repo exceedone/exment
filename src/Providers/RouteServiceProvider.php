@@ -47,6 +47,8 @@ class RouteServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'admin'],
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
+            $router->get('/is_delete_log', 'DashboardController@isDeleteLog');
+            $router->get('/delete_log', 'DashboardController@deleteLog');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
             $router->delete('dashboardbox/delete/{suuid}', 'DashboardBoxController@delete');
             $router->resource('dashboard', 'DashboardController');

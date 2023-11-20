@@ -26,6 +26,8 @@ use Exceedone\Exment\Services\SystemRequire;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
 use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Enums\SystemRequireResult;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\Menu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -461,6 +463,32 @@ class SystemController extends AdminControllerBase
         DB::beginTransaction();
         try {
             $result = $this->postInitializeForm($request, ($advanced ? ['advanced', 'notify'] : ['initialize', 'system']), false, !$advanced);
+            if (System::log_available()) {
+                $log_menu = Menu::where('uri', SystemTableName::ACCESS_FILE_LOG)->first();
+                if (!$log_menu) {
+                    $admin_menu = Menu::where('menu_name', 'admin')->first();
+                    if ($admin_menu) {
+                        DB::table('admin_menu')->lockForUpdate()->get();
+                        $order = Menu::where('parent_id', $admin_menu->id)->max('order') + 1;
+                        $menu_target = CustomTable::getEloquent(SystemTableName::ACCESS_FILE_LOG)->id;
+                        $log_menu = new Menu();
+                        $log_menu->parent_id = $admin_menu->id;
+                        $log_menu->order = $order;
+                        $log_menu->title = exmtrans('system.log_menu');
+                        $log_menu->icon = 'fa-file';
+                        $log_menu->uri = SystemTableName::ACCESS_FILE_LOG;
+                        $log_menu->menu_type = 'table';
+                        $log_menu->menu_name = SystemTableName::ACCESS_FILE_LOG;
+                        $log_menu->menu_target = $menu_target;
+                        $log_menu->save();
+                    }
+                }
+            } else {
+                $log_menu = Menu::where('uri', SystemTableName::ACCESS_FILE_LOG)->first();
+                if ($log_menu) {
+                    $log_menu->delete();
+                }
+            }
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }

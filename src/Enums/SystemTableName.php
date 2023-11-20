@@ -21,6 +21,9 @@ class SystemTableName extends EnumBase
     public const MAIL_TEMPLATE = 'mail_template';
     public const MAIL_SEND_LOG = 'mail_send_log';
     public const BASEINFO = 'base_info';
+    public const ACCESS_FILE_LOG = 'access_file_log';
+    public const LOG_TABLE = 'log_table';
+    public const LOG_COLUMN = 'log_column';
     public const DOCUMENT = 'document';
     public const FILE= 'files';
     public const NOTIFY_HISTORY = 'notify_history';
@@ -62,6 +65,9 @@ class SystemTableName extends EnumBase
             SystemTableName::MAIL_TEMPLATE,
             SystemTableName::MAIL_SEND_LOG,
             SystemTableName::BASEINFO,
+            SystemTableName::ACCESS_FILE_LOG,
+            SystemTableName::LOG_TABLE,
+            SystemTableName::LOG_COLUMN
         ];
     }
 }

@@ -32,6 +32,7 @@ use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Model\System;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -158,6 +159,9 @@ class CustomTableController extends AdminControllerBase
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
             $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1")
             ;
+            if (System::log_available()) {
+                $form->switchbool('log_enabled', exmtrans("custom_table.log_enabled"))->help(exmtrans("custom_table.help.log_enabled"))->default("0");
+            }
             $form->switchbool('use_label_id_flg', exmtrans("custom_table.use_label_id_flg"))
                 ->help(sprintf(exmtrans("custom_table.help.use_label_id_flg"), getManualUrl('column?id='.exmtrans('custom_column.options.use_label_flg'))))
                 ->default("0")
@@ -256,6 +260,17 @@ class CustomTableController extends AdminControllerBase
             $form->disableEditingCheck(false);
         }
         $form->saved(function (Form $form) {
+            // Add or delete data of log table by turn on or off log enable setting
+            if ($form->options['log_enabled'] == 1) {
+                $log_table = CustomTable::getEloquent(SystemTableName::LOG_TABLE)
+                    ->getValueModel()->where('value->table_id', $form->id)->first();
+                if (!$log_table) {
+                    $log_table = CustomTable::getEloquent(SystemTableName::LOG_TABLE)->getValueModel();
+                    $log_table->setValue('table_id', $form->model()->id);
+                    $log_table->setValue('table_name', $form->model()->table_view_name);
+                    $log_table->save();
+                }
+            }
             // create or drop index --------------------------------------------------
             $model = $form->model();
             /** @phpstan-ignore-next-line fix laravel-admin documentation */

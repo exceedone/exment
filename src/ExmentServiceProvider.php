@@ -91,6 +91,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\DocumentImportCommand::class,
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
+        \Exceedone\Exment\Console\DeleteLogCommand::class,
     ];
 
 

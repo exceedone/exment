@@ -20,6 +20,8 @@ use Exceedone\Exment\Enums\FilterOption;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Model\CustomViewGridFilter;
+use Encore\Admin\Grid\Filter\Presenter\MultipleSelect;
 use Illuminate\Support\Collection;
 
 class SelectTable extends CustomItem
@@ -372,11 +374,57 @@ class SelectTable extends CustomItem
         $selectOption = $this->getSelectFieldOptions();
         $ajax = $target_table->getOptionAjaxUrl($selectOption);
 
-        $filter->multipleSelect(function ($value) use ($target_table, $selectOption) {
+        $multipleSelect = new MultipleSelect(function ($value) use ($target_table, $selectOption) {
             $selectOption['selected_value'] = $value;
             // get DB option value
             return $target_table->getSelectOptions($selectOption);
-        })->ajax($ajax);
+        });
+        // todo refactor: add setRelatedLinkageEvent to custom_filter like custom_form
+        if ($this->custom_table->table_name === SystemTableName::ACCESS_FILE_LOG) {
+            $suuid = substr($filter->getId(), 5);
+            $grid_filter = CustomViewGridFilter::where('suuid', $suuid)->first();
+            if ($grid_filter) {
+                $custom_view_id = $grid_filter->custom_view_id;
+                $log_table = CustomTable::getEloquent(SystemTableName::LOG_TABLE);
+                $log_column = CustomTable::getEloquent(SystemTableName::LOG_COLUMN);
+                $file_log_table = CustomTable::getEloquent(SystemTableName::ACCESS_FILE_LOG);
+                $file_log_table_log_column = CustomColumn::getEloquent('column', $file_log_table);
+                $file_log_table_log_table = CustomColumn::getEloquent('table', $file_log_table);
+                $key_filter_log_table = CustomViewGridFilter::where('custom_view_id', $custom_view_id)
+                    ->where('view_column_target_id', $file_log_table_log_table->id)
+                    ->first();
+                $key_filter_log_column = CustomViewGridFilter::where('custom_view_id', $custom_view_id)
+                    ->where('view_column_target_id', $file_log_table_log_column->id)
+                    ->first();
+                $org_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+                $user_table = CustomTable::getEloquent(SystemTableName::USER);
+                $file_log_table_user = CustomColumn::getEloquent('user', $file_log_table);
+                $file_log_table_org = CustomColumn::getEloquent('org', $file_log_table);
+                $key_filter_org = CustomViewGridFilter::where('custom_view_id', $custom_view_id)
+                    ->where('view_column_target_id', $file_log_table_org->id)
+                    ->first();
+                $key_filter_user = CustomViewGridFilter::where('custom_view_id', $custom_view_id)
+                    ->where('view_column_target_id', $file_log_table_user->id)
+                    ->first();
+                $script = <<<EOT
+                    var related_json;
+                    if(typeof related_json === 'undefined') {
+                        related_json = {"ckey_$key_filter_org->suuid":[{"uri":"data/$org_table->table_name/relatedLinkage",
+                            "expand":{"child_column_id":$key_filter_user->view_column_target_id,"parent_select_table_id":$org_table->id,
+                            "child_select_table_id":$user_table->id,"search_type":2,"display_table_id":$file_log_table->id},
+                            "to":"ckey_$key_filter_user->suuid"}],
+                            "ckey_$key_filter_log_table->suuid":[{"uri":"data/$log_table->table_name/relatedLinkage",
+                            "expand":{"child_column_id":$key_filter_log_column->view_column_target_id,"parent_select_table_id":$log_table->id,
+                            "child_select_table_id":$log_column->id,"search_type":1,"display_table_id":$file_log_table->id},
+                            "to":"ckey_$key_filter_log_column->suuid"}]
+                        };
+                        Exment.CommonEvent.setRelatedLinkageEvent(related_json);
+                    }
+                EOT;
+                $multipleSelect->append($script);
+            }
+        }
+        $filter->customMultipleSelect($multipleSelect)->ajax($ajax);
     }
 
     protected function setValidates(&$validates)

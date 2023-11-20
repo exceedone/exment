@@ -57,8 +57,14 @@ class Editor extends CustomItem
             // if grid, remove tag and omit string
             $text = get_omitted_string(strip_tags($text));
         }
+        $pattern = '/<img.*?src=["\'](.*?)["\'].*?>/i';
+        preg_match($pattern, $text, $matches);
+        if (isset($matches[1])) {
+            $newSrc = $matches[1] . '?preview=true';        
+            $modifiedText = preg_replace('/<img.*?src=["\'](.*?)["\'].*?>/i', '<img src="' . $newSrc . '">', $text);
+        }
 
-        return  '<div class="show-tinymce">'.replaceBreak(html_clean($text), false).'</div>';
+        return  '<div class="show-tinymce">'.replaceBreak(html_clean($modifiedText ?? $text), false).'</div>';
     }
 
     protected function getAdminFieldClass()

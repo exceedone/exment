@@ -26,7 +26,7 @@ class Image extends File
             return $url;
         }
 
-        return \Exment::getUrlTag($url, '<img src="'.$url.'" class="mw-100 image_html" />', UrlTagType::BLANK, [], [
+        return \Exment::getUrlTag($url, '<img src="'.$url.'?preview=true'.'" class="mw-100 image_html" />', UrlTagType::BLANK, [], [
             'notEscape' => true,
         ]);
     }
