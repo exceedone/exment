@@ -1180,6 +1180,13 @@ return [
         'add_parent_menu' => 'Target Parent Menu',
         'default_setting' => 'General Settings',
         'expand_setting' => 'Extended Settings',
+        'data_submit_redirect_options' => [
+            'inherit'               => 'Match system settings',
+            'list'                  => 'List',
+            'view'                  => 'View',
+            'continue_editing'      => 'Continue editing',
+            'continue_creating'     => 'Continue creating',
+        ],
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',

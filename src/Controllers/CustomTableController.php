@@ -32,6 +32,7 @@ use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Enums\DataSubmitRedirectEx;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -183,6 +184,11 @@ class CustomTableController extends AdminControllerBase
                 ->default(config('exment.revision_count', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
             ;
+
+            $form->select('data_submit_redirect', exmtrans("system.data_submit_redirect"))
+                ->options(DataSubmitRedirectEx::transKeyArray("custom_table.data_submit_redirect_options"))
+                ->default(DataSubmitRedirectEx::INHERIT)
+                ->help(exmtrans("system.help.data_submit_redirect"));
 
             $form->exmheader(exmtrans('role_group.permission_setting'))->hr();
 
