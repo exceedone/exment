@@ -48,7 +48,7 @@ var Exment;
                 data: { 'label': 1 },
                 async: false,
                 success: function (repsonse) {
-                    let newOption = new Option(repsonse.label, repsonse.id, true, true);
+                    let newOption = new Option(repsonse.label, repsonse.id, true, false);
                     $target.append(newOption);
                 }
             });

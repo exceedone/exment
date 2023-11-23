@@ -19,8 +19,8 @@
             @endif
         </div>
     @endif
-    <div class="table-container col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} col-sm-offset-{{$tablewidth['offset']}}">
-        <table id="has-many-table-{{$column}}-table" class="scrollable-table table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
+    <div class="{{ str_starts_with($column, 'pivot') ? 'table-container ' : '' }}col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} col-sm-offset-{{$tablewidth['offset']}}">
+        <table id="has-many-table-{{$column}}-table" class="{{ str_starts_with($column, 'pivot') ? 'scrollable-table ' : '' }}table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
             <thead>
             <tr class="active">
                 @foreach($tableitems as $tableitem)
