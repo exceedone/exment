@@ -1043,6 +1043,7 @@ return [
         'notify' => 'Notification Setting',
         'custom_value' => 'Data List',
         'error_select' => 'Please select only one record.',
+        'qrcode' => 'QR Code Setting',
     ],
 
     'workflow' => [
@@ -2180,6 +2181,10 @@ return [
             'menu' => 'Menu',
             'role_group' => 'Role group',
         ]
+    ],
+
+    'qrcode' => [
+        'description' => 'Perform settings for create Qr code for data.',
     ],
 
     'custom_value' => [
