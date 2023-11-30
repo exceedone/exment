@@ -237,6 +237,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
             $this->setTableResouce($router, 'operation', 'CustomOperationController');
             $this->setTableResouce($router, 'notify', 'CustomNotifyController');
+            $this->setTableResouce($router, 'qrcode', 'QrCodeController', true);
 
             // only webapi api function
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
