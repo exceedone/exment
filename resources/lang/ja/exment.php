@@ -1183,6 +1183,13 @@ return [
         'expand_setting' => '拡張設定',
         'copy_from_table' => 'コピー元テーブル',
         'copy_custom_table' => 'カスタムテーブルをコピーする',
+        'data_submit_redirect_options' => [
+            "inherit"               => "システム設定に合わせる",
+            'list'                  => '一覧',
+            'view'                  => '表示',
+            'continue_editing'      => '編集を続ける',
+            'continue_creating'     => '新規作成する',
+        ],
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
