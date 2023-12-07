@@ -1180,6 +1180,8 @@ return [
         'add_parent_menu' => 'Target Parent Menu',
         'default_setting' => 'General Settings',
         'expand_setting' => 'Extended Settings',
+        'copy_from_table' => 'Original table',
+        'copy_custom_table' => 'Copy custom table',
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
@@ -1200,6 +1202,7 @@ return [
             'saved_redirect_column' => 'Save succeeded ! Please set column column.',
             'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
+            'copy_custom_table' => 'Copy normal settings, advanced settings and custom columns. <br />Other settings are out of scope. Please set manually.',
         ],
 
         'custom_column_multi' => [
