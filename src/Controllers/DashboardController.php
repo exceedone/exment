@@ -272,7 +272,7 @@ EOT;
                 ->disableClear()
                 ->default(DashboardType::SYSTEM);
         } else {
-            $form->internal('dashboard_type')->default(DashboardType::USER);
+            $form->internal('dashboard_type')->default($dashboard_type?? DashboardType::USER);
         }
 
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
