@@ -534,6 +534,8 @@ class Plugin extends ModelBase
                         $buttonList[] = [
                             'plugin_type' => $plugin_type,
                             'plugin' => $plugin,
+                            'order' => $plugin->getOption('order')?? 0,
+                            'id' => $plugin->id,
                         ];
                         break;
                     case PluginType::TRIGGER:
@@ -554,12 +556,18 @@ class Plugin extends ModelBase
                         $buttonList[] = [
                             'plugin_type' => $plugin_type,
                             'plugin' => $plugin,
+                            'order' => $plugin->getOption('order')?? 0,
+                            'id' => $plugin->id,
                         ];
                         break;
                 }
             }
         }
 
+        if (count($buttonList) > 0) {
+            $buttonList = collect($buttonList)
+                ->sortBy([['order', 'asc'], ['id', 'asc']])->toArray();
+        }
         return $buttonList;
     }
 

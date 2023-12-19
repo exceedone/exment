@@ -335,6 +335,7 @@ class PluginController extends AdminControllerBase
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
                 $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
+                $form->number('order', exmtrans("plugin.options.order"))->help(exmtrans("plugin.help.order"));
             }
 
             if ($plugin->matchPluginType([PluginType::EXPORT])) {
