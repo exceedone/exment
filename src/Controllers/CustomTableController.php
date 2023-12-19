@@ -263,7 +263,6 @@ class CustomTableController extends AdminControllerBase
 
             // redirect custom column page
             if (!$this->exists) {
-                /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
                 $custom_column_url = admin_urls('column', $table_name);
 
@@ -461,7 +460,6 @@ HTML;
 
             $model = $form->model();
             admin_toastr(trans('admin.update_succeeded'));
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             return redirect(admin_urls_query('table', $model->id, 'edit', ['columnmulti' => 1, 'after-save' => 1]));
         });
 
