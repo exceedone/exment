@@ -76,7 +76,7 @@ class UpdateCommand extends Command
         $this->call('migrate');
 
         // Remove template import if update
-        // $importer = new TemplateImporter;
-        // $importer->importSystemTemplate(true);
+        $importer = new TemplateImporter;
+        $importer->importSystemTemplate(true);
     }
 }

@@ -369,6 +369,19 @@
                         "index_enabled": "1",
                         "freeword_search": "1"
                     }
+                },
+                {
+                    "column_name": "show_auth_setting",
+                    "column_view_name": "Affiliated users can be set",
+                    "column_type": "yesno",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "help": "If set to YES, users belonging to the organization can configure user settings. Click <a href='https://exment.net/docs/#/organization.md#user-auth-setting'>here</a> for details",
+                        "default": "0"
+                    }
                 }
             ]
         },
@@ -910,6 +923,12 @@
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "organization_name"
+                        },
+                        {
+                            "suuid": "9660211eeaef754e4815",
+                            "form_column_type": "0",
+                            "options": [],
+                            "form_column_target_name": "show_auth_setting"
                         }
                     ],
                     "form_block_target_table_name": "organization"

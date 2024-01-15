@@ -183,6 +183,13 @@
                 {
                     "column_name": "parent_organization",
                     "column_view_name": "親組織"
+                },
+                {
+                    "column_name": "show_auth_setting",
+                    "column_view_name": "所属ユーザ設定可能",
+                    "options": {
+                        "help": "YESにした場合、組織に所属するユーザがユーザ設定することができます。詳細は<a href='https://exment.net/docs/#/ja/organization#所属ユーザ設定可能項目追加'>こちら</a>をご参照ください。"
+                    }
                 }
             ]
         },

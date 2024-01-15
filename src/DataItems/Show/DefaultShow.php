@@ -303,6 +303,13 @@ class DefaultShow extends ShowBase
         $hasMultiColumn = false;
 
         foreach ($custom_form_block->custom_form_columns as $form_column) {
+            // hide user setting in detail org screen if not setting in env file
+            if ($this->custom_table->table_name === SystemTableName::ORGANIZATION && !config('exment.show_auth_setting')) {
+                $custom_column = $form_column->custom_column;
+                if ($custom_column->column_name == 'show_auth_setting') {
+                    continue;
+                }
+            }
             if ($form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
             }

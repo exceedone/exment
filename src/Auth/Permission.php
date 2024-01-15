@@ -216,7 +216,6 @@ class Permission
             case "auth/logout":
             case "saml/login":
             case "saml/logout":
-            case "auth/setting":
             case "auth/reset":
             case "auth/change":
             case "auth/forget":
@@ -230,6 +229,24 @@ class Permission
             case "tmpfiles":
             case "tmpimages":
                 return true;
+            case "auth/setting":
+                if ($this->role_type == RoleType::SYSTEM) {
+                    return array_key_exists('system', $this->permission_details);
+                }
+                // hide user setting if not set in env or not set in org setting
+                if (config('exment.show_auth_setting')) {
+                    $check_auth_setting = true;
+                    $orgs = \Exment::user()->base_user->belong_organizations;
+                    $orgs->each(function ($org) use (&$check_auth_setting) {
+                        if ($org->getValue('show_auth_setting')) {
+                            $check_auth_setting = true;
+                            return false;
+                        }
+                    });
+                    if (!$check_auth_setting) {
+                        return $check_auth_setting;
+                    }
+                }
                 ///// only system permission
             case "system":
             case "backup":
@@ -378,11 +395,11 @@ class Permission
             // if $uri is "auth", get next uri.
             if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'saml', 'plugins']))) {
                 // but url is last item, return $uri.
-                if (count($uris) <= $k+1) {
+                if (count($uris) <= $k + 1) {
                     return $uri;
                 }
                 // return $uri adding next item.
-                return url_join($uri, $uris[$k+1]);
+                return url_join($uri, $uris[$k + 1]);
             } else {
                 return $uri;
             }

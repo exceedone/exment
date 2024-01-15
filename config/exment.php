@@ -1104,4 +1104,14 @@ return [
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Specifies that the organization setting display the show auth setting column or not
+    |--------------------------------------------------------------------------
+    |
+    | If true, display the show auth setting.
+    |
+    */
+    'show_auth_setting' => env('EXMENT_SHOW_AUTH_SETTING', false),
 ];
