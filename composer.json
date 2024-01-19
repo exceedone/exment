@@ -24,7 +24,7 @@
     ],
     "require": {
         "php": "^8.2.0",
-        "laravel/framework": "^10.10",
+        "laravel/framework": "^10.34.0",
         "laravelcollective/html": "^6.4",
         "laravel/helpers": "^1.6",
         "laravel/ui": "^4.2",
