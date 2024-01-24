@@ -94,7 +94,7 @@ trait ConnectionTrait
 
             // If we catch an exception we'll rollback this transaction and try again if we
             // are not out of attempts. If we are out of attempts we will just throw the
-            // exception back out, and let the developer handle an uncaught exception.
+            // exception back out and let the developer handle an uncaught exceptions.
             catch (Throwable $e) {
                 $this->handleTransactionException(
                     $e,
@@ -113,20 +113,14 @@ trait ConnectionTrait
                 }
 
                 if ($this->transactions == 1) {
-                    $this->fireConnectionEvent('committing');
                     $this->getPdo()->commit();
                 }
 
-                [$levelBeingCommitted, $this->transactions] = [
-                    $this->transactions,
-                    max(0, $this->transactions - 1),
-                ];
+                $this->transactions = max(0, $this->transactions - 1);
 
-                $this->transactionsManager?->commit(
-                    $this->getName(),
-                    $levelBeingCommitted,
-                    $this->transactions
-                );
+                if ($this->transactions == 0) {
+                    optional($this->transactionsManager)->commit($this->getName());
+                }
             } catch (Throwable $e) {
                 $this->handleCommitTransactionException(
                     $e,
