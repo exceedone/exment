@@ -35,17 +35,6 @@ class File extends CustomItem
     }
 
     /**
-     * get file name
-     */
-    public function file_name()
-    {
-        $file = ExmentFile::getData($this->fileValue($this->value));
-        if ($file) {
-            return $file->filename;
-        }
-    }
-
-    /**
      * get text
      */
     protected function _text($v)
