@@ -24,4 +24,8 @@ class PluginEventBase
     public function execute()
     {
     }
+    
+    public function validateDestroy()
+    {
+    }
 }

@@ -21,6 +21,8 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
@@ -436,7 +438,41 @@ abstract class CustomValue extends ModelBase
         $this->restore_revision = $restore_revision;
         return $this;
     }
+    public static function validateDestroy($custom_table) {
+        
+        $plugins = Plugin::getPluginsByTable($custom_table, false);
+        if (count($plugins) > 0) {
+            foreach ($plugins as $plugin) {
+                // if $plugin_types is not trigger, continue
+                if (!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_EVENT())) {
+                    continue;
+                }
+                $options['throw_ex'] = false;
+                // call PluginType::EVENT as throw_ex is false
+                $class = $plugin->getClass(PluginType::EVENT, $options);
 
+                $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
+
+                // if isset $class, call
+                if (isset($class)) {
+                    if (method_exists($class, 'validateDestroy')) {
+                        $mess = $class->validateDestroy();
+                        if(!array_get($mess, 'status')) {
+                            return $mess;
+                        }
+                    }
+                }
+                // if cannot call class, set error
+                else {
+                    return [
+                        'status'  => false,
+                        'message' => exmtrans('error.delete_failed')
+                    ];
+                }
+            }
+        }
+        return null;
+    }
     protected static function boot()
     {
         parent::boot();

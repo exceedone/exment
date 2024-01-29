@@ -1128,6 +1128,7 @@ class CustomValueController extends AdminControllerTableBase
                 ];
             }
         }
+        return CustomValue::validateDestroy($custom_table);
     }
 
     /**

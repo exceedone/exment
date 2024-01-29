@@ -103,9 +103,9 @@ class ModelBase extends Model
     }
 
     /**
-    *
-    * @return void
-    */
+     *
+     * @return void
+     */
     protected static function boot()
     {
         parent::boot();
@@ -256,5 +256,25 @@ class ModelBase extends Model
     protected function serializeDate(\DateTimeInterface $date)
     {
         return $date->format($this->getDateFormat());
+    }
+
+    /**
+     * Delete the model from the database.
+     *
+     * @return bool|null
+     *
+     * @throws \LogicException
+     */
+    public function delete()
+    {
+        $custom_table = CustomTable::getEloquent($this);
+        // check validateDestroy CustomValue before delete
+        if (method_exists($this, 'validateDestroy')) {
+            $data = $this->validateDestroy($custom_table);
+            if (!empty($data) && !array_get($data, 'status')) {
+                return $data;
+            }
+        }
+        parent::delete();
     }
 }
