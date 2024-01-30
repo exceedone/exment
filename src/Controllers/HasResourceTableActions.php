@@ -74,7 +74,7 @@ trait HasResourceTableActions
 
         $result = true;
         $messages = [];
-        $rows->each(function ($id) use (&$result, &$message) {
+        $rows->each(function ($id) use (&$result, &$messages) {
             $res = $this->form($id)->destroy($id);
             if ($res instanceof JsonResponse) {
                 $data = $res->getData();
@@ -106,7 +106,7 @@ trait HasResourceTableActions
                     'message' => trans('admin.delete_failed'),
                 ];
             }
-            if ($rows->count() > 1) {
+            if ($rows->count() !== count($messages)) {
                 $data['forceRedirect'] = true;
             }
         }
