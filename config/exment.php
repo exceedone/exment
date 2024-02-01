@@ -1104,4 +1104,14 @@ return [
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Restrict creation of user views
+    |--------------------------------------------------------------------------
+    |
+    | If true, restrict creation of user views to table managers only.
+    |
+    */
+    'restrict_user_view_create' => env('EXMENT_RESTRICT_USER_VIEW_CREATE', false),
 ];

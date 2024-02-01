@@ -2882,7 +2882,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasViewPermission()
     {
-        return System::userview_available() || $this->hasSystemViewPermission();
+        return (System::userview_available() && !boolval(config('exment.restrict_user_view_create', false))) || $this->hasSystemViewPermission();
     }
 
     /**
