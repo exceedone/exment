@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
@@ -438,6 +439,19 @@ abstract class CustomValue extends ModelBase
         return $this;
     }
 
+    /**
+     * Delete the model from the database.
+     *
+     * @return bool|null
+     *
+     * @throws \LogicException
+     */
+    public function delete()
+    {
+        Plugin::pluginValidateDestroy($this);
+        parent::delete();
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -479,12 +493,6 @@ abstract class CustomValue extends ModelBase
                 $model->forceDeleting = true;
             }
 
-            // call deleting event plugins
-            Plugin::pluginExecuteEvent(PluginEventType::DELETING, $model->custom_table, [
-                'custom_table' => $model->custom_table,
-                'custom_value' => $model,
-                'force_delete' => $model->isForceDeleting(),
-            ]);
 
             // delete hard
             if ($model->isForceDeleting()) {

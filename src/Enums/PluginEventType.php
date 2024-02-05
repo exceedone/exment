@@ -6,7 +6,6 @@ class PluginEventType extends EnumBase
 {
     public const SAVING = 'saving';
     public const SAVED = 'saved';
-    public const DELETING = 'deleting';
     public const DELETED = 'deleted';
     public const LOADING = 'loading';
     public const LOADED = 'loaded';
