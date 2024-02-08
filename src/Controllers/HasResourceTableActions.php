@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Illuminate\Http\JsonResponse;
-
 /**
  * Admin(Exment) Controller
  *
@@ -73,17 +71,8 @@ trait HasResourceTableActions
         }
 
         $result = true;
-        $messages = [];
-        $rows->each(function ($id) use (&$result, &$messages) {
-            $res = $this->form($id)->destroy($id);
-            if ($res instanceof JsonResponse) {
-                $data = $res->getData();
-                if ($data->status === false) {
-                    $result = false;
-                    $messages[] = $data->message;
-                    return;
-                }
-            } elseif (!$res) {
+        $rows->each(function ($id) use (&$result) {
+            if (!$this->form($id)->destroy($id)) {
                 $result = false;
                 return;
             }
@@ -95,20 +84,10 @@ trait HasResourceTableActions
                 'message' => trans('admin.delete_succeeded'),
             ];
         } else {
-            if (count($messages) == 1) {
-                $data = [
-                    'status'  => false,
-                    'message' => $messages[0],
-                ];
-            } else {
-                $data = [
-                    'status'  => false,
-                    'message' => trans('admin.delete_failed'),
-                ];
-            }
-            if ($rows->count() !== count($messages)) {
-                $data['forceRedirect'] = true;
-            }
+            $data = [
+                'status'  => false,
+                'message' => trans('admin.delete_failed'),
+            ];
         }
 
         return response()->json($data);

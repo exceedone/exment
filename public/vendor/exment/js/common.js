@@ -158,9 +158,6 @@ var Exment;
                 }
             }
             else {
-                if (hasValue(res.forceRedirect) && res.forceRedirect) {
-                    CommonEvent.redirectCallback(res);
-                }
                 // show toastr
                 if (hasValue(res.toastr)) {
                     toastr.error(res.toastr);

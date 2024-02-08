@@ -439,19 +439,6 @@ abstract class CustomValue extends ModelBase
         return $this;
     }
 
-    /**
-     * Delete the model from the database.
-     *
-     * @return bool|null
-     *
-     * @throws \LogicException
-     */
-    public function delete()
-    {
-        Plugin::pluginValidateDestroy($this);
-        parent::delete();
-    }
-
     protected static function boot()
     {
         parent::boot();
@@ -492,7 +479,6 @@ abstract class CustomValue extends ModelBase
             if ($deleteForce) {
                 $model->forceDeleting = true;
             }
-
 
             // delete hard
             if ($model->isForceDeleting()) {

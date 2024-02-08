@@ -630,15 +630,24 @@ class Plugin extends ModelBase
                 // if isset $class, call
                 if (isset($class)) {
                     if (method_exists($class, 'validateDestroy')) {
-                        $mess = $class->validateDestroy($model);
-                        if (!empty($mess) && !array_get($mess, 'status')) {
-                            throw new \Exception(array_get($mess, 'message'));
+                        $res = $class->validateDestroy($model);
+                        if ($res === false) {
+                            return [
+                                'status'  => false,
+                                'message' =>  exmtrans('error.delete_failed'),
+                            ];
+                        }
+                        if (is_array($res) && array_get($res, 'status') === false) {
+                            return $res;
                         }
                     }
                 }
                 // if cannot call class, set error
                 else {
-                    throw new \Exception(exmtrans('error.delete_failed'));
+                    return [
+                        'status'  => false,
+                        'message' =>  exmtrans('error.delete_failed'),
+                    ];
                 }
             }
         }
