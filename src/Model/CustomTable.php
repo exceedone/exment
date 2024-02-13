@@ -3326,10 +3326,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         foreach ($ids as $target_id) {
-            $custom_value = $this->getValueModel($target_id);
-            $res = Plugin::pluginValidateDestroy($custom_value);
-            if (!empty($res)) {
-                return $res;
+            $custom_value = $this->getValueModel($target_id, true);
+            if ($custom_value) {
+                $res = Plugin::pluginValidateDestroy($custom_value);
+                if (!empty($res)) {
+                    return $res;
+                }
             }
         }
     }
