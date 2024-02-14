@@ -4235,10 +4235,14 @@ tr.header-right th {
   overflow: visible !important;
 }
 
-label:has(input[readonly][type=checkbox]) {
+label.checkbox-inline:has(input[readonly][type=checkbox]) {
   pointer-events: none;
 }
 
-label:has(input[readonly][type=radio]) {
+label.radio-inline:has(input[readonly][type=radio]) {
+  pointer-events: none;
+}
+
+label.checkboxone-label:has(input[readonly][type=checkbox]) {
   pointer-events: none;
 }
