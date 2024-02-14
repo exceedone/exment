@@ -4234,3 +4234,11 @@ tr.header-right th {
 .fc-scroller.fc-day-grid-container {
   overflow: visible !important;
 }
+
+label:has(input[readonly][type=checkbox]) {
+  pointer-events: none;
+}
+
+label:has(input[readonly][type=radio]) {
+  pointer-events: none;
+}
