@@ -1331,6 +1331,6 @@ class CCustomColumnTest extends ExmentKitTestCase
 
     protected function getNewestColumn()
     {
-        return CustomColumn::orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
+        return CustomColumn::orderBy('id', 'desc')->first();
     }
 }

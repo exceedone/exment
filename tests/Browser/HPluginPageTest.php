@@ -58,7 +58,7 @@ class HPluginPageTest extends ExmentKitTestCase
                 ->seeInElement('button', 'unit test')
                 ->assertEquals($pre_cnt + 1, Dashboard::count());
 
-        $row = Dashboard::orderBy('created_at', 'desc')->first();
+        $row = Dashboard::orderBy('id', 'desc')->first();
         $suuid = array_get($row, 'suuid');
         $param = "?column_no=1&dashboard_box_type=plugin&dashboard_suuid=$suuid&row_no=1";
 
