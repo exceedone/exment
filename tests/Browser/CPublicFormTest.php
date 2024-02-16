@@ -330,7 +330,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         // Get new data row
         $table_name = \getDBTableName($table);
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
+        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
@@ -562,7 +562,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         // Get new data row
         $table_name = \getDBTableName($table);
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
+        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
@@ -667,7 +667,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
     protected function getNewestForm()
     {
-        return PublicForm::orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
+        return PublicForm::orderBy('id', 'desc')->first();
     }
 
     protected function getStylePluginId()
