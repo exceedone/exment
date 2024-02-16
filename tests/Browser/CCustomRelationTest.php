@@ -70,7 +70,7 @@ class CCustomRelationTest extends ExmentKitTestCase
                 ->assertEquals($pre_cnt + 1, CustomRelation::count())
         ;
 
-        $row = CustomRelation::orderBy('created_at', 'desc')->first();
+        $row = CustomRelation::orderBy('id', 'desc')->first();
         $id = array_get($row, 'id');
 
         // Edit custom relation
@@ -106,7 +106,7 @@ class CCustomRelationTest extends ExmentKitTestCase
                 ->assertEquals($pre_cnt + 1, CustomRelation::count())
         ;
 
-        $row = CustomRelation::orderBy('created_at', 'desc')->first();
+        $row = CustomRelation::orderBy('id', 'desc')->first();
         $id = array_get($row, 'id');
 
         // Check custom relation
