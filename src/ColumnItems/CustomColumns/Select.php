@@ -224,4 +224,55 @@ class Select extends CustomItem
         }
         return $this->isMultipleEnabled() && $isUseUnicode ? unicode_encode($value) : $value;
     }
+    
+    /**
+     * Get pure value. If you want to change the search value, change it with this function.
+     *
+     * @param string $label
+     * @return ?array array:matched, null:not matched
+     */
+    public function getPureValue($label)
+    {
+        $result = [];
+
+        foreach ($this->custom_column->createSelectOptions() as $q) {
+            if (isMatchStringPartial($q, $label)) {
+                $result[] = $q;
+            }
+        }
+
+        if (count($result) === 0) {
+            if ($this->isFreeInput()) {
+                $result[] = $label;
+            } else {
+                return null;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Get Search queries for free text search
+     *
+     * @param string $mark
+     * @param string $value
+     * @param int $takeCount
+     * @param string|null $q
+     * @return array
+     */
+    public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
+    {
+        if ($this->isMultipleEnabled()) {
+            list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q, $options);
+            $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+            $query = $this->custom_table->getValueQuery();
+            $query_value = collect($pureValue)->map(function ($val) use ($isUseUnicode) {
+                return $isUseUnicode? unicode_encode($val): $val;
+            })->toArray();
+            $query->orWhereInArrayString($this->custom_column->getIndexColumnName(), $query_value)->select('id');
+            $query->take($takeCount);
+            return [$query];
+        }
+        return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
+    }
 }

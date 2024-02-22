@@ -820,4 +820,21 @@ class SelectTable extends CustomItem
             'include_system' => false,
         ]) ?? [];
     }
+
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param Builder $mark
+     * @param string $mark
+     * @param string $value
+     * @param string|null $q
+     * @return void
+     */
+    public function setSearchOrWhere(&$query, $mark, $value, $q)
+    {
+        if (!$this->isMultipleEnabled()) {
+            return parent::setSearchOrWhere($query, '=', $q, $q);
+        }
+        return $this->_setSearchOrWhere($query, $mark, $value, $q);
+    }
 }

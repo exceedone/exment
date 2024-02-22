@@ -33,9 +33,12 @@ class SelectValtext extends Select
 
     public function saving()
     {
-        $v = $this->getPureValue($this->value);
-        if (!is_null($v)) {
-            return $v;
+        $v = $this->_getPureValue($this->value, true);
+        if (!is_nullorempty($v)) {
+            if ($this->isMultipleEnabled()) {
+                return is_list($v) ? $v : [$v];
+            }
+            return is_list($v) ? $v[0] : $v;
         }
     }
 
@@ -51,21 +54,40 @@ class SelectValtext extends Select
 
     /**
      * Get pure value. If you want to change the search value, change it with this function.
+     * Call from freeword search.
      *
      * @param string $label
-     * @return ?string string:matched, null:not matched
+     * @return ?array array:matched, null:not matched
      */
     public function getPureValue($label)
     {
-        foreach ($this->custom_column->createSelectOptions() as $key => $q) {
-            if ($label == $q) {
-                return $key;
-            }
-        }
-
-        return null;
+        return $this->_getPureValue($label, false);
     }
 
+    /**
+     * Get pure value. If you want to change the search value, change it with this function.
+     *
+     * @param string $label
+     * @param bool $isCallFromSaving if true, called from saving function.
+     * @return ?array array:matched, null:not matched
+     */
+    protected function _getPureValue($label, bool $isCallFromSaving)
+    {
+        $result = [];
+
+        foreach ($this->custom_column->createSelectOptions() as $key => $q) {
+            if (isMatchStringPartial($q, $label)) {
+                // If called from saving, check as exact match.
+                if($isCallFromSaving && $q == $label){
+                    $result[] = $key;
+                }
+                // If called from freeword search, check as partial match.
+                elseif (!$isCallFromSaving && isMatchStringPartial($q, $label)) {
+                    $result[] = $key;
+                }
+            }
+        }
+    }
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
@@ -89,5 +111,22 @@ class SelectValtext extends Select
 
         $form->switchbool('check_radio_enabled', exmtrans("custom_column.options.check_radio_enabled"))
             ->help(exmtrans("custom_column.help.check_radio_enabled"));
+    }
+    
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param Builder $mark
+     * @param string $mark
+     * @param string $value
+     * @param string|null $q
+     * @return void
+     */
+    public function setSearchOrWhere(&$query, $mark, $value, $q)
+    {
+        if (!$this->isMultipleEnabled()) {
+            return parent::setSearchOrWhere($query, '=', $q, $q);
+        }
+        return $this->_setSearchOrWhere($query, $mark, $value, $q);
     }
 }
