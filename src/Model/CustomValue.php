@@ -113,6 +113,11 @@ abstract class CustomValue extends ModelBase
      */
     protected $file_uuids = [];
 
+    /**
+     * result validate destroy.
+     * if true, pass validate destroy
+     */
+    protected $validation_destroy = false;
 
     /**
      * Create a new Eloquent model instance.
@@ -181,7 +186,14 @@ abstract class CustomValue extends ModelBase
     {
         return $this->getUser('deleted_user_id', true, true);
     }
-
+    public function getValidationDestroy()
+    {
+        return $this->validation_destroy;
+    }
+    public function setValidationDestroy($value)
+    {
+        $this->validation_destroy = $value;
+    }
 
     /**
      * Whether this model disable delete
@@ -870,6 +882,24 @@ abstract class CustomValue extends ModelBase
         });
     }
 
+    /**
+     * Delete the model from the database.
+     *
+     * @return bool|null
+     *
+     * @throws \LogicException
+     */
+    public function delete()
+    {
+        if(!$this->getValidationDestroy()) {
+            $res = Plugin::pluginValidateDestroy($this);
+            if (!empty($res)) {
+                throw new \Exception(array_get($res, 'message'));
+            }
+            $this->setValidationDestroy(true);
+        }
+        parent::delete();
+    }
 
     /**
      * delete relation if record delete
@@ -892,6 +922,13 @@ abstract class CustomValue extends ModelBase
                     if ($deleteForce) {
                         $child->forceDelete();
                     } else {
+                        if(!$child->getValidationDestroy()) {
+                            $res = Plugin::pluginValidateDestroy($child);
+                            if (!empty($res)) {
+                                throw new \Exception(array_get($res, 'message'));
+                            }
+                            $child->setValidationDestroy(true);
+                        }
                         $child->delete();
                     }
                 });

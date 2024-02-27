@@ -3332,6 +3332,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if (!empty($res)) {
                     return $res;
                 }
+                $custom_value->setValidationDestroy(true);
             }
         }
     }
