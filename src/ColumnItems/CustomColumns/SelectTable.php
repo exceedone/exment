@@ -632,17 +632,18 @@ class SelectTable extends CustomItem
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
-        if (!$this->isMultipleEnabled()) {
-            return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
+        if ($this->isMultipleEnabled()) {
+            list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q, $options);
+            $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+            $query = $this->custom_table->getValueQuery();
+            $query_value = collect($pureValue)->map(function ($val) use ($isUseUnicode) {
+                return $isUseUnicode? unicode_encode($val): $val;
+            })->toArray();
+            $query->orWhereInArrayString($this->custom_column->getIndexColumnName(), $query_value)->select('id');
+            $query->take($takeCount);
+            return [$query];
         }
-
-        // If multiple enabled,
-        $query = $this->custom_table->getValueQuery();
-        $this->getAdminFilterWhereQuery($query, $value);
-
-        $query->take($takeCount)->select('id');
-
-        return [$query];
+        return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
     }
 
     public function isMultipleEnabled()

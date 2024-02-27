@@ -74,19 +74,20 @@ class SelectValtext extends Select
     protected function _getPureValue($label, bool $isCallFromSaving)
     {
         $result = [];
-
         foreach ($this->custom_column->createSelectOptions() as $key => $q) {
-            if (isMatchStringPartial($q, $label)) {
-                // If called from saving, check as exact match.
-                if($isCallFromSaving && $q == $label){
-                    $result[] = $key;
-                }
-                // If called from freeword search, check as partial match.
-                elseif (!$isCallFromSaving && isMatchStringPartial($q, $label)) {
-                    $result[] = $key;
-                }
+            // If called from saving, check as exact match.
+            if($isCallFromSaving && $q == $label){
+                $result[] = $key;
+            }
+            // If called from freeword search, check as partial match.
+            elseif (!$isCallFromSaving && isMatchStringPartial($q, $label)) {
+                $result[] = $key;
             }
         }
+        if (count($result) === 0) {
+            return null;
+        }
+        return $result;
     }
 
     /**
