@@ -34,6 +34,7 @@ class RoleGroupsPatch221007 extends Migration
         if (Schema::hasTable('role_groups')) {
             Schema::table('role_groups', function ($table) {
                 if (Schema::hasColumn('role_groups', 'role_group_order')) {
+                    $table->dropIndex(['role_group_order']);
                     $table->dropColumn('role_group_order');
                 }
             });
