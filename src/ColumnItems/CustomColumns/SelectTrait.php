@@ -66,4 +66,30 @@ trait SelectTrait
         }
         return parent::setSearchOrWhere($query, $mark, $value, $q);
     }
+
+    /**
+     * Get Search queries for free text search
+     *
+     * @param string $mark
+     * @param string $value
+     * @param int $takeCount
+     * @param string|null $q
+     * @return array
+     */
+    protected function getSearchQueriesTrait($mark, $value, $takeCount, $q, $options = [])
+    {
+        if ($this->isMultipleEnabled()) {
+            list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q, $options);
+            $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+            $query = $this->custom_table->getValueQuery();
+            $query_value = collect($pureValue)->map(function ($val) use ($isUseUnicode) {
+                $val = trim($val, '%');
+                return $isUseUnicode? unicode_encode($val): $val;
+            })->toArray();
+            $query->orWhereInArrayString($this->custom_column->getIndexColumnName(), $query_value)->select('id');
+            $query->take($takeCount);
+            return [$query];
+        }
+        return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
+    }
 }

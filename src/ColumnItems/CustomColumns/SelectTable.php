@@ -518,9 +518,10 @@ class SelectTable extends CustomItem
 
     /**
      * Get pure value. If you want to change the search value, change it with this function.
+     * Call from freeword search.
      *
      * @param string $label
-     * @return ?string string:matched, null:not matched
+     * @return ?array array:matched, null:not matched
      */
     public function getPureValue($label)
     {
@@ -588,7 +589,7 @@ class SelectTable extends CustomItem
 
         // get value
         $ids = $query->pluck('id');
-        return is_nullorempty($ids) ? null : ($this->isMultipleEnabled() ? $ids->toArray() : $ids->first());
+        return is_nullorempty($ids) ? null : $ids->toArray();
     }
 
     protected function setSelectTableQuery($query, $custom_column_id, $value)
@@ -606,6 +607,8 @@ class SelectTable extends CustomItem
         $searchValue = $column_item->getPureValue($value);
         if (!isset($searchValue)) {
             $searchValue = $value;
+        } elseif (is_array($searchValue) && count($searchValue) > 0) {
+            $searchValue = $searchValue[0];
         }
 
         if (System::filter_search_type() == FilterSearchType::ALL) {
@@ -632,18 +635,7 @@ class SelectTable extends CustomItem
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
-        if ($this->isMultipleEnabled()) {
-            list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q, $options);
-            $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
-            $query = $this->custom_table->getValueQuery();
-            $query_value = collect($pureValue)->map(function ($val) use ($isUseUnicode) {
-                return $isUseUnicode? unicode_encode($val): $val;
-            })->toArray();
-            $query->orWhereInArrayString($this->custom_column->getIndexColumnName(), $query_value)->select('id');
-            $query->take($takeCount);
-            return [$query];
-        }
-        return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
+        return $this->getSearchQueriesTrait($mark, $value, $takeCount, $q, $options);
     }
 
     public function isMultipleEnabled()
