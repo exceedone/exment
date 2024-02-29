@@ -9,6 +9,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
@@ -687,11 +688,12 @@ HTML;
      * Copy custom_table
      *
      * @param Request $request
-     * @param string|int $id
-     * @return void
+     * @param $id
+     * @return Response
      */
     public function copyTable(Request $request, $id)
     {
+        /** @var ExmentCustomValidator $validator */
         $validator = \Validator::make($request->all(), [
             'table_name' => "max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
             'table_view_name' => "max:40"

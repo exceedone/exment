@@ -272,7 +272,7 @@ class SelectTable extends CustomItem
     /**
      * Get relation filter object
      *
-     * @return Linkage|null
+     * @return Linkage|null|void
      */
     protected function getLinkage()
     {
@@ -319,7 +319,7 @@ class SelectTable extends CustomItem
     /**
      * get relation filter callback
      *
-     * @return \Closure|null
+     * @return \Closure|null|void
      */
     protected function getRelationFilterCallback($linkage)
     {
@@ -398,7 +398,7 @@ class SelectTable extends CustomItem
      *
      * @param mixed $value
      * @param array $setting
-     * @return array|null
+     * @return array
      */
     public function getImportValue($value, $setting = [])
     {
@@ -460,7 +460,7 @@ class SelectTable extends CustomItem
      *
      * @param array $datalist
      * @param string $key
-     * @return array|null
+     * @return array
      */
     public function getKeyAndIdList($datalist, $key)
     {
