@@ -243,6 +243,8 @@ class Select extends CustomItem
 
         if (count($result) === 0) {
             return null;
+        } elseif ($this->isFreeInput()) {
+            $result[] = trim($label);
         }
         return $result;
     }
