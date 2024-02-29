@@ -22,6 +22,14 @@ class DateString extends ItemBase
         'ymdhi' => 'YmdHi',
         'his' => 'His',
         'hi' => 'Hi',
+
+        'yymdhms' => 'ymdHis',
+        'yymdhm' => 'ymdHi',
+        'yymdh' => 'ymdH',
+        'yymd' => 'ymd',
+        'yym' => 'ym',
+        'yymdhis' => 'ymdHis',
+        'yymdhi' => 'ymdHi',
     ];
 
     /**

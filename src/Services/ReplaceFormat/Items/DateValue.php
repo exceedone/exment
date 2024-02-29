@@ -33,12 +33,13 @@ class DateValue extends ItemBase
         // if user input length
         if (count($this->length_array) > 1) {
             $length = $this->length_array[1];
+
+            if ($length < strlen($str)) {
+                $str = substr($str, -$length);
+            } else {
+                $str = sprintf('%0'.$length.'d', $str);
+            }
         }
-        // default 2
-        else {
-            $length = 1;
-        }
-        $str = sprintf('%0'.$length.'d', $str);
 
         return $str;
     }
