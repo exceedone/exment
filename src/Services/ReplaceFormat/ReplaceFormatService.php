@@ -89,6 +89,7 @@ class ReplaceFormatService
                         if (!$callbacked) {
                             $item = Items\ItemBase::getItem($custom_value, $length_array, $matchOptions);
                             if (isset($item)) {
+                                $options['matchString'] = $matchString;
                                 $str = $item->replace($format, $options);
                             }
                         }

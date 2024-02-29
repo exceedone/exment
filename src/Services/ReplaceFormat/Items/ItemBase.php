@@ -55,6 +55,8 @@ abstract class ItemBase
             $classname = LoginUser::class;
         } elseif ($key == "now") {
             $classname = Now::class;
+        } elseif ($key == "serial") {
+            $classname = SerialNumber::class;
         } elseif (in_array($key, ["file", 'documents'])) {
             $classname = File::class;
         }
