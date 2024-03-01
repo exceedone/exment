@@ -109,7 +109,7 @@ class PluginItem implements ItemInterface
     /**
      * Has show permission this dashboard item
      *
-     * @return boolean
+     * @return array|\Illuminate\Contracts\Translation\Translator|string|true|null
      */
     protected function hasPermission()
     {

@@ -9,6 +9,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
@@ -284,7 +285,6 @@ class CustomTableController extends AdminControllerBase
 
             // redirect custom column page
             if (!$this->exists) {
-                /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
                 $custom_column_url = admin_urls('column', $table_name);
 
@@ -482,7 +482,6 @@ HTML;
 
             $model = $form->model();
             admin_toastr(trans('admin.update_succeeded'));
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             return redirect(admin_urls_query('table', $model->id, 'edit', ['columnmulti' => 1, 'after-save' => 1]));
         });
 
@@ -689,11 +688,12 @@ HTML;
      * Copy custom_table
      *
      * @param Request $request
-     * @param string|int $id
-     * @return void
+     * @param $id
+     * @return Response
      */
     public function copyTable(Request $request, $id)
     {
+        /** @var ExmentCustomValidator $validator */
         $validator = \Validator::make($request->all(), [
             'table_name' => "max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
             'table_view_name' => "max:40"
