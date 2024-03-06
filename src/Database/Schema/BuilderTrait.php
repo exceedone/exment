@@ -108,7 +108,7 @@ trait BuilderTrait
         return false;
     }
 
-    public function hasIndex($tableName, $columnName, $indexName)
+    public function hasCustomIndex($tableName, $columnName, $indexName)
     {
         $indexes = $this->getIndexDefinitions($tableName, $columnName);
 
@@ -291,7 +291,7 @@ trait BuilderTrait
         $db_table_name = $this->connection->getTablePrefix().$db_table_name;
 
         // check index name
-        if (\Schema::hasIndex($db_table_name, $db_column_name, $index_name)) {
+        if (\Schema::hasCustomIndex($db_table_name, $db_column_name, $index_name)) {
             \Schema::table($db_table_name, function (Blueprint $table) use ($index_name) {
                 $table->dropIndex($index_name);
             });

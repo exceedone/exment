@@ -128,7 +128,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 ->assertEquals($pre_cnt + 1, \DB::table($table_name)->whereNull('deleted_at')->count())
         ;
         // Get new data row
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
+        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
         // Check custom data
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->seeInField('value[integer]', 99)
@@ -158,7 +158,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = CustomTable::getEloquent('exmenttest_data');
         $table_name = \getDBTableName($row);
 
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
+        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         // Update custom data(checkbox field)
         $data = [
@@ -184,7 +184,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = CustomTable::getEloquent('exmenttest_data');
         $table_name = \getDBTableName($row);
 
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
+        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         // Update custom data
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
