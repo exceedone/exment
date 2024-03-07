@@ -581,7 +581,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
 
         if ($addFreeInput && $this->index_enabled && boolval(config('exment.include_freeinput_filter_options', false))) {
-            $list = $this->custom_table->getValueQuery()->pluck($this->getQueryKey());;
+            $list = $this->custom_table->getValueQuery()->distinct()->pluck($this->getQueryKey());;
             foreach ($list as $data) {
                 if (is_null($data)) {
                     continue;
