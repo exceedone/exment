@@ -546,8 +546,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     /**
      * Create laravel-admin select box options. for column_type "select", "select_valtext"
+     * 
+     * @param bool $addFreeInput
      */
-    public function createSelectOptions()
+    public function createSelectOptions(bool $addFreeInput = false)
     {
         // get value
         $column_type = array_get($this, 'column_type');
@@ -575,6 +577,26 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         } elseif (is_array($select_item)) {
             foreach ($select_item as $key => $value) {
                 $this->setSelectOptionItem($value, $options, $isValueText);
+            }
+        }
+
+        if ($addFreeInput && $this->index_enabled && boolval(config('exment.include_freeinput_filter_options', false))) {
+            $list = $this->custom_table->getValueQuery()->pluck($this->getQueryKey());;
+            foreach ($list as $data) {
+                if (is_null($data)) {
+                    continue;
+                }
+                if (json_validate($data)) {
+                    $data = json_decode($data);
+                } 
+                if (!is_array($data)) {
+                    $data = [$data];
+                } 
+                foreach ($data as $val) {
+                    if (!array_key_exists($val, $options)) {
+                        $options[$val] = $val;
+                    }
+                }
             }
         }
 

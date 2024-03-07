@@ -136,7 +136,7 @@ class Select extends CustomItem
 
     protected function setAdminFilterOptions(&$filter)
     {
-        $options = $this->custom_column->createSelectOptions();
+        $options = $this->custom_column->createSelectOptions($this->isFreeInput());
         $filter->multipleSelect($options);
     }
 

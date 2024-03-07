@@ -1104,4 +1104,12 @@ return [
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Include free word input string in filter options
+    |--------------------------------------------------------------------------
+    |
+    */
+    'include_freeinput_filter_options' => env('EXMENT_INCLUDE_FREEINPUT_FILTER_OPTIONS', false),
 ];
