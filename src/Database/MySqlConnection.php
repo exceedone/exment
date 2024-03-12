@@ -83,7 +83,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
         $mysqldump = static::getMysqlDumpPath();
         $command = sprintf(
-            '%s %s --no-tablespaces -h %s -u %s --password=%s -P %s',
+            '%s %s --no-tablespaces --set-gtid-purged=OFF -h %s -u %s --password=%s -P %s',
             $mysqldump,
             $column_statistics,
             $host,
