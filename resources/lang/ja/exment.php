@@ -2561,6 +2561,7 @@ return [
         'condition_key' => '条件',
         'condition_value' => '条件値',
         'condition_join' => '条件の結合',
+        'condition_reverse' => '条件の反転',
         'condition_type_options' => [
             'user' => 'ログインユーザー',
             'organization' => 'ログインユーザーの所属組織',
@@ -2589,6 +2590,10 @@ return [
         'condition_join_options' => [
             'and' => 'すべての条件に一致',
             'or' => 'いずれかの条件に一致',
+        ],
+
+        'condition_reverse_options' => [
+            '1' => '条件を反転する',
         ],
     ],
 ];

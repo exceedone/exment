@@ -2560,6 +2560,7 @@ return [
         'condition_key' => 'Search Condition',
         'condition_value' => 'Condtion Value',
         'condition_join' => 'Condtion Join',
+        'condition_reverse' => 'Condtion Reverse',
         'condition_type_options' => [
             'user' => 'User',
             'organization' => 'Organization',
@@ -2588,6 +2589,10 @@ return [
         'condition_join_options' => [
             'and' => 'Match All Condition',
             'or' => 'Match Any Condition',
+        ],
+
+        'condition_reverse_options' => [
+            '1' => 'Reverse condition',
         ],
     ],
 ];
