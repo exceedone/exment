@@ -86,12 +86,13 @@ trait UserTrait
      */
     public function belong_role_groups_all()
     {
-        return Model\RoleGroup::whereHas('role_group_user_organizations', function ($query) {
+        $filterType = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
+        return Model\RoleGroup::whereHas('role_group_user_organizations', function ($query) use ($filterType) {
             $query->where(function ($qry) {
                 $qry->where('role_group_target_id', $this->id)
                     ->where('role_group_user_org_type', 'user');
-            })->orWhere(function ($qry) {
-                $qry->whereIn('role_group_target_id', $this->getOrganizationIdsForQuery())
+            })->orWhere(function ($qry) use ($filterType) {
+                $qry->whereIn('role_group_target_id', $this->getOrganizationIdsForQuery($filterType))
                     ->where('role_group_user_org_type', 'organization');
             });
         })->get();

@@ -274,7 +274,7 @@ trait NotifyTrait
 
         $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
 
-        if (!in_array($notify->custom_table_id, $custom_tables)) {
+        if (!in_array($notify->target_id, $custom_tables)) {
             Checker::error();
             return false;
         }
