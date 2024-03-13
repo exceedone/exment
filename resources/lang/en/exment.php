@@ -83,6 +83,7 @@ return [
         'no_selected' => 'unselected',
         'no_use' => 'do not use',
         'default_export' => 'Export',
+        'condition_reverse' => '<Reverse> ',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',

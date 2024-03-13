@@ -83,6 +83,7 @@ return [
         'no_selected' => '未選択',
         'no_use' => '使用しない',
         'default_export' => 'エクスポート',
+        'condition_reverse' => '<反転> ',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',

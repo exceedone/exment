@@ -817,7 +817,7 @@ class DefaultGrid extends GridBase
     {
         parent::setFilterFields($form, $custom_table, $is_aggregate);
 
-        $form->checkbox('condition_reverse', exmtrans("condition.condition_reverse"))
-            ->options(exmtrans("condition.condition_reverse_options"));
+        $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
+            ->option(exmtrans("condition.condition_reverse_options"));
     }
 }
