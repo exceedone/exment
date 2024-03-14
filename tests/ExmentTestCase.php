@@ -17,6 +17,7 @@ abstract class ExmentTestCase extends TestCase
     {
         parent::setUp();
 
+        /** @phpstan-ignore-next-line $this->app is always Application */
         if (!$this->app) {
             $this->refreshApplication();
         }
