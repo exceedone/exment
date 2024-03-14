@@ -335,6 +335,10 @@ class CustomTableAction implements ActionInterface
 
         $items = [];
         foreach ($bodies as $body) {
+            $null_merge_array = collect(range(1, count($headers)))->map(function () {
+                return null;
+            })->toArray();
+            $body = $body + $null_merge_array;
             $items[] = array_combine($headers, $body);
         }
 
