@@ -315,10 +315,13 @@ class FileController extends AdminControllerBase
             if (isset($custom_value)) {
                 $current_val = $custom_value->getValue($custom_column->column_name);
                 if($custom_column->column_type == ColumnType::IMAGE || $custom_column->column_type == ColumnType::FILE) {
-                    if (is_array($current_val) || $current_val instanceof \Illuminate\Support\Collection) {
+                    if($current_val instanceof \Illuminate\Support\Collection) {
+                        $current_val = $current_val->toArray();
+                    }
+                    if (is_array($current_val)) {
                         foreach ($current_val as $key => $value) {
                             if ($value == url_join($data->parent_type, $data->local_filename)) {
-                                unset($current_val[$key]);
+                                array_splice($current_val, $key, 1);
                             }
                         }
                     } else {
