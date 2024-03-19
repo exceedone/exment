@@ -6,6 +6,9 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class UserNeUser extends UserEqUserBase
 {
+    /**
+     * @return int|string
+     */
     public static function getFilterOption()
     {
         return FilterOption::USER_NE_USER;

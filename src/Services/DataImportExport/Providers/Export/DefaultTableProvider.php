@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -112,12 +113,17 @@ class DefaultTableProvider extends ProviderBase
         $records = new Collection();
         $this->grid->applyQuickSearch();
         if (isset($this->parent_table)) {
-            $this->grid->model()->eloquent()->chunk(100, function ($data) use (&$records) {
+            $func = function ($data) use (&$records) {
                 if (is_nullorempty($records)) {
                     $records = new Collection();
                 }
                 $records = $records->merge($data);
-            }) ?? new Collection();
+            };
+            if ($this->grid->model()->eloquent() instanceof LengthAwarePaginator) {
+                $this->grid->model()->chunk($func, 100) ?? new Collection();
+            } else {
+                $this->grid->model()->eloquent()->chunk(100, $func) ?? new Collection();
+            }
 
             if ($records->count() > 0) {
                 return getModelName($this->name())::whereIn('parent_id', $records->pluck('id'))
@@ -185,8 +191,11 @@ class DefaultTableProvider extends ProviderBase
     /**
      * Get body value
      *
-     * @param mixed $value
-     * @return string|null
+     * @param $values
+     * @param $column
+     * @param $view_column_type
+     * @param $record
+     * @return int|mixed|string|null
      */
     protected function getBodyValue($values, $column, $view_column_type, $record)
     {

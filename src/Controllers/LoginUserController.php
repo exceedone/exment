@@ -29,9 +29,10 @@ class LoginUserController extends AdminControllerBase
     /**
      * Show interface.
      *
-     * @param mixed   $id
+     * @param Request $request
      * @param Content $content
-     * @return Content
+     * @param $id
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function show(Request $request, Content $content, $id)
     {
@@ -149,9 +150,9 @@ class LoginUserController extends AdminControllerBase
     /**
      * Update the specified resource in storage.
      *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @param $id
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector|Response
+     * @throws \Throwable
      */
     public function update($id)
     {

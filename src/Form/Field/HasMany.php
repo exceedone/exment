@@ -17,7 +17,7 @@ class HasMany extends AdminHasMany
      *
      * @throws \Exception
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|string
      */
     public function render()
     {
@@ -118,7 +118,7 @@ $("button[type='submit']").click(function(){
         return true;
     }
     var cnt = $('#has-many-{$this->column} .has-many-{$this->column}-forms > .fields-group').filter(':visible').length;
-    if (cnt == 0) { 
+    if (cnt == 0) {
         swal("$errortitle", "$requiremessage", "error");
         return false;
     };

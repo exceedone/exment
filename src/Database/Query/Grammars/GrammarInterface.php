@@ -75,7 +75,7 @@ interface GrammarInterface
      * @param string $column column name
      * @param bool $groupBy if group by query, return true
      *
-     * @return void
+     * @return string|null
      */
     public function getDateFormatString($groupCondition, $column, $groupBy = false, $wrap = true);
 

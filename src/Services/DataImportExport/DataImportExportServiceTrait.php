@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
@@ -11,6 +12,8 @@ use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\ColumnItems\ParentItem;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
+use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\SpOut;
+use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\Xlsx;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -178,6 +181,7 @@ trait DataImportExportServiceTrait
             ->filebasename($this->exportAction->filebasename())
             ->createFile();
 
+        /** @phpstan-ignore-next-line  */
         $formatObj->sendResponse($files);
     }
 
@@ -189,6 +193,7 @@ trait DataImportExportServiceTrait
     {
         \Exment::setTimeLimitLong();
 
+        /** @var Xlsx $formatObj */
         $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
 
         // validate request
@@ -259,6 +264,7 @@ trait DataImportExportServiceTrait
         $options['command'] = $command;
 
         // get table data
+        /** @var Xlsx $formatObj */
         $datalist = $formatObj->getDataTable($file_path, $options);
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
@@ -309,6 +315,7 @@ trait DataImportExportServiceTrait
             ];
         }
 
+        /** @phpstan-ignore-next-line */
         $formatObj->saveAsFile($options['dirpath'], $files);
 
         return [
@@ -350,10 +357,9 @@ trait DataImportExportServiceTrait
         }
     }
 
-
     /**
      * @param Request $request
-     * @return bool
+     * @return array|boolean
      */
     public function validateRequest($request)
     {
@@ -391,6 +397,7 @@ trait DataImportExportServiceTrait
         );
         if ($validator->fails()) {
             // return errors as custom_table_file.
+            /** @phpstan-ignore-next-line */
             return $validator->getMessages();
         }
 
@@ -401,7 +408,7 @@ trait DataImportExportServiceTrait
      * Import Modal
      *
      * @param array $pluginlist
-     * @return array
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function getImportModal($pluginlist = null)
     {
@@ -427,12 +434,14 @@ trait DataImportExportServiceTrait
             $formats['excel'] = 'xlsx';
         }
 
+        /** @phpstan-ignore-next-line */
         $form->descriptionHtml('<span class="red">' . exmtrans('common.help.import_max_row_count', [
             'count' => config('exment.import_max_row_count', 1000),
             'manual' => \getManualUrl('data_bulk_insert')
         ]) . '</span>')
         ->setWidth(8, 3);
 
+        /** @phpstan-ignore-next-line */
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:' . implode(',', array_keys($formats)))->setWidth(8, 3)->addElementClass('custom_table_file')
@@ -529,6 +538,7 @@ trait DataImportExportServiceTrait
             if (boolval(array_get($options, 'onlyValue')) || strpos($key, "value.") !== false) {
                 $new_key = str_replace('value.', '', $key);
                 // get target column
+                /** @var CustomColumn|null $target_column */
                 $target_column = $custom_columns->first(function ($custom_column) use ($new_key) {
                     return array_get($custom_column, 'column_name') == $new_key;
                 });

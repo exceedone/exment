@@ -25,7 +25,9 @@ use Exceedone\Exment\Enums\SystemTableName;
  * @property mixed $notify_complete_admin
  * @property mixed $custom_form_id
  * @property mixed $custom_form
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @property mixed $active_flg
+ * @property mixed $proxy_user_id
+ * @method static int count($columns = '*')
  * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class PublicForm extends ModelBase
@@ -275,14 +277,13 @@ class PublicForm extends ModelBase
         return $result->unique();
     }
 
-
     /**
      * Get form
      *
      * @param Request $request
-     * @param CustomValue|null $custom_value input custom value
-     * @param boolean $setRecaptcha if true, set Recaptcha. If confirm→submit, set false
-     * @return Form
+     * @param CustomValue|null $custom_value
+     * @param array $options
+     * @return Form|null
      */
     public function getForm(Request $request, ?CustomValue $custom_value = null, array $options = [])
     {
@@ -348,12 +349,14 @@ class PublicForm extends ModelBase
         return $form;
     }
 
-
     /**
      * Get show
      *
      * @param Request $request
-     * @return Form
+     * @param CustomValue $custom_value
+     * @param array $inputs
+     * @return mixed|null
+     * @throws \Throwable
      */
     public function getShow(Request $request, CustomValue $custom_value, array $inputs = [])
     {
@@ -387,12 +390,12 @@ class PublicForm extends ModelBase
         return $show;
     }
 
-
     /**
      * getCompleteView
      *
      * @param Request $request
-     * @return Form
+     * @param CustomValue $custom_value
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function getCompleteView(Request $request, CustomValue $custom_value)
     {
@@ -420,7 +423,7 @@ class PublicForm extends ModelBase
      * getErrorView
      *
      * @param Request $request
-     * @return Form
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function getErrorView(Request $request)
     {
@@ -443,11 +446,14 @@ class PublicForm extends ModelBase
         ]);
     }
 
-
     /**
      * Show error page and notify
      *
-     * @return PublicContent
+     * @param $ex
+     * @param $asInner
+     * @param array|null $data
+     * @return PublicContent|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     * @throws \Throwable
      */
     public function showError($ex, $asInner = false, ?array $data = null)
     {
@@ -495,11 +501,13 @@ class PublicForm extends ModelBase
         ];
     }
 
-
     /**
      * Get input values text. Contains label and input text.
      *
-     * @return string
+     * @param CustomValue|null $custom_value
+     * @param array|null $relationInputs
+     * @param array|null $data
+     * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|string|null
      */
     protected function getInputValueText(?CustomValue $custom_value = null, array $relationInputs = null, ?array $data = null)
     {
@@ -516,6 +524,7 @@ class PublicForm extends ModelBase
                 $form = !is_null($form) ? $form : $this->getForm(request(), null, [
                     'asConfirm' => true,
                 ]);
+                /** @var array|null $relationInputs */
                 $relationInputs = $form->getRelationModelByInputs();
             }
 

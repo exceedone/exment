@@ -1180,6 +1180,15 @@ return [
         'add_parent_menu' => 'Target Parent Menu',
         'default_setting' => 'General Settings',
         'expand_setting' => 'Extended Settings',
+        'copy_from_table' => 'Original table',
+        'copy_custom_table' => 'Copy custom table',
+        'data_submit_redirect_options' => [
+            'inherit'               => 'Match system settings',
+            'list'                  => 'List',
+            'view'                  => 'View',
+            'continue_editing'      => 'Continue editing',
+            'continue_creating'     => 'Continue creating',
+        ],
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
@@ -1200,6 +1209,7 @@ return [
             'saved_redirect_column' => 'Save succeeded ! Please set column column.',
             'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
+            'copy_custom_table' => 'Copy normal settings, advanced settings and custom columns. <br />Other settings are out of scope. Please set manually.',
         ],
 
         'custom_column_multi' => [
@@ -1738,6 +1748,7 @@ return [
         'update_value_text' => 'Update Value',
         'input_column_description' => 'When the data update timing is a button, a form (dialog) for setting the update value can be displayed. <br/> Please set the column to input.',
         'dialog_description' => "Enter the value to update the data of %s.",
+        'active_flg' => 'Active Flg',
         
         'operation_type_options' => [
             'bulk_update' => 'Pressing button on the list page',
@@ -2183,6 +2194,7 @@ return [
         'soft_deleted_data' => 'Deleted Data',
         'restore' => 'Restore',
         'hard_delete' => 'Permanently Delete',
+        'custom_valule_button_label' => 'Data',
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',

@@ -1245,6 +1245,7 @@ class ViewWithParentTest extends TestCase
             })->toArray();
             $notMatchedValues = $custom_table->getValueQuery()->whereNotIn('id', $ids)->get();
 
+            /** @var CustomTable $data */
             foreach ($notMatchedValues as $data) {
                 $matchResult = $testCallback($data, $custom_view);
 

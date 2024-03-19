@@ -470,15 +470,24 @@ class SelectTable extends CustomItem
         return System::requestSession($sessionkey, function () use ($datalist, $key) {
             // get key and value list
             $keyValueList = collect($datalist)->map(function ($d) {
-                return array_get($d, 'value.' . $this->custom_column->column_name);
+                $val = array_get($d, 'value.' . $this->custom_column->column_name);
+                if (ColumnType::isMultipleEnabled($this->custom_column->column_type)
+                    && $this->custom_column->getOption('multiple_enabled')) {
+                    return explode(",", $val);
+                } else {
+                    return $val;
+                }
             })->flatten()->filter()->toArray();
 
             $target_custom_column = CustomColumn::getEloquent($key, $this->target_table);
-            $indexName = $target_custom_column ?? $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$key";
-            $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
-                ->get()->mapWithKeys(function ($v) use ($key) {
-                    return [array_get($v, "value.$key") => $v->id];
-                });
+            $values = [];
+            if ($target_custom_column) {
+                $indexName = $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$key";
+                $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
+                    ->get()->mapWithKeys(function ($v) use ($key) {
+                        return [array_get($v, "value.$key") => $v->id];
+                    });
+            }
 
             return $values;
         });

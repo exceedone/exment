@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Providers;
 
+use Exceedone\Exment\Services\Plugin\PluginCrudBase;
+use Exceedone\Exment\Services\Plugin\PluginDashboardBase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Routing\Router;
@@ -93,6 +95,7 @@ class PluginServiceProvider extends ServiceProvider
                 $defaultFunction = 'index';
                 break;
             case PluginType::DASHBOARD:
+                /** @var PluginDashboardBase $pluginPage */
                 $prefix = $pluginPage->getDashboardUri();
                 $defaultFunction = 'body';
                 break;
@@ -116,6 +119,7 @@ class PluginServiceProvider extends ServiceProvider
                     $router->get("oauthlogout", "PluginCrudController@oauthlogout");
                     $router->get("noauth", "PluginCrudController@noauth");
 
+                    /** @var PluginCrudBase $pluginPage */
                     $endpoints = $pluginPage->getAllEndpoints();
                     $key = is_nullorempty($endpoints) ? "" : "{endpoint}";
 

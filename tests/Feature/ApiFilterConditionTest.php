@@ -227,12 +227,11 @@ class ApiFilterConditionTest extends ExmentKitTestCase
         $this->checkTestResult($url, $filterType);
     }
 
-
     /**
      * Test condition api result for system
-     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
-     * @param string $column_name
+     * @param string $system_column_name
      * @param string $filterType
      * @param string|null $table_name
      * @return void
@@ -256,9 +255,9 @@ class ApiFilterConditionTest extends ExmentKitTestCase
 
     /**
      * Test condition api result for condition detail
-     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
-     * @param string $column_name
+     * @param string $condition_type_detail
      * @param string $filterType
      * @param string|null $table_name
      * @return void
@@ -281,9 +280,9 @@ class ApiFilterConditionTest extends ExmentKitTestCase
 
     /**
      * Test condition api result for workflow
-     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
-     * @param string $column_name
+     * @param string $type
      * @param string $filterType
      * @param string|null $table_name
      * @return void

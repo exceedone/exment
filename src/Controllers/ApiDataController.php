@@ -486,7 +486,9 @@ class ApiDataController extends AdminControllerTableBase
      * Get Attachment files
      *
      * @param Request $request
-     * @return void
+     * @param $tableKey
+     * @param $id
+     * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|\Illuminate\Database\Eloquent\Collection|\Illuminate\Pagination\AbstractPaginator|mixed|Response|null
      */
     public function getDocuments(Request $request, $tableKey, $id)
     {
@@ -527,7 +529,9 @@ class ApiDataController extends AdminControllerTableBase
      * create Attachment files
      *
      * @param Request $request
-     * @return void
+     * @param $tableKey
+     * @param $id
+     * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response|Response
      */
     public function createDocument(Request $request, $tableKey, $id)
     {
@@ -865,8 +869,13 @@ class ApiDataController extends AdminControllerTableBase
      * Get calendar query
      * ex. display: 4/1 - 4/30
      *
-     * @param mixed $query
-     * @return \Illuminate\Database\Query\Builder
+     * @param $model
+     * @param $start
+     * @param $end
+     * @param $target_start_column
+     * @param $target_end_column
+     * @return mixed
+     * @throws \Exception
      */
     protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column)
     {
@@ -1022,14 +1031,13 @@ class ApiDataController extends AdminControllerTableBase
         return [$names, $result];
     }
 
-
     /**
      * Save fileinfo after custom_value save
      *
      * @param CustomTable $custom_table
      * @param array $files
      * @param array $value
-     * @param array $oroginalValue
+     * @param array $originalValue
      * @return void
      */
     protected function saveFile($custom_table, $files, &$value, $originalValue)
@@ -1082,7 +1090,7 @@ class ApiDataController extends AdminControllerTableBase
      * Get order by array from request
      *
      * @param Request $request
-     * @return array offset 0 : target column name, 1 : 'asc' or 'desc'
+     * @return array|Response offset 0 : target column name, 1 : 'asc' or 'desc'
      */
     protected function getOrderBy(Request $request)
     {

@@ -98,14 +98,12 @@ abstract class PhpSpreadSheet extends FormatBase
         return $files;
     }
 
-
     /**
-     * Get Data from excel sheet
-     *
+     * Get Data from Excel sheet
      * @param Worksheet $sheet
-     * @param int $skip_excel_row_no
-     * @param boolean $keyvalue
-     * @param boolean $isGetMerge
+     * @param bool $keyvalue
+     * @param bool $isGetMerge
+     * @param array $options
      * @return array
      */
     public function getDataFromSheet($sheet, bool $keyvalue = false, bool $isGetMerge = false, array $options = []): array

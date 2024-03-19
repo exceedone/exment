@@ -8,6 +8,9 @@ use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
 
+/**
+ * @used-by \Exceedone\Exment\Services\ClassBuilder
+ */
 trait MailTemplateTrait
 {
     /**

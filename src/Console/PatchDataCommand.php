@@ -316,12 +316,14 @@ class PatchDataCommand extends Command
                             }
 
                             // Check already exists, if already setted, continue
+                            /** @var CustomColumn|null $obj_column */
                             $obj_column = CustomColumn::getEloquent($column_name, $obj_table);
                             if (isset($obj_column)) {
                                 continue;
                             }
 
                             // Import column
+                            /** @var CustomColumn|null $obj_column */
                             $obj_column = CustomColumn::importTemplate($column, false, [
                                 'system_flg' => true,
                                 'parent' => $obj_table,
@@ -1011,6 +1013,10 @@ class PatchDataCommand extends Command
             Model\CustomFormColumn::class => ['type' => 'form_column_type', 'column' => 'form_column_target_id', 'whereval' => Enums\FormColumnType::COLUMN],
         ];
 
+        /**
+         * @var Model\CustomViewColumn|Model\CustomViewSort|Model\CustomViewFilter|Model\CustomViewSummary|Model\CustomOperationColumn|Model\Condition|Model\CustomFormColumn $class
+         * @var array $val
+         */
         foreach ($classes as $class => $val) {
             $items = $class::where($val['type'], $val['whereval'])
                 ->get();
@@ -1831,6 +1837,7 @@ class PatchDataCommand extends Command
         Model\File::where('parent_type', $custom_table->table_name)
             ->chunk(1000, function ($files) use ($custom_table) {
                 foreach ($files as $file) {
+                    /** @phpstan-ignore-next-line not found withTrashed method */
                     $exists = $custom_table->getValueModel()->query()
                         ->where('id', $file->parent_id)
                         ->withoutGlobalScopes()
@@ -2009,7 +2016,9 @@ class PatchDataCommand extends Command
                 // get all CustomViewSummary
                 $className::with('custom_view')->get()
                 ->each(function ($custom_view_summary) {
+                    /** @var CustomViewSummary|CustomViewColumn $custom_view_summary */
                     // get view and table info
+                    /** @var CustomView|null $custom_view */
                     $custom_view = $custom_view_summary->custom_view;
                     // If not has custom view, continue
                     if (!$custom_view) {
@@ -2066,6 +2075,7 @@ class PatchDataCommand extends Command
             Notify::where('notify_trigger', Enums\NotifyTrigger::TIME)
             ->get()
             ->each(function ($notify) {
+                /** @var Notify $notify */
                 // get view and table info
                 $custom_table = $notify->custom_table;
                 $custom_table_id = $notify->target_id;
@@ -2098,14 +2108,17 @@ class PatchDataCommand extends Command
                 }
 
                 // Set view pivot info
+                /** @phpstan-ignore-next-line maybe $notify not implement setOption method */
                 $notify->setOption('view_pivot_table_id', $custom_table_id);
 
                 // If select table, set pivot column info
                 if (isMatchString($relation_table->searchType, Enums\SearchType::SELECT_TABLE)) {
+                    /** @phpstan-ignore-next-line maybe $notify not implement setOption method */
                     $notify->setOption('view_pivot_column_id', $relation_table->selectTablePivotColumn->id);
                 }
                 // relation, set "parent_id".
                 else {
+                    /** @phpstan-ignore-next-line maybe $notify not implement setOption method */
                     $notify->setOption('view_pivot_column_id', Define::PARENT_ID_NAME);
                 }
                 $notify->save();

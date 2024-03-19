@@ -63,7 +63,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'onelinetext')
@@ -124,7 +124,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'multilinetext')
@@ -182,7 +182,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'editor')
@@ -236,7 +236,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'url')
@@ -290,7 +290,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'email')
@@ -347,7 +347,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'integer')
@@ -423,7 +423,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'decimal')
@@ -493,7 +493,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'currency')
@@ -567,7 +567,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'date')
@@ -624,7 +624,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'time_col')
@@ -681,7 +681,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'datetime_col')
@@ -738,7 +738,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'select_col')
@@ -796,7 +796,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'select_valtext_col')
@@ -845,6 +845,7 @@ class CCustomColumnTest extends ExmentKitTestCase
     public function testAddSelectTableColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
+        /** @var CustomTable $table */
         $table = CustomTable::where('table_name', 'custom_value_edit_all')->first();
         $table_id = array_get($table, 'id');
 
@@ -859,7 +860,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'select_table_col')
@@ -919,7 +920,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'yesno_col')
@@ -979,7 +980,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'boolean_col')
@@ -1039,7 +1040,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'auto_number_col')
@@ -1094,7 +1095,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test'))
+        $this->visit(admin_url('column/test'))
             ->seePageIs(admin_url('column/test'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'image_col')
@@ -1148,7 +1149,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test?per_page=100'))
+        $this->visit(admin_url('column/test?per_page=100'))
             ->seePageIs(admin_url('column/test?per_page=100'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'file_col')
@@ -1202,7 +1203,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test?per_page=100'))
+        $this->visit(admin_url('column/test?per_page=100'))
             ->seePageIs(admin_url('column/test?per_page=100'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'user_col')
@@ -1259,7 +1260,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ],
         ]);
 
-        $response = $this->visit(admin_url('column/test?per_page=100'))
+        $this->visit(admin_url('column/test?per_page=100'))
             ->seePageIs(admin_url('column/test?per_page=100'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'organization_col')
@@ -1330,6 +1331,6 @@ class CCustomColumnTest extends ExmentKitTestCase
 
     protected function getNewestColumn()
     {
-        return CustomColumn::orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
+        return CustomColumn::orderBy('id', 'desc')->first();
     }
 }

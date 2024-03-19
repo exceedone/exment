@@ -7,6 +7,10 @@ use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * @property mixed $role_group_view_name
+ * @property mixed $role_group_order
+ * @property mixed $role_group_name
+ * @property mixed $description
  * @phpstan-consistent-constructor
  */
 class RoleGroup extends ModelBase
@@ -80,6 +84,7 @@ class RoleGroup extends ModelBase
                             // ge check contains parent and child organizaions.
                             $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
 
+                            /** @phpstan-ignore-next-line  $org uses OrganizationTrait */
                             $targetOrgIds = $org->getOrganizationIdsForQuery($enum);
                             if (in_array($organization_id, $targetOrgIds)) {
                                 return true;

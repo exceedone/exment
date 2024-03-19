@@ -113,13 +113,11 @@ class ExportImportButton extends ModalTileMenuButton
 
     /**
      * Render Export button.
-     *
-     * @return string
      */
     public function render()
     {
         if ($this->disabledButton()) {
-            return;
+            return null;
         }
 
         $page = request('page', 1);

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Form;
 
+use Exceedone\Exment\Model\CustomFormColumn;
 use Symfony\Component\HttpFoundation\Response;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
@@ -23,6 +24,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Enums\DataSubmitRedirectEx;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\Calc\CalcService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
@@ -242,11 +244,11 @@ EOT;
     /**
      * set custom form columns
      *
-     * @param Form $form Laravel-admin's form
+     * @param Form $form
      * @param CustomFormBlock $custom_form_block
-     * @param CustomValue|null $target_custom_value target customvalue. if Child block, this arg is child custom value.
-     * @param CustomRelation|null $this form block's relation
-     * @return array
+     * @param CustomValue|null $target_custom_value
+     * @param CustomRelation|null $relation
+     * @return \Closure
      */
     protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null, ?CustomRelation $relation = null)
     {
@@ -308,6 +310,7 @@ EOT;
                 if (!isset($form_column->custom_column)) {
                     continue;
                 }
+                /** @var CustomColumn $column */
                 $column = $form_column->custom_column;
                 if(array_get($column->options, 'force_caculate')) {
                     $force_caculate_column[$force_caculate_column_key][]  = $column->column_name;
@@ -460,6 +463,10 @@ EOT;
     {
         if (!$this->disableSavingButton) {
             if (!$this->disableSavedRedirectCheck) {
+                $data_submit_redirect = $custom_table->getOption('data_submit_redirect');
+                if (empty($data_submit_redirect) || $data_submit_redirect == DataSubmitRedirectEx::INHERIT) {
+                    $data_submit_redirect = System::data_submit_redirect();
+                }
                 $checkboxes = collect([
                     [
                         'key' => 'continue_editing',
@@ -478,10 +485,10 @@ EOT;
                         'value' => 4,
                         'redirect' => admin_urls('data', $this->custom_table->table_name),
                     ],
-                ])->map(function ($checkbox) {
+                ])->map(function ($checkbox) use($data_submit_redirect) {
                     return array_merge([
                         'label' => trans('admin.' . $checkbox['key']),
-                        'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
+                        'default' => isMatchString($data_submit_redirect, $checkbox['value']),
                     ], $checkbox);
                 })->each(function ($checkbox) use ($form) {
                     $form->submitRedirect($checkbox);

@@ -44,6 +44,11 @@ class CustomFormPublicController extends AdminControllerTableBase
         $this->setPageInfo($title, $title, exmtrans("custom_form_public.description"), 'fa-share-alt');
     }
 
+    /**
+     * @param Request $request
+     * @param Content $content
+     * @return Content|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function index(Request $request, Content $content)
     {
         return redirect(admin_urls('form', $this->custom_table->table_name));
@@ -78,7 +83,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     /**
      * Make a form builder.
      *
-     * @return Form
+     * @return Form|void
      */
     protected function basicForm($id = null)
     {
@@ -431,7 +436,7 @@ class CustomFormPublicController extends AdminControllerTableBase
     /**
      * Make a form builder, for import.
      *
-     * @return Form
+     * @return Form|void
      */
     protected function importForm()
     {
@@ -637,16 +642,18 @@ class CustomFormPublicController extends AdminControllerTableBase
             $public_form->setPluginImported(array_get($json, 'public_form'));
         });
 
+        /** @phpstan-ignore-next-line fix laravel-admin documentation */
         return $form->setModel($public_form)->redirectAfterStore();
     }
-
 
     /**
      * Showing preview
      *
      * @param Request $request
+     * @param $tableKey
      * @param string|int|null $id If already saved model, set id
-     * @return void
+     * @return PublicContent
+     * @throws PublicFormNotFoundException
      */
     public function preview(Request $request, $tableKey, $id = null)
     {
@@ -658,10 +665,12 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         // Now, cannot set header logo by getModelByInputs.
         if ($original_public_form) {
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $model->setOption('header_logo', $original_public_form->getOption('header_logo'));
         }
 
         // get public form
+        /** @phpstan-ignore-next-line fix laravel-admin documentation */
         $preview_form = $model->getForm($request);
         if (!$preview_form) {
             throw new PublicFormNotFoundException();
@@ -676,6 +685,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         // set content
         $content = new PublicContent();
+        /** @phpstan-ignore-next-line fix laravel-admin documentation */
         $model->setContentOption($content);
         $content->row($preview_form);
 
@@ -785,13 +795,13 @@ class CustomFormPublicController extends AdminControllerTableBase
         return $this->toggleActivate($request, $id, false);
     }
 
-
     /**
      * export
      *
      * @param Request $request
-     * @param string|int|null $id
-     * @return void
+     * @param $tableKey
+     * @param $id
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      */
     public function export(Request $request, $tableKey, $id)
     {
@@ -811,14 +821,13 @@ class CustomFormPublicController extends AdminControllerTableBase
         );
     }
 
-
     /**
      * Toggle activate and deactivate
      *
      * @param Request $request
-     * @param string $id
-     * @param boolean $active_flg
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param $id
+     * @param bool $active_flg
+     * @return \Symfony\Component\HttpFoundation\Response|void
      */
     protected function toggleActivate(Request $request, $id, bool $active_flg)
     {

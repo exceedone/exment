@@ -314,7 +314,10 @@ class CustomValueAuthoritable extends ModelBase
     /**
      * Set share form
      *
-     * @return \Illuminate\Http\Response
+     * @param $custom_value
+     * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     public static function saveShareDialogForm($custom_value)
     {
