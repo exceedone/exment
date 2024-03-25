@@ -35,10 +35,12 @@ class FixedEmail extends NotifyTargetBase
 
         $emails = breakCommaToArray($emails);
 
-        return collect($emails)->filter(function ($email) {
+        /** @var Collection $collection */
+        $collection =  collect($emails)->filter(function ($email) {
             return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
         })->map(function ($email) {
             return NotifyTarget::getModelAsEmail($email);
         });
+        return $collection;
     }
 }

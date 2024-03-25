@@ -199,7 +199,6 @@ class CustomViewController extends AdminControllerTableBase
         $form = new Form(new CustomView());
 
         if (!isset($id)) {
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $id = $form->model()->id;
         }
 
@@ -325,10 +324,8 @@ class CustomViewController extends AdminControllerTableBase
                 return;
             }
 
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             if (boolval($from_data) && $form->model()->view_kind_type != Enums\ViewKindType::FILTER) {
                 // get view suuid
-                /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 $suuid = $form->model()->suuid;
 
                 admin_toastr(trans('admin.save_succeeded'));

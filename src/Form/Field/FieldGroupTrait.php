@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Form\Field;
 
+use Illuminate\Support\Collection;
+
 trait FieldGroupTrait
 {
     /**
@@ -118,8 +120,10 @@ trait FieldGroupTrait
 
 
         // Set col_md width using total width. ----------------------------------------------------
+        /** @var Collection $fieldGroups */
         $fieldGroups = $fieldGroups->map(function ($fieldGroups) use ($totalWidth) {
             $columnCount = count($fieldGroups['columns']);
+            /** @var Collection $fieldGroups */
             $fieldGroups['columns'] = collect($fieldGroups['columns'])->map(function ($fieldOption) use ($columnCount, $totalWidth) {
                 // if $totalWidth is 1 and vertical then col_md is 8 and offset is 2.
                 $fieldOption['col_md'] = ($fieldOption['width'] * 3 * (4 / $totalWidth));

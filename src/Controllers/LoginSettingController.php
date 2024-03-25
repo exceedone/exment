@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Form\Tools;
@@ -266,7 +267,6 @@ class LoginSettingController extends AdminControllerBase
         });
 
         $form->saved(function (Form $form) {
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             return redirect($this->getEditUrl($form->model()->id));
         });
 
@@ -296,12 +296,14 @@ class LoginSettingController extends AdminControllerBase
             $errors[] = LoginType::LDAP();
         }
 
-        return collect($errors)->mapWithKeys(function ($error) {
+        /** @var Collection $collection */
+        $collection =  collect($errors)->mapWithKeys(function ($error) {
             return [$error->getValue() => '<span class="red">' . exmtrans('login.message.not_install_library', [
                 'name' => $error->transKey('login.login_type_options'),
                 'url' => getManualUrl('login_'.$error->getValue()),
             ]) . '</span>'];
         });
+        return $collection;
     }
 
     /**

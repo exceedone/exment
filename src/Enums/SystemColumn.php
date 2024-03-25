@@ -35,6 +35,11 @@ class SystemColumn extends EnumBase
     public const WORKFLOW_STATUS = 'workflow_status';
     public const WORKFLOW_WORK_USERS = 'workflow_work_users';
 
+    /**
+     * We should use `const OPTIONS` instead of `protected static $options`.
+     *
+     * @var array[]
+     */
     protected static $options = [
         'id' => ['id' => 1, 'name' => 'id', 'sqlname' => 'id', 'default' => true, 'order' => 1, 'header' => true, 'summary' => true, 'min_width' => 30, 'max_width' => 100, 'grid_filter' => true, 'grid_filter_system' => true],
         'suuid' => ['id' => 2, 'name' => 'suuid', 'sqlname' => 'suuid', 'default' => false, 'order' => 2, 'header' => true, 'min_width' => 100, 'max_width' => 300],

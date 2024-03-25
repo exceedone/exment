@@ -220,7 +220,6 @@ class CustomColumnController extends AdminControllerTableBase
             ->help(exmtrans('common.help.view_name'));
 
         if (!isset($id)) {
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $id = $form->model()->id;
         }
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;

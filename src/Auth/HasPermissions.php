@@ -214,12 +214,15 @@ trait HasPermissions
             }
         }
 
-        return collect($permissions);
+        /** @var Collection $collection */
+        $collection = collect($permissions);
+        return $collection;
     }
 
     /**
      * Get all has permission tables of user.
      *
+     * @param $role_key
      * @return Collection
      */
     public function allHasPermissionTables($role_key): Collection
@@ -233,7 +236,9 @@ trait HasPermissions
                 $results[] = $custom_table;
             }
         }
-        return collect($results);
+        /** @var Collection $collection */
+        $collection = collect($results);
+        return $collection;
     }
 
     /**

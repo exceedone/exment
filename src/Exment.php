@@ -98,6 +98,7 @@ class Exment
                 return $callback($request, $exception);
             }
 
+            /** @phpstan-ignore-next-line not implement MaintenanceModeException in laravel 10 */
             if ($exception instanceof \Illuminate\Foundation\Http\Exceptions\MaintenanceModeException) {
                 $errorController = app(\Exceedone\Exment\Controllers\ErrorController::class);
                 return $errorController->maintenance();

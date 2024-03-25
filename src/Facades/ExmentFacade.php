@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Facade;
 class ExmentFacade extends Facade
 {
     /**
-     * @return string
+     * @return string|null
      */
     protected static function getFacadeAccessor()
     {

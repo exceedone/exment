@@ -32,7 +32,6 @@ class PureService implements LoginServiceInterface
             return false;
         }
 
-        /** @phpstan-ignore-next-line Maybe need use $login_user->getAuthPassword() */
         $password = $login_user->password;
         $credential_password = array_get($credentials, 'password');
         // Verify the user with the username password in $ credentials, return `true` or `false`

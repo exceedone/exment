@@ -1050,7 +1050,6 @@ class CustomViewSummaryTest extends UnitTestBase
                         return $item;
                     });
                 } elseif ($column_data instanceof Model) {
-                    /** @phpstan-ignore-next-line */
                     $column_data = $column_data->id;
                 }
                 return [($reference_key ?? $column_name) => $column_data];

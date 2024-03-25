@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 /**
  * @phpstan-consistent-constructor
@@ -530,6 +531,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         });
 
         ///// add user definitions
+        /** @var Collection $results */
         $results = $results->merge(
             collect(static::$customAvailableCharacters)->map(function ($val) {
                 return [

@@ -2234,9 +2234,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 foreach ($item as $i) {
                     $ret[$i->id] = $i->label;
                 }
-                return collect($ret);
+                /** @var Collection $collection */
+                $collection =  collect($ret);
+                return $collection;
             }
-            return collect([$item->id => $item->label]);
+            /** @var Collection $collection */
+            $collection = collect([$item->id => $item->label]);
+            return $collection;
         } else {
             return collect([]);
         }

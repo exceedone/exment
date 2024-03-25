@@ -51,6 +51,7 @@ trait TestTrait
             $this->assertMatchesRegularExpression($pattern, $string, $message);
             return;
         }
+        /* @phpstan-ignore-next-line delete next line. it's deprecated function */
         $this->assertRegExp($pattern, $string, $message);
     }
 
