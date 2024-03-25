@@ -245,6 +245,7 @@ class PluginType extends EnumBase
                             'event_type' => array_get($options, 'event_type'),
                             'page_type' => array_get($options, 'page_type'),
                             'is_modal' => array_get($options, 'is_modal'),
+                            'force_delete' => array_get($options, 'force_delete'),
                         ]
                     );
                 case PluginType::BATCH:

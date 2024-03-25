@@ -615,6 +615,45 @@ class Plugin extends ModelBase
     }
 
     /**
+     * execute validate destroy
+     */
+    public static function pluginValidateDestroy($model, $options = [])
+    {
+        $plugins = static::getPluginsByTable($model->custom_table, false);
+        if (count($plugins) > 0) {
+            foreach ($plugins as $plugin) {
+                // if $plugin_types is not validator, continue
+                if (!$plugin->matchPluginType(PluginType::VALIDATOR)) {
+                    continue;
+                }
+                $class = $plugin->getClass(PluginType::VALIDATOR, $options);
+                // if isset $class, call
+                if (isset($class)) {
+                    if (method_exists($class, 'validateDestroy')) {
+                        $res = $class->validateDestroy($model);
+                        if ($res === false) {
+                            return [
+                                'status'  => false,
+                                'message' =>  exmtrans('error.delete_failed'),
+                            ];
+                        }
+                        if (is_array($res) && array_get($res, 'status') === false) {
+                            return $res;
+                        }
+                    }
+                }
+                // if cannot call class, set error
+                else {
+                    return [
+                        'status'  => false,
+                        'message' =>  exmtrans('error.delete_failed'),
+                    ];
+                }
+            }
+        }
+    }
+
+    /**
      * Get plugins filtering accessable by selecting plugin_type
      */
     public static function getAccessableByPluginTypes($plugin_types, $getAsClass = false)

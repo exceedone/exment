@@ -6,6 +6,7 @@ class PluginEventType extends EnumBase
 {
     public const SAVING = 'saving';
     public const SAVED = 'saved';
+    public const DELETED = 'deleted';
     public const LOADING = 'loading';
     public const LOADED = 'loaded';
     public const WORKFLOW_ACTION_EXECUTING = 'workflow_action_executing';

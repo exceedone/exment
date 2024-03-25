@@ -91,4 +91,8 @@ class PluginValidatorBase
 
         return $messages;
     }
+    
+    public function validateDestroy($model)
+    {
+    }
 }
