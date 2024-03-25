@@ -34,6 +34,7 @@ use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\DataSubmitRedirectEx;
+use Exceedone\Exment\Services\TableService;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -60,6 +61,49 @@ class CustomTableController extends AdminControllerBase
 
         return $content->row($row);
     }
+    /**
+     * Active qrcode setting
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function qrcode_activate(Request $request, $id)
+    {
+        return $this->toggleActivate($request, $id, true);
+    }
+
+    /**
+     * Deactive qrcode setting
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function qrcode_deactivate(Request $request, $id)
+    {
+        return $this->toggleActivate($request, $id, false);
+    }
+    /**
+     * Toggle activate and deactivate
+     *
+     * @param Request $request
+     * @param string $id
+     * @param boolean $active_flg
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function toggleActivate(Request $request, $id, bool $active_flg)
+    {
+        $custom_table = CustomTable::getEloquent($id);
+        $custom_table->active_flg = $active_flg;
+        $custom_table->save();
+
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+
 
     /**
      * Make a grid builder.
@@ -488,6 +532,51 @@ HTML;
 
         return $form;
     }
+    /**
+     * Make a formMultiColumn.
+     *
+     * @return Form
+     */
+    protected function formQrCodeSetting($id = null)
+    {
+        $form = new Form(new CustomTable());
+        $form->display('table_name', exmtrans("custom_table.table_name"));
+
+        $form->hidden('qrcodesetting')->default(1);
+        $form->ignore('qrcodesetting');
+
+        $custom_table = CustomTable::getEloquent($id);
+
+        $form->checkbox('form_action_disable_flg', exmtrans("custom_table.custom_column_multi.form_action_disable_flg"))
+            ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
+            ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
+        ;
+
+        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
+            $tools->disableDelete();
+
+            // if edit mode
+            if ($id != null) {
+                $model = CustomTable::getEloquent($id);
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
+            }
+            TableService::appendActivateSwalButtonQRCode($tools, $custom_table);
+        });
+
+        $form->disableEditingCheck(false);
+        $form->saved(function (Form $form) {
+            if (request()->get('after-save') != '1') {
+                return;
+            }
+
+            $model = $form->model();
+            admin_toastr(trans('admin.update_succeeded'));
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
+            return redirect(admin_urls_query('table', $model->id, 'edit', ['qrcodesetting' => 1, 'after-save' => 1]));
+        });
+
+        return $form;
+    }
 
     /**
      * get columns select options.include system date
@@ -521,6 +610,9 @@ HTML;
         if ($request->has('columnmulti')) {
             return $this->AdminContent($content)->body($this->formMultiColumn($id)->edit($id));
         }
+        if ($request->has('qrcodesetting')) {
+            return $this->AdminContent($content)->body($this->formQrCodeSetting($id)->edit($id));
+        }
 
         return parent::edit($request, $content, $id);
     }
@@ -536,6 +628,9 @@ HTML;
     {
         if (request()->has('columnmulti')) {
             return $this->formMultiColumn($id)->update($id);
+        }
+        if (request()->has('qrcodesetting')) {
+            return $this->formQrCodeSetting($id)->update($id);
         }
 
         return $this->form($id)->update($id);
