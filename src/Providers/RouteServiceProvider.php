@@ -118,6 +118,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             $router->get('table/{id}/copyModal', 'CustomTableController@copyModal');
             $router->post('table/{id}/copy', 'CustomTableController@copyTable');
+            $router->post('table/{id}/qrcode_activate', 'CustomTableController@qrcode_activate')->name('exment.qrcode_activate');
+            $router->post('table/{id}/qrcode_deactivate', 'CustomTableController@qrcode_deactivate')->name('exment.qrcode_deactivate');
 
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');
@@ -239,6 +241,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
             $this->setTableResouce($router, 'operation', 'CustomOperationController');
             $this->setTableResouce($router, 'notify', 'CustomNotifyController');
+            $this->setTableResouce($router, 'qrcode', 'QrCodeController', true);
 
             // only webapi api function
             $router->get('webapi/menu/menutype', 'MenuController@menutype');

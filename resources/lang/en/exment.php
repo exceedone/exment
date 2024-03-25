@@ -1045,6 +1045,7 @@ return [
         'notify' => 'Notification Setting',
         'custom_value' => 'Data List',
         'error_select' => 'Please select only one record.',
+        'qrcode' => 'QR Code Setting',
     ],
 
     'workflow' => [
@@ -1212,6 +1213,8 @@ return [
             'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
             'copy_custom_table' => 'Copy normal settings, advanced settings and custom columns. <br />Other settings are out of scope. Please set manually.',
+            'qrcode_activate' => 'Enable QR Code feature of this table. is this good?',
+            'qrcode_deactivate' => 'Disable QR Code feature of this table. is this good?',
         ],
 
         'custom_column_multi' => [
@@ -2183,6 +2186,10 @@ return [
             'menu' => 'Menu',
             'role_group' => 'Role group',
         ]
+    ],
+
+    'qrcode' => [
+        'description' => 'Perform settings for create Qr code for data.',
     ],
 
     'custom_value' => [
