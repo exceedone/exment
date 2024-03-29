@@ -19,7 +19,7 @@ use Illuminate\Support\Collection;
 class Column extends ColumnBase
 {
     /**
-     * @var CustomColumn
+     * @var CustomColumn|null
      */
     protected $custom_column;
 

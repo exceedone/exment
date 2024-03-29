@@ -168,6 +168,7 @@ class TestDataSeeder extends Seeder
                     \DB::table($relationName)->insert($inserts);
                 }
 
+                /** @phpstan-ignore-next-line Right side of && is always true. */
                 if (isset($rolegroups[$type][$user_key]) && is_array($rolegroups[$type][$user_key])) {
                     foreach ($rolegroups[$type][$user_key] as $rolegroup) {
                         $roleGroupUserOrg = new RoleGroupUserOrganization();
@@ -487,8 +488,8 @@ class TestDataSeeder extends Seeder
                     foreach ($columns as $column) {
                         $custom_column = CustomColumn::create([
                             'custom_table_id' => $custom_table->id,
-                            'column_name' => $column['column_name'] ?? $column['column_type'],
-                            'column_view_name' => $column['column_name'] ?? $column['column_type'],
+                            'column_name' => $column['column_type'],
+                            'column_view_name' => $column['column_type'],
                             'column_type' => $column['column_type'],
                             'options' => $column['options'],
                         ]);
@@ -668,8 +669,8 @@ class TestDataSeeder extends Seeder
                 foreach ($columns as $column) {
                     $custom_column = CustomColumn::create([
                         'custom_table_id' => $custom_table->id,
-                        'column_name' => $column['column_name'] ?? $column['column_type'],
-                        'column_view_name' => $column['column_name'] ?? $column['column_type'],
+                        'column_name' => $column['column_name'],
+                        'column_view_name' => $column['column_name'],
                         'column_type' => $column['column_type'],
                         'options' => $column['options'],
                     ]);

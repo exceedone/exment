@@ -48,6 +48,7 @@ class ExportChunkCommand extends Command
 
     protected function getParameters()
     {
+        /** @var null|string $table_name */
         $table_name = $this->argument("table_name");
 
         if ($table_name === null) {
@@ -117,6 +118,7 @@ class ExportChunkCommand extends Command
             $message = null;
 
             $executeCount = 0;
+            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
             for ($i = $options['start'] ?? 1; $i <= $options['end'] ?? 1000; $i++) {
                 $grid = new Grid(new $classname());
                 // set data get range

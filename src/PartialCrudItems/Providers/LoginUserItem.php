@@ -43,6 +43,7 @@ class LoginUserItem extends ProviderBase
 
         if ($has_loginuser) {
             $form->switchbool('reset_password', exmtrans('user.reset_password'))
+                /** @phpstan-ignore-next-line Negated boolean expression is always false. */
                         ->default(!$has_loginuser)
                         ->help(exmtrans('user.help.reset_password'))
                         ->attribute(['data-filter' => json_encode(['key' => 'use_loginuser', 'value' => '1'])]);
@@ -182,6 +183,7 @@ class LoginUserItem extends ProviderBase
         $has_change = false;
         $is_newuser = false;
         $password = null;
+        /** @phpstan-ignore-next-line Right side of && is always true. Maybe boolval is unessasary. */
         if (is_null($login_user) && boolval(array_get($data, 'use_loginuser'))) {
             $login_user = new LoginUser();
             $is_newuser = true;

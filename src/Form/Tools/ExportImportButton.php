@@ -26,7 +26,7 @@ class ExportImportButton extends ModalTileMenuButton
     /**
      * custom table if from custom value
      *
-     * @var CustomTable
+     * @var CustomTable|null
      */
     protected $custom_table;
 

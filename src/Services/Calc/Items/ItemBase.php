@@ -17,7 +17,7 @@ abstract class ItemBase implements CalcInterface
      * *For parent is parent table's column.
      * *For summary is child table's column.
      *
-     * @var CustomColumn
+     * @var CustomColumn|null
      */
     protected $custom_column;
 
@@ -29,7 +29,7 @@ abstract class ItemBase implements CalcInterface
     protected $custom_table;
 
     /**
-     * @var CustomFormBlock
+     * @var CustomFormBlock|false|null
      */
     public $custom_form_block;
 
