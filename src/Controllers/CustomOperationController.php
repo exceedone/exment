@@ -103,6 +103,9 @@ class CustomOperationController extends AdminControllerTableBase
                 return array_get(CustomOperationType::transArray("custom_operation.operation_type_options_short"), $v);
             })->implode(exmtrans('common.separate_word'));
         });
+        $grid->column('active_flg', exmtrans("custom_operation.active_flg"))->display(function ($active_flg) {
+            return \Exment::getTrueMark($active_flg);
+        })->escape(false);
 
         $grid->model()->where('custom_table_id', $this->custom_table->id);
 
@@ -178,6 +181,9 @@ class CustomOperationController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
                 ->help(exmtrans("custom_operation.help.button_class"));
         })->disableHeader();
+
+        $form->switchbool('active_flg', exmtrans("custom_operation.active_flg"))
+            ->default(true);
 
         $custom_table = $this->custom_table;
 

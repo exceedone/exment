@@ -116,6 +116,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('plugin/{id}/executeBatch', 'PluginController@executeBatch');
 
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
+            $router->get('table/{id}/copyModal', 'CustomTableController@copyModal');
+            $router->post('table/{id}/copy', 'CustomTableController@copyTable');
 
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');

@@ -7,17 +7,17 @@
 - 以下のコマンドを実行してください。  
 
 ```
-composer require symfony/css-selector=~5.0
-composer require laravel/browser-kit-testing=~6.3
-composer require dms/phpunit-arraysubset-asserts=~0.3
+composer require symfony/css-selector=~6.3
+composer require laravel/browser-kit-testing=~7.0
+composer require dms/phpunit-arraysubset-asserts=~0.5.0
 ```
 
 ### PHPUnitバージョン変更(初回のみ)
-- Exmentでは、PHPUnitにバージョン8.Xを採用しています。  
+- Exmentでは、PHPUnitにバージョン10.Xを採用しています。  
 ルートフォルダのcomposer.jsonの、require-devに、"phpunit/phpunit"に関する記述があれば、以下のように修正してください。
 
 ```
-"phpunit/phpunit": "~8.5",
+"phpunit/phpunit": "~10.1",
 ```
 
 その後、以下のコマンドを実行してください。
@@ -93,7 +93,7 @@ Lint(PHPStan / Laratisan)を実行し、構文チェックなどを行います�
 
 ```
 # Lintのライブラリ
-composer require --dev nunomaduro/larastan=~1.0
+composer require --dev nunomaduro/larastan=~2.6
 
 # Exmentの関連ライブラリ
 composer require pragmarx/google2fa
@@ -105,7 +105,7 @@ composer require phpseclib/phpseclib ^2.0
 composer require league/flysystem-sftp ~3.0
 composer require league/flysystem-aws-s3-v3 ~3.0
 composer require league/flysystem-azure-blob-storage ~3.0
-composer require spatie/flysystem-dropbox=^2.0.5
+composer require spatie/flysystem-dropbox=^3.0
 ```
 
 - 以下のファイルを、プロジェクトのルートフォルダにコピーします。

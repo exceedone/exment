@@ -8,6 +8,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
+use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -33,6 +34,7 @@ use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\FormHelper;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Model\CustomValue;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -278,7 +280,23 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::CREATE
         ]);
 
-        $row = new Row($this->form(null));
+        if (!is_null($copy_id = $request->get('copy_id'))) {
+            // ignore file and autonumber from target model
+            $form = $this->form(null)->editing(function($form) {
+                $model = $form->model();
+                $this->filterCopyColumn($model);
+                foreach ($model->getRelations() as $relations) {
+                    foreach ($relations as $relation) {
+                        $this->filterCopyColumn($relation);
+                    }
+                }
+            })->replicate($copy_id);
+        } else {
+            $form = $this->form(null);
+        }
+
+
+        $row = new Row($form);
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
             static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
@@ -1147,5 +1165,20 @@ class CustomValueController extends AdminControllerTableBase
 
         // set form
         $this->custom_form = $this->custom_table->getPriorityForm($id);
+    }
+
+    /**
+     * delete file, image, autonumber column from customvalue
+     * 
+     * @param CustomValue $custom_value
+     */
+    protected function filterCopyColumn(CustomValue $custom_value) 
+    {
+        $custom_value->custom_table->custom_columns->filter(function($column) {
+            $column_type = $column->column_type;
+            return ColumnType::isAttachment($column_type) || $column_type == ColumnType::AUTO_NUMBER;
+        })->each(function($column) use($custom_value) {
+            $custom_value->setValue($column->column_name, null, true);
+        });
     }
 }

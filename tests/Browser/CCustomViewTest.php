@@ -80,7 +80,7 @@ class CCustomViewTest extends ExmentKitTestCase
             ->assertEquals($pre_cnt + 1, CustomView::count())
         ;
 
-        $raw = CustomView::orderBy('created_at', 'desc')->first();
+        $raw = CustomView::orderBy('id', 'desc')->first();
         $id = array_get($raw, 'id');
 
         Model\System::clearRequestSession();
@@ -173,7 +173,7 @@ class CCustomViewTest extends ExmentKitTestCase
             ->assertEquals($pre_cnt + 1, CustomView::count())
         ;
 
-        $raw = CustomView::orderBy('created_at', 'desc')->first();
+        $raw = CustomView::orderBy('id', 'desc')->first();
         $id = array_get($raw, 'id');
 
 
