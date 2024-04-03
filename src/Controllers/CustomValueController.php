@@ -888,6 +888,14 @@ class CustomValueController extends AdminControllerTableBase
                 abort(404);
             }
             $ids = $request->input('ids');
+            $list = stringToArray($ids);
+
+            if (count($list) === 1) {
+                $id = $list[0];
+            }
+        }
+
+        if ($id == 'bulk') {
             $form = CustomValueAuthoritable::getBulkShareDialogForm($tableKey, $ids);
         } else {
             // get customvalue

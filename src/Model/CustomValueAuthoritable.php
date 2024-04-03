@@ -477,7 +477,7 @@ class CustomValueAuthoritable extends ModelBase
         $request = request();
         // create form fields
         $tableKey = $custom_table->table_name;
-        $ids = explode(',', $ids);
+        $ids = stringToArray($ids);
         $custom_values = collect($ids)->map(function($id) use($custom_table) {
             return $custom_table->getValueModel($id);
         });
@@ -533,7 +533,6 @@ class CustomValueAuthoritable extends ModelBase
                             ->where('parent_id', $custom_value->id)
                             ->where('authoritable_type', $item['name']);
                         },
-                        null,
                         'matchFilter' => function ($dbValue, $value) {
                             return array_get((array)$dbValue, 'authoritable_user_org_type') == array_get($value, 'authoritable_user_org_type')
                                 && array_get((array)$dbValue, 'authoritable_target_id') == array_get($value, 'authoritable_target_id');
@@ -544,7 +543,6 @@ class CustomValueAuthoritable extends ModelBase
             \DB::commit();
 
             // send notify
-
             foreach ($custom_values as $custom_value) {
                 $data_shares = collect($shares)->filter(function ($share) use($custom_value) {
                     return $share['parent_id'] == $custom_value->id;

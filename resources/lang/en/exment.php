@@ -1957,6 +1957,7 @@ return [
         'organizations_count' => 'Organization count',
         'share_description' => 'Share this data with other users and organizations. Sharing enables other users and organizations to access this data.',
         'data_share_description' => 'Share this %1$s with other users and organizations. Sharing enables other users and organizations to access this data.',
+        'bulk_share_description' => 'The selected data will be shared with other users or organizations. By sharing, other users or organizations will be able to access the data. <br /><span class="red">*If multiple data items are selected, only the additional ones will be executed.</span>',
 
         'description_form' => [
             'system' => 'Please select users/organizations to whom role is given for the entire system.',
@@ -2037,6 +2038,8 @@ return [
             'custom_value_view' => ['label' => 'Viewer', 'help' => 'Users can view personnel data in custom tables.'],
             'data_share_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel %s in custom tables.'],
             'data_share_view' => ['label' => 'Viewer', 'help' => 'Users can view personnel %s in custom tables.'],
+            'bulk_share_edit' => ['label' => 'Editor', 'help' => 'Users can edit selected data in grid.'],
+            'bulk_share_view' => ['label' => 'Viewer', 'help' => 'Users can view selected data in grid.'],
         ],
         'role_type_option_plugin' => [
             'plugin_access' => ['label' => 'Access', 'help' => 'User can use this plugin.'],
@@ -2194,6 +2197,7 @@ return [
         'soft_deleted_data' => 'Deleted Data',
         'restore' => 'Restore',
         'hard_delete' => 'Permanently Delete',
+        'bulk_share' => 'Bulk Share',
         'custom_valule_button_label' => 'Data',
         'import' => [
             'manual_id' => 'Data Import',
