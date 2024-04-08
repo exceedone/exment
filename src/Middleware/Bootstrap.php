@@ -98,6 +98,8 @@ class Bootstrap
             'vendor/exment/js/admin.webapi.js',
             'vendor/exment/js/getbox.js',
             'vendor/exment/js/admin.getbox.js',
+            'vendor/exment/js/qr.js',
+            'vendor/exment/js/display.js',
         ], false);
 
         // set scripts

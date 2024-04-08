@@ -189,6 +189,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
             $router->delete("data/{tableKey}/{id}/deletecomment/{suuid}", 'CustomValueController@deleteComment');
+            $router->post("data/{tableKey}/qrcode_download", 'CustomValueController@qrcodeDownload')->name('exment.qrcode_download');
+            $router->get("data/{tableKey}/form_create_qrcode", 'CustomValueController@formCreateQrcode')->name('exment.form_create_qrcode');
+            $router->post("data/{tableKey}/create_qrcode", 'CustomValueController@createQrcode')->name('exment.create_qrcode');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
@@ -241,7 +244,6 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
             $this->setTableResouce($router, 'operation', 'CustomOperationController');
             $this->setTableResouce($router, 'notify', 'CustomNotifyController');
-            $this->setTableResouce($router, 'qrcode', 'QrCodeController', true);
 
             // only webapi api function
             $router->get('webapi/menu/menutype', 'MenuController@menutype');

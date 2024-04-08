@@ -34,8 +34,12 @@ class LoginUserItem extends ProviderBase
         $classname = getModelName(SystemTableName::USER);
         $login_user = $this->getLoginUser($id);
         $has_loginuser = !is_null($login_user);
-
         $form->exmheader(exmtrans('user.login'))->hr();
+        $form->switchbool('show_data_id', exmtrans("custom_table.qr_code.show_data_id"))
+            ->help(exmtrans("custom_table.qr_code.show_data_id_description"))
+            ->attribute(['data-filtertrigger' => true]);
+        $form->text('text_data_id', exmtrans("custom_table.qr_code.data_id"))->default('ID')->rules("max:8")
+            ->attribute(['data-filter' => json_encode(['key' => 'show_data_id', 'value' => '1'])]);
         $form->switchbool('use_loginuser', exmtrans('user.use_loginuser'))
                 ->help(exmtrans('user.help.use_loginuser'))
                 ->default($has_loginuser ? '1' : '0')
@@ -57,7 +61,7 @@ class LoginUserItem extends ProviderBase
                 ['key' => 'use_loginuser', 'value' => '1']
                 , ['key' => 'reset_password', 'value' => "1"]
                 ])]);
-
+        
         $form->password('password', exmtrans('user.password'))->default('')
                 ->help(\Exment::get_password_help())
                 ->attribute(['data-filter' => json_encode([
