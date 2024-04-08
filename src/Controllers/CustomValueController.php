@@ -35,6 +35,13 @@ use Exceedone\Exment\Services\FormHelper;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Services\TableService;
+use Carbon\Carbon;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Elibyy\TCPDF\Facades\TCPDF;
+use Illuminate\Support\Facades\DB;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Enums\DataQrRedirect;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -227,7 +234,9 @@ class CustomValueController extends AdminControllerTableBase
             }
 
             $grid = $grid_item->grid($callback);
-
+            $grid->tools(function ($tools) {
+                TableService::appendCreateAndDownloadButtonQRCode($tools, $this->custom_table);
+            });
             if ($modal) {
                 $content = $grid_item->renderModal($grid);
                 Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
@@ -1122,5 +1131,330 @@ class CustomValueController extends AdminControllerTableBase
         })->each(function($column) use($custom_value) {
             $custom_value->setValue($column->column_name, null, true);
         });
+    }
+
+    public function formCreateQrcode(Request $request, $table_id)
+    {
+        $form = new ModalForm();
+        $form->action(route('exment.create_qrcode', ['tableKey' => $table_id]));
+
+        // add form
+        $form->number('qr_number', 'QRコードの件数');
+        $form->setWidth(10, 2);
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans("custom_table.qr_code.create"),
+            'submitlabel' => '保存'
+        ]);
+    }
+
+    public function createQrCode(Request $request, $table_id)
+    {
+        $qr_number = $request->get('qr_number');
+        $qr_id_arr = $this->custom_table->getValueModel()->all()->pluck("value")->pluck('qr_code_id')->toArray();
+        $qr_code_id = (int)max($qr_id_arr == [] ? [0] : $qr_id_arr) + 1;
+
+        $selected_custom_value_id = [];
+        for ($i = 0; $i < $qr_number; $i++) {
+            $target_data = CustomTable::getEloquent($table_id)->getValueModel();
+            $target_data->setValue('qr_code_id', $qr_code_id);
+            $target_data->save();
+            $qr_code_id++;
+            $selected_custom_value_id[] = $target_data->id;
+        }
+        [$tmpPath, $fileName] = $this->createPdf($selected_custom_value_id, $table_id);
+        $this->qrCreateOrDownloadResponse($tmpPath, $fileName, true);
+    }
+
+    public function qrcodeDownload(Request $request, $table_id)
+    {
+        $selected_custom_value_id = $request->get('select_ids');
+        if (is_null($selected_custom_value_id)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'message' => '対象データが選択されていません',
+            ]);
+        }
+        [$tmpPath, $fileName] = $this->createPdf($selected_custom_value_id, $table_id);
+        $this->qrCreateOrDownloadResponse($tmpPath, $fileName);
+    }
+
+    protected function qrCreateOrDownloadResponse($tmpPath, $fileName, $isCreate = false)
+    {
+        if (isset($tmpPath)) {
+            $response = getAjaxResponse([
+                'fileBase64' => base64_encode(\File::get($tmpPath)),
+                'fileContentType' => \File::mimeType($tmpPath),
+                'fileName' => $fileName,
+                'swaltext' => $isCreate ? '作成しました。' : 'ダウンロードが完了しました',
+            ]);
+
+            $response->send();
+
+            $this->deleteTmpFile($tmpPath);
+            exit;
+        } else {
+            return [
+                'result' => false,
+                'swaltext' => 'ダウンロード対象のファイルがありません',
+            ];
+        }
+    }
+
+    /**
+     * Create and download pdf file.
+     *
+     * @return void
+     */
+    protected function createPdf($selected_custom_value_id, $table_id)
+    {
+        $selected_custom_values = CustomTable::getEloquent($table_id)->getValueModel()->whereIn('id', $selected_custom_value_id)->get();
+
+        $_img_width = $this->custom_table->getOption('cell_width') != null ? (float)$this->custom_table->getOption('cell_width') : 62;
+        $_img_height = $this->custom_table->getOption('cell_height') != null ? (float)$this->custom_table->getOption('cell_height') : 31;
+        $margin_left = $this->custom_table->getOption('margin_left') != null ? (float)$this->custom_table->getOption('margin_left') : 9;
+        $margin_top =  $this->custom_table->getOption('margin_top') != null ? (float)$this->custom_table->getOption('margin_top') : 9;
+        $col_spacing = $this->custom_table->getOption('col_spacing') != null ? (float)$this->custom_table->getOption('col_spacing') : 3;
+        $col_per_page = $this->custom_table->getOption('col_per_page') != null ? (float)$this->custom_table->getOption('col_per_page') : 3;
+        $row_spacing = $this->custom_table->getOption('row_spacing') != null ? (float)$this->custom_table->getOption('row_spacing') : 0;
+        $row_per_page = $this->custom_table->getOption('row_per_page') != null ? (float)$this->custom_table->getOption('row_per_page') : 9;
+
+        $img_width = $this->mmToPixel($_img_width);
+        $img_height = $this->mmToPixel($_img_height);
+
+        DB::beginTransaction();
+        try {
+            $qr_code_id = (int)max($this->custom_table->getValueModel()->all()->pluck("value")->pluck('qr_code_id')->toArray()) + 1;
+            $img_arr = [];
+            $selected_custom_values->each(function ($selected_custom_value)
+            use (&$img_arr, $img_width, $img_height, &$qr_code_id) {
+                $selected_id = strval($selected_custom_value->id);
+                $val_qr_code_id = $selected_custom_value->getValue('qr_code_id');
+                if (!$val_qr_code_id) {
+                    $selected_custom_value->setValue('qr_code_id', $qr_code_id);
+                    $selected_custom_value->save();
+                    $qr_code_id++;
+                }
+                [$qr_file_name, $qr_file_path] = $this->createStickerImg(
+                    $selected_id,
+                    $img_width,
+                    $img_height,
+                    $selected_custom_value
+                );
+
+                array_push($img_arr, $qr_file_path);
+
+            });
+            // 一時ファイルの名前を生成する
+            $fileName = 'QR-code_' . Carbon::now()->format('YmdHis') . '.pdf';
+            $tmpPath = getFullpath($fileName, Define::DISKNAME_ADMIN_TMP);
+            
+            $pdf = new TCPDF;
+            $pdf::setAutoPageBreak(true, 0);
+            $pdf::AddPage('P', 'mm', array(210, 297), true, 'UTF-8', false);
+
+            $count = 0;
+            $checkWidth = 0;
+            foreach ($img_arr as $img) {
+                if (($checkWidth + 1) * $_img_width <= (210 - $margin_left * 2 - ($col_per_page - 1) * $col_spacing)) {
+                    $pos_x = ($margin_left + ($_img_width + $col_spacing) * $checkWidth);
+                    $pos_y = ($margin_top + ($_img_height  + $row_spacing) * $count);
+                    $pdf::Image($img, $pos_x, $pos_y, $_img_width, $_img_height);
+                    $checkWidth++;
+                } else {
+                    $checkWidth = 1;
+                    $count++;
+                    if (($count + 1) * $_img_height > 297 - $margin_top * 2 - ($row_per_page - 1) * $row_spacing) {
+                        $count = 0;
+                        $pdf::AddPage('P', 'mm', array(210, 297), true, 'UTF-8', false);
+                    }
+                    $pos_x = $margin_left;
+                    $pos_y = ($margin_top + ($_img_height  + $row_spacing) * $count);
+                    $pdf::Image($img, $pos_x, $pos_y, $_img_width, $_img_height);
+                }
+            }
+
+            $pdf::Output($tmpPath, 'F');
+
+            foreach ($img_arr as $value) {
+                $this->deleteTmpFile($value);
+            }
+            DB::commit();
+        } catch (\Exception $exception) {
+            //TODO:error handling
+            DB::rollback();
+            throw $exception;
+        }
+
+        return [$tmpPath, $fileName];
+    }
+
+        /**
+     * Create image of sticker/label for adding to exported excel file.
+     *
+     * @param [type] $selected_id
+     * @param [type] $img_width
+     * @param [type] $img_height
+     * @return array
+     */
+    public function createStickerImg($selected_id, $sticker_img_width, $sticker_img_height, $selected_custom_value)
+    {
+        $qr_file_name = 'qrcode_id-' . $selected_id . '_' . Carbon::now()->format('YmdHis') . '.png';
+        $qr_file_path = getFullpath($qr_file_name, Define::DISKNAME_ADMIN_TMP);
+        $img_margin_top_right = ceil(0.092 * $sticker_img_height);
+        $qr_img_height = $qr_img_width = $sticker_img_height - $img_margin_top_right * 2;
+        QrCode::format('png')
+            ->size(200)
+            ->margin(0)
+            ->generate(
+                $this->createQRUrl($selected_id),
+                $qr_file_path
+            );
+        $qr_img = imagecreatefrompng($qr_file_path);
+
+        $sticker_file_name = 'qrsticker_id-' . $selected_id . '_' . Carbon::now()->format('YmdHis') . '.png';
+        $sticker_file_path = getFullpath($sticker_file_name, Define::DISKNAME_ADMIN_TMP);
+        $sticker_img = imagecreatetruecolor($sticker_img_width, $sticker_img_height);
+
+        $white  = imagecolorallocate($sticker_img, 255, 255, 255);
+        $black = imagecolorallocate($sticker_img, 0, 0, 0);
+        $font = base_path('public/font/century.ttf');
+        imagefilledrectangle(
+            $sticker_img,
+            0,
+            0,
+            $sticker_img_width,
+            $sticker_img_height,
+            $white
+        );
+        $text_center_x = $sticker_img_width - ($sticker_img_width - $qr_img_width - $img_margin_top_right) / 2;
+        $space_ww = ($sticker_img_width - $qr_img_width - $img_margin_top_right);
+        if ($space_ww >= 100) {
+            $size_ww = 18;
+        } else {
+            $size_ww = floor($space_ww / 5.5);
+        }
+        $width_ww = ceil($size_ww * 4.8);
+        $height_ww = ceil($size_ww * 0.6);
+        $text_qr = $this->custom_table->getOption('text_qr');
+        $text_qr_count = strlen($text_qr);
+        imagettftext(
+            $sticker_img,
+            ($sticker_img_width > 280) ? (floor($size_ww * 0.6)) : (floor($size_ww * 0.5)),
+            0,
+            $text_center_x - $width_ww / 2,
+            ($sticker_img_height + $height_ww) / 2 - 5,
+            $black,
+            $font,
+            $text_qr
+        );
+        if ($sticker_img_width >= 67) {
+            $size_text = 10;
+        } else {
+            $size_text = floor($sticker_img_width / 6.7);
+        }
+        $width_text = ceil($size_text * 0.6 * strlen($selected_id));
+        $show_qr_id = $this->custom_table->getOption('show_qr_id');
+        if ($show_qr_id) {
+            $text_qr_id = $this->custom_table->getOption('text_qr_id');
+            imagettftext(
+                $sticker_img,
+                ($sticker_img_width > 280) ? (floor($size_text * 0.8)) : (floor($size_text * 0.7)),
+                0,
+                $text_center_x - $width_ww / 2,
+                ($sticker_img_height - $img_margin_top_right) / 4 * 3,
+                $black,
+                $font,
+                ($text_qr_id ? ($text_qr_id . ' : ') : '') . $selected_custom_value->getValue('qr_code_id')
+            );
+        }
+        $show_data_id = $this->custom_table->getOption('show_data_id');
+        if ($show_data_id) {
+            $text_data_id = $this->custom_table->getOption('text_data_id');
+            imagettftext(
+                $sticker_img,
+                ($sticker_img_width > 280) ? (floor($size_text * 0.8)) : (floor($size_text * 0.7)),
+                0,
+                $text_center_x - $width_ww / 2,
+                ($sticker_img_height - $img_margin_top_right) / 15 * 14,
+                $black,
+                $font,
+                ($text_data_id ? ($text_data_id . ' : ') : '') .$selected_id
+            );
+        }
+
+        imagecopyresized(
+            $sticker_img,
+            $qr_img,
+            $img_margin_top_right,
+            $img_margin_top_right,
+            0,
+            0,
+            $qr_img_width,
+            $qr_img_height,
+            200,
+            200
+        );
+        imagepng($sticker_img, $sticker_file_path);
+
+        imagedestroy($sticker_img);
+        imagedestroy($qr_img);
+
+        $this->deleteTmpFile($qr_file_path);
+
+        return [$sticker_file_name, $sticker_file_path];
+    }
+
+    /**
+     * Delete temporary file in admin_tmp folder.
+     *
+     * @param [type] $file_path
+     * @return void
+     */
+    public function deleteTmpFile($file_path)
+    {
+        if (\File::exists($file_path)) {
+            try {
+                \File::delete($file_path);
+            } catch (\Exception $ex) {
+            }
+        }
+    }
+
+    /**
+     * Create URL to transit to qr page.
+     *
+     * @param [type] $selected_id
+     * @return string
+     */
+    public function createQRUrl($selected_id)
+    {
+        $form_id = (int)$this->custom_table->getOption('form_after_read');
+        $form_suuid = CustomForm::find($form_id)->suuid;
+        if ($this->custom_table->getOption('action_after_read') === DataQrRedirect::CONTINUE_EDITING) {
+            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid . '&after-save=1');
+        } else if ($this->custom_table->getOption('action_after_read') === DataQrRedirect::VIEW) {
+            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid . '&after-save=3');
+        } else if ($this->custom_table->getOption('action_after_read') === DataQrRedirect::TOP) {
+            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid . '&redirect-dashboard=1');
+        } else if ($this->custom_table->getOption('action_after_read') === DataQrRedirect::CAMERA) {
+            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid . '&redirect-camera=1');
+        } else {
+            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid);
+        }
+        return $url;
+    }
+
+    /**
+     * Convert Millimeter to Pixel
+     *
+     * @param [type] $mmVal
+     * @return int
+     */
+    public function mmToPixel($mmVal)
+    {
+        $one_mm_to_pixel = 3.7795275591;
+        return $mmVal * $one_mm_to_pixel;
     }
 }

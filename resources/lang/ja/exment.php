@@ -580,6 +580,7 @@ return [
             'editor' => 'エディター',
             'html' => 'HTML',
             'notify_navbar' => '通知一覧',
+            'qr_code' => 'QR Code',
         ],
 
         'dashboard_menulist' => [
@@ -1045,6 +1046,7 @@ return [
         'notify' => '通知設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
+        'qrcode' => 'QRコード設定',
     ],
 
     'workflow' => [
@@ -1185,12 +1187,47 @@ return [
         'expand_setting' => '拡張設定',
         'copy_from_table' => 'コピー元テーブル',
         'copy_custom_table' => 'カスタムテーブルをコピーする',
+        'qr_code' => [
+            'setting' => 'QR Code設定',
+            'content' => 'QR画像の表示内容',
+            'text' => '文字列',
+            'data_id' => 'データIDの表示名',
+            'qr_id' => 'QRコードIDの表示名',
+            'show_data_id' => '対象テーブルのデータID',
+            'show_data_id_description' => 'YESにすることで、対象テーブルのデータIDがQR画像に表示されることが出来ます。',
+            'show_qr_id_description' => 'YESにすることで、QRコードIDがQR画像に表示されることが出来ます。',
+            'show_qr_id' => 'QRコードID',
+            'image_size' => 'QR画像のサイズ',
+            'cell_width' => 'Cell width',
+            'cell_height' => 'Cell height',
+            'margin_left' => 'Margin left',
+            'margin_top' => 'Margin top',
+            'column_per_page' => 'Column per page',
+            'row_per_page' => 'Row per page',
+            'column_spacing' => 'Columnn spacing',
+            'row_spacing' => 'Row spacing',
+            'reading' => 'QRコード読込',
+            'form_after_read' => 'QR読込後のフォーム',
+            'action_after_read' => 'データ登録後のアクション',
+            'download' => 'QRコードダウンロード',
+            'create' => 'QRコード新規作成',
+            'reading' => 'QR読込',
+            'help' => '※下記の情報を変更する場合は変更前に作成したQRコードに反映されません。変更前のQRコードに反映したい場合は、QRコードを再度ダウンロードください。',
+            'description' => 'QR画像のサイズ設定は<a href="%s" target="_blank">こちら</a>をご参照ください。',
+        ],
         'data_submit_redirect_options' => [
             "inherit"               => "システム設定に合わせる",
             'list'                  => '一覧',
             'view'                  => '表示',
             'continue_editing'      => '編集を続ける',
             'continue_creating'     => '新規作成する',
+        ],
+        'data_qr_redirect_options' => [
+            'top'                   => 'TOP画面表示',
+            'list'                  => '一覧表示',
+            'view'                  => '詳細画面表示',
+            'continue_editing'      => '編集画面表示',
+            'camera'                => 'カメラ起動',
         ],
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
@@ -1213,6 +1250,8 @@ return [
             'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
             'delete_confirm_error' => 'キーワードが正しくありません。',
             'copy_custom_table' => '通常設定、拡張設定、カスタム列をコピーします。<br />その他の設定は対象外になります。手動で設定を行ってください。',
+            'qrcode_activate' => 'このテーブルのQRコード機能を有効化にします。有効化しますか？',
+            'qrcode_deactivate' => 'このテーブルのQRコード機能を無効化にします。無効化しますか？',
         ],
 
         'custom_column_multi' => [
@@ -2184,6 +2223,10 @@ return [
             'menu' => 'メニュー',
             'role_group' => '役割グループ',
         ]
+    ],
+
+    'qrcode' => [
+        'description' => 'このテーブルのQRコード機能の設定を行います。',
     ],
 
     'custom_value' => [

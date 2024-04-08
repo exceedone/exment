@@ -13,6 +13,8 @@ use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
@@ -20,6 +22,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
@@ -35,6 +38,7 @@ use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\DataSubmitRedirectEx;
+use Exceedone\Exment\Enums\DataQrRedirect;
 use Exceedone\Exment\Services\TableService;
 
 class CustomTableController extends AdminControllerBase
@@ -90,13 +94,28 @@ class CustomTableController extends AdminControllerBase
      *
      * @param Request $request
      * @param string $id
-     * @param boolean $active_flg
+     * @param boolean $active_qr_flg
      * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function toggleActivate(Request $request, $id, bool $active_flg)
     {
         $custom_table = CustomTable::getEloquent($id);
-        $custom_table->active_flg = $active_flg;
+        $custom_table->setOption('active_qr_flg', $active_flg);
+        $qr_code_id_col = CustomColumn::where('custom_table_id', $id)->where('column_name', 'qr_code_id')
+            ->first();
+        if (!$qr_code_id_col) {
+            CustomColumn::create([
+                'custom_table_id' => $id,
+                'column_name' => 'qr_code_id',
+                'column_view_name' => 'QR Code Id',
+                'column_type' => ColumnType::INTEGER,
+                'options' => [
+                    'index_enabled' => 1,
+                    'unique' => 1,
+                    'init_only' => 1
+                ],
+            ]);
+        }
         $custom_table->save();
 
         return getAjaxResponse([
@@ -539,17 +558,48 @@ HTML;
     protected function formQrCodeSetting($id = null)
     {
         $form = new Form(new CustomTable());
-        $form->display('table_name', exmtrans("custom_table.table_name"));
+        $custom_table = CustomTable::getEloquent($id);
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        $form->setTitle(exmtrans("custom_table.qr_code.setting"));
+        $form->exmheader(exmtrans("custom_table.qr_code.help"))->no(5);
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id, $manualUrl) {
+            $form->exmheader(exmtrans("custom_table.qr_code.content"))->hr();
+            $form->text('text_qr', exmtrans("custom_table.qr_code.text"))->rules("max:10");
+            $form->switchbool('show_data_id', exmtrans("custom_table.qr_code.show_data_id"))
+                ->help(exmtrans("custom_table.qr_code.show_data_id_description"))
+                ->attribute(['data-filtertrigger' => true]);
+            $form->text('text_data_id', exmtrans("custom_table.qr_code.data_id"))->default('ID')->rules("max:8")
+                ->attribute(['data-filter' => json_encode(['key' => 'options_show_data_id', 'value' => '1'])]);
+            $form->switchbool('show_qr_id', exmtrans("custom_table.qr_code.show_qr_id"))
+                ->help(exmtrans("custom_table.qr_code.show_data_id_description"))
+                ->attribute(['data-filtertrigger' => true]);
+            $form->text('text_qr_id', exmtrans("custom_table.qr_code.qr_id"))->default('QR ID')->rules("max:8")
+                ->attribute(['data-filter' => json_encode(['key' => 'options_show_qr_id', 'value' => '1'])]);
+            $form->exmheader(exmtrans("custom_table.qr_code.image_size"))->hr();
+            $form->number('cell_width', exmtrans("custom_table.qr_code.cell_width"));
+            $form->number('cell_height', exmtrans("custom_table.qr_code.cell_height"));
+            $form->number('margin_left', exmtrans("custom_table.qr_code.margin_left"));
+            $form->number('margin_top', exmtrans("custom_table.qr_code.margin_top"));
+            $form->number('col_per_page', exmtrans("custom_table.qr_code.column_per_page"));
+            $form->number('row_per_page', exmtrans("custom_table.qr_code.row_per_page"));
+            $form->number('col_spacing', exmtrans("custom_table.qr_code.column_spacing"));
+            $form->number('row_spacing', exmtrans("custom_table.qr_code.row_spacing"))->help(sprintf(exmtrans("custom_table.qr_code.description"), $manualUrl));
+            $form->exmheader(exmtrans("custom_table.qr_code.reading"))->hr();
+            $custom_form_arr = CustomForm::where('custom_table_id', $id)->get()->mapWithKeys(function ($item) {
+                return [$item->id => $item->form_view_name];
+            })->toArray();
+            $form->select('form_after_read', exmtrans("custom_table.qr_code.form_after_read"))
+                ->options($custom_form_arr)
+                ->default(array_key_first($custom_form_arr));
+            $form->select('action_after_read', exmtrans("custom_table.qr_code.action_after_read"))
+                ->options(DataQrRedirect::transKeyArray("custom_table.data_qr_redirect_options"))
+                ->default(DataQrRedirect::TOP);
+        })->disableHeader();
+        
 
         $form->hidden('qrcodesetting')->default(1);
         $form->ignore('qrcodesetting');
 
-        $custom_table = CustomTable::getEloquent($id);
-
-        $form->checkbox('form_action_disable_flg', exmtrans("custom_table.custom_column_multi.form_action_disable_flg"))
-            ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
-            ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
-        ;
 
         $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
             $tools->disableDelete();
@@ -631,7 +681,6 @@ HTML;
         if (request()->has('qrcodesetting')) {
             return $this->formQrCodeSetting($id)->update($id);
         }
-
         return $this->form($id)->update($id);
     }
 
