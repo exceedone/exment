@@ -1840,6 +1840,7 @@ return [
             'use_view_infobox' => 'By setting YES, you can set an information box at the top of the view where you can enter business details and messages to users.',
             'view_infobox_title' => 'Enter the title to be displayed in the information box.',
             'view_infobox' => 'Please fill in the HTML to be displayed in the information box. *Images and scripts cannot be entered.',
+            'order' => 'Display order of custom view menu buttons.',
         ],
 
         'column_sort_options' => [

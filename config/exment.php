@@ -1104,4 +1104,16 @@ return [
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Specify custom view sorting options
+    |--------------------------------------------------------------------------
+    |
+    | 0(default):view_type > view_kind_type > id.
+    | 1:view_type > view_kind_type > order.
+    | 2:view_type > order.
+    |
+    */
+    'sort_custom_view_options' => env('EXMENT_SORT_CUSTOM_VIEW_OPTIONS', 0),
 ];
