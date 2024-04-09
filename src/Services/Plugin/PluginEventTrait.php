@@ -8,7 +8,6 @@ use Exceedone\Exment\Model\CustomValue;
 /**
  * Plugin (Event) trait
  *
- * @property boolean $isDelete
  */
 trait PluginEventTrait
 {

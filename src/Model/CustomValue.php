@@ -47,7 +47,10 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
  * @property mixed $created_user_id
  * @property mixed $login_user
  * @property mixed $login_users
+ * @property mixed $deleted_user_id
  * @property mixed $created_at
+ * @property mixed $deleted_at
+ * @property mixed $revisionEnabled
  * @method mixed getUserId()
  * @method static ExtendedBuilder withoutGlobalScopes(array $scopes = null)
  * @method static ExtendedBuilder where($column, $operator = null, $value = null, $boolean = 'and')
@@ -396,7 +399,9 @@ abstract class CustomValue extends ModelBase
             $results[] = $v->toArray();
         }
 
-        return collect($results);
+        /** @var Collection $collection */
+        $collection = collect($results);
+        return $collection;
     }
 
     /**

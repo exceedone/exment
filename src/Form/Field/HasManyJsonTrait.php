@@ -13,7 +13,7 @@ trait HasManyJsonTrait
     /**
      * Get the HasMany relation key name.
      *
-     * @return string
+     * @return string|null
      */
     protected function getKeyName()
     {
