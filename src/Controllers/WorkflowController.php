@@ -1211,7 +1211,12 @@ class WorkflowController extends AdminControllerBase
                     ->options(exmtrans("condition.condition_join_options"))
                     ->attribute(['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])])
                     ->default(array_get($work_condition, "condition_join") ?? 'and');
-            }
+
+                $form->checkboxone("condition_reverse_{$index}", exmtrans("condition.condition_reverse"))
+                    ->option(exmtrans("condition.condition_reverse_options"))
+                    ->attribute(['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])])
+                    ->default(array_get($work_condition, "condition_reverse") ?? '0');
+                }
         }
 
         $form->hidden('valueModalUuid')->default($request->get('widgetmodal_uuid'));            // add message
