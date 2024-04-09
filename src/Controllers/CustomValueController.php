@@ -614,8 +614,6 @@ class CustomValueController extends AdminControllerTableBase
                 ]);
             }
         }
-
-        return $response;
     }
 
 
@@ -1151,10 +1149,11 @@ class CustomValueController extends AdminControllerTableBase
 
     /**
      * delete file, image, autonumber column from customvalue
-     * 
+     *
      * @param CustomValue $custom_value
+     * @return void
      */
-    protected function filterCopyColumn(CustomValue $custom_value) 
+    protected function filterCopyColumn(CustomValue $custom_value)
     {
         $custom_value->custom_table->custom_columns->filter(function($column) {
             $column_type = $column->column_type;

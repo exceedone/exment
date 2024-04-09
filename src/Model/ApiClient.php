@@ -52,6 +52,7 @@ class ApiClient extends Client
         if (boolval($this->password_client)) {
             return ApiClientType::PASSWORD_GRANT;
         }
+        /** @phpstan-ignore-next-line Negated boolean expression is always true. */
         if (!boolval($this->personal_access_client) && !boolval($this->password_client)) {
             return ApiClientType::CLIENT_CREDENTIALS;
         }

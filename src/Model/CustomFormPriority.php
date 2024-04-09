@@ -57,6 +57,7 @@ class CustomFormPriority extends ModelBase
             foreach ($this->custom_form_priority_conditions as $condition) {
                 $list[] = $condition->condition_text;
             }
+            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. probably it will not show 'and'. */
             $glue = exmtrans('common.join_'.$this->condition_join??'and');
             return implode($glue, $list);
         }

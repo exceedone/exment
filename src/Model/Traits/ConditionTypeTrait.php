@@ -19,7 +19,7 @@ trait ConditionTypeTrait
     /**
      * condition_type_key name. default is "view_column_target_id"
      *
-     * @var string
+     * @var string|null
      */
     //protected $condition_column_key = "view_column_target_id";
 

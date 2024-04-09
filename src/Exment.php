@@ -337,9 +337,10 @@ class Exment
             return SystemVersion::DEV;
         } elseif ($latest === $current) {
             return SystemVersion::LATEST;
-            $message = exmtrans("system.version_latest");
-            $icon = 'check-square';
-            $bgColor = 'blue';
+// Unreachable statement - code above always terminates.
+//            $message = exmtrans("system.version_latest");
+//            $icon = 'check-square';
+//            $bgColor = 'blue';
         } else {
             return SystemVersion::HAS_NEXT;
         }

@@ -192,7 +192,7 @@ class SearchService
      * Add an "order by" clause to the query.
      * If CustomColumn, and linkage(relation or select table), add where exists query.
      *
-     * @param  \Closure|\Illuminate\Database\Query\Builder|\Illuminate\Database\Query\Expression|string  $column
+     * @param  \Closure|CustomColumn|\Illuminate\Database\Query\Builder|\Illuminate\Database\Query\Expression|string  $column
      * @param  string  $direction
      * @return $this
      *
@@ -623,7 +623,7 @@ class SearchService
      * Get relation table info
      *
      * @param CustomTable $whereCustomTable
-     * @return RelationTable relation table info
+     * @return RelationTable|null relation table info
      */
     protected function getRelationTable($whereCustomTable, bool $asSummary = false, $filterObj = null)
     {
@@ -809,7 +809,7 @@ class SearchService
     /**
      * Get condition params
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter|Notify|null $column
      * @return array
      *  offset0 : target column's table id
      *  offset1 : target column's id
@@ -846,7 +846,7 @@ class SearchService
     /**
      * Get column item
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter|Notify $column
      * @return mixed
      */
     protected function getColumnItem($column)

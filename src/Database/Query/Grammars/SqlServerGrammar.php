@@ -95,20 +95,20 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
         return $builder;
 
-
-        $index = $this->wrap($column);
-        $baseColumnIndex = $this->wrap($baseColumn);
-
-        if ($isNot) {
-            $queryStr = "NOT FIND_IN_SET({$baseColumnIndex}, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))";
-        } else {
-            $queryStr = "FIND_IN_SET({$baseColumnIndex}, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
-        }
-
-        $func = $isOr ? 'orWhereRaw' : 'whereRaw';
-        $builder->{$func}($queryStr);
-
-        return $builder;
+//        TODO: unreachable statement
+//        $index = $this->wrap($column);
+//        $baseColumnIndex = $this->wrap($baseColumn);
+//
+//        if ($isNot) {
+//            $queryStr = "NOT FIND_IN_SET({$baseColumnIndex}, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))";
+//        } else {
+//            $queryStr = "FIND_IN_SET({$baseColumnIndex}, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
+//        }
+//
+//        $func = $isOr ? 'orWhereRaw' : 'whereRaw';
+//        $builder->{$func}($queryStr);
+//
+//        return $builder;
     }
 
 

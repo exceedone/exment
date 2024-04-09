@@ -43,7 +43,7 @@ class NotifyTarget
     /**
      * Email Address
      *
-     * @var string
+     * @var string|null
      */
     protected $email;
 

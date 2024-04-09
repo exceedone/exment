@@ -27,7 +27,7 @@ class RelationColumn extends Column
     /**
      * RelationTable. Info about relation.
      *
-     * @var RelationTable
+     * @var RelationTable|null
      */
     protected $relationTable;
 

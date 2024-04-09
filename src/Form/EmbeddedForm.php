@@ -93,7 +93,7 @@ class EmbeddedForm extends EmbeddedFormBase
     /**
      * Prepare for insert or update.
      *
-     * @param array $input
+     * @param array|null $input
      *
      * @return mixed
      */

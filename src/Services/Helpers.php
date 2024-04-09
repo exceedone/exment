@@ -153,7 +153,7 @@ if (!function_exists('parseIntN')) {
      * TODO:common lib
      *
      * @param mixed $str
-     * @return float|int|string|null
+     * @return string|null
      */
     function parseIntN($str)
     {
@@ -697,8 +697,8 @@ if (!function_exists('array_keys_exists')) {
     /**
      * array_keys_exists
      * $keys contains $array, return true.
-     * @param array $keys
-     * @param array $array
+     * @param mixed $keys
+     * @param mixed $array
      * @return bool
      */
     function array_keys_exists($keys, $array)
@@ -725,7 +725,7 @@ if (!function_exists('array_key_value_exists')) {
     /**
      * whether has array_key and array_get
      * @param mixed $key
-     * @param array|\Illuminate\Support\Collection $array
+     * @param mixed $array
      * @return bool
      */
     function array_key_value_exists($key, $array)
@@ -755,7 +755,7 @@ if (!function_exists('array_value_exists')) {
      * whether has array_value
      *
      * @param mixed $value
-     * @param array|\Illuminate\Support\Collection $array
+     * @param mixed $array
      * @return bool
      */
     function array_value_exists($value, $array): bool
@@ -811,7 +811,6 @@ if (!function_exists('array_dot_only')) {
 if (!function_exists('array_remove')) {
     /**
      * array remove as "array_forget"
-     * @return array|string $keys
      */
     function array_remove(array $array, $keys)
     {
@@ -825,8 +824,8 @@ if (!function_exists('jsonToArray')) {
     /**
      * json to array
      *
-     * @param $value
-     * @return array|bool|float|int|mixed|object|string|null
+     * @param mixed $value
+     * @return mixed
      */
     function jsonToArray($value)
     {
@@ -839,6 +838,7 @@ if (!function_exists('jsonToArray')) {
             return $value;
         }
         // convert json to array
+        /** @phpstan-ignore-next-line Call to function is_array() with mixed will always evaluate to false. already checked is_array() */
         if (!is_array($value) && is_json($value)) {
             return json_decode_ex($value, true);
         }
@@ -1195,7 +1195,7 @@ if (!function_exists('pascalize')) {
 if (!function_exists('get_password_rule')) {
     /**
      * get_password_rule(for validation)
-     * @return array|string
+     * @return array
      */
     function get_password_rule($required = true, ?LoginUser $login_user = null)
     {
@@ -1699,7 +1699,7 @@ if (!function_exists('getUserName')) {
     /**
      * Get database user name.
      *
-     * @param string $id
+     * @param string|CustomValue $id
      * @param $link
      * @param $addAvatar
      * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|mixed|string|null
@@ -1765,7 +1765,7 @@ if (!function_exists('admin_exclusion_path')) {
          * Ex. admin/data/testtable to data/testtable
          *
          * @param string $str
-         * @return array|string|string[]|null
+         * @return string|null
          */
         function unicode_decode($str)
         {
@@ -1782,7 +1782,7 @@ if (!function_exists('admin_exclusion_path')) {
          * Ex. admin/data/testtable to data/testtable
          *
          * @param string $str
-         * @return array|string|string[]|null
+         * @return string|null
          */
         function unicode_encode($str)
         {
@@ -1801,7 +1801,7 @@ if (!function_exists('admin_exclusion_path')) {
         /**
          * Wrapper for json_decode that throws when an error occurs.
          *
-         * @param array|string $json    JSON data to parse
+         * @param array|string|null $json    JSON data to parse
          * @param bool   $assoc   When true, returned objects will be converted
          *                        into associative arrays.
          * @param int    $depth   User specified recursion depth.

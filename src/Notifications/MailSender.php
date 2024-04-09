@@ -296,8 +296,6 @@ class MailSender extends SenderBase
         } else {
             return [replaceBreak($body, false), 'text/html'];
         }
-
-        return $this;
     }
 
 
