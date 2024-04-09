@@ -643,6 +643,7 @@ return [
             'event_trigger_options' => [
                 'saving' => '保存直前',
                 'saved' => '保存後',
+                'deleted' => '削除後',
                 'loading' => '画面読み込み前',
                 'loaded' => '画面読み込み後',
                 'grid_menubutton' => '一覧画面のメニューボタン',

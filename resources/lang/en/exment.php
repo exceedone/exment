@@ -643,6 +643,7 @@ return [
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
                 'saved' => 'After Saving',
+                'deleted' => 'After Deletion',
                 'loading' => 'Before Loading',
                 'loaded' => 'After Loading',
                 'grid_menubutton' => 'Menu button on List View',
