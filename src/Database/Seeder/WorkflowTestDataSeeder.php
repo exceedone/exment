@@ -547,6 +547,7 @@ class WorkflowTestDataSeeder extends Seeder
                         $conditions = $item['conditions'];
                         $conditions['morph_type'] = 'workflow_condition_header';
                         $conditions['morph_id'] = $header->id;
+                        // @phpstan-ignore-next-line
                         if (isset($conditions['target_column_id'])) {
                             \Log::debug($workflow['tables'][0]['custom_table']);
                             $target_column = CustomColumn::getEloquent($conditions['target_column_id'], $workflow['tables'][0]['custom_table']);

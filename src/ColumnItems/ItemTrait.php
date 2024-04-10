@@ -932,11 +932,11 @@ trait ItemTrait
     /**
      * Get weekday format
      *
-     * @return string
+     * @return string|null
      */
     protected function getWeekdayFormat($val)
     {
-        $queries = [];
+        if (is_null($val)) return null;
 
         // get weekday and no list
         $weekdayNos = $this->getWeekdayNolist();
