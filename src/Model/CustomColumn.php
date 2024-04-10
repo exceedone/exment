@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 /**
  * @phpstan-consistent-constructor
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property mixed $column_view_name
  * @property mixed $options
  * @property mixed $index_enabled
- * @method static \Exceedone\Exment\ColumnItems\CustomItem|\Exceedone\Exment\ColumnItems\ItemTrait indexEnabled()
+ * @method static bool indexEnabled()
  * @method static int count($columns = '*')
  * @method static ExtendedBuilder whereIn($column, $values, $boolean = 'and', $not = false)
  * @method static ExtendedBuilder whereNotIn($column, $values, $boolean = 'and')
@@ -392,6 +393,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                 return $record->column_name == $column_obj && $record->custom_table_id == $table_obj->id;
             })->first();
         }
+        /** @phpstan-ignore-next-line unreachable statement */
         return null;
     }
 
@@ -530,6 +532,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         });
 
         ///// add user definitions
+        /** @var Collection $results */
         $results = $results->merge(
             collect(static::$customAvailableCharacters)->map(function ($val) {
                 return [

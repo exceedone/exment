@@ -154,6 +154,92 @@ class CustomOperationTest extends UnitTestBase
     }
 
     /**
+     * update data with filter
+     */
+    public function testUpdateSelectFilterNotError()
+    {
+        $this->initAllTest();
+
+        $settings = [
+            'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'operation_type' => [CustomOperationType::BULK_UPDATE],
+            'operation_name' => 'test bulk update filter',
+            'options' => [
+                'condition_reverse' => '1'
+            ],
+            'update_columns' => [[
+                'column_name' => 'user',
+                'update_value_text' => TestDefine::TESTDATA_USER_LOGINID_USER1,
+            ]],
+            'conditions' => [[
+                'column_name' => 'odd_even',
+                'condition_type' => ConditionType::COLUMN,
+                'condition_key' => FilterOption::EQ,
+                'condition_value' => 'odd',
+            ]],
+        ];
+        $operation = $this->_prepareCustomOperation($settings);
+
+        $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $custom_column = CustomColumn::getEloquent('odd_even', $custom_table);
+        /** @var mixed $custom_value */
+        $custom_value = $custom_table->getValueModel()
+            ->where($custom_column->getQueryKey(), 'odd')->first();
+
+        $result = $operation->execute($custom_table, $custom_value->id);
+
+        $this->assertFalse($result === true);
+        $this->assertTrue(is_string($result));
+    }
+
+    /**
+     * update data with filter
+     */
+    public function testUpdateSelectFilterNot()
+    {
+        $this->initAllTest();
+
+        $settings = [
+            'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'operation_type' => [CustomOperationType::BULK_UPDATE],
+            'operation_name' => 'test bulk update filter',
+            'options' => [
+                'condition_join' => 'or',
+                'condition_reverse' => '1'
+            ],
+            'update_columns' => [[
+                'column_name' => 'user',
+                'update_value_text' => TestDefine::TESTDATA_USER_LOGINID_USER1,
+            ]],
+            'conditions' => [[
+                'column_name' => 'odd_even',
+                'condition_type' => ConditionType::COLUMN,
+                'condition_key' => FilterOption::EQ,
+                'condition_value' => 'odd',
+            ], [
+                'column_name' => 'integer',
+                'condition_type' => ConditionType::COLUMN,
+                'condition_key' => FilterOption::NUMBER_LTE,
+                'condition_value' => 1000,
+            ]],
+        ];
+        $operation = $this->_prepareCustomOperation($settings);
+
+        $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $custom_column1 = CustomColumn::getEloquent('odd_even', $custom_table);
+        $custom_column2 = CustomColumn::getEloquent('integer', $custom_table);
+        /** @var mixed $custom_value */
+        $custom_value = $custom_table->getValueModel()
+            ->whereNot($custom_column1->getQueryKey(), 'odd')
+            ->whereNot($custom_column2->getQueryKey(), '<=', 1000)->first();
+
+        $result = $operation->execute($custom_table, $custom_value->id);
+
+        $this->assertTrue($result);
+        $this->_checkUpdateValue($custom_table, $custom_value->id, $settings);
+    }
+
+    /**
      * update data with create event
      */
     public function testOperationByCreate()

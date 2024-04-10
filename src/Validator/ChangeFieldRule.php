@@ -47,7 +47,7 @@ class ChangeFieldRule implements Rule
 
         return true;
 
-        return preg_match('/^[-]?[\d\s,\.]*$/', $value);
+//        return preg_match('/^[-]?[\d\s,\.]*$/', $value);
     }
 
     /**

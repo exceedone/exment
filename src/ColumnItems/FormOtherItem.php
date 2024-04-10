@@ -165,6 +165,7 @@ abstract class FormOtherItem implements ItemInterface
         $item = $this;
 
         $field->as(function ($v) use ($item) {
+            /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\ColumnItems\FormOtherItem) will always evaluate to false. */
             if (is_null($this)) {
                 return '';
             }

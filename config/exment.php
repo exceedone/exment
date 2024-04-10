@@ -1104,4 +1104,12 @@ return [
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maintain default view with freeword search for each table
+    |--------------------------------------------------------------------------
+    |
+    */
+    'search_keep_default_view' => env('EXMENT_SEARCH_KEEP_DEFAULT_VIEW', false),
 ];
