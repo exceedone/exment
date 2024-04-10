@@ -278,6 +278,9 @@ class CustomOperationController extends AdminControllerTableBase
             ->options(exmtrans("condition.condition_join_options"))
             ->default('and');
 
+        $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
+            ->option(exmtrans("condition.condition_reverse_options"));
+
         // check inputs and operation_type before save
         $form->saving(function (Form $form) {
             if (!is_null($form->custom_operation_input_columns)) {

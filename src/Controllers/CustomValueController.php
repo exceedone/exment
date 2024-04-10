@@ -201,8 +201,11 @@ class CustomValueController extends AdminControllerTableBase
             ]);
         } else {
             $callback = null;
-            if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
-                $this->custom_view = CustomView::getAllData($this->custom_table);
+            if ($request->has('query')) {
+                if (!boolval(config('exment.search_keep_default_view', false)) ||
+                    !($this->custom_view->view_kind_type == ViewKindType::DEFAULT || $this->custom_view->view_kind_type == ViewKindType::ALLDATA)) {
+                    $this->custom_view = CustomView::getAllData($this->custom_table);
+                }
             }
             // if modal, set alldata view
             if ($modalframe) {
@@ -1079,53 +1082,11 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
-     * check if data is referenced.
-     */
-    protected function checkReferenced($custom_table, $list)
-    {
-        foreach ($custom_table->getSelectedItems() as $item) {
-            $model = getModelName(array_get($item, 'custom_table_id'));
-            $column_name = array_get($item, 'column_name');
-            // ignore mail_template reference from mail_send_log
-            if ($custom_table->table_name == SystemTableName::MAIL_TEMPLATE &&
-                $item->custom_table->table_name == SystemTableName::MAIL_SEND_LOG) {
-                continue;
-            }
-            if ($model::whereIn('value->'.$column_name, $list)->exists()) {
-                return true;
-            }
-        }
-        return false;
-    }
-    /**
      * validate before delete.
      */
     protected function validateDestroy($id)
     {
-        $custom_table = $this->custom_table;
-
-        // check if data referenced
-        if ($this->checkReferenced($custom_table, [$id])) {
-            return [
-                'status'  => false,
-                'message' => exmtrans('custom_value.help.reference_error'),
-            ];
-        }
-
-        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
-        // check if child data referenced
-        foreach ($relations as $relation) {
-            $child_table = $relation->child_custom_table;
-            $list = getModelName($child_table)::where('parent_id', $id)
-                ->where('parent_type', $custom_table->table_name)
-                ->pluck('id')->all();
-            if ($this->checkReferenced($child_table, $list)) {
-                return [
-                    'status'  => false,
-                    'message' => exmtrans('custom_value.help.reference_error'),
-                ];
-            }
-        }
+        return $this->custom_table->validateValueDestroy($id);
     }
 
     /**

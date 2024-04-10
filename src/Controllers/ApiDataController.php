@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\Linkage;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\Permission;
@@ -309,15 +309,32 @@ class ApiDataController extends AdminControllerTableBase
         $forceDelete = boolval($request->get('force'));
 
         $custom_values = [];
-        foreach ((array)$ids as $i) {
+        $validates = [];
+        foreach ((array)$ids as $index => $i) {
             if (($custom_value = $this->getCustomValue($this->custom_table, $i, $forceDelete)) instanceof Response) {
                 return $custom_value;
             }
             if (($code = $custom_value->enableDelete()) !== true) {
                 return abortJson(403, $code());
             }
-
+            if ($res = $this->custom_table->validateValueDestroy($i)) {
+                $message = array_get($res, 'message')?? exmtrans('error.delete_failed');
+                if (count($ids) == 1) {
+                    $validates[] = $message;
+                } else {
+                    $validates[] = [
+                        'line_no' => $index,
+                        'error' => $message
+                    ];
+                }
+            }
             $custom_values[] = $custom_value;
+        }
+
+        if (count($validates) > 0) {
+            return abortJson(400, [
+                'errors' => $validates
+            ], ErrorCode::VALIDATION_ERROR());
         }
 
         \ExmentDB::transaction(function () use ($custom_values, $forceDelete) {

@@ -21,6 +21,8 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
@@ -114,6 +116,11 @@ abstract class CustomValue extends ModelBase
      */
     protected $file_uuids = [];
 
+    /**
+     * result validate destroy.
+     * if true, pass validate destroy
+     */
+    protected $validation_destroy = false;
 
     /**
      * Create a new Eloquent model instance.
@@ -182,7 +189,14 @@ abstract class CustomValue extends ModelBase
     {
         return $this->getUser('deleted_user_id', true, true);
     }
-
+    public function getValidationDestroy()
+    {
+        return $this->validation_destroy;
+    }
+    public function setValidationDestroy($value)
+    {
+        $this->validation_destroy = $value;
+    }
 
     /**
      * Whether this model disable delete
@@ -504,6 +518,13 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
+            // call deleted event plugins
+            Plugin::pluginExecuteEvent(PluginEventType::DELETED, $model->custom_table, [
+                'custom_table' => $model->custom_table,
+                'custom_value' => $model,
+                'force_delete' => $model->isForceDeleting(),
+            ]);
+
             // Delete file hard delete
             if ($model->isForceDeleting()) {
                 // Execute notify if delete_force_custom_value is true
@@ -866,6 +887,24 @@ abstract class CustomValue extends ModelBase
         });
     }
 
+    /**
+     * Delete the model from the database.
+     *
+     * @return bool|null
+     *
+     * @throws \LogicException
+     */
+    public function delete()
+    {
+        if(!$this->getValidationDestroy()) {
+            $res = Plugin::pluginValidateDestroy($this);
+            if (!empty($res)) {
+                throw new \Exception(array_get($res, 'message'));
+            }
+            $this->setValidationDestroy(true);
+        }
+        parent::delete();
+    }
 
     /**
      * delete relation if record delete
@@ -888,6 +927,13 @@ abstract class CustomValue extends ModelBase
                     if ($deleteForce) {
                         $child->forceDelete();
                     } else {
+                        if(!$child->getValidationDestroy()) {
+                            $res = Plugin::pluginValidateDestroy($child);
+                            if (!empty($res)) {
+                                throw new \Exception(array_get($res, 'message'));
+                            }
+                            $child->setValidationDestroy(true);
+                        }
                         $child->delete();
                     }
                 });
