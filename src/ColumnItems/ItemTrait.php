@@ -932,7 +932,7 @@ trait ItemTrait
     /**
      * Get weekday format
      *
-     * @return string
+     * @return string|null
      */
     protected function getWeekdayFormat($val)
     {
