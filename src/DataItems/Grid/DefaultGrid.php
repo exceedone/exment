@@ -27,6 +27,7 @@ use Illuminate\Http\Request;
 use Encore\Admin\Form;
 // todo 一覧ソートバグ対応用の追加です
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class DefaultGrid extends GridBase
 {
@@ -135,6 +136,7 @@ class DefaultGrid extends GridBase
                 ->setClasses($className)
                 ->setHeaderStyle($item->gridHeaderStyle())
                 ->display(function ($v) use ($item) {
+                    /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\DataItems\Grid\DefaultGrid) will always evaluate to false. */
                     if (is_null($this)) {
                         return '';
                     }
@@ -315,7 +317,9 @@ class DefaultGrid extends GridBase
                 $filterItems[] = $custom_view_grid_filter->column_item;
             }
 
-            return collect($filterItems);
+            /** @var Collection $collection */
+            $collection =  collect($filterItems);
+            return $collection;
         }
 
         foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => true]) as $filterKey => $filterType) {
@@ -800,5 +804,21 @@ class DefaultGrid extends GridBase
         })->setTableColumnWidth(8, 4)
         ->rowUpDown('order', 10)
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters", $manualUrl));
+    }
+
+    /**
+     * Set filter fileds form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @param boolean $is_aggregate
+     * @return void
+     */
+    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    {
+        parent::setFilterFields($form, $custom_table, $is_aggregate);
+
+        $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
+            ->option(exmtrans("condition.condition_reverse_options"));
     }
 }

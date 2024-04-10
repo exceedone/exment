@@ -47,8 +47,9 @@ class RefreshTableDataCommand extends Command
      */
     public function handle()
     {
+        /** @var null|string $table_names */
         $table_names = $this->argument("table_name");
-        if (!isset($table_names)) {
+        if ($table_names === null) {
             throw new \Exception('parameter table name is empty');
         }
         $table_names = stringToArray($table_names);

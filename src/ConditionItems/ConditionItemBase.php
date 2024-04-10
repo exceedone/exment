@@ -52,7 +52,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * Dynamic field label
      *
-     * @var string
+     * @var string|null
      */
     protected $label;
 

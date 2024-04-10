@@ -371,6 +371,7 @@ class Permission
         ///// get last url.
         $uris = explode("/", $url);
         foreach ($uris as $k => $uri) {
+            /** @phpstan-ignore-next-line Call to function is_null() with string will always evaluate to false. */
             if (!is_null($uri) && mb_strlen($uri) == 0) {
                 continue;
             }

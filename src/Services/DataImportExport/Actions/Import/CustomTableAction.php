@@ -79,7 +79,9 @@ class CustomTableAction implements ActionInterface
                         'command.import.file_row_info',
                         $options['file_name'] ?? null,
                         $table_name,
+                        /** @phpstan-ignore-next-line Offset 'row_start' on non-empty-array on left side of ?? always exists and is not nullable. */
                         $options['row_start'] ?? null,
+                        /** @phpstan-ignore-next-line Offset 'row_start' on non-empty-array on left side of ?? always exists and is not nullable. */
                         $options['row_end'] ?? null
                     ));
                 }

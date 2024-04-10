@@ -6,6 +6,7 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewFilterTest extends UnitTestBase
@@ -598,7 +599,11 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => \Carbon\Carbon::today()->format('Y-m-d')
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            $date = \Carbon\Carbon::parse(array_get($data, 'value.datetime'));
+            $date = array_get($data, 'value.datetime');
+            if (is_null($date)) {
+                return false;
+            }
+            $date = \Carbon\Carbon::parse($date);
             return $date->format('Y-m-d') == $filter_settings[0]['filter_value_text'];
         });
     }
@@ -896,6 +901,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 1000
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $value = array_get($data, 'value.integer');
+            if (is_null($value)) {
+                return false;
+            }
             return array_get($data, 'value.integer') < $filter_settings[0]['filter_value_text'];
         });
     }
@@ -931,6 +940,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 1000
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $value = array_get($data, 'value.integer');
+            if (is_null($value)) {
+                return false;
+            }
             return array_get($data, 'value.integer') <= $filter_settings[0]['filter_value_text'];
         });
     }
@@ -967,6 +980,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => "$target_value"
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($target_value) {
+            $value = array_get($data, 'value.decimal');
+            if (is_null($value)) {
+                return false;
+            }
             return array_get($data, 'value.decimal') < $target_value;
         });
     }
@@ -1004,6 +1021,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => "$target_value"
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) use ($target_value) {
+            $value = array_get($data, 'value.decimal');
+            if (is_null($value)) {
+                return false;
+            }
             return array_get($data, 'value.decimal') <= $target_value;
         });
     }
@@ -1021,6 +1042,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 'bar'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $value = array_get($data, 'value.select');
+            if (is_null($value)) {
+                return false;
+            }
             return array_get($data, 'value.select') === $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1038,6 +1063,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 'bar'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $value = array_get($data, 'value.select');
+            if (is_null($value)) {
+                return false;
+            }
             return array_get($data, 'value.select') !== $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1055,6 +1084,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 'bar'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $value = array_get($data, 'value.select_valtext');
+            if (is_null($value)) {
+                return false;
+            }
             return array_get($data, 'value.select_valtext') === $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1072,6 +1105,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 'bar'
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $value = array_get($data, 'value.select_valtext');
+            if (is_null($value)) {
+                return false;
+            }
             return array_get($data, 'value.select_valtext') !== $filter_settings[0]['filter_value_text'];
         });
     }
@@ -1089,6 +1126,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 2
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $value = array_get($data, 'value.select_table');
+            if (is_null($value)) {
+                return false;
+            }
             return isMatchString(array_get($data, 'value.select_table'), $filter_settings[0]['filter_value_text']);
         });
     }
@@ -1106,6 +1147,10 @@ class CustomViewFilterTest extends UnitTestBase
             'filter_value_text' => 2
         ]];
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $value = array_get($data, 'value.select_table');
+            if (is_null($value)) {
+                return false;
+            }
             return !isMatchString(array_get($data, 'value.select_table'), $filter_settings[0]['filter_value_text']);
         });
     }
@@ -1634,6 +1679,72 @@ class CustomViewFilterTest extends UnitTestBase
 
             return $cnt > 0;
         }, ['condition_join' => 'or']);
+    }
+
+    /**
+     * FilterOption = filter condition (reverse)
+     */
+    public function testFuncFilterReverse()
+    {
+        $this->init();
+
+        $filter_settings = [];
+        $filter_settings[] = [
+            'reference_table' => 'custom_value_view_all',
+            'column_name' => 'index_text',
+            'reference_column' => 'select_table',
+            'filter_condition' => FilterOption::LIKE,
+            'filter_value_text' => 'index_003'
+        ];
+
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $select_value = $data->getValue('select_table');
+            if ($select_value instanceof CustomValue) {
+                return !str_starts_with($select_value->getValue('index_text'), 'index_003');
+            }
+            return false;
+        }, ['condition_reverse' => '1']);
+    }
+
+    /**
+     * FilterOption = multiple filter condition (reverse)
+     */
+    public function testFuncFilterMultipleReverse()
+    {
+        $this->init();
+
+        $filter_settings = [];
+        $filter_settings[] = [
+            'column_name' => 'datetime',
+            'filter_condition' => FilterOption::DAY_TODAY_OR_AFTER,
+        ];
+        $filter_settings[] = [
+            'column_name' => 'boolean',
+            'filter_condition' => FilterOption::EQ,
+            'filter_value_text' => 'ng'
+        ];
+        $filter_settings[] = [
+            'column_name' => 'currency',
+            'filter_condition' => FilterOption::NUMBER_GT,
+            'filter_value_text' => 70000
+        ];
+
+        $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
+            $cnt = 0;
+
+            $datetime = \Carbon\Carbon::parse(array_get($data, 'value.datetime'));
+            if ($datetime->format('Y-m-d') >= \Carbon\Carbon::now()->format('Y-m-d')) {
+                $cnt++;
+            }
+            if (array_get($data, 'value.currency') > 70000) {
+                $cnt++;
+            }
+            if (array_get($data, 'value.boolean') == 'ng') {
+                $cnt++;
+            }
+
+            return $cnt === 0;
+        }, ['condition_join' => 'or', 'condition_reverse' => '1']);
     }
 
     /**

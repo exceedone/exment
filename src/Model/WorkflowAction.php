@@ -79,6 +79,7 @@ class WorkflowAction extends ModelBase
                 $result[$key] = $val;
             }
 
+            /** @phpstan-ignore-next-line Left side of && is always true. */
             if ($key == 'work_target_type' && ($val == WorkflowWorkTargetType::FIX || $val == WorkflowWorkTargetType::GET_BY_USERINFO)) {
                 $authorities = WorkflowAuthority::where('workflow_action_id', $this->id)->get();
                 $authorities->each(function ($v) use (&$result) {
@@ -120,7 +121,7 @@ class WorkflowAction extends ModelBase
             })->toArray();
             return array_only(
                 $header,
-                ['id', 'status_to', 'enabled_flg', 'workflow_conditions', 'condition_join']
+                ['id', 'status_to', 'enabled_flg', 'workflow_conditions', 'condition_join', 'condition_reverse']
             );
         });
     }

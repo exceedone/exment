@@ -674,14 +674,14 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectMultiNullCheck(null, FilterOption::NOT_NULL, false);
         $this->_testColumnSelectMultiNullCheck('', FilterOption::NOT_NULL, false);
         $this->markTestSkipped('現状空配列はNULLと見なされない');
-        $this->_testColumnSelectMultiNullCheck([], FilterOption::NOT_NULL, false);
+//        $this->_testColumnSelectMultiNullCheck([], FilterOption::NOT_NULL, false);
     }
     public function testColumnSelectMultiNullTrue()
     {
         $this->_testColumnSelectMultiNullCheck(null, FilterOption::NULL, true);
         $this->_testColumnSelectMultiNullCheck('', FilterOption::NULL, true);
         $this->markTestSkipped('現状空配列はNULLと見なされない');
-        $this->_testColumnSelectMultiNullCheck([], FilterOption::NULL, true);
+//        $this->_testColumnSelectMultiNullCheck([], FilterOption::NULL, true);
     }
     public function testColumnSelectMultiNullFalse()
     {
@@ -1567,7 +1567,7 @@ class ConditionTest extends UnitTestBase
             }
 
             // get workflow status
-            /** @var Model\WorkflowStatus $workflow_status */
+            /** @var Model\WorkflowStatus|null $workflow_status */
             $workflow_status = Model\WorkflowStatus::where('status_name', $value)->first();
             $condition = new Model\Condition([
                 'condition_type' => Enums\ConditionType::WORKFLOW,

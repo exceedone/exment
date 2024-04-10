@@ -145,7 +145,7 @@ class Plugin extends ModelBase
      * Where active_flg = 1 and target_tables contains custom_table id
      * Filtering only accessible.
      *
-     * @param CustomTable $custom_table
+     * @param CustomTable|null $custom_table
      * @param bool $filterAccessible
      * @return mixed
      */
@@ -449,7 +449,7 @@ class Plugin extends ModelBase
     //If calling event is not button, then call execute function of this plugin
     //Because namspace can't contains specifies symbol
     /**
-     * @param null $event
+     * @param string|null $event
      */
     public static function pluginExecuteEvent($event = null, $custom_table = null, $options = [])
     {
@@ -612,6 +612,45 @@ class Plugin extends ModelBase
             }
         }
         return $messages;
+    }
+
+    /**
+     * execute validate destroy
+     */
+    public static function pluginValidateDestroy($model, $options = [])
+    {
+        $plugins = static::getPluginsByTable($model->custom_table, false);
+        if (count($plugins) > 0) {
+            foreach ($plugins as $plugin) {
+                // if $plugin_types is not validator, continue
+                if (!$plugin->matchPluginType(PluginType::VALIDATOR)) {
+                    continue;
+                }
+                $class = $plugin->getClass(PluginType::VALIDATOR, $options);
+                // if isset $class, call
+                if (isset($class)) {
+                    if (method_exists($class, 'validateDestroy')) {
+                        $res = $class->validateDestroy($model);
+                        if ($res === false) {
+                            return [
+                                'status'  => false,
+                                'message' =>  exmtrans('error.delete_failed'),
+                            ];
+                        }
+                        if (is_array($res) && array_get($res, 'status') === false) {
+                            return $res;
+                        }
+                    }
+                }
+                // if cannot call class, set error
+                else {
+                    return [
+                        'status'  => false,
+                        'message' =>  exmtrans('error.delete_failed'),
+                    ];
+                }
+            }
+        }
     }
 
     /**

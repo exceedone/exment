@@ -19,7 +19,7 @@ use Illuminate\Support\Collection;
 class Column extends ColumnBase
 {
     /**
-     * @var CustomColumn
+     * @var CustomColumn|null
      */
     protected $custom_column;
 
@@ -262,7 +262,9 @@ class Column extends ColumnBase
         foreach ($custom_columns as $custom_column) {
             $target_table = $custom_column->select_target_table;
             if (!isset($target_table)) {
-                return collect($result);
+                /** @var Collection $collection */
+                $collection =  collect($result);
+                return $collection;
             }
 
             // get custom table
@@ -278,7 +280,9 @@ class Column extends ColumnBase
             $result[array_get($custom_column, 'id')] = $select_table_column_name;
         }
 
-        return collect($result);
+        /** @var Collection $collection */
+        $collection = collect($result);
+        return $collection;
     }
 
 

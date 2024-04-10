@@ -442,6 +442,7 @@ class File extends ModelBase
             if (isset($file)) {
                 return $file;
             }
+            return null;
         };
 
         foreach (toArray($pathOrUuids) as $pathOrUuid) {

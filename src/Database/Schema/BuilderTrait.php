@@ -152,7 +152,7 @@ trait BuilderTrait
      *
      * @param string $tableName
      * @param string $columnName
-     * @return array index key list
+     * @return array|null index key list
      */
     public function getIndexDefinitions($tableName, $columnName)
     {
@@ -164,7 +164,7 @@ trait BuilderTrait
      *
      * @param string $tableName
      * @param string $columnName
-     * @return array unique key list
+     * @return array|null unique key list
      */
     public function getUniqueDefinitions($tableName, $columnName)
     {
@@ -177,7 +177,7 @@ trait BuilderTrait
      * @param string $tableName
      * @param string $columnName
      * @param bool $unique
-     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|array
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|array|null
      */
     protected function getUniqueIndexDefinitions($tableName, $columnName, $unique)
     {

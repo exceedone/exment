@@ -27,6 +27,7 @@ class SystemRequireForm
 
         try {
             $inputs = InstallService::getInputParams();
+            /** @phpstan-ignore-next-line Call to function is_null() with string will always evaluate to false. asset always returns string */
             if (is_null(array_get($inputs, 'APP_URL')) && !is_null($url = asset(''))) {
                 $inputs['APP_URL'] = rtrim($url, '/');
             }
