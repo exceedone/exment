@@ -229,8 +229,8 @@ abstract class FormatBase
                 //return new PhpSpreadSheet\Csv();
                 return isMatchString($library, ExportImportLibrary::SP_OUT) ? new SpOut\Csv() : new PhpSpreadSheet\Csv();
         }
-
-        return new PhpSpreadSheet\Xlsx();
+        // unreachable statement
+//        return new PhpSpreadSheet\Xlsx();
     }
 
 

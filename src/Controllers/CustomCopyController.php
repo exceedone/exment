@@ -295,7 +295,7 @@ class CustomCopyController extends AdminControllerTableBase
             'title' => trans('admin.setting')
         ]);
 
-        // add button
-        return $form->render()->render();
+        // add button unreachable statement
+//        return $form->render()->render();
     }
 }

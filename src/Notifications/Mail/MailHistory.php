@@ -15,7 +15,7 @@ class MailHistory
     protected $mail_template;
 
     /**
-     * @var string|CustomValue|NotifyTarget|null
+     * @var string|CustomValue|LoginUser|NotifyTarget|null
      */
     protected $user;
 

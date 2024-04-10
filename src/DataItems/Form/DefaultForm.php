@@ -168,7 +168,7 @@ class DefaultForm extends FormBase
         }
 
         // add calc_formula_array and changedata_array info
-        
+
         if (count($calc_formula_array) > 0) {
             $json = json_encode($calc_formula_array);
             $columns = json_encode($force_caculate_column);
@@ -246,7 +246,7 @@ EOT;
      *
      * @param Form $form
      * @param CustomFormBlock $custom_form_block
-     * @param CustomValue|null $target_custom_value
+     * @param CustomValue|number|null $target_custom_value
      * @param CustomRelation|null $relation
      * @return \Closure
      */

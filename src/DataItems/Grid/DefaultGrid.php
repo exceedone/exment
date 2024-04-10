@@ -136,6 +136,7 @@ class DefaultGrid extends GridBase
                 ->setClasses($className)
                 ->setHeaderStyle($item->gridHeaderStyle())
                 ->display(function ($v) use ($item) {
+                    /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\DataItems\Grid\DefaultGrid) will always evaluate to false. */
                     if (is_null($this)) {
                         return '';
                     }

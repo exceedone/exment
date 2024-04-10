@@ -1462,6 +1462,7 @@ abstract class CustomValue extends ModelBase
         if ($relation instanceof CustomColumn) {
             // get custom column as array
             // target column is select table and has index, get index name
+            /** @phpstan-ignore-next-line Right side of && is always true. */
             if (ColumnType::isSelectTable($relation->column_type) && $relation->indexEnabled()) {
                 $index_name = $relation->getIndexColumnName();
                 // get children values where this id

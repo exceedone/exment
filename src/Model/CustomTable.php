@@ -2256,7 +2256,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * 'include_workflow': whether getting workflow column
      * 'include_form_type': whether getting form type(show, create, edit)
      * @param array $selectOptions
-     * @return array option items
+     * @return array|null option items
      */
     //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
     public function getColumnsSelectOptions($selectOptions = [])
@@ -2751,7 +2751,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get CustomValue's model.
      *
-     * @param null|int|string $id CustomValue's id
+     * @param null|int|string|CustomValue $id CustomValue's id
      * @param bool $withTrashed if true, get already trashed value.
      * @return CustomValue|null CustomValue's model.
      */

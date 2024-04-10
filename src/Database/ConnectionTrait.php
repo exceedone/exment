@@ -122,6 +122,7 @@ trait ConnectionTrait
                     max(0, $this->transactions - 1),
                 ];
 
+                /** @phpstan-ignore-next-line Using nullsafe method call on non-nullable type Illuminate\Database\DatabaseTransactionsManager. Use -> instead. */
                 $this->transactionsManager?->commit(
                     $this->getName(),
                     $levelBeingCommitted,

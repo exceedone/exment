@@ -33,6 +33,7 @@ class EBackupDataTest extends ExmentKitTestCase
 
         try {
             !\ExmentDB::checkBackup();
+            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -57,6 +58,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
+            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -111,6 +113,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
+            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -163,6 +166,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
+            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -194,6 +198,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
+            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -219,6 +224,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
+            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;

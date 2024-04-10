@@ -86,6 +86,7 @@ trait ColumnOptionQueryTrait
         $column_table_id = array_get($params, 'column_table_id');
 
         if (!is_numeric($column_type_target)) {
+            /** @phpstan-ignore-next-line Strict comparison using === between mixed and 0 will always evaluate to false. */
             if ($column_type_target === Define::CUSTOM_COLUMN_TYPE_PARENT_ID || $column_type_target === SystemColumn::PARENT_ID) {
                 $column_type = ConditionType::PARENT_ID;
                 $column_type_target = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;

@@ -145,7 +145,7 @@ class Plugin extends ModelBase
      * Where active_flg = 1 and target_tables contains custom_table id
      * Filtering only accessible.
      *
-     * @param CustomTable $custom_table
+     * @param CustomTable|null $custom_table
      * @param bool $filterAccessible
      * @return mixed
      */
@@ -449,7 +449,7 @@ class Plugin extends ModelBase
     //If calling event is not button, then call execute function of this plugin
     //Because namspace can't contains specifies symbol
     /**
-     * @param null $event
+     * @param string|null $event
      */
     public static function pluginExecuteEvent($event = null, $custom_table = null, $options = [])
     {

@@ -373,15 +373,15 @@ class LoginSetting extends ModelBase
             ],
 
             'security' => [
-                'nameIdEncrypted' => boolval($provider->getOption('saml_option_name_id_encrypted')) ??  false,
-                'authnRequestsSigned' => boolval($provider->getOption('saml_option_authn_request_signed')) ??  false,
-                'logoutRequestSigned' => boolval($provider->getOption('saml_option_logout_request_signed')) ??  false,
-                'logoutResponseSigned' => boolval($provider->getOption('saml_option_logout_response_signed')) ??  false,
+                'nameIdEncrypted' => boolval($provider->getOption('saml_option_name_id_encrypted')),
+                'authnRequestsSigned' => boolval($provider->getOption('saml_option_authn_request_signed')),
+                'logoutRequestSigned' => boolval($provider->getOption('saml_option_logout_request_signed')),
+                'logoutResponseSigned' => boolval($provider->getOption('saml_option_logout_response_signed')),
             ],
         ];
 
         // set proxy vars
-        if (boolval($provider->getOption('saml_option_proxy_vars')) ?? false) {
+        if (boolval($provider->getOption('saml_option_proxy_vars'))) {
             \OneLogin\Saml2\Utils::setProxyVars(true);
         }
 
