@@ -40,6 +40,8 @@ use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\DataSubmitRedirectEx;
 use Exceedone\Exment\Enums\DataQrRedirect;
 use Exceedone\Exment\Services\TableService;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -101,23 +103,7 @@ class CustomTableController extends AdminControllerBase
     {
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_qr_flg', $active_flg);
-        $qr_code_id_col = CustomColumn::where('custom_table_id', $id)->where('column_name', 'qr_code_id')
-            ->first();
-        if (!$qr_code_id_col) {
-            CustomColumn::create([
-                'custom_table_id' => $id,
-                'column_name' => 'qr_code_id',
-                'column_view_name' => 'QR Code Id',
-                'column_type' => ColumnType::INTEGER,
-                'options' => [
-                    'index_enabled' => 1,
-                    'unique' => 1,
-                    'init_only' => 1
-                ],
-            ]);
-        }
         $custom_table->save();
-
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.update_succeeded'),
@@ -561,28 +547,29 @@ HTML;
         $custom_table = CustomTable::getEloquent($id);
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         $form->setTitle(exmtrans("custom_table.qr_code.setting"));
-        $form->exmheader(exmtrans("custom_table.qr_code.help"))->no(5);
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id, $manualUrl) {
             $form->exmheader(exmtrans("custom_table.qr_code.content"))->hr();
-            $form->text('text_qr', exmtrans("custom_table.qr_code.text"))->rules("max:10");
-            $form->switchbool('show_data_id', exmtrans("custom_table.qr_code.show_data_id"))
-                ->help(exmtrans("custom_table.qr_code.show_data_id_description"))
-                ->attribute(['data-filtertrigger' => true]);
-            $form->text('text_data_id', exmtrans("custom_table.qr_code.data_id"))->default('ID')->rules("max:8")
-                ->attribute(['data-filter' => json_encode(['key' => 'options_show_data_id', 'value' => '1'])]);
-            $form->switchbool('show_qr_id', exmtrans("custom_table.qr_code.show_qr_id"))
-                ->help(exmtrans("custom_table.qr_code.show_data_id_description"))
-                ->attribute(['data-filtertrigger' => true]);
-            $form->text('text_qr_id', exmtrans("custom_table.qr_code.qr_id"))->default('QR ID')->rules("max:8")
-                ->attribute(['data-filter' => json_encode(['key' => 'options_show_qr_id', 'value' => '1'])]);
+            $form->text('text_qr', exmtrans("custom_table.qr_code.text"))->attribute(['maxlength' => 8]);
+            $custom_column_arr = CustomColumn::where('custom_table_id', $id)
+                    ->where([
+                        'options->required' => 1,
+                        'options->unique' => 1,
+                    ])->get()->mapWithKeys(function ($item) {
+                        return [$item->id => $item->column_view_name];
+                    })->toArray();
+            $custom_column_arr = ['ID'] + $custom_column_arr;
+            $form->select('refer_column', exmtrans("custom_table.qr_code.refer_column"))
+                ->options($custom_column_arr)
+                ->default(array_key_first($custom_column_arr))
+                ->help(exmtrans("custom_table.qr_code.refer_column_description"));
             $form->exmheader(exmtrans("custom_table.qr_code.image_size"))->hr();
-            $form->number('cell_width', exmtrans("custom_table.qr_code.cell_width"));
-            $form->number('cell_height', exmtrans("custom_table.qr_code.cell_height"));
-            $form->number('margin_left', exmtrans("custom_table.qr_code.margin_left"));
-            $form->number('margin_top', exmtrans("custom_table.qr_code.margin_top"));
-            $form->number('col_per_page', exmtrans("custom_table.qr_code.column_per_page"));
-            $form->number('row_per_page', exmtrans("custom_table.qr_code.row_per_page"));
-            $form->number('col_spacing', exmtrans("custom_table.qr_code.column_spacing"));
+            $form->number('cell_width', exmtrans("custom_table.qr_code.cell_width"))->default(62)->min(1);
+            $form->number('cell_height', exmtrans("custom_table.qr_code.cell_height"))->default(31)->min(1);
+            $form->number('margin_left', exmtrans("custom_table.qr_code.margin_left"))->default(9);
+            $form->number('margin_top', exmtrans("custom_table.qr_code.margin_top"))->default(9);
+            $form->number('col_per_page', exmtrans("custom_table.qr_code.column_per_page"))->default(3)->min(1);
+            $form->number('row_per_page', exmtrans("custom_table.qr_code.row_per_page"))->default(9)->min(1);
+            $form->number('col_spacing', exmtrans("custom_table.qr_code.column_spacing"))->default(3);
             $form->number('row_spacing', exmtrans("custom_table.qr_code.row_spacing"))->help(sprintf(exmtrans("custom_table.qr_code.description"), $manualUrl));
             $form->exmheader(exmtrans("custom_table.qr_code.reading"))->hr();
             $custom_form_arr = CustomForm::where('custom_table_id', $id)->get()->mapWithKeys(function ($item) {
