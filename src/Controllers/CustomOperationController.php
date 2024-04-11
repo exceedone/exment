@@ -145,7 +145,6 @@ class CustomOperationController extends AdminControllerTableBase
         $form = new Form(new CustomOperation());
 
         if (!isset($id)) {
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $id = $form->model()->id;
         }
         if (isset($id)) {
@@ -278,6 +277,9 @@ class CustomOperationController extends AdminControllerTableBase
         $form->radio('condition_join', exmtrans("condition.condition_join"))
             ->options(exmtrans("condition.condition_join_options"))
             ->default('and');
+
+        $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
+            ->option(exmtrans("condition.condition_reverse_options"));
 
         // check inputs and operation_type before save
         $form->saving(function (Form $form) {

@@ -60,6 +60,7 @@ abstract class CustomLoginUserBase
         if (is_nullorempty($email = $this->email())) {
             return null;
         }
+        /** @phpstan-ignore-next-line If condition is always false. explode always one element in array */
         if (count($emails = explode("@", $email)) == 0) {
             return null;
         }

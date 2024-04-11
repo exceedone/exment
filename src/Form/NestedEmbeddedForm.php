@@ -102,7 +102,7 @@ class NestedEmbeddedForm extends EmbeddedForm
     /**
      * Set original values for fields.
      *
-     * @param array $data
+     * @param array|string $data
      *
      * @return $this
      */

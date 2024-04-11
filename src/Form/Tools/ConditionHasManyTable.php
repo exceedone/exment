@@ -28,7 +28,7 @@ class ConditionHasManyTable
     /**
      * Linkage url
      *
-     * @var string
+     * @var string|null
      */
     protected $linkage;
     protected $targetOptions;
@@ -108,14 +108,14 @@ class ConditionHasManyTable
     /**
      * callback about closure.
      *
-     * @var \Closure
+     * @var \Closure|null
      */
     protected $conditionCallback = null;
 
     /**
      * callback about value closure.
      *
-     * @var \Closure
+     * @var \Closure|null
      */
     protected $valueCallback = null;
 

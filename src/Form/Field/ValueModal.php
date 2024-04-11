@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Form\Field;
 
 use Encore\Admin\Form\Field;
+use Illuminate\Support\Collection;
 
 /**
  * Open Modal and set value selecting modal body.
@@ -15,7 +16,7 @@ class ValueModal extends Field
     protected $valueTextScript;
 
     /**
-     * @var string
+     * @var string|array|\Closure|Collection
      */
     protected $text;
 
@@ -25,17 +26,17 @@ class ValueModal extends Field
     protected $nullText;
 
     /**
-     * @var string
+     * @var string|\Closure
      */
     protected $nullValue;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $buttonlabel;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $buttonClass;
 
@@ -258,6 +259,7 @@ EOT;
     {
         // set text
         if ($this->text instanceof \Closure) {
+            /** @phpstan-ignore-next-line Left side of && is always true and Right side of && is always true. */
             if ($this->form && $this->form->model()) {
                 $this->text = $this->text->bindTo($this->form->model());
             }

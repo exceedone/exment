@@ -357,7 +357,7 @@ class ImportExportTest extends FeatureTestBase
                                 return $file;
                             }
                             return $item;
-                        })->implode(',') ?? null;
+                        })->implode(',');
                     }
                     // if file column, get url
                     elseif (!is_null($file = $this->getFileColumnValue($header, $colvalue, $custom_table))) {

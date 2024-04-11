@@ -28,14 +28,14 @@ abstract class PluginViewBase extends PluginPublicBase
     /**
      * Whether using box.
      *
-     * @var bool
+     * @var bool|null
      */
     protected $useBox = true;
 
     /**
      * Whether using box buttons.
      *
-     * @var array
+     * @var array|null
      */
     protected $useBoxButtons = [
         'newButton',

@@ -11,7 +11,7 @@ trait DataShareTrait
     /**
      * get listbox options contains user and org
      *
-     * @param CustomTable $custom_table
+     * @param CustomTable|null $custom_table
      * @param ?array $permission
      * @param bool $ignoreLoginUser if true, ignore login user id from options
      * @param ?string $default default setting

@@ -80,6 +80,9 @@ class CustomFormPriorityController extends AdminControllerTableBase
             ->options(exmtrans("condition.condition_join_options"))
             ->default('and');
 
+        $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
+            ->option(exmtrans("condition.condition_reverse_options"));
+
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
             $tools->setListPath(admin_urls('form', $custom_table->table_name));

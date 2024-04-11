@@ -58,6 +58,5 @@ class MailAttachment
         } elseif (is_array($attachment)) {
             return new MailAttachment(array_get($attachment, 'path'), array_get($attachment, 'filename'));
         }
-        return null;
     }
 }

@@ -98,6 +98,7 @@ class Exment
                 return $callback($request, $exception);
             }
 
+            /** @phpstan-ignore-next-line not implement MaintenanceModeException in laravel 10 */
             if ($exception instanceof \Illuminate\Foundation\Http\Exceptions\MaintenanceModeException) {
                 $errorController = app(\Exceedone\Exment\Controllers\ErrorController::class);
                 return $errorController->maintenance();
@@ -336,9 +337,10 @@ class Exment
             return SystemVersion::DEV;
         } elseif ($latest === $current) {
             return SystemVersion::LATEST;
-            $message = exmtrans("system.version_latest");
-            $icon = 'check-square';
-            $bgColor = 'blue';
+// Unreachable statement - code above always terminates.
+//            $message = exmtrans("system.version_latest");
+//            $icon = 'check-square';
+//            $bgColor = 'blue';
         } else {
             return SystemVersion::HAS_NEXT;
         }
