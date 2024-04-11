@@ -145,6 +145,8 @@ class RouteServiceProvider extends ServiceProvider
                 return redirect(admin_urls('role_group'));
             });
 
+            $router->get('qr-code/{tableName}/{id}', 'QrCodeController@scanRedirect');
+
             $router->get('search', 'SearchController@index');
             $router->get('search/lists', 'SearchController@getLists');
             $router->get('search/list', 'SearchController@getList');

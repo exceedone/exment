@@ -8,6 +8,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
+use Encore\Admin\Grid;
 use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
@@ -42,6 +43,7 @@ use Elibyy\TCPDF\Facades\TCPDF;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Enums\DataQrRedirect;
+use Exceedone\Exment\Model\CustomColumn;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -234,9 +236,11 @@ class CustomValueController extends AdminControllerTableBase
             }
 
             $grid = $grid_item->grid($callback);
-            $grid->tools(function ($tools) {
-                TableService::appendCreateAndDownloadButtonQRCode($tools, $this->custom_table);
-            });
+            if ($grid instanceof Grid) {
+                $grid->tools(function ($tools) {
+                    TableService::appendCreateAndDownloadButtonQRCode($tools, $this->custom_table);
+                });
+            }
             if ($modal) {
                 $content = $grid_item->renderModal($grid);
                 Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
@@ -1139,28 +1143,31 @@ class CustomValueController extends AdminControllerTableBase
         $form->action(route('exment.create_qrcode', ['tableKey' => $table_id]));
 
         // add form
-        $form->number('qr_number', 'QRコードの件数');
+        $form->number('qr_number', exmtrans("custom_table.qr_code.number_qr"))->default(1)->min(1);
         $form->setWidth(10, 2);
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
             'title' => exmtrans("custom_table.qr_code.create"),
-            'submitlabel' => '保存'
+            'submitlabel' => exmtrans("common.save")
         ]);
     }
 
     public function createQrCode(Request $request, $table_id)
     {
         $qr_number = $request->get('qr_number');
-        $qr_id_arr = $this->custom_table->getValueModel()->all()->pluck("value")->pluck('qr_code_id')->toArray();
-        $qr_code_id = (int)max($qr_id_arr == [] ? [0] : $qr_id_arr) + 1;
+        if ($qr_number < 1) {
+            return response()->json([
+                'result'  => false,
+                'message' => exmtrans("custom_table.qr_code.validate_qr_number"),
+            ]);
+        }
 
         $selected_custom_value_id = [];
+        $table = CustomTable::getEloquent($table_id);
         for ($i = 0; $i < $qr_number; $i++) {
-            $target_data = CustomTable::getEloquent($table_id)->getValueModel();
-            $target_data->setValue('qr_code_id', $qr_code_id);
+            $target_data = $table->getValueModel();
             $target_data->save();
-            $qr_code_id++;
             $selected_custom_value_id[] = $target_data->id;
         }
         [$tmpPath, $fileName] = $this->createPdf($selected_custom_value_id, $table_id);
@@ -1173,7 +1180,7 @@ class CustomValueController extends AdminControllerTableBase
         if (is_null($selected_custom_value_id)) {
             return getAjaxResponse([
                 'result'  => false,
-                'message' => '対象データが選択されていません',
+                'message' => exmtrans("custom_table.no_selected"),
             ]);
         }
         [$tmpPath, $fileName] = $this->createPdf($selected_custom_value_id, $table_id);
@@ -1187,7 +1194,7 @@ class CustomValueController extends AdminControllerTableBase
                 'fileBase64' => base64_encode(\File::get($tmpPath)),
                 'fileContentType' => \File::mimeType($tmpPath),
                 'fileName' => $fileName,
-                'swaltext' => $isCreate ? '作成しました。' : 'ダウンロードが完了しました',
+                'swaltext' => $isCreate ? exmtrans("custom_table.qr_code.created") : exmtrans("custom_table.qr_code.download_complete"),
             ]);
 
             $response->send();
@@ -1197,7 +1204,7 @@ class CustomValueController extends AdminControllerTableBase
         } else {
             return [
                 'result' => false,
-                'swaltext' => 'ダウンロード対象のファイルがありません',
+                'swaltext' => exmtrans("common.no_file_download"),
             ];
         }
     }
@@ -1225,22 +1232,20 @@ class CustomValueController extends AdminControllerTableBase
 
         DB::beginTransaction();
         try {
-            $qr_code_id = (int)max($this->custom_table->getValueModel()->all()->pluck("value")->pluck('qr_code_id')->toArray()) + 1;
             $img_arr = [];
+            $refer_column = $this->custom_table->getOption('refer_column');
+            $target_column = $refer_column ? CustomColumn::getEloquent($refer_column) : null;
+            $refer_column_name = $target_column ? $target_column->column_name : null;
             $selected_custom_values->each(function ($selected_custom_value)
-            use (&$img_arr, $img_width, $img_height, &$qr_code_id) {
+            use (&$img_arr, $img_width, $img_height, $refer_column_name, $table_id) {
                 $selected_id = strval($selected_custom_value->id);
-                $val_qr_code_id = $selected_custom_value->getValue('qr_code_id');
-                if (!$val_qr_code_id) {
-                    $selected_custom_value->setValue('qr_code_id', $qr_code_id);
-                    $selected_custom_value->save();
-                    $qr_code_id++;
-                }
+                $refer_column_value = $refer_column_name ? $selected_custom_value->getValue($refer_column_name) : $selected_id;
                 [$qr_file_name, $qr_file_path] = $this->createStickerImg(
                     $selected_id,
                     $img_width,
                     $img_height,
-                    $selected_custom_value
+                    $selected_custom_value,
+                    $refer_column_value
                 );
 
                 array_push($img_arr, $qr_file_path);
@@ -1298,7 +1303,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param [type] $img_height
      * @return array
      */
-    public function createStickerImg($selected_id, $sticker_img_width, $sticker_img_height, $selected_custom_value)
+    public function createStickerImg($selected_id, $sticker_img_width, $sticker_img_height, $selected_custom_value, $refer_column_value = null)
     {
         $qr_file_name = 'qrcode_id-' . $selected_id . '_' . Carbon::now()->format('YmdHis') . '.png';
         $qr_file_path = getFullpath($qr_file_name, Define::DISKNAME_ADMIN_TMP);
@@ -1319,7 +1324,7 @@ class CustomValueController extends AdminControllerTableBase
 
         $white  = imagecolorallocate($sticker_img, 255, 255, 255);
         $black = imagecolorallocate($sticker_img, 0, 0, 0);
-        $font = base_path('public/font/century.ttf');
+        $font = base_path('public/font/MS_Gothic.ttf');
         imagefilledrectangle(
             $sticker_img,
             0,
@@ -1338,52 +1343,40 @@ class CustomValueController extends AdminControllerTableBase
         $width_ww = ceil($size_ww * 4.8);
         $height_ww = ceil($size_ww * 0.6);
         $text_qr = $this->custom_table->getOption('text_qr');
-        $text_qr_count = strlen($text_qr);
+        $x_cordinate = $text_center_x - $width_ww / 2;
+        $font_size = ($sticker_img_width > 280) ? (floor($size_ww * 0.6)) : (floor($size_ww * 0.5));
         imagettftext(
             $sticker_img,
-            ($sticker_img_width > 280) ? (floor($size_ww * 0.6)) : (floor($size_ww * 0.5)),
+            $font_size,
             0,
-            $text_center_x - $width_ww / 2,
-            ($sticker_img_height + $height_ww) / 2 - 5,
+            $x_cordinate,
+            ($sticker_img_height + $height_ww) / 3,
             $black,
             $font,
             $text_qr
         );
-        if ($sticker_img_width >= 67) {
-            $size_text = 10;
-        } else {
-            $size_text = floor($sticker_img_width / 6.7);
+        if ($refer_column_value) {
+            $y_cordinate = ($sticker_img_height - $img_margin_top_right) / 3 * 2;
+            $bbox = imagettfbbox($font_size, 0, $font, $refer_column_value);
+            $text_width = floor(strlen($refer_column_value) / ($bbox[2] / ($sticker_img_width / 2)));
+            $wrapped_text = wordwrap($refer_column_value, $text_width > 24 ? 24 : 15, "\n", true);     
+            $lines = explode("\n", $wrapped_text);
+            foreach ($lines as $key => $line) {
+                if ($key < 2) {
+                    imagettftext(
+                        $sticker_img,
+                        $font_size,
+                        0,
+                        $x_cordinate,
+                        $y_cordinate,
+                        $black,
+                        $font,
+                        $line
+                    );
+                    $y_cordinate += 20;
+                }
+            }
         }
-        $width_text = ceil($size_text * 0.6 * strlen($selected_id));
-        $show_qr_id = $this->custom_table->getOption('show_qr_id');
-        if ($show_qr_id) {
-            $text_qr_id = $this->custom_table->getOption('text_qr_id');
-            imagettftext(
-                $sticker_img,
-                ($sticker_img_width > 280) ? (floor($size_text * 0.8)) : (floor($size_text * 0.7)),
-                0,
-                $text_center_x - $width_ww / 2,
-                ($sticker_img_height - $img_margin_top_right) / 4 * 3,
-                $black,
-                $font,
-                ($text_qr_id ? ($text_qr_id . ' : ') : '') . $selected_custom_value->getValue('qr_code_id')
-            );
-        }
-        $show_data_id = $this->custom_table->getOption('show_data_id');
-        if ($show_data_id) {
-            $text_data_id = $this->custom_table->getOption('text_data_id');
-            imagettftext(
-                $sticker_img,
-                ($sticker_img_width > 280) ? (floor($size_text * 0.8)) : (floor($size_text * 0.7)),
-                0,
-                $text_center_x - $width_ww / 2,
-                ($sticker_img_height - $img_margin_top_right) / 15 * 14,
-                $black,
-                $font,
-                ($text_data_id ? ($text_data_id . ' : ') : '') .$selected_id
-            );
-        }
-
         imagecopyresized(
             $sticker_img,
             $qr_img,
@@ -1430,19 +1423,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function createQRUrl($selected_id)
     {
-        $form_id = (int)$this->custom_table->getOption('form_after_read');
-        $form_suuid = CustomForm::find($form_id)->suuid;
-        if ($this->custom_table->getOption('action_after_read') === DataQrRedirect::CONTINUE_EDITING) {
-            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid . '&after-save=1');
-        } else if ($this->custom_table->getOption('action_after_read') === DataQrRedirect::VIEW) {
-            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid . '&after-save=3');
-        } else if ($this->custom_table->getOption('action_after_read') === DataQrRedirect::TOP) {
-            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid . '&redirect-dashboard=1');
-        } else if ($this->custom_table->getOption('action_after_read') === DataQrRedirect::CAMERA) {
-            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid . '&redirect-camera=1');
-        } else {
-            $url = admin_urls('data', $this->custom_table->table_name, $selected_id, 'edit?formid=' . $form_suuid);
-        }
+        $url = admin_urls('qr-code', $this->custom_table->table_name, $selected_id);
         return $url;
     }
 

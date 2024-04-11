@@ -84,6 +84,8 @@ return [
         'no_use' => '使用しない',
         'default_export' => 'エクスポート',
         'condition_reverse' => '<反転> ',
+        'save' => '保存',
+        'no_file_download' => 'ダウンロード対象のファイルがありません',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -1046,7 +1048,7 @@ return [
         'notify' => '通知設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
-        'qrcode' => 'QRコード設定',
+        'qrcode' => '二次元バーコード設定',
     ],
 
     'workflow' => [
@@ -1187,17 +1189,18 @@ return [
         'expand_setting' => '拡張設定',
         'copy_from_table' => 'コピー元テーブル',
         'copy_custom_table' => 'カスタムテーブルをコピーする',
+        'no_selected' => '対象データが選択されていません',
         'qr_code' => [
-            'setting' => 'QR Code設定',
-            'content' => 'QR画像の表示内容',
-            'text' => '文字列',
+            'setting' => '二次元バーコード設定',
+            'content' => 'QRコードのレイアウト',
+            'text' => 'タイトル',
             'data_id' => 'データIDの表示名',
             'qr_id' => 'QRコードIDの表示名',
             'show_data_id' => '対象テーブルのデータID',
-            'show_data_id_description' => 'YESにすることで、対象テーブルのデータIDがQR画像に表示されることが出来ます。',
+            'show_data_id_description' => 'YESにすることで、対象テーブルのデータIDがQRコードのシールに表示されます。',
             'show_qr_id_description' => 'YESにすることで、QRコードIDがQR画像に表示されることが出来ます。',
             'show_qr_id' => 'QRコードID',
-            'image_size' => 'QR画像のサイズ',
+            'image_size' => 'QRコードのレイアウトサイズ',
             'cell_width' => 'Cell width',
             'cell_height' => 'Cell height',
             'margin_left' => 'Margin left',
@@ -1213,7 +1216,14 @@ return [
             'create' => 'QRコード新規作成',
             'reading' => 'QR読込',
             'help' => '※下記の情報を変更する場合は変更前に作成したQRコードに反映されません。変更前のQRコードに反映したい場合は、QRコードを再度ダウンロードください。',
-            'description' => 'QR画像のサイズ設定は<a href="%s" target="_blank">こちら</a>をご参照ください。',
+            'description' => 'QRコードのレイアウトサイズ設定は<a href="%s" target="_blank">こちら</a>をご参照ください。',
+            'number_qr' => 'QRコードの件数',
+            'created' => '作成しました。',
+            'download_complete' => 'ダウンロードが完了しました',
+            'table_not_found' => 'このQRコードの表が見つかりません',
+            'validate_qr_number' => 'QR コードの数は 0 より大きくなければなりません',
+            'refer_column' => '表示列',
+            'refer_column_description' => 'QRコードのレイアウトに表示する列を設定します。<br/>※ユニーク（一意）かつ必須が設定されているカスタム列の場合、QRコードのレイアウトに表示設定できます。',
         ],
         'data_submit_redirect_options' => [
             "inherit"               => "システム設定に合わせる",
@@ -2226,7 +2236,7 @@ return [
     ],
 
     'qrcode' => [
-        'description' => 'このテーブルのQRコード機能の設定を行います。',
+        'description' => 'このテーブルの二次元バーコード設定を行います。',
     ],
 
     'custom_value' => [
