@@ -333,7 +333,7 @@ class FileController extends AdminControllerBase
                     if (!is_nullorempty($matches)) {
                         for ($index = 0; $index < count($matches[0]); $index++) {
                             $file_uuid = array_get($matches, 'file_uuid')[$index];
-                            if (!is_nullorempty($file_uuid) && $file_uuid == $uuid) {
+                            if (!is_nullorempty($file_uuid) && $file_uuid == $data->uuid) {
                                 $current_val = str_replace($matches[0][$index], '', $current_val);
                             }
                         }
