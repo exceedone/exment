@@ -35,17 +35,17 @@ trait RevisionableTrait
     private $updating = false;
 
     /**
-     * @var array
+     * @var array|null
      */
     private $dontKeep = array();
 
     /**
-     * @var array
+     * @var array|null
      */
     private $doKeep = array();
 
     /**
-     * @var array
+     * @var array|null
      */
     private $doKeepTrigger = array();
 
@@ -59,7 +59,7 @@ trait RevisionableTrait
     /**
      * Remove old revisions (works only when used with $historyLimit)
      *
-     * @var boolean
+     * @var boolean|null
      */
     protected $revisionCleanup = true;
 
@@ -494,11 +494,13 @@ trait RevisionableTrait
     private function isSoftDelete()
     {
         // check flag variable used in laravel 4.2+
+        /** @phpstan-ignore-next-line Property Exceedone\Exment\Model\CustomValue::$forceDeleting (bool) in isset() is not nullable. */
         if (isset($this->forceDeleting)) {
             return !$this->forceDeleting;
         }
 
         // otherwise, look for flag used in older versions
+        /** @phpstan-ignore-next-line Unreachable statement - code above always terminates. */
         if (isset($this->softDelete)) {
             return $this->softDelete;
         }

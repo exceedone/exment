@@ -22,7 +22,7 @@ use Illuminate\Support\Collection;
  * @property mixed $column_view_name
  * @property mixed $options
  * @property mixed $index_enabled
- * @method static \Exceedone\Exment\ColumnItems\CustomItem|\Exceedone\Exment\ColumnItems\ItemTrait indexEnabled()
+ * @method static bool indexEnabled()
  * @method static int count($columns = '*')
  * @method static ExtendedBuilder whereIn($column, $values, $boolean = 'and', $not = false)
  * @method static ExtendedBuilder whereNotIn($column, $values, $boolean = 'and')
@@ -393,6 +393,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                 return $record->column_name == $column_obj && $record->custom_table_id == $table_obj->id;
             })->first();
         }
+        /** @phpstan-ignore-next-line unreachable statement */
         return null;
     }
 

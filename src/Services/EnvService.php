@@ -26,6 +26,7 @@ class EnvService
             // So it's not possible to split e.g. the App-Key by accident
             $entry = explode("=", $env_value, 2);
 
+            /** @phpstan-ignore-next-line If condition is always false. */
             if (count($entry) == 0) {
                 $newEnvs[] = $entry;
                 continue;
@@ -122,6 +123,7 @@ class EnvService
             // So it's not possible to split e.g. the App-Key by accident
             $entry = array_map('trim', explode("=", $env_value, 2));
 
+            /** @phpstan-ignore-next-line If condition is always false. */
             if (count($entry) == 0) {
                 continue;
             }

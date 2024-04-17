@@ -560,10 +560,12 @@ trait ExtendedBuilderTrait
             return $this->table;
         }
 
+        /** @phpstan-ignore-next-line Instanceof between *NEVER* and Illuminate\Database\Eloquent\Builder will always evaluate to false. */
         if ($this instanceof \Illuminate\Database\Eloquent\Builder) {
             return $this->model->getTable();
         }
 
+        /** @phpstan-ignore-next-line Instanceof between *NEVER* and Illuminate\Database\Query\Builder will always evaluate to false. */
         if ($this instanceof \Illuminate\Database\Query\Builder) {
             return $this->from;
         }

@@ -83,6 +83,7 @@ return [
         'no_selected' => 'unselected',
         'no_use' => 'do not use',
         'default_export' => 'Export',
+        'condition_reverse' => '<Reverse> ',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -643,6 +644,7 @@ return [
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
                 'saved' => 'After Saving',
+                'deleted' => 'After Deletion',
                 'loading' => 'Before Loading',
                 'loaded' => 'After Loading',
                 'grid_menubutton' => 'Menu button on List View',
@@ -2561,6 +2563,7 @@ return [
         'condition_key' => 'Search Condition',
         'condition_value' => 'Condtion Value',
         'condition_join' => 'Condtion Join',
+        'condition_reverse' => 'Condtion Reverse',
         'condition_type_options' => [
             'user' => 'User',
             'organization' => 'Organization',
@@ -2589,6 +2592,10 @@ return [
         'condition_join_options' => [
             'and' => 'Match All Condition',
             'or' => 'Match Any Condition',
+        ],
+
+        'condition_reverse_options' => [
+            '1' => 'Reverse condition',
         ],
     ],
 ];

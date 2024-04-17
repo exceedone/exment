@@ -232,12 +232,11 @@ class SearchServiceTest extends UnitTestBase
         $this->assertTrue($values->count() > 0);
 
         $checkValue = null;
-        $direction = 'asc';
-        $values->each(function (CustomValue $value) use (&$checkValue, $direction) {
+        $values->each(function (CustomValue $value) use (&$checkValue) {
             // get parent value
             $parent_value = $value->getValue('parent_select_table');
 
-            $this->assertTrue(is_null($checkValue) || ($direction == 'asc' ? $parent_value->getValue('index_text') >= $checkValue : $parent_value->getValue('index_text') <= $checkValue));
+            $this->assertTrue(is_null($checkValue) || $parent_value->getValue('index_text') >= $checkValue);
             $checkValue = $parent_value->getValue('index_text');
         });
     }

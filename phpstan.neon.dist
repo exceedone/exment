@@ -3,7 +3,7 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
-    level: 3
+    level: 4
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
     universalObjectCratesClasses:

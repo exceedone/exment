@@ -104,7 +104,6 @@ class AuthUserOrgHelper
         });
     }
 
-
     protected static function _getRoleUserOrOrgQueryTable($table_name, $key, $target_table, $tablePermission = null, $builder = null, ?\Closure $target_ids_callback = null)
     {
         if (is_null($target_table)) {
@@ -120,6 +119,7 @@ class AuthUserOrgHelper
             $all = true;
         } else {
             // if set $tablePermission, always call
+            /** @phpstan-ignore-next-line Call to function is_null() with mixed will always evaluate to false. */
             if (isset($tablePermission) || is_null($target_ids = System::requestSession($key))) {
                 // get user ids
                 $target_ids = static::getRoleUserOrgId($target_table ?? [], $table_name, $tablePermission);
@@ -150,7 +150,7 @@ class AuthUserOrgHelper
     /**
      * get all users and organizations who can access custom_value.
      *
-     * @param CustomValue $custom_value
+     * @param CustomValue|null $custom_value
      * @param string|null|array $tablePermission
      * @return array
      */
@@ -172,6 +172,7 @@ class AuthUserOrgHelper
         // check request session
         $key = sprintf(Define::SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS, $custom_table->id, $custom_value->id ?? null);
         // if set $tablePermission, always call
+        /** @phpstan-ignore-next-line Call to function is_null() with mixed will always evaluate to false. */
         if (isset($tablePermission) || is_null($results = System::requestSession($key))) {
             // get ids contains value_authoritable table
             $ids[SystemTableName::USER] = $custom_value ? $custom_value->value_authoritable_users()->pluck('authoritable_target_id')->toArray() : [];

@@ -231,13 +231,14 @@ abstract class ViewFilterBase
 
 
     /**
-     * Whether this conditon is number.
+     * Whether this condition is number.
      * If number, compare "eq" and "ne" is as number.
      *
      * @return boolean
      */
     public function isNumeric(): bool
     {
+        /** @phpstan-ignore-next-line Negated boolean expression is always false. */
         if (!$this->condition) {
             return false;
         }

@@ -49,6 +49,7 @@ class ExportCommand extends Command
 
     protected function getParameters()
     {
+        /** @var null|string $table_name */
         $table_name = $this->argument("table_name");
 
         if ($table_name === null) {

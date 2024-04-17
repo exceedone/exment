@@ -133,16 +133,17 @@ class CustomViewController extends AdminControllerTableBase
                 if (boolval($actions->row->disabled_delete)) {
                     $actions->disableDelete();
                 }
-                if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
-                    intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
-                    $actions->disableEdit();
-
-                    $linker = (new Linker())
-                        ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
-                        ->icon('fa-edit')
-                        ->tooltip(trans('admin.edit'));
-                    $actions->prepend($linker);
-                }
+                // unreachable statement
+//                if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
+//                    intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
+//                    $actions->disableEdit();
+//
+//                    $linker = (new Linker())
+//                        ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
+//                        ->icon('fa-edit')
+//                        ->tooltip(trans('admin.edit'));
+//                    $actions->prepend($linker);
+//                }
             } else {
                 $actions->disableEdit();
                 $actions->disableDelete();
@@ -294,7 +295,7 @@ class CustomViewController extends AdminControllerTableBase
 
         // append model for getting from options
         $form->editing(function ($form) {
-            $form->model()->append(['use_view_infobox', 'view_infobox_title', 'view_infobox', 'pager_count', 'condition_join', 'header_align']);
+            $form->model()->append(['use_view_infobox', 'view_infobox_title', 'view_infobox', 'pager_count', 'condition_join', 'condition_reverse', 'header_align']);
         });
 
         // check filters and sorts count before save

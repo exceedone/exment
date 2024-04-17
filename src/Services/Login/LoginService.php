@@ -514,6 +514,7 @@ class LoginService
         );
 
         // if don't has, create loginuser or match email
+        /** @phpstan-ignore-next-line $hasLoginUser Negated boolean expression is always true. */
         if (!$hasLoginUser) {
             $login_user = LoginUser::firstOrNew([
                 'base_user_id' => $exment_user->getUserId(),
@@ -526,6 +527,7 @@ class LoginService
         }
 
         // get avatar
+        /** @phpstan-ignore-next-line $hasLoginUser Negated boolean expression is always true. */
         if (!$hasLoginUser || boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
             $avatar  = static::getAvatar($custom_login_user, $socialiteProvider = null);
             if (isset($avatar)) {

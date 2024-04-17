@@ -83,9 +83,11 @@ class Date extends CustomItem
     protected function getDateUseValue($v, $format)
     {
         if (is_array($v)) {
+            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
             return (new \Carbon\Carbon(array_get($v, 'date')))->format($format) ?? null;
         }
 
+        /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
         return (new \Carbon\Carbon($v))->format($format) ?? null;
     }
 

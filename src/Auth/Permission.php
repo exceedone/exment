@@ -295,7 +295,7 @@ class Permission
                 return array_key_exists('custom_table', $this->permission_details);
             case "form":
                 if ($this->role_type == RoleType::SYSTEM) {
-                    return array_key_exists('custom_form', $this->permission_details);
+                    return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable($endpoint)) {
@@ -304,7 +304,7 @@ class Permission
                 return array_keys_exists(PermissionEnum::AVAILABLE_CUSTOM_FORM, $this->permission_details);
             case "formpriority":
                 if ($this->role_type == RoleType::SYSTEM) {
-                    return array_key_exists('custom_form', $this->permission_details);
+                    return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable($endpoint)) {
@@ -316,7 +316,7 @@ class Permission
                     return false;
                 }
                 if ($this->role_type == RoleType::SYSTEM) {
-                    return array_key_exists('custom_form_public', $this->permission_details);
+                    return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable($endpoint)) {
@@ -371,6 +371,7 @@ class Permission
         ///// get last url.
         $uris = explode("/", $url);
         foreach ($uris as $k => $uri) {
+            /** @phpstan-ignore-next-line Call to function is_null() with string will always evaluate to false. */
             if (!is_null($uri) && mb_strlen($uri) == 0) {
                 continue;
             }

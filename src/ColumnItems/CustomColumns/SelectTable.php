@@ -794,6 +794,7 @@ class SelectTable extends CustomItem
         // whether column_type is user or org
         if (!is_null(old('column_type'))) {
             $model = CustomColumn::getEloquent(old('column_type'), $custom_table);
+            /** @phpstan-ignore-next-line Right side of || is always false.  */
         } elseif (isset($id) || old('column_type')) {
             $model = CustomColumn::getEloquent($id);
         }

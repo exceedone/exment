@@ -133,7 +133,6 @@ class FileColumnProvider extends ProviderBase
      * @param array $dataAndModel
      * @param array $validate_columns
      * @param array $dataObjects
-     * @return array
      */
     public function validateDataRow($line_no, $dataAndModel, $validate_columns, $dataObjects)
     {

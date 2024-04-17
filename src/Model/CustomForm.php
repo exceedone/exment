@@ -64,14 +64,14 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Form item
      *
-     * @var FormItem\FormBase
+     * @var FormItem\FormBase|null
      */
     private $_form_item;
 
     /**
      * Show Item for data detail
      *
-     * @var ShowItem\ShowBase
+     * @var ShowItem\ShowBase|null
      */
     private $_show_item;
 
