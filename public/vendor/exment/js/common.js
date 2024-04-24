@@ -363,6 +363,9 @@ var Exment;
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
+                if ($(ev.target).closest("td.column-__row_selector__").length > 0) {
+                    return;
+                }
                 let editFlg = $('#gridrow_select_edit').val();
                 let linkElem = $(ev.target).closest('tr').find('.rowclick');
                 if (editFlg) {
