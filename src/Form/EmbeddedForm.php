@@ -64,7 +64,7 @@ class EmbeddedForm extends EmbeddedFormBase
     /**
      * Push field and set for grid
      *
-     * @param AdminField $field
+     * @param Field $field
      * @param array $options
      * @return $this
      */
@@ -93,7 +93,7 @@ class EmbeddedForm extends EmbeddedFormBase
     /**
      * Prepare for insert or update.
      *
-     * @param array $input
+     * @param array|null $input
      *
      * @return mixed
      */

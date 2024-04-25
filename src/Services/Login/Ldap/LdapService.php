@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\Login\Ldap;
 
+use Adldap\Connections\ProviderInterface;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\System;
@@ -12,6 +13,7 @@ use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -57,7 +59,7 @@ class LdapService implements LoginServiceInterface
      *
      * @param Authenticatable $login_user
      * @param array $credentials
-     * @return void
+     * @return boolean
      */
     public static function validateCredential(Authenticatable $login_user, array $credentials)
     {
@@ -94,15 +96,15 @@ class LdapService implements LoginServiceInterface
         $prefix = $login_setting->getOption('ldap_account_prefix');
         $suffix = $login_setting->getOption('ldap_account_suffix');
 
-        return ((isset($prefix) && strpos($username, $prefix) !== 0) ? $prefix : '').
-        $username .
-        ((isset($suffix) && strripos($username, $suffix) !== (mb_strlen($username) - mb_strlen($suffix))) ? $suffix : '');
+        return ((isset($prefix) && strpos($username, $prefix) !== 0) ? $prefix : '') .
+            $username .
+            ((isset($suffix) && strripos($username, $suffix) !== (mb_strlen($username) - mb_strlen($suffix))) ? $suffix : '');
     }
 
     /**
      * Get login user dn.
      *
-     * @param Provider $provider
+     * @param ProviderInterface $provider
      * @param string $username
      * @param LoginSetting $login_setting
      * @return string
@@ -144,8 +146,7 @@ class LdapService implements LoginServiceInterface
 
         $form->textarea('resultarea', exmtrans('common.execute_result'))
             ->attribute(['readonly' => true])
-            ->rows(4)
-        ;
+            ->rows(4);
 
         $form->setWidth(10, 2);
 
@@ -182,7 +183,7 @@ class LdapService implements LoginServiceInterface
         $form->select('ldap_schema', "スキーマ")->options(["OpenLDAP" => "OpenLDAP", "ActiveDirectory" => "ActiveDirectory"])
             ->required()
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
-			->default('ActiveDirectory');
+            ->default('ActiveDirectory');
         $form->text('ldap_hosts', exmtrans('login.ldap_hosts'))
             ->required()
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
@@ -223,13 +224,12 @@ class LdapService implements LoginServiceInterface
             ->default(false);
     }
 
-
-
     /**
      * Execute login test
      *
      * @param Request $request
-     * @return void
+     * @param $login_setting
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public static function loginTest(Request $request, $login_setting)
     {
@@ -269,7 +269,7 @@ class LdapService implements LoginServiceInterface
             $provider = $ad->getDefaultProvider();
 
             $provider->connect();
-            $bindDN = ($login_setting->getOption('ldap_schema') == "ActiveDirectory") ?
+            $bindDN = (empty($login_setting->getOption('ldap_schema')) || $login_setting->getOption('ldap_schema') == "ActiveDirectory") ?
                 $username :
                 static::getLdapUserDN($provider, $credentials['username'], $login_setting);
             if (!$bindDN || !$provider->auth()->attempt($bindDN, $credentials['password'], true)) {
@@ -290,6 +290,7 @@ class LdapService implements LoginServiceInterface
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, exmtrans('login.sso_provider_error'), $custom_login_user->mapping_errors);
             }
 
+            /** @var ExmentCustomValidator $validator */
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
                 return LoginService::getLoginResult(

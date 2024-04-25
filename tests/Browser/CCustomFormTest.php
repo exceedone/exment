@@ -103,7 +103,7 @@ class CCustomFormTest extends ExmentKitTestCase
                 ->assertEquals($pre_cnt + 1, CustomForm::count())
         ;
 
-        $raw = CustomForm::orderBy('created_at', 'desc')->first();
+        $raw = CustomForm::orderBy('id', 'desc')->first();
         $id = array_get($raw, 'id');
 
         // Update custom form

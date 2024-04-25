@@ -5,12 +5,15 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Validator;
+use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Http\UploadedFile;
 
 class File extends CustomItem
@@ -67,9 +70,9 @@ class File extends CustomItem
     /**
      * replace value for import
      *
-     * @param mixed $value
+     * @param $value
      * @param array $setting
-     * @return void
+     * @return array|true[]
      */
     public function getImportValue($value, $setting = [])
     {
@@ -295,7 +298,7 @@ class File extends CustomItem
     /**
      * Get File Value. checking array
      *
-     * @return string
+     * @return string|null
      */
     protected function fileValue($v)
     {
@@ -352,6 +355,11 @@ class File extends CustomItem
     }
 
 
+    /**
+     * @param \Exceedone\Exment\Database\Query\ExtendedBuilder $query
+     * @param $input
+     * @return void
+     */
     public function getAdminFilterWhereQuery($query, $input)
     {
         list($mark, $value) = \Exment::getQueryMarkAndValue(true, $input);
@@ -393,11 +401,11 @@ class File extends CustomItem
     /**
      * Set Search orWhere for free text search
      *
-     * @param Builder $mark
+     * @param $query
      * @param string $mark
      * @param string $value
      * @param string|null $q
-     * @return void
+     * @return $this
      */
     public function setSearchOrWhere(&$query, $mark, $value, $q)
     {
@@ -415,7 +423,7 @@ class File extends CustomItem
      *
      * @param string $mark
      * @param string $value
-     * @return array target custom values's id list
+     * @return Collection target custom values's id list
      */
     protected function getQueryIds($mark, $value)
     {
@@ -482,7 +490,9 @@ class File extends CustomItem
      * Get tmp file info
      *
      * @param string $name
-     * @return array|null
+     * @return mixed|null
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function getTmpFileInfo(string $name)
     {
@@ -500,7 +510,7 @@ class File extends CustomItem
      * Get tmp file from tmp folder
      *
      * @param string $name
-     * @return string
+     * @return UploadedFile|null
      */
     protected function getTmpFile(string $name)
     {

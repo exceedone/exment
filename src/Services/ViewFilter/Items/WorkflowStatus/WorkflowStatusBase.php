@@ -25,6 +25,13 @@ abstract class WorkflowStatusBase extends ViewFilterBase
     protected static $isAppendDatabaseTable = false;
 
 
+    /**
+     * @param $query
+     * @param $method_name
+     * @param $query_column
+     * @param $query_value
+     * @return \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder|void
+     */
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
         // if $status is start

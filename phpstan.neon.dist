@@ -3,8 +3,160 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
-    level: 1
+    level: 4
+    stubFiles:
+        - exment/stubs/laravel/passport/Client.stub
+    universalObjectCratesClasses:
+        - Exceedone\Exment\Model\WorkflowAuthority
+        - Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface
+        - Exceedone\Exment\Services\Plugin\PluginTriggerBase
+        - Illuminate\Database\Eloquent\Model
+        - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
         -
-            message: '#^Method Exceedone\\Exment\\Facades\\ExmentFacade::getFacadeAccessor\(\) should return string but return statement is missing.#'
+            message: "#^Call to an undefined method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Result of method Encore\\\\Admin.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Query\\\\Grammars\\\\Grammar.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Schema\\\\Grammars\\\\Grammar.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Query\\\\Processors\\\\Processor.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Illuminate\\\\Support\\\\Fluent::.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Return type \\(Illuminate\\\\Contracts\\\\View\\\\Factory|Illuminate\\\\View\\\\View\\) of method Exceedone\\\\Exment\\\\Form\\\\Field\\\\Text::render\\(\\) should be compatible with return type \\(string\\) of method Illuminate\\\\Contracts\\\\Support\\\\Renderable::render\\(\\)#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Return type \\(Illuminate\\\\View\\\\View\\) of method Exceedone\\\\Exment\\\\Form\\\\Field\\\\NestedEmbeds::render\\(\\) should be compatible with return type \\(string\\) of method Illuminate\\\\Contracts\\\\Support\\\\Renderable::render\\(\\)#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static call to instance method Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterSftp::getMergeConfigKeys\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterSftp supplied for foreach, only iterables are supported.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterS3 supplied for foreach, only iterables are supported.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static call to instance method Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterS3::getMergeConfigKeys\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterLocal supplied for foreach, only iterables are supported.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static call to instance method Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterLocal::getMergeConfigKeys\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterFtp supplied for foreach, only iterables are supported.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static call to instance method Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterFtp::getMergeConfigKeys\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterAzure supplied for foreach, only iterables are supported.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static call to instance method Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterAzure::getMergeConfigKeys\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::visible\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::save\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::setSettingValue\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::hasPermission\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::getSettingValue\\(\\).#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Model::setValueModel\\(\\)#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Exceedone\\\\Exment\\\\ColumnItems\\\\SystemItem::\\$custom_column.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Exceedone\\\\Exment\\\\ColumnItems\\\\ParentItem::\\$custom_column.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Access to an undefined property Exceedone\\\\Exment\\\\ColumnItems\\\\FormOtherItem::\\$custom_column.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Method Exceedone\\\\Exment\\\\Controllers\\\\CustomNotifyController::form\\(\\) invoked with 2 parameters, 0-1 required.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Method Exceedone\\\\Exment\\\\Controllers\\\\CustomViewController::form\\(\\) invoked with 2 parameters, 0-1 required.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static access to instance property Exceedone\\\\Exment\\\\Enums\\\\FormColumnType::\\$options.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static access to instance property Exceedone\\\\Exment\\\\Enums\\\\GroupCondition::\\$options.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static access to instance property Exceedone\\\\Exment\\\\Enums\\\\SummaryCondition::\\$options.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Static access to instance property Exceedone\\\\Exment\\\\Enums\\\\SystemColumn::\\$options.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Enums\\\\FormColumnType supplied for foreach, only iterables are supported.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Enums\\\\SystemColumn supplied for foreach, only iterables are supported.#"
             path: vendor/exceedone/exment/src/*

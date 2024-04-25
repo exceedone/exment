@@ -35,7 +35,7 @@ class SupportForV11 extends Migration
                 $table->timestamps();
                 $table->softDeletes();
                 $table->timeusers();
-    
+
                 $table->foreign('custom_view_id')->references('id')->on('custom_views');
             });
         }
@@ -88,6 +88,7 @@ class SupportForV11 extends Migration
             $results = $updateClass::with(['custom_column', 'custom_view'])
             ->get();
 
+            /** @var Model\CustomViewColumn|Model\CustomViewSummary|Model\CustomViewFilter|Model\CustomViewSort $result */
             foreach ($results as $result) {
                 if (array_get($result, 'view_column_type') == 0) {
                     $result->view_column_table_id = array_get($result, 'custom_column.custom_table_id');
@@ -136,7 +137,7 @@ class SupportForV11 extends Migration
                 $table->integer('order')->after('system_flg')->default(0);
             });
         }
-        
+
         // Change Custom Column options.currency_symbol
         $columns = CustomColumn::whereNotNull('options->currency_symbol')->get();
         foreach ($columns as $column) {
@@ -180,7 +181,7 @@ class SupportForV11 extends Migration
         // Schema::table('custom_tables', function (Blueprint $table) {
         //     $table->unique(['table_name']);
         // });
-        
+
         Schema::dropIfExists('custom_view_summaries');
 
         $schema->table('custom_view_columns', function ($table) {

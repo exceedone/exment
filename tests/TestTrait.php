@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
@@ -50,6 +51,7 @@ trait TestTrait
             $this->assertMatchesRegularExpression($pattern, $string, $message);
             return;
         }
+        /* @phpstan-ignore-next-line delete next line. it's deprecated function */
         $this->assertRegExp($pattern, $string, $message);
     }
 
@@ -87,13 +89,13 @@ trait TestTrait
         }
     }
 
-
     /**
      * Skip test temporarily.
      *
-     * @param \Closure $skipMatchFunc Checking function. Please return boolean.
-     * @param string $messsage showing message why this test is skipped.
+     * @param $skipMatch
+     * @param string|null $messsage
      * @return void
+     * @throws \Exception
      */
     protected function skipTempTestIfTrue($skipMatch, string $messsage = null)
     {
@@ -158,6 +160,7 @@ trait TestTrait
 
         foreach ($all_custom_values as $all_custom_value) {
             // if find target user ids, check has permisison
+            /** @var mixed $all_custom_value */
             $hasPermission = in_array($all_custom_value->id, $ids);
             $hasPermissionString = $hasPermission ? 'true' : 'false';
 

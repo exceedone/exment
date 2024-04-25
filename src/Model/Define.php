@@ -387,14 +387,14 @@ class Define
     ];
 
     public const DATABASE_VERSION = [
-        'mysql' => ['min' => '5.7.8', 'max_lt' => '8.0.0'],
+        'mysql' => ['min' => '5.7.8', 'max_lt' => '8.1.0'],
         'mariadb' => ['min' => '10.2.7'],
         'sqlsrv' => ['min' => '13.0.0.0'],
     ];
 
     public const PHP_VERSION = [
-        '8.0.0',
-        '8.2.0',
+        '8.1.0',
+        '8.3.0',
     ];
 
     public const CUSTOM_TABLE_ENDPOINTS = [

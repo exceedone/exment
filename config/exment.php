@@ -653,6 +653,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Show copy button on customvalue grid page
+    |--------------------------------------------------------------------------
+    |
+    | Show copy button on customvalue grid page
+    |
+    */
+    'gridrow_show_copy_button' => env('EXMENT_GRIDROW_SHOW_COPY_BUTTON', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Disabled ip filter
     |--------------------------------------------------------------------------
     |
@@ -1094,6 +1104,14 @@ return [
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maintain default view with freeword search for each table
+    |--------------------------------------------------------------------------
+    |
+    */
+    'search_keep_default_view' => env('EXMENT_SEARCH_KEEP_DEFAULT_VIEW', false),
     
     /*
     |--------------------------------------------------------------------------

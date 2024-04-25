@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
  * @property mixed $workflow_authorities
  * @property mixed $status_from
  * @property mixed $action_name
+ * @property mixed $ignore_work
  */
 class WorkflowAction extends ModelBase
 {
@@ -78,6 +79,7 @@ class WorkflowAction extends ModelBase
                 $result[$key] = $val;
             }
 
+            /** @phpstan-ignore-next-line Left side of && is always true. */
             if ($key == 'work_target_type' && ($val == WorkflowWorkTargetType::FIX || $val == WorkflowWorkTargetType::GET_BY_USERINFO)) {
                 $authorities = WorkflowAuthority::where('workflow_action_id', $this->id)->get();
                 $authorities->each(function ($v) use (&$result) {
@@ -102,7 +104,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get work conditions. Contains status_to, enabled_flg, workflow_conditions, etc
      *
-     * @return void
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
      */
     public function getWorkConditionsAttribute()
     {
@@ -119,7 +121,7 @@ class WorkflowAction extends ModelBase
             })->toArray();
             return array_only(
                 $header,
-                ['id', 'status_to', 'enabled_flg', 'workflow_conditions', 'condition_join']
+                ['id', 'status_to', 'enabled_flg', 'workflow_conditions', 'condition_join', 'condition_reverse']
             );
         });
     }
@@ -139,7 +141,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get work condition select(for common action). Only return first item's status_to
      *
-     * @return void
+     * @return array
      */
     public function getWorkConditionSelectAttribute()
     {
@@ -302,7 +304,7 @@ class WorkflowAction extends ModelBase
      *
      * @param CustomValue $custom_value
      * @param array $data
-     * @return void
+     * @return WorkflowValue|null
      */
     public function executeAction($custom_value, $data = [])
     {
@@ -900,7 +902,8 @@ class WorkflowAction extends ModelBase
     {
         // if sql server, append cast
         if (\Exment::isSqlServer()) {
-            /// create where raw query
+            // create where raw query
+            /** @phpstan-ignore-next-line */
             $column = \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_ACTION . '.status_from');
             $whereStatusStart = $column . ' = ' . \Exment::wrapValue($workflow_status);
             $query->whereRaw($whereStatusStart);
@@ -919,7 +922,8 @@ class WorkflowAction extends ModelBase
     {
         // if sql server, append cast
         if (\Exment::isSqlServer()) {
-            /// create where raw query
+            // create where raw query
+            /** @phpstan-ignore-next-line */
             $whereStatusStart = \Exment::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
             $query->whereRaw($whereStatusStart);
         } else {

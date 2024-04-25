@@ -23,7 +23,8 @@ class Description extends Field\Display
     /**
      * Toggle escape
      *
-     * @var boolean
+     * @param bool $escape
+     * @return $this|Description
      */
     public function escape(bool $escape = true)
     {

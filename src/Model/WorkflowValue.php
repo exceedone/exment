@@ -3,15 +3,21 @@
 namespace Exceedone\Exment\Model;
 
 /**
- * @phpstan-consistent-constructor
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  * @property mixed $workflow_id
  * @property mixed $workflow_status_to_id
  * @property mixed $workflow_action_id
+ * @property mixed $workflow_action
  * @property mixed $workflow
  * @property mixed $workflow_value_authorities
+ * @property mixed $workflow_status_from_id
+ * @property mixed $latest_flg
+ * @property mixed $action_executed_flg
  * @property mixed $morph_type
  * @property mixed $morph_id
+ * @property mixed $comment
+ * @property mixed $created_user_id
+ * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @phpstan-consistent-constructor
  */
 class WorkflowValue extends ModelBase
 {
@@ -25,7 +31,7 @@ class WorkflowValue extends ModelBase
     /**
      * Get "Executed" workflow action
      *
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function workflow_action()
     {
@@ -81,9 +87,9 @@ class WorkflowValue extends ModelBase
 
     /**
      * Get Workflow Value Authorities.
-     * Check from worklfow value header, and check has workflow value authorities. If has, return
+     * Check from workflow value header, and check has workflow value authorities. If has, return
      *
-     * @return void
+     * @return mixed
      */
     public function getWorkflowValueAutorities()
     {
@@ -160,7 +166,7 @@ class WorkflowValue extends ModelBase
      * *Filtered action_executed_flg
      * *Sorted id desc. (First action... but last executed.)
      *
-     * @return WorkflowValue
+     * @return WorkflowValue|null
      */
     public static function getLastExecutedWorkflowValue($custom_value)
     {

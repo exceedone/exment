@@ -76,7 +76,11 @@ class DefaultShow extends ShowBase
 
     /**
      * set system values
-     * @param Show $show
+     *
+     * @param $show
+     * @return void
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function setSystemValues($show)
     {
@@ -119,6 +123,7 @@ class DefaultShow extends ShowBase
 
                     $field = new ShowField($item->name(), $item->label());
                     $field->as(function ($v) use ($item) {
+                        /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\DataItems\Show\DefaultShow) will always evaluate to false. */
                         if (is_null($this)) {
                             return '';
                         }
@@ -234,7 +239,7 @@ class DefaultShow extends ShowBase
                             }
                         }
                         foreach ($operations as $operation) {
-                            if ($operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
+                            if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
                                 $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
                             }
                         }
@@ -332,15 +337,13 @@ class DefaultShow extends ShowBase
         }
     }
 
-
     /**
      * Append child block box.
      *
      * @param Row $row
-     * @param CustomValue $this->custom_value
-     * @param int $id
-     * @param boolean $modal
      * @return void
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function setChildBlockBox($row)
     {
@@ -817,6 +820,7 @@ EOT;
 
         // get custom column and item
         $custom_column = CustomColumn::getEloquent($del_column_name, $this->custom_table);
+        /** @var ColumnItems\CustomItem|null $custom_item */
         $custom_item = $custom_column ? $custom_column->column_item : null;
         if ($custom_item && method_exists($custom_item, 'deleteFile')) {
             $custom_item->setCustomValue($this->custom_value)->deleteFile($del_key);
@@ -880,12 +884,11 @@ EOT;
         ]);
     }
 
-
-
     /**
      * Set ColumnItem's option to column item
      *
      * @param ItemInterface $column_item
+     * @param CustomFormColumn|null $form_column
      * @return void
      */
     protected function setColumnItemOption(ItemInterface $column_item, ?CustomFormColumn $form_column = null)
@@ -899,7 +902,7 @@ EOT;
     /**
      * Whether this form is publicform
      *
-     * @return boolean
+     * @return bool
      */
     protected function isPublicForm(): bool
     {

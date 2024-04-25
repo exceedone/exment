@@ -232,8 +232,6 @@ class PluginInstaller
                 return back()->with('errorMess', $checkRuleConfig);
             }
         }
-
-        return null;
     }
 
     /**

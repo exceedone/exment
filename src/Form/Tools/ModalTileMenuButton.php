@@ -26,8 +26,7 @@ class ModalTileMenuButton extends ModalMenuButton
      * 			   icon
      * 			   href
      * 			   label
-     *
-     * @param array $items
+     * @param $groups
      * @return $this
      */
     public function groups($groups)
@@ -39,7 +38,7 @@ class ModalTileMenuButton extends ModalMenuButton
     /**
      * Get tile html
      *
-     * @return string
+     * @return string|null
      */
     public function html()
     {

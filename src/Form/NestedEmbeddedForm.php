@@ -76,7 +76,7 @@ class NestedEmbeddedForm extends EmbeddedForm
     /**
      * Get script of template.
      *
-     * @return string
+     * @return string|array
      */
     public function getScripts()
     {
@@ -102,7 +102,7 @@ class NestedEmbeddedForm extends EmbeddedForm
     /**
      * Set original values for fields.
      *
-     * @param array $data
+     * @param array|string $data
      *
      * @return $this
      */

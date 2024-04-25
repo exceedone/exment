@@ -22,7 +22,8 @@ class InstallController extends Controller
     /**
      * reset interface.
      *
-     * @return Content
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function reset(Request $request)
     {

@@ -32,6 +32,7 @@ class Plugin extends PluginApiBase
         $column_name = request()->get('column');
 
         // カスタムテーブル情報を取得します
+        /** @var CustomTable|null $custom_table */
         $custom_table = CustomTable::where('table_name', $table_name)->first();
         if (!isset($custom_table)) {
             return abort(400);
@@ -59,6 +60,7 @@ class Plugin extends PluginApiBase
     public function tablecolumn($table, $column)
     {
         // カスタムテーブル情報を取得します
+        /** @var CustomTable|null $custom_table */
         $custom_table = CustomTable::where('table_name', $table)->first();
         if (!isset($custom_table)) {
             return abort(400);

@@ -8,6 +8,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
+use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -33,6 +34,7 @@ use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\FormHelper;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Model\CustomValue;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -68,9 +70,9 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Update the specified resource in storage.
      *
+     * @param $tableKey
      * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
     public function update($tableKey, $id)
     {
@@ -98,9 +100,9 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Remove the specified resource from storage.
      *
+     * @param $tableKey
      * @param int $id
-     *
-     * @return \Illuminate\Http\Response
+     * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
     public function destroy($tableKey, $id)
     {
@@ -118,7 +120,9 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function index(Request $request, Content $content)
     {
@@ -197,8 +201,11 @@ class CustomValueController extends AdminControllerTableBase
             ]);
         } else {
             $callback = null;
-            if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
-                $this->custom_view = CustomView::getAllData($this->custom_table);
+            if ($request->has('query')) {
+                if (!boolval(config('exment.search_keep_default_view', false)) ||
+                    !($this->custom_view->view_kind_type == ViewKindType::DEFAULT || $this->custom_view->view_kind_type == ViewKindType::ALLDATA)) {
+                    $this->custom_view = CustomView::getAllData($this->custom_table);
+                }
             }
             // if modal, set alldata view
             if ($modalframe) {
@@ -260,7 +267,9 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Create interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function create(Request $request, Content $content)
     {
@@ -274,7 +283,23 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::CREATE
         ]);
 
-        $row = new Row($this->form(null));
+        if (!is_null($copy_id = $request->get('copy_id'))) {
+            // ignore file and autonumber from target model
+            $form = $this->form(null)->editing(function($form) {
+                $model = $form->model();
+                $this->filterCopyColumn($model);
+                foreach ($model->getRelations() as $relations) {
+                    foreach ($relations as $relation) {
+                        $this->filterCopyColumn($relation);
+                    }
+                }
+            })->replicate($copy_id);
+        } else {
+            $form = $this->form(null);
+        }
+
+
+        $row = new Row($form);
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
             static::DATANAME_CUSTOM_VIEW_ID => $this->custom_view->id,
@@ -289,15 +314,14 @@ class CustomValueController extends AdminControllerTableBase
         return $content;
     }
 
-
     /**
      * edit
      *
      * @param Request $request
      * @param Content $content
-     * @param string $tableKey
-     * @param string|int|null $id
-     * @return Response
+     * @param $tableKey
+     * @param $id
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -339,8 +363,11 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Show interface.
      *
+     * @param Request $request
+     * @param Content $content
+     * @param $tableKey
      * @param $id
-     * @return Content
+     * @return bool|Content|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function show(Request $request, Content $content, $tableKey, $id)
     {
@@ -546,10 +573,13 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
-    //Function handle operation button click event
     /**
+     * Function handle operation button click event
+     *
      * @param Request $request
-     * @return Response
+     * @param $tableKey
+     * @param $id
+     * @return array|Response
      */
     public function operationClick(Request $request, $tableKey, $id = null)
     {
@@ -587,14 +617,16 @@ class CustomValueController extends AdminControllerTableBase
                 ]);
             }
         }
-
-        return $response;
     }
 
-    //Function handle workflow history click event
+
     /**
+     * Function handle workflow history click event
+     *
      * @param Request $request
-     * @return Response
+     * @param $tableKey
+     * @param $id
+     * @return bool|Response|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|Response
      */
     public function workflowHistoryModal(Request $request, $tableKey, $id = null)
     {
@@ -633,10 +665,13 @@ class CustomValueController extends AdminControllerTableBase
         return $action->actionModal($this->custom_table->getValueModel($id));
     }
 
-    //Function handle workflow click event
     /**
+     * Function handle workflow click event
+     *
      * @param Request $request
-     * @return Response
+     * @param $tableKey
+     * @param $id
+     * @return array
      */
     public function actionClick(Request $request, $tableKey, $id)
     {
@@ -781,10 +816,12 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
-
-    //Function handle copy click event
     /**
+     * Function handle copy click event
+     *
      * @param Request $request
+     * @param $tableKey
+     * @param $id
      * @return Response
      */
     public function copyClick(Request $request, $tableKey, $id = null)
@@ -1045,53 +1082,11 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
-     * check if data is referenced.
-     */
-    protected function checkReferenced($custom_table, $list)
-    {
-        foreach ($custom_table->getSelectedItems() as $item) {
-            $model = getModelName(array_get($item, 'custom_table_id'));
-            $column_name = array_get($item, 'column_name');
-            // ignore mail_template reference from mail_send_log
-            if ($custom_table->table_name == SystemTableName::MAIL_TEMPLATE &&
-                $item->custom_table->table_name == SystemTableName::MAIL_SEND_LOG) {
-                continue;
-            }
-            if ($model::whereIn('value->'.$column_name, $list)->exists()) {
-                return true;
-            }
-        }
-        return false;
-    }
-    /**
      * validate before delete.
      */
     protected function validateDestroy($id)
     {
-        $custom_table = $this->custom_table;
-
-        // check if data referenced
-        if ($this->checkReferenced($custom_table, [$id])) {
-            return [
-                'status'  => false,
-                'message' => exmtrans('custom_value.help.reference_error'),
-            ];
-        }
-
-        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
-        // check if child data referenced
-        foreach ($relations as $relation) {
-            $child_table = $relation->child_custom_table;
-            $list = getModelName($child_table)::where('parent_id', $id)
-                ->where('parent_type', $custom_table->table_name)
-                ->pluck('id')->all();
-            if ($this->checkReferenced($child_table, $list)) {
-                return [
-                    'status'  => false,
-                    'message' => exmtrans('custom_value.help.reference_error'),
-                ];
-            }
-        }
+        return $this->custom_table->validateValueDestroy($id);
     }
 
     /**
@@ -1111,5 +1106,21 @@ class CustomValueController extends AdminControllerTableBase
 
         // set form
         $this->custom_form = $this->custom_table->getPriorityForm($id);
+    }
+
+    /**
+     * delete file, image, autonumber column from customvalue
+     *
+     * @param CustomValue $custom_value
+     * @return void
+     */
+    protected function filterCopyColumn(CustomValue $custom_value)
+    {
+        $custom_value->custom_table->custom_columns->filter(function($column) {
+            $column_type = $column->column_type;
+            return ColumnType::isAttachment($column_type) || $column_type == ColumnType::AUTO_NUMBER;
+        })->each(function($column) use($custom_value) {
+            $custom_value->setValue($column->column_name, null, true);
+        });
     }
 }

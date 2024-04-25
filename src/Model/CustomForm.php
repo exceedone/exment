@@ -17,7 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
  * @phpstan-consistent-constructor
  * @property mixed $default_flg
  * @property mixed $custom_table_id
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
+ * @property mixed $form_view_name
+ * @method static int count($columns = '*')
  * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
  */
 class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -63,14 +64,14 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Form item
      *
-     * @var FormItem\FormBase
+     * @var FormItem\FormBase|null
      */
     private $_form_item;
 
     /**
      * Show Item for data detail
      *
-     * @var ShowItem\ShowBase
+     * @var ShowItem\ShowBase|null
      */
     private $_show_item;
 

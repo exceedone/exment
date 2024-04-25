@@ -43,6 +43,7 @@ class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterfac
     public function getText($key, $value, $showFilter = true)
     {
         $model = RoleGroup::find($value);
+        /** @phpstan-ignore-next-line Instanceof between Exceedone\Exment\Model\RoleGroup|null and Illuminate\Database\Eloquent\Collection will always evaluate to false. */
         if ($model instanceof Collection) {
             $result = $model->map(function ($row) {
                 return $row->role_group_view_name;

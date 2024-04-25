@@ -118,15 +118,18 @@ class RoleGroupController extends AdminControllerBase
     /**
      * Edit interface.
      *
-     * @param mixed   $id
+     * @param Request $request
      * @param Content $content
+     * @param $id
      * @return Content
      */
     public function edit(Request $request, Content $content, $id)
     {
         $isRolePermissionPage = $request->get('form_type') != 2;
+        /** @var Form $form */
         $form = $isRolePermissionPage ? $this->form($id) : $this->formUserOrganization($id);
-        $box = new Box(trans('admin.edit'), $form->edit($id));
+        $edit = $form->edit($id);
+        $box = new Box(trans('admin.edit'), $edit);
         $this->appendTools($box, $id, $isRolePermissionPage);
         return $this->AdminContent($content)->body($box);
     }
@@ -347,7 +350,7 @@ class RoleGroupController extends AdminControllerBase
     /**
      * Make a form builder for User Organization.
      *
-     * @return Form
+     * @return Form|false
      */
     protected function formUserOrganization($id = null)
     {

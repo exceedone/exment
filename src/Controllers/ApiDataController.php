@@ -2,12 +2,13 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Model\CustomViewColumn;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\Linkage;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\Permission;
@@ -308,15 +309,32 @@ class ApiDataController extends AdminControllerTableBase
         $forceDelete = boolval($request->get('force'));
 
         $custom_values = [];
-        foreach ((array)$ids as $i) {
+        $validates = [];
+        foreach ((array)$ids as $index => $i) {
             if (($custom_value = $this->getCustomValue($this->custom_table, $i, $forceDelete)) instanceof Response) {
                 return $custom_value;
             }
             if (($code = $custom_value->enableDelete()) !== true) {
                 return abortJson(403, $code());
             }
-
+            if ($res = $this->custom_table->validateValueDestroy($i)) {
+                $message = array_get($res, 'message')?? exmtrans('error.delete_failed');
+                if (count($ids) == 1) {
+                    $validates[] = $message;
+                } else {
+                    $validates[] = [
+                        'line_no' => $index,
+                        'error' => $message
+                    ];
+                }
+            }
             $custom_values[] = $custom_value;
+        }
+
+        if (count($validates) > 0) {
+            return abortJson(400, [
+                'errors' => $validates
+            ], ErrorCode::VALIDATION_ERROR());
         }
 
         \ExmentDB::transaction(function () use ($custom_values, $forceDelete) {
@@ -486,7 +504,9 @@ class ApiDataController extends AdminControllerTableBase
      * Get Attachment files
      *
      * @param Request $request
-     * @return void
+     * @param $tableKey
+     * @param $id
+     * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|\Illuminate\Database\Eloquent\Collection|\Illuminate\Pagination\AbstractPaginator|mixed|Response|null
      */
     public function getDocuments(Request $request, $tableKey, $id)
     {
@@ -527,7 +547,9 @@ class ApiDataController extends AdminControllerTableBase
      * create Attachment files
      *
      * @param Request $request
-     * @return void
+     * @param $tableKey
+     * @param $id
+     * @return \Exceedone\Exment\Model\CustomValue|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response|Response
      */
     public function createDocument(Request $request, $tableKey, $id)
     {
@@ -815,6 +837,7 @@ class ApiDataController extends AdminControllerTableBase
         $custom_view->filterSortModel($model);
 
         $tasks = [];
+        /** @var CustomViewColumn $custom_view_column */
         foreach ($custom_view->custom_view_columns as $custom_view_column) {
             if ($custom_view_column->view_column_type == ConditionType::COLUMN) {
                 $target_start_column = $custom_view_column->custom_column->getIndexColumnName();
@@ -865,8 +888,13 @@ class ApiDataController extends AdminControllerTableBase
      * Get calendar query
      * ex. display: 4/1 - 4/30
      *
-     * @param mixed $query
-     * @return \Illuminate\Database\Query\Builder
+     * @param $model
+     * @param $start
+     * @param $end
+     * @param $target_start_column
+     * @param $target_end_column
+     * @return mixed
+     * @throws \Exception
      */
     protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column)
     {
@@ -1022,14 +1050,13 @@ class ApiDataController extends AdminControllerTableBase
         return [$names, $result];
     }
 
-
     /**
      * Save fileinfo after custom_value save
      *
      * @param CustomTable $custom_table
      * @param array $files
      * @param array $value
-     * @param array $oroginalValue
+     * @param array $originalValue
      * @return void
      */
     protected function saveFile($custom_table, $files, &$value, $originalValue)
@@ -1082,7 +1109,7 @@ class ApiDataController extends AdminControllerTableBase
      * Get order by array from request
      *
      * @param Request $request
-     * @return array offset 0 : target column name, 1 : 'asc' or 'desc'
+     * @return array|Response offset 0 : target column name, 1 : 'asc' or 'desc'
      */
     protected function getOrderBy(Request $request)
     {

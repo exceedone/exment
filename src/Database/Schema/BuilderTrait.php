@@ -77,7 +77,7 @@ trait BuilderTrait
     /**
      * Get database version.
      *
-     * @return void
+     * @return string
      */
     public function getVersion()
     {
@@ -89,7 +89,7 @@ trait BuilderTrait
     /**
      * Check mariadb
      *
-     * @return void
+     * @return bool
      */
     public function isMariaDB()
     {
@@ -108,7 +108,7 @@ trait BuilderTrait
         return false;
     }
 
-    public function hasIndex($tableName, $columnName, $indexName)
+    public function hasCustomIndex($tableName, $columnName, $indexName)
     {
         $indexes = $this->getIndexDefinitions($tableName, $columnName);
 
@@ -152,7 +152,7 @@ trait BuilderTrait
      *
      * @param string $tableName
      * @param string $columnName
-     * @return array index key list
+     * @return array|null index key list
      */
     public function getIndexDefinitions($tableName, $columnName)
     {
@@ -164,7 +164,7 @@ trait BuilderTrait
      *
      * @param string $tableName
      * @param string $columnName
-     * @return array unique key list
+     * @return array|null unique key list
      */
     public function getUniqueDefinitions($tableName, $columnName)
     {
@@ -177,7 +177,7 @@ trait BuilderTrait
      * @param string $tableName
      * @param string $columnName
      * @param bool $unique
-     * @return array
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|array|null
      */
     protected function getUniqueIndexDefinitions($tableName, $columnName, $unique)
     {
@@ -291,7 +291,7 @@ trait BuilderTrait
         $db_table_name = $this->connection->getTablePrefix().$db_table_name;
 
         // check index name
-        if (\Schema::hasIndex($db_table_name, $db_column_name, $index_name)) {
+        if (\Schema::hasCustomIndex($db_table_name, $db_column_name, $index_name)) {
             \Schema::table($db_table_name, function (Blueprint $table) use ($index_name) {
                 $table->dropIndex($index_name);
             });

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Auth;
 
+use Exceedone\Exment\Model\RoleGroupPermission;
 use Illuminate\Support\Collection;
 use Illuminate\Auth\Authenticatable;
 use Exceedone\Exment\Auth\Permission as AuthPermission;
@@ -213,12 +214,15 @@ trait HasPermissions
             }
         }
 
-        return collect($permissions);
+        /** @var Collection $collection */
+        $collection = collect($permissions);
+        return $collection;
     }
 
     /**
      * Get all has permission tables of user.
      *
+     * @param $role_key
      * @return Collection
      */
     public function allHasPermissionTables($role_key): Collection
@@ -232,7 +236,9 @@ trait HasPermissions
                 $results[] = $custom_table;
             }
         }
-        return collect($results);
+        /** @var Collection $collection */
+        $collection = collect($results);
+        return $collection;
     }
 
     /**
@@ -358,6 +364,7 @@ trait HasPermissions
         $permissions = [];
 
         foreach ($roles as $role) {
+            /** @var RoleGroupPermission $role_group_permission */
             foreach ($role->role_group_permissions as $role_group_permission) {
                 if (!isset($role_group_permission->permissions)) {
                     continue;
@@ -414,6 +421,7 @@ trait HasPermissions
         $permissions = [];
 
         foreach ($roles as $role) {
+            /** @var RoleGroupPermission $role_group_permission */
             foreach ($role->role_group_permissions as $role_group_permission) {
                 if (!isset($role_group_permission->permissions)) {
                     continue;

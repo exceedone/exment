@@ -57,14 +57,14 @@ class ChangeField extends Field
     /**
      * decide admin field element Closure fucntioon
      *
-     * @var \Closure
+     * @var \Closure|null
      */
     protected $adminField;
 
     /**
      * filter kind (view, workflow, form)
      *
-     * @var bool
+     * @var bool|null
      */
     protected $filterKind = null;
 
@@ -125,7 +125,7 @@ class ChangeField extends Field
     /**
      * Show Condition Key
      *
-     * @param string $showConditionKey
+     * @param bool $showConditionKey
      * @return $this
      */
     public function showConditionKey($showConditionKey)

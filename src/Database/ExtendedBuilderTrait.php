@@ -8,6 +8,7 @@ use Carbon\Carbon;
  *
  * @property mixed $query
  * @property mixed $model
+ * @property mixed $grammar
  * @method orWhere($column, $operator = null, $value = null)
  * @method whereRaw($sql, $bindings = [], $boolean = 'and')
  * @method orWhereRaw($sql, $bindings = [])
@@ -45,7 +46,7 @@ trait ExtendedBuilderTrait
      * Update a removing json key.
      *
      * @param  string  $key
-     * @return int
+     * @return bool
      */
     public function updateRemovingJsonKey(string $key)
     {
@@ -62,7 +63,6 @@ trait ExtendedBuilderTrait
      * @param  mixed   $operator
      * @param  mixed   $value
      * @param  string  $boolean
-     * @return $this
      */
     public function whereOrIn($column, $operator = null, $value = null, $boolean = 'and')
     {
@@ -85,7 +85,6 @@ trait ExtendedBuilderTrait
      * @param  mixed   $operator
      * @param  mixed   $value
      * @param  string  $boolean
-     * @return $this
      */
     public function orWhereOrIn($column, $operator = null, $value = null, $boolean = 'and')
     {
@@ -103,13 +102,13 @@ trait ExtendedBuilderTrait
 
     /**
      * Multiple wherein querys.
-     * *NOW Only support columns is 2 column. *
+     * NOW Only support columns is 2 column. *
      *
-     * @param  array                                          $columns
-     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
-     * @param  bool  $zeroQueryIfEmpty if true and values is empty, set "1 = 0(always false)" query.
-     *
-     * @return \Illuminate\Database\Query\Builder
+     * @param array $columns
+     * @param \Illuminate\Contracts\Support\Arrayable|array $values
+     * @param bool $zeroQueryIfEmpty if true and values is empty, set "1 = 0(always false)" query.
+     * @return Eloquent\ExtendedBuilder|Query\ExtendedBuilder|Query\JoinClause
+     * @throws \Exception
      */
     public function whereInMultiple(array $columns, $values, bool $zeroQueryIfEmpty = false)
     {
@@ -292,14 +291,12 @@ trait ExtendedBuilderTrait
         return $this;
     }
 
-
-
     /**
      * Where between, but call as (start) <= column and column <= (end). for performance
-     * @param  string                                          $column
-     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @param string $column
+     * @param array $values
+     * @return Eloquent\ExtendedBuilder|Query\ExtendedBuilder|Query\JoinClause
      */
     public function whereBetweenQuery($column, array $values)
     {
@@ -308,10 +305,10 @@ trait ExtendedBuilderTrait
 
     /**
      * Where between, but call as (start) <= column and column < (end)
-     * @param  string                                          $column
-     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @param string $column
+     * @param array $values
+     * @return Eloquent\ExtendedBuilder|Query\ExtendedBuilder|Query\JoinClause
      */
     public function whereBetweenLt($column, array $values)
     {
@@ -456,7 +453,7 @@ trait ExtendedBuilderTrait
 
         return $this->_setWhereDate($column, [
             'date' => [$value, $value],
-            'datetime' => [$value, $value->copy()->addDay(1)],
+            'datetime' => [$value, $value->copy()->addDays(1)],
         ], $isDatetime, $isOr);
     }
 
@@ -492,7 +489,7 @@ trait ExtendedBuilderTrait
         }
 
         return $this->_setWhereDate($column, [
-            'date' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month + 1, 1)->addDay(-1)],
+            'date' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month + 1, 1)->addDays(-1)],
             'datetime' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month + 1, 1)],
         ], $isDatetime, $isOr);
     }
@@ -533,7 +530,7 @@ trait ExtendedBuilderTrait
         $boolean = $isOr ? 'or' : 'and';
 
         if ($isDatetime) {
-            $date = (in_array($mark, ['<', '<=']) ? $value->copy()->addDay(1) : $value);
+            $date = (in_array($mark, ['<', '<=']) ? $value->copy()->addDays(1) : $value);
             return $this->where($column, $mark, $date->format('Y-m-d'), $boolean);
         }
 
@@ -542,7 +539,8 @@ trait ExtendedBuilderTrait
 
     /**
      * get query instance
-     * @return \Exceedone\Exment\Database\Query\ExtendedBuilder
+     *
+     * @return $this|\Illuminate\Database\Query\Builder|mixed
      */
     protected function _getQueryExment()
     {
@@ -562,10 +560,12 @@ trait ExtendedBuilderTrait
             return $this->table;
         }
 
+        /** @phpstan-ignore-next-line Instanceof between *NEVER* and Illuminate\Database\Eloquent\Builder will always evaluate to false. */
         if ($this instanceof \Illuminate\Database\Eloquent\Builder) {
             return $this->model->getTable();
         }
 
+        /** @phpstan-ignore-next-line Instanceof between *NEVER* and Illuminate\Database\Query\Builder will always evaluate to false. */
         if ($this instanceof \Illuminate\Database\Query\Builder) {
             return $this->from;
         }

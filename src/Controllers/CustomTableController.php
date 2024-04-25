@@ -8,6 +8,8 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
+use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
@@ -15,6 +17,7 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterOption;
@@ -31,6 +34,7 @@ use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Enums\DataSubmitRedirectEx;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -91,6 +95,7 @@ class CustomTableController extends AdminControllerBase
                 ->tooltip(exmtrans('custom_table.expand_setting'));
             $actions->append($linker);
 
+            /** @var CustomTable $custom_table */
             $custom_table = $actions->row;
 
             // add custom column
@@ -105,10 +110,25 @@ class CustomTableController extends AdminControllerBase
             // add data
             if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 $linker = (new Linker())
+                    /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 ->url($actions->row->getGridUrl())
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));
                 $actions->append($linker);
+            }
+
+            if (\Exment::user()->hasPermission(Permission::CUSTOM_TABLE) &&
+                !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+                $actions->append((new Tools\ModalLink(
+                    admin_urls('table', $actions->getKey(), 'copyModal'),
+                    [
+                        'icon' => 'fa-copy',
+                        'modal_title' => exmtrans('common.copy_item', exmtrans('custom_table.table')),
+                        'attributes' => [
+                            'data-toggle' => "tooltip",
+                        ],
+                    ]
+                ))->render());
             }
         });
 
@@ -180,6 +200,11 @@ class CustomTableController extends AdminControllerBase
                 ->default(config('exment.revision_count', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
             ;
+
+            $form->select('data_submit_redirect', exmtrans("system.data_submit_redirect"))
+                ->options(DataSubmitRedirectEx::transKeyArray("custom_table.data_submit_redirect_options"))
+                ->default(DataSubmitRedirectEx::INHERIT)
+                ->help(exmtrans("system.help.data_submit_redirect"));
 
             $form->exmheader(exmtrans('role_group.permission_setting'))->hr();
 
@@ -255,6 +280,7 @@ class CustomTableController extends AdminControllerBase
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $model->createTable();
 
             // redirect custom column page
@@ -309,7 +335,7 @@ $('.{$class}-delete').unbind('click').click(function() {
         preConfirmValidate: function(input){
             if (input != "$keyword") {
                 return "{$trans['delete_keyword']}";
-            } 
+            }
 
             return true;
         }
@@ -466,7 +492,7 @@ HTML;
      * get columns select options.include system date
      * @param CustomTable $custom_table
      * @param array $selectOptions
-     * @param array items
+     * @return array|mixed[]
      */
     protected function getColumnsSelectOptions($custom_table, $selectOptions = [])
     {
@@ -480,9 +506,10 @@ HTML;
     /**
      * Edit interface.
      *
-     * @param mixed   $id
+     * @param Request $request
      * @param Content $content
-     * @return Content
+     * @param $id
+     * @return Content|void
      */
     public function edit(Request $request, Content $content, $id)
     {
@@ -616,5 +643,88 @@ HTML;
             'title' => exmtrans("change_page_menu.change_page_label"),
             'showSubmit' => false,
         ]);
+    }
+
+    /**
+     * Showing copy modal
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return Response
+     */
+    public function copyModal(Request $request, $id)
+    {
+        $copy_table = CustomTable::getEloquent($id);
+        $actionPath = admin_urls('table', $id, 'copy');
+        // create form fields
+        $form = new ModalForm();
+        $form->action($actionPath);
+
+        $form->descriptionHtml(exmtrans('custom_table.help.copy_custom_table'));
+
+        $form->display('copy_from_table', exmtrans("custom_table.copy_from_table"))
+            ->displayText($copy_table->table_view_name);
+
+        $form->text('table_name', exmtrans("custom_table.table_name"))
+            ->required()
+            ->rules("max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/")
+            ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
+
+        $form->text('table_view_name', exmtrans("custom_table.table_view_name"))
+            ->required()
+            ->rules("max:40")
+            ->help(exmtrans('common.help.view_name'));
+
+        $form->setWidth(9, 2);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_table.copy_custom_table')
+        ]);
+    }
+
+    /**
+     * Copy custom_table
+     *
+     * @param Request $request
+     * @param $id
+     * @return Response
+     */
+    public function copyTable(Request $request, $id)
+    {
+        /** @var ExmentCustomValidator $validator */
+        $validator = \Validator::make($request->all(), [
+            'table_name' => "max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
+            'table_view_name' => "max:40"
+        ], [], [
+            'table_name' => exmtrans("custom_table.table_name"),
+            'table_view_name' => exmtrans("custom_table.table_view_name")
+        ]);
+
+        if (!$validator->passes()) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => implode(' ', $validator->getMessageStrings()),
+                'errors' => [],
+            ]);
+        }
+
+        $target_table = CustomTable::getEloquent($id);
+        $inputs = $request->only(['table_name','table_view_name']);
+        try {
+            $response = $target_table->copyTable($inputs);
+        } catch (\Exception $e) {
+            $response = [
+                'result' => false,
+                'toastr' => $e->getMessage(),
+                'errors' => [],
+            ];
+        }
+
+        if (isset($response)) {
+            return getAjaxResponse($response);
+        }
+        return getAjaxResponse(false);
     }
 }

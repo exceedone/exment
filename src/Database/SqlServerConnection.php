@@ -6,6 +6,7 @@ use Exceedone\Exment\Database\Query\Grammars\SqlServerGrammar as QueryGrammar;
 use Exceedone\Exment\Database\Schema\Grammars\SqlServerGrammar as SchemaGrammar;
 use Exceedone\Exment\Database\Schema\SqlServerBuilder;
 use Exceedone\Exment\Database\Query\Processors\SqlServerProcessor;
+use Illuminate\Database\Grammar;
 use Illuminate\Database\SqlServerConnection as BaseConnection;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\BackupRestoreNotSupportedException;
@@ -17,10 +18,11 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get a schema builder instance for the connection.
      *
-     * @return \Illuminate\Database\Schema\Builder
+     * @return SqlServerBuilder
      */
     public function getSchemaBuilder()
     {
+        /** @phpstan-ignore-next-line Call to function is_null() with Illuminate\Database\Schema\Grammars\Grammar will always evaluate to false. */
         if (is_null($this->schemaGrammar)) {
             $this->useDefaultSchemaGrammar();
         }
@@ -31,7 +33,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get the default schema grammar instance.
      *
-     * @return SchemaGrammar
+     * @return Grammar|SchemaGrammar
      */
     protected function getDefaultSchemaGrammar()
     {
@@ -41,7 +43,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get the default query grammar instance.
      *
-     * @return QueryGrammar
+     * @return Grammar|QueryGrammar
      */
     protected function getDefaultQueryGrammar()
     {

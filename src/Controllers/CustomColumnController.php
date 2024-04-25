@@ -47,7 +47,7 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @return Content|void
      */
     public function index(Request $request, Content $content)
     {
@@ -58,15 +58,14 @@ class CustomColumnController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
-
     /**
      * Edit
      *
      * @param Request $request
      * @param Content $content
-     * @param string $tableKey
-     * @param string|int|null $id
-     * @return void|Response
+     * @param $tableKey
+     * @param $id
+     * @return Content|void
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -83,7 +82,7 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * Create interface.
      *
-     * @return Content
+     * @return Content|void
      */
     public function create(Request $request, Content $content)
     {
@@ -170,7 +169,10 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * Make a form builder.
      *
+     * @param $id
      * @return Form
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function form($id = null)
     {
@@ -401,6 +403,7 @@ class CustomColumnController extends AdminControllerTableBase
                 $order++;
 
                 // get width
+                /** @phpstan-ignore-next-line need test 'Called 'first' on Laravel collection, but could have been retrieved as a query.' */
                 $width = $form_block->custom_form_columns()
                     ->where('row_no', 1)
                     ->where('column_no', 1)

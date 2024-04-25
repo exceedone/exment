@@ -192,9 +192,9 @@ class ParentItem implements ItemInterface
     /**
      * replace value for import
      *
-     * @param mixed $value
+     * @param $value
      * @param array $setting
-     * @return void
+     * @return array
      */
     public function getImportValue($value, $setting = [])
     {
@@ -235,6 +235,7 @@ class ParentItem implements ItemInterface
             return $field;
         }
     }
+
     /**
      * get view filter type
      */
@@ -323,7 +324,7 @@ class ParentItem implements ItemInterface
     /**
      * Set admin filter options
      *
-     * @param [type] $filter
+     * @param $filter
      * @return void
      */
     protected function setAdminFilterOptions(&$filter)

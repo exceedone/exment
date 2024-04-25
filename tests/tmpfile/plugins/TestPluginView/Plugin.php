@@ -2,6 +2,7 @@
 
 namespace App\Plugins\TestPluginView;
 
+use Encore\Admin\Form;
 use Exceedone\Exment\Services\Plugin\PluginViewBase;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomTable;
@@ -34,7 +35,6 @@ class Plugin extends PluginViewBase
         return response()->json($custom_value);
     }
 
-
     /**
      * Set view option form for setting
      *
@@ -43,7 +43,7 @@ class Plugin extends PluginViewBase
      */
     public function setViewOptionForm($form)
     {
-        //　独自設定を追加する場合
+        // 独自設定を追加する場合
         $form->embeds('custom_options', '詳細設定', function ($form) {
             $form->select('category', 'カテゴリ列')
                 ->options($this->custom_table->getFilteredTypeColumns([ColumnType::SELECT, ColumnType::SELECT_VALTEXT])->pluck('column_view_name', 'id'))

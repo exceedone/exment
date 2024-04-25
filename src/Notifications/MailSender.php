@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
+use Exceedone\Exment\Model\Traits\MailTemplateTrait;
 use Illuminate\Support\Facades\Mail;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Exceedone\Exment\Notifications\Mail\MailInfo;
@@ -31,6 +32,11 @@ class MailSender extends SenderBase
     protected $replaceOptions = [];
 
 
+    /**
+     * @param $mail_template
+     * @param $to
+     * @throws NoMailTemplateException
+     */
     public function __construct($mail_template, $to)
     {
         $this->mailInfo = new MailInfo();
@@ -45,6 +51,7 @@ class MailSender extends SenderBase
         if (!is_nullorempty($mail_template)) {
             $this->mailHistory->setMailTemplate($mail_template);
             $this->setSubject($mail_template->getValue('mail_subject'));
+            /** @phpstan-ignore-next-line Maybe need reflection. */
             $this->setBody($mail_template->getJoinedBody());
 
             $this->setFromName($mail_template->getValue('mail_from_view_name'));
@@ -289,8 +296,6 @@ class MailSender extends SenderBase
         } else {
             return [replaceBreak($body, false), 'text/html'];
         }
-
-        return $this;
     }
 
 

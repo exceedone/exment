@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Model;
 
 /**
+ * @property mixed $user
  * @property mixed $user_id
+ * @property mixed $created_at
  */
 class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
 {

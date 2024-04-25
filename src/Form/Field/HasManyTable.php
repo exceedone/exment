@@ -210,7 +210,7 @@ class HasManyTable extends HasMany
      *
      * @param string $templateScript
      *
-     * @return void
+     * @return string
      */
     protected function setupScriptForDefaultView($templateScript)
     {
@@ -255,7 +255,7 @@ $('#has-many-table-{$this->column}').off('click.admin_remove', '.remove').on('cl
 $('#has-many-table-{$this->column}').off('click.admin_row_remove', '.row-move').on('click.admin_row_remove', '.row-move', function(ev){
     var row = $(ev.target).closest('tr');
     var isup = $(ev.target).closest('.row-move').hasClass('row-move-up');
-    
+
     let getPrevNextRow = function(row, isup){
         while(true){
             var targetRow = isup ? row.prev() : row.next();
@@ -267,10 +267,10 @@ $('#has-many-table-{$this->column}').off('click.admin_row_remove', '.row-move').
             }
             row = targetRow;
         }
-    
+
         return null;
     };
-    
+
     var targetRow = getPrevNextRow(row, isup);
     if(!hasValue(targetRow)){
         return;
@@ -291,7 +291,7 @@ $("button[type='submit']").click(function(){
         return true;
     }
     var cnt = $('#has-many-table-{$this->column}-table tr.has-many-table-{$this->column}-row').filter(':visible').length;
-    if (cnt == 0) { 
+    if (cnt == 0) {
         swal("$title", "$message", "error");
         return false;
     };
@@ -310,7 +310,7 @@ EOT;
      * Hide delete button's row no.
      *
      * @param int $rowNo
-     * @return void
+     * @return $this
      */
     public function hideDeleteButtonRow($rowNo)
     {
@@ -349,7 +349,7 @@ EOT;
      *
      * @throws \Exception
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|string
      */
     public function render()
     {

@@ -6,6 +6,7 @@ use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Box\Spout\Common\Entity\Cell;
 use Box\Spout\Reader\SheetInterface;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 abstract class SpOut extends FormatBase
 {
@@ -87,14 +88,12 @@ abstract class SpOut extends FormatBase
         return $files;
     }
 
-
     /**
      * Get Data from excel sheet
-     *
      * @param SheetInterface $sheet
-     * @param int $skip_excel_row_no
-     * @param boolean $keyvalue
-     * @param boolean $isGetMerge
+     * @param bool $keyvalue
+     * @param bool $isGetMerge
+     * @param array $options
      * @return array
      */
     public function getDataFromSheet($sheet, bool $keyvalue = false, bool $isGetMerge = false, array $options = []): array
@@ -135,10 +134,10 @@ abstract class SpOut extends FormatBase
     /**
      * get cell value
      *
-     * @param \Box\Spout\Common\Entity\Cell $cell
-     * @param SheetInterface $sheet
-     * @param boolean $isGetMerge
-     * @return mixed
+     * @param \Box\Spout\Common\Entity\Cell|string $cell
+     * @param Worksheet $sheet
+     * @param bool $isGetMerge
+     * @return null
      */
     public function getCellValue($cell, $sheet, $isGetMerge = false)
     {

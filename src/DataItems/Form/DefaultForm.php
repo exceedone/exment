@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Form;
 
+use Exceedone\Exment\Model\CustomFormColumn;
 use Symfony\Component\HttpFoundation\Response;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
@@ -23,6 +24,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Enums\DataSubmitRedirectEx;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\Calc\CalcService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
@@ -71,7 +73,8 @@ class DefaultForm extends FormBase
         $calc_formula_array = [];
         $changedata_array = [];
         $relatedlinkage_array = [];
-        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array);
+        $force_caculate_column = [];
+        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array, $force_caculate_column);
 
         // loop for custom form blocks
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
@@ -165,17 +168,10 @@ class DefaultForm extends FormBase
         }
 
         // add calc_formula_array and changedata_array info
+
         if (count($calc_formula_array) > 0) {
             $json = json_encode($calc_formula_array);
-            $columns = CustomColumn::where('custom_table_id', $this->custom_table->id)->get()
-                ->filter(function ($column) {
-                    return $column->options ? array_key_exists("calc_formula", $column->options) : false;
-                })->map(function ($item) {
-                    return [
-                        'column_name' => $item->column_name,
-                        'force_caculate' => $item->options['force_caculate']
-                    ];
-                });
+            $columns = json_encode($force_caculate_column);
             $script = <<<EOT
             var json = $json;
             var columns = $columns;
@@ -248,11 +244,11 @@ EOT;
     /**
      * set custom form columns
      *
-     * @param Form $form Laravel-admin's form
+     * @param Form $form
      * @param CustomFormBlock $custom_form_block
-     * @param CustomValue|null $target_custom_value target customvalue. if Child block, this arg is child custom value.
-     * @param CustomRelation|null $this form block's relation
-     * @return array
+     * @param CustomValue|number|null $target_custom_value
+     * @param CustomRelation|null $relation
+     * @return \Closure
      */
     protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null, ?CustomRelation $relation = null)
     {
@@ -297,14 +293,16 @@ EOT;
     /**
      * set custom form columns
      */
-    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array)
+    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array, &$force_caculate_column)
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             // set calc rule for javascript
             $relation = $custom_form_block->getRelationInfo($this->custom_table)[0];
             $calc_formula_key = $relation ? $relation->getRelationName() : '';
+            $force_caculate_column_key = $relation ? $relation->getRelationName() : 'default';
+            $force_caculate_column[$force_caculate_column_key] = [];
             $calc_formula_array[$calc_formula_key] = CalcService::getCalcFormArray($this->custom_table, $custom_form_block);
-
+            /** @var CustomFormColumn $form_column */
             foreach ($custom_form_block->custom_form_columns as $form_column) {
                 if ($form_column->form_column_type != FormColumnType::COLUMN) {
                     continue;
@@ -312,7 +310,11 @@ EOT;
                 if (!isset($form_column->custom_column)) {
                     continue;
                 }
+                /** @var CustomColumn $column */
                 $column = $form_column->custom_column;
+                if(array_get($column->options, 'force_caculate')) {
+                    $force_caculate_column[$force_caculate_column_key][]  = $column->column_name;
+                }
                 $form_column_options = $form_column->options;
                 $options = $column->options;
 
@@ -461,6 +463,10 @@ EOT;
     {
         if (!$this->disableSavingButton) {
             if (!$this->disableSavedRedirectCheck) {
+                $data_submit_redirect = $custom_table->getOption('data_submit_redirect');
+                if (empty($data_submit_redirect) || $data_submit_redirect == DataSubmitRedirectEx::INHERIT) {
+                    $data_submit_redirect = System::data_submit_redirect();
+                }
                 $checkboxes = collect([
                     [
                         'key' => 'continue_editing',
@@ -479,10 +485,10 @@ EOT;
                         'value' => 4,
                         'redirect' => admin_urls('data', $this->custom_table->table_name),
                     ],
-                ])->map(function ($checkbox) {
+                ])->map(function ($checkbox) use($data_submit_redirect) {
                     return array_merge([
                         'label' => trans('admin.' . $checkbox['key']),
-                        'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
+                        'default' => isMatchString($data_submit_redirect, $checkbox['value']),
                     ], $checkbox);
                 })->each(function ($checkbox) use ($form) {
                     $form->submitRedirect($checkbox);

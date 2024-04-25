@@ -53,7 +53,7 @@ class TemplateDiskService extends DiskServiceBase
     /**
      * copy file from disk to localSyncDisk disk
      *
-     * @return void
+     * @return true
      */
     protected function sync()
     {

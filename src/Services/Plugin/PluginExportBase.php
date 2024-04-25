@@ -30,7 +30,7 @@ abstract class PluginExportBase
     /**
      * Tmp full path.
      *
-     * @var string
+     * @var string|null
      */
     protected $tmpFullPath;
 
@@ -66,11 +66,10 @@ abstract class PluginExportBase
         return $this->combineData($this->default_provider->data());
     }
 
-
     /**
      * Get view's data.
      *
-     * @return void
+     * @return array
      */
     protected function getViewData()
     {

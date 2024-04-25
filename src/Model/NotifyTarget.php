@@ -43,7 +43,7 @@ class NotifyTarget
     /**
      * Email Address
      *
-     * @var string
+     * @var string|null
      */
     protected $email;
 
@@ -131,14 +131,15 @@ class NotifyTarget
         return $this->id;
     }
 
-
     /**
      * Get notify target models
      *
      * @param Notify $notify
      * @param CustomValue|null $custom_value
      * @param string|CustomColumn $notify_action_target NotifyActionTarget or custom column id or CustomColumn.
-     * @return array Notify targets
+     * @param array $action_setting
+     * @param CustomTable|null $custom_table
+     * @return Collection|\Tightenco\Collect\Support\Collection
      */
     public static function getModels(Notify $notify, ?CustomValue $custom_value, $notify_action_target, array $action_setting, ?CustomTable $custom_table = null)
     {

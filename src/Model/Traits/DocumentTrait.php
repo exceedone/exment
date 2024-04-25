@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
+/**
+ * @used-by \Exceedone\Exment\Services\ClassBuilder
+ */
 trait DocumentTrait
 {
     public function getUrlAttribute()

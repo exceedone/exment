@@ -20,8 +20,8 @@ trait CanResetPassword
     /**
      * Send the password reset notification.
      *
-     * @param  string  $token
-     * @return void
+     * @param string $token
+     * @return MailSender
      */
     public function sendPasswordResetNotification($token): MailSender
     {

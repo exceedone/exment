@@ -674,14 +674,14 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectMultiNullCheck(null, FilterOption::NOT_NULL, false);
         $this->_testColumnSelectMultiNullCheck('', FilterOption::NOT_NULL, false);
         $this->markTestSkipped('現状空配列はNULLと見なされない');
-        $this->_testColumnSelectMultiNullCheck([], FilterOption::NOT_NULL, false);
+//        $this->_testColumnSelectMultiNullCheck([], FilterOption::NOT_NULL, false);
     }
     public function testColumnSelectMultiNullTrue()
     {
         $this->_testColumnSelectMultiNullCheck(null, FilterOption::NULL, true);
         $this->_testColumnSelectMultiNullCheck('', FilterOption::NULL, true);
         $this->markTestSkipped('現状空配列はNULLと見なされない');
-        $this->_testColumnSelectMultiNullCheck([], FilterOption::NULL, true);
+//        $this->_testColumnSelectMultiNullCheck([], FilterOption::NULL, true);
     }
     public function testColumnSelectMultiNullFalse()
     {
@@ -1513,15 +1513,13 @@ class ConditionTest extends UnitTestBase
         }
     }
 
-
     /**
      * Execute test for custom column
      *
      * @param string $column_name
-     * @param mixed $target_value
-     * @param array $values
+     * @param $target_value
      * @param string $filterOption
-     * @param boolean $result
+     * @param bool $result
      * @return void
      */
     protected function __testColumnNullCheck(string $column_name, $target_value, string $filterOption, bool $result)
@@ -1544,15 +1542,13 @@ class ConditionTest extends UnitTestBase
         $this->assertMatch($condition->isMatchCondition($custom_value), $result);
     }
 
-
     /**
      * Execute test for workflow status
      *
-     * @param string $column_name
-     * @param mixed $target_value
-     * @param array $values
+     * @param string $status_name
+     * @param $value
      * @param string $filterOption
-     * @param boolean $result
+     * @param bool $result
      * @return void
      */
     protected function __testWorkflowStatus(string $status_name, $value, string $filterOption, bool $result)
@@ -1571,6 +1567,7 @@ class ConditionTest extends UnitTestBase
             }
 
             // get workflow status
+            /** @var Model\WorkflowStatus|null $workflow_status */
             $workflow_status = Model\WorkflowStatus::where('status_name', $value)->first();
             $condition = new Model\Condition([
                 'condition_type' => Enums\ConditionType::WORKFLOW,
@@ -1584,15 +1581,12 @@ class ConditionTest extends UnitTestBase
         }
     }
 
-
     /**
      * Execute test for workflow work user
      *
-     * @param string $column_name
-     * @param mixed $target_value
-     * @param array $values
+     * @param bool $hasAuth
      * @param string $filterOption
-     * @param boolean $result
+     * @param bool $result
      * @return void
      */
     protected function __testWorkflowWorkUser(bool $hasAuth, string $filterOption, bool $result)

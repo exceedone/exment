@@ -46,7 +46,7 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
      * execute login using each service.
      *
      * @param array $credentials
-     * @return ?Authenticatable
+     * @return Authenticatable|null|array
      */
     public static function RetrieveByCredential(array $credentials)
     {
@@ -119,9 +119,14 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         return null;
     }
 
-
+    /**
+     * @param Authenticatable $login_user
+     * @param array $credentials
+     * @return false
+     */
     public static function ValidateCredential(Authenticatable $login_user, array $credentials)
     {
+        /** @phpstan-ignore-next-line  */
         if (is_null($login_user)) {
             return false;
         }

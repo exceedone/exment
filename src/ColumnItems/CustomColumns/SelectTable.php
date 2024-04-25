@@ -22,6 +22,9 @@ use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
 
+/**
+ *
+ */
 class SelectTable extends CustomItem
 {
     use SelectTrait;
@@ -165,11 +168,11 @@ class SelectTable extends CustomItem
     /**
      * Get grid filter option. Use grid filter, Ex. LIKE search.
      *
-     * @return string
+     * @return string|null
      */
     protected function getGridFilterOption(): ?string
     {
-        return FilterOption::SELECT_EXISTS;
+        return (string)FilterOption::SELECT_EXISTS;
     }
 
     protected function setAdminOptions(&$field)
@@ -269,18 +272,18 @@ class SelectTable extends CustomItem
     /**
      * Get relation filter object
      *
-     * @return Linkage|null
+     * @return Linkage|null|void
      */
     protected function getLinkage()
     {
         // if config "select_relation_linkage_disabled" is true, not callback
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
-            return;
+            return null;
         }
 
         $relation_filter_target_column_id = array_get($this->form_column_options, 'relation_filter_target_column_id');
         if (is_nullorempty($relation_filter_target_column_id)) {
-            return;
+            return null;
         }
 
         return Linkage::getLinkage($relation_filter_target_column_id, $this->custom_column);
@@ -290,7 +293,7 @@ class SelectTable extends CustomItem
      * Whether showing Search modal button
      *
      * @param mixed $form_column_options
-     * @return boolean
+     * @return bool
      */
     protected function isShowSearchButton($form_column_options): bool
     {
@@ -316,12 +319,12 @@ class SelectTable extends CustomItem
     /**
      * get relation filter callback
      *
-     * @return \Closure|null
+     * @return \Closure|null|void
      */
     protected function getRelationFilterCallback($linkage)
     {
         if (!isset($linkage)) {
-            return;
+            return null;
         }
 
         // get callback
@@ -395,7 +398,7 @@ class SelectTable extends CustomItem
      *
      * @param mixed $value
      * @param array $setting
-     * @return void
+     * @return array
      */
     public function getImportValue($value, $setting = [])
     {
@@ -457,7 +460,7 @@ class SelectTable extends CustomItem
      *
      * @param array $datalist
      * @param string $key
-     * @return void
+     * @return array
      */
     public function getKeyAndIdList($datalist, $key)
     {
@@ -470,15 +473,24 @@ class SelectTable extends CustomItem
         return System::requestSession($sessionkey, function () use ($datalist, $key) {
             // get key and value list
             $keyValueList = collect($datalist)->map(function ($d) {
-                return array_get($d, 'value.' . $this->custom_column->column_name);
+                $val = array_get($d, 'value.' . $this->custom_column->column_name);
+                if (ColumnType::isMultipleEnabled($this->custom_column->column_type)
+                    && $this->custom_column->getOption('multiple_enabled')) {
+                    return explode(",", $val);
+                } else {
+                    return $val;
+                }
             })->flatten()->filter()->toArray();
 
             $target_custom_column = CustomColumn::getEloquent($key, $this->target_table);
-            $indexName = $target_custom_column ?? $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$key";
-            $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
-                ->get()->mapWithKeys(function ($v) use ($key) {
-                    return [array_get($v, "value.$key") => $v->id];
-                });
+            $values = [];
+            if ($target_custom_column) {
+                $indexName = $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$key";
+                $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
+                    ->get()->mapWithKeys(function ($v) use ($key) {
+                        return [array_get($v, "value.$key") => $v->id];
+                    });
+            }
 
             return $values;
         });
@@ -619,7 +631,7 @@ class SelectTable extends CustomItem
      * @param int $takeCount
      * @param string $q
      * @param array $options
-     * @return void
+     * @return array
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
@@ -782,6 +794,7 @@ class SelectTable extends CustomItem
         // whether column_type is user or org
         if (!is_null(old('column_type'))) {
             $model = CustomColumn::getEloquent(old('column_type'), $custom_table);
+            /** @phpstan-ignore-next-line Right side of || is always false.  */
         } elseif (isset($id) || old('column_type')) {
             $model = CustomColumn::getEloquent($id);
         }

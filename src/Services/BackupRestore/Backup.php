@@ -23,7 +23,7 @@ class Backup
     /**
      * Can check execute backup
      *
-     * @return void
+     * @return mixed
      */
     public function check()
     {
@@ -46,6 +46,7 @@ class Backup
 
             if (is_string($target)) {
                 $target = collect(explode(",", $target))->map(function ($t) {
+                    /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
                     return new BackupTarget($t) ?? null;
                 })->filter()->toArray();
             }

@@ -23,7 +23,7 @@ class ApiAuthApiKey extends Migration
         }
         if (!Schema::hasTable('oauth_api_keys')) {
             Schema::create('oauth_api_keys', function (Blueprint $table) {
-                $table->uuid('id', 100)->primary();
+                $table->uuid('id')->primary();
                 $table->uuid('client_id');
                 $table->string('key', 100)->index();
             });

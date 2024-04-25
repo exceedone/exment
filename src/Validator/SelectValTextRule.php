@@ -38,17 +38,13 @@ class SelectValTextRule implements Rule
         $value = stringToArray($value);
         $value = array_filter($value);
 
-        if (is_array($value)) {
-            foreach ($value as $v) {
-                if (!in_array($v, $this->keys) && !array_key_exists($v, $this->keys)) {
-                    return false;
-                }
+        foreach ($value as $v) {
+            if (!in_array($v, $this->keys) && !array_key_exists($v, $this->keys)) {
+                return false;
             }
-
-            return true;
         }
 
-        return false;
+        return true;
     }
 
     /**

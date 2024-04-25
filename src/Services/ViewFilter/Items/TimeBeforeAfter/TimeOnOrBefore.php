@@ -7,6 +7,9 @@ use Carbon\Carbon;
 
 class TimeOnOrBefore extends TimeBeforeAfterBase
 {
+    /**
+     * @return int|string
+     */
     public static function getFilterOption()
     {
         return FilterOption::TIME_ON_OR_BEFORE;

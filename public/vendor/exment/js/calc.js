@@ -45,14 +45,10 @@ var Exment;
                 // loop for calc target.
                 for (let j = 0; j < $tos.length; j++) {
                     let $to = $tos.eq(j);
-                    for (var key in columns) {
-                        if (columns.hasOwnProperty(key)) {
-                            for (var key_column in columns[key]) {
-                                if (columns[key].hasOwnProperty(key_column)) {
-                                    if (key_column == 'column_name' && columns[key][key_column] == $to[0].id) {
-                                        force_caculate = columns[key]['force_caculate'];
-                                    }
-                                }
+                    if (calc_formula.target_block) {                        
+                        for (let column of columns[calc_formula.target_block]) {
+                            if(column == $to[0].id) {
+                                force_caculate = true;
                             }
                         }
                     }
@@ -134,13 +130,21 @@ var Exment;
                         if (hasValue(model)) {
                             val = model['value'][param.formula_column];
                             if (!hasValue(val)) {
-                                notCalc = true;
-                                break;
+                                if (force_caculate == true) {
+                                    val = 0;
+                                } else {
+                                    notCalc = true;
+                                    break;
+                                }
                             }
                         }
                         else {
-                            notCalc = true;
-                            break;
+                            if (force_caculate == true) {
+                                val = 0;
+                            } else {
+                                notCalc = true;
+                                break;
+                            }
                         }
                     }
                     // when parent value, get value from parent_id or parent form
@@ -156,13 +160,21 @@ var Exment;
                             if (hasValue(model)) {
                                 val = model['value'][param.formula_column];
                                 if (!hasValue(val)) {
-                                    notCalc = true;
-                                    break;
+                                    if (force_caculate == true) {
+                                        val = 0;
+                                    } else {
+                                        notCalc = true;
+                                        break;
+                                    }
                                 }
                             }
                             else {
-                                notCalc = true;
-                                break;
+                                if (force_caculate == true) {
+                                    val = 0;
+                                } else {
+                                    notCalc = true;
+                                    break;
+                                }
                             }
                         }
                         // if not parent id, almost 1:n form, so get parent form
@@ -170,8 +182,12 @@ var Exment;
                             let $parentBox = Exment.CommonEvent.getBlockElement('');
                             val = rmcomma($parentBox.find(Exment.CommonEvent.getClassKey(param.formula_column)).val());
                             if (!hasValue(val)) {
-                                notCalc = true;
-                                break;
+                                if (force_caculate == true) {
+                                    val = 0;
+                                } else {
+                                    notCalc = true;
+                                    break;
+                                }
                             }
                         }
                     }
