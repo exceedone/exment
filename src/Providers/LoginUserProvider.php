@@ -119,9 +119,14 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         return null;
     }
 
-
+    /**
+     * @param Authenticatable $login_user
+     * @param array $credentials
+     * @return false
+     */
     public static function ValidateCredential(Authenticatable $login_user, array $credentials)
     {
+        /** @phpstan-ignore-next-line  */
         if (is_null($login_user)) {
             return false;
         }

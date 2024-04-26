@@ -44,7 +44,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     /**
      * request key. Used by custom form setting display. Ex. NEW__f482dce0-662c-11eb-8f65-5f9d12681ab1
      *
-     * @var string
+     * @var string|null
      */
     protected $_request_key;
 

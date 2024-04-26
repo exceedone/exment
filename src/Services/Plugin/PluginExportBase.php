@@ -30,7 +30,7 @@ abstract class PluginExportBase
     /**
      * Tmp full path.
      *
-     * @var string
+     * @var string|null
      */
     protected $tmpFullPath;
 

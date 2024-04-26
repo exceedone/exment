@@ -104,6 +104,7 @@ class NotifyNavbar
         $widgetTable = new WidgetTable($headers, $bodies);
         $widgetTable->class('table table-hover');
 
+        /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
         return $widgetTable->render() ?? null;
     }
 

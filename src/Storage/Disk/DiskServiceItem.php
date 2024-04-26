@@ -14,8 +14,8 @@ class DiskServiceItem
      * Construct
      *
      * @param Filesystem $disk
-     * @param string $fileName
-     * @param string $dirName
+     * @param string|null $fileName
+     * @param string|null $dirName
      */
     public function __construct($disk, $fileName, $dirName)
     {
@@ -27,14 +27,14 @@ class DiskServiceItem
     /**
      * file name. contains extension
      *
-     * @var string file name
+     * @var string|null file name
      */
     protected $fileName;
 
     /**
      * directory name.
      *
-     * @var string file name
+     * @var string|null file name
      */
     protected $dirName;
 

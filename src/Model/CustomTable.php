@@ -2234,9 +2234,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 foreach ($item as $i) {
                     $ret[$i->id] = $i->label;
                 }
-                return collect($ret);
+                /** @var Collection $collection */
+                $collection =  collect($ret);
+                return $collection;
             }
-            return collect([$item->id => $item->label]);
+            /** @var Collection $collection */
+            $collection = collect([$item->id => $item->label]);
+            return $collection;
         } else {
             return collect([]);
         }
@@ -2252,7 +2256,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * 'include_workflow': whether getting workflow column
      * 'include_form_type': whether getting form type(show, create, edit)
      * @param array $selectOptions
-     * @return array option items
+     * @return array|null option items
      */
     //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
     public function getColumnsSelectOptions($selectOptions = [])
@@ -2747,7 +2751,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get CustomValue's model.
      *
-     * @param null|int|string $id CustomValue's id
+     * @param null|int|string|CustomValue $id CustomValue's id
      * @param bool $withTrashed if true, get already trashed value.
      * @return CustomValue|null CustomValue's model.
      */
@@ -3293,5 +3297,67 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'toastr' => sprintf(exmtrans('common.message.success_execute')),
             'redirect' => admin_url('table'),
         ];
+    }
+
+    /**
+     * validate before value delete.
+     */
+    public function validateValueDestroy($id)
+    {
+        $ids = stringToArray($id);
+
+        // check if data referenced
+        if ($this->checkReferenced($this, $ids)) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.reference_error'),
+            ];
+        }
+
+        $relations = CustomRelation::getRelationsByParent($this, RelationType::ONE_TO_MANY);
+        // check if child data referenced
+        foreach ($relations as $relation) {
+            $child_table = $relation->child_custom_table;
+            $list = getModelName($child_table)::whereIn('parent_id', $ids)
+                ->where('parent_type', $this->table_name)
+                ->pluck('id')->all();
+            if ($this->checkReferenced($child_table, $list)) {
+                return [
+                    'status'  => false,
+                    'message' => exmtrans('custom_value.help.reference_error'),
+                ];
+            }
+        }
+
+        foreach ($ids as $target_id) {
+            $custom_value = $this->getValueModel($target_id, true);
+            if ($custom_value) {
+                $res = Plugin::pluginValidateDestroy($custom_value);
+                if (!empty($res)) {
+                    return $res;
+                }
+                $custom_value->setValidationDestroy(true);
+            }
+        }
+    }
+
+    /**
+     * check if data is referenced.
+     */
+    protected function checkReferenced($custom_table, $list)
+    {
+        foreach ($custom_table->getSelectedItems() as $item) {
+            $model = getModelName(array_get($item, 'custom_table_id'));
+            $column_name = array_get($item, 'column_name');
+            // ignore mail_template reference from mail_send_log
+            if ($custom_table->table_name == SystemTableName::MAIL_TEMPLATE &&
+                $item->custom_table->table_name == SystemTableName::MAIL_SEND_LOG) {
+                continue;
+            }
+            if ($model::whereIn('value->'.$column_name, $list)->exists()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

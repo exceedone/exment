@@ -11,9 +11,10 @@ trait ExportCommandTrait
 {
     protected function getParametersCommon()
     {
+        /** @var null|string $table_name */
         $table_name = $this->argument("table_name");
 
-        if (!isset($table_name)) {
+        if ($table_name === null) {
             throw new \Exception('parameter table name is empty');
         }
 

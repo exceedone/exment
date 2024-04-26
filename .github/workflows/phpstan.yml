@@ -1,0 +1,62 @@
+name: phpstan
+
+on:
+  pull_request:
+    paths:
+      - 'config/**'
+      - 'database/**'
+      - 'resources/**'
+      - 'src/**'
+      - 'tests/**'
+
+env:
+  DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
+          path: ./docker-exment
+
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
+          path: ./docker-exment/exment-boilerplate
+
+      - uses: actions/checkout@v3
+        with:
+          path: ./docker-exment/exment-boilerplate/exment
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Docker Compose Version
+        run: docker compose --version
+
+      - name: Make mysql up
+        working-directory: docker-exment
+        run: |
+          make mysql-up
+
+      - name: copy compose.dev.json
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
+          docker compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
+
+      - name: Make mysql init
+        working-directory: docker-exment
+        run: |
+          make mysql-init
+
+      - name: setup phpstan
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
+
+      - name: run phpstan
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php ./vendor/bin/phpstan analyse --memory-limit=1G

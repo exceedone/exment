@@ -29,7 +29,7 @@ class CustomOperation extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
 
     protected $casts = ['options' => 'json', 'operation_type' => 'array'];
-    protected $appends = ['condition_join', 'active_flg'];
+    protected $appends = ['condition_join', 'active_flg', 'condition_reverse'];
 
 
     public function custom_table(): BelongsTo
@@ -76,6 +76,18 @@ class CustomOperation extends ModelBase
     public function setConditionJoinAttribute($val)
     {
         $this->setOption('condition_join', $val);
+
+        return $this;
+    }
+
+    public function getConditionReverseAttribute()
+    {
+        return $this->getOption('condition_reverse');
+    }
+
+    public function setConditionReverseAttribute($val)
+    {
+        $this->setOption('condition_reverse', $val);
 
         return $this;
     }
@@ -143,11 +155,25 @@ class CustomOperation extends ModelBase
     }
 
     /**
-     * check if custom_value is match for conditions.
+     * check if custom_value is match for conditions(with reverse option).
      * @param CustomValue $custom_value
      * @return bool is match condition.
      */
     public function isMatchCondition($custom_value)
+    {
+        $result = $this->_isMatchCondition($custom_value);
+        if (boolval($this->condition_reverse)) {
+            $result = !$result;
+        }
+        return $result;
+    }
+
+    /**
+     * check if custom_value is match for conditions.
+     * @param CustomValue $custom_value
+     * @return bool is match condition.
+     */
+    public function _isMatchCondition($custom_value)
     {
         $is_or = $this->condition_join == 'or';
         foreach ($this->custom_operation_conditions as $condition) {

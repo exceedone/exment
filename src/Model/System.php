@@ -103,7 +103,7 @@ class System extends ModelBase
      *
      * @param string $key key name.
      * @param mixed $value setting value.
-     * @return mixed
+     * @return mixed|null
      */
     public static function requestSession($key, $value = null)
     {
@@ -125,10 +125,11 @@ class System extends ModelBase
             return $val;
         }
         static::setRequestSession($key, $value);
+        return null;
     }
 
     /**
-     * Set Request Settion.
+     * Set Request Session.
      *
      * @param string $key
      * @param mixed $value
