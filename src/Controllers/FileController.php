@@ -312,7 +312,7 @@ class FileController extends AdminControllerBase
             if (isset($custom_column)) {
                 $custom_value = $custom_table->getValueModel()->find($data->parent_id);
             }
-            if (isset($custom_value)) {
+            if (isset($custom_value) && isset($custom_column)) {
                 $current_val = $custom_value->getValue($custom_column->column_name);
                 if($custom_column->column_type == ColumnType::IMAGE || $custom_column->column_type == ColumnType::FILE) {
                     if($current_val instanceof \Illuminate\Support\Collection) {
