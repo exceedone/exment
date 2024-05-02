@@ -837,25 +837,20 @@ class DefaultGrid extends GridBase
         $current_url = parse_url(url()->current());
         $previous_path = $previous_url? array_get($previous_url, 'path'): null;
         $current_path = $current_url? array_get($current_url, 'path'): null;
+        $session_array = session(Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS);
+
+        $execute_filter = request()->get('execute_filter');
+        $_sort = request()->get('_sort');
 
         if ($previous_path == $current_path) {
-            session([Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS => [
-                'path' => $current_path,
-                'parameters' => request()->all()
-            ]]);
+            $session_array[$current_path] = request()->all();
+            session([Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS => $session_array]);
+        } elseif (boolval($execute_filter) || is_array($_sort)) {
+            $session_array[$current_path] = request()->all();
+            session([Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS => $session_array]);
         } else {
-            if (strpos($previous_path, $current_path . '/') !== false) {
-                $parameters = session(Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS);
-                if (is_array($parameters) && $parameters['path'] == $current_path) {
-                    request()->merge($parameters['parameters']);
-                } else {
-                    session([Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS => [
-                        'path' => $current_path,
-                        'parameters' => request()->all()
-                    ]]);
-                }
-            } else {
-                session()->forget(Define::SYSTEM_KEY_SESSION_KEEP_GRID_PARAMETERS);
+            if ($session_array && array_key_exists($current_path, $session_array)) {
+                request()->merge($session_array[$current_path]);
             }
         }
     }
