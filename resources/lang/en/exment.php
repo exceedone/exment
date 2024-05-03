@@ -582,7 +582,7 @@ return [
             'editor' => 'Editor',
             'html' => 'HTML',
             'notify_navbar' => 'Notify list',
-            'qr_code' => 'QR Code',
+            'qr_code' => '2D Barcode',
         ],
 
         'dashboard_menulist' => [
@@ -1048,7 +1048,7 @@ return [
         'notify' => 'Notification Setting',
         'custom_value' => 'Data List',
         'error_select' => 'Please select only one record.',
-        'qrcode' => 'QR Code Setting',
+        'qrcode' => '2D Barcode Setting',
     ],
 
     'workflow' => [
@@ -1190,16 +1190,10 @@ return [
         'copy_custom_table' => 'Copy custom table',
         'no_selected' => 'No target data selected',
         'qr_code' => [
-            'setting' => 'QR Code Setting',
-            'content' => 'QR code layout',
+            'setting' => '2D Barcode Setting',
+            'content' => 'Supplementary information for 2D barcodes',
             'text' => 'Title',
-            'data_id' => 'Data ID display name',
-            'qr_id' => 'QR code ID display name',
-            'show_data_id' => 'Show data ID of target table',
-            'show_data_id_description' => 'By setting YES, the data ID of the target table can be displayed on the QR image.',
-            'show_qr_id_description' => 'By setting YES, the QR code ID can be displayed on the QR image.',
-            'show_qr_id' => 'Show QR ID in QR code',
-            'image_size' => 'QR code layout size',
+            'image_size' => '2D barcode layout size',
             'cell_width' => 'Cell width',
             'cell_height' => 'Cell height',
             'margin_left' => 'Margin left',
@@ -1208,21 +1202,21 @@ return [
             'row_per_page' => 'Row per page',
             'column_spacing' => 'Columnn spacing',
             'row_spacing' => 'Row spacing',
-            'reading' => 'QR Code reading',
-            'form_after_read' => 'Form after read QR',
+            'form_after_read' => 'Form after scanning the 2D barcode',
             'action_after_read' => 'Action after data registration',
-            'download' => 'QRCode Download',
-            'create' => 'Create QR Code',
-            'reading' => 'QR Code',
-            'help' => '*If you change the information below, it will not be reflected in the QR code created before the change. If you want to reflect the changes to the previous QR code, please download the QR code again.',
-            'description' => 'Please see <a href="%s" target="_blank">here</a> for QR code layout size settings.',
-            'number_qr' => 'Number of QR codes',
+            'download' => '2D barcode download',
+            'create' => 'Create a new 2D barcode',
+            'reading' => '2D barcode reading',
+            'description' => 'Please see <a href="%s" target="_blank">here</a> for 2D barcode layout size settings.',
+            'number_qr' => 'Number of 2D barcode',
+            'advance_setting' => '2D barcode reading',
             'created' => 'Create success',
-            'download_complete' => 'Download completed',
-            'table_not_found' => 'Table of this qr code not found',
-            'validate_qr_number' => 'Number of qr codes must be greater than 0',
+            'download_complete' => '2D barcode download completed',
+            'table_not_found' => 'Table of this 2D barcode not found',
+            'validate_qr_number' => 'Number of 2D barcodes must be greater than 0',
             'refer_column' => 'Represents column',
-            'refer_column_description' => 'Set the columns to be displayed on the QR code layout.<br/>*For custom columns that are set to be unique and required, they can be set to be displayed in the QR code layout.',
+            'refer_column_description' => 'The information of the specified column of custom data will be displayed to the right of the 2D barcode.<br/>*You can select the ID column or the auto-number column (must be unique and required).',
+            'text_qr_description' => 'Fixed text displayed on the right side of the 2D barcode.',
         ],
         'data_submit_redirect_options' => [
             'inherit'               => 'Match system settings',
@@ -1259,8 +1253,8 @@ return [
             'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
             'copy_custom_table' => 'Copy normal settings, advanced settings and custom columns. <br />Other settings are out of scope. Please set manually.',
-            'qrcode_activate' => 'Enable QR Code feature of this table. Is this good?',
-            'qrcode_deactivate' => 'Disable QR Code feature of this table. Is this good?',
+            'qrcode_activate' => 'Enable the 2D barcode function for this table. Do you want to enable it?',
+            'qrcode_deactivate' => 'The 2D barcode function for this table will be disabled. Do you want to disable it?',
         ],
 
         'custom_column_multi' => [
@@ -2234,7 +2228,7 @@ return [
     ],
 
     'qrcode' => [
-        'description' => 'Perform settings for create Qr code for data.',
+        'description' => 'Set the two-dimensional barcode for this table.',
     ],
 
     'custom_value' => [

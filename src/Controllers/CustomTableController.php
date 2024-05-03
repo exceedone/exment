@@ -545,15 +545,18 @@ HTML;
     {
         $form = new Form(new CustomTable());
         $custom_table = CustomTable::getEloquent($id);
-        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        $manualUrl = getManualUrl('2d_barcode?id='.exmtrans('custom_table.qr_code.image_size'));
         $form->setTitle(exmtrans("custom_table.qr_code.setting"));
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id, $manualUrl) {
             $form->exmheader(exmtrans("custom_table.qr_code.content"))->hr();
-            $form->text('text_qr', exmtrans("custom_table.qr_code.text"))->attribute(['maxlength' => 8]);
+            $form->text('text_qr', exmtrans("custom_table.qr_code.text"))
+                ->attribute(['maxlength' => 8])
+                ->help(exmtrans("custom_table.qr_code.text_qr_description"));
             $custom_column_arr = CustomColumn::where('custom_table_id', $id)
                     ->where([
                         'options->required' => 1,
                         'options->unique' => 1,
+                        'column_type' => 'auto_number',
                     ])->get()->mapWithKeys(function ($item) {
                         return [$item->id => $item->column_view_name];
                     })->toArray();
@@ -571,7 +574,7 @@ HTML;
             $form->number('row_per_page', exmtrans("custom_table.qr_code.row_per_page"))->default(9)->min(1);
             $form->number('col_spacing', exmtrans("custom_table.qr_code.column_spacing"))->default(3);
             $form->number('row_spacing', exmtrans("custom_table.qr_code.row_spacing"))->help(sprintf(exmtrans("custom_table.qr_code.description"), $manualUrl));
-            $form->exmheader(exmtrans("custom_table.qr_code.reading"))->hr();
+            $form->exmheader(exmtrans("custom_table.qr_code.advance_setting"))->hr();
             $custom_form_arr = CustomForm::where('custom_table_id', $id)->get()->mapWithKeys(function ($item) {
                 return [$item->id => $item->form_view_name];
             })->toArray();
@@ -647,6 +650,7 @@ HTML;
             return $this->AdminContent($content)->body($this->formMultiColumn($id)->edit($id));
         }
         if ($request->has('qrcodesetting')) {
+            $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.qr_code.setting"), exmtrans("qrcode.description"), 'fa-table');
             return $this->AdminContent($content)->body($this->formQrCodeSetting($id)->edit($id));
         }
 

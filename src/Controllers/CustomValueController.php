@@ -1165,12 +1165,23 @@ class CustomValueController extends AdminControllerTableBase
 
         $selected_custom_value_id = [];
         $table = CustomTable::getEloquent($table_id);
-        for ($i = 0; $i < $qr_number; $i++) {
-            $target_data = $table->getValueModel();
-            $target_data->save();
-            $selected_custom_value_id[] = $target_data->id;
+        DB::beginTransaction();
+        try {
+            for ($i = 0; $i < $qr_number; $i++) {
+                $target_data = $table->getValueModel();
+                $target_data->save();
+                $selected_custom_value_id[] = $target_data->id;
+            }
+            [$tmpPath, $fileName] = $this->createPdf($selected_custom_value_id, $table_id);
+            DB::commit();
+        } catch (\Exception $exception) {
+            //TODO:error handling
+            DB::rollback();
+            return response()->json([
+                'result'  => false,
+                'message' => exmtrans("common.message.error_execute"),
+            ]);
         }
-        [$tmpPath, $fileName] = $this->createPdf($selected_custom_value_id, $table_id);
         $this->qrCreateOrDownloadResponse($tmpPath, $fileName, true);
     }
 
@@ -1194,7 +1205,7 @@ class CustomValueController extends AdminControllerTableBase
                 'fileBase64' => base64_encode(\File::get($tmpPath)),
                 'fileContentType' => \File::mimeType($tmpPath),
                 'fileName' => $fileName,
-                'swaltext' => $isCreate ? exmtrans("custom_table.qr_code.created") : exmtrans("custom_table.qr_code.download_complete"),
+                'toastr' => $isCreate ? exmtrans("custom_table.qr_code.created") : exmtrans("custom_table.qr_code.download_complete"),
             ]);
 
             $response->send();
@@ -1240,6 +1251,11 @@ class CustomValueController extends AdminControllerTableBase
             use (&$img_arr, $img_width, $img_height, $refer_column_name, $table_id) {
                 $selected_id = strval($selected_custom_value->id);
                 $refer_column_value = $refer_column_name ? $selected_custom_value->getValue($refer_column_name) : $selected_id;
+                if (!$refer_column_value) {
+                    $target_data = CustomTable::getEloquent($table_id)->getValueModel()->where('id', $selected_id)->first();
+                    $target_data->updated_at = now();
+                    $target_data->save();
+                }
                 [$qr_file_name, $qr_file_path] = $this->createStickerImg(
                     $selected_id,
                     $img_width,
@@ -1252,7 +1268,7 @@ class CustomValueController extends AdminControllerTableBase
 
             });
             // 一時ファイルの名前を生成する
-            $fileName = 'QR-code_' . Carbon::now()->format('YmdHis') . '.pdf';
+            $fileName = '2D-barcode_' . Carbon::now()->format('YmdHis') . '.pdf';
             $tmpPath = getFullpath($fileName, Define::DISKNAME_ADMIN_TMP);
             
             $pdf = new TCPDF;
@@ -1289,7 +1305,6 @@ class CustomValueController extends AdminControllerTableBase
         } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
-            throw $exception;
         }
 
         return [$tmpPath, $fileName];
