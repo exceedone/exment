@@ -188,7 +188,7 @@ EOT;
     {
         $script = collect(static::$scripts)->filter()->unique()->implode("");
         //static::$scripts = [];
-        \Admin::script($script);
+        //\Admin::script($script);
         return $script;
     }
 
@@ -219,6 +219,7 @@ EOT;
             static::$scripts[] = $field->getScript();
             return $view;
         } else {
+            $this->script = $this->getScript();
             return parent::render();
         }
     }
