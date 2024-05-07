@@ -118,6 +118,9 @@ class CustomViewController extends AdminControllerTableBase
         $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
+        if (config('exment.sort_custom_view_options', 0) > 0) {
+            $grid->column('order', exmtrans("custom_view.order"))->sortable()->editable();
+        }
 
         $grid->model()->where('custom_table_id', $this->custom_table->id);
         $custom_table = $this->custom_table;
@@ -275,6 +278,11 @@ class CustomViewController extends AdminControllerTableBase
         // remove default
         if (intval($view_kind_type) != Enums\ViewKindType::FILTER) {
             $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
+        }
+
+        if (config('exment.sort_custom_view_options', 0) > 0) {
+            $form->number('order', exmtrans("custom_view.order"))->rules("integer")
+                ->help(sprintf(exmtrans("custom_view.help.order")));
         }
 
         // set column' s form
