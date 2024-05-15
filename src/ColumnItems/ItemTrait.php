@@ -463,6 +463,11 @@ trait ItemTrait
             case SummaryCondition::SUM:
             case SummaryCondition::COUNT:
                 $new_summary_condition = SummaryCondition::getSummaryConditionName(SummaryCondition::SUM);
+                break;
+            case SummaryCondition::MIN:
+            case SummaryCondition::MAX:
+                $new_summary_condition = SummaryCondition::getSummaryConditionName($summary_condition);
+                break;
         }
 
         // get wraped, joined table, and sub query's as name.
