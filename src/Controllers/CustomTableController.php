@@ -560,10 +560,9 @@ HTML;
                     ])->get()->mapWithKeys(function ($item) {
                         return [$item->id => $item->column_view_name];
                     })->toArray();
-            $custom_column_arr = ['ID'] + $custom_column_arr;
+            $custom_column_arr = ['id' => 'ID'] + $custom_column_arr;
             $form->select('refer_column', exmtrans("custom_table.qr_code.refer_column"))
                 ->options($custom_column_arr)
-                ->default(array_key_first($custom_column_arr))
                 ->help(exmtrans("custom_table.qr_code.refer_column_description"));
             $form->exmheader(exmtrans("custom_table.qr_code.image_size"))->hr();
             $form->number('cell_width', exmtrans("custom_table.qr_code.cell_width"))->default(62)->min(1);
@@ -574,6 +573,16 @@ HTML;
             $form->number('row_per_page', exmtrans("custom_table.qr_code.row_per_page"))->default(9)->min(1);
             $form->number('col_spacing', exmtrans("custom_table.qr_code.column_spacing"))->default(3);
             $form->number('row_spacing', exmtrans("custom_table.qr_code.row_spacing"))->help(sprintf(exmtrans("custom_table.qr_code.description"), $manualUrl));
+            $form->exmheader(exmtrans("custom_table.qr_code.text_button"))->hr();
+            $form->text('text_button_en', exmtrans("common.english"))
+                ->attribute(['maxlength' => 10])
+                ->default('2D barcode')
+                ->required();
+            $form->text('text_button_ja', exmtrans("common.japanese"))
+                ->attribute(['maxlength' => 10])
+                ->default('二次元バーコード')
+                ->help(exmtrans("custom_table.qr_code.text_button_description"))
+                ->required();
             $form->exmheader(exmtrans("custom_table.qr_code.advance_setting"))->hr();
             $custom_form_arr = CustomForm::where('custom_table_id', $id)->get()->mapWithKeys(function ($item) {
                 return [$item->id => $item->form_view_name];
