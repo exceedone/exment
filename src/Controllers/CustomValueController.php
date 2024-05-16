@@ -1148,7 +1148,7 @@ class CustomValueController extends AdminControllerTableBase
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
-            'title' => exmtrans("custom_table.qr_code.create"),
+            'title' => exmtrans("custom_table.qr_code.form_title"),
             'submitlabel' => exmtrans("common.save")
         ]);
     }
@@ -1248,10 +1248,11 @@ class CustomValueController extends AdminControllerTableBase
             $target_column = $refer_column ? CustomColumn::getEloquent($refer_column) : null;
             $refer_column_name = $target_column ? $target_column->column_name : null;
             $selected_custom_values->each(function ($selected_custom_value)
-            use (&$img_arr, $img_width, $img_height, $refer_column_name, $table_id) {
+            use (&$img_arr, $img_width, $img_height, $refer_column_name, $table_id, $refer_column) {
                 $selected_id = strval($selected_custom_value->id);
-                $refer_column_value = $refer_column_name ? $selected_custom_value->getValue($refer_column_name) : $selected_id;
-                if (!$refer_column_value) {
+                $refer_column_value = $refer_column_name ? $selected_custom_value->getValue($refer_column_name)
+                    : ($refer_column === 'id' ? $selected_id : '');
+                if (!$refer_column_value && $refer_column_name) {
                     $target_data = CustomTable::getEloquent($table_id)->getValueModel()->where('id', $selected_id)->first();
                     $target_data->updated_at = now();
                     $target_data->save();
