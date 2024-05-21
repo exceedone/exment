@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Illuminate\Validation\Validator;
 
 /**
  * Api about target table
@@ -17,7 +18,7 @@ trait ApiTrait
     /**
      * Get error message from validator
      *
-     * @param \Exceedone\Exment\Validator\ExmentCustomValidator $validator
+     * @param \Exceedone\Exment\Validator\ExmentCustomValidator|Validator  $validator
      * @return array error messages
      */
     protected function getErrorMessages($validator)
