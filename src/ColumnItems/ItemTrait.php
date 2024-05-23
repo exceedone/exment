@@ -946,6 +946,17 @@ trait ItemTrait
 
     protected function getWeekdayNolist()
     {
+        if (\Exment::isSqlServer()) {
+            return [
+                '1' => 'sun',
+                '2' => 'mon',
+                '3' => 'tue',
+                '4' => 'wed',
+                '5' => 'thu',
+                '6' => 'fri',
+                '7' => 'sat',
+            ];
+        }
         return [
             '0' => 'sun',
             '1' => 'mon',
