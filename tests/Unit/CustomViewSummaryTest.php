@@ -916,11 +916,17 @@ class CustomViewSummaryTest extends UnitTestBase
 
         $defaults = CustomTable::getEloquent('child_table_select')->getValueModel()->all();
 
+        $is_sqlsrv = \Exment::isSqlServer();
+
         foreach ($summaries as $summary) {
-            $ids = collect($defaults)->filter(function ($data) use ($summary) {
+            $ids = collect($defaults)->filter(function ($data) use ($summary, $is_sqlsrv) {
                 $value = $data->getValue('date');
                 if (isset($summary['key']) && isset($value)) {
-                    return \Carbon\Carbon::parse($value)->format('w') == $summary['key'];
+                    $week = \Carbon\Carbon::parse($value)->format('w');
+                    if ($is_sqlsrv) {
+                        $week += 1;
+                    }
+                    return $week == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($value);
                 }
@@ -1173,7 +1179,7 @@ class CustomViewSummaryTest extends UnitTestBase
                 'summary_condition' => SummaryCondition::COUNT
             ]],
             'offset' => 0,
-            'limit' => 50,
+            'limit' => 80,
         ];
 
         $summaries = $this->getCustomViewSummary($options);
@@ -1193,7 +1199,7 @@ class CustomViewSummaryTest extends UnitTestBase
                     $column_data = $data[$column_name];
                 }
 
-                if (!empty($summary['key']) && isset($column_data)) {
+                if (!is_null($summary['key']) && isset($column_data)) {
                     if (is_array(json_decode_ex($summary['key']))) {
                         return isMatchArray($column_data, json_decode_ex($summary['key']));
                     } elseif (is_array($column_data)) {
@@ -1203,7 +1209,7 @@ class CustomViewSummaryTest extends UnitTestBase
                     }
                     return isMatchString($column_data, $summary['key']);
                 } else {
-                    return empty($summary['key']) && empty($column_data);
+                    return is_null($summary['key']) && (is_null($column_data));
                 }
             })->count();
             $this->assertTrue(isMatchString($summary['value'], $result));
