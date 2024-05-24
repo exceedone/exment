@@ -363,6 +363,7 @@ trait HasPermissions
         $permission_details = [];
         $permissions = [];
 
+        $tables = CustomTable::allRecords();
         foreach ($roles as $role) {
             /** @var RoleGroupPermission $role_group_permission */
             foreach ($role->role_group_permissions as $role_group_permission) {
@@ -373,7 +374,9 @@ trait HasPermissions
                     continue;
                 }
 
-                $custom_table = CustomTable::getEloquent($role_group_permission->role_group_target_id);
+                $custom_table = $tables->first(function($item) use ($role_group_permission) {
+                    return $item->id == $role_group_permission->role_group_target_id;
+                });
                 if (!isset($custom_table)) {
                     continue;
                 }
@@ -390,8 +393,6 @@ trait HasPermissions
             }
         }
 
-        // check table all data
-        $tables = CustomTable::allRecords();
         foreach ($tables as $table) {
             $table_name = $table->table_name;
             if (boolval($table->getOption('all_user_editable_flg'))) {
@@ -419,6 +420,7 @@ trait HasPermissions
         // get permission_details for all tables. --------------------------------------------------
         $permission_details = [];
         $permissions = [];
+        $plugins = Plugin::allRecords();
 
         foreach ($roles as $role) {
             /** @var RoleGroupPermission $role_group_permission */
@@ -430,7 +432,9 @@ trait HasPermissions
                     continue;
                 }
 
-                $plugin = Plugin::getEloquent($role_group_permission->role_group_target_id);
+                $plugin = $plugins->first(function($item) use ($role_group_permission) {
+                    return $item->id == $role_group_permission->role_group_target_id;
+                });
                 if (!isset($plugin)) {
                     continue;
                 }
