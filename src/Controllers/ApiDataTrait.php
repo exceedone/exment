@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\ColumnItems\CustomColumns\Editor;
+use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -230,6 +232,11 @@ trait ApiDataTrait
         }
         // as single model
         elseif ($target instanceof CustomValue) {
+            $editor_cols = CustomColumn::where('custom_table_id', $this->custom_table->id)->where('column_type', ColumnType::EDITOR)->get();
+            foreach($editor_cols as $col) {
+                $val = $target->getValue($col->column_name);
+                $target->setValue($col->column_name, Editor::replaceImgUrl($val, ['dirName' => true]));
+            }
             if (boolval($options['makeHidden'])) {
                 $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
                 return $this->modifyCustomValue($request, $target);

@@ -82,17 +82,18 @@ class File extends ModelBase
                 'asApi' => false,
                 'asPublicForm' => false,
                 'publicFormKey' => null,
+                'dirName' => false,
             ],
             $options
         );
 
         $file = static::getData($path);
+        
         if (is_null($file)) {
             return null;
         }
 
-        $name = $file->uuid . (!is_nullorempty($file->extension) ? ('.' . $file->extension) : '');
-        $name = "files/{$name}";
+        $name = 'files/'.($options['dirName'] ? $file->local_dirname.'/'.$file->local_filename  : $file->uuid);
 
         // append prefix
         if ($options['asApi']) {
