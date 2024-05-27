@@ -30,7 +30,7 @@ class MailSender extends SenderBase
 
     protected $prms = [];
     protected $replaceOptions = [];
-
+    protected $final_user;
 
     /**
      * @param $mail_template
@@ -172,6 +172,15 @@ class MailSender extends SenderBase
         return $this;
     }
 
+    public function finalUser($final_user)
+    {
+        if (isset($final_user)) {
+            $this->final_user = $final_user;
+        }
+
+        return $this;
+    }
+
     public function replaceOptions($replaceOptions)
     {
         $this->replaceOptions = $replaceOptions;
@@ -232,7 +241,7 @@ class MailSender extends SenderBase
             ->setFromName($fromName)
             ->setBodyType($bodyType);
 
-        $job = new MailSendJob();
+        $job = new MailSendJob(\Exment::user(), $this->final_user);
         $job->setMailInfo($this->mailInfo)
             ->setMailHistory($this->mailHistory);
         $this->notify($job);
@@ -272,7 +281,7 @@ class MailSender extends SenderBase
             ->setMailTemplate($mail_template)
             ->setHistory(false);
 
-        $job = new MailSendJob();
+        $job = new MailSendJob(\Exment::user(), $this->final_user);
         $job->setMailInfo($mailInfo)
             ->setMailHistory($mailHistory);
 
