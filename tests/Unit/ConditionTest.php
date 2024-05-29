@@ -133,7 +133,7 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnIntegerNullFalse()
     {
-        $this->_testColumnIntegerNullCheck(2, str(FilterOption::NULL), false);
+        $this->_testColumnIntegerNullCheck(2, FilterOption::NULL, false);
         $this->_testColumnIntegerNullCheck('2', FilterOption::NULL, false);
         $this->_testColumnIntegerNullCheck('0', FilterOption::NULL, false);
         $this->_testColumnIntegerNullCheck(0, FilterOption::NULL, false);
