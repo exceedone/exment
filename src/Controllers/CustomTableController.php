@@ -99,7 +99,7 @@ class CustomTableController extends AdminControllerBase
      * @param boolean $active_qr_flg
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function toggleActivate(Request $request, $id, bool $active_flg)
+    protected function toggleActivate(Request $request, $id, $active_flg)
     {
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_qr_flg', $active_flg);
@@ -573,16 +573,6 @@ HTML;
             $form->number('row_per_page', exmtrans("custom_table.qr_code.row_per_page"))->default(9)->min(1);
             $form->number('col_spacing', exmtrans("custom_table.qr_code.column_spacing"))->default(3);
             $form->number('row_spacing', exmtrans("custom_table.qr_code.row_spacing"))->help(sprintf(exmtrans("custom_table.qr_code.description"), $manualUrl));
-            $form->exmheader(exmtrans("custom_table.qr_code.text_button"))->hr();
-            $form->text('text_button_en', exmtrans("common.english"))
-                ->attribute(['maxlength' => 10])
-                ->default('2D barcode')
-                ->required();
-            $form->text('text_button_ja', exmtrans("common.japanese"))
-                ->attribute(['maxlength' => 10])
-                ->default('二次元バーコード')
-                ->help(exmtrans("custom_table.qr_code.text_button_description"))
-                ->required();
             $form->exmheader(exmtrans("custom_table.qr_code.advance_setting"))->hr();
             $custom_form_arr = CustomForm::where('custom_table_id', $id)->get()->mapWithKeys(function ($item) {
                 return [$item->id => $item->form_view_name];
@@ -619,7 +609,6 @@ HTML;
 
             $model = $form->model();
             admin_toastr(trans('admin.update_succeeded'));
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             return redirect(admin_urls_query('table', $model->id, 'edit', ['qrcodesetting' => 1, 'after-save' => 1]));
         });
 

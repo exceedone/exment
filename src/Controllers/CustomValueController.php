@@ -1223,7 +1223,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Create and download pdf file.
      *
-     * @return void
+     * @return array
      */
     protected function createPdf($selected_custom_value_id, $table_id)
     {
@@ -1314,9 +1314,6 @@ class CustomValueController extends AdminControllerTableBase
         /**
      * Create image of sticker/label for adding to exported excel file.
      *
-     * @param [type] $selected_id
-     * @param [type] $img_width
-     * @param [type] $img_height
      * @return array
      */
     public function createStickerImg($selected_id, $sticker_img_width, $sticker_img_height, $selected_custom_value, $refer_column_value = null)
@@ -1418,7 +1415,6 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Delete temporary file in admin_tmp folder.
      *
-     * @param [type] $file_path
      * @return void
      */
     public function deleteTmpFile($file_path)
@@ -1434,7 +1430,6 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Create URL to transit to qr page.
      *
-     * @param [type] $selected_id
      * @return string
      */
     public function createQRUrl($selected_id)
@@ -1446,8 +1441,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * Convert Millimeter to Pixel
      *
-     * @param [type] $mmVal
-     * @return int
+     * @return float
      */
     public function mmToPixel($mmVal)
     {
