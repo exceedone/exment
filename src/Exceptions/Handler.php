@@ -45,6 +45,7 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        /** @phpstan-ignore-next-line error() expects Exception, Throwable given */
         return \Exment::error($request, $exception, function ($request, $exception) {
             if ($exception instanceof OAuthServerException) {
                 return response([

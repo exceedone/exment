@@ -170,7 +170,9 @@ class CustomViewController extends AdminControllerTableBase
 
         $grid->disableCreateButton();
         $grid->tools(function (Grid\Tools $tools) {
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
             $tools->append(new Tools\CustomViewMenuButton($this->custom_table, null, false));
+            /** @phpstan-ignore-next-line expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('view', $this->custom_table));
         });
 
@@ -344,6 +346,7 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $custom_table, $view_type, $view_kind_type) {
+            /** @phpstan-ignore-next-line  add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->add((new Tools\CustomTableMenuButton('view', $custom_table)));
 
             if ($view_type == Enums\ViewType::USER) {

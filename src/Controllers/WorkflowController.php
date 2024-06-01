@@ -673,7 +673,7 @@ class WorkflowController extends AdminControllerBase
         $form->html(view('exment::workflow.beginning', [
             'items' => $results
         ])->render());
-
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('workflow.beginning'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => admin_url('workflow'),

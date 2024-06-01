@@ -1965,7 +1965,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $field->attribute(['data-target_table_name' => array_get($this, 'table_name')]);
         /** @phpstan-ignore-next-line */
         $field->buttons($options['buttons']);
-
+        /** @phpstan-ignore-next-line options() expects array, Closure given */
         $field->options(function ($value, $field) use ($thisObj, $selectOption) {
             $selectOption['selected_value'] = (!empty($field) ? $field->getOld() : null) ?? $value;
             return $thisObj->getSelectOptions($selectOption);
