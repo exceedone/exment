@@ -894,7 +894,7 @@ class WorkflowAction extends ModelBase
     /**
      * Append workflow status from query.
      *
-     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder|\Exceedone\Exment\Database\Eloquent\ExtendedBuilder $query
      * @param string $workflow_status
      * @return void
      */

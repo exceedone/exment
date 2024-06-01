@@ -1587,10 +1587,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set selectTable value's. for after calling from select_table object
      *
-     * @param \Illuminate\Support\Collection|null $customValueCollection
+     * @param \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|null $customValueCollection
      * @return void
      */
-    public function setSelectTableValues(?\Illuminate\Support\Collection $customValueCollection)
+    public function setSelectTableValues(\Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|null $customValueCollection)
     {
         if (empty($customValueCollection)) {
             return;

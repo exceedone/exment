@@ -255,7 +255,7 @@ class LoginSetting extends ModelBase
      * Whether redirect sso page force.
      * System setting "sso_redirect_force" is true and show_default_login_provider is false and active_flg count is 1
      *
-     * @return boolean|null
+     * @return boolean|string|null
      */
     public static function getRedirectSSOForceUrl()
     {
