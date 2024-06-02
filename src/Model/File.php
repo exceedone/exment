@@ -415,7 +415,7 @@ class File extends ModelBase
     /**
      * Get file model using path or uuid
      *
-     * @param string|File $pathOrUuids
+     * @param string|File|array $pathOrUuids
      * @return File|null
      */
     public static function getData($pathOrUuids)
