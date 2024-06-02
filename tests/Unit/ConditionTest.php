@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Carbon\Carbon;
+use Illuminate\Support\Stringable;
 
 /**
  * Condition test.
@@ -143,7 +144,7 @@ class ConditionTest extends UnitTestBase
     {
         $this->__testColumn(ColumnType::INTEGER, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnIntegerNullCheck($target_value, int $filterOption, bool $result)
+    protected function _testColumnIntegerNullCheck($target_value, int|Stringable $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::INTEGER, $target_value, $filterOption, $result);
     }
@@ -1519,11 +1520,11 @@ class ConditionTest extends UnitTestBase
      *
      * @param string $column_name
      * @param $target_value
-     * @param int $filterOption
+     * @param int|Stringable $filterOption
      * @param bool $result
      * @return void
      */
-    protected function __testColumnNullCheck(string $column_name, $target_value, int $filterOption, bool $result)
+    protected function __testColumnNullCheck(string $column_name, $target_value, int|Stringable $filterOption, bool $result)
     {
         $this->initAllTest();
 
