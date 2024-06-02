@@ -77,7 +77,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->type('test description', 'description')
                 ->type('#ff0000', 'options[color]')
                 ->type('fa-automobile', 'options[icon]')
-                ->type("50", 'options[revision_count]')
+                ->type(50, 'options[revision_count]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url('column/test'))
                 ->assertEquals($pre_cnt + 1, CustomTable::count())

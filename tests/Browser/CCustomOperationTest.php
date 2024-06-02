@@ -218,7 +218,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                     "custom_operation_conditions[$row_id][condition_target]",
                     $custom_operation_condition->target_column_id
                 );
-                $this->seeOuterElement("input.condition_value.rowno-$row_id", "30000");
+                $this->seeOuterElement("input.condition_value.rowno-$row_id", 30000);
                 $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::NUMBER));
             }
         }
@@ -362,7 +362,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation create test update', 'value[text]')
                 ->type('even', 'value[odd_even]')
-                ->type("123.45", 'value[decimal]')
+                ->type(123.45, 'value[decimal]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url("/data/$target_table_name"));
 

@@ -1274,13 +1274,13 @@ class ApiFilterValueTest extends ExmentKitTestCase
      * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
      * @param string $type
-     * @param int $cond_key
+     * @param string $cond_key
      * @param bool $hasHtml
      * @param $selector
      * @param bool $multiple
      * @return void
      */
-    protected function __testConditionApiWorkflow(string $type, int $cond_key, bool $hasHtml, $selector, bool $multiple = false)
+    protected function __testConditionApiWorkflow(string $type, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         // workflow table
         $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
