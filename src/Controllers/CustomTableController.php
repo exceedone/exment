@@ -56,6 +56,7 @@ class CustomTableController extends AdminControllerBase
     {
         $content = $this->AdminContent($content);
 
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Grid given*/
         $row = new Row($this->grid());
         $row->class(['block_custom_table']);
 
@@ -76,6 +77,7 @@ class CustomTableController extends AdminControllerBase
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuAjaxButton given */
             $tools->append(new Tools\CustomTableMenuAjaxButton());
         });
 

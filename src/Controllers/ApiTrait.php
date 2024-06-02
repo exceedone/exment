@@ -24,6 +24,7 @@ trait ApiTrait
     protected function getErrorMessages($validator)
     {
         $errors = [];
+        /** @phpstan-ignore-next-line Call to an undefined method Illuminate\Validation\Validator::getMessages() */
         foreach ($validator->getMessages() as $key => $message) {
             // remove "value." key
             $key = str_replace("value.", "", $key);

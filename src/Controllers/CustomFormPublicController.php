@@ -457,6 +457,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
             ->requiredRule()
             ->help(exmtrans("custom_form_public.help.custom_form_id"))
+            /** @phpstan-ignore-next-line options() expects array, Closure given */
             ->options(function ($value) use ($custom_table) {
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];
@@ -508,6 +509,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->disableEditingCheck(false);
 
         $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $public_form, $preview) {
+            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
 

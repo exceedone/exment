@@ -186,8 +186,8 @@ class CustomValueController extends AdminControllerTableBase
                     return redirect(admin_url('/'));
                 }
                 $form = $this->form(null);
-                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
+                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given*/
                 $row = new Row($form);
             }
 
