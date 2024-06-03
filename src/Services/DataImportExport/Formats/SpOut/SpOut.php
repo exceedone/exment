@@ -134,7 +134,7 @@ abstract class SpOut extends FormatBase
     /**
      * get cell value
      *
-     * @param \Box\Spout\Common\Entity\Cell $cell
+     * @param \Box\Spout\Common\Entity\Cell|string $cell
      * @param Worksheet $sheet
      * @param bool $isGetMerge
      * @return null

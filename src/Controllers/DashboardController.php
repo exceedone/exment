@@ -272,7 +272,7 @@ EOT;
                 ->disableClear()
                 ->default(DashboardType::SYSTEM);
         } else {
-            $form->internal('dashboard_type')->default(DashboardType::USER);
+            $form->internal('dashboard_type')->default($dashboard_type?? DashboardType::USER);
         }
 
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
@@ -394,7 +394,7 @@ EOT;
                 // set column. use grid system
                 $grids = [
                     'xs' => 12,
-                    'md' => ($row_column_count == 0 ? 12 : 12 / $row_column_count)
+                    'md' => 12 / $row_column_count
                 ];
 
                 $row->column($grids, view('exment::dashboard.box', [

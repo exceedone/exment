@@ -145,7 +145,7 @@ class Workflow extends ModelBase
     /**
      * Get status options. contains start and end.
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection|null
      */
     public function getStatusOptions($onlyStart = false)
     {

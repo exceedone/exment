@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 
 class Api3WorkflowTest extends ApiTestBase
 {
@@ -836,6 +837,50 @@ class Api3WorkflowTest extends ApiTestBase
         ->assertStatus(400)
         ->assertJsonFragment([
             'code' => ErrorCode::WORKFLOW_ACTION_DISABLED
+        ]);
+    }
+
+    public function testExecuteWorkflowActionWithFilterError()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $custom_value = CustomTable::getEloquent('custom_value_edit')
+            ->getValueModel()
+            ->whereNot('id', 1)
+            ->where('value->multiples_of_3', '1')
+            ->first();
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', $custom_value->id, 'value'), [
+            'workflow_action_id' => 6
+        ])
+        ->assertStatus(400)
+        ->assertJsonFragment([
+            'code' => ErrorCode::WORKFLOW_ACTION_DISABLED
+        ]);
+    }
+
+    public function testExecuteWorkflowActionWithFilter1()
+    {
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $custom_value = CustomTable::getEloquent('custom_value_edit')
+            ->getValueModel()
+            ->whereNot('id', 1)
+            ->whereNot('value->multiples_of_3', '1')
+            ->first();
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'wf', 'data', 'custom_value_edit', $custom_value->id, 'value'), [
+            'workflow_action_id' => 6
+        ])
+        ->assertStatus(201)
+        ->assertJsonFragment([
+            'workflow_action_id' => 6,
+            'workflow_status_to_id' => '6',
+            'created_user_id' => '1', //admin
         ]);
     }
 

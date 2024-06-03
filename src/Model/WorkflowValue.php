@@ -166,7 +166,7 @@ class WorkflowValue extends ModelBase
      * *Filtered action_executed_flg
      * *Sorted id desc. (First action... but last executed.)
      *
-     * @return WorkflowValue
+     * @return WorkflowValue|null
      */
     public static function getLastExecutedWorkflowValue($custom_value)
     {

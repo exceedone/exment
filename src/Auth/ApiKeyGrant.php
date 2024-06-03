@@ -87,6 +87,7 @@ class ApiKeyGrant extends AbstractGrant
     {
         /** @var ApiKey $api_key */
         $api_key = ApiKey::where('key', $api_key)->first();
+        // @phpstan-ignore-next-line
         if (is_null($api_key) || is_null($api_key->client)) {
             throw OAuthServerException::invalidCredentials();
         }

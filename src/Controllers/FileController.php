@@ -2,8 +2,10 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Validator\ImageRule;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -93,8 +95,8 @@ class FileController extends AdminControllerBase
         return static::deleteFile(
             $uuid,
             [
-            'asApi' => true,
-        ]
+                'asApi' => true,
+            ]
         );
     }
 
@@ -106,8 +108,8 @@ class FileController extends AdminControllerBase
         return static::deleteFile(
             url_join($tableKey, $uuid),
             [
-            'asApi' => true,
-        ]
+                'asApi' => true,
+            ]
         );
     }
 
@@ -303,6 +305,43 @@ class FileController extends AdminControllerBase
         }
 
         if ($options['asApi']) {
+            $custom_table = CustomTable::getEloquent($options['tableKey'] ?? $data->parent_type);
+            if ($custom_table) {
+                $custom_column = CustomColumn::getEloquent($data->custom_column_id);
+            }
+            if (isset($custom_column)) {
+                $custom_value = $custom_table->getValueModel()->find($data->parent_id);
+            }
+            if (isset($custom_value) && isset($custom_column)) {
+                $current_val = $custom_value->getValue($custom_column->column_name);
+                if($custom_column->column_type == ColumnType::IMAGE || $custom_column->column_type == ColumnType::FILE) {
+                    if($current_val instanceof \Illuminate\Support\Collection) {
+                        $current_val = $current_val->toArray();
+                    }
+                    if (is_array($current_val)) {
+                        foreach ($current_val as $key => $value) {
+                            if ($value == url_join($data->parent_type, $data->local_filename)) {
+                                array_splice($current_val, $key, 1);
+                            }
+                        }
+                    } else {
+                        $current_val = '';
+                    }
+                }
+                if($custom_column->column_type == ColumnType::EDITOR) {
+                    preg_match_all('/\<img(.*?)data-exment-file-uuid="(?<file_uuid>.*?)"(.*?)\>/u', $current_val, $matches);
+                    if (!is_nullorempty($matches)) {
+                        for ($index = 0; $index < count($matches[0]); $index++) {
+                            $file_uuid = array_get($matches, 'file_uuid')[$index];
+                            if (!is_nullorempty($file_uuid) && $file_uuid == $data->uuid) {
+                                $current_val = str_replace($matches[0][$index], '', $current_val);
+                            }
+                        }
+                    }
+                }
+                $custom_value->setValue($custom_column->column_name, $current_val);
+                $custom_value->save();
+            }
             return response(null, 204);
         }
 

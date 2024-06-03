@@ -94,7 +94,7 @@ trait ConnectionTrait
 
             // If we catch an exception we'll rollback this transaction and try again if we
             // are not out of attempts. If we are out of attempts we will just throw the
-            // exception back out and let the developer handle an uncaught exceptions.
+            // exception back out, and let the developer handle an uncaught exception.
             catch (Throwable $e) {
                 $this->handleTransactionException(
                     $e,
@@ -113,14 +113,21 @@ trait ConnectionTrait
                 }
 
                 if ($this->transactions == 1) {
+                    $this->fireConnectionEvent('committing');
                     $this->getPdo()->commit();
                 }
 
-                $this->transactions = max(0, $this->transactions - 1);
+                [$levelBeingCommitted, $this->transactions] = [
+                    $this->transactions,
+                    max(0, $this->transactions - 1),
+                ];
 
-                if ($this->transactions == 0) {
-                    optional($this->transactionsManager)->commit($this->getName());
-                }
+                /** @phpstan-ignore-next-line Using nullsafe method call on non-nullable type Illuminate\Database\DatabaseTransactionsManager. Use -> instead. */
+                $this->transactionsManager?->commit(
+                    $this->getName(),
+                    $levelBeingCommitted,
+                    $this->transactions
+                );
             } catch (Throwable $e) {
                 $this->handleCommitTransactionException(
                     $e,

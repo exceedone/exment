@@ -24,6 +24,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Enums\DataSubmitRedirectEx;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\Calc\CalcService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
@@ -167,7 +168,7 @@ class DefaultForm extends FormBase
         }
 
         // add calc_formula_array and changedata_array info
-        
+
         if (count($calc_formula_array) > 0) {
             $json = json_encode($calc_formula_array);
             $columns = json_encode($force_caculate_column);
@@ -245,7 +246,7 @@ EOT;
      *
      * @param Form $form
      * @param CustomFormBlock $custom_form_block
-     * @param CustomValue|null $target_custom_value
+     * @param CustomValue|number|null $target_custom_value
      * @param CustomRelation|null $relation
      * @return \Closure
      */
@@ -462,6 +463,10 @@ EOT;
     {
         if (!$this->disableSavingButton) {
             if (!$this->disableSavedRedirectCheck) {
+                $data_submit_redirect = $custom_table->getOption('data_submit_redirect');
+                if (empty($data_submit_redirect) || $data_submit_redirect == DataSubmitRedirectEx::INHERIT) {
+                    $data_submit_redirect = System::data_submit_redirect();
+                }
                 $checkboxes = collect([
                     [
                         'key' => 'continue_editing',
@@ -480,10 +485,10 @@ EOT;
                         'value' => 4,
                         'redirect' => admin_urls('data', $this->custom_table->table_name),
                     ],
-                ])->map(function ($checkbox) {
+                ])->map(function ($checkbox) use($data_submit_redirect) {
                     return array_merge([
                         'label' => trans('admin.' . $checkbox['key']),
-                        'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
+                        'default' => isMatchString($data_submit_redirect, $checkbox['value']),
                     ], $checkbox);
                 })->each(function ($checkbox) use ($form) {
                     $form->submitRedirect($checkbox);

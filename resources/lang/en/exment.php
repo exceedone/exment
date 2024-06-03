@@ -83,6 +83,7 @@ return [
         'no_selected' => 'unselected',
         'no_use' => 'do not use',
         'default_export' => 'Export',
+        'condition_reverse' => '<Reverse> ',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -643,6 +644,7 @@ return [
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
                 'saved' => 'After Saving',
+                'deleted' => 'After Deletion',
                 'loading' => 'Before Loading',
                 'loaded' => 'After Loading',
                 'grid_menubutton' => 'Menu button on List View',
@@ -1180,6 +1182,15 @@ return [
         'add_parent_menu' => 'Target Parent Menu',
         'default_setting' => 'General Settings',
         'expand_setting' => 'Extended Settings',
+        'copy_from_table' => 'Original table',
+        'copy_custom_table' => 'Copy custom table',
+        'data_submit_redirect_options' => [
+            'inherit'               => 'Match system settings',
+            'list'                  => 'List',
+            'view'                  => 'View',
+            'continue_editing'      => 'Continue editing',
+            'continue_creating'     => 'Continue creating',
+        ],
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
@@ -1200,6 +1211,7 @@ return [
             'saved_redirect_column' => 'Save succeeded ! Please set column column.',
             'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
+            'copy_custom_table' => 'Copy normal settings, advanced settings and custom columns. <br />Other settings are out of scope. Please set manually.',
         ],
 
         'custom_column_multi' => [
@@ -1830,6 +1842,7 @@ return [
             'use_view_infobox' => 'By setting YES, you can set an information box at the top of the view where you can enter business details and messages to users.',
             'view_infobox_title' => 'Enter the title to be displayed in the information box.',
             'view_infobox' => 'Please fill in the HTML to be displayed in the information box. *Images and scripts cannot be entered.',
+            'order' => 'Display order of custom view menu buttons.',
         ],
 
         'column_sort_options' => [
@@ -2550,6 +2563,7 @@ return [
         'condition_key' => 'Search Condition',
         'condition_value' => 'Condtion Value',
         'condition_join' => 'Condtion Join',
+        'condition_reverse' => 'Condtion Reverse',
         'condition_type_options' => [
             'user' => 'User',
             'organization' => 'Organization',
@@ -2578,6 +2592,10 @@ return [
         'condition_join_options' => [
             'and' => 'Match All Condition',
             'or' => 'Match Any Condition',
+        ],
+
+        'condition_reverse_options' => [
+            '1' => 'Reverse condition',
         ],
     ],
 ];

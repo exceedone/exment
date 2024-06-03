@@ -118,6 +118,9 @@ class CustomViewController extends AdminControllerTableBase
         $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
+        if (config('exment.sort_custom_view_options', 0) > 0) {
+            $grid->column('order', exmtrans("custom_view.order"))->sortable()->editable();
+        }
 
         $grid->model()->where('custom_table_id', $this->custom_table->id);
         $custom_table = $this->custom_table;
@@ -130,16 +133,17 @@ class CustomViewController extends AdminControllerTableBase
                 if (boolval($actions->row->disabled_delete)) {
                     $actions->disableDelete();
                 }
-                if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
-                    intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
-                    $actions->disableEdit();
-
-                    $linker = (new Linker())
-                        ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
-                        ->icon('fa-edit')
-                        ->tooltip(trans('admin.edit'));
-                    $actions->prepend($linker);
-                }
+                // unreachable statement
+//                if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
+//                    intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
+//                    $actions->disableEdit();
+//
+//                    $linker = (new Linker())
+//                        ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
+//                        ->icon('fa-edit')
+//                        ->tooltip(trans('admin.edit'));
+//                    $actions->prepend($linker);
+//                }
             } else {
                 $actions->disableEdit();
                 $actions->disableDelete();
@@ -199,7 +203,6 @@ class CustomViewController extends AdminControllerTableBase
         $form = new Form(new CustomView());
 
         if (!isset($id)) {
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $id = $form->model()->id;
         }
 
@@ -277,6 +280,11 @@ class CustomViewController extends AdminControllerTableBase
             $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
         }
 
+        if (config('exment.sort_custom_view_options', 0) > 0) {
+            $form->number('order', exmtrans("custom_view.order"))->rules("integer")
+                ->help(sprintf(exmtrans("custom_view.help.order")));
+        }
+
         // set column' s form
         $classname = ViewKindType::getGridItemClassName($view_kind_type);
         $classname::setViewForm($view_kind_type, $form, $this->custom_table, [
@@ -287,7 +295,7 @@ class CustomViewController extends AdminControllerTableBase
 
         // append model for getting from options
         $form->editing(function ($form) {
-            $form->model()->append(['use_view_infobox', 'view_infobox_title', 'view_infobox', 'pager_count', 'condition_join', 'header_align']);
+            $form->model()->append(['use_view_infobox', 'view_infobox_title', 'view_infobox', 'pager_count', 'condition_join', 'condition_reverse', 'header_align']);
         });
 
         // check filters and sorts count before save
@@ -325,10 +333,8 @@ class CustomViewController extends AdminControllerTableBase
                 return;
             }
 
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             if (boolval($from_data) && $form->model()->view_kind_type != Enums\ViewKindType::FILTER) {
                 // get view suuid
-                /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 $suuid = $form->model()->suuid;
 
                 admin_toastr(trans('admin.save_succeeded'));

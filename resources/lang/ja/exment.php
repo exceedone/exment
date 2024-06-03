@@ -83,6 +83,7 @@ return [
         'no_selected' => '未選択',
         'no_use' => '使用しない',
         'default_export' => 'エクスポート',
+        'condition_reverse' => '<反転> ',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -643,6 +644,7 @@ return [
             'event_trigger_options' => [
                 'saving' => '保存直前',
                 'saved' => '保存後',
+                'deleted' => '削除後',
                 'loading' => '画面読み込み前',
                 'loaded' => '画面読み込み後',
                 'grid_menubutton' => '一覧画面のメニューボタン',
@@ -1181,6 +1183,15 @@ return [
         'add_parent_menu' => '追加先の親メニュー',
         'default_setting' => '通常設定',
         'expand_setting' => '拡張設定',
+        'copy_from_table' => 'コピー元テーブル',
+        'copy_custom_table' => 'カスタムテーブルをコピーする',
+        'data_submit_redirect_options' => [
+            "inherit"               => "システム設定に合わせる",
+            'list'                  => '一覧',
+            'view'                  => '表示',
+            'continue_editing'      => '編集を続ける',
+            'continue_creating'     => '新規作成する',
+        ],
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
@@ -1201,6 +1212,7 @@ return [
             'saved_redirect_column' => '保存しました！次はカスタム列を設定してください。',
             'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
             'delete_confirm_error' => 'キーワードが正しくありません。',
+            'copy_custom_table' => '通常設定、拡張設定、カスタム列をコピーします。<br />その他の設定は対象外になります。手動で設定を行ってください。',
         ],
 
         'custom_column_multi' => [
@@ -1831,6 +1843,7 @@ return [
             'use_view_infobox' => 'YESにすることで、ビューの上部に、業務内容や、ユーザーへのメッセージなどを記入できる、情報ボックスを設定することができます。',
             'view_infobox_title' => '情報ボックスに表示するタイトルを記入してください。',
             'view_infobox' => '情報ボックスに表示するHTMLを記入してください。※画像、スクリプトは入力できません。',
+            'order' => 'カスタムビューのメニューボタンの表示順です。',
         ],
 
         'column_sort_options' => [
@@ -2551,6 +2564,7 @@ return [
         'condition_key' => '条件',
         'condition_value' => '条件値',
         'condition_join' => '条件の結合',
+        'condition_reverse' => '条件の反転',
         'condition_type_options' => [
             'user' => 'ログインユーザー',
             'organization' => 'ログインユーザーの所属組織',
@@ -2579,6 +2593,10 @@ return [
         'condition_join_options' => [
             'and' => 'すべての条件に一致',
             'or' => 'いずれかの条件に一致',
+        ],
+
+        'condition_reverse_options' => [
+            '1' => '条件を反転する',
         ],
     ],
 ];

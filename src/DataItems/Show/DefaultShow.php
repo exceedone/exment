@@ -123,6 +123,7 @@ class DefaultShow extends ShowBase
 
                     $field = new ShowField($item->name(), $item->label());
                     $field->as(function ($v) use ($item) {
+                        /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\DataItems\Show\DefaultShow) will always evaluate to false. */
                         if (is_null($this)) {
                             return '';
                         }

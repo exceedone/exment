@@ -354,7 +354,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
-        $custom_value = $target_table->getValueModel()->orderBy('created_at', 'desc')->first();
+        $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation create test');
         $this->assertEquals($custom_value->getValue('odd_even'), 'odd');
         $this->assertEquals($custom_value->getValue('decimal'), 0.01);
@@ -382,7 +382,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
-        $custom_value = $target_table->getValueModel()->orderBy('created_at', 'desc')->first();
+        $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation create test by admin');
         $this->assertNull($custom_value->getValue('odd_even'));
         $this->assertNull($custom_value->getValue('decimal'));
@@ -460,7 +460,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
-        $custom_value = $target_table->getValueModel()->orderBy('created_at', 'desc')->first();
+        $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation update test');
         $this->assertEquals($custom_value->getValue('multiples_of_3'), '1');
         $this->assertNull($custom_value->getValue('date'));
@@ -553,7 +553,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->seePageIs(admin_url("/data/$target_table_name"));
 
         // Get new data row
-        $custom_value = $target_table->getValueModel()->orderBy('created_at', 'desc')->first();
+        $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type');
         $this->assertEquals($custom_value->getValue('date'), $lastYearDate);
         $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
@@ -622,7 +622,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         )
         ;
 
-        $raw = CustomOperation::orderBy('created_at', 'desc')->first();
+        $raw = CustomOperation::orderBy('id', 'desc')->first();
         $id = array_get($raw, 'id');
 
         $this->visit(admin_url("operation/$target_table_name/$id/edit"))

@@ -70,7 +70,7 @@ class CCustomRelationTest extends ExmentKitTestCase
                 ->assertEquals($pre_cnt + 1, CustomRelation::count())
         ;
 
-        $row = CustomRelation::orderBy('created_at', 'desc')->first();
+        $row = CustomRelation::orderBy('id', 'desc')->first();
         $id = array_get($row, 'id');
 
         // Edit custom relation
@@ -106,7 +106,7 @@ class CCustomRelationTest extends ExmentKitTestCase
                 ->assertEquals($pre_cnt + 1, CustomRelation::count())
         ;
 
-        $row = CustomRelation::orderBy('created_at', 'desc')->first();
+        $row = CustomRelation::orderBy('id', 'desc')->first();
         $id = array_get($row, 'id');
 
         // Check custom relation
@@ -121,10 +121,10 @@ class CCustomRelationTest extends ExmentKitTestCase
      */
     public function testDropOneLineTextColumn()
     {
-        /** @var CustomTable $custom_table */
+        /** @var CustomTable|null $custom_table */
         $custom_table = CustomTable::where('table_name', 'exmenttest_contract')->first();
         $table_id = $custom_table->id;
-        /** @var CustomRelation $row */
+        /** @var CustomRelation|null $row */
         $row = CustomRelation::where('parent_custom_table_id', $table_id)->first();
 
         $pre_cnt = CustomRelation::count();

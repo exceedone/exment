@@ -14,7 +14,7 @@ trait BetweenTrait
     /**
      * where null query closure.
      *
-     * @var \Closure
+     * @var \Closure|null
      */
     protected $whereNull;
 

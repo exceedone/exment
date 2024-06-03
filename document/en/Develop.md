@@ -21,7 +21,7 @@ This page explains how to set up developing Exment engine.
 - Please execute this command on any path.
 
 ~~~
-composer create-project "laravel/laravel=9.*" (project name)
+composer create-project "laravel/laravel=10.*" (project name)
 cd (project name)
 ~~~
 
@@ -59,11 +59,11 @@ git clone https://github.com/hirossyi73/exment.git
 
 ~~~
     "require": {
-        "php": "^8.0.2",
+        "php": ">=8.1",
         "guzzlehttp/guzzle": "^7.2",
-        "laravel/framework": "^9.19",
-        "laravel/sanctum": "^3.0",
-        "laravel/tinker": "^2.7",
+        "laravel/framework": "^10.10",
+        "laravel/sanctum": "^3.3",
+        "laravel/tinker": "^2.8",
         "psr/simple-cache": "2.0.0",
         // Add this line
         "exceedone/exment": "dev-master"

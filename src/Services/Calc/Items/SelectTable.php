@@ -13,8 +13,10 @@ use Exceedone\Exment\Enums\FormBlockType;
 class SelectTable extends ItemBase
 {
     /**
-     * select pivot column. *This column is in this custom table.*
-     * @var CustomColumn
+     * select pivot column.
+     * This column is in this custom table.
+     *
+     * @var CustomColumn|null
      */
     public $select_pivot_column;
 

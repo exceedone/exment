@@ -35,7 +35,7 @@ HTML;
     {
         return [
             'admin_prefix' => config('admin.route.prefix') ?? '',
-            'admin_base_uri' => trim(app('request')->getBaseUrl(), '/') ?? '',
+            'admin_base_uri' => trim(app('request')->getBaseUrl(), '/'),
             'admin_uri' => admin_url(),
         ];
     }

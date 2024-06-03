@@ -168,6 +168,7 @@ class TestDataSeeder extends Seeder
                     \DB::table($relationName)->insert($inserts);
                 }
 
+                /** @phpstan-ignore-next-line Right side of && is always true. */
                 if (isset($rolegroups[$type][$user_key]) && is_array($rolegroups[$type][$user_key])) {
                     foreach ($rolegroups[$type][$user_key] as $rolegroup) {
                         $roleGroupUserOrg = new RoleGroupUserOrganization();
@@ -487,8 +488,8 @@ class TestDataSeeder extends Seeder
                     foreach ($columns as $column) {
                         $custom_column = CustomColumn::create([
                             'custom_table_id' => $custom_table->id,
-                            'column_name' => $column['column_name'] ?? $column['column_type'],
-                            'column_view_name' => $column['column_name'] ?? $column['column_type'],
+                            'column_name' => $column['column_type'],
+                            'column_view_name' => $column['column_type'],
                             'column_type' => $column['column_type'],
                             'options' => $column['options'],
                         ]);
@@ -510,27 +511,27 @@ class TestDataSeeder extends Seeder
                 'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all, $custom_table_edit) {
                     // creating relation column
                     $columns = [
-                        ['column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                        ['column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1'], 'label' => true],
                         ['column_type' => ColumnType::TEXTAREA, 'options' => []],
                         ['column_type' => ColumnType::EDITOR, 'options' => []],
                         ['column_type' => ColumnType::URL, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
                         ['column_type' => ColumnType::EMAIL, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
-                        ['column_type' => ColumnType::INTEGER, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::INTEGER, 'options' => ['index_enabled' => '1'], 'unique' => true],
                         ['column_type' => ColumnType::DECIMAL, 'options' => ['index_enabled' => '1']],
                         ['column_type' => ColumnType::CURRENCY, 'options' => ['index_enabled' => '1', 'currency_symbol' => 'JPY1']],
-                        ['column_type' => ColumnType::DATE, 'options' => ['index_enabled' => '1']],
-                        ['column_type' => ColumnType::TIME, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::DATE, 'options' => ['index_enabled' => '1'], 'label' => true],
+                        ['column_type' => ColumnType::TIME, 'options' => ['index_enabled' => '1'], 'unique' => true],
                         ['column_type' => ColumnType::DATETIME, 'options' => ['index_enabled' => '1']],
                         ['column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => "foo\r\nbar\r\nbaz"]],
                         ['column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => "foo,FOO\r\nbar,BAR\r\nbaz,BAZ"]],
                         ['column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id]],
                         ['column_name' => 'select_table_2', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_edit->id]],
-                        ['column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1'], 'unique' => true],
                         ['column_type' => ColumnType::BOOLEAN, 'options' => ['index_enabled' => '1', 'true_value' => 'ok', 'true_label' => 'OK', 'false_value' => 'ng', 'false_label' => 'NG']],
                         ['column_type' => ColumnType::AUTO_NUMBER, 'options' => ['index_enabled' => '1', 'auto_number_type' => 'random25']],
                         ['column_type' => ColumnType::IMAGE, 'options' => []],
                         ['column_type' => ColumnType::FILE, 'options' => []],
-                        ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1']],
+                        ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1'], 'share' => true],
                         ['column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1']],
                         ['column_name' => 'select_multiple', 'column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => "foo\r\nbar\r\nbaz",'multiple_enabled' => '1']],
                         ['column_name' => 'select_valtext_multiple', 'column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => "foo,FOO\r\nbar,BAR\r\nbaz,BAZ",'multiple_enabled' => '1']],
@@ -541,6 +542,8 @@ class TestDataSeeder extends Seeder
                         ['column_name' => 'file_multiple', 'column_type' => ColumnType::FILE, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1']],
                     ];
 
+                    $priority = 0;
+                    $unique = [];
                     foreach ($columns as $column) {
                         $custom_column = CustomColumn::create([
                             'custom_table_id' => $custom_table->id,
@@ -550,7 +553,44 @@ class TestDataSeeder extends Seeder
                             'options' => $column['options'],
                         ]);
                         $custom_columns[] = $custom_column;
+
+                        if (boolval(array_get($column, 'label'))) {
+                            $priority++;
+                            Model\CustomColumnMulti::create([
+                                'custom_table_id' => $custom_table->id,
+                                'multisetting_type' => Enums\MultisettingType::TABLE_LABELS,
+                                'priority' => $priority,
+                                'options' => [
+                                    'table_label_id' => $custom_column->id,
+                                ],
+                            ]);
+                        }
+
+                        if (boolval(array_get($column, 'unique'))) {
+                            $unique[] = $custom_column->id;
+                        }
+
+                        if (boolval(array_get($column, 'share'))) {
+                            Model\CustomColumnMulti::create([
+                                'custom_table_id' => $custom_table->id,
+                                'multisetting_type' => Enums\MultisettingType::SHARE_SETTINGS,
+                                'options' => [
+                                    'share_trigger_type' => ['1'],
+                                    'share_permission' => '1',
+                                    'share_column_id' => $custom_column->id,
+                                ],
+                            ]);
+                        }
                     }
+                    Model\CustomColumnMulti::create([
+                        'custom_table_id' => $custom_table->id,
+                        'multisetting_type' => Enums\MultisettingType::MULTI_UNIQUES,
+                        'options' => [
+                            'unique1_id' => $unique[0],
+                            'unique2_id' => $unique[1],
+                            'unique3_id' => $unique[2],
+                        ],
+                    ]);
                 },
                 'createValueCallback' => function ($custom_table, $options) use ($users) {
                     $custom_values = [];
@@ -629,8 +669,8 @@ class TestDataSeeder extends Seeder
                 foreach ($columns as $column) {
                     $custom_column = CustomColumn::create([
                         'custom_table_id' => $custom_table->id,
-                        'column_name' => $column['column_name'] ?? $column['column_type'],
-                        'column_view_name' => $column['column_name'] ?? $column['column_type'],
+                        'column_name' => $column['column_name'],
+                        'column_view_name' => $column['column_name'],
                         'column_type' => $column['column_type'],
                         'options' => $column['options'],
                     ]);
