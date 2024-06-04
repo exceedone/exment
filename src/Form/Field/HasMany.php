@@ -194,7 +194,6 @@ EOT;
                 }
                 $attributes = array_merge(
                     $attributes,
-                    /** @phpstan-ignore-next-line array_merge expects array, string given */
                     $field->getAttributes()
                 );
             } else {
@@ -267,7 +266,6 @@ EOT;
         }
 
         if (!empty($v = $this->getOld())) {
-            /** @phpstan-ignore-next-line count expects array|Countable, string given */
             return count($v);
         }
 

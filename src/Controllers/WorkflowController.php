@@ -106,7 +106,6 @@ class WorkflowController extends AdminControllerBase
                 ))->render());
             }
 
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             if ($actions->row->canActivate()) {
                 $actions->prepend((new Tools\ModalLink(
                     admin_urls('workflow', $actions->row->id, 'activateModal'),

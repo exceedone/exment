@@ -26,10 +26,6 @@ parameters:
             path: vendor/exceedone/exment/src/*
 
         -
-            message: "#^Result of method Encore\\\\Admin.#"
-            path: vendor/exceedone/exment/src/*
-
-        -
             message: "#^Call to an undefined method Illuminate\\\\Database\\\\Query\\\\Grammars\\\\Grammar.#"
             path: vendor/exceedone/exment/src/*
 
@@ -91,26 +87,6 @@ parameters:
 
         -
             message: "#^Static call to instance method Exceedone\\\\Exment\\\\Storage\\\\Adapter\\\\ExmentAdapterAzure::getMergeConfigKeys\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::visible\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::save\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::setSettingValue\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::hasPermission\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::getSettingValue\\(\\).#"
             path: vendor/exceedone/exment/src/*
 
         -

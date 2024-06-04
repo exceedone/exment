@@ -70,7 +70,6 @@ class NestedEmbeds extends Embeds
         foreach ($this->buildEmbeddedForm()->fields() as $field) {
             $attributes[$this->column . '.'. $field->column] = $field->label();
         }
-        /** @phpstan-ignore-next-line Need to fix laravel-admin */
         return $attributes;
     }
 

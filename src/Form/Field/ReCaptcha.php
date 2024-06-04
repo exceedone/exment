@@ -16,7 +16,6 @@ class ReCaptcha extends Hidden
 
     /**
      * @var string
-     * @phpstan-ignore-next-line
      */
     protected $rules = 'required';
 
