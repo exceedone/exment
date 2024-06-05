@@ -18,6 +18,7 @@ class DashboardBoxSystemPage extends EnumBase
         'editor' => ['id' => 3, 'name' => 'editor', 'class' => SystemItems\Editor::class],
         'html' => ['id' => 4, 'name' => 'html', 'class' => SystemItems\Html::class],
         'notify_navbar' => ['id' => 5, 'name' => 'notify_navbar', 'class' => SystemItems\NotifyNavbar::class],
+        'qr_code' => ['id' => 6, 'name' => 'qr_code', 'class' => SystemItems\QRCode::class],
     ];
 
     public function option()
