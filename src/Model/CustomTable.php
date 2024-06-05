@@ -442,7 +442,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }, false)->each(function ($custom_column_multi) use ($results) {
             $i = [];
             foreach ([1,2,3] as $key) {
-                $value = $custom_column_multi->{"unique${key}"};
+                $value = $custom_column_multi->{"unique{$key}"};
                 if (is_nullorempty($value)) {
                     continue;
                 }
@@ -450,7 +450,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if (boolval(array_get($custom_column->options, 'multiple_enabled'))) {
                     return;
                 }
-                $i["unique${key}"] = $custom_column;
+                $i["unique{$key}"] = $custom_column;
             }
 
             if (is_nullorempty($i)) {
