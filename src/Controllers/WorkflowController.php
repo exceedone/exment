@@ -106,6 +106,7 @@ class WorkflowController extends AdminControllerBase
                 ))->render());
             }
 
+            /** @phpstan-ignore-next-line Cannot call method canActivate() on stdClass. */
             if ($actions->row->canActivate()) {
                 $actions->prepend((new Tools\ModalLink(
                     admin_urls('workflow', $actions->row->id, 'activateModal'),

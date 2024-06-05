@@ -25,6 +25,7 @@ use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Exceptions\PublicFormNotFoundException;
 use Illuminate\Http\Request;
+use Symfony\Component\Console\Input\Input;
 
 /**
  * Custom Form public
@@ -457,6 +458,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
             ->requiredRule()
             ->help(exmtrans("custom_form_public.help.custom_form_id"))
+            /** @phpstan-ignore-next-line Parameter #1 $options of method Encore\Admin\Form\Field::options() expects array, Closure given. need to fix laravel-admin */
             ->options(function ($value) use ($custom_table) {
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];
@@ -643,7 +645,9 @@ class CustomFormPublicController extends AdminControllerTableBase
             $public_form->setPluginImported(array_get($json, 'public_form'));
         });
 
-        return $form->setModel($public_form)->redirectAfterStore();
+        /** @var Form $model */
+        $model = $form->setModel($public_form);
+        return $model->redirectAfterStore();
     }
 
     /**
@@ -661,6 +665,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         // get this form's info
         $form = $this->form();
 
+        /** @var PublicForm $model */
         $model = $form->getModelByInputs(null, $original_public_form);
 
         // Now, cannot set header logo by getModelByInputs.

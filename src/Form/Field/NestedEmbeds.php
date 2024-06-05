@@ -64,6 +64,9 @@ class NestedEmbeds extends Embeds
         return $rules;
     }
 
+    /**
+     * @return array
+     */
     public function getAttributes()
     {
         $attributes = [];
