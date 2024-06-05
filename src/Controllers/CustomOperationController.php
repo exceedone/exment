@@ -7,6 +7,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
@@ -334,6 +335,7 @@ class CustomOperationController extends AdminControllerTableBase
         $element_name = str_replace('view_column_target', 'update_value', $target_name);
         $field->setElementName($element_name);
 
+        /** @var View $view */
         $view = $field->render();
         return \json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
     }

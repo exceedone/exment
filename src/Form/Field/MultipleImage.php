@@ -12,8 +12,6 @@ class MultipleImage extends \Encore\Admin\Form\Field\MultipleImage
 
     /**
      * Render file upload field.
-     *
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function render()
     {
@@ -24,6 +22,7 @@ class MultipleImage extends \Encore\Admin\Form\Field\MultipleImage
     protected function getRules()
     {
         $rules = parent::getRules();
+        // @phpstan-ignore-next-line Cannot assign new offset to string. string does not accept Exceedone\Exment\Validator\ImageRule.
         $rules[] = new \Exceedone\Exment\Validator\ImageRule();
         return $rules;
     }
