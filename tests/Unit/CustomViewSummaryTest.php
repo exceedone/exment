@@ -916,16 +916,11 @@ class CustomViewSummaryTest extends UnitTestBase
 
         $defaults = CustomTable::getEloquent('child_table_select')->getValueModel()->all();
 
-        $is_sqlsrv = \Exment::isSqlServer();
-
         foreach ($summaries as $summary) {
-            $ids = collect($defaults)->filter(function ($data) use ($summary, $is_sqlsrv) {
+            $ids = collect($defaults)->filter(function ($data) use ($summary) {
                 $value = $data->getValue('date');
                 if (isset($summary['key']) && isset($value)) {
                     $week = \Carbon\Carbon::parse($value)->format('w');
-                    if ($is_sqlsrv) {
-                        $week += 1;
-                    }
                     return $week == $summary['key'];
                 } else {
                     return empty($summary['key']) && empty($value);
