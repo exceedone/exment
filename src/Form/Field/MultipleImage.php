@@ -24,6 +24,7 @@ class MultipleImage extends \Encore\Admin\Form\Field\MultipleImage
     protected function getRules()
     {
         $rules = parent::getRules();
+        /** @phpstan-ignore-next-line Cannot assign new offset to string. */
         $rules[] = new \Exceedone\Exment\Validator\ImageRule();
         return $rules;
     }

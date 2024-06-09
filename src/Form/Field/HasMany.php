@@ -266,6 +266,7 @@ EOT;
         }
 
         if (!empty($v = $this->getOld())) {
+            /** @phpstan-ignore-next-line Parameter #1 $value of function count expects array|Countable, string given. need to fix laravel-admin */
             return count($v);
         }
 

@@ -79,6 +79,7 @@ class Tile extends Field
     }
     public function render()
     {
+        /** @phpstan-ignore-next-line Instanceof between array and Closure will always evaluate to false. it needs to fix laravel-admin */
         if ($this->options instanceof \Closure) {
             /** @phpstan-ignore-next-line Left side of && is always true and Right side of && is always true */
             if ($this->form && $this->form->model()) {

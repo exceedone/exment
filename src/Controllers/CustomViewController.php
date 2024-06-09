@@ -128,6 +128,7 @@ class CustomViewController extends AdminControllerTableBase
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
             $table_name = $custom_table->table_name;
+            /** @phpstan-ignore-next-line Cannot call method hasEditPermission() on stdClass. */
             if (boolval($actions->row->hasEditPermission())) {
                 if (boolval($actions->row->disabled_delete)) {
                     $actions->disableDelete();
