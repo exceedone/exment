@@ -40,4 +40,9 @@ trait GrammarTrait
 
         return [$bindStrings, $binds];
     }
+
+    public function compileUpdateRemovingJsonKey($query, string $key): string
+    {
+        return '';
+    }
 }

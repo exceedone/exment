@@ -52,7 +52,9 @@ trait ExtendedBuilderTrait
     {
         $sql = $this->_getQueryExment()->grammar->compileUpdateRemovingJsonKey($this->_getQueryExment(), $key);
 
-        return $this->_getQueryExment()->connection->statement($sql);
+        if (!empty($sql)) {
+            return $this->_getQueryExment()->connection->statement($sql);
+        }
     }
 
 
