@@ -109,6 +109,9 @@ class CustomValueAuthoritable extends ModelBase
             foreach (stringToArray(array_get($share_setting, 'share_trigger_type')) as $t) {
                 $share_permission = array_get($share_setting, 'share_permission');
                 $share_column = array_get($share_setting, 'share_column');
+                if (!$share_column) {
+                    continue;
+                }
                 $target_ids = array_get($custom_value->value, $share_column->column_name);
                 $user_organizations =
                     collect(stringToArray($target_ids))->map(function ($target_id) use ($share_column) {
