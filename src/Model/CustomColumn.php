@@ -314,7 +314,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $query->where('options->table_label_id', strval($this->id))
                 ->orWhere('options->unique1_id', strval($this->id))
                 ->orWhere('options->unique2_id', strval($this->id))
-                ->orWhere('options->unique3_id', strval($this->id));
+                ->orWhere('options->unique3_id', strval($this->id))
+                ->orWhere('options->share_column_id', strval($this->id));
         })->get();
         $items->each(function ($item) {
             $item->delete();
