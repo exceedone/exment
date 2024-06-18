@@ -38,16 +38,13 @@ class ExtendedBuilder extends Builder
 
     protected function executeQuery($page, $perPage, $columns)
     {
-        try {
-            $_query = clone $this->query;
-            $sql = $_query->select('id as sid')->forPage($page, $perPage)->toSql();
-            $bindings = $this->getBindings();
-            $query = vsprintf(str_replace('?', "'%s'", $sql), $bindings);
-            return $this->join(\DB::raw('(' . $query . ') s'), function ($join) {
-                $join->whereRaw('id in (s.sid)');
-            })->get($columns);
-        } catch (\Throwable $th) {
-            return $this->forPage($page, $perPage)->get($columns);
-        }
+        $_query = clone $this->query;
+        $table = $this->model->getTable();
+        $sql = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toSql();
+        $bindings = $this->getBindings();
+        $query = vsprintf(str_replace('?', "'%s'", $sql), $bindings);
+        return $this->join(\DB::raw('(' . $query . ') s'), function ($join) use ($table) {
+            $join->whereRaw($table . '.id in (s.sid)');
+        })->get($columns);
     }
 }
