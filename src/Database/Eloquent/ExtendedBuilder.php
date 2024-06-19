@@ -38,11 +38,18 @@ class ExtendedBuilder extends Builder
 
     protected function executeQuery($page, $perPage, $columns)
     {
+        if (isset($this->query->groups) && count($this->query->groups) > 0) {
+            return $this->forPage($page, $perPage)->get($columns);
+        }
         $_query = clone $this->query;
         $table = $this->model->getTable();
         $sql = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toSql();
         $bindings = $this->getBindings();
-        $query = vsprintf(str_replace('?', "'%s'", $sql), $bindings);
+        if (count($bindings) > 0) {
+            $query = vsprintf(str_replace('?', "'%s'", $sql), $bindings);
+        } else {
+            $query = $sql;
+        }
         return $this->join(\DB::raw('(' . $query . ') s'), function ($join) use ($table) {
             $join->whereRaw($table . '.id in (s.sid)');
         })->get($columns);
