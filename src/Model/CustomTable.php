@@ -1553,7 +1553,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             if ($relations->count() > 0) {
                 $relations->each(function ($r) use ($query) {
-                    $query->with($r->getRelationName());
+                    if ($r->relation_type == RelationType::MANY_TO_MANY) {
+                        $query->with($r->getRelationName());
+                    }
                 });
             }
         }
