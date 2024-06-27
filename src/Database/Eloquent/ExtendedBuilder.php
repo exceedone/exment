@@ -41,7 +41,7 @@ class ExtendedBuilder extends Builder
         if (isset($this->query->groups) && count($this->query->groups) > 0) {
             return $this->forPage($page, $perPage)->get($columns);
         }
-        $_query = clone $this->query;
+        $_query = clone $this;
         $table = $this->model->getTable();
         $sql = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toSql();
         $bindings = $this->getBindings();
