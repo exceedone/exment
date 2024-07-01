@@ -52,6 +52,7 @@ class SwalInputButton
         $script = <<<SCRIPT
 
         $('.btn-{$suuid}').unbind('click').click(function() {
+            let select_ids = $('.column-__row_selector__').length > 0 ? $.admin.grid.selected() : null;
             Exment.CommonEvent.ShowSwal("$url", {
                 type: "{$type}",
                 title: "{$title}",
@@ -72,6 +73,9 @@ class SwalInputButton
                     } 
         
                     return true;
+                },
+                data: {
+                    select_ids: select_ids
                 }
             });
         });
