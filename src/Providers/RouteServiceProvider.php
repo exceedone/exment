@@ -118,8 +118,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             $router->get('table/{id}/copyModal', 'CustomTableController@copyModal');
             $router->post('table/{id}/copy', 'CustomTableController@copyTable');
-            $router->post('table/{id}/qrcode_activate', 'CustomTableController@qrcode_activate')->name('exment.qrcode_activate');
-            $router->post('table/{id}/qrcode_deactivate', 'CustomTableController@qrcode_deactivate')->name('exment.qrcode_deactivate');
 
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');
@@ -144,8 +142,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('role', function () {
                 return redirect(admin_urls('role_group'));
             });
-
-            $router->get('qr-code/{tableName}/{id}', 'QrCodeController@scanRedirect');
 
             $router->get('search', 'SearchController@index');
             $router->get('search/lists', 'SearchController@getLists');
@@ -191,9 +187,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
             $router->delete("data/{tableKey}/{id}/deletecomment/{suuid}", 'CustomValueController@deleteComment');
-            $router->post("data/{tableKey}/qrcode_download", 'CustomValueController@qrcodeDownload')->name('exment.qrcode_download');
-            $router->get("data/{tableKey}/form_create_qrcode", 'CustomValueController@formCreateQrcode')->name('exment.form_create_qrcode');
-            $router->post("data/{tableKey}/create_qrcode", 'CustomValueController@createQrcode')->name('exment.create_qrcode');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
