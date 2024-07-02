@@ -303,8 +303,8 @@ class RouteServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'admin_anonymous_simple'],
         ], function (Router $router) {
             $router->get('favicon', 'FileController@downloadFavicon');
-            $router->get('auth/login/background', 'FileController@downloadLoginBackground');
-            $router->get('auth/login/header', 'FileController@downloadLoginHeader');
+            $router->get('auth/file/background', 'FileController@downloadLoginBackground');
+            $router->get('auth/file/header', 'FileController@downloadLoginHeader');
         });
     }
 

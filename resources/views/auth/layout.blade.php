@@ -14,7 +14,8 @@
   <!-- Bootstrap 3.3.5 -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/bootstrap/css/bootstrap.min.css") }}">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/font-awesome/css/font-awesome.min.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/font-awesome/css/all.min.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/font-awesome/css/v4-shims.min.css") }}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/dist/css/AdminLTE.min.css") }}">
   <!-- iCheck -->
