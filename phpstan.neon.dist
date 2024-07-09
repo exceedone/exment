@@ -3,7 +3,7 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
-    level: 4
+    level: 5
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
     universalObjectCratesClasses:
@@ -23,10 +23,6 @@ parameters:
 
         -
             message: "#^Access to an undefined property Encore\\\\Admin.#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Result of method Encore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*
 
         -
@@ -94,26 +90,6 @@ parameters:
             path: vendor/exceedone/exment/src/*
 
         -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::visible\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::save\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::setSettingValue\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::hasPermission\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
-            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::getSettingValue\\(\\).#"
-            path: vendor/exceedone/exment/src/*
-
-        -
             message: "#^Call to an undefined method Illuminate\\\\Database\\\\Eloquent\\\\Model::setValueModel\\(\\)#"
             path: vendor/exceedone/exment/src/*
 
@@ -159,4 +135,8 @@ parameters:
 
         -
             message: "#^Argument of an invalid type Exceedone\\\\Exment\\\\Enums\\\\SystemColumn supplied for foreach, only iterables are supported.#"
+            path: vendor/exceedone/exment/src/*
+
+        -
+            message: "#^Call to an undefined method Illuminate\\\\Contracts\\\\Auth\\\\Authenticatable::#"
             path: vendor/exceedone/exment/src/*

@@ -26,7 +26,7 @@ trait ColumnSystemItemTrait
     /**
      * Get change field
      *
-     * @param string $key
+     * @param string|null $key
      * @param bool $show_condition_key
      * @return \Encore\Admin\Form\Field|null
      */

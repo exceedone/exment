@@ -16,7 +16,8 @@ class ReCaptcha extends Hidden
 
     /**
      * @var string
-     * @phpstan-ignore-next-line
+     * @phpstan-ignore-next-line Property Exceedone\Exment\Form\Field\ReCaptcha::$rules (array|Closure) does not accept default value of type 'required'.
+     * it need to fix laravel-admin
      */
     protected $rules = 'required';
 

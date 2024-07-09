@@ -184,6 +184,7 @@ class EBackupDataTest extends ExmentKitTestCase
         // check config no change
         $this->visit(admin_url('backup'))
                 ->seePageIs(admin_url('backup'))
+            /** @phpstan-ignore-next-line  */
                 ->seeInField('backup_enable_automatic', $backup_enable_automatic ? 1 : 0);
 
         // loop target

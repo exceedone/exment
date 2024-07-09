@@ -56,6 +56,7 @@ class LdapUser extends CustomLoginUserBase
             $ldap_attr = strtolower($ldap_attr);
 
             if (!isset($ldapuser_attrs[$ldap_attr])) {
+                /** @phpstan-ignore-next-line str_replace expects array|string, null given */
                 $mappingKey = str_replace($replaceValue, null, $mappingKey);
                 continue;
             }
@@ -67,6 +68,7 @@ class LdapUser extends CustomLoginUserBase
             }
 
             if (count($ldapuser_attrs[$ldap_attr]) == 0) {
+                /** @phpstan-ignore-next-line str_replace expects array|string, null given */
                 $mappingKey = str_replace($replaceValue, null, $mappingKey);
                 continue;
             }

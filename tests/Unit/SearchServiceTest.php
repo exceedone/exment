@@ -19,6 +19,7 @@ class SearchServiceTest extends UnitTestBase
 
         $service->where('index_text', 'index_001_001');
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function (CustomValue $value) {
@@ -35,6 +36,7 @@ class SearchServiceTest extends UnitTestBase
         $service->where('text', 'test_1')
             ->where('odd_even', 'odd');
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function (CustomValue $value) {
@@ -53,6 +55,7 @@ class SearchServiceTest extends UnitTestBase
         $parent_custom_column = CustomColumn::getEloquent('index_text', $parent_custom_table);
         $service->where($parent_custom_column, 'index_003_001');
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function (CustomValue $value) {
@@ -74,6 +77,7 @@ class SearchServiceTest extends UnitTestBase
         $service->where($parent_custom_column, '>', 1000)
             ->where('odd_even', 'odd');
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function (CustomValue $value) {
@@ -95,6 +99,7 @@ class SearchServiceTest extends UnitTestBase
         $relation = CustomRelation::getRelationByParentChild($parent_custom_table, $custom_table);
         $service->where($parent_custom_column, 'index_003_001');
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function (CustomValue $value) use ($relation) {
@@ -118,6 +123,7 @@ class SearchServiceTest extends UnitTestBase
         $parent_custom_column = CustomColumn::getEloquent('index_text', $parent_custom_table);
         $service->where($parent_custom_column, 'index_003_001');
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
         $values->each(function (CustomValue $value) {
@@ -154,6 +160,7 @@ class SearchServiceTest extends UnitTestBase
 
         $service->orderBy($column, $direction);
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
 
@@ -186,6 +193,7 @@ class SearchServiceTest extends UnitTestBase
 
         $service->orderBy($column, $direction);
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
 
@@ -228,6 +236,7 @@ class SearchServiceTest extends UnitTestBase
         // get parent custom column
         $service->orderBy($parent_custom_column);
 
+        /** @var \Illuminate\Support\Collection<int|string, CustomValue> $values */
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
 

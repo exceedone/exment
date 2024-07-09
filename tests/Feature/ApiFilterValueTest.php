@@ -57,7 +57,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnText(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnText(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnText(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::TEXT, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -89,7 +89,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnTextarea(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnTextarea(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnTextarea(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::TEXTAREA, $filterOption, $hasHtml, 'textarea');
     }
@@ -120,7 +120,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnEditor(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnEditor(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnEditor(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::EDITOR, $filterOption, $hasHtml, 'textarea');
     }
@@ -151,7 +151,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnUrl(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnUrl(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnUrl(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::URL, $filterOption, $hasHtml, 'input[type="url"]');
     }
@@ -182,7 +182,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnEmail(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnEmail(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnEmail(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::EMAIL, $filterOption, $hasHtml, 'input[type="email"]');
     }
@@ -221,7 +221,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnInteger(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnInteger(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnInteger(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::INTEGER, $filterOption, $hasHtml, 'input[type="number"]');
     }
@@ -261,7 +261,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnDecimal(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnDecimal(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnDecimal(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::DECIMAL, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -302,7 +302,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnCurrency(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnCurrency(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnCurrency(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::CURRENCY, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -392,7 +392,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnDate(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnDate(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnDate(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::DATE, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -423,7 +423,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnTime(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnTime(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnTime(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::TIME, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -513,7 +513,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnDatetime(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnDatetime(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnDatetime(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::DATETIME, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -537,7 +537,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnSelect(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnSelect(string $filterOption, bool $hasHtml, bool $multiple = false)
+    protected function _testConditionValueColumnSelect(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
         $this->__testConditionValueApiColumn(ColumnType::SELECT, $filterOption, $hasHtml, new ExactSelectOption('select', ['foo' => 'foo', 'bar' => 'bar', 'baz' => 'baz', ]), $multiple);
     }
@@ -561,7 +561,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnSelectValText(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnSelectValText(string $filterOption, bool $hasHtml, bool $multiple = false)
+    protected function _testConditionValueColumnSelectValText(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
         $this->__testConditionValueApiColumn(ColumnType::SELECT_VALTEXT, $filterOption, $hasHtml, new ExactSelectOption('select', ['foo' => 'FOO', 'bar' => 'BAR', 'baz' => 'BAZ', ]), $multiple);
     }
@@ -585,7 +585,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnSelectTable(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnSelectTable(string $filterOption, bool $hasHtml, bool $multiple = false)
+    protected function _testConditionValueColumnSelectTable(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
         $this->__testConditionValueApiColumn(ColumnType::SELECT_TABLE, $filterOption, $hasHtml, 'select', $multiple);
     }
@@ -617,7 +617,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnYesNo(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnYesNo(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnYesNo(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::YESNO, $filterOption, $hasHtml, 'input[type="checkbox"]');
     }
@@ -649,7 +649,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnBoolean(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnBoolean(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnBoolean(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::BOOLEAN, $filterOption, $hasHtml, 'input[type="checkbox"]');
     }
@@ -681,7 +681,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnAutoNumber(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnAutoNumber(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnAutoNumber(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::AUTO_NUMBER, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -697,7 +697,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnImage(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnImage(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnImage(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::IMAGE, $filterOption, $hasHtml, 'input[type="file"]');
     }
@@ -712,7 +712,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnFile(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnFile(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueColumnFile(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiColumn(ColumnType::FILE, $filterOption, $hasHtml, 'input[type="file"]');
     }
@@ -744,7 +744,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnUser(FilterOption::USER_NULL, false);
     }
-    protected function _testConditionValueColumnUser(string $filterOption, bool $hasHtml, bool $multiple = false)
+    protected function _testConditionValueColumnUser(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
         $options = CustomTable::getEloquent('user')->getValueQuery()->get()->pluck('label', 'id')->toArray();
         $this->__testConditionValueApiColumn(ColumnType::USER, $filterOption, $hasHtml, new ExactSelectOption('select', $options), $multiple);
@@ -770,7 +770,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueColumnOrganization(FilterOption::NULL, false);
     }
-    protected function _testConditionValueColumnOrganization(string $filterOption, bool $hasHtml, bool $multiple = false)
+    protected function _testConditionValueColumnOrganization(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
         $options = CustomTable::getEloquent('organization')->getValueQuery()->get()->pluck('label', 'id')->toArray();
         $this->__testConditionValueApiColumn(ColumnType::ORGANIZATION, $filterOption, $hasHtml, new ExactSelectOption('select', $options), $multiple);
@@ -803,7 +803,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueSystemId(FilterOption::NULL, false);
     }
-    protected function _testConditionValueSystemId(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueSystemId(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiSystem(SystemColumn::ID, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -835,7 +835,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueSystemSuuid(FilterOption::NULL, false);
     }
-    protected function _testConditionValueSystemSuuid(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueSystemSuuid(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiSystem(SystemColumn::SUUID, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -923,7 +923,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueSystemCreatedAt(FilterOption::NULL, false);
     }
-    protected function _testConditionValueSystemCreatedAt(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueSystemCreatedAt(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiSystem(SystemColumn::CREATED_AT, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -1013,7 +1013,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueSystemUpdatedAt(FilterOption::NULL, false);
     }
-    protected function _testConditionValueSystemUpdatedAt(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueSystemUpdatedAt(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionValueApiSystem(SystemColumn::UPDATED_AT, $filterOption, $hasHtml, 'input[type="text"]');
     }
@@ -1046,7 +1046,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueApiSystemCreatedUser(FilterOption::USER_NULL, false);
     }
-    protected function _testConditionValueApiSystemCreatedUser(string $filterOption, bool $hasHtml, bool $multiple = false)
+    protected function _testConditionValueApiSystemCreatedUser(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
         $this->__testConditionValueApiSystem(SystemColumn::UPDATED_USER, $filterOption, $hasHtml, 'select', $multiple);
     }
@@ -1079,7 +1079,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueApiSystemUpdatedUser(FilterOption::USER_NULL, false);
     }
-    protected function _testConditionValueApiSystemUpdatedUser(string $filterOption, bool $hasHtml, bool $multiple = false)
+    protected function _testConditionValueApiSystemUpdatedUser(int $filterOption, bool $hasHtml, bool $multiple = false)
     {
         $this->__testConditionValueApiSystem(SystemColumn::UPDATED_USER, $filterOption, $hasHtml, 'select', $multiple);
     }
@@ -1095,7 +1095,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueApiConditionDetailUser(FilterOption::NE, true);
     }
-    protected function _testConditionValueApiConditionDetailUser(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueApiConditionDetailUser(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionApiConditionDetail(ConditionTypeDetail::USER, $filterOption, $hasHtml, 'select', true);
     }
@@ -1111,7 +1111,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueApiConditionDetailOrg(FilterOption::NE, true);
     }
-    protected function _testConditionValueApiConditionDetailOrg(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueApiConditionDetailOrg(int $filterOption, bool $hasHtml)
     {
         $this->__testConditionApiConditionDetail(ConditionTypeDetail::ORGANIZATION, $filterOption, $hasHtml, 'select', true);
     }
@@ -1127,7 +1127,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueApiConditionDetailRole(FilterOption::NE, true);
     }
-    protected function _testConditionValueApiConditionDetailRole(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueApiConditionDetailRole(int $filterOption, bool $hasHtml)
     {
         $options = Model\RoleGroup::all()->pluck('role_group_view_name', 'id')->toArray();
         $this->__testConditionApiConditionDetail(ConditionTypeDetail::ROLE, $filterOption, $hasHtml, new ExactSelectOption('select', $options), true);
@@ -1144,7 +1144,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueApiConditionDetailForm(FilterOption::NE, true);
     }
-    protected function _testConditionValueApiConditionDetailForm(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueApiConditionDetailForm(int $filterOption, bool $hasHtml)
     {
         $options = Enums\FormDataType::transArray('condition.form_data_type_options');
         $this->__testConditionApiConditionDetail(ConditionTypeDetail::FORM, $filterOption, $hasHtml, new ExactSelectOption('select', $options), true);
@@ -1161,7 +1161,7 @@ class ApiFilterValueTest extends ExmentKitTestCase
     {
         $this->_testConditionValueApiWorkflowStatus(FilterOption::NE, true);
     }
-    protected function _testConditionValueApiWorkflowStatus(string $filterOption, bool $hasHtml)
+    protected function _testConditionValueApiWorkflowStatus(int $filterOption, bool $hasHtml)
     {
         $workflow = Model\Workflow::getWorkflowByTable(Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT));
         $options = $workflow->getStatusOptions()->toArray();
@@ -1178,13 +1178,13 @@ class ApiFilterValueTest extends ExmentKitTestCase
      * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
      * @param string $column_name
-     * @param string $cond_key
+     * @param int $cond_key
      * @param bool $hasHtml
      * @param $selector
      * @param bool $multiple
      * @return void
      */
-    protected function __testConditionValueApiColumn(string $column_name, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
+    protected function __testConditionValueApiColumn(string $column_name, int $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         $custom_table = CustomTable::getEloquent($table_name);
@@ -1211,13 +1211,13 @@ class ApiFilterValueTest extends ExmentKitTestCase
      * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
      * @param string $system_column_name
-     * @param string $cond_key
+     * @param int $cond_key
      * @param bool $hasHtml
      * @param $selector
      * @param bool $multiple
      * @return void
      */
-    protected function __testConditionValueApiSystem(string $system_column_name, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
+    protected function __testConditionValueApiSystem(string $system_column_name, int $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         $custom_table = CustomTable::getEloquent($table_name);
@@ -1243,13 +1243,13 @@ class ApiFilterValueTest extends ExmentKitTestCase
      * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
      * @param string $condition_type_detail
-     * @param string $cond_key
+     * @param int $cond_key
      * @param bool $hasHtml
      * @param $selector
      * @param bool $multiple
      * @return void
      */
-    protected function __testConditionApiConditionDetail(string $condition_type_detail, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
+    protected function __testConditionApiConditionDetail(string $condition_type_detail, int $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         $custom_table = CustomTable::getEloquent($table_name);
@@ -1274,13 +1274,13 @@ class ApiFilterValueTest extends ExmentKitTestCase
      * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
      * @param string $type
-     * @param string $cond_key
+     * @param string|int $cond_key
      * @param bool $hasHtml
      * @param $selector
      * @param bool $multiple
      * @return void
      */
-    protected function __testConditionApiWorkflow(string $type, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
+    protected function __testConditionApiWorkflow(string $type, string|int $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
         // workflow table
         $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;

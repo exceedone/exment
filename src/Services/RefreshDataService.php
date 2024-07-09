@@ -197,7 +197,7 @@ class RefreshDataService
     /**
      * Remove document and comment
      *
-     * @param \Illuminate\Support\Collection $custom_tables
+     * @param array|\Illuminate\Support\Collection $custom_tables
      * @return void
      */
     public static function removeDocumentComments($custom_tables)
