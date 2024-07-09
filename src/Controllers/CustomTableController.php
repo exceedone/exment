@@ -38,7 +38,7 @@ use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\DataSubmitRedirectEx;
-use Exceedone\Exment\Enums\DataQrRedirect;
+use Exceedone\Exment\Enums\DataScanSubmitRedirect;
 use Exceedone\Exment\Services\TableService;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
@@ -75,9 +75,9 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function qrcode_activate(Request $request, $id)
+    protected function qrcodeActivate(Request $request, $id)
     {
-        return $this->toggleActivate($request, $id, true);
+        return $this->toggleActivateQr($request, $id, true);
     }
 
     /**
@@ -87,22 +87,23 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function qrcode_deactivate(Request $request, $id)
+    protected function qrcodeDeactivate(Request $request, $id)
     {
-        return $this->toggleActivate($request, $id, false);
+        return $this->toggleActivateQr($request, $id, false);
     }
     /**
-     * Toggle activate and deactivate
+     * Toggle activate and deactivate Qr
      *
      * @param Request $request
      * @param string $id
      * @param boolean $active_qr_flg
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function toggleActivate(Request $request, $id, $active_qr_flg)
+    protected function toggleActivateQr(Request $request, $id, $active_qr_flg)
     {
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_qr_flg', $active_qr_flg);
+        $custom_table->setOption('qr_use', true);
         $custom_table->save();
         return getAjaxResponse([
             'result'  => true,
@@ -110,6 +111,48 @@ class CustomTableController extends AdminControllerBase
         ]);
     }
 
+    /**
+     * Active jancode setting
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function jancodeActivate(Request $request, $id)
+    {
+        return $this->toggleActivateJancode($request, $id, true);
+    }
+
+    /**
+     * Deactive jancode setting
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function jancodeDeactivate(Request $request, $id)
+    {
+        return $this->toggleActivateJancode($request, $id, false);
+    }
+    /**
+     * Toggle activate and deactivate Jancode
+     *
+     * @param Request $request
+     * @param string $id
+     * @param boolean $active_qr_flg
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function toggleActivateJancode(Request $request, $id, $active_jan_flg)
+    {
+        $custom_table = CustomTable::getEloquent($id);
+        $custom_table->setOption('active_jan_flg', $active_jan_flg);
+        $custom_table->setOption('jan_use', true);
+        $custom_table->save();
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
 
     /**
      * Make a grid builder.
@@ -536,8 +579,9 @@ HTML;
 
         return $form;
     }
+
     /**
-     * Make a formMultiColumn.
+     * Make a form Qr setting.
      *
      * @return Form
      */
@@ -581,8 +625,8 @@ HTML;
                 ->options($custom_form_arr)
                 ->default(array_key_first($custom_form_arr));
             $form->select('action_after_read', exmtrans("custom_table.qr_code.action_after_read"))
-                ->options(DataQrRedirect::transKeyArray("custom_table.data_qr_redirect_options"))
-                ->default(DataQrRedirect::TOP);
+                ->options(DataScanSubmitRedirect::transKeyArray("custom_table.data_qr_redirect_options"))
+                ->default(DataScanSubmitRedirect::TOP);
         })->disableHeader();
         
 
@@ -610,6 +654,63 @@ HTML;
             $model = $form->model();
             admin_toastr(trans('admin.update_succeeded'));
             return redirect(admin_urls_query('table', $model->id, 'edit', ['qrcodesetting' => 1, 'after-save' => 1]));
+        });
+
+        return $form;
+    }
+
+    /**
+     * Make a form Jancode setting.
+     *
+     * @return Form
+     */
+    protected function formJanCodeSetting($id = null)
+    {
+        $form = new Form(new CustomTable());
+        $custom_table = CustomTable::getEloquent($id);
+        $form->setTitle(exmtrans("custom_table.jan_code.setting"));
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
+            $form->exmheader(exmtrans("custom_table.jan_code.advance_setting"))->hr();
+            $custom_form_arr = CustomForm::where('custom_table_id', $id)->get()->mapWithKeys(function ($item) {
+                return [$item->id => $item->form_view_name];
+            })->toArray();
+            $form->select('form_after_create_jan_code', exmtrans("custom_table.jan_code.form_after_create"))
+                ->options($custom_form_arr)
+                ->default(array_key_first($custom_form_arr));
+            $form->select('action_after_create_jan_code', exmtrans("custom_table.jan_code.action_after_create"))
+                ->options(DataScanSubmitRedirect::transKeyArray("custom_table.data_qr_redirect_options"))
+                ->default(DataScanSubmitRedirect::TOP);
+            $form->select('form_after_read_jan_code', exmtrans("custom_table.jan_code.form_after_edit"))
+                ->options($custom_form_arr)
+                ->default(array_key_first($custom_form_arr));
+            $form->select('action_after_read_jan_code', exmtrans("custom_table.jan_code.action_after_edit"))
+                ->options(DataScanSubmitRedirect::transKeyArray("custom_table.data_qr_redirect_options"))
+                ->default(DataScanSubmitRedirect::TOP);
+        })->disableHeader();
+
+        $form->hidden('jancodesetting')->default(1);
+        $form->ignore('jancodesetting');
+
+        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
+            $tools->disableDelete();
+
+            // if edit mode
+            if ($id != null) {
+                $model = CustomTable::getEloquent($id);
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
+            }
+            TableService::appendActivateSwalButtonJanCode($tools, $custom_table);
+        });
+
+        $form->disableEditingCheck(false);
+        $form->saved(function (Form $form) {
+            if (request()->get('after-save') != '1') {
+                return;
+            }
+
+            $model = $form->model();
+            admin_toastr(trans('admin.update_succeeded'));
+            return redirect(admin_urls_query('table', $model->id, 'edit', ['jancodesetting' => 1, 'after-save' => 1]));
         });
 
         return $form;
@@ -651,6 +752,10 @@ HTML;
             $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.qr_code.setting"), exmtrans("qrcode.description"), 'fa-table');
             return $this->AdminContent($content)->body($this->formQrCodeSetting($id)->edit($id));
         }
+        if ($request->has('jancodesetting')) {
+            $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.jan_code.setting"), exmtrans("jancode.description"), 'fa-table');
+            return $this->AdminContent($content)->body($this->formJanCodeSetting($id)->edit($id));
+        }
 
         return parent::edit($request, $content, $id);
     }
@@ -669,6 +774,9 @@ HTML;
         }
         if (request()->has('qrcodesetting')) {
             return $this->formQrCodeSetting($id)->update($id);
+        }
+        if (request()->has('jancodesetting')) {
+            return $this->formJanCodeSetting($id)->update($id);
         }
         return $this->form($id)->update($id);
     }

@@ -118,8 +118,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             $router->get('table/{id}/copyModal', 'CustomTableController@copyModal');
             $router->post('table/{id}/copy', 'CustomTableController@copyTable');
-            $router->post('table/{id}/qrcode_activate', 'CustomTableController@qrcode_activate')->name('exment.qrcode_activate');
-            $router->post('table/{id}/qrcode_deactivate', 'CustomTableController@qrcode_deactivate')->name('exment.qrcode_deactivate');
+            $router->post('table/{id}/qrcode_activate', 'CustomTableController@qrcodeActivate')->name('exment.qrcode_activate');
+            $router->post('table/{id}/qrcode_deactivate', 'CustomTableController@qrcodeDeactivate')->name('exment.qrcode_deactivate');
+            $router->post('table/{id}/jancode_activate', 'CustomTableController@jancodeActivate')->name('exment.jancode_activate');
+            $router->post('table/{id}/jancode_deactivate', 'CustomTableController@jancodeDeactivate')->name('exment.jancode_deactivate');
 
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');
@@ -146,6 +148,9 @@ class RouteServiceProvider extends ServiceProvider
             });
 
             $router->get('qr-code/{tableName}/{id}', 'QrCodeController@scanRedirect');
+            $router->get('jan-code/{id}', 'JanCodeController@scanRedirect');
+            $router->get('jan-code/table/{id}', 'JanCodeController@listTable');
+            $router->get('assign-jan-code', 'JanCodeController@assignJancode');
 
             $router->get('search', 'SearchController@index');
             $router->get('search/lists', 'SearchController@getLists');

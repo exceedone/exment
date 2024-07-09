@@ -88,6 +88,7 @@ return [
         'no_file_download' => 'ダウンロード対象のファイルがありません',
         'english' => '英語',
         'japanese' => '日本語',
+        'back_button' => '戻る',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -1051,6 +1052,7 @@ return [
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
         'qrcode' => '二次元バーコード設定',
+        'jancode' => 'JANバーコード設定',
     ],
 
     'workflow' => [
@@ -1224,6 +1226,17 @@ return [
             'refer_column_description' => '二次元バーコードの右側にカスタムデータの指定列の情報を表示します。<br/>※ID列または自動採番列（ユニーク（一意）かつ必須であること）を選択できます。',
             'text_qr_description' => '二次元バーコードの右側に表示される固定文言です。',
         ],
+        'jan_code' => [
+            'setting' => 'JANバーコード設定',
+            'advance_setting' => 'JANバーコード読込',
+            'form_after_edit' => '編集フォーム',
+            'form_after_create' => '登録フォーム',
+            'table_not_found' => 'この Jancode のテーブルが見つかりません',
+            'action_after_edit' => 'データ編集後のアクション',
+            'action_after_create' => 'データ登録後のアクション',
+            'header' => 'JANバーコード利用のテーブル一覧',
+            'description' => 'JANバーコード登録したいテーブルを選択してください。',
+        ],
         'data_submit_redirect_options' => [
             "inherit"               => "システム設定に合わせる",
             'list'                  => '一覧',
@@ -1261,6 +1274,8 @@ return [
             'copy_custom_table' => '通常設定、拡張設定、カスタム列をコピーします。<br />その他の設定は対象外になります。手動で設定を行ってください。',
             'qrcode_activate' => 'このテーブルの二次元バーコード機能を有効化にします。有効化しますか？',
             'qrcode_deactivate' => 'このテーブルの二次元バーコード機能を無効化にします。無効化しますか？',
+            'jancode_activate' => 'このテーブルのJANバーコード機能を有効にします。有効にしますか?',
+            'jancode_deactivate' => 'このテーブルのJANバーコード機能は無効になります。無効にしますか?',
         ],
 
         'custom_column_multi' => [
@@ -2236,6 +2251,9 @@ return [
 
     'qrcode' => [
         'description' => 'このテーブルの二次元バーコード設定を行います。',
+    ],
+    'jancode' => [
+        'description' => 'このテーブルのJANバーコード設定を行います。',
     ],
 
     'custom_value' => [
