@@ -266,6 +266,7 @@ class TestDataSeeder extends Seeder
                     if ($relationItem['relation_type'] == Enums\RelationType::ONE_TO_MANY) {
                         $custom_value->parent_id = $parent_custom_value->id;
                         $custom_value->parent_type = $parent_table->table_name;
+                        $custom_value->setValue("date", \Carbon\Carbon::now()->addDays(rand(-50, 50)));
                     } else {
                         $custom_value->setValue('parent_select_table', $parent_custom_value->id);
                     }
