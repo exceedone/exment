@@ -312,7 +312,7 @@ trait HasPermissions
             if (!System::organization_available()) {
                 return [];
             }
-            return AuthUserOrgHelper::getOrganizationIdsForQuery($filterType, $this->base_user_id);
+            return AuthUserOrgHelper::getOrganizationIdsBelongTo($this->base_user_id);
         });
     }
 

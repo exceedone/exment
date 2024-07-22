@@ -314,6 +314,25 @@ class AuthUserOrgHelper
     }
 
     /**
+     * get organization ids
+     * 
+     * @return array
+     */
+    public static function getOrganizationIdsBelongTo($targetUserId = null)
+    {
+        // if system doesn't use organization, return empty array.
+        if (!System::organization_available()) {
+            return [];
+        }
+        if (!isset($targetUserId)) {
+            $targetUserId = \Exment::getUserId();
+        }
+        $all_org_ids = getModelName(SystemTableName::ORGANIZATION)::get()->pluck('id')->toArray();
+        $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        $pivot_org_ids = \DB::table($db_table_name_pivot)->where('child_id', $targetUserId)->pluck('parent_id')->toArray();
+        return array_intersect($all_org_ids, $pivot_org_ids);
+    }
+    /**
      * Get all organization tree array
      *
      * @return array
