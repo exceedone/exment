@@ -5,8 +5,11 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Validator\ImageRule;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
@@ -369,15 +372,41 @@ class FileController extends AdminControllerBase
             ];
         })->sortBy('lastModified');
 
+        $contents = null;
+
         // remove file
         foreach ($files->values()->all() as $file) {
             $past = time() - array_get($file, 'lastModified');
             if ($past < 24 * 60 * 60) {
                 break;
             }
-
-            $disk->delete(array_get($file, 'name'));
+            if (!$this->usedInDashboardEditor($file, $contents)) {
+                $disk->delete(array_get($file, 'name'));
+            }
         }
+    }
+
+    /**
+     *  check if used in dashboard editor
+     */
+    protected function usedInDashboardEditor($file, &$contents)
+    {
+        if (is_null($contents)) {
+            $contents = DashboardBox::where('dashboard_box_type', DashboardBoxType::SYSTEM)
+                ->where('options->target_system_id', DashboardBoxSystemPage::EDITOR)
+                ->get()
+                ->map(function($rec) {
+                    return $rec->getOption('content');
+                });
+        }
+
+        $file_url = admin_url('tmpfiles/'. array_get($file, 'name'));
+        foreach($contents as $content) {
+            if(strpos($content, $file_url) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
