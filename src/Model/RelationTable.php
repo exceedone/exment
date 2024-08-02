@@ -690,6 +690,7 @@ class RelationTable
             // set from and default group by, select.
             $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
                 ->select("{$this->tableUniqueName}.parent_id")
+                ->whereNull("{$this->tableUniqueName}.deleted_at")
                 ->groupBy("{$this->tableUniqueName}.parent_id");
 
             // call subquery object callbacks.
