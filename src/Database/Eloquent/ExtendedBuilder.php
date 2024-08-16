@@ -15,6 +15,17 @@ class ExtendedBuilder extends Builder
 {
     use ExtendedBuilderTrait;
 
+    /**
+     * Paginate the given query.
+     *
+     * @param  int|null|\Closure  $perPage
+     * @param  array|string  $columns
+     * @param  string  $pageName
+     * @param  int|null  $page
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     *
+     * @throws \InvalidArgumentException
+     */
     public function paginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
     {
         $page = $page ?: Paginator::resolveCurrentPage($pageName);
