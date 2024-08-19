@@ -460,6 +460,7 @@ class NotifyService
                 'attach_files' => null,
                 'disableHistoryBody' => false,
                 'replaceOptions' => [],
+                'final_user' => false,
             ],
             $params
         );
@@ -482,6 +483,7 @@ class NotifyService
                 ->bcc($params['bcc'])
                 ->attachments($params['attach_files'])
                 ->replaceOptions($params['replaceOptions'])
+                ->finalUser($params['final_user'])
                 ->send();
 
             return $sender;
