@@ -657,8 +657,8 @@ return [
                 'form_menubutton_show' => 'データ詳細のメニューボタン',
                 'form_menubutton_create' => 'フォームのメニューボタン（新規作成時）',
                 'form_menubutton_edit' => 'フォームのメニューボタン（更新時）',
-                'workflow_action_executing' => 'ワークフロース実行前',
-                'workflow_action_executed' => 'ワークフロース実行後',
+                'workflow_action_executing' => 'ワークフロー実行前',
+                'workflow_action_executed' => 'ワークフロー実行後',
                 'notify_executing' => '通知前',
                 'notify_executed' => '通知後',
             ]
