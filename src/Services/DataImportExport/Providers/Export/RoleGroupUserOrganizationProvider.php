@@ -3,12 +3,10 @@
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 use Illuminate\Support\Collection;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\RoleGroupUserOrganization;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class LoginUserProvider extends ProviderBase
+class RoleGroupUserOrganizationProvider extends ProviderBase
 {
     protected $grid;
 
@@ -23,7 +21,7 @@ class LoginUserProvider extends ProviderBase
      */
     public function name()
     {
-        return 'login_user';
+        return 'role_group_user_organization';
     }
 
     /**
@@ -55,33 +53,19 @@ class LoginUserProvider extends ProviderBase
 
         // 1st row, column name
         $rows[] = [
-            'id',
-            'user_code',
-            'user_name',
-            'email',
-            'use_loginuser',
-            'create_password_auto',
-            'password',
-            'send_password',
+            'role_group_id',
+            'role_group_user_org_type',
+            'role_group_target_id',
+            'delete_flg',
         ];
 
         // 2nd row, column view name
-        $table_user = CustomTable::getEloquent(SystemTableName::USER);
         $rows[] = [
-            exmtrans('common.id'),
-            CustomColumn::getEloquent('user_code', $table_user)->column_view_name ?? 'user_code',
-            CustomColumn::getEloquent('user_name', $table_user)->column_view_name ?? 'user_name',
-            CustomColumn::getEloquent('email', $table_user)->column_view_name ?? 'email',
-            exmtrans('user.use_loginuser'),
-            exmtrans('user.create_password_auto'),
-            exmtrans('user.password'),
-            exmtrans('user.send_password'),
+            exmtrans('role_group.role_group_id'),
+            exmtrans('role_group.role_group_user_org_type'),
+            exmtrans('role_group.role_group_user_org_target_id'),
+            exmtrans('common.deleted')
         ];
-
-        if (!System::first_change_password()) {
-            $rows[0][] = 'password_reset_flg';
-            $rows[1][] = exmtrans('user.password_reset_flg');
-        }
 
         return $rows;
     }
@@ -92,12 +76,22 @@ class LoginUserProvider extends ProviderBase
     public function getRecords(): Collection
     {
         $records = new Collection();
-        $this->grid->model()->chunk(function ($data) use (&$records) {
+        $func = function ($data) use (&$records) {
             if (is_nullorempty($records)) {
                 $records = new Collection();
             }
             $records = $records->merge($data);
-        }) ?? new Collection();
+        };
+        if ($this->grid->model()->eloquent() instanceof LengthAwarePaginator) {
+            $this->grid->model()->chunk($func, 100) ?? new Collection();
+        } else {
+            $this->grid->model()->eloquent()->chunk(100, $func) ?? new Collection();
+        }
+
+        if ($records->count() > 0) {
+            $records = RoleGroupUserOrganization::whereIn('role_group_id', $records->pluck('id'))
+                ->get();
+        }
 
         $this->count = count($records);
         return $records;
@@ -117,12 +111,9 @@ class LoginUserProvider extends ProviderBase
         foreach ($records as $record) {
             $body_items = [];
             // add items
-            $body_items[] = $record->id;
-            $body_items[] = $record->getValue('user_code');
-            $body_items[] = $record->getValue('user_name');
-            $body_items[] = $record->getValue('email');
-            $body_items[] = isset($record->login_user) ? '1' : null; // use_loginuser
-            $body_items[] = null; // for password
+            $body_items[] = $record->role_group_id;
+            $body_items[] = $record->role_group_user_org_type;
+            $body_items[] = $record->role_group_target_id;
 
             $bodies[] = $body_items;
         }

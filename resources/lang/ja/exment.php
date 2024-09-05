@@ -657,8 +657,8 @@ return [
                 'form_menubutton_show' => 'データ詳細のメニューボタン',
                 'form_menubutton_create' => 'フォームのメニューボタン（新規作成時）',
                 'form_menubutton_edit' => 'フォームのメニューボタン（更新時）',
-                'workflow_action_executing' => 'ワークフロース実行前',
-                'workflow_action_executed' => 'ワークフロース実行後',
+                'workflow_action_executing' => 'ワークフロー実行前',
+                'workflow_action_executed' => 'ワークフロー実行後',
                 'notify_executing' => '通知前',
                 'notify_executed' => '通知後',
             ]
@@ -2001,6 +2001,11 @@ return [
         'role_group_name' => '役割グループ名(英数字)',
         'role_group_view_name' => '役割グループ表示名',
         'description_system_admin' => '<span class="red">※システム管理者権限の追加は、メニューの「システム設定」→「システム管理者」より追加してください。</span>',
+        'role_group_id' => '役割グループID',
+        'role_group_permission_type' => '権限設定の種類',
+        'role_group_target_id' => '権限設定の対象',
+        'role_group_user_org_type' => 'ユーザー・組織区分',
+        'role_group_user_org_target_id' => 'ユーザー・組織ID',
         'permissions' => '権限詳細',
         'permission_setting' => '権限設定',
         'user_organization_setting' => 'ユーザー・組織設定',
@@ -2034,6 +2039,7 @@ return [
             'value' => 'データ',
             'plugin' => 'プラグイン',
             'master' => 'マスター',
+            'role_group' => '役割グループ',
         ],
 
         'role_group_system' => [
@@ -2284,6 +2290,9 @@ return [
                 'file_column_not_match' => '列名 :column_name は、テーブル :table_name のファイル・画像列に存在しません。',
                 'file_not_found' => 'ファイル :file_name が、取込ディレクトリ :dir_path に存在しません。',
                 'file_column_extension_not_match' => '列file_nameと列display_file_nameの拡張子は、同じ値を指定してください。',
+                'target_table_not_found' => '指定された権限対象のテーブルが存在しません。',
+                'permission_not_exists' => '権限「%s」は存在しません。',
+                'user_org_not_exists' => '指定された%sは存在しません。',
             ],
         ],
         'sendmail' => [

@@ -1140,4 +1140,12 @@ return [
     |
     */
     'text_qr_button_ja' => env('EXMENT_TEXT_QR_BUTTON_JA', '二次元バーコード'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | show import export button on role group view
+    |--------------------------------------------------------------------------
+    |
+    */
+    'role_group_import_export' => env('ROLE_GROUP_IMPORT_EXPORT', false),
 ];
