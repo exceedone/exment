@@ -534,6 +534,10 @@ HTML;
      */
     public function update($id)
     {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
+            return;
+        }
+
         if (request()->has('columnmulti')) {
             return $this->formMultiColumn($id)->update($id);
         }

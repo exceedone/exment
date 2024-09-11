@@ -108,6 +108,7 @@ return [
             'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
             'preview_error' => 'The preview has expired. Please close this screen and preview again.',
             'csrf_error' => 'The expiration date has expired, so please reopen your browser.',
+            'not_edit_column_type' => 'The column type cannot be changed.',
         ],
 
         'help' =>[
