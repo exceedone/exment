@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Tests\Browser;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\ViewKindType;
 
 class DCustomDataTest extends ExmentKitTestCase
 {
@@ -278,7 +280,7 @@ class DCustomDataTest extends ExmentKitTestCase
         ;
     }
 
-    // todo 一覧ソートバグ対応用の追加です
+    // !!! 一覧ソートバグ対応用の追加です
     /**
      * Check sorted custom data grid display.
      */
@@ -299,6 +301,37 @@ class DCustomDataTest extends ExmentKitTestCase
         // Check custom view data
         $this->visit(admin_url("data/custom_value_view_all?$sort_str"))
             ->seeInElement('td.column-id', '1')
+        ;
+    }
+
+    // !!! 「集計データの明細を表示する」のバグ対応用の追加です
+    /**
+     * Check sorted custom data grid display.
+     */
+    public function testDisplaySummaryGridDetail()
+    {
+        $group_key = \Carbon\Carbon::today()->format('Y-m');
+        $custom_table = CustomTable::getEloquent('all_columns_table_fortest');
+        $all_view = CustomView::getAllData($custom_table);
+        $colname1 = CustomColumn::getEloquent('date', $custom_table)->getIndexColumnName();
+        $group_view = CustomView::where('custom_table_id', $custom_table->id)->where('view_kind_type', ViewKindType::AGGREGATE)->first();
+        $count = $custom_table->getValueModel()
+            ->where('value->yesno', '1')
+            ->where('value->date', '>=', \Carbon\Carbon::now()->startOfMonth())
+            ->where('value->date', '<=', \Carbon\Carbon::now()->endOfMonth())
+            ->count();
+        $group_str = http_build_query([
+            'view' => $all_view->id,
+            'group_view' => $group_view->id,
+            'group_key' => [
+                $colname1 => $group_key
+            ]
+        ]);
+
+        // Check custom view data
+        $this->visit(admin_url("data/all_columns_table_fortest?$group_str"))
+            ->seeInElement('td.column-date', $group_key)
+            ->seeInElement('div.box-footer.table-footer', $count)
         ;
     }
 }
