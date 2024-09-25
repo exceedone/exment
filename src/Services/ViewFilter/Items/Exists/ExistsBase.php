@@ -29,7 +29,15 @@ abstract class ExistsBase extends ViewFilterBase
         // if default
         else {
             $mark = $this->isExists() ? '=' : '<>';
-            $query->{$method_name . 'OrIn'}($query_column, $mark, $query_value);
+            if ($this->isExists()) {
+                $query->{$method_name . 'OrIn'}($query_column, $mark, $query_value)
+                    ->{'where'}($query_column, '!=', null);
+            } else {
+                $query->{$method_name . 'OrIn'}(function($query) use ($method_name, $query_column, $mark, $query_value) {
+                    $query->{$method_name . 'OrIn'}($query_column, $mark, $query_value)
+                        ->{'OrWhere'}($query_column, '=', null);
+                });
+            }
         }
     }
 
