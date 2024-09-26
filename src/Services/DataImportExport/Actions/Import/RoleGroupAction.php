@@ -47,11 +47,6 @@ class RoleGroupAction implements ActionInterface
             // execute imoport
             $provider = $data_import['provider'];
             foreach ($data_import['data_import'] as $index => &$row) {
-                // call dataProcessing if method exists
-                if (method_exists($provider, 'dataProcessing')) {
-                    $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
-                }
-
                 $provider->importData($row);
             }
         }

@@ -52,25 +52,26 @@ class RoleGroupProvider extends ProviderBase
             })->toArray();
             $value = $value + $null_merge_array;
             $value_custom = array_combine($headers, $value);
+            $delete = boolval(array_get($value_custom, 'delete')) || boolval(array_get($value_custom, 'delete_flg'));
 
-            // select $model using primary key and value
-            $primary_value = array_get($value_custom, $this->primary_key);
-            // if not exists, new instance
-            if (is_nullorempty($primary_value)) {
-                $model = new RoleGroup();
-            }
-            // if exists, firstOrNew
-            else {
-                $model = RoleGroup::firstOrNew([str_replace(".", "->", $this->primary_key) => $primary_value]);
-            }
-            if (!isset($model)) {
-                continue;
-            }
-
-            $results[] = ['data' => $value_custom, 'model' => $model];
+            $value_custom = array_only($value_custom, $this->getImportColumnName());
+            $results[] = ['data' => $value_custom, 'delete' => $delete];
         }
 
         return $results;
+    }
+
+    protected function getImportColumnName(): array
+    {
+        return [
+            'id', 
+            'role_group_name', 
+            'role_group_view_name', 
+            'role_group_order', 
+            'description', 
+            'created_at', 
+            'updated_at'
+        ];
     }
 
     /**
@@ -91,6 +92,34 @@ class RoleGroupProvider extends ProviderBase
                 $error_data = array_merge($error_data, $check);
             }
         }
+
+        $id_list = collect($dataObjects)->map(function ($item, $key) {
+            $data = array_get($item, 'data');
+            $id = array_get($data, 'id');
+            $delete = array_get($item, 'delete');
+            return ['id' => $id, 'delete' => $delete, 'line_no' => $key+1];
+        })->filter(function ($item) {
+            return isset($item['id']);
+        })->sortBy(function ($item) {
+            return $item['id'];
+        })->reduce(function ($carry, $item) use(&$error_data) {
+            $id = array_get($item, 'id');
+            $delete = array_get($item, 'delete');
+            $line_no = array_get($item, 'line_no');
+            if (in_array($id, $carry)) {
+                if ($delete) {
+                    $carry = array_filter($carry, function($data) use($id) {
+                        return $data != $id;
+                    });
+                } else {
+                    $error_data[] = sprintf(exmtrans('custom_value.import.import_error_format'), $line_no, 'IDが重複しています');
+                }
+            } elseif (!$delete) {
+                $carry[] = $id;
+            }
+            return $carry;
+        }, []);
+
         return [$success_data, $error_data];
     }
 
@@ -104,7 +133,6 @@ class RoleGroupProvider extends ProviderBase
     public function validateDataRow($line_no, $dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
-        $model = array_get($dataAndModel, 'model');
         $id = array_get($data, 'id');
 
         $errors = [];
@@ -112,12 +140,16 @@ class RoleGroupProvider extends ProviderBase
         // execute validation
         /** @var ExmentCustomValidator $validator */
         $validator = \Validator::make($data, [
+            'id' => 'nullable|numeric',
             'role_group_name' => [
                 "max:64",
                 Rule::unique('role_groups')->ignore($id),
                 "regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/",
             ],
             'role_group_view_name' => 'required|max:64',
+            'role_group_order' => 'integer',
+            'created_at' => 'nullable|date',
+            'updated_at' => 'nullable|date',
         ]);
         if ($validator->fails()) {
             // create error message
@@ -138,26 +170,33 @@ class RoleGroupProvider extends ProviderBase
     public function importData($dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
-        $model = array_get($dataAndModel, 'model');
+        $delete = array_get($dataAndModel, 'delete');
+        $id = array_get($data, 'id');
+        $isCreate = false;
 
-        // select $model using primary key and value
-        $primary_value = array_get($data, $this->primary_key);
-        // if not exists, new instance
-        if (is_nullorempty($primary_value)) {
+        // if data not has id, create new instance
+        if (is_nullorempty($id)) {
+            $model = new RoleGroup();
             $isCreate = true;
         }
-        // if exists, firstOrNew
+        // if data has id, find data (if not found and not delete create new instance)
         else {
-            $isCreate = !$model->exists;
-        }
-        if (!isset($model)) {
-            return;
+            $model = RoleGroup::find($id);
+            if (!isset($model)) {
+                $model = new RoleGroup();
+                $isCreate = true;
+            }
         }
 
+        if ($delete) {
+            return $model->delete();
+        }
+
+        // set each column data
         foreach ($data as $dkey => $dvalue) {
             $dvalue = is_nullorempty($dvalue) ? null : $dvalue;
             // if not exists column, continue
-            if (!in_array($dkey, ['id', 'role_group_name', 'role_group_view_name', 'role_group_order', 'description', 'created_at', 'updated_at'])) {
+            if (!in_array($dkey, $this->getImportColumnName())) {
                 continue;
             }
             if (in_array($dkey, ['created_at', 'updated_at'])) {
@@ -186,9 +225,6 @@ class RoleGroupProvider extends ProviderBase
             }
         }
 
-        // save model
-        $model->save();
-
-        return $model;
+        return $model->save();
     }
 }

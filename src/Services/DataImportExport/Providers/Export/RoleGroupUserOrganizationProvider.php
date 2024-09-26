@@ -56,7 +56,7 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
             'role_group_id',
             'role_group_user_org_type',
             'role_group_target_id',
-            'delete_flg',
+            'delete_flg'
         ];
 
         // 2nd row, column view name

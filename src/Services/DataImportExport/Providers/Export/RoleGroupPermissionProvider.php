@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\RoleGroupType;
 use Exceedone\Exment\Model\RoleGroupPermission;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class RoleGroupPermissionProvider extends ProviderBase
 {
@@ -56,38 +55,23 @@ class RoleGroupPermissionProvider extends ProviderBase
 
         // 1st row, column name
         $headers = [
-            'id',
-            'role_group_id',
-            'role_group_permission_type',
-            'role_group_target_id',
+            'role_group_id'
         ];
 
         // 2nd row, column view name
         $titles = [
-            exmtrans('common.id'),
-            exmtrans('role_group.role_group_id'),
-            exmtrans('role_group.role_group_permission_type'),
-            exmtrans('role_group.role_group_target_id'),
+            exmtrans('role_group.role_group_id')
         ];
 
-        // add table permissions
-        foreach ($this->getRoleGroupType() as $role_group_type) {
-            foreach ($role_group_type->getRoleGroupOptions() as $key => $permission) {
-                $headers[] = "permissions.{$role_group_type}.{$key}"; 
-                $titles[] = exmtrans("role_group.role_type_options.$role_group_type") . '.' . $permission; 
-            }
-        }
+        // set headers for each role_group_type
+        $this->setHeadersOfType($headers, $titles);
 
-        // append 1st row, system column name
-        $headers = array_merge($headers, [
-            'created_at',
-            'updated_at',
-        ]);
-        // append 2nd row, system column view name
-        $titles = array_merge($titles, [
-            exmtrans('common.created_at'),
-            exmtrans('common.updated_at'),
-        ]);
+        // add permissions
+        $role_group_type = $this->getRoleGroupType();
+        foreach ($role_group_type->getRoleGroupOptions() as $key => $permission) {
+            $headers[] = "permissions.{$key}"; 
+            $titles[] = $permission; 
+        }
         $rows[] = $headers;
         $rows[] = $titles;
 
@@ -100,21 +84,17 @@ class RoleGroupPermissionProvider extends ProviderBase
     public function getRecords(): Collection
     {
         $records = new Collection();
-        $func = function ($data) use (&$records) {
+        $this->grid->model()->chunk(function ($data) use (&$records) {
             if (is_nullorempty($records)) {
                 $records = new Collection();
             }
             $records = $records->merge($data);
-        };
-        if ($this->grid->model()->eloquent() instanceof LengthAwarePaginator) {
-            $this->grid->model()->chunk($func, 100) ?? new Collection();
-        } else {
-            $this->grid->model()->eloquent()->chunk(100, $func) ?? new Collection();
-        }
+        }) ?? new Collection();
 
         if ($records->count() > 0) {
-            $records = RoleGroupPermission::whereIn('role_group_id', $records->pluck('id'))
-                ->get();
+            $query = RoleGroupPermission::whereIn('role_group_id', $records->pluck('id'));
+            $this->setRoleTypeFilter($query);
+            $records = $query->orderBy('role_group_id')->orderBy('role_group_target_id')->get();
         }
 
         $this->count = count($records);
@@ -133,58 +113,52 @@ class RoleGroupPermissionProvider extends ProviderBase
         $bodies = [];
 
         foreach ($records as $record) {
-            $body_items = [];
-            // add items
-            $body_items[] = $record->id;
-            $body_items[] = $record->role_group_id;
-            $body_items[] = $record->role_group_permission_type;
-            $body_items[] = $record->role_group_target_id;
             $permissions = $record->permissions;
+
+            if (is_nullorempty($permissions)) {
+                continue;
+            }
+
+            // add items
+            $body_items = [];
+            $body_items[] = $record->role_group_id;
+
+            // set body items for each role_group_type
+            $this->setBodiesOfType($body_items, $record);
+
             if (!is_array($record->permissions)) {
                 $permissions = [$permissions];
             }
 
-            $role_type = $record->role_group_permission_type;
-            foreach ($this->getRoleGroupType() as $role_group_type) {
-                foreach ($role_group_type->getRoleGroupOptions() as $key => $permission) {
-                    if (in_array($role_group_type, $this->getTargetRoleGroupType($role_type)) && in_array($key, $permissions)) {
-                        $body_items[] = 1; 
-                    } else{
-                        $body_items[] = ''; 
-                    }
+            $role_group_type = $this->getRoleGroupType();
+            foreach ($role_group_type->getRoleGroupOptions() as $key => $permission) {
+                if (in_array($key, $permissions)) {
+                    $body_items[] = 1; 
+                } else{
+                    $body_items[] = ''; 
                 }
             }
-
-            $body_items[] = $record->created_at;
-            $body_items[] = $record->updated_at;
 
             $bodies[] = $body_items;
         }
 
         return $bodies;
     }
-    
-    protected function getTargetRoleGroupType($role_type)
+ 
+    protected function setHeadersOfType(array &$headers, array &$titles): void
     {
-        switch ($role_type) {
-            case RoleType::SYSTEM:
-                return [RoleGroupType::SYSTEM, RoleGroupType::ROLE_GROUP];
-            case RoleType::TABLE:
-                return [RoleGroupType::MASTER, RoleGroupType::TABLE];
-            case RoleType::PLUGIN:
-                return [RoleGroupType::PLUGIN];
-        }
-        return [];
+    }
+
+    protected function setBodiesOfType(array &$body_items, $record): void
+    {
+    }
+
+    protected function setRoleTypeFilter(&$query)
+    {
     }
     
-    protected function getRoleGroupType()
+    protected function getRoleGroupType(): RoleGroupType
     {
-        return [
-            RoleGroupType::SYSTEM(),
-            RoleGroupType::ROLE_GROUP(),
-            RoleGroupType::PLUGIN(),
-            RoleGroupType::MASTER(),
-            RoleGroupType::TABLE(),
-        ];
+        return RoleGroupType::SYSTEM();
     }
 }
