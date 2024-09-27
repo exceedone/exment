@@ -50,9 +50,10 @@ class SummaryGrid extends GridBase
         if (!$isShowViewSummaryDetail) {
             $grid->disableActions();
         }
+        $alldata_view = CustomView::getAllData($table_name);
 
         $_this = $this;
-        $grid->actions(function (Grid\Displayers\Actions $actions) use ($_this, $isShowViewSummaryDetail, $custom_view, $table_name) {
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($_this, $isShowViewSummaryDetail, $custom_view, $table_name, $alldata_view) {
             $actions->disableDelete();
             $actions->disableEdit();
             $actions->disableView();
@@ -61,7 +62,7 @@ class SummaryGrid extends GridBase
                 $params = $_this->getCallbackGroupKeys($actions->row);
 
                 $linker = (new Grid\Linker())
-                    ->url(admin_urls_query('data', $table_name, ['view' => CustomView::getAllData($table_name)->suuid, 'group_view' => $custom_view->suuid, 'group_key' => json_encode($params)]))
+                    ->url(admin_urls_query('data', $table_name, ['view' => $alldata_view->suuid, 'group_view' => $custom_view->suuid, 'group_key' => json_encode($params)]))
                     ->icon('fa-list')
                     ->tooltip(exmtrans('custom_value.view_summary_detail'));
                 $actions->prepend($linker);

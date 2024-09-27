@@ -57,7 +57,10 @@ class ExtendedBuilder extends Builder
         $sql = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toSql();
         $bindings = $this->getBindings();
         if (count($bindings) > 0) {
-            $query = vsprintf(str_replace('?', "'%s'", $sql), $bindings);
+            $query = preg_replace_callback('/\?/', function() use (&$bindings) {
+                $binding = array_shift($bindings);
+                return is_numeric($binding) ? $binding : "'" . addslashes($binding) . "'";
+            }, $sql);
         } else {
             $query = $sql;
         }
