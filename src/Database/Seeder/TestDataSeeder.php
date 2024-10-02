@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ApiClientRepository;
@@ -28,6 +29,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Menu;
@@ -509,6 +511,7 @@ class TestDataSeeder extends Seeder
         $custom_table = $this->createTable(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, [
                 'menuParentId' => $menu->id,
                 'count' => 0,
+                'createSummaryView' => true,
                 'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all, $custom_table_edit) {
                     // creating relation column
                     $columns = [
@@ -893,6 +896,7 @@ class TestDataSeeder extends Seeder
             'createColumnFirstCallback' => null, // if not null, callback as creating columns. After this callback, call default columns.
             'createRelationCallback' => null, // if not null, callback as creating relations
             'createCustomView' => true, // if false, not creating view except alldata view
+            'createSummaryView' => false, // if false, not creating summary view
             'createValue' => true, // if false, not creating default values
             'createValueCallback' => null, // if not null, callback as creting value
         ], $options);
@@ -907,6 +911,7 @@ class TestDataSeeder extends Seeder
         $createValue = $options['createValue'];
         $createValueCallback = $options['createValueCallback'];
         $createCustomView = $options['createCustomView'];
+        $createSummaryView = $options['createSummaryView'];
 
         $customTableOptions = array_merge([
             'search_enabled' => 1,
@@ -977,7 +982,7 @@ class TestDataSeeder extends Seeder
 
         $this->createForm($custom_table);
 
-        $this->createView($custom_table, $custom_columns, $createCustomView);
+        $this->createView($custom_table, $custom_columns, $createCustomView, $createSummaryView);
 
         $notify_id = $this->createNotify($custom_table);
         $options['notify_id'] = $notify_id;
@@ -1123,7 +1128,7 @@ class TestDataSeeder extends Seeder
     {
         //$date = \Carbon\Carbon::now();
         // fixed date
-        $date = \Carbon\Carbon::create(2021, 1, 1, 0, 0, 0);
+        $date = \Carbon\Carbon::create(2023, 1, 1, 0, 0, 0);
         $today = \Carbon\Carbon::today();
         $result = null;
 
@@ -1358,7 +1363,7 @@ class TestDataSeeder extends Seeder
      *
      * @return void
      */
-    protected function createView($custom_table, $custom_columns, $createCustomView)
+    protected function createView($custom_table, $custom_columns, $createCustomView, $createSummaryView)
     {
         ///// create AllData view
         $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::ALLDATA, $custom_table->table_name . '-view-all', []);
@@ -1513,6 +1518,34 @@ class TestDataSeeder extends Seeder
                 'font_color' => '#ffffff',
             ]);
         });
+
+        if ($createSummaryView) {
+            $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::AGGREGATE, $custom_table->table_name . '-view-summary', []);
+            collect($custom_columns)->filter(function ($custom_column) {
+                return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::DATE;
+            })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
+                $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
+                    'view_group_condition' => 'ym',
+                ]);
+            });
+            collect($custom_columns)->filter(function ($custom_column) {
+                return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::INTEGER;
+            })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
+                $this->createSummaryColumn($custom_view->id, $custom_table->id, $custom_column->id, SummaryCondition::SUM);
+            });
+            collect($custom_columns)->filter(function ($custom_column) {
+                return $custom_column->indexEnabled && $custom_column->column_name == 'select';
+            })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
+                $this->createCustomViewFilter(
+                    $custom_view->id,
+                    ConditionType::COLUMN,
+                    $custom_table->id,
+                    $custom_column->id,
+                    FilterOption::SELECT_EXISTS,
+                    json_encode(['bar', 'baz'])
+                );
+            });
+        }
     }
 
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
@@ -1622,6 +1655,20 @@ class TestDataSeeder extends Seeder
             $custom_view_column->options = $options;
         }
         $custom_view_column->save();
+    }
+
+    protected function createSummaryColumn($custom_view_id, $view_column_table_id, $view_column_target_id, $view_summary_condition, $options = null)
+    {
+        $custom_view_summary = new CustomViewSummary();
+        $custom_view_summary->custom_view_id = $custom_view_id;
+        $custom_view_summary->view_column_type = ConditionType::COLUMN;
+        $custom_view_summary->view_column_table_id = $view_column_table_id;
+        $custom_view_summary->view_column_target_id = $view_column_target_id;
+        $custom_view_summary->view_summary_condition = $view_summary_condition;
+        if (!is_nullorempty($options)) {
+            $custom_view_summary->options = $options;
+        }
+        $custom_view_summary->save();
     }
 
     /**
