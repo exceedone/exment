@@ -660,7 +660,7 @@ HTML;
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|void
      */
     public function update($id)
     {
