@@ -59,6 +59,7 @@ class LogController extends AdminControllerBase
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $button = new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true, false);
             $button->setBaseKey('common');
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
             $tools->append($button);
         });
 

@@ -46,6 +46,7 @@ class SamlUser extends CustomLoginUserBase
         $hasValue = false;
         foreach ($replaceMaps as $replaceKey => $replaceValue) {
             if (!array_has($samlAttibutes, $replaceKey)) {
+                /** @phpstan-ignore-next-line str_replace expects array|string, null given */
                 $mappingKey = str_replace($replaceValue, null, $mappingKey);
                 continue;
             }

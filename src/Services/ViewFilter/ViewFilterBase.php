@@ -157,7 +157,7 @@ abstract class ViewFilterBase
     /**
      * Create instance, for view filter
      *
-     * @param string $view_filter_condition
+     * @param string|int $view_filter_condition
      * @return ViewFilterBase|null
      */
     public static function make($view_filter_condition, $column_item, array $options = []): ?ViewFilterBase

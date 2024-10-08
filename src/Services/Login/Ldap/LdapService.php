@@ -273,6 +273,7 @@ class LdapService implements LoginServiceInterface
                 $username :
                 static::getLdapUserDN($provider, $credentials['username'], $login_setting);
             if (!$bindDN || !$provider->auth()->attempt($bindDN, $credentials['password'], true)) {
+                /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
                 return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 
@@ -280,6 +281,7 @@ class LdapService implements LoginServiceInterface
             $ldapUser = static::syncLdapUser($provider, $login_setting, $username);
 
             if (!$ldapUser) {
+                /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
                 return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 
@@ -287,6 +289,7 @@ class LdapService implements LoginServiceInterface
             $custom_login_user = LdapUser::with($login_setting, $ldapUser);
 
             if (!is_nullorempty($custom_login_user->mapping_errors)) {
+                /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, exmtrans('login.sso_provider_error'), $custom_login_user->mapping_errors);
             }
 
@@ -294,8 +297,10 @@ class LdapService implements LoginServiceInterface
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
                 return LoginService::getLoginResult(
+                    /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
                     SsoLoginErrorType::SYNC_VALIDATION_ERROR,
                     exmtrans('login.sso_provider_error_validate', ['errors' => implode(' ', $validator->getMessageStrings())]),
+                    /** @phpstan-ignore-next-line  getLoginResult() expects array|null, Illuminate\Support\MessageBag given */
                     $validator->errors(),
                     $custom_login_user
                 );
@@ -304,11 +309,11 @@ class LdapService implements LoginServiceInterface
             return LoginService::getLoginResult(true, [], [], $custom_login_user);
         } catch (\Adldap\Auth\BindException $ex) {
             \Log::error($ex);
-
+            /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
             return LoginService::getLoginResult(SsoLoginErrorType::PROVIDER_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } catch (\Exception $ex) {
             \Log::error($ex);
-
+            /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }

@@ -132,6 +132,7 @@ class Decimal extends CustomItem
         $options = $this->custom_column->options;
         $decimal_digit = intval(array_get($options, 'decimal_digit')?? 2);
         $integer_digit =  Define::MAX_FLOAT_PRECISION - $decimal_digit;
+        /** @phpstan-ignore-next-line str_repeat expects string, int given*/
         $max_size_number = floatval(str_repeat(9, $integer_digit) . '.' . str_repeat(9, $decimal_digit));
         $min_size_number = -1 * $max_size_number;
 
