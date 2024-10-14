@@ -393,9 +393,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param bool $skipSelf if true, skip column for relation target is self.
      * @return Collection
      */
-    public function getSelectedTableColumns(bool $skipSelf = true)
+    public function getSelectedTableColumns(bool $skipSelf = true, bool $index_enabled_only = false)
     {
-        return CustomColumn::allRecords(function ($custom_column) use ($skipSelf) {
+        return CustomColumn::allRecords(function ($custom_column) use ($skipSelf, $index_enabled_only) {
+            if (!ColumnType::isSelectTable($custom_column->column_type)) {
+                return false;
+            }
+            if ($index_enabled_only && !$custom_column->index_enabled) {
+                return false;
+            }
             // skip if $this->custom_table_id and $this->id (Self relation), return false.
             if ($skipSelf && isMatchString($custom_column->custom_table_id, $this->id)) {
                 return false;
@@ -1547,7 +1553,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             if ($relations->count() > 0) {
                 $relations->each(function ($r) use ($query) {
-                    $query->with($r->getRelationName());
+                    if ($r->relation_type == RelationType::MANY_TO_MANY) {
+                        $query->with($r->getRelationName());
+                    }
                 });
             }
         }
@@ -2440,7 +2448,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 );
             }
             ///// get selected table columns
-            $selected_table_columns = $this->getSelectedTableColumns();
+            $selected_table_columns = $this->getSelectedTableColumns(true, true);
             foreach ($selected_table_columns as $selected_table_column) {
                 $custom_table = $selected_table_column->custom_table;
                 $tablename = array_get($selected_table_column, 'column_view_name');
@@ -2647,7 +2655,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         ///// get selected table columns
-        $selected_table_columns = $this->getSelectedTableColumns();
+        $selected_table_columns = $this->getSelectedTableColumns(true, true);
         foreach ($selected_table_columns as $selected_table_column) {
             $custom_table = $selected_table_column->custom_table;
             $optionKeyParams = [
