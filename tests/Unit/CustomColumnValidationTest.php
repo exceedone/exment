@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Unit;
 
 use Illuminate\Validation\ValidationException;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\ColumnType;
@@ -938,9 +939,39 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    // FILE ----------------------------------------------------
+    public function testFile1()
+    {
+        $this->executeTestAllColumns(ColumnType::FILE, [
+            ColumnType::FILE => 'test.txt',
+        ]);
+    }
 
+    public function testFile2()
+    {
+        $filePath = $this->getTextFilePath();
+        $this->executeTestAllColumns(ColumnType::FILE, [
+            ColumnType::FILE => $filePath,
+        ]);
+    }
 
+    public function testFile3()
+    {
+        $this->executeTestAllColumns(ColumnType::FILE, [
+            ColumnType::FILE => null,
+        ]);
+    }
 
+    public function testFile4()
+    {
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('file', $custom_table);
+        $this->executeTestAllColumns(ColumnType::FILE, [
+            ColumnType::FILE => "<a>file.txt",
+        ], [
+            ColumnType::FILE => [exmtrans('validation.filename_not_allow', ['attribute' => $custom_column->column_view_name])],
+        ]);
+    }
 
 
     protected function executeTestEdit(array $values, array $errors = [], array $matches = [], $id = null)
@@ -950,9 +981,9 @@ class CustomColumnValidationTest extends UnitTestBase
         $this->executeTest($custom_value, $values, $errors, $matches);
     }
 
-    protected function executeTestAllColumns($column_type, array $values, array $errors = [], array $matches = [])
+    protected function executeTestAllColumns($column_type, array $values, array $errors = [], array $matches = [], array $options = [])
     {
-        $custom_column = $this->getCustomColumnModel($column_type);
+        $custom_column = $this->getCustomColumnModel($column_type, $options);
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)->getValueModel();
 
         $this->executeTest($custom_value, $values, $errors, $matches);
