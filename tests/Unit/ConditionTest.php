@@ -592,11 +592,12 @@ class ConditionTest extends UnitTestBase
     public function testColumnSelectNotExistsTrue()
     {
         $this->_testColumnSelect('bar', ["baz", null, '', 0, 123], FilterOption::SELECT_NOT_EXISTS, true);
+        $this->_testColumnSelect(123, [111, '234', [456, 789]], FilterOption::SELECT_NOT_EXISTS, true);
     }
     public function testColumnSelectNotExistsFalse()
     {
         $this->_testColumnSelect('foo', ['foo'], FilterOption::SELECT_NOT_EXISTS, false);
-        $this->_testColumnSelect(123, [123, '123'], FilterOption::SELECT_NOT_EXISTS, false);
+        $this->_testColumnSelect(123, [123, '123', [456, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
 
     public function testColumnSelectNotNullTrue()
