@@ -113,6 +113,7 @@ return [
             'cannot_preview' => '※:nameは、編集中のプレビュー機能に対応していません。確認する場合、一度保存後に実施してください。',
             'preview_error' => 'プレビューの有効期限が切れました。この画面を閉じ、再度プレビューを実施してください。',
             'csrf_error' => '有効期限が切れたので、ブラウザを開き直してください。',
+            'not_edit_column_type' => '列種類は変更不可です。',
         ],
 
         'help' =>[
@@ -234,6 +235,7 @@ return [
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
         'email_multiline' => 'Eメールアドレスでない行が含まれています。',
         'duplicate_relation' => 'すでに関連付けられているテーブルです。',
+        'filename_not_allow' => ':attributeには、禁則文字が使用されています。ファイル名を変更して再度実施してください。',
         
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',

@@ -1148,4 +1148,12 @@ return [
     |
     */
     'role_group_import_export' => env('ROLE_GROUP_IMPORT_EXPORT', false),
+    /*
+    |--------------------------------------------------------------------------
+    | Unavailable user view ( for tables )
+    |--------------------------------------------------------------------------
+    |
+    | Even if 'userview_disabled' is false
+    */
+    'userview_unavailable_table' => env('EXMENT_USERVIEW_UNAVAILABLE_TABLE', ''),
 ];

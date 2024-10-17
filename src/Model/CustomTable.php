@@ -2886,6 +2886,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasViewPermission()
     {
+        $userview_unavailable_table = config('exment.userview_unavailable_table', '');
+        if ( !is_nullorempty($userview_unavailable_table) && in_array($this->table_name, explode(',', $userview_unavailable_table)) ){
+            return $this->hasSystemViewPermission();
+        }
         return System::userview_available() || $this->hasSystemViewPermission();
     }
 

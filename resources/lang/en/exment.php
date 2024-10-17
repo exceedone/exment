@@ -113,6 +113,7 @@ return [
             'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
             'preview_error' => 'The preview has expired. Please close this screen and preview again.',
             'csrf_error' => 'The expiration date has expired, so please reopen your browser.',
+            'not_edit_column_type' => 'The column type cannot be changed.',
         ],
 
         'help' =>[
@@ -234,6 +235,7 @@ return [
         'using_index_column' => 'Search index cannot be released because it is in use by a view.',
         'email_multiline' => 'Contains lines that are not email addresses.',
         'duplicate_relation' => 'The table is already associated.',
+        'filename_not_allow' => 'A prohibited character is used in :attribute. Please change the file name and try again.',
 
         'not_match' => 'The value of :attribute1 and the value of :attribute1 are different.',
         'not_notmatch' => ':attribute1 and :attribute2 must have different values.',
