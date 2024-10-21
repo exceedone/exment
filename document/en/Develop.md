@@ -53,7 +53,12 @@ composer require psr/simple-cache=^2.0.0
 ~~~
 git clone https://github.com/hirossyi73/exment.git
 ~~~
+- (Optional)Clone your laravel-admin repository.
+(ex. https://github.com/hirossyi73/laravel-admin.git)
 
+~~~
+git clone https://github.com/hirossyi73/laravel-admin.git
+~~~
 - rewrite composer.json on project root directory.  
 ***When you edit composer.json, please remove comments. We cannot add comments on json file.**
 
@@ -67,6 +72,8 @@ git clone https://github.com/hirossyi73/exment.git
         "psr/simple-cache": "2.0.0",
         // Add this line
         "exceedone/exment": "dev-master"
+        // Optional
+        ,"exceedone/laravel-admin": "dev-master as 4.10.10"
     },
 
     "autoload": {
@@ -84,6 +91,15 @@ git clone https://github.com/hirossyi73/exment.git
         {
             "type": "path",
             "url": "packages/hirossyi73/exment",
+            "options": {
+                "symlink": true
+            }
+        }
+        // Optional
+        ,
+        {
+            "type": "path",
+            "url": "packages/hirossyi73/laravel-admin",
             "options": {
                 "symlink": true
             }
