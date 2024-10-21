@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
+use Encore\Admin\Form\Field;
 
 /**
  * FileNameRule.
@@ -41,6 +42,10 @@ class FileNameRule implements Rule
         if (is_nullorempty($value)) {
             return true;
         } else if (is_string($value)) {
+            // Check if the string starts with 'tmp:'
+            if (strpos($value, Field\File::TMP_FILE_PREFIX) === 0) {
+                $value = substr($value, strlen(Field\File::TMP_FILE_PREFIX));
+            }
             $filename = pathinfo($value, PATHINFO_BASENAME);
         } else if ($value instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
             $filename = $value->getClientOriginalName();
