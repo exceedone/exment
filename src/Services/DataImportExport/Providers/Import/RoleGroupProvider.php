@@ -21,6 +21,14 @@ class RoleGroupProvider extends ProviderBase
     }
 
     /**
+     * get data name
+     */
+    public function name()
+    {
+        return 'role_group';
+    }
+
+    /**
      * get data and object.
      * set matched model data
      */
@@ -112,7 +120,7 @@ class RoleGroupProvider extends ProviderBase
                         return $data != $id;
                     });
                 } else {
-                    $error_data[] = sprintf(exmtrans('custom_value.import.import_error_format'), $line_no, 'IDが重複しています');
+                    $error_data[] = sprintf(exmtrans('custom_value.import.import_error_format_sheet'), $this->name(), $line_no, 'IDが重複しています');
                 }
             } elseif (!$delete) {
                 $carry[] = $id;
@@ -147,14 +155,14 @@ class RoleGroupProvider extends ProviderBase
                 "regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/",
             ],
             'role_group_view_name' => 'required|max:64',
-            'role_group_order' => 'integer',
+            'role_group_order' => 'nullable|integer',
             'created_at' => 'nullable|date',
             'updated_at' => 'nullable|date',
         ]);
         if ($validator->fails()) {
             // create error message
             foreach ($validator->getMessages() as $message) {
-                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
+                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format_sheet'), $this->name(), ($line_no+1), implode(',', $message));
             }
          }
 

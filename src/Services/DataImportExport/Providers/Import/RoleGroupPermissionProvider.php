@@ -2,23 +2,24 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
-use Illuminate\Support\Str;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\RoleGroupType;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
-use Carbon\Carbon;
-use Exceedone\Exment\Model\CustomTable;
 
 class RoleGroupPermissionProvider extends ProviderBase
 {
-    protected $primary_key;
+    protected $role_group_permission_type = 0;
+    protected $role_group_target_id;
+    protected $permission_keys = [];
 
-    public function __construct($args = [])
+    /**
+     * get data name
+     */
+    public function name()
     {
-        $this->primary_key = array_get($args, 'primary_key', 'id');
+        return '';
     }
 
     /**
@@ -54,21 +55,7 @@ class RoleGroupPermissionProvider extends ProviderBase
             $value = $value + $null_merge_array;
             $value_custom = array_combine($headers, $value);
 
-            // select $model using primary key and value
-            $primary_value = array_get($value_custom, $this->primary_key);
-            // if not exists, new instance
-            if (is_nullorempty($primary_value)) {
-                $model = new RoleGroupPermission();
-            }
-            // if exists, firstOrNew
-            else {
-                $model = RoleGroupPermission::findOrNew($primary_value);
-            }
-            if (!isset($model)) {
-                continue;
-            }
-
-            $results[] = ['data' => $value_custom, 'model' => $model];
+            $results[] = ['data' => $value_custom];
         }
 
         return $results;
@@ -108,39 +95,26 @@ class RoleGroupPermissionProvider extends ProviderBase
  
         $errors = [];
 
+        $rules = [
+            'role_group_id' => 'required|exists:' . RoleGroup::make()->getTable() . ',id',
+        ];
+
+        foreach($this->permission_keys as $permission_key)
+        {
+            $rules["permissions.$permission_key"] = 'nullable|regex:/^[01]$/';
+        }
+
+        $this->addValidateDataRule($rules);
+
         // execute validation
         /** @var ExmentCustomValidator $validator */
-        $validator = \Validator::make($data, [
-            'role_group_id' => 'required|exists:' . RoleGroup::make()->getTable() . ',id',
-            'role_group_permission_type' => 'required|regex:/^[013]$/',
-            'permissions' => [
-                function ($attribute, $value, $fail) use($line_no) {
-                    if (!empty($value) && is_string($value)) {
-                        $value = explode(',', $value);
-                        foreach ($value as $val) {
-                            if (!in_array($val, Permission::arrays())) {
-                                $fail(exmtrans('custom_value.import.message.permission_not_exists', $val));
-                             }
-                        }
-                    }
-                },
-            ],
-        ]);
+        $validator = \Validator::make($data, $rules);
         if ($validator->fails()) {
             // create error message
             foreach ($validator->getMessages() as $message) {
-                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
-            }
-        } else {
-            $role_group_permission_type = array_get($data, 'role_group_permission_type')?? 0;
-            $role_group_target_id = array_get($data, 'role_group_target_id')?? 0;
-            if ($role_group_permission_type == RoleType::TABLE) {
-                if (!CustomTable::where('id', $role_group_target_id)->exists()) {
-                    $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), exmtrans('custom_value.import.message.target_table_not_found'));
-                }
+                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format_sheet'), $this->name() ($line_no+1), implode(',', $message));
             }
         }
-        
 
         if (!is_nullorempty($errors)) {
             return $errors;
@@ -149,70 +123,47 @@ class RoleGroupPermissionProvider extends ProviderBase
     }
 
     /**
+     * add data row validate rules for each role type
+     * 
+     * @param $rules
+     */
+    protected function addValidateDataRule(&$rules) : void
+    {
+    }
+
+    /**
      * import data
      */
     public function importData($dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
-        $model = array_get($dataAndModel, 'model');
-
-        // select $model using primary key and value
-        $primary_value = array_get($data, $this->primary_key);
-        // if not exists, new instance
-        if (is_nullorempty($primary_value)) {
-            $isCreate = true;
-        }
-        // if exists, firstOrNew
-        else {
-            $isCreate = !$model->exists;
-        }
-        if (!isset($model)) {
-            return;
-        }
+        $role_group_id = array_get($data, 'role_group_id'); 
 
         $permissions = [];
-        foreach ($data as $dkey => $dvalue) {
-            $dvalue = is_nullorempty($dvalue) ? null : $dvalue;
-            // if not exists column, continue
-            if (!in_array($dkey, ['id', 'role_group_id', 'role_group_permission_type', 'role_group_target_id', 'created_at', 'updated_at'])) {
-                if (!Str::startsWith($dkey, 'permissions.')) {
-                    continue;
-                }
-            }
-            if (in_array($dkey, ['created_at', 'updated_at'])) {
-                // if null, contiune
-                if (is_nullorempty($dvalue)) {
-                    continue;
-                }
-                // if not create and created_at, continue(because time back)
-                if (!$isCreate && $dkey == 'created_at') {
-                    continue;
-                }
-                // set as date
-                $model->{$dkey} = Carbon::parse($dvalue);
-            }
-            // if id
-            elseif ($dkey == 'id') {
-                // if null, contiune
-                if (is_nullorempty($dvalue)) {
-                    continue;
-                }
-                $model->id = $dvalue;
-            }
-            // if permissions
-            elseif (Str::startsWith($dkey, 'permissions.')) {
-                // if null, contiune
-                if (boolval($dvalue)) {
-                    $permissions[] = $dkey;
-                }
-            }
-            // else, set
-            else {
-                $model->{$dkey} = $dvalue;
+
+        foreach($this->permission_keys as $permission_key)
+        {
+            $dvalue = array_get($data, "permissions.$permission_key"); 
+            if (boolval($dvalue)) {
+                $permissions[] = $permission_key;
             }
         }
 
-        $model->permissions = $this->getPermissions($model->role_group_permission_type, $permissions);
+        $role_group_target_id = $this->role_group_target_id?? array_get($data, 'role_group_target_id');
+
+        $model = RoleGroupPermission::where('role_group_id', $role_group_id)
+            ->where('role_group_permission_type', $this->role_group_permission_type)
+            ->where('role_group_target_id', $role_group_target_id)
+            ->first();
+
+        if (!isset($model)) {
+            $model = new RoleGroupPermission();
+            $model->role_group_id = $role_group_id;
+            $model->role_group_permission_type = $this->role_group_permission_type;
+            $model->role_group_target_id = $role_group_target_id;
+        }
+
+        $model->permissions = $permissions;
 
         // save model
         $model->save();

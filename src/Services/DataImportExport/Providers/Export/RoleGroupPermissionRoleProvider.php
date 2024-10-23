@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\RoleGroupType;
 
-class RoleGroupPermissionRoleGroupProvider extends RoleGroupPermissionProvider
+class RoleGroupPermissionRoleProvider extends RoleGroupPermissionProvider
 {
     /**
      * get data name

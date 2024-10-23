@@ -11,6 +11,14 @@ use Exceedone\Exment\Model\CustomTable;
 class RoleGroupUserOrganizationProvider extends ProviderBase
 {
     /**
+     * get data name
+     */
+    public function name()
+    {
+        return 'role_group_user_organization';
+    }
+
+    /**
      * get data and object.
      * set matched model data
      */
@@ -96,14 +104,14 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
         if ($validator->fails()) {
             // create error message
             foreach ($validator->getMessages() as $message) {
-                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
+                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format_sheet'), $this->name(), ($line_no+1), implode(',', $message));
             }
         } else {
             $role_group_user_org_type = array_get($data, 'role_group_user_org_type');
             $role_group_target_id = array_get($data, 'role_group_target_id');
-            if (!CustomTable::getEloquent($role_group_user_org_type)->getValueModel()->where('id', $role_group_target_id)->exists()) {
+            if (!CustomTable::getEloquent($role_group_user_org_type)->getValueModel()->withoutGlobalScopes()->where('id', $role_group_target_id)->exists()) {
                 $message = exmtrans('custom_value.import.message.user_org_not_exists', exmtrans("$role_group_user_org_type.default_table_name"));
-                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), $message);
+                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format_sheet'), $this->name(), ($line_no+1), $message);
             }
         }
         
@@ -129,9 +137,14 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
             ->first()->id ?? null;
 
         // if delete
-        if (isset($id) && $delete) {
-            RoleGroupUserOrganization::find($id)->delete();
-        } elseif (!isset($id)) {
+        if ($delete) {
+            if (isset($id)) {
+                RoleGroupUserOrganization::find($id)->delete();
+            }
+            return;
+        } 
+        
+        if (!isset($id)) {
             RoleGroupUserOrganization::insert($data);
         }
     }

@@ -28,7 +28,7 @@ class RoleGroupPermissionPluginProvider extends RoleGroupPermissionProvider
     protected function setHeadersOfType(array &$headers, array &$titles): void
     {
         $headers[] = "role_group_target_id"; 
-        $titles[] = exmtrans('role_group.role_group_target_id'); 
+        $titles[] = exmtrans('role_group.role_group_target_plugin'); 
     }
 
     protected function setBodiesOfType(array &$body_items, $record): void

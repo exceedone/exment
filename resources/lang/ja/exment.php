@@ -2005,7 +2005,8 @@ return [
         'description_system_admin' => '<span class="red">※システム管理者権限の追加は、メニューの「システム設定」→「システム管理者」より追加してください。</span>',
         'role_group_id' => '役割グループID',
         'role_group_permission_type' => '権限設定の種類',
-        'role_group_target_id' => '権限設定の対象',
+        'role_group_target_plugin' => '対象のプラグインID',
+        'role_group_target_table' => '対象のテーブルID',
         'role_group_user_org_type' => 'ユーザー・組織区分',
         'role_group_user_org_target_id' => 'ユーザー・組織ID',
         'permissions' => '権限詳細',
@@ -2268,6 +2269,7 @@ return [
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
+            'import_error_format_sheet' => '%s(行%d) : %s',
             'target_column_name' => '置換対象列名(英数字)',
 
             'help' => [

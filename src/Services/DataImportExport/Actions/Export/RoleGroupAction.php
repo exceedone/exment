@@ -25,7 +25,7 @@ class RoleGroupAction extends ExportActionBase implements ActionInterface
         $providers[] = new Export\RoleGroupPermissionSystemProvider([
             'grid' => $this->grid
         ]);
-        $providers[] = new Export\RoleGroupPermissionRoleGroupProvider([
+        $providers[] = new Export\RoleGroupPermissionRoleProvider([
             'grid' => $this->grid
         ]);
         $providers[] = new Export\RoleGroupPermissionPluginProvider([
