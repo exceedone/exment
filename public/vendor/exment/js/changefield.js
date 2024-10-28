@@ -39,7 +39,7 @@ var Exment;
                         var json = JSON.parse(data);
                         $(this).closest('tr').find('.changefield-div').html(json.html);
                         if (json.script) {
-                            eval(json.script);
+                            jQuery.globalEval(json.script);
                         }
                         // call add-select2 event
                         Exment.CommonEvent.addSelect2();
@@ -97,7 +97,11 @@ var Exment;
                         $inner.append($ajaxTarget).appendTo(this.html);
                     }
                     if (hasValue(data.script)) {
-                        eval(data.script);
+                        try {
+                            (new Function(data.script))();
+                        } catch (error) {
+                            
+                        }
                     }
                     Exment.CommonEvent.setFormFilter($target);
                 },

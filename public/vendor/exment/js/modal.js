@@ -165,11 +165,11 @@ var Exment;
                 $('#modal-showmodal .modal-body').html(res.body);
                 if (res.script) {
                     if (!Array.isArray(res.script)) {
-                        eval(res.script);
+                        jQuery.globalEval(res.script);
                     }
                     else {
                         for (var script of res.script) {
-                            eval(script);
+                            jQuery.globalEval(script);
                         }
                     }
                 }
