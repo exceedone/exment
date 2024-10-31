@@ -60,8 +60,6 @@ class RoleGroupProvider extends ProviderBase
             'role_group_view_name',
             'role_group_order',
             'description',
-            'created_at',
-            'updated_at',
             'delete_flg'
         ];
 
@@ -72,8 +70,6 @@ class RoleGroupProvider extends ProviderBase
             exmtrans('role_group.role_group_view_name'),
             exmtrans('role_group.role_group_order'),
             exmtrans('custom_table.field_description'),
-            exmtrans('common.created_at'),
-            exmtrans('common.updated_at'),
             exmtrans('common.deleted')
         ];
 
@@ -116,8 +112,6 @@ class RoleGroupProvider extends ProviderBase
             $body_items[] = $record->role_group_view_name;
             $body_items[] = $record->role_group_order;
             $body_items[] = $record->description;
-            $body_items[] = $record->created_at;
-            $body_items[] = $record->updated_at;
 
             $bodies[] = $body_items;
         }

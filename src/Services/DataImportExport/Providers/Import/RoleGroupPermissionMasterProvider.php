@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class RoleGroupPermissionMasterProvider extends RoleGroupPermissionProvider
 {
@@ -27,8 +28,9 @@ class RoleGroupPermissionMasterProvider extends RoleGroupPermissionProvider
      * 
      * @param $rules
      */
-    protected function addValidateDataRule(&$rules) : void
+    protected function addValidateTypeRules(&$rules) : void
     {
-        $rules['role_group_target_id'] = 'required|exists:' . CustomTable::make()->getTable() . ',id';
+        $ids = CustomTable::whereIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER())->pluck('id')->toArray();        
+        $rules['role_group_target_id'] = 'required|in:' . implode(',', $ids);
     }
 }

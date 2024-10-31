@@ -69,7 +69,7 @@ class RoleGroupPermissionProvider extends ProviderBase
         // add permissions
         $role_group_type = $this->getRoleGroupType();
         foreach ($role_group_type->getRoleGroupOptions() as $key => $permission) {
-            $headers[] = "permissions.{$key}"; 
+            $headers[] = "permissions:{$key}"; 
             $titles[] = $permission; 
         }
         $rows[] = $headers;

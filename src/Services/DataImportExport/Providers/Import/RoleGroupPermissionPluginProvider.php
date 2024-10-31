@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Model\Plugin;
 
 class RoleGroupPermissionPluginProvider extends RoleGroupPermissionProvider
@@ -27,8 +28,33 @@ class RoleGroupPermissionPluginProvider extends RoleGroupPermissionProvider
      * 
      * @param $rules
      */
-    protected function addValidateDataRule(&$rules) : void
+    protected function addValidateTypeRules(&$rules) : void
     {
         $rules['role_group_target_id'] = 'required|exists:' . Plugin::make()->getTable() . ',id';
+    }
+
+    /**
+     * validate data row by ex rules
+     * 
+     * @param array $data
+     * @param int $line_no
+     * @param array $errors
+     */
+    protected function validateExtraRules($data, $line_no, &$errors) : void
+    {
+        $role_group_target_id = array_get($data, 'role_group_target_id');
+        $plugin_access = array_get($data, 'permissions:plugin_access');
+        $plugin = Plugin::find($role_group_target_id);
+        $enabledPluginAccess = collect($plugin->plugin_types)->contains(function ($plugin_type) {
+            return in_array($plugin_type, PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE());
+        });
+        if (!$enabledPluginAccess && boolval($plugin_access)) {
+            $errors[] = sprintf(
+                exmtrans('custom_value.import.import_error_format_sheet'), 
+                $this->name(), 
+                ($line_no+1), 
+                exmtrans('role_group.error.cannot_plugin_access_permission')
+            );
+        }
     }
 }

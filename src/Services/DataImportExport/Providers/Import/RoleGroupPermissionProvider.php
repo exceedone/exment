@@ -101,10 +101,10 @@ class RoleGroupPermissionProvider extends ProviderBase
 
         foreach($this->permission_keys as $permission_key)
         {
-            $rules["permissions.$permission_key"] = 'nullable|regex:/^[01]$/';
+            $rules["permissions:$permission_key"] = 'nullable|regex:/^[01]$/';
         }
 
-        $this->addValidateDataRule($rules);
+        $this->addValidateTypeRules($rules);
 
         // execute validation
         /** @var ExmentCustomValidator $validator */
@@ -112,9 +112,10 @@ class RoleGroupPermissionProvider extends ProviderBase
         if ($validator->fails()) {
             // create error message
             foreach ($validator->getMessages() as $message) {
-                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format_sheet'), $this->name() ($line_no+1), implode(',', $message));
+                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format_sheet'), $this->name(), ($line_no+1), implode(',', $message));
             }
         }
+        $this->validateExtraRules($data, $line_no, $errors);
 
         if (!is_nullorempty($errors)) {
             return $errors;
@@ -125,9 +126,20 @@ class RoleGroupPermissionProvider extends ProviderBase
     /**
      * add data row validate rules for each role type
      * 
-     * @param $rules
+     * @param array $rules
      */
-    protected function addValidateDataRule(&$rules) : void
+    protected function addValidateTypeRules(&$rules) : void
+    {
+    }
+
+    /**
+     * validate data row by custom rules
+     * 
+     * @param array $data
+     * @param int $line_no
+     * @param array $errors
+     */
+    protected function validateExtraRules($data, $line_no, &$errors) : void
     {
     }
 
@@ -143,7 +155,7 @@ class RoleGroupPermissionProvider extends ProviderBase
 
         foreach($this->permission_keys as $permission_key)
         {
-            $dvalue = array_get($data, "permissions.$permission_key"); 
+            $dvalue = array_get($data, "permissions:$permission_key"); 
             if (boolval($dvalue)) {
                 $permissions[] = $permission_key;
             }

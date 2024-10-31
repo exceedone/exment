@@ -2002,6 +2002,12 @@ return [
         'role_group_name' => 'Role Group Name',
         'role_group_view_name' => 'Role Group View Name',
         'description_system_admin' => '<span class="red">*To add system administrator privileges, go to "System Settings / System Administrator" from the menu.</span>',
+        'role_group_id' => 'Role group ID',
+        'role_group_permission_type' => 'Types of permission settings',
+        'role_group_target_plugin' => 'Target plugin ID',
+        'role_group_target_table' => 'Target table ID',
+        'role_group_user_org_type' => 'User/Organization type',
+        'role_group_user_org_target_id' => 'User/Organization ID',
         'permissions' => 'Role Detail',
         'permission_setting' => 'Permission Setting',
         'user_organization_setting' => 'User/organization setting',
@@ -2098,6 +2104,7 @@ return [
 
         'error' => [
             'cannot_accessable_and_value' => 'The permissions "Browse all data" and "%s" cannot be set at the same time.',
+            'cannot_plugin_access_permission' => 'This is a plugin for which usage and access cannot be configured.',
         ],
     ],
 
@@ -2261,6 +2268,7 @@ return [
             'error_flow' => 'Error Handling',
             'import_error_message' => 'Error Message',
             'import_error_format' => 'Line %d : %s',
+            'import_error_format_sheet' => '%s(Line %d) : %s',
             'target_column_name' => 'Replacement target column name (alphanumeric characters)',
 
             'help' => [
@@ -2285,6 +2293,9 @@ return [
                 'file_column_not_match' => 'The column name :column_name does not exist in the file / image column of table :table_name.',
                 'file_not_found' => 'The file :file_name does not exist in the capture directory :dir_path.',
                 'file_column_extension_not_match' => 'Specify the same value for the extension of the column file_name and the column display_file_name.',
+                'target_table_not_found' => 'The table for the specified privilege does not exist.',
+                'permission_not_exists' => 'Permission "%s" does not exist.',
+                'user_org_not_exists' => 'The specified %s does not exist.',
             ],
         ],
         'sendmail' => [

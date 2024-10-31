@@ -2042,7 +2042,6 @@ return [
             'value' => 'データ',
             'plugin' => 'プラグイン',
             'master' => 'マスター',
-            'role_group' => '役割グループ',
         ],
 
         'role_group_system' => [
@@ -2106,6 +2105,7 @@ return [
 
         'error' => [
             'cannot_accessable_and_value' => '権限「全データの参照」と「%s」を同時に設定することはできません。',
+            'cannot_plugin_access_permission' => '利用・アクセスを設定できないプラグインです',
         ],
     ],
 

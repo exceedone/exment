@@ -76,9 +76,7 @@ class RoleGroupProvider extends ProviderBase
             'role_group_name', 
             'role_group_view_name', 
             'role_group_order', 
-            'description', 
-            'created_at', 
-            'updated_at'
+            'description'
         ];
     }
 
@@ -150,14 +148,12 @@ class RoleGroupProvider extends ProviderBase
         $validator = \Validator::make($data, [
             'id' => 'nullable|numeric',
             'role_group_name' => [
-                "max:64",
+                'max:64',
                 Rule::unique('role_groups')->ignore($id),
-                "regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/",
+                'regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
             ],
             'role_group_view_name' => 'required|max:64',
             'role_group_order' => 'nullable|integer',
-            'created_at' => 'nullable|date',
-            'updated_at' => 'nullable|date',
         ]);
         if ($validator->fails()) {
             // create error message
@@ -180,19 +176,16 @@ class RoleGroupProvider extends ProviderBase
         $data = array_get($dataAndModel, 'data');
         $delete = array_get($dataAndModel, 'delete');
         $id = array_get($data, 'id');
-        $isCreate = false;
 
         // if data not has id, create new instance
         if (is_nullorempty($id)) {
             $model = new RoleGroup();
-            $isCreate = true;
         }
         // if data has id, find data (if not found and not delete create new instance)
         else {
             $model = RoleGroup::find($id);
             if (!isset($model)) {
                 $model = new RoleGroup();
-                $isCreate = true;
             }
         }
 
@@ -207,30 +200,10 @@ class RoleGroupProvider extends ProviderBase
             if (!in_array($dkey, $this->getImportColumnName())) {
                 continue;
             }
-            if (in_array($dkey, ['created_at', 'updated_at'])) {
-                // if null, contiune
-                if (is_nullorempty($dvalue)) {
-                    continue;
-                }
-                // if not create and created_at, continue(because time back)
-                if (!$isCreate && $dkey == 'created_at') {
-                    continue;
-                }
-                // set as date
-                $model->{$dkey} = Carbon::parse($dvalue);
+            if ($dkey == 'role_group_order') {
+                $dvalue = $dvalue?? 0;
             }
-            // if id
-            elseif ($dkey == 'id') {
-                // if null, contiune
-                if (is_nullorempty($dvalue)) {
-                    continue;
-                }
-                $model->id = $dvalue;
-            }
-            // else, set
-            else {
-                $model->{$dkey} = $dvalue;
-            }
+            $model->{$dkey} = $dvalue;
         }
 
         return $model->save();
