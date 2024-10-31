@@ -78,6 +78,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     {
         $field = new ChangeField($this->className, $this->label);
         $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
+        $field->allowNull();
         $field->adminField(function ($data, $field) use ($target_key, $target_name, $show_condition_key) {
             return $this->getOperationFilterValueChangeField($target_key, $target_name, $show_condition_key);
         });

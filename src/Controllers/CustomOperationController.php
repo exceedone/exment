@@ -202,6 +202,7 @@ class CustomOperationController extends AdminControllerTableBase
                 'ignore_autonumber' => true,
             ]),
             'custom_table' => $custom_table,
+            'allowNullValue' => true,
             'filterKind' => FilterKind::OPERATION,
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'operation_update_type',
