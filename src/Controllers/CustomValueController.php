@@ -1273,7 +1273,7 @@ class CustomValueController extends AdminControllerTableBase
             // 一時ファイルの名前を生成する
             $fileName = '2D-barcode_' . Carbon::now()->format('YmdHis') . '.pdf';
             $tmpPath = getFullpath($fileName, Define::DISKNAME_ADMIN_TMP);
-            /** @phpstan-ignore-next-line Instantiated class Elibyy\TCPDF\Facades\TCPDF not found. */            
+            /** @phpstan-ignore-next-line Instantiated class Elibyy\TCPDF\Facades\TCPDF not found. */
             $pdf = new TCPDF;
             /** @phpstan-ignore-next-line Call to static method setAutoPageBreak() on an unknown class Elibyy\TCPDF\Facades\TCPDF. */
             $pdf::setAutoPageBreak(true, 0);
@@ -1369,7 +1369,9 @@ class CustomValueController extends AdminControllerTableBase
             $sticker_img,
             $font_size,
             0,
+            /** @phpstan-ignore-next-line expects int, float given. */
             $x_cordinate,
+            /** @phpstan-ignore-next-line expects int, float given. */
             ($sticker_img_height + $height_ww) / 3,
             $black,
             $font,
@@ -1379,7 +1381,7 @@ class CustomValueController extends AdminControllerTableBase
             $y_cordinate = ($sticker_img_height - $img_margin_top_right) / 3 * 2;
             $bbox = imagettfbbox($font_size, 0, $font, $refer_column_value);
             $text_width = floor(strlen($refer_column_value) / ($bbox[2] / ($sticker_img_width / 2)));
-            $wrapped_text = wordwrap($refer_column_value, $text_width > 24 ? 24 : 15, "\n", true);     
+            $wrapped_text = wordwrap($refer_column_value, $text_width > 24 ? 24 : 15, "\n", true);
             $lines = explode("\n", $wrapped_text);
             foreach ($lines as $key => $line) {
                 if ($key < 2) {
@@ -1387,7 +1389,9 @@ class CustomValueController extends AdminControllerTableBase
                         $sticker_img,
                         $font_size,
                         0,
+                        /** @phpstan-ignore-next-line expects int, float given. */
                         $x_cordinate,
+                        /** @phpstan-ignore-next-line expects int, float given. */
                         $y_cordinate,
                         $black,
                         $font,
@@ -1400,11 +1404,15 @@ class CustomValueController extends AdminControllerTableBase
         imagecopyresized(
             $sticker_img,
             $qr_img,
+            /** @phpstan-ignore-next-line expects int, float given. */
             $img_margin_top_right,
+            /** @phpstan-ignore-next-line expects int, float given. */
             $img_margin_top_right,
             0,
             0,
+            /** @phpstan-ignore-next-line expects int, float given. */
             $qr_img_width,
+            /** @phpstan-ignore-next-line expects int, float given. */
             $qr_img_height,
             200,
             200
