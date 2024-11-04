@@ -1523,6 +1523,9 @@ class TestDataSeeder extends Seeder
             $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::AGGREGATE, $custom_table->table_name . '-view-summary', []);
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::DATE;
+                /** @phpstan-ignore-next-line Illuminate\Support\Collection<(int|string),mixed>::first() expects
+                 * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
+                 * given.   */
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
                 $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
                     'view_group_condition' => 'ym',
@@ -1530,11 +1533,19 @@ class TestDataSeeder extends Seeder
             });
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::INTEGER;
+                /** @phpstan-ignore-next-line Parameter #1 $callback of method
+                 * Illuminate\Support\Collection<(int|string),mixed>::first() expects
+                 * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
+                 * given.   */
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
                 $this->createSummaryColumn($custom_view->id, $custom_table->id, $custom_column->id, SummaryCondition::SUM);
             });
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_name == 'select';
+                /** @phpstan-ignore-next-line Parameter #1 $callback of method
+                 * Illuminate\Support\Collection<(int|string),mixed>::first() expects
+                 * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
+                 * given.   */
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
                 $this->createCustomViewFilter(
                     $custom_view->id,
