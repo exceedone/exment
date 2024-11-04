@@ -1587,10 +1587,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set selectTable value's. for after calling from select_table object
      *
-     * @param \Illuminate\Support\Collection|null $customValueCollection
+     * @param \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|null $customValueCollection
      * @return void
      */
-    public function setSelectTableValues(?\Illuminate\Support\Collection $customValueCollection)
+    public function setSelectTableValues(\Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|null $customValueCollection)
     {
         if (empty($customValueCollection)) {
             return;
@@ -1965,7 +1965,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $field->attribute(['data-target_table_name' => array_get($this, 'table_name')]);
         /** @phpstan-ignore-next-line */
         $field->buttons($options['buttons']);
-
+        /** @phpstan-ignore-next-line options() expects array, Closure given */
         $field->options(function ($value, $field) use ($thisObj, $selectOption) {
             $selectOption['selected_value'] = (!empty($field) ? $field->getOld() : null) ?? $value;
             return $thisObj->getSelectOptions($selectOption);

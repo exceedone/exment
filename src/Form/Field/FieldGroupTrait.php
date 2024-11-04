@@ -64,6 +64,7 @@ trait FieldGroupTrait
     {
         $fieldGroups = collect($fieldOptions)->sortBy(function ($fieldOption, $index) {
             $strpads = function ($val) {
+                /** @phpstan-ignore-next-line str_pad expects string, int given */
                 return str_pad($val, 3, 0, STR_PAD_LEFT);
             };
             $row = $strpads(array_get($fieldOption, 'options.row', 1));

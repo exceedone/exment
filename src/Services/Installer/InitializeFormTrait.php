@@ -129,7 +129,7 @@ trait InitializeFormTrait
             ->attribute(['data-senddata' => json_encode(['test_mail_to'])])
             ->button_label(exmtrans('system.submit_test_mail'))
             ->send_params('test_mail_to');
-
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
         return new Box(exmtrans("system.submit_test_mail"), $form);
     }
 
@@ -236,7 +236,7 @@ trait InitializeFormTrait
         // template search url
         $template_search_url = admin_urls('api', 'template', 'search');
         $script = <<<EOT
-    
+
     $(function(){
         searchTemplate(null);
     });

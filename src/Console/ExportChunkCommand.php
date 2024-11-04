@@ -127,7 +127,7 @@ class ExportChunkCommand extends Command
                 if (isset($options['view']) && $options['view'] instanceof CustomView) {
                     $options['view']->filterSortModel($grid->model());
                 }
-
+                /* @phpstan-ignore-next-line str_pad expects string, int given */
                 $seq = str_pad($i, $options['seqlength'], 0, STR_PAD_LEFT);
 
                 $service = (new DataImportExport\DataImportExportService())

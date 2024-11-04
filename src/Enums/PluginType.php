@@ -200,7 +200,7 @@ class PluginType extends EnumBase
     /**
      * Get plugin class using plugin type
      *
-     * @param string $plugin_type
+     * @param string|null $plugin_type
      * @param Plugin $plugin
      * @param array $options
      * @return mixed

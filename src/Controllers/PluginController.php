@@ -183,6 +183,7 @@ class PluginController extends AdminControllerBase
         if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
             $options = $request->get('options');
+            /** @phpstan-ignore-next-line array_filter expects (callable(mixed): bool)|null, 'strlen' given */
             $event_triggers = array_filter($event_triggers, 'strlen');
             $options['event_triggers'] = $event_triggers;
             $request->merge(['options' => $options]);

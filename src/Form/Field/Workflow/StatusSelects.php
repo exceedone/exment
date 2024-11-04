@@ -78,7 +78,7 @@ class StatusSelects extends Select
 
             $this->options(call_user_func($this->options, $this->value, $this, $this->form->model()));
         }
-
+        /** @phpstan-ignore-next-line array_filter expects (callable(mixed): bool)|null, 'strlen' given */
         $this->options = array_filter($this->options, 'strlen');
 
         // Whether is show id

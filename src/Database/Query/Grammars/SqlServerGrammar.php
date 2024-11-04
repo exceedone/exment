@@ -122,6 +122,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      */
     public function getCastColumn($type, $column, $options = [])
     {
+        /** @phpstan-ignore-next-line getCastString() expects bool, string given */
         $cast = $this->getCastString($type, $column, $options);
 
         $column = $this->wrap($column);

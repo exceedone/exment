@@ -76,6 +76,7 @@ class FieldFormatter
     public static function boolean($value, $options = null)
     {
         if (!is_null($options)) {
+            /** @phpstan-ignore-next-line explode expects string, array given */
             $options = explode('|', $options);
         }
 

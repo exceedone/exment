@@ -63,6 +63,7 @@ class CustomTableController extends AdminControllerBase
     {
         $content = $this->AdminContent($content);
 
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Grid given*/
         $row = new Row($this->grid());
         $row->class(['block_custom_table']);
 
@@ -125,6 +126,7 @@ class CustomTableController extends AdminControllerBase
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuAjaxButton given */
             $tools->append(new Tools\CustomTableMenuAjaxButton());
         });
 
@@ -159,7 +161,7 @@ class CustomTableController extends AdminControllerBase
             // add data
             if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 $linker = (new Linker())
-                    /** @phpstan-ignore-next-line fix laravel-admin documentation */
+                    /** @phpstan-ignore-next-line Cannot call method getGridUrl() on stdClass. */
                 ->url($actions->row->getGridUrl())
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));

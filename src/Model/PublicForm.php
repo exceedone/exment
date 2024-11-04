@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Form;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -353,12 +354,12 @@ class PublicForm extends ModelBase
      * Get show
      *
      * @param Request $request
-     * @param CustomValue $custom_value
+     * @param CustomValue|Model $custom_value
      * @param array $inputs
      * @return mixed|null
      * @throws \Throwable
      */
-    public function getShow(Request $request, CustomValue $custom_value, array $inputs = [])
+    public function getShow(Request $request, CustomValue|Model $custom_value, array $inputs = [])
     {
         $custom_form = $this->custom_form;
         if (!$custom_form) {

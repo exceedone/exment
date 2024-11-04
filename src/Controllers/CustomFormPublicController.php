@@ -25,6 +25,7 @@ use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Exceptions\PublicFormNotFoundException;
 use Illuminate\Http\Request;
+use Symfony\Component\Console\Input\Input;
 
 /**
  * Custom Form public
@@ -457,6 +458,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
             ->requiredRule()
             ->help(exmtrans("custom_form_public.help.custom_form_id"))
+            /** @phpstan-ignore-next-line Parameter #1 $options of method Encore\Admin\Form\Field::options() expects array, Closure given. need to fix laravel-admin */
             ->options(function ($value) use ($custom_table) {
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];
@@ -508,6 +510,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->disableEditingCheck(false);
 
         $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $public_form, $preview) {
+            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
 
@@ -642,8 +645,9 @@ class CustomFormPublicController extends AdminControllerTableBase
             $public_form->setPluginImported(array_get($json, 'public_form'));
         });
 
-        /** @phpstan-ignore-next-line fix laravel-admin documentation */
-        return $form->setModel($public_form)->redirectAfterStore();
+        /** @var Form $model */
+        $model = $form->setModel($public_form);
+        return $model->redirectAfterStore();
     }
 
     /**
@@ -661,16 +665,15 @@ class CustomFormPublicController extends AdminControllerTableBase
         // get this form's info
         $form = $this->form();
 
+        /** @var PublicForm $model */
         $model = $form->getModelByInputs(null, $original_public_form);
 
         // Now, cannot set header logo by getModelByInputs.
         if ($original_public_form) {
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $model->setOption('header_logo', $original_public_form->getOption('header_logo'));
         }
 
         // get public form
-        /** @phpstan-ignore-next-line fix laravel-admin documentation */
         $preview_form = $model->getForm($request);
         if (!$preview_form) {
             throw new PublicFormNotFoundException();
@@ -685,7 +688,6 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         // set content
         $content = new PublicContent();
-        /** @phpstan-ignore-next-line fix laravel-admin documentation */
         $model->setContentOption($content);
         $content->row($preview_form);
 
