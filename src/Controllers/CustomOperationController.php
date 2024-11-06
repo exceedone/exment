@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
+use Exceedone\Exment\Enums\OperationUpdateType;
 
 class CustomOperationController extends AdminControllerTableBase
 {
@@ -202,7 +203,6 @@ class CustomOperationController extends AdminControllerTableBase
                 'ignore_autonumber' => true,
             ]),
             'custom_table' => $custom_table,
-            'allowNullValue' => true,
             'filterKind' => FilterKind::OPERATION,
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'operation_update_type',
@@ -226,6 +226,10 @@ class CustomOperationController extends AdminControllerTableBase
                     ->removeRules(\Encore\Admin\Validator\HasOptionRule::class);
             },
             'valueCallback' => function ($data, $field) use ($custom_table) {
+                $operation_update_type = array_get($data, 'operation_update_type');
+                if ($operation_update_type == OperationUpdateType::DEFAULT && $field instanceof ChangeField) {
+                    $field->allowNull();
+                }
                 $item = ConditionItemBase::getItemByRequest($custom_table, array_get($data, 'view_column_target'));
                 if (is_null($item)) {
                     return null;

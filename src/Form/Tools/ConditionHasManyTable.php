@@ -113,13 +113,6 @@ class ConditionHasManyTable
     protected $conditionCallback = null;
 
     /**
-     * Whether shoing condition key.
-     *
-     * @var boolean
-     */
-    protected $allowNullValue = false;
-
-    /**
      * callback about value closure.
      *
      * @var \Closure|null
@@ -208,7 +201,6 @@ class ConditionHasManyTable
                 ->replaceWord($condition_value_name)
                 ->showConditionKey($this->showConditionKey)
                 ->hasManyTableClass($hasManyTableClass)
-                ->allowNull($this->allowNullValue)
                 ->adminField(function ($data, $field) use ($label, $condition_target_name, $condition_key_name, $condition_value_name) {
                     // call closure about value. Almost use as operation update value.
                     if (!is_null($this->valueCallback)) {
