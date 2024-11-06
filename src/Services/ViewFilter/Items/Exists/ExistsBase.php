@@ -45,15 +45,15 @@ abstract class ExistsBase extends ViewFilterBase
     {
         // if empty array, When isExists is true, return false. not isExists, return true.
         if (is_nullorempty($value)) {
-            return !$this->isExists();
+            return false;
         }
 
         foreach ($value as $v) {
             if (isMatchString($v, $conditionValue)) {
-                return $this->isExists();
+                return true;
             }
         }
-        return !$this->isExists();
+        return false;
     }
 
     abstract protected function isExists(): bool;
