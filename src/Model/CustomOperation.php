@@ -298,9 +298,8 @@ class CustomOperation extends ModelBase
             $custom_column = $operation_column->custom_column;
             $column_name = $custom_column->column_name;
             // get input value
-            $val = array_get($inputs, $column_name);
-            if (isset($val)) {
-                $input_updates[$column_name] = $val;
+            if (array_key_exists($column_name, $inputs)) {
+                $input_updates[$column_name] = array_get($inputs, $column_name);
             }
         }
 
