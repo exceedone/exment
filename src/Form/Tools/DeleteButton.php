@@ -40,7 +40,7 @@ EOT;
         Admin::script($this->script($id));
 
         return view('exment::tools.button', [
-            'href' => 'javascript::void();',
+            'href' => 'javascript:void();',
             'label' => trans('admin.delete'),
             'icon' => 'fa-trash',
             'btn_class' => 'btn-danger',

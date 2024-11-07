@@ -1,4 +1,4 @@
-<a href="javascript::void(0);" class="{{$link_class}}" 
+<a href="javascript:void(0);" class="{{$link_class}}" 
     title="{{$modal_title}}"
     data-widgetmodal_url="{{$ajax}}"
     data-widgetmodal_method="GET"
