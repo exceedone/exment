@@ -55,6 +55,9 @@ class Plugin extends PluginApiBase
     /**
      * カラム名からカスタム列情報を取得するサンプルです
      * ※URLでテーブル名とカラム名を指定しています
+     *
+     * @param string $table
+     * @param string $column
      * @return mixed
      */
     public function tablecolumn($table, $column)
