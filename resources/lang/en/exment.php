@@ -1274,7 +1274,7 @@ return [
             'qrcode_activate' => 'Enable the 2D barcode function for this table. Do you want to enable it?',
             'qrcode_deactivate' => 'The 2D barcode function for this table will be disabled. Do you want to disable it?',
             'jancode_activate' => 'Enable the Jancode function for this table. Do you want to enable it?',
-            'jancode_deactivate' => 'The Jancode function for this table will be disabled. Do you want to disable it?',
+            'jancode_deactivate' => 'The Jancode function for this table will be disabled. Do you want to disable it?<br/><br/>Furthermore, the information of the linked JAN barcode will remain when it is valid, so when you scan a JAN barcode, the data in this table will be displayed.',
         ],
 
         'custom_column_multi' => [

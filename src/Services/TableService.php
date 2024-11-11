@@ -59,7 +59,7 @@ class TableService
                         'icon' => 'fa-check-circle',
                         'btn_class' => 'btn-default',
                         'title' => exmtrans('common.deactivate'),
-                        'text' => exmtrans('custom_table.help.jancode_deactivate'),
+                        'html' => exmtrans('custom_table.help.jancode_deactivate'),
                         'method' => 'post',
                         'redirectUrl' => admin_urls("table", $custom_table->id, "edit?jancodesetting=1"),
                     ]));
