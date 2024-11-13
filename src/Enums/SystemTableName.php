@@ -30,7 +30,7 @@ class SystemTableName extends EnumBase
     public const CUSTOM_VALUE_AUTHORITABLE = 'custom_value_authoritables';
     public const EMAIL_CODE_VERIFY = 'email_code_verifies';
     public const NOTIFY_NAVBAR = 'notify_navbars';
-    public const PASSWORD_RESET = 'password_resets';
+    public const PASSWORD_RESET = 'password_reset_tokens';
     public const REVISION = 'revisions';
     public const LOGIN_SETTINGS = 'login_settings';
     public const WORKFLOW_AUTHORITY = 'workflow_authorities';

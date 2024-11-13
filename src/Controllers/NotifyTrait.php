@@ -160,8 +160,14 @@ trait NotifyTrait
         }
 
         if (System::organization_available()) {
+            if($form_index !== null ) {
+                if(isset($notify->action_settings[$form_index]['target_organizations'])) {
+                    $selected_value = $notify->action_settings[$form_index]['target_organizations'];
+                }
+            }
             list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
+                'selected_value'=> $selected_value
             ]);
 
             $field = $form->multipleSelect('target_organizations', exmtrans('notify.target_organizations'))
