@@ -129,9 +129,15 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
     {
         $data = array_get($dataPivot, 'data');
         $delete = array_get($dataPivot, 'delete');
+        $role_group_id = array_get($data, 'role_group_id');
+
+        // parent data not exists, do nothing
+        if (!RoleGroup::where('id', $role_group_id )->exists()) {
+            return;
+        }
 
         // get target id(cannot use Eloquent because not define)
-        $id = RoleGroupUserOrganization::where('role_group_id', array_get($data, 'role_group_id'))
+        $id = RoleGroupUserOrganization::where('role_group_id', $role_group_id)
             ->where('role_group_user_org_type', array_get($data, 'role_group_user_org_type'))
             ->where('role_group_target_id', array_get($data, 'role_group_target_id'))
             ->first()->id ?? null;

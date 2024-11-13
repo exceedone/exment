@@ -799,7 +799,15 @@ class RoleGroupController extends AdminControllerBase
     public function import(Request $request)
     {
         // create exporter
-        $service = $this->getImportExportService();
+        $service = $this->getImportExportService()
+            ->format($request->file('custom_table_file'));
+        
+        if ($service->format() == 'csv') {
+            $file = $request->file('custom_table_file');
+            $file_name = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $service->filebasename($file_name);
+        }
+
         $result = $service->import($request);
 
         return getAjaxResponse($result);

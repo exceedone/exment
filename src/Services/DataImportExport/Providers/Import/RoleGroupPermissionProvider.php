@@ -149,7 +149,12 @@ class RoleGroupPermissionProvider extends ProviderBase
     public function importData($dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
-        $role_group_id = array_get($data, 'role_group_id'); 
+        $role_group_id = array_get($data, 'role_group_id');
+
+        // parent data not exists, do nothing
+        if (!RoleGroup::where('id', $role_group_id )->exists()) {
+            return;
+        }
 
         $permissions = [];
 
