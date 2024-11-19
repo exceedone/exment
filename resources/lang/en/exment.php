@@ -440,7 +440,7 @@ return [
             'system_values_pos' => 'Set the position to display system values on the data edit screen and data details screen.',
             'data_submit_redirect' => 'You can set the default value for the page to redirect after saving custom data. When this item is set, the check box for the data transition destination after saving will be checked on the data entry page.',
             'header_user_info' => 'You can set the content to be displayed in the user information in the header. If left blank, it will be hidden.',
-            'api_available' => 'If set to YES, you can use the API.',
+            'api_available' => 'Please create a Laravel key before selecting YES. Please refer to <a href="%suse-api" target="_blank">here<i class="fa fa-external-link"></i></a>. If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
             'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
