@@ -226,6 +226,8 @@ class Permission
             case "install":
             case "oauth":
             case "files":
+            case "qr-code":
+                return true;
             case "notify_navbar":
             case "tmpfiles":
             case "tmpimages":

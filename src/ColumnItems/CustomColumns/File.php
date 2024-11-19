@@ -324,6 +324,7 @@ class File extends CustomItem
         if (!is_null($accept_extensions = array_get($options, 'accept_extensions'))) {
             $validates[] = new Validator\FileRule(stringToArray($accept_extensions));
         }
+        $validates[] = new Validator\FileNameRule();
     }
 
     protected function getCustomField($classname, $column_name_prefix = null)

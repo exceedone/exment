@@ -106,7 +106,7 @@ class Initialize
         if (!Config::has('auth.passwords.exment_admins')) {
             Config::set('auth.passwords.exment_admins', [
                 'provider' => 'exment-auth',
-                'table' => 'password_resets',
+                'table' => 'password_reset_tokens',
                 'expire' => 720,
             ]);
         }

@@ -40,7 +40,9 @@
         "exceedone/laravel-admin": "^4.0.0",
         "kylekatarnls/update-helper": "^1.2",
         "laravel/socialite": "^5.2",
-        "psr/simple-cache": "^2.0"
+        "psr/simple-cache": "^2.0",
+        "simplesoftwareio/simple-qrcode": "2.0",
+        "elibyy/tcpdf-laravel": "^11.1"
     },
     "require-dev": {
         "symfony/css-selector": "~5.2",

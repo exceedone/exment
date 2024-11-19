@@ -5,6 +5,11 @@ namespace Exceedone\Exment\Tests\Browser;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\GroupCondition;
 
 class DCustomDataTest extends ExmentKitTestCase
 {
@@ -278,7 +283,7 @@ class DCustomDataTest extends ExmentKitTestCase
         ;
     }
 
-    // todo 一覧ソートバグ対応用の追加です
+    // !!! 一覧ソートバグ対応用の追加です
     /**
      * Check sorted custom data grid display.
      */
@@ -299,6 +304,65 @@ class DCustomDataTest extends ExmentKitTestCase
         // Check custom view data
         $this->visit(admin_url("data/custom_value_view_all?$sort_str"))
             ->seeInElement('td.column-id', '1')
+        ;
+    }
+
+    // !!! 「集計データの明細を表示する」のバグ対応用の追加です
+    /**
+     * Check summary grid data detail by all data view.
+     */
+    public function testDisplaySummaryGridDetail1()
+    {
+        $group_key = \Carbon\Carbon::today()->format('Y-m');
+        $custom_table = CustomTable::getEloquent('all_columns_table_fortest');
+        $all_view = CustomView::getAllData($custom_table);
+        $group_view = CustomView::where('custom_table_id', $custom_table->id)->where('view_kind_type', ViewKindType::AGGREGATE)->first();
+        $group_column = CustomViewColumn::where('custom_view_id', $group_view->id)->where('options->view_group_condition', GroupCondition::YM)->first();
+        $count = $custom_table->getValueModel()
+            ->whereIn('value->select', ['bar', 'baz'])
+            ->where('value->date', '>=', \Carbon\Carbon::now()->startOfMonth())
+            ->where('value->date', '<=', \Carbon\Carbon::now()->endOfMonth())
+            ->count();
+        $group_str = http_build_query([
+            'view' => $all_view->suuid,
+            'group_view' => $group_view->suuid,
+            'group_key' => [
+                Define::COLUMN_ITEM_UNIQUE_PREFIX .$group_column->suuid => $group_key
+            ]
+        ]);
+
+        // Check custom view data
+        $this->visit(admin_url("data/all_columns_table_fortest?$group_str"))
+            ->seeInElement('td.column-date', $group_key)
+            ->seeInElement('div.box-footer.table-footer', "全 <b>$count</b>")
+        ;
+    }
+
+    /**
+     * Check summary grid data detail by all data view (date with group condition).
+     */
+    public function testDisplaySummaryGridDetail2()
+    {
+        $custom_table = CustomTable::getEloquent('all_columns_table_fortest');
+        $all_view = CustomView::getAllData($custom_table);
+        $group_view = CustomView::where('custom_table_id', $custom_table->id)->where('view_kind_type', ViewKindType::AGGREGATE)->first();
+        $group_column = CustomViewColumn::where('custom_view_id', $group_view->id)->where('options->view_group_condition', GroupCondition::YM)->first();
+        $count = $custom_table->getValueModel()
+            ->whereIn('value->select', ['bar', 'baz'])
+            ->whereNull('value->date')
+            ->count();
+        $group_str = http_build_query([
+            'view' => $all_view->suuid,
+            'group_view' => $group_view->suuid,
+            'group_key' => [
+                Define::COLUMN_ITEM_UNIQUE_PREFIX .$group_column->suuid => ''
+            ]
+        ]);
+    
+        // Check custom view data
+        $this->visit(admin_url("data/all_columns_table_fortest?$group_str"))
+            ->seeInElement('td.column-date', '')
+            ->seeInElement('div.box-footer.table-footer', "全 <b>$count</b>")
         ;
     }
 }

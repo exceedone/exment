@@ -31,11 +31,11 @@ trait AuthTrait
 
         $val = System::site_logo();
         if (!boolval(config('exment.disable_login_header_logo', false)) && !is_nullorempty($val)) {
-            $array['header_image'] = admin_url('auth/login/header');
+            $array['header_image'] = admin_url('auth/file/header');
         }
         $val = System::login_page_image();
         if (!is_nullorempty($val)) {
-            $array['background_image'] = admin_url('auth/login/background');
+            $array['background_image'] = admin_url('auth/file/background');
         }
         $val = System::login_page_image_type();
         if (!is_nullorempty($val)) {
