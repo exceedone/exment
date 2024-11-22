@@ -89,6 +89,9 @@ abstract class GridBase
 
         // replace view
         $this->custom_view = CustomView::getAllData($this->custom_table);
+        $service = $this->custom_view->getSearchService();
+        $group_view->setSearchService($service);
+        
         $filters = [];
         foreach ($group_keys as $key => $value) {
             $custom_view_column = CustomViewColumn::findByCkey($key);
