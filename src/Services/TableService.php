@@ -75,8 +75,8 @@ class TableService
     {
         $current_locale = App::getLocale();
         $text_button = config("exment.text_qr_button_{$current_locale}");
-        $label_create = exmtrans("custom_table.qr_code.create", $text_button ?? exmtrans('dashboard_box_system_pages.qr_code'));
-        $label_download = exmtrans("custom_table.qr_code.download", $text_button ?? exmtrans('dashboard_box_system_pages.qr_code'));
+        $label_create = exmtrans("custom_table.qr_code.create", $text_button ?? exmtrans('dashboard_box_system_pages.barcode'));
+        $label_download = exmtrans("custom_table.qr_code.download", $text_button ?? exmtrans('dashboard_box_system_pages.barcode'));
 
         if ($custom_table->getOption('active_qr_flg')) {
             $tools->append(new SwalInputButton([
