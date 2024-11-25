@@ -19,6 +19,7 @@ class AddOptionsToFilters extends Migration
                     $table->timestamp('deleted_at', 0)->nullable()->after('updated_at');
                 }
                 if (!Schema::hasColumn('revisions', 'delete_user_id')) {
+                    /** @phpstan-ignore-next-line unsignedInteger() expects bool, int given */
                     $table->unsignedInteger('delete_user_id', 0)->nullable()->after('create_user_id');
                 }
             });

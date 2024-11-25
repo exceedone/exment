@@ -4,12 +4,13 @@ namespace Exceedone\Exment\Form;
 
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemColumn;
+use Illuminate\Database\Eloquent\Model;
 
 trait SystemValuesTrait
 {
     public $withTrashed = false;
 
-    public function renderSystemItem(?CustomValue $custom_value)
+    public function renderSystemItem(CustomValue|Model|null $custom_value)
     {
         if (!isset($custom_value) || !isset($custom_value->id)) {
             return null;

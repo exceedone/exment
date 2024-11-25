@@ -46,6 +46,7 @@ class NotifyNavbarController extends AdminControllerBase
         $grid->disableExport();
 
         $grid->tools(function (Grid\Tools $tools) {
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\SwalMenuButton given */
             $tools->append(new SwalMenuButton($this->getMenuList()));
             $tools->batch(function (Grid\Tools\BatchActions $batch) {
                 $batch->add(exmtrans('notify_navbar.all_check'), new BatchCheck());

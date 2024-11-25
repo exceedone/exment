@@ -95,6 +95,7 @@ class CustomNotifyController extends AdminControllerTableBase
             ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES());
 
         $grid->tools(function (Grid\Tools $tools) {
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('notify', $this->custom_table));
         });
 
@@ -259,6 +260,7 @@ class CustomNotifyController extends AdminControllerTableBase
         $this->setFooterForm($form, $notify);
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
+            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->add(new Tools\CustomTableMenuButton('notify', $custom_table));
         });
 

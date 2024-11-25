@@ -178,7 +178,7 @@ class CustomValueAuthoritable extends ModelBase
      * Set Authoritable By User and Org Array
      *
      * @param CustomValue $custom_value
-     * @param array $arrays saved target user or organization
+     * @param array|\Illuminate\Support\Collection $arrays saved target user or organization
      * @param bool $is_edit is true, as edit permission
      * @param bool $sync is true, delete items if not has array
      */
@@ -515,7 +515,7 @@ class CustomValueAuthoritable extends ModelBase
      * Notify target user.
      *
      * @param CustomValue $custom_value shared target custom_value.
-     * @param Collection $shareTargets user and organization notify targets collection
+     * @param Collection|\Tightenco\Collect\Support\Collection $shareTargets user and organization notify targets collection
      * @return void
      */
     protected static function notifyUser($custom_value, $shareTargets)

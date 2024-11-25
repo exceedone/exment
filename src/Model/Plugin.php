@@ -497,7 +497,7 @@ class Plugin extends ModelBase
     //Check all plugins satisfied take out from function getPluginByTableId
     //If calling event is button, then add event into array, then return array to make button with action
     /**
-     * @param null $event
+     * @param string|null $event
      * @return array
      */
     public static function pluginPreparingButton($event = null, $custom_table = null)

@@ -98,6 +98,7 @@ class CustomRelationController extends AdminControllerTableBase
         }
 
         $grid->tools(function (Grid\Tools $tools) {
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('relation', $this->custom_table));
         });
 
@@ -197,6 +198,7 @@ class CustomRelationController extends AdminControllerTableBase
 
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
+            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->add(new Tools\CustomTableMenuButton('relation', $custom_table));
         });
         return $form;

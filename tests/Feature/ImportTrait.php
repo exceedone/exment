@@ -9,7 +9,7 @@ trait ImportTrait
 {
     protected function _getCsvArray($file)
     {
-        $original_locale = setlocale(LC_CTYPE, 0);
+        $original_locale = setlocale(LC_CTYPE, "0");
 
         // set C locale
         if (0 === strpos(PHP_OS, 'WIN')) {

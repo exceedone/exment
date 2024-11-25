@@ -63,7 +63,7 @@ class SystemController extends AdminControllerBase
     {
         $this->AdminContent($content);
         $form = $this->formBasic($request);
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('common.basic_setting'), $form);
         $box->tools(new Tools\SystemChangePageMenu());
 
@@ -127,7 +127,7 @@ class SystemController extends AdminControllerBase
         $this->AdminContent($content);
 
         $form = $this->formAdvanced($request);
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('common.detail_setting'), $form);
 
         $box->tools(new Tools\SystemChangePageMenu());
