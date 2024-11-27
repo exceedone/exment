@@ -505,6 +505,10 @@ HTML;
                 ->options(ShowPositionType::transArray("system.system_values_pos_options"))
                 ->help(exmtrans("system.help.system_values_pos"))
             ;
+            $form->select('gridrow_select_transition', exmtrans("custom_table.custom_column_multi.gridrow_select_transition"))
+                ->default('default')
+                ->options(exmtrans('custom_table.custom_column_multi.gridrow_select_options'))
+            ;
 
             if (boolval(config('exment.expart_mode', false))) {
                 $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format"))

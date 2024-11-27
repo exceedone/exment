@@ -1288,6 +1288,7 @@ return [
             'table_label_format' => 'Headline format setting',
             'table_label_format_string' => 'Headline format string',
             'form_action_disable_flg' => 'Cannot changed from display',
+            'gridrow_select_transition' => 'Screen transition when row is clicked',
 
             'help' => [
                 'table_labels' => 'When selecting data, set the wording column to be displayed on the page. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
@@ -1304,6 +1305,12 @@ return [
                 'delete' => 'Delete',
                 'import' => 'Import',
                 'export' => 'Export',
+            ],
+            'gridrow_select_options' => [
+                'default' => 'Match Default',
+                'edit' => 'Data Edit',
+                'show' => 'Data Detail',
+                'none' => 'No transition',
             ],
             'share_trigger_type_options' => [
                 'create' => 'Created',

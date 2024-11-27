@@ -1289,6 +1289,7 @@ return [
             'table_label_format' => '見出しフォーマット設定',
             'table_label_format_string' => 'フォーマット文字列',
             'form_action_disable_flg' => '画面からの変更不可',
+            'gridrow_select_transition' => '行クリック時の画面遷移',
 
             'help' => [
                 'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -1305,6 +1306,12 @@ return [
                 'delete' => '削除',
                 'import' => 'インポート',
                 'export' => 'エクスポート',
+            ],
+            'gridrow_select_options' => [
+                'default' => '既定値に合わせる',
+                'edit' => 'データ編集画面',
+                'show' => 'データ詳細画面',
+                'none' => '遷移しない',
             ],
             'share_trigger_type_options' => [
                 'create' => '新規作成時',

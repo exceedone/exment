@@ -263,6 +263,8 @@ class CustomValueController extends AdminControllerTableBase
 
         $content->row($row);
 
+        $this->setHiddens($content);
+
         if (!$modal) {
             PartialCrudService::setGridContent($this->custom_table, $content);
         }
@@ -1452,5 +1454,24 @@ class CustomValueController extends AdminControllerTableBase
     {
         $one_mm_to_pixel = 3.7795275591;
         return $mmVal * $one_mm_to_pixel;
+    }
+
+    /**
+     * Set hidden element to content block
+     * 
+     * @param Content $content
+     */
+    protected function setHiddens($content)
+    {
+        $gridrow_select_transition = $this->custom_table->getOption('gridrow_select_transition');
+
+        if (is_nullorempty($gridrow_select_transition) || $gridrow_select_transition == 'default') {
+            return;            
+        }
+
+        $html = "<input type='hidden' id='gridrow_select_transition' value='{$gridrow_select_transition}' />";
+        $row = new Row($html);
+        $row->class('block_hidden');
+        $content->row($row);
     }
 }
