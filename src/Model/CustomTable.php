@@ -129,6 +129,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ->where('active_flg', 1);
     }
 
+    public function notify_all()
+    {
+        return $this->hasMany(Notify::class, 'target_id')
+            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES());
+}
+
     public function operations(): HasMany
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
@@ -545,7 +551,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->from_custom_copies()->delete();
             $model->to_custom_copies()->delete();
             $model->operations()->delete();
-            $model->notifies()->delete();
+            $model->notify_all()->delete();
 
             // delete items
             Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
