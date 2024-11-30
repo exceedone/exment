@@ -12,6 +12,9 @@ use Exceedone\Exment\Tests\TestDefine;
 class SearchServiceTest extends UnitTestBase
 {
     // execute search service test
+    /**
+     * @return void
+     */
     public function testSearchDefault()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
@@ -28,6 +31,10 @@ class SearchServiceTest extends UnitTestBase
     }
 
     // execute search service test
+
+    /**
+     * @return void
+     */
     public function testSearchDefaultMultiWhere()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
@@ -45,6 +52,9 @@ class SearchServiceTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testSearchRelationOneMany()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
@@ -66,6 +76,9 @@ class SearchServiceTest extends UnitTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testSearchRelationOneManyMultiWhere()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
@@ -88,6 +101,9 @@ class SearchServiceTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testSearchRelationManyMany()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_MANY_TO_MANY);
@@ -112,7 +128,9 @@ class SearchServiceTest extends UnitTestBase
         });
     }
 
-
+    /**
+     * @return void
+     */
     public function testSearchSelectTable()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_SELECT);
@@ -137,22 +155,36 @@ class SearchServiceTest extends UnitTestBase
 
     // Order ----------------------------------------------------
 
+    /**
+     * @return void
+     */
     public function testOrderDefault()
     {
         $this->_testOrderDefault('index_text');
     }
 
+    /**
+     * @return void
+     */
     public function testOrderDefaultDesc()
     {
         $this->_testOrderDefault('index_text', 'desc');
     }
 
+    /**
+     * @return void
+     */
     public function testOrderDefaultCustomColumn()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
         $this->_testOrderDefault(CustomColumn::getEloquent('index_text', $custom_table));
     }
 
+    /**
+     * @param string $column
+     * @param string $direction
+     * @return void
+     */
     public function _testOrderDefault($column, $direction = 'asc')
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
@@ -172,13 +204,18 @@ class SearchServiceTest extends UnitTestBase
     }
 
 
-
+    /**
+     * @return void
+     */
     public function testOrderOneMany()
     {
         $parent_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
         $this->_testOrderOneMany(CustomColumn::getEloquent('index_text', $parent_table));
     }
 
+    /**
+     * @return void
+     */
     public function testOrderOneManyDesc()
     {
         $parent_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
@@ -186,6 +223,11 @@ class SearchServiceTest extends UnitTestBase
     }
 
 
+    /**
+     * @param string $column
+     * @param string $direction
+     * @return void
+     */
     public function _testOrderOneMany($column, $direction = 'asc')
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
@@ -208,7 +250,9 @@ class SearchServiceTest extends UnitTestBase
     }
 
 
-
+    /**
+     * @return void
+     */
     public function testOrderManyMany()
     {
         // Not support order by many-to-many relation
@@ -226,6 +270,9 @@ class SearchServiceTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testOrderSelectTable()
     {
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE_SELECT);
