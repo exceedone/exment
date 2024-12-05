@@ -30,7 +30,7 @@ class MailSender extends SenderBase
 
     protected $prms = [];
     protected $replaceOptions = [];
-    protected $final_user;
+    protected $notifyUserOnEmailFailureFlag;
 
     /**
      * @param $mail_template
@@ -172,10 +172,10 @@ class MailSender extends SenderBase
         return $this;
     }
 
-    public function finalUser($final_user)
+    public function notifyUserOnEmailFailureFlag($notifyUserOnEmailFailureFlag)
     {
-        if (isset($final_user)) {
-            $this->final_user = $final_user;
+        if (isset($notifyUserOnEmailFailureFlag)) {
+            $this->notifyUserOnEmailFailureFlag = $notifyUserOnEmailFailureFlag;
         }
 
         return $this;
@@ -241,7 +241,7 @@ class MailSender extends SenderBase
             ->setFromName($fromName)
             ->setBodyType($bodyType);
 
-        $job = new MailSendJob(\Exment::user()->id, $this->final_user);
+        $job = new MailSendJob(\Exment::user()->id, $this->notifyUserOnEmailFailureFlag);
         $job->setMailInfo($this->mailInfo)
             ->setMailHistory($this->mailHistory);
         $this->notify($job);
@@ -281,7 +281,7 @@ class MailSender extends SenderBase
             ->setMailTemplate($mail_template)
             ->setHistory(false);
 
-        $job = new MailSendJob(\Exment::user()->id, $this->final_user);
+        $job = new MailSendJob(\Exment::user()->id, $this->notifyUserOnEmailFailureFlag);
         $job->setMailInfo($mailInfo)
             ->setMailHistory($mailHistory);
 
