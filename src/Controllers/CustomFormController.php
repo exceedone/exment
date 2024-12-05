@@ -602,7 +602,9 @@ class CustomFormController extends AdminControllerTableBase
         $req_custom_form_blocks = old('custom_form_blocks');
         if (!isset($req_custom_form_blocks)
         ) {
-            return $form->custom_form_blocks;
+            return $form->custom_form_blocks->sortBy(function ($item, $key) {
+                return $item->getOption('form_block_order')?? 0;
+            });
         }
 
         return collect($req_custom_form_blocks)->map(function ($req_custom_form_block, $key) {

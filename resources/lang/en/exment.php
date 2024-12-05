@@ -1551,6 +1551,7 @@ return [
         'suggest_column_label' => 'Table Column',
         'suggest_other_label' => 'Other',
         'form_block_name' => 'Form Block Name',
+        'form_block_order' => 'Form Block Display Order',
         'field_default' => 'Standard',
         'read_only' => 'Read Only',
         'view_only' => 'View Only',

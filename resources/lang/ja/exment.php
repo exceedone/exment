@@ -1552,6 +1552,7 @@ return [
         'suggest_column_label' => 'テーブル列',
         'suggest_other_label' => 'その他',
         'form_block_name' => 'フォームブロック名',
+        'form_block_order' => '表示順',
         'field_default' => '標準',
         'read_only' => '読み取り専用',
         'view_only' => '表示専用',
