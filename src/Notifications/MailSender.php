@@ -241,7 +241,7 @@ class MailSender extends SenderBase
             ->setFromName($fromName)
             ->setBodyType($bodyType);
 
-        $job = new MailSendJob(\Exment::user(), $this->final_user);
+        $job = new MailSendJob(\Exment::user()->id, $this->final_user);
         $job->setMailInfo($this->mailInfo)
             ->setMailHistory($this->mailHistory);
         $this->notify($job);
@@ -281,7 +281,7 @@ class MailSender extends SenderBase
             ->setMailTemplate($mail_template)
             ->setHistory(false);
 
-        $job = new MailSendJob(\Exment::user(), $this->final_user);
+        $job = new MailSendJob(\Exment::user()->id, $this->final_user);
         $job->setMailInfo($mailInfo)
             ->setMailHistory($mailHistory);
 
