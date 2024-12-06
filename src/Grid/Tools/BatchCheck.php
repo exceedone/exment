@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
-use Encore\Admin\Grid\Tools\BatchAction;
+use OpenAdmin\Admin\Grid\Tools\BatchAction;
 
 class BatchCheck extends BatchAction
 {

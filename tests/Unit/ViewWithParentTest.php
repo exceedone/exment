@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
-use Encore\Admin\Grid;
+use OpenAdmin\Admin\Grid;
 
 /**
  * Custom view include parent or select table column test.

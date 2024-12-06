@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Grid;
 
-use Encore\Admin\Form;
+use OpenAdmin\Admin\Form;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginButtonType;

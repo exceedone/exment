@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Widgets\Form;
-use Encore\Admin\Grid;
+use OpenAdmin\Admin\Widgets\Form;
+use OpenAdmin\Admin\Grid;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
@@ -20,11 +20,11 @@ use Exceedone\Exment\Enums\RoleGroupType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Tools;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Grid\Linker;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Form as AdminForm;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Grid\Linker;
+use OpenAdmin\Admin\Widgets\Box;
+use OpenAdmin\Admin\Auth\Permission as Checker;
+use OpenAdmin\Admin\Form as AdminForm;
 
 class RoleGroupController extends AdminControllerBase
 {

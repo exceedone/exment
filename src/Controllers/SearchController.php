@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Grid\Linker;
-//use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Table as WidgetTable;
+use OpenAdmin\Admin\Facades\Admin;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Grid\Linker;
+//use OpenAdmin\Admin\Widgets\Form;
+use OpenAdmin\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;

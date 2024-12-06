@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Controllers\HasResourceActions as ParentResourceActions;
+use OpenAdmin\Admin\Controllers\HasResourceActions as ParentResourceActions;
 use Symfony\Component\HttpFoundation\Response;
 
 trait HasResourceActions

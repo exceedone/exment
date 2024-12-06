@@ -6,7 +6,7 @@ use Closure;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 
-class AuthenticatePasswordLimit extends \Encore\Admin\Middleware\Authenticate
+class AuthenticatePasswordLimit extends \OpenAdmin\Admin\Middleware\Authenticate
 {
     /**
      * Handle an incoming request.

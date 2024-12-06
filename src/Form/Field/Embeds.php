@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field  as AdminField;
+use OpenAdmin\Admin\Form\Field  as AdminField;
 use Exceedone\Exment\Form\EmbeddedForm;
 
 class Embeds extends AdminField\Embeds

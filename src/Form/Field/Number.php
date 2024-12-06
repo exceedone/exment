@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class Number extends \Encore\Admin\Form\Field\Number
+class Number extends \OpenAdmin\Admin\Form\Field\Number
 {
     //protected $rules = [];
 

@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Form\Field;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\ColumnDefaultType;

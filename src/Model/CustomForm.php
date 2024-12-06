@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Encore\Admin\Facades\Admin;
+use OpenAdmin\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FormColumnType;

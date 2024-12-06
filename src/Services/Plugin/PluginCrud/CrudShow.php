@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
-use Encore\Admin\Widgets\Form;
+use OpenAdmin\Admin\Widgets\Form;
 use Illuminate\Http\Request;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use OpenAdmin\Admin\Widgets\Form as WidgetForm;
+use OpenAdmin\Admin\Widgets\Box;
 use Exceedone\Exment\Form\Tools;
 
 /**

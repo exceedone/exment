@@ -1277,7 +1277,7 @@ class PatchDataCommand extends Command
         }
 
         $columns = \Exceedone\Exment\Middleware\LogOperation::getHideColumns();
-        \Encore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) use ($columns) {
+        \OpenAdmin\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) use ($columns) {
             foreach ($logs as $log) {
                 $input = $log->input;
                 if (is_nullorempty($input)) {

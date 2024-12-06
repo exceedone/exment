@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Auth\Permission as Checker;
+use OpenAdmin\Admin\Auth\Permission as Checker;
 use Exceedone\Exment\Model\CustomTable;
 
 trait ExmentControllerTrait

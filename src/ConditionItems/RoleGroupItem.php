@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Encore\Admin\Form\Field;
+use OpenAdmin\Admin\Form\Field;
 use Illuminate\Database\Eloquent\Collection;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\CustomValue;
@@ -59,7 +59,7 @@ class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterfac
      *
      * @param string $key
      * @param bool $show_condition_key
-     * @return \Encore\Admin\Form\Field
+     * @return \OpenAdmin\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {

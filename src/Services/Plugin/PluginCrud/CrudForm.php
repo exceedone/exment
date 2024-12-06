@@ -4,9 +4,9 @@ namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\MessageBag;
-use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use OpenAdmin\Admin\Widgets\Form;
+use OpenAdmin\Admin\Widgets\Form as WidgetForm;
+use OpenAdmin\Admin\Widgets\Box;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 

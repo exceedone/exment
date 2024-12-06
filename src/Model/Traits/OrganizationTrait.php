@@ -9,8 +9,8 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Encore\Admin\Traits\ModelTree;
-use Encore\Admin\Traits\AdminBuilder;
+use OpenAdmin\Admin\Traits\ModelTree;
+use OpenAdmin\Admin\Traits\AdminBuilder;
 
 /**
  * @uses \Exceedone\Exment\Services\ClassBuilder

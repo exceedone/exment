@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Form;
 
-use Encore\Admin\Show\Field;
-use Encore\Admin\Show as AdminShow;
+use OpenAdmin\Admin\Show\Field;
+use OpenAdmin\Admin\Show as AdminShow;
 use Exceedone\Exment\Form\Field\FieldGroupTrait;
 use Exceedone\Exment\Form\Show\GridShowPanel;
 

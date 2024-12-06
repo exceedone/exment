@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field;
-use Encore\Admin\Form\Field\MultipleSelect;
+use OpenAdmin\Admin\Form\Field;
+use OpenAdmin\Admin\Form\Field\MultipleSelect;
 
 class PivotMultiSelect extends MultipleSelect
 {

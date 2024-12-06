@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Grid\Filter;
 
 use Illuminate\Support\Arr;
 
-class Between extends \Encore\Admin\Grid\Filter\Between
+class Between extends \OpenAdmin\Admin\Grid\Filter\Between
 {
     use BetweenTrait;
 

@@ -24,7 +24,7 @@ use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
-use Encore\Admin\Facades\Admin;
+use OpenAdmin\Admin\Facades\Admin;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -1950,11 +1950,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set select table's field info.
      *
-     * @param \Encore\Admin\Form\Field $field
+     * @param \OpenAdmin\Admin\Form\Field $field
      * @param array $options
-     * @return \Encore\Admin\Form\Field
+     * @return \OpenAdmin\Admin\Form\Field
      */
-    public function setSelectTableField(\Encore\Admin\Form\Field $field, array $options = []): \Encore\Admin\Form\Field
+    public function setSelectTableField(\OpenAdmin\Admin\Form\Field $field, array $options = []): \OpenAdmin\Admin\Form\Field
     {
         $options = array_merge([
             'custom_value' => null, // select custom value, if called custom value's select table

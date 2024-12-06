@@ -6,7 +6,7 @@ use Exceedone\Exment\Auth\HasPermissions;
 use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
-use Encore\Admin\Traits\AdminBuilder;
+use OpenAdmin\Admin\Traits\AdminBuilder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Storage;

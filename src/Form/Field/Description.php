@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field;
+use OpenAdmin\Admin\Form\Field;
 
 class Description extends Field\Display
 {

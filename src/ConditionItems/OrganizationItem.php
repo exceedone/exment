@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Encore\Admin\Form\Field;
+use OpenAdmin\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
@@ -25,7 +25,7 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
      *
      * @param string $key
      * @param bool $show_condition_key
-     * @return \Encore\Admin\Form\Field
+     * @return \OpenAdmin\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {

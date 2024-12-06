@@ -6,7 +6,7 @@ use Closure;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\Define;
 
-class AuthenticatePublicFormApi extends \Encore\Admin\Middleware\Authenticate
+class AuthenticatePublicFormApi extends \OpenAdmin\Admin\Middleware\Authenticate
 {
     /**
      * Handle an incoming request.
