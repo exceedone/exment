@@ -1066,6 +1066,23 @@ if (!function_exists('isMatchArray')) {
     }
 }
 
+if (!function_exists('strcmp_ex')) {
+    /**
+     * Wrapper for strcmp that throws when an error occurs.
+     *
+     * @param ?string $string1  compare string data 1
+     * @param ?string $string2  compare string data 2
+     *
+     * @return int
+     */
+    function strcmp_ex(?string $string1, ?string $string2): int
+    {
+        $string1 = $string1?? '';
+        $string2 = $string2?? '';
+
+        return strcmp($string1, $string2);
+    }
+}
 // string --------------------------------------------------
 if (!function_exists('rstrpos')) {
     /**
