@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 /**
  * For login controller 2 factor
  */
-class Auth2factorController extends \Encore\Admin\Controllers\AuthController
+class Auth2factorController extends \OpenAdmin\Admin\Controllers\AuthController
 {
     use AuthTrait;
 

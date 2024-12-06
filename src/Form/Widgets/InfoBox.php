@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Widgets;
 
-use Encore\Admin\Widgets\InfoBox as AdminInfoBox;
+use OpenAdmin\Admin\Widgets\InfoBox as AdminInfoBox;
 
 class InfoBox extends AdminInfoBox
 {

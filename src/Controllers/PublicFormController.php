@@ -3,8 +3,8 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Routing\Controller;
-use Encore\Admin\Form;
-use Encore\Admin\Layout\Content;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Layout\Content;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\PublicForm;

@@ -5,8 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Services\DataImportExport;
-use Encore\Admin\Grid;
-use Encore\Admin\Show;
+use OpenAdmin\Admin\Grid;
+use OpenAdmin\Admin\Show;
 use Illuminate\Support\Arr;
 
 class LogController extends AdminControllerBase

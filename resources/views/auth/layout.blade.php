@@ -12,15 +12,15 @@
   @endif
 
   <!-- Bootstrap 3.3.5 -->
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/bootstrap/css/bootstrap.min.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/css/bootstrap.min.css") }}">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/font-awesome/css/all.min.css") }}">
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/font-awesome/css/v4-shims.min.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/all.min.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/v4-shims.min.css") }}">
   <!-- Theme style -->
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/dist/css/AdminLTE.min.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/dist/css/AdminLTE.min.css") }}">
   <!-- iCheck -->
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/iCheck/square/blue.css") }}">
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/toastr/build/toastr.min.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/square/blue.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.css") }}">
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
@@ -64,13 +64,13 @@
       </div>
       <!-- /.login-box -->
 <!-- jQuery 2.1.4 -->
-<script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
+<script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
 <!-- Bootstrap 3.3.5 -->
-<script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script>
+<script src="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script>
 <!-- iCheck -->
-<script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/iCheck/icheck.min.js")}}"></script>
+<script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js")}}"></script>
 
-<script src="{{ admin_asset("/vendor/laravel-admin/toastr/build/toastr.min.js")}}"></script>
+<script src="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.js")}}"></script>
 <script src="{{ admin_asset("/vendor/exment/js/common_all.js")}}"></script>
 
 <script>

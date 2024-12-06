@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Encore\Admin\Facades\Admin;
+use OpenAdmin\Admin\Facades\Admin;
 
 /**
  * Open Modal button.

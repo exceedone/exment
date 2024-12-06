@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ColumnDefaultType;
@@ -73,7 +73,7 @@ class Time extends Date
 
     /**
      * Set Custom Column Option default value Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void

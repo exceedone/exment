@@ -2,7 +2,7 @@
 
 namespace App\Plugins\TestPluginPage;
 
-use Encore\Admin\Layout\Content;
+use OpenAdmin\Admin\Layout\Content;
 use Exceedone\Exment\Services\Plugin\PluginPageBase;
 
 class Plugin extends PluginPageBase

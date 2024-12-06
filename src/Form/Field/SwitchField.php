@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field\SwitchField as AdminSwitchField;
+use OpenAdmin\Admin\Form\Field\SwitchField as AdminSwitchField;
 
 class SwitchField extends AdminSwitchField
 {

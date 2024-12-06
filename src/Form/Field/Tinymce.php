@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field\Textarea;
+use OpenAdmin\Admin\Form\Field\Textarea;
 use Exceedone\Exment\Model\Define;
 
 class Tinymce extends Textarea

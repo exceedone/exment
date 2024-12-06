@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Widgets\Box;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Auth\Permission as Checker;
+use OpenAdmin\Admin\Layout\Row;
+use OpenAdmin\Admin\Widgets\Box;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\Permission;

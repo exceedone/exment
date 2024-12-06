@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Widgets\Form as WidgetForm;
+use OpenAdmin\Admin\Widgets\Box;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;

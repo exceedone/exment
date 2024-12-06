@@ -17,9 +17,9 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterOption;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
-use Encore\Admin\Grid\Filter;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Form\Field;
+use OpenAdmin\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
 
 /**
@@ -217,7 +217,7 @@ class SelectTable extends CustomItem
                         'target_view_id' => $this->custom_column->getOption('select_target_view'),
                         'display_table_id' => $this->custom_table->id,
                         'linkage' => $linkage_expand,
-                        'target_column_multiple' => $field instanceof \Encore\Admin\Form\Field\MultipleSelect ? 1 : 0,
+                        'target_column_multiple' => $field instanceof \OpenAdmin\Admin\Form\Field\MultipleSelect ? 1 : 0,
                     ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'class_' . $this->uniqueName()]),
                 ],
@@ -390,7 +390,7 @@ class SelectTable extends CustomItem
 
     protected function getRemoveValidates()
     {
-        return [\Encore\Admin\Validator\HasOptionRule::class];
+        return [\OpenAdmin\Admin\Validator\HasOptionRule::class];
     }
 
     /**
@@ -664,7 +664,7 @@ class SelectTable extends CustomItem
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void

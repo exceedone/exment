@@ -7,7 +7,7 @@ namespace Exceedone\Exment\Model;
  * @property mixed $user_id
  * @property mixed $created_at
  */
-class OperationLog extends \Encore\Admin\Auth\Database\OperationLog
+class OperationLog extends \OpenAdmin\Admin\Auth\Database\OperationLog
 {
     use Traits\SerializeDateTrait;
     //protected $appends = ['base_user_id'];

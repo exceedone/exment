@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Widgets\Form as WidgetForm;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Widgets\Box;
+use OpenAdmin\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;

@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 use App\Http\Controllers\Controller;
-use Encore\Admin\Layout\Content;
+use OpenAdmin\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use BadMethodCallException;
 use Response;

@@ -12,13 +12,13 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
-//use Encore\Admin\Controllers\HasResourceActions;
-use Encore\Admin\Form;
-use Encore\Admin\Layout\Column;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Tree;
-use Encore\Admin\Widgets\Box;
+//use OpenAdmin\Admin\Controllers\HasResourceActions;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Layout\Column;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Layout\Row;
+use OpenAdmin\Admin\Tree;
+use OpenAdmin\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -45,7 +45,7 @@ class MenuController extends AdminControllerBase
                 $row->column(5, $this->treeView()->render());
 
                 $row->column(7, function (Column $column) {
-                    $form = new \Encore\Admin\Widgets\Form();
+                    $form = new \OpenAdmin\Admin\Widgets\Form();
                     $form->action(admin_url('auth/menu'));
 
                     $this->createMenuForm($form);
@@ -82,7 +82,7 @@ class MenuController extends AdminControllerBase
     }
 
     /**
-     * @return \Encore\Admin\Tree
+     * @return \OpenAdmin\Admin\Tree
      */
     protected function treeView()
     {

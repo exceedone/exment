@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use Encore\Admin\Form;
+use OpenAdmin\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Validator;
@@ -121,7 +121,7 @@ class Text extends CustomItem
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\Plugin;
 
-use Encore\Admin\Form;
+use OpenAdmin\Admin\Form;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
@@ -75,7 +75,7 @@ abstract class PluginViewBase extends PluginPublicBase
 
     /**
      * Set view option form for setting
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void

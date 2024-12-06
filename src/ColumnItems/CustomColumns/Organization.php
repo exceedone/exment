@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-use Encore\Admin\Form;
+use OpenAdmin\Admin\Form;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
@@ -19,7 +19,7 @@ class Organization extends SelectTable
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void

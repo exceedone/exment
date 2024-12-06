@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form;
 
-use Encore\Admin\Form\Footer as FooterBase;
+use OpenAdmin\Admin\Form\Footer as FooterBase;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 

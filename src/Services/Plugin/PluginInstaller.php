@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\Plugin;
 
-use Encore\Admin\Facades\Admin;
+use OpenAdmin\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\PluginType;

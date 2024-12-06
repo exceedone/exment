@@ -3,9 +3,9 @@
 namespace Exceedone\Exment;
 
 use Storage;
-use Encore\Admin\Admin;
-use Encore\Admin\Middleware as AdminMiddleware;
-use Encore\Admin\AdminServiceProvider as ServiceProvider;
+use OpenAdmin\Admin\Admin;
+use OpenAdmin\Admin\Middleware as AdminMiddleware;
+use OpenAdmin\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
@@ -355,8 +355,8 @@ class ExmentServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../config' => config_path()]);
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
-        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/assets') => public_path('vendor/laravel-admin')], 'laravel-admin-assets-exment');
-        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/lang') => resource_path('lang')], 'laravel-admin-lang-exment');
+        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/assets') => public_path('vendor/open-admin')], 'open-admin-assets-exment');
+        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/lang') => resource_path('lang')], 'open-admin-lang-exment');
         $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
     }
 
@@ -468,7 +468,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         Initialize::initializeConfig(false);
 
-        if (method_exists("\Encore\Admin\Admin", "registered")) {
+        if (method_exists("\OpenAdmin\Admin\Admin", "registered")) {
             Admin::registered(function () {
                 Initialize::registeredLaravelAdmin();
             });

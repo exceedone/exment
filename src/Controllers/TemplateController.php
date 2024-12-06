@@ -7,8 +7,8 @@ use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\TemplateExportTarget;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Box;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use GuzzleHttp\Client;
@@ -162,11 +162,11 @@ class TemplateController extends AdminControllerBase
     /**
      * create export box
      *
-     * @return \Encore\Admin\Widgets\Form
+     * @return \OpenAdmin\Admin\Widgets\Form
      */
     protected function exportBoxForm()
     {
-        $form = new \Encore\Admin\Widgets\Form();
+        $form = new \OpenAdmin\Admin\Widgets\Form();
         $form->disablePjax();
         $form->disableReset();
         $form->action(admin_url('template/export'));
@@ -215,7 +215,7 @@ class TemplateController extends AdminControllerBase
      */
     protected function importBox(Content $content)
     {
-        $form = new \Encore\Admin\Widgets\Form();
+        $form = new \OpenAdmin\Admin\Widgets\Form();
         $form->disableReset();
         $form->action(admin_url('template/import'));
 

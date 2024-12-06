@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Services\Installer;
 
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use OpenAdmin\Admin\Widgets\Form as WidgetForm;
+use OpenAdmin\Admin\Widgets\Box;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;

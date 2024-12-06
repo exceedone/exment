@@ -2,14 +2,14 @@
 
 namespace Exceedone\Exment\Form\Show;
 
-use Encore\Admin\Show;
+use OpenAdmin\Admin\Show;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 
 /**
  * Public show panel for child.
  */
-class PublicShowPanelChild extends \Encore\Admin\Show\Panel
+class PublicShowPanelChild extends \OpenAdmin\Admin\Show\Panel
 {
     /**
      * The view to be rendered.

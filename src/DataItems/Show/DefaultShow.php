@@ -3,15 +3,15 @@
 namespace Exceedone\Exment\DataItems\Show;
 
 use Illuminate\Http\Request;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Form\Field;
-use Encore\Admin\Show;
-use Encore\Admin\Show\Field as ShowField;
+use OpenAdmin\Admin\Facades\Admin;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Grid;
+use OpenAdmin\Admin\Layout\Row;
+use OpenAdmin\Admin\Widgets\Box;
+use OpenAdmin\Admin\Widgets\Form as WidgetForm;
+use OpenAdmin\Admin\Form\Field;
+use OpenAdmin\Admin\Show;
+use OpenAdmin\Admin\Show\Field as ShowField;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Widgets\ModalForm;

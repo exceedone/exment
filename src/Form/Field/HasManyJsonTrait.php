@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\NestedForm;
+use OpenAdmin\Admin\Form\NestedForm;
 use Illuminate\Support\Arr;
 
 /**
@@ -61,7 +61,7 @@ trait HasManyJsonTrait
             }
         }
 
-        /** @phpstan-ignore-next-line Call to function is_null() with Encore\Admin\Form will always evaluate to false. */
+        /** @phpstan-ignore-next-line Call to function is_null() with OpenAdmin\Admin\Form will always evaluate to false. */
         if (is_null($this->form)) {
             return $forms;
         }

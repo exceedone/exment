@@ -4,10 +4,10 @@ namespace Exceedone\Exment\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Widgets\Box;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Widgets\Form as WidgetForm;
+use OpenAdmin\Admin\Facades\Admin;
+use OpenAdmin\Admin\Widgets\Box;
 
 class ErrorController extends Controller
 {

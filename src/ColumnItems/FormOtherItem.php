@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use Encore\Admin\Form\Field;
+use OpenAdmin\Admin\Form\Field;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\FormLabelType;
-use Encore\Admin\Show\Field as ShowField;
+use OpenAdmin\Admin\Show\Field as ShowField;
 
 abstract class FormOtherItem implements ItemInterface
 {

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Console;
 
-use Encore\Admin\Console\InstallCommand as AdminInstallCommand;
+use OpenAdmin\Admin\Console\InstallCommand as AdminInstallCommand;
 
 class CheckConnectionCommand extends AdminInstallCommand
 {

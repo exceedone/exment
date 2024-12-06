@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class Favicon extends \Encore\Admin\Form\Field\Image
+class Favicon extends \OpenAdmin\Admin\Form\Field\Image
 {
     /**
      *  Validation rules.

@@ -4,8 +4,8 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\FilterOption;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Form\Field;
 
 class AutoNumber extends CustomItem
 {
@@ -78,7 +78,7 @@ class AutoNumber extends CustomItem
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void
@@ -110,7 +110,7 @@ class AutoNumber extends CustomItem
 
     /**
      * Set Custom Column Option default value Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void

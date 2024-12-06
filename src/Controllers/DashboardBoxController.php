@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Layout\Content;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Dashboard;

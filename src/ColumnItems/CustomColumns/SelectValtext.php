@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\Validator;
-use Encore\Admin\Form;
+use OpenAdmin\Admin\Form;
 
 class SelectValtext extends Select
 {
@@ -69,7 +69,7 @@ class SelectValtext extends Select
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void

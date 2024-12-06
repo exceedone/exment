@@ -6,9 +6,9 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\FilterOption;
-use Encore\Admin\Form;
+use OpenAdmin\Admin\Form;
 use Exceedone\Exment\Form\Field\RadioButton;
-use Encore\Admin\Form\Field;
+use OpenAdmin\Admin\Form\Field;
 
 class Select extends CustomItem
 {
@@ -131,7 +131,7 @@ class Select extends CustomItem
 
     protected function getRemoveValidates()
     {
-        return [\Encore\Admin\Validator\HasOptionRule::class];
+        return [\OpenAdmin\Admin\Validator\HasOptionRule::class];
     }
 
     protected function setAdminFilterOptions(&$filter)
@@ -179,7 +179,7 @@ class Select extends CustomItem
 
     /**
      * Set Custom Column Option Form. Using laravel-admin form option
-     * https://laravel-admin.org/docs/#/en/model-form-fields
+     * https://open-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void

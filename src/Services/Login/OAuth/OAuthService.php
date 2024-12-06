@@ -308,7 +308,7 @@ class OAuthService implements LoginServiceInterface
      * Set custom config for login setting controller.
      *
      * @param $provider_name
-     * @param \Encore\Admin\Form $form
+     * @param \OpenAdmin\Admin\Form $form
      * @return void
      */
     public static function setLoginSettingForm($provider_name, $form)

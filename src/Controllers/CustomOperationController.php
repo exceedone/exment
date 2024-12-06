@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Auth\Permission as Checker;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Grid;
+use OpenAdmin\Admin\Layout\Content;
+use OpenAdmin\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomOperation;
@@ -222,7 +222,7 @@ class CustomOperationController extends AdminControllerTableBase
                             return [$item['id'] => $item['text']];
                         });
                     })
-                    ->removeRules(\Encore\Admin\Validator\HasOptionRule::class);
+                    ->removeRules(\OpenAdmin\Admin\Validator\HasOptionRule::class);
             },
             'valueCallback' => function ($data, $field) use ($custom_table) {
                 $item = ConditionItemBase::getItemByRequest($custom_table, array_get($data, 'view_column_target'));

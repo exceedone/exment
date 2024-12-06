@@ -2,13 +2,13 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Widgets\Box;
+use OpenAdmin\Admin\Form;
+use OpenAdmin\Admin\Grid;
+use OpenAdmin\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Encore\Admin\Widgets\Form as WidgetForm;
+use OpenAdmin\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\System;
@@ -25,7 +25,7 @@ use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Services\Login as LoginServiceBase;
-use Encore\Admin\Layout\Content;
+use OpenAdmin\Admin\Layout\Content;
 use Carbon\Carbon;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
