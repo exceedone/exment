@@ -41,7 +41,7 @@ class Editor extends CustomItem
     protected function _text($v)
     {
         // replace img html
-        $v = $this->replaceImgUrl($v);
+        $v = $this::replaceImgUrl($v);
 
         return $v;
     }
@@ -73,7 +73,7 @@ class Editor extends CustomItem
 
         $item = $this;
         $field->callbackValue(function ($value) use ($item) {
-            return $item->replaceImgUrl($value);
+            return $item::replaceImgUrl($value);
         });
 
         if ($this->isPublicForm()) {
@@ -97,7 +97,7 @@ class Editor extends CustomItem
      * @param ?string $v
      * @return string
      */
-    public function replaceImgUrl($v)
+    public static function replaceImgUrl($v, $options = [])
     {
         // replace img html
         preg_match_all('/\<img(.*?)data-exment-file-uuid="(?<file_uuid>.*?)"(.*?)\>/u', $v, $matches);
@@ -111,9 +111,8 @@ class Editor extends CustomItem
             if (is_nullorempty($file_uuid)) {
                 continue;
             }
-
-            $url = ExmentFile::getUrl($file_uuid);
-
+            $url = ExmentFile::getUrl($file_uuid, $options);
+ 
             //replace src
             $replaceValue = preg_replace('/src="(.*?)"/u', 'src="' . $url . '"', $replaceValue);
             //$replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', "", $replaceValue);

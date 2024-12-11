@@ -14,7 +14,7 @@ trait TableItemTrait
     /**
      * Has show permission this dashboard item
      *
-     * @return boolean
+     * @return array|string|boolean
      */
     protected function hasPermission()
     {
@@ -55,7 +55,7 @@ trait TableItemTrait
     /**
      * get dashboard attributes for display html
      *
-     * @return void
+     * @return array
      */
     public function attributes()
     {

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
@@ -20,13 +21,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $suuid
  * @property mixed $view_type
  * @property mixed $view_kind_type
+ * @property mixed $view_view_name
  * @property mixed $default_flg
  * @property mixed $custom_table_id
  * @property mixed $created_user_id
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -47,7 +51,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Custom Value search service.
      *
-     * @var SearchService
+     * @var SearchService|null
      */
     private $_search_service;
 
@@ -272,6 +276,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->_search_service = null;
     }
 
+    /**
+     * set search service.
+     */
+    public function setSearchService(SearchService $service)
+    {
+        $this->_search_service = $service;
+    }
+
 
     /**
      * get eloquent using request settion.
@@ -311,8 +323,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * Get data paginate. default or summary
-     *
-     * @return void
      */
     public function getDataPaginate($options = [])
     {
@@ -488,7 +498,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * @param mixed $tableObj table_name, object or id eic
      * @param boolean $getSettingValue if true, getting from UserSetting table
      * @param boolean $is_dashboard call by dashboard
-     * @return CustomView
+     * @return CustomView|null
      */
     public static function getDefault($tableObj, $getSettingValue = true, $is_dashboard = false)
     {
@@ -659,7 +669,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * Create default columns
      *
      * @param boolean $appendIndexColumn if true, append custom column has index
-     * @return void
      */
     public function createDefaultViewColumns($appendIndexColumn = false)
     {
@@ -707,7 +716,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * copy from default view columns
      *
      * @param CustomView|null $fromView copied target view
-     * @return void
      */
     public function copyFromDefaultViewColumns(?CustomView $fromView)
     {
@@ -744,13 +752,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
         $custom_view_filters = $this->custom_view_filters;
 
-        if (count($custom_view_filters) !== 0) {
+        if ($custom_view_filters->count() > 0) {
             $service = $this->getSearchService()->setQuery($query);
             foreach ($custom_view_filters as $filter) {
                 $service->setRelationJoin($filter);
             }
 
-            $query->where(function ($query) use ($custom_view_filters, $service) {
+            $func = boolval($this->condition_reverse)? 'whereNot': 'where';
+            $query->{$func}(function ($query) use ($custom_view_filters, $service) {
                 foreach ($custom_view_filters as $filter) {
                     $service->whereCustomViewFilter($filter, $this->filter_is_or, $query);
                 }
@@ -769,7 +778,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // Cannot use $custom_view_filters_cache because summary to grid, use custom_view_filters directly.
         $custom_view_filters = $this->custom_view_filters;
 
-        if (count($custom_view_filters) !== 0) {
+        if ($custom_view_filters->count() > 0) {
             $service = $this->getSearchService()->setQuery($query);
 
             // Get $relationTables.
@@ -959,6 +968,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setConditionJoinAttribute($val)
     {
         $this->setOption('condition_join', $val);
+
+        return $this;
+    }
+
+    public function getConditionReverseAttribute()
+    {
+        return $this->getOption('condition_reverse');
+    }
+
+    public function setConditionReverseAttribute($val)
+    {
+        $this->setOption('condition_reverse', $val);
 
         return $this;
     }

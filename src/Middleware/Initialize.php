@@ -106,7 +106,7 @@ class Initialize
         if (!Config::has('auth.passwords.exment_admins')) {
             Config::set('auth.passwords.exment_admins', [
                 'provider' => 'exment-auth',
-                'table' => 'password_resets',
+                'table' => 'password_reset_tokens',
                 'expire' => 720,
             ]);
         }
@@ -455,6 +455,7 @@ class Initialize
         Grid::init(function (Grid $grid) {
             $grid->disableColumnSelector();
 
+            /** @phpstan-ignore-next-line Left side of && is always true. it needs to fix laravel-admin */
             if ($grid->model() && ($grid->model()->eloquent() instanceof Model\CustomValue)) {
                 if (!is_null($value = System::grid_pager_count())) {
                     $grid->paginate($value);

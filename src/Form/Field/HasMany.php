@@ -17,7 +17,7 @@ class HasMany extends AdminHasMany
      *
      * @throws \Exception
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|string
      */
     public function render()
     {
@@ -53,17 +53,18 @@ class HasMany extends AdminHasMany
     protected function getTemplateHtmlAndScript($form)
     {
         list($template, $script) = $form->getTemplateHtmlAndScript();
+        return [$template, $script];
+        
+        // // re-set $script
+        // $scripts = [];
+        // foreach ($form->fields() as $field) {
+        //     // when NestedEmbeds item, get NestedEmbeds's getScript()
+        //     if (method_exists($field, 'getScript')) {
+        //         $scripts[] = $field->getScript();
+        //     }
+        // }
 
-        // re-set $script
-        $scripts = [];
-        foreach ($form->fields() as $field) {
-            // when NestedEmbeds item, get NestedEmbeds's getScript()
-            if (method_exists($field, 'getScript')) {
-                $scripts[] = $field->getScript();
-            }
-        }
-
-        return [$template, implode("\r\n", $scripts)];
+        // return [$template, implode("\r\n", $scripts)];
     }
 
     /**
@@ -117,7 +118,7 @@ $("button[type='submit']").click(function(){
         return true;
     }
     var cnt = $('#has-many-{$this->column} .has-many-{$this->column}-forms > .fields-group').filter(':visible').length;
-    if (cnt == 0) { 
+    if (cnt == 0) {
         swal("$errortitle", "$requiremessage", "error");
         return false;
     };

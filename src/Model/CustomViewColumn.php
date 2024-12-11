@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\ConditionType;
 
 /**
@@ -9,7 +10,11 @@ use Exceedone\Exment\Enums\ConditionType;
  * @property mixed $view_column_target_id
  * @property mixed $view_column_table_id
  * @property mixed $suuid
+ * @property mixed $order
+ * @property mixed $options
  * @property mixed $custom_view_id
+ * @property mixed $custom_view
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomViewColumn extends ModelBase
 {

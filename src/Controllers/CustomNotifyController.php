@@ -123,11 +123,12 @@ class CustomNotifyController extends AdminControllerTableBase
         return $grid;
     }
 
-
     /**
      * Make a form builder.
      *
-     * @return Form
+     * @param $id
+     * @param $copy_id
+     * @return Form|false|void
      */
     protected function form($id = null, $copy_id = null)
     {

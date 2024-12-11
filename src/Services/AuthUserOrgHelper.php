@@ -8,6 +8,8 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\RoleGroupPermission;
+use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
@@ -102,7 +104,6 @@ class AuthUserOrgHelper
         });
     }
 
-
     protected static function _getRoleUserOrOrgQueryTable($table_name, $key, $target_table, $tablePermission = null, $builder = null, ?\Closure $target_ids_callback = null)
     {
         if (is_null($target_table)) {
@@ -118,6 +119,7 @@ class AuthUserOrgHelper
             $all = true;
         } else {
             // if set $tablePermission, always call
+            /** @phpstan-ignore-next-line Call to function is_null() with mixed will always evaluate to false. */
             if (isset($tablePermission) || is_null($target_ids = System::requestSession($key))) {
                 // get user ids
                 $target_ids = static::getRoleUserOrgId($target_table ?? [], $table_name, $tablePermission);
@@ -148,7 +150,7 @@ class AuthUserOrgHelper
     /**
      * get all users and organizations who can access custom_value.
      *
-     * @param CustomValue $custom_value
+     * @param CustomValue|null $custom_value
      * @param string|null|array $tablePermission
      * @return array
      */
@@ -170,6 +172,7 @@ class AuthUserOrgHelper
         // check request session
         $key = sprintf(Define::SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS, $custom_table->id, $custom_value->id ?? null);
         // if set $tablePermission, always call
+        /** @phpstan-ignore-next-line Call to function is_null() with mixed will always evaluate to false. */
         if (isset($tablePermission) || is_null($results = System::requestSession($key))) {
             // get ids contains value_authoritable table
             $ids[SystemTableName::USER] = $custom_value ? $custom_value->value_authoritable_users()->pluck('authoritable_target_id')->toArray() : [];
@@ -236,6 +239,7 @@ class AuthUserOrgHelper
             // check permission
             if (!$roleGroup->role_group_permissions->contains(function ($role_group_permission) use ($target_table, $tablePermission) {
                 // check as system
+                /** @var RoleGroupPermission $role_group_permission */
                 if ($role_group_permission->role_group_permission_type == RoleType::SYSTEM) {
                     $tablePermission = [Permission::SYSTEM, Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_EDIT_ALL];
                 }
@@ -260,6 +264,7 @@ class AuthUserOrgHelper
                 continue;
             }
 
+            /** @var RoleGroupUserOrganization $role_group_user_organization */
             foreach ($roleGroup->role_group_user_organizations as $role_group_user_organization) {
                 // merge users from $role_group_user_organization
                 if ($role_group_user_organization->role_group_user_org_type != $related_type) {

@@ -55,8 +55,8 @@ class PluginController extends AdminControllerBase
      * execute batch
      *
      * @param Request $request
-     * @param string|int|null $id
-     * @return void
+     * @param $id
+     * @return false|\Illuminate\Http\RedirectResponse
      */
     public function executeBatch(Request $request, $id)
     {
@@ -193,7 +193,9 @@ class PluginController extends AdminControllerBase
     /**
      * Make a form builder.
      *
-     * @return Form
+     * @param $id
+     * @param $isDelete
+     * @return Form|false
      */
     protected function form($id = null, $isDelete = false)
     {

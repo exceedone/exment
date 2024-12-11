@@ -23,7 +23,7 @@ var Exment;
          * data : has "to" and "options". options has properties "val" and "type"
          *
          */
-        static setCalc(calc_formula, $trigger = null) {
+        static setCalc(calc_formula, $trigger = null, columns = []) {
             return __awaiter(this, void 0, void 0, function* () {
                 if (!hasValue(calc_formula)) {
                     return;
@@ -40,9 +40,18 @@ var Exment;
                 let $targetBoxs = Exment.CommonEvent.getBlockElement(calc_formula.target_block);
                 // get to list. if 1:n form and target is n, $tos is multiple.
                 let $tos = CalcEvent.getTargetFields($trigger, $targetBoxs, calc_formula);
+
+                let force_caculate = false;
                 // loop for calc target.
                 for (let j = 0; j < $tos.length; j++) {
                     let $to = $tos.eq(j);
+                    if (calc_formula.target_block) {                        
+                        for (let column of columns[calc_formula.target_block]) {
+                            if(column == $to[0].id) {
+                                force_caculate = true;
+                            }
+                        }
+                    }
                     for (let i = 0; i < calc_formula.formulas.length; i++) {
                         let formula = calc_formula.formulas[i];
                         // for creating array contains object "value0" and "calc_type" and "value1".
@@ -56,7 +65,7 @@ var Exment;
                         // get options 
                         let options = formula.params;
                         let $targetBox = CalcEvent.getBlockByField($to, $targetBoxs);
-                        let precision = yield CalcEvent.executeCalc(formula_string, options, $targetBox);
+                        let precision = yield CalcEvent.executeCalc(formula_string, options, $targetBox, force_caculate);
                         Exment.CommonEvent.setValue($to, precision);
                     }
                 }
@@ -68,7 +77,7 @@ var Exment;
          * @param params calc parameter
          * @param $targetBox triggered box
          */
-        static executeCalc(formula_string, params, $targetBox) {
+        static executeCalc(formula_string, params, $targetBox, force_caculate = false) {
             return __awaiter(this, void 0, void 0, function* () {
                 // console.log("loopcount : " + CalcEvent.loopcount + ", formula_string : " + formula_string);
                 let notCalc = false;
@@ -81,8 +90,12 @@ var Exment;
                     if (param.type == 'dynamic') {
                         val = rmcomma($targetBox.find(Exment.CommonEvent.getClassKey(param.formula_column)).val());
                         if (!hasValue(val)) {
-                            notCalc = true;
-                            break;
+                            if (force_caculate == true) {
+                                val = 0;
+                            } else {
+                                notCalc = true;
+                                break;
+                            }
                         }
                     }
                     // when summary value, get value
@@ -117,13 +130,21 @@ var Exment;
                         if (hasValue(model)) {
                             val = model['value'][param.formula_column];
                             if (!hasValue(val)) {
-                                notCalc = true;
-                                break;
+                                if (force_caculate == true) {
+                                    val = 0;
+                                } else {
+                                    notCalc = true;
+                                    break;
+                                }
                             }
                         }
                         else {
-                            notCalc = true;
-                            break;
+                            if (force_caculate == true) {
+                                val = 0;
+                            } else {
+                                notCalc = true;
+                                break;
+                            }
                         }
                     }
                     // when parent value, get value from parent_id or parent form
@@ -139,13 +160,21 @@ var Exment;
                             if (hasValue(model)) {
                                 val = model['value'][param.formula_column];
                                 if (!hasValue(val)) {
-                                    notCalc = true;
-                                    break;
+                                    if (force_caculate == true) {
+                                        val = 0;
+                                    } else {
+                                        notCalc = true;
+                                        break;
+                                    }
                                 }
                             }
                             else {
-                                notCalc = true;
-                                break;
+                                if (force_caculate == true) {
+                                    val = 0;
+                                } else {
+                                    notCalc = true;
+                                    break;
+                                }
                             }
                         }
                         // if not parent id, almost 1:n form, so get parent form
@@ -153,8 +182,12 @@ var Exment;
                             let $parentBox = Exment.CommonEvent.getBlockElement('');
                             val = rmcomma($parentBox.find(Exment.CommonEvent.getClassKey(param.formula_column)).val());
                             if (!hasValue(val)) {
-                                notCalc = true;
-                                break;
+                                if (force_caculate == true) {
+                                    val = 0;
+                                } else {
+                                    notCalc = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -233,7 +266,7 @@ var Exment;
     /**
      * Set calc event
      */
-    CalcEvent.setCalcEvent = (datalist) => {
+    CalcEvent.setCalcEvent = (datalist, columns = []) => {
         CalcEvent.calcDataList = datalist;
         // reset calc event
         $(document).off('change.exment_calc').off('click.exment_calc_plusminus');
@@ -251,7 +284,7 @@ var Exment;
                     if (ev.originalEvent && ev.originalEvent.isTrusted) {
                         CalcEvent.resetLoopConnt();
                     }
-                    yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
+                    yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target), columns);
                 }));
                 // set event for plus minus button
                 $triggerBox.on('click.exment_calc_plusminus', '.btn-number-plus,.btn-number-minus', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(_a, void 0, void 0, function* () {
@@ -266,14 +299,14 @@ var Exment;
                 if (calc_formula.type == 'parent') {
                     let $targetBoxChild = Exment.CommonEvent.getBlockElement(calc_formula.target_block);
                     $targetBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(_a, void 0, void 0, function* () {
-                        yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
+                        yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target), columns);
                     }));
                 }
                 // set event for row add remove event to child block if type is summary
                 if (calc_formula.type == 'sum' || calc_formula.type == 'summary') {
                     let $triggerBoxChild = Exment.CommonEvent.getBlockElement(calc_formula.trigger_block);
                     $triggerBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(_a, void 0, void 0, function* () {
-                        yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
+                        yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target), columns);
                     }));
                 }
             }
@@ -284,7 +317,7 @@ var Exment;
                 let $childbox = box.getBox().find('.hasmanyblock-' + calc_count.child_relation_name);
                 // add laravel-admin row plusminus event
                 $childbox.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { calc_count: calc_count }, (ev) => __awaiter(_a, void 0, void 0, function* () {
-                    yield CalcEvent.setCalc(ev.data.calc_count, $(ev.target));
+                    yield CalcEvent.setCalc(ev.data.calc_count, $(ev.target), columns);
                 }));
             }
         }

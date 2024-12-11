@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 
 /**
- * @property-read string $id
+ * @property mixed $id
  * @phpstan-consistent-constructor
  */
 class ModelBase extends Model
@@ -34,7 +34,7 @@ class ModelBase extends Model
     /**
      * Get CreatedUser. Only name.
      *
-     * @return void
+     * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|mixed|string|null
      */
     public function getCreatedUserAttribute()
     {
@@ -48,7 +48,7 @@ class ModelBase extends Model
     /**
      * Get CreatedUser. As custom value object
      *
-     * @return void
+     * @return CustomValue|null
      */
     public function getCreatedUserValueAttribute()
     {
@@ -62,7 +62,7 @@ class ModelBase extends Model
     /**
      * Get CreatedUser. As HTML
      *
-     * @return void
+     * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|mixed|string|null
      */
     public function getCreatedUserTagAttribute()
     {
@@ -73,11 +73,10 @@ class ModelBase extends Model
         return $this->getUser('updated_user_id', true);
     }
 
-
     /**
      * Get CreatedUser. Append avatar
      *
-     * @return void
+     * @return array|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\Translation\Translator|mixed|string|null
      */
     public function getCreatedUserAvatarAttribute()
     {

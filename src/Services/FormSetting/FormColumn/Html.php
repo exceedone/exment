@@ -26,11 +26,11 @@ class Html extends OtherBase
         return $form;
     }
 
-
     /**
      * prepare saving option.
      *
-     * @return array|string
+     * @param array $options
+     * @return array
      */
     public function prepareSavingOptions(array $options): array
     {

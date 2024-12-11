@@ -121,8 +121,10 @@ class ExactSelectOption extends PageConstraint
     {
         $options = [];
 
+        /** @var \DOMElement $option */
         foreach ($select->children() as $option) {
             if ($option->nodeName === 'optgroup') {
+                /** @var \DOMElement $child */
                 foreach ($option->childNodes as $child) {
                     $options[$child->getAttribute('value')] = $child->textContent;
                 }

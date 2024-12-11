@@ -33,7 +33,8 @@ class NumberRange extends Field
     }
 
     /**
-     * {@inheritdoc}
+     * @param mixed|null $value
+     * @return $this|mixed
      */
     public function value($value = null)
     {

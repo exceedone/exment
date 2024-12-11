@@ -10,10 +10,16 @@ use Exceedone\Exment\Enums\NotifyTrigger;
  * @property mixed $workflow_type
  * @property mixed $workflow_tables
  * @property mixed $workflow_statuses
+ * @property mixed $workflow_view_name
  * @property mixed $workflow_actions
  * @property mixed $start_status_name
  * @property mixed $setting_completed_flg
  * @property mixed $notifies
+ * @property mixed $options
+ * @property mixed $created_user_id
+ * @property mixed $updated_user_id
+ * @property mixed $created_at
+ * @property mixed $updated_at
  */
 class Workflow extends ModelBase
 {
@@ -139,7 +145,7 @@ class Workflow extends ModelBase
     /**
      * Get status options. contains start and end.
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection|null
      */
     public function getStatusOptions($onlyStart = false)
     {
@@ -302,7 +308,7 @@ class Workflow extends ModelBase
     /**
      * Target Custom Table
      *
-     * @return boolean
+     * @return boolean|null
      */
     public function getTargetTableAttribute()
     {

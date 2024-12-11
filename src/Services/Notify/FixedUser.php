@@ -38,9 +38,11 @@ class FixedUser extends NotifyTargetBase
             $users = arrayToString($users);
         }
 
-        return collect(stringToArray($users))->map(function ($user) {
+        /** @var Collection $collection */
+        $collection =  collect(stringToArray($users))->map(function ($user) {
             $user = getModelName(SystemTableName::USER)::find($user);
             return NotifyTarget::getModelAsUser($user);
         });
+        return $collection;
     }
 }

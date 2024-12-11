@@ -150,11 +150,12 @@ class DefaultTableProvider extends ProviderBase
 
     /**
      * validate data row
+     *
      * @param int $line_no
      * @param array $dataAndModel
      * @param array $validate_columns
      * @param array $dataObjects
-     * @return array
+     * @return array|true
      */
     public function validateDataRow($line_no, $dataAndModel, $validate_columns, $dataObjects)
     {

@@ -26,7 +26,7 @@ class ExportImportButton extends ModalTileMenuButton
     /**
      * custom table if from custom value
      *
-     * @var CustomTable
+     * @var CustomTable|null
      */
     protected $custom_table;
 
@@ -113,13 +113,11 @@ class ExportImportButton extends ModalTileMenuButton
 
     /**
      * Render Export button.
-     *
-     * @return string
      */
     public function render()
     {
         if ($this->disabledButton()) {
-            return;
+            return null;
         }
 
         $page = request('page', 1);

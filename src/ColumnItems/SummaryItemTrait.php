@@ -84,7 +84,7 @@ trait SummaryItemTrait
         $value_table_column = $asSqlAsName ? $this->getTableColumn($this->sqlAsName()) : $options['value_table_column'];
         $group_condition = $options['group_condition'];
 
-        if (isset($group_condition)) {
+        if (isset($group_condition) && !$asSqlAsName) {
             $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, !$asSelect);
         } else {
             $result = \Exment::wrapColumn($value_table_column);

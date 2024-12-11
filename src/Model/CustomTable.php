@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -24,6 +25,8 @@ use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Arr;
@@ -34,13 +37,17 @@ use Illuminate\Support\Facades\Request;
  * Custom Table Class
  *
  * @phpstan-consistent-constructor
+ * @property mixed $suuid
  * @property mixed $table_name
  * @property mixed $system_flg
  * @property mixed $showlist_flg
- * @method static \Illuminate\Database\Query\Builder count($columns = '*')
- * @method static \Illuminate\Database\Query\Builder orderBy($column, $direction = 'asc')
- * @method static \Illuminate\Database\Query\Builder whereNotIn($column, $values, $boolean = 'and')
- * @method static \Illuminate\Database\Query\Builder join($table, $first, $operator = null, $second = null, $type = 'inner', $where = false)
+ * @property mixed $table_view_name
+ * @property mixed $options
+ * @method static int count($columns = '*')
+ * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
+ * @method static ExtendedBuilder whereNotIn($column, $values, $boolean = 'and')
+ * @method static ExtendedBuilder join($table, $first, $operator = null, $second = null, $type = 'inner', $where = false)
+ * @method static ExtendedBuilder create(array $attributes = [])
  */
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -254,8 +261,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * Get Columns where select_target_table's id is this table.
-     *
-     * @return void
      */
     public function getSelectedItems()
     {
@@ -300,6 +305,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (isset($custom_value)) {
             $custom_form_priorities = $this->custom_form_priorities->sortBy('order');
             foreach ($custom_form_priorities as $custom_form_priority) {
+                /** @var CustomFormPriority $custom_form_priority */
                 if ($custom_form_priority->isMatchCondition($custom_value)) {
                     return $custom_form_priority->custom_form;
                 }
@@ -387,9 +393,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param bool $skipSelf if true, skip column for relation target is self.
      * @return Collection
      */
-    public function getSelectedTableColumns(bool $skipSelf = true)
+    public function getSelectedTableColumns(bool $skipSelf = true, bool $index_enabled_only = false)
     {
-        return CustomColumn::allRecords(function ($custom_column) use ($skipSelf) {
+        return CustomColumn::allRecords(function ($custom_column) use ($skipSelf, $index_enabled_only) {
+            if (!ColumnType::isSelectTable($custom_column->column_type)) {
+                return false;
+            }
+            if ($index_enabled_only && !$custom_column->index_enabled) {
+                return false;
+            }
             // skip if $this->custom_table_id and $this->id (Self relation), return false.
             if ($skipSelf && isMatchString($custom_column->custom_table_id, $this->id)) {
                 return false;
@@ -436,7 +448,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }, false)->each(function ($custom_column_multi) use ($results) {
             $i = [];
             foreach ([1,2,3] as $key) {
-                $value = $custom_column_multi->{"unique${key}"};
+                $value = $custom_column_multi->{"unique{$key}"};
                 if (is_nullorempty($value)) {
                     continue;
                 }
@@ -444,7 +456,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if (boolval(array_get($custom_column->options, 'multiple_enabled'))) {
                     return;
                 }
-                $i["unique${key}"] = $custom_column;
+                $i["unique{$key}"] = $custom_column;
             }
 
             if (is_nullorempty($i)) {
@@ -500,6 +512,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $item->deletingChildren();
         }
 
+        /** @var WorkflowValue $item */
         foreach (WorkflowValue::where('morph_type', $this->table_name)->get() as $item) {
             $item->deletingChildren();
             $item->delete();
@@ -584,6 +597,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
 
         // execute validation
+        /** @var ExmentCustomValidator $validator */
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
         $errors = $this->validatorUniques($value, $custom_value, $options);
@@ -1308,6 +1322,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // set eloquent data using ids
             $ids = collect($paginates->items())->map(function ($item) {
+                /** @var mixed $item */
                 return $item->id;
             });
 
@@ -1331,7 +1346,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $paginates->setCollection($query->get());
 
             if (boolval($options['makeHidden'])) {
+                /** @phpstan-ignore-next-line  */
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
+                /** @phpstan-ignore-next-line  */
                 $paginates->data = $data;
             }
 
@@ -1536,7 +1553,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             if ($relations->count() > 0) {
                 $relations->each(function ($r) use ($query) {
-                    $query->with($r->getRelationName());
+                    if ($r->relation_type == RelationType::MANY_TO_MANY) {
+                        $query->with($r->getRelationName());
+                    }
                 });
             }
         }
@@ -1695,6 +1714,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query->whereIn($databaseKeyName, $chunk);
 
             if ($withTrashed) {
+                /** @phpstan-ignore-next-line  */
                 $query->withTrashed();
             }
 
@@ -1951,6 +1971,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // add table info
         $field->attribute(['data-target_table_name' => array_get($this, 'table_name')]);
+        /** @phpstan-ignore-next-line */
         $field->buttons($options['buttons']);
 
         $field->options(function ($value, $field) use ($thisObj, $selectOption) {
@@ -2114,6 +2135,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $selected_custom_values->each(function ($selected_custom_value) use (&$items) {
+            /** @var mixed $selected_custom_value */
             $items->put($selected_custom_value->id, $selected_custom_value->label);
         });
 
@@ -2220,9 +2242,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 foreach ($item as $i) {
                     $ret[$i->id] = $i->label;
                 }
-                return collect($ret);
+                /** @var Collection $collection */
+                $collection =  collect($ret);
+                return $collection;
             }
-            return collect([$item->id => $item->label]);
+            /** @var Collection $collection */
+            $collection = collect([$item->id => $item->label]);
+            return $collection;
         } else {
             return collect([]);
         }
@@ -2238,7 +2264,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * 'include_workflow': whether getting workflow column
      * 'include_form_type': whether getting form type(show, create, edit)
      * @param array $selectOptions
-     * @return array option items
+     * @return array|null option items
      */
     //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
     public function getColumnsSelectOptions($selectOptions = [])
@@ -2422,7 +2448,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 );
             }
             ///// get selected table columns
-            $selected_table_columns = $this->getSelectedTableColumns();
+            $selected_table_columns = $this->getSelectedTableColumns(true, true);
             foreach ($selected_table_columns as $selected_table_column) {
                 $custom_table = $selected_table_column->custom_table;
                 $tablename = array_get($selected_table_column, 'column_view_name');
@@ -2629,7 +2655,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         ///// get selected table columns
-        $selected_table_columns = $this->getSelectedTableColumns();
+        $selected_table_columns = $this->getSelectedTableColumns(true, true);
         foreach ($selected_table_columns as $selected_table_column) {
             $custom_table = $selected_table_column->custom_table;
             $optionKeyParams = [
@@ -2733,7 +2759,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get CustomValue's model.
      *
-     * @param null|int|string $id CustomValue's id
+     * @param null|int|string|CustomValue $id CustomValue's id
      * @param bool $withTrashed if true, get already trashed value.
      * @return CustomValue|null CustomValue's model.
      */
@@ -2763,8 +2789,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get CustomValue's query.
      *
-     * @param null|int|string $id CustomValue's id
-     * @param bool $withTrashed if true, get already trashed value.
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getValueQuery(): \Illuminate\Database\Eloquent\Builder
@@ -2785,7 +2809,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $column = CustomColumn::getEloquent($column, $this);
         }
 
-        return $this->getValueQuery()->where($column->getQueryKey(), $value)->first();
+        /** @var CustomValue|null $result */
+        $result = $this->getValueQuery()->where($column->getQueryKey(), $value)->first();
+        return $result;
     }
 
 
@@ -2868,6 +2894,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasViewPermission()
     {
+        $userview_unavailable_table = config('exment.userview_unavailable_table', '');
+        if ( !is_nullorempty($userview_unavailable_table) && in_array($this->table_name, explode(',', $userview_unavailable_table)) ){
+            return $this->hasSystemViewPermission();
+        }
         return System::userview_available() || $this->hasSystemViewPermission();
     }
 
@@ -3036,7 +3066,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     *
+     * @param $action_type
+     * @return bool
      */
     public function formActionDisable($action_type)
     {
@@ -3045,7 +3076,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     *
+     * @param $action_type
+     * @return bool
      */
     public function gridFilterDisable($action_type)
     {
@@ -3070,7 +3102,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can view this custom value
      *
-     * @return void
+     * @return ErrorCode|true
      */
     public function enableView()
     {
@@ -3084,7 +3116,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can create value custom value
      *
-     * @return void
+     * @param $checkFormAction
+     * @return ErrorCode|true
      */
     public function enableCreate($checkFormAction = false)
     {
@@ -3101,9 +3134,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * User can edit value custom value
-     * *This function checks as table. If have to check as data, please call $custom_value->enableEdit().
+     * This function checks as table. If have to check as data, please call $custom_value->enableEdit().
      *
-     * @return void
+     * @param $checkFormAction
+     * @return ErrorCode|true
      */
     public function enableEdit($checkFormAction = false)
     {
@@ -3121,7 +3155,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can export this custom value
      *
-     * @return void
+     * @return ErrorCode|true
      */
     public function enableExport()
     {
@@ -3143,7 +3177,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can import this custom value
      *
-     * @return void
+     * @return ErrorCode|true
      */
     public function enableImport()
     {
@@ -3165,7 +3199,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can show trashed value
      *
-     * @return void
+     * @return ErrorCode|true
      */
     public function enableShowTrashed()
     {
@@ -3179,7 +3213,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can view customtable menu button
      *
-     * @return void
+     * @return bool
      */
     public function enableTableMenuButton()
     {
@@ -3196,8 +3230,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * User can view customview menu button
-     *
-     * @return void
      */
     public function enableViewMenuButton()
     {
@@ -3230,5 +3262,114 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $positon = System::system_values_pos() ?? ShowPositionType::TOP;
         }
         return $positon;
+    }
+
+    /**
+     * copy this table
+     */
+    public function copyTable($inputs = null)
+    {
+        \ExmentDB::transaction(function () use ($inputs) {
+            $new_table = $this->replicate(['suuid'])->setRelations([]);
+            foreach($inputs as $key => $input) {
+                $new_table->{$key} = $input;
+            }
+            $new_table->saveOrFail();
+
+            $replaceColumns = [];
+            foreach ($this->custom_columns_cache as $custom_column) {
+                $new_column = $custom_column->replicate(['suuid']);
+                $new_column->custom_table_id = $new_table->id;
+                $new_column->saveOrFail();
+                // stack old column id => new column id
+                $replaceColumns[$custom_column->id] = $new_column->id;
+            }
+
+            $targetOptions = ['unique1_id', 'unique2_id', 'unique3_id', 'compare_column1_id', 'compare_column2_id', 'table_label_id', 'share_column_id'];
+
+            foreach($this->custom_column_multisettings as $custom_column_multi) {
+                $new_setting = $custom_column_multi->replicate(['suuid']);
+                $new_setting->custom_table_id = $new_table->id;
+
+                // convert column id
+                foreach ($targetOptions as $targetOption) {
+                    $oldval = $custom_column_multi->getOption($targetOption);
+                    if (isset($oldval) && array_key_exists($oldval, $replaceColumns)) {
+                        $new_setting->setOption($targetOption, array_get($replaceColumns, $oldval));
+                    }
+                }
+                $new_setting->saveOrFail();
+            }
+
+            return true;
+        });
+
+        return [
+            'result'  => true,
+            'toastr' => sprintf(exmtrans('common.message.success_execute')),
+            'redirect' => admin_url('table'),
+        ];
+    }
+
+    /**
+     * validate before value delete.
+     */
+    public function validateValueDestroy($id)
+    {
+        $ids = stringToArray($id);
+
+        // check if data referenced
+        if ($this->checkReferenced($this, $ids)) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.reference_error'),
+            ];
+        }
+
+        $relations = CustomRelation::getRelationsByParent($this, RelationType::ONE_TO_MANY);
+        // check if child data referenced
+        foreach ($relations as $relation) {
+            $child_table = $relation->child_custom_table;
+            $list = getModelName($child_table)::whereIn('parent_id', $ids)
+                ->where('parent_type', $this->table_name)
+                ->pluck('id')->all();
+            if ($this->checkReferenced($child_table, $list)) {
+                return [
+                    'status'  => false,
+                    'message' => exmtrans('custom_value.help.reference_error'),
+                ];
+            }
+        }
+
+        foreach ($ids as $target_id) {
+            $custom_value = $this->getValueModel($target_id, true);
+            if ($custom_value) {
+                $res = Plugin::pluginValidateDestroy($custom_value);
+                if (!empty($res)) {
+                    return $res;
+                }
+                $custom_value->setValidationDestroy(true);
+            }
+        }
+    }
+
+    /**
+     * check if data is referenced.
+     */
+    protected function checkReferenced($custom_table, $list)
+    {
+        foreach ($custom_table->getSelectedItems() as $item) {
+            $model = getModelName(array_get($item, 'custom_table_id'));
+            $column_name = array_get($item, 'column_name');
+            // ignore mail_template reference from mail_send_log
+            if ($custom_table->table_name == SystemTableName::MAIL_TEMPLATE &&
+                $item->custom_table->table_name == SystemTableName::MAIL_SEND_LOG) {
+                continue;
+            }
+            if ($model::whereIn('value->'.$column_name, $list)->exists()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

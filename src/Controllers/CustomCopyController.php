@@ -30,7 +30,7 @@ class CustomCopyController extends AdminControllerTableBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @return Content|void
      */
     public function index(Request $request, Content $content)
     {
@@ -47,9 +47,9 @@ class CustomCopyController extends AdminControllerTableBase
      *
      * @param Request $request
      * @param Content $content
-     * @param string $tableKey
-     * @param string|int|null $id
-     * @return void|Response
+     * @param $tableKey
+     * @param $id
+     * @return Content|void
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -66,7 +66,9 @@ class CustomCopyController extends AdminControllerTableBase
     /**
      * Create interface.
      *
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @return Content|void
      */
     public function create(Request $request, Content $content)
     {
@@ -293,7 +295,7 @@ class CustomCopyController extends AdminControllerTableBase
             'title' => trans('admin.setting')
         ]);
 
-        // add button
-        return $form->render()->render();
+        // add button unreachable statement
+//        return $form->render()->render();
     }
 }

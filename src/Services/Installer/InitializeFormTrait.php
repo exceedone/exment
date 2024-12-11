@@ -87,7 +87,7 @@ trait InitializeFormTrait
 
         $form->switchbool('api_available', exmtrans("system.api_available"))
             ->default(0)
-            ->help(exmtrans("system.help.api_available"));
+            ->help(exmtrans("system.help.api_available", getManualUrl('system_setting?id=')));
 
         $form->switchbool('outside_api', exmtrans("system.outside_api"))
             ->default(!config('exment.outside_api') ? 1 : 0)

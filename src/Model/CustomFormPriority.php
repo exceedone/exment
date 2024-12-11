@@ -3,8 +3,10 @@
 namespace Exceedone\Exment\Model;
 
 /**
- * @phpstan-consistent-constructor
+ * @property mixed $order
+ * @property mixed $custom_form
  * @property mixed $custom_form_priority_conditions
+ * @phpstan-consistent-constructor
  */
 class CustomFormPriority extends ModelBase
 {
@@ -12,7 +14,7 @@ class CustomFormPriority extends ModelBase
     use Traits\DatabaseJsonOptionTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['form_priority_text', 'condition_join'];
+    protected $appends = ['form_priority_text', 'condition_join', 'condition_reverse'];
     protected $casts = ['options' => 'json'];
 
     public function custom_form()
@@ -26,9 +28,21 @@ class CustomFormPriority extends ModelBase
     }
 
     /**
-     * check if custom_value and user(organization, role) match for conditions.
+     * check if custom_value and user(organization, role) match for conditions(with reverse option).
      */
     public function isMatchCondition($custom_value)
+    {
+        $result = $this->_isMatchCondition($custom_value);
+        if (boolval($this->condition_reverse)) {
+            $result = !$result;
+        }
+        return $result;
+    }
+
+    /**
+     * check if custom_value and user(organization, role) match for conditions.
+     */
+    protected function _isMatchCondition($custom_value)
     {
         $is_or = $this->condition_join == 'or';
         foreach ($this->custom_form_priority_conditions as $condition) {
@@ -55,8 +69,13 @@ class CustomFormPriority extends ModelBase
             foreach ($this->custom_form_priority_conditions as $condition) {
                 $list[] = $condition->condition_text;
             }
+            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. probably it will not show 'and'. */
             $glue = exmtrans('common.join_'.$this->condition_join??'and');
-            return implode($glue, $list);
+            $text = implode($glue, $list);
+            if (boolval($this->condition_reverse)) {
+                $text = exmtrans('common.condition_reverse'). $text;
+            }
+            return $text;
         }
         return '';
     }
@@ -69,6 +88,18 @@ class CustomFormPriority extends ModelBase
     public function setConditionJoinAttribute($val)
     {
         $this->setOption('condition_join', $val);
+
+        return $this;
+    }
+
+    public function getConditionReverseAttribute()
+    {
+        return $this->getOption('condition_reverse');
+    }
+
+    public function setConditionReverseAttribute($val)
+    {
+        $this->setOption('condition_reverse', $val);
 
         return $this;
     }

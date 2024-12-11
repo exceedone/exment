@@ -47,7 +47,7 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @return Content|void
      */
     public function index(Request $request, Content $content)
     {
@@ -58,15 +58,14 @@ class CustomColumnController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
-
     /**
      * Edit
      *
      * @param Request $request
      * @param Content $content
-     * @param string $tableKey
-     * @param string|int|null $id
-     * @return void|Response
+     * @param $tableKey
+     * @param $id
+     * @return Content|void
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -81,9 +80,38 @@ class CustomColumnController extends AdminControllerTableBase
     }
 
     /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response|void
+     */
+    public function update($tableKey, $id)
+    {   
+        //Validation table value
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
+            return;
+        }
+        if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
+            return;
+        }
+        if (request()->has('column_type')) {
+            $column_type = request()->get('column_type');
+            $column = $this->custom_columns->first(function ($value) use ($id) {
+                return $value->id == $id;
+            });
+            if (!$this->validateEditColumnType($column, $column_type)) {
+                return;
+            }
+        }
+
+        return $this->form($id)->update($id);
+    }
+
+    /**
      * Create interface.
      *
-     * @return Content
+     * @return Content|void
      */
     public function create(Request $request, Content $content)
     {
@@ -170,7 +198,10 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * Make a form builder.
      *
+     * @param $id
      * @return Form
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function form($id = null)
     {
@@ -401,6 +432,7 @@ class CustomColumnController extends AdminControllerTableBase
                 $order++;
 
                 // get width
+                /** @phpstan-ignore-next-line need test 'Called 'first' on Laravel collection, but could have been retrieved as a query.' */
                 $width = $form_block->custom_form_columns()
                     ->where('row_no', 1)
                     ->where('column_no', 1)

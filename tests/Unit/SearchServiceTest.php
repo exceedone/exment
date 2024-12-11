@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Services\Search\SearchService;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -20,7 +21,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function ($value) {
+        $values->each(function (CustomValue $value) {
             $this->assertMatch($value->getValue('index_text'), 'index_001_001');
         });
     }
@@ -36,7 +37,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function ($value) {
+        $values->each(function (CustomValue $value) {
             $this->assertMatch($value->getValue('text'), 'test_1');
             $this->assertMatch($value->getValue('odd_even'), 'odd');
         });
@@ -54,7 +55,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function ($value) {
+        $values->each(function (CustomValue $value) {
             // get parent value
             $parent_value = $value->getParentValue();
             $this->assertMatch($parent_value->getValue('index_text'), 'index_003_001');
@@ -75,7 +76,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function ($value) {
+        $values->each(function (CustomValue $value) {
             // get parent value
             $parent_value = $value->getParentValue();
             $this->assertTrue($parent_value->getValue('integer') > 1000);
@@ -96,7 +97,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function ($value) use ($relation) {
+        $values->each(function (CustomValue $value) use ($relation) {
             // get parent values(this list contains not filter target value)
             $parent_values = $value->getParentValue($relation);
             // Whether checking contains parent value
@@ -119,7 +120,7 @@ class SearchServiceTest extends UnitTestBase
 
         $values = $service->get();
         $this->assertTrue($values->count() > 0);
-        $values->each(function ($value) {
+        $values->each(function (CustomValue $value) {
             // get parent value
             $parent_value = $value->getValue('parent_select_table');
             $this->assertMatch($parent_value->getValue('index_text'), 'index_003_001');
@@ -157,7 +158,7 @@ class SearchServiceTest extends UnitTestBase
         $this->assertTrue($values->count() > 0);
 
         $checkValue = null;
-        $values->each(function ($value) use (&$checkValue, $direction) {
+        $values->each(function (CustomValue $value) use (&$checkValue, $direction) {
             $this->assertTrue(is_null($checkValue) || ($direction == 'asc' ? $value->getValue('index_text') >= $checkValue : $value->getValue('index_text') <= $checkValue));
             $checkValue = $value->getValue('index_text');
         });
@@ -189,7 +190,7 @@ class SearchServiceTest extends UnitTestBase
         $this->assertTrue($values->count() > 0);
 
         $checkValue = null;
-        $values->each(function ($value) use (&$checkValue, $direction) {
+        $values->each(function (CustomValue $value) use (&$checkValue, $direction) {
             // get parent value
             $parent_value = $value->getParentValue();
 
@@ -231,12 +232,11 @@ class SearchServiceTest extends UnitTestBase
         $this->assertTrue($values->count() > 0);
 
         $checkValue = null;
-        $direction = 'asc';
-        $values->each(function ($value) use (&$checkValue, $direction) {
+        $values->each(function (CustomValue $value) use (&$checkValue) {
             // get parent value
             $parent_value = $value->getValue('parent_select_table');
 
-            $this->assertTrue(is_null($checkValue) || ($direction == 'asc' ? $parent_value->getValue('index_text') >= $checkValue : $parent_value->getValue('index_text') <= $checkValue));
+            $this->assertTrue(is_null($checkValue) || $parent_value->getValue('index_text') >= $checkValue);
             $checkValue = $parent_value->getValue('index_text');
         });
     }

@@ -22,22 +22,23 @@ jobs:
         db: ["mysql", "mariadb", "sqlsrv"]
         test: ["feature", "unit", "browser"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
           path: ./docker-exment
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: ./docker-exment/exment-boilerplate/exment
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Docker Compose Version
-        run: docker-compose --version
+        run: docker compose --version
 
       - name: Make ${{ matrix.db }} up
         working-directory: docker-exment
@@ -47,8 +48,8 @@ jobs:
       - name: copy compose.dev.json
         working-directory: docker-exment
         run: |
-          docker-compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
-          docker-compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
+          docker compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
+          docker compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
 
       - name: Make ${{ matrix.db }} Initialize
         working-directory: docker-exment
@@ -58,4 +59,4 @@ jobs:
       - name: PHPUnit Test
         working-directory: docker-exment
         run: |
-          docker-compose -f docker-compose.yml exec -T php composer run exment:test:${{ matrix.test }}
+          docker compose -f docker-compose.yml exec -T php composer run exment:test:${{ matrix.test }}

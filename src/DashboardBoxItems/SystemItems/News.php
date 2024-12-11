@@ -77,13 +77,16 @@ class News
 
         $widgetTable = new WidgetTable($headers, $bodies);
 
+        /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
         return $widgetTable->render() ?? null;
     }
 
     /**
-     * Get wordpress query string
+     * Get WordPress query string
      *
      * @return array query string array
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function getQuery()
     {
@@ -99,11 +102,13 @@ class News
         return $query;
     }
 
-
     /**
      * Set exment news items
      *
-     * @return void
+     * @return void|null
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function setItems()
     {

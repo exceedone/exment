@@ -212,6 +212,12 @@ class CustomCopyTest extends UnitTestBase
         return $custom_copy;
     }
 
+    /**
+     * @param mixed $custom_copy
+     * @param mixed $custom_column
+     * @param mixed $column_type
+     * @return array
+     */
     protected function _getCustomCopyColumnInfo($custom_copy, $custom_column, $column_type = CopyColumnType::DEFAULT)
     {
         $copy_column = [

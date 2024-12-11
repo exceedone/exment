@@ -13,7 +13,7 @@ trait HasManyJsonTrait
     /**
      * Get the HasMany relation key name.
      *
-     * @return string
+     * @return string|null
      */
     protected function getKeyName()
     {
@@ -53,6 +53,7 @@ trait HasManyJsonTrait
     {
         $forms = [];
 
+        /** @phpstan-ignore-next-line Call to function is_null() with array will always evaluate to false. */
         if (!is_null($this->relatedValue)) {
             foreach ($this->relatedValue as $index => $data) {
                 $forms[$index] = $this->buildNestedForm($this->column, $this->builder, null, $index)
@@ -60,14 +61,17 @@ trait HasManyJsonTrait
             }
         }
 
+        /** @phpstan-ignore-next-line Call to function is_null() with Encore\Admin\Form will always evaluate to false. */
         if (is_null($this->form)) {
             return $forms;
         }
 
         $model = $this->form->model();
 
+        /** @phpstan-ignore-next-line Call to function is_null() with array will always evaluate to false. */
         if (is_null($this->value)) {
             $this->value = [];
+            /** @phpstan-ignore-next-line Left side of && is always false. */
         } elseif (is_string($this->value) && is_json($this->value)) {
             $this->value = json_decode_ex($this->value, true);
         }

@@ -123,7 +123,9 @@ class NotifyService
     /**
      * Get Send Form. if only one user, Replace format.
      *
-     * @return ModalForm
+     * @param $notifyTargets
+     * @param $isFlow
+     * @return ModalForm|false
      */
     protected function getSendForm($notifyTargets, $isFlow = false)
     {
@@ -204,9 +206,12 @@ class NotifyService
     }
 
     /**
-     * send notfy mail
+     * send notify mail
      *
-     * @return void
+     * @param $custom_table
+     * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     public function sendNotifyMail($custom_table)
     {
@@ -455,6 +460,7 @@ class NotifyService
                 'attach_files' => null,
                 'disableHistoryBody' => false,
                 'replaceOptions' => [],
+                'final_user' => false,
             ],
             $params
         );
@@ -477,6 +483,7 @@ class NotifyService
                 ->bcc($params['bcc'])
                 ->attachments($params['attach_files'])
                 ->replaceOptions($params['replaceOptions'])
+                ->finalUser($params['final_user'])
                 ->send();
 
             return $sender;
@@ -860,8 +867,9 @@ class NotifyService
     /**
      * Get User Mail Address. Only single item.
      *
-     * @param string|array|CustomValue|NotifyTarget $user
-     * @return array
+     * @param $user
+     * @return string|null
+     * @throws \Exception
      */
     public static function getAddress($user): ?string
     {

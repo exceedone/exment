@@ -65,7 +65,7 @@ class PluginItem implements ItemInterface
     /**
      * get dashboard attributes for display html
      *
-     * @return void
+     * @return array
      */
     public function attributes()
     {
@@ -109,7 +109,7 @@ class PluginItem implements ItemInterface
     /**
      * Has show permission this dashboard item
      *
-     * @return boolean
+     * @return array|\Illuminate\Contracts\Translation\Translator|string|true|null
      */
     protected function hasPermission()
     {

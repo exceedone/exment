@@ -27,6 +27,7 @@ class FNotifyTest extends ExmentKitTestCase
     {
         // get value
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        /** @var CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel()->first();
 
         // get notify info
@@ -83,12 +84,14 @@ class FNotifyTest extends ExmentKitTestCase
 
         // get value
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        /** @var CustomValue $custom_value */
         $custom_value = $custom_table->getValueModel()->first();
 
         // get notify info
         $notify = $this->getNotify($custom_table, '_notify_button_single');
         $url = admin_urls('data', $custom_table->table_name, $custom_value->id, 'sendMail');
 
+        /** @var CustomValue $mail_template */
         $mail_template = Model\CustomTable::getEloquent(Enums\SystemTableName::MAIL_TEMPLATE)
             ->getValueModel()
             ->where('value->mail_key_name', 'test_template_1')
@@ -159,7 +162,7 @@ class FNotifyTest extends ExmentKitTestCase
 
         $domDocument = new \DOMDocument();
         libxml_use_internal_errors(true);
-        $domDocument->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        $domDocument->loadHTML($html);
         libxml_clear_errors();
 
         return $domDocument;

@@ -50,13 +50,14 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
      * @param string $key
      * @param string $value
      * @param bool $showFilter
-     * @return string
+     * @return string|null
      */
     public function getText($key, $value, $showFilter = true)
     {
         $model = getModelName(SystemTableName::ORGANIZATION)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
             $result = $model->filter()->map(function ($row) {
+                /** @var CustomValue $row */
                 return $row->getValue('organization_name');
             })->implode(',');
         } else {

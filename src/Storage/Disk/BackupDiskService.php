@@ -45,11 +45,10 @@ class BackupDiskService extends DiskServiceBase
         return true;
     }
 
-
     /**
      * copy file from disk to localSyncDisk disk
      *
-     * @return void
+     * @return true
      */
     protected function sync()
     {

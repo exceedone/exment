@@ -1175,11 +1175,13 @@ class ApiFilterValueTest extends ExmentKitTestCase
 
     /**
      * Test condition api result.
-     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
      * @param string $column_name
-     * @param string $cond_key equal, not equal etc...
-     * @param string|null $table_name
+     * @param string $cond_key
+     * @param bool $hasHtml
+     * @param $selector
+     * @param bool $multiple
      * @return void
      */
     protected function __testConditionValueApiColumn(string $column_name, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
@@ -1204,12 +1206,15 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $this->checkTestResult($url, $hasHtml, $selector, $multiple);
     }
 
-
     /**
      * Test condition api result for system
-     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
-     * @param string $column_name
+     * @param string $system_column_name
+     * @param string $cond_key
+     * @param bool $hasHtml
+     * @param $selector
+     * @param bool $multiple
      * @return void
      */
     protected function __testConditionValueApiSystem(string $system_column_name, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
@@ -1235,9 +1240,13 @@ class ApiFilterValueTest extends ExmentKitTestCase
 
     /**
      * Test condition api result for system
-     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
-     * @param string $column_name
+     * @param string $condition_type_detail
+     * @param string $cond_key
+     * @param bool $hasHtml
+     * @param $selector
+     * @param bool $multiple
      * @return void
      */
     protected function __testConditionApiConditionDetail(string $condition_type_detail, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
@@ -1260,14 +1269,15 @@ class ApiFilterValueTest extends ExmentKitTestCase
         $this->checkTestResult($url, $hasHtml, $selector, $multiple);
     }
 
-
     /**
      * Test condition api result for workflow
-     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     * This condition api returns select options, ex {'id': 1, 'name': 'eq'}
      *
-     * @param string $column_name
-     * @param string $filterType
-     * @param string|null $table_name
+     * @param string $type
+     * @param string $cond_key
+     * @param bool $hasHtml
+     * @param $selector
+     * @param bool $multiple
      * @return void
      */
     protected function __testConditionApiWorkflow(string $type, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)

@@ -14,8 +14,8 @@ trait PluginButtonTrait
      * Init event
      *
      * @param Model\Plugin $plugin
-     * @param Model\CustomTable $custom_table
-     * @param Model\CustomValue $custom_value
+     * @param Model\CustomTable|null $custom_table
+     * @param Model\CustomValue|null $custom_value
      * @param array $options
      * @return void
      */

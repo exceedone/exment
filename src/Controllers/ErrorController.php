@@ -18,8 +18,6 @@ class ErrorController extends Controller
 
     /**
      * Index interface.
-     *
-     * @return Content
      */
     public function error(Request $request, $exception)
     {

@@ -34,6 +34,7 @@ trait CustomViewTrait
                 'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
                 'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
                 'condition_join' => 'and',
+                'condition_reverse' => '0',
                 'filter_settings' => [],
                 'column_settings' => [],
                 'sort_settings' => [],
@@ -44,6 +45,7 @@ trait CustomViewTrait
         $login_user_id = array_get($options, 'login_user_id');
         $target_table_name = array_get($options, 'target_table_name');
         $condition_join = array_get($options, 'condition_join');
+        $condition_reverse = array_get($options, 'condition_reverse');
         $filter_settings = array_get($options, 'filter_settings');
         $column_settings = array_get($options, 'column_settings');
         $sort_settings = array_get($options, 'sort_settings');
@@ -59,7 +61,10 @@ trait CustomViewTrait
             'view_view_name' => $custom_table->table_name . '-view-unittest',
             'view_type' => ViewType::SYSTEM,
             'view_kind_type' => $view_kind_type,
-            'options' => ['condition_join' => $condition_join?? 'and'],
+            'options' => [
+                'condition_join' => $condition_join?? 'and',
+                'condition_reverse' => $condition_reverse?? '0'
+            ],
         ]);
 
         foreach ($column_settings as $index => $column_setting) {
@@ -106,9 +111,18 @@ trait CustomViewTrait
         $query = $custom_table->getValueQuery();
         if ($view_kind_type == ViewKindType::AGGREGATE) {
             $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
-            $data = $grid->getQuery($query)->get();
+            $query = $grid->getQuery($query);
+            if (!is_null($offset = array_get($options, 'offset'))) {
+                $query->offset($offset);
+            }
+            if (!is_null($limit = array_get($options, 'limit'))) {
+                $query->limit($limit);
+            }
+            $data = $query->get();
         } else {
-            $custom_view->filterSortModel($query);
+            $custom_view->setValueFilters($query);
+            $query = $custom_view->getSearchService()->query();
+            //$custom_view->filterSortModel($query);
             if ($get_count) {
                 $data = $query->count();
             } else {
@@ -121,6 +135,8 @@ trait CustomViewTrait
 
     protected function getTargetColumnId($setting, $custom_table, $is_pivot = false)
     {
+        if (!isset($setting['column_name'])) return null;
+
         if ($setting['column_name'] == SystemColumn::PARENT_ID) {
             $column_id = $is_pivot ? $setting['column_name'] : Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
         } elseif (!isset($setting['condition_type']) || $setting['condition_type'] == ConditionType::COLUMN) {
@@ -174,7 +190,7 @@ trait CustomViewTrait
                 $column_setting['options']['view_pivot_table_id'] = $custom_table->id;
                 $column_setting['options']['view_pivot_column_id'] = $this->getTargetColumnId([
                     'column_name' => $column_setting['reference_column'],
-                ], $custom_table, true);
+                ], boolval(array_get($column_setting, 'is_refer'))? $refer_table: $custom_table, true);
             }
         } else {
             $view_column_table_id = $custom_table->id;

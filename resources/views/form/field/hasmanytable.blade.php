@@ -19,8 +19,8 @@
             @endif
         </div>
     @endif
-    <div class="col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} col-sm-offset-{{$tablewidth['offset']}}">
-        <table id="has-many-table-{{$column}}-table" class="table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
+    <div class="{{ str_starts_with($column, 'pivot') ? 'table-container ' : '' }}col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} col-sm-offset-{{$tablewidth['offset']}}">
+        <table id="has-many-table-{{$column}}-table" class="{{ str_starts_with($column, 'pivot') ? 'scrollable-table ' : '' }}table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
             <thead>
             <tr class="active">
                 @foreach($tableitems as $tableitem)
@@ -118,6 +118,21 @@
     <style type="text/css">
     .has-many-table .form-group{
         margin-bottom: 0;
+    }
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+    .scrollable-table {
+        border-collapse: collapse;
+        width: 100%;
+        white-space: nowrap;
+    }
+    input {
+        min-width: 90px;
+    }
+    .select2 {
+        min-width: 100px;
     }
     </style>
 </div>

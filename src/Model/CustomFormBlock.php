@@ -8,8 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @phpstan-consistent-constructor
+ * @property mixed $id
+ * @property mixed $label
+ * @property mixed $options
  * @property mixed $available
  * @property mixed $custom_form_id
+ * @property mixed $target_table
+ * @property mixed $custom_form_columns
+ * @property mixed $form_block_type
  * @property mixed $form_block_target_table_id
  * @property mixed $form_block_view_name
  */
@@ -25,7 +31,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     /**
      * request key. Used by custom form setting display. Ex. NEW__f482dce0-662c-11eb-8f65-5f9d12681ab1
      *
-     * @var string
+     * @var string|null
      */
     protected $_request_key;
 

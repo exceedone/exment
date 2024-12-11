@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\NestedEmbeddedForm;
+use Illuminate\Support\Arr;
 
 class NestedEmbeds extends Embeds
 {
@@ -13,6 +13,7 @@ class NestedEmbeds extends Embeds
 
     protected $relationName;
 
+    protected $data_key;
 
     /**
      * Create a new HasMany field instance.
@@ -22,7 +23,8 @@ class NestedEmbeds extends Embeds
      */
     public function __construct($column, $arguments = [])
     {
-        parent::__construct($column, $arguments);
+        $this->data_key = Arr::get($arguments, 0, '');
+        parent::__construct($column, array_slice($arguments, 1));
     }
 
     /**
@@ -33,7 +35,7 @@ class NestedEmbeds extends Embeds
     protected function buildEmbeddedForm()
     {
         if (!isset($this->nestedForm)) {
-            $form = new NestedEmbeddedForm($this->elementName);
+            $form = new NestedEmbeddedForm($this->elementName, $this->data_key);
             $this->nestedForm = $this->setFormField($form);
         }
         return $this->nestedForm;
@@ -46,6 +48,9 @@ class NestedEmbeds extends Embeds
         return $this;
     }
 
+    /**
+     * @return array|string
+     */
     protected function getRules()
     {
         $rules = [];
@@ -65,6 +70,7 @@ class NestedEmbeds extends Embeds
         foreach ($this->buildEmbeddedForm()->fields() as $field) {
             $attributes[$this->column . '.'. $field->column] = $field->label();
         }
+        /** @phpstan-ignore-next-line Need to fix laravel-admin */
         return $attributes;
     }
 

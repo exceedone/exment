@@ -52,10 +52,12 @@ class BackupCommand extends Command
     {
         try {
             $target = $this->option("target") ?? BackupTarget::arrays();
+            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
             $schedule = boolval($this->option("schedule") ?? false);
 
             if (is_string($target)) {
                 $target = collect(explode(",", $target))->map(function ($t) {
+                    /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
                     return new BackupTarget($t) ?? null;
                 })->filter()->toArray();
             }

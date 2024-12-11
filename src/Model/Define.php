@@ -340,6 +340,7 @@ class Define
         ['name' => 'operation', 'href' => 'operation/:table_name', 'icon' => 'fa-reply-all', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_operation', 'description' => 'custom_operation.description'],
         ['name' => 'notify', 'href' => 'notify/:table_name', 'icon' => 'fa-bell', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.notify', 'description' => 'notify.description'],
         ['name' => 'data', 'href' => 'data/:table_name', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value', 'description' => 'custom_value.description'],
+        ['name' => 'qrcode', 'href' => 'table/:id/edit?qrcodesetting=1', 'icon' => 'fa-qrcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.qrcode', 'description' => 'qrcode.description'],
     ];
 
     public const CUSTOM_VALUE_TRAITS = [
@@ -386,14 +387,14 @@ class Define
     ];
 
     public const DATABASE_VERSION = [
-        'mysql' => ['min' => '5.7.8', 'max_lt' => '8.0.0'],
+        'mysql' => ['min' => '5.7.8', 'max_lt' => '8.1.0'],
         'mariadb' => ['min' => '10.2.7'],
         'sqlsrv' => ['min' => '13.0.0.0'],
     ];
 
     public const PHP_VERSION = [
-        '8.0.0',
-        '8.2.0',
+        '8.1.0',
+        '8.3.0',
     ];
 
     public const CUSTOM_TABLE_ENDPOINTS = [

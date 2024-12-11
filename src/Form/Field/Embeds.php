@@ -88,7 +88,7 @@ class Embeds extends AdminField\Embeds
     /**
      * Render the form.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|string
      */
     public function render()
     {

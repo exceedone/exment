@@ -83,6 +83,11 @@ return [
         'no_selected' => 'unselected',
         'no_use' => 'do not use',
         'default_export' => 'Export',
+        'condition_reverse' => '<Reverse> ',
+        'save' => 'Save',
+        'no_file_download' => 'There are no files to download',
+        'english' => 'English',
+        'japanese' => 'Japanese',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -108,6 +113,7 @@ return [
             'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
             'preview_error' => 'The preview has expired. Please close this screen and preview again.',
             'csrf_error' => 'The expiration date has expired, so please reopen your browser.',
+            'not_edit_column_type' => 'The column type cannot be changed.',
         ],
 
         'help' =>[
@@ -229,6 +235,7 @@ return [
         'using_index_column' => 'Search index cannot be released because it is in use by a view.',
         'email_multiline' => 'Contains lines that are not email addresses.',
         'duplicate_relation' => 'The table is already associated.',
+        'filename_not_allow' => 'A prohibited character is used in :attribute. Please change the file name and try again.',
 
         'not_match' => 'The value of :attribute1 and the value of :attribute1 are different.',
         'not_notmatch' => ':attribute1 and :attribute2 must have different values.',
@@ -433,7 +440,7 @@ return [
             'system_values_pos' => 'Set the position to display system values on the data edit screen and data details screen.',
             'data_submit_redirect' => 'You can set the default value for the page to redirect after saving custom data. When this item is set, the check box for the data transition destination after saving will be checked on the data entry page.',
             'header_user_info' => 'You can set the content to be displayed in the user information in the header. If left blank, it will be hidden.',
-            'api_available' => 'If set to YES, you can use the API.',
+            'api_available' => 'Please create a Laravel key before selecting YES. Please refer to <a href="%suse-api" target="_blank">here<i class="fa fa-external-link"></i></a>. If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
             'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
@@ -579,6 +586,7 @@ return [
             'editor' => 'Editor',
             'html' => 'HTML',
             'notify_navbar' => 'Notify list',
+            'qr_code' => '2D Barcode',
         ],
 
         'dashboard_menulist' => [
@@ -643,9 +651,11 @@ return [
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
                 'saved' => 'After Saving',
+                'deleted' => 'After Deletion',
                 'loading' => 'Before Loading',
                 'loaded' => 'After Loading',
                 'grid_menubutton' => 'Menu button on List View',
+                'calendar_menubutton' => 'Menu button on Calendar View',
                 'form_menubutton_show' => 'Menu button on Show Data',
                 'form_menubutton_create' => 'Menu button on Form Create View',
                 'form_menubutton_edit' => 'Menu button on Form Edit View',
@@ -1042,6 +1052,7 @@ return [
         'notify' => 'Notification Setting',
         'custom_value' => 'Data List',
         'error_select' => 'Please select only one record.',
+        'qrcode' => '2D Barcode Setting',
     ],
 
     'workflow' => [
@@ -1179,6 +1190,55 @@ return [
         'add_parent_menu' => 'Target Parent Menu',
         'default_setting' => 'General Settings',
         'expand_setting' => 'Extended Settings',
+        'copy_from_table' => 'Original table',
+        'copy_custom_table' => 'Copy custom table',
+        'no_selected' => 'No target data selected',
+        'qr_code' => [
+            'setting' => '2D Barcode Setting',
+            'content' => 'Supplementary information for 2D barcodes',
+            'text' => 'Title',
+            'image_size' => '2D barcode layout size',
+            'cell_width' => 'Cell width',
+            'cell_height' => 'Cell height',
+            'margin_left' => 'Margin left',
+            'margin_top' => 'Margin top',
+            'column_per_page' => 'Column per page',
+            'row_per_page' => 'Row per page',
+            'column_spacing' => 'Columnn spacing',
+            'row_spacing' => 'Row spacing',
+            'form_after_read' => 'Form after scanning the 2D barcode',
+            'action_after_read' => 'Action after data registration',
+            'download' => 'Download %s',
+            'create' => 'Create new %s',
+            'form_title' => 'Create a new 2D barcode',
+            'reading' => 'Reading %s',
+            'description' => 'Please see <a href="%s" target="_blank">here</a> for 2D barcode layout size settings.',
+            'number_qr' => 'Number of 2D barcode',
+            'advance_setting' => '2D barcode reading',
+            'text_button' => 'Button display name',
+            'text_button_description' => 'Set the display name for "2D barcode" on the 2D barcode new creation and 2D barcode download buttons.',
+            'created' => 'Create success',
+            'download_complete' => '2D barcode download completed',
+            'table_not_found' => 'Table of this 2D barcode not found',
+            'validate_qr_number' => 'Number of 2D barcodes must be greater than 0',
+            'refer_column' => 'Represents column',
+            'refer_column_description' => 'The information of the specified column of custom data will be displayed to the right of the 2D barcode.<br/>*You can select the ID column or the auto-number column (must be unique and required).',
+            'text_qr_description' => 'Fixed text displayed on the right side of the 2D barcode.',
+        ],
+        'data_submit_redirect_options' => [
+            'inherit'               => 'Match system settings',
+            'list'                  => 'List',
+            'view'                  => 'View',
+            'continue_editing'      => 'Continue editing',
+            'continue_creating'     => 'Continue creating',
+        ],
+        'data_qr_redirect_options' => [
+            'top'               => 'Top screen',
+            'list'                  => 'List',
+            'view'                  => 'View',
+            'continue_editing'      => 'Continue editing',
+            'camera'     => 'Camera',
+        ],
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
@@ -1199,6 +1259,9 @@ return [
             'saved_redirect_column' => 'Save succeeded ! Please set column column.',
             'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
+            'copy_custom_table' => 'Copy normal settings, advanced settings and custom columns. <br />Other settings are out of scope. Please set manually.',
+            'qrcode_activate' => 'Enable the 2D barcode function for this table. Do you want to enable it?',
+            'qrcode_deactivate' => 'The 2D barcode function for this table will be disabled. Do you want to disable it?',
         ],
 
         'custom_column_multi' => [
@@ -1312,6 +1375,7 @@ return [
             'number_min' => 'Min Number',
             'number_max' => 'Max Number',
             'number_format' => 'Use Number Comma String',
+            'force_caculate' => 'Calc Formulas Without Values',
             'decimal_digit' => 'Number of decimal places',
             'percent_format' => 'Show as Percent',
             'updown_button' => '+- Button',
@@ -1395,6 +1459,7 @@ return [
             'min_max_width' => 'Enter the minimum and maximum values ​​of the column width when displaying the list as integers(px).',
             'text_align' => 'Please select the layout when displaying the list.',
             'number_format' => 'If set to YES, the text field will be displayed as a comma value.',
+            'force_caculate' => 'If set to YES, the calculation will run even if there is no value',
             'percent_format' => 'If set to YES, the list page and display page are displayed as percentages.',
             'rows' => 'Set input form height.',
             'updown_button' => 'By turning YES, Add "+" and "-" buttons.',
@@ -1735,6 +1800,7 @@ return [
         'update_value_text' => 'Update Value',
         'input_column_description' => 'When the data update timing is a button, a form (dialog) for setting the update value can be displayed. <br/> Please set the column to input.',
         'dialog_description' => "Enter the value to update the data of %s.",
+        'active_flg' => 'Active Flg',
         
         'operation_type_options' => [
             'bulk_update' => 'Pressing button on the list page',
@@ -1826,6 +1892,7 @@ return [
             'use_view_infobox' => 'By setting YES, you can set an information box at the top of the view where you can enter business details and messages to users.',
             'view_infobox_title' => 'Enter the title to be displayed in the information box.',
             'view_infobox' => 'Please fill in the HTML to be displayed in the information box. *Images and scripts cannot be entered.',
+            'order' => 'Display order of custom view menu buttons.',
         ],
 
         'column_sort_options' => [
@@ -2168,6 +2235,10 @@ return [
         ]
     ],
 
+    'qrcode' => [
+        'description' => 'Set the two-dimensional barcode for this table.',
+    ],
+
     'custom_value' => [
         'description' => 'Display the data list of this table.',
         'template' => 'Export Template',
@@ -2180,6 +2251,7 @@ return [
         'soft_deleted_data' => 'Deleted Data',
         'restore' => 'Restore',
         'hard_delete' => 'Permanently Delete',
+        'custom_valule_button_label' => 'Data',
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',
@@ -2545,6 +2617,7 @@ return [
         'condition_key' => 'Search Condition',
         'condition_value' => 'Condtion Value',
         'condition_join' => 'Condtion Join',
+        'condition_reverse' => 'Condtion Reverse',
         'condition_type_options' => [
             'user' => 'User',
             'organization' => 'Organization',
@@ -2573,6 +2646,10 @@ return [
         'condition_join_options' => [
             'and' => 'Match All Condition',
             'or' => 'Match Any Condition',
+        ],
+
+        'condition_reverse_options' => [
+            '1' => 'Reverse condition',
         ],
     ],
 ];

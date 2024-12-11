@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Services\Login\OAuth\OAuthUser;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -31,7 +32,8 @@ class LoginService
      *
      * @param LoginUser|CustomValue $user CustomValue(user) or login user
      * @param array $options
-     * @return void
+     * @return \Illuminate\Http\RedirectResponse|void
+     * @throws \Exception
      */
     public static function resetPassword($user, array $options = [])
     {
@@ -512,6 +514,7 @@ class LoginService
         );
 
         // if don't has, create loginuser or match email
+        /** @phpstan-ignore-next-line $hasLoginUser Negated boolean expression is always true. */
         if (!$hasLoginUser) {
             $login_user = LoginUser::firstOrNew([
                 'base_user_id' => $exment_user->getUserId(),
@@ -524,6 +527,7 @@ class LoginService
         }
 
         // get avatar
+        /** @phpstan-ignore-next-line $hasLoginUser Negated boolean expression is always true. */
         if (!$hasLoginUser || boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
             $avatar  = static::getAvatar($custom_login_user, $socialiteProvider = null);
             if (isset($avatar)) {
@@ -540,6 +544,7 @@ class LoginService
         try {
             // if socialiteProvider implements ProviderAvatar, call getAvatar
             if (isset($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderAvatar::class)) {
+                /** @var OAuthUser $custom_login_user */
                 $stream = $socialiteProvider->getAvatar($custom_login_user->token);
             }
             // if user obj has avatar, download avatar.
@@ -570,7 +575,7 @@ class LoginService
     /**
      * Get the guard to be used during authentication.
      *
-     * @return \Illuminate\Contracts\Auth\StatefulGuard
+     * @return mixed
      */
     protected static function guard()
     {

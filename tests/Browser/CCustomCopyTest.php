@@ -193,7 +193,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         $this->assertEquals($pre_cnt + 1, $to_table->count());
 
-        $new_value = $to_table->orderBy('created_at', 'desc')->first();
+        $new_value = $to_table->orderBy('id', 'desc')->first();
         $this->visit(admin_url("data/$to_table_name/" . $new_value->id));
 
         $custom_copy_columns = CustomCopyColumn::where('custom_copy_id', $custom_copy->id)->get();
@@ -330,7 +330,7 @@ class CCustomCopyTest extends ExmentKitTestCase
         $this->assertEquals($pre_child_cnt + $column_count, CustomCopyColumn::count())
         ;
 
-        $raw = CustomCopy::orderBy('created_at', 'desc')->first();
+        $raw = CustomCopy::orderBy('id', 'desc')->first();
 
         return $raw;
     }

@@ -20,14 +20,14 @@ class RelationColumn extends Column
     /**
      * CustomColumn
      *
-     * @var string||CustomColumn
+     * @var string|CustomColumn
      */
     protected $column;
 
     /**
      * RelationTable. Info about relation.
      *
-     * @var RelationTable
+     * @var RelationTable|null
      */
     protected $relationTable;
 

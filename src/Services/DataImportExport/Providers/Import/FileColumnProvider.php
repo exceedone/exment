@@ -133,21 +133,21 @@ class FileColumnProvider extends ProviderBase
      * @param array $dataAndModel
      * @param array $validate_columns
      * @param array $dataObjects
-     * @return array
      */
     public function validateDataRow($line_no, $dataAndModel, $validate_columns, $dataObjects)
     {
         return $this->_validateDataRow($line_no, $dataAndModel, $validate_columns, true);
     }
 
-
     /**
-    * validate data row
-    * @param int $line_no
-    * @param array $dataAndModel
-    * @param array $validate_columns
-    * @return array
-    */
+     * validate data row
+     *
+     * @param $line_no
+     * @param $dataAndModel
+     * @param $validate_columns
+     * @param bool $isCheckColumn
+     * @return array|mixed[]|true
+     */
     protected function _validateDataRow($line_no, $dataAndModel, $validate_columns, bool $isCheckColumn)
     {
         $data = array_get($dataAndModel, 'data');

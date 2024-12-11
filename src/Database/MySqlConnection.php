@@ -7,6 +7,7 @@ use Exceedone\Exment\Database\Schema\Grammars\MySqlGrammar as SchemaGrammar;
 use Exceedone\Exment\Database\Schema\MySqlBuilder;
 use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Illuminate\Database\Grammar;
 use Illuminate\Database\MySqlConnection as BaseConnection;
 
 class MySqlConnection extends BaseConnection implements ConnectionInterface
@@ -18,10 +19,11 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get a schema builder instance for the connection.
      *
-     * @return \Illuminate\Database\Schema\Builder
+     * @return MySqlBuilder
      */
     public function getSchemaBuilder()
     {
+        /** @phpstan-ignore-next-line Call to function is_null() with Illuminate\Database\Schema\Grammars\Grammar will always evaluate to false. */
         if (is_null($this->schemaGrammar)) {
             $this->useDefaultSchemaGrammar();
         }
@@ -32,7 +34,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get the default schema grammar instance.
      *
-     * @return SchemaGrammar
+     * @return Grammar|SchemaGrammar
      */
     protected function getDefaultSchemaGrammar()
     {
@@ -42,7 +44,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * Get the default query grammar instance.
      *
-     * @return QueryGrammar
+     * @return Grammar|QueryGrammar
      */
     protected function getDefaultQueryGrammar()
     {
@@ -81,10 +83,17 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $column_statistics = static::isContainsColumnStatistics() ? '--column-statistics=0' : '';
 
         $mysqldump = static::getMysqlDumpPath();
+        $ls_output = shell_exec($mysqldump . ' --help');
+        if (strpos($ls_output, '--set-gtid-purged') !== false) {
+            $set_gtid = ' --set-gtid-purged=OFF';
+        } else {
+            $set_gtid = '';
+        }
         $command = sprintf(
-            '%s %s --no-tablespaces -h %s -u %s --password=%s -P %s',
+            '%s %s %s --no-tablespaces -h %s -u %s --password=%s -P %s',
             $mysqldump,
             $column_statistics,
+            $set_gtid,
             $host,
             $username,
             $password,
@@ -194,12 +203,14 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * backup table data except virtual generated column.
      *
-     * @param string backup target table
+     * @param $tempDir
+     * @param $table
+     * @return void
      */
     protected function backupTable($tempDir, $table)
     {
         // create tsv file
-        $file = new \SplFileObject(path_join($tempDir, $table.'.tsv'), 'w');
+        $file = new \SplFileObject(path_join($tempDir, $table . '.tsv'), 'w');
         $file->setCsvControl("\t");
 
         // get column definition
@@ -312,15 +323,15 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 }
                 \DB::table($table)->truncate();
 
-                $cmd =<<<__EOT__
-                LOAD DATA local INFILE '%s' 
-                INTO TABLE %s 
-                CHARACTER SET 'UTF8' 
-                FIELDS TERMINATED BY '\t' 
-                OPTIONALLY ENCLOSED BY '\"' 
-                ESCAPED BY '\"' 
-                LINES TERMINATED BY '\\n' 
-                IGNORE 1 LINES 
+                $cmd = <<<__EOT__
+                LOAD DATA local INFILE '%s'
+                INTO TABLE %s
+                CHARACTER SET 'UTF8'
+                FIELDS TERMINATED BY '\t'
+                OPTIONALLY ENCLOSED BY '\"'
+                ESCAPED BY '\"'
+                LINES TERMINATED BY '\\n'
+                IGNORE 1 LINES
                 SET created_at = nullif(created_at, '0000-00-00 00:00:00'),
                     updated_at = nullif(updated_at, '0000-00-00 00:00:00'),
                     deleted_at = nullif(deleted_at, '0000-00-00 00:00:00'),
@@ -345,7 +356,7 @@ __EOT__;
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
         \DB::statement("
-            CREATE OR REPLACE VIEW $viewName 
+            CREATE OR REPLACE VIEW $viewName
             AS " . $query->toSql(), $query->getBindings());
     }
 

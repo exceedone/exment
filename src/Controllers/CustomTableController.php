@@ -8,15 +8,21 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
+use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
@@ -31,6 +37,11 @@ use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Enums\DataSubmitRedirectEx;
+use Exceedone\Exment\Enums\DataQrRedirect;
+use Exceedone\Exment\Services\TableService;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -57,6 +68,48 @@ class CustomTableController extends AdminControllerBase
 
         return $content->row($row);
     }
+    /**
+     * Active qrcode setting
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function qrcode_activate(Request $request, $id)
+    {
+        return $this->toggleActivate($request, $id, true);
+    }
+
+    /**
+     * Deactive qrcode setting
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function qrcode_deactivate(Request $request, $id)
+    {
+        return $this->toggleActivate($request, $id, false);
+    }
+    /**
+     * Toggle activate and deactivate
+     *
+     * @param Request $request
+     * @param string $id
+     * @param boolean $active_qr_flg
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    protected function toggleActivate(Request $request, $id, $active_qr_flg)
+    {
+        $custom_table = CustomTable::getEloquent($id);
+        $custom_table->setOption('active_qr_flg', $active_qr_flg);
+        $custom_table->save();
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+
 
     /**
      * Make a grid builder.
@@ -91,6 +144,7 @@ class CustomTableController extends AdminControllerBase
                 ->tooltip(exmtrans('custom_table.expand_setting'));
             $actions->append($linker);
 
+            /** @var CustomTable $custom_table */
             $custom_table = $actions->row;
 
             // add custom column
@@ -105,10 +159,25 @@ class CustomTableController extends AdminControllerBase
             // add data
             if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 $linker = (new Linker())
+                    /** @phpstan-ignore-next-line fix laravel-admin documentation */
                 ->url($actions->row->getGridUrl())
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));
                 $actions->append($linker);
+            }
+
+            if (\Exment::user()->hasPermission(Permission::CUSTOM_TABLE) &&
+                !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+                $actions->append((new Tools\ModalLink(
+                    admin_urls('table', $actions->getKey(), 'copyModal'),
+                    [
+                        'icon' => 'fa-copy',
+                        'modal_title' => exmtrans('common.copy_item', exmtrans('custom_table.table')),
+                        'attributes' => [
+                            'data-toggle' => "tooltip",
+                        ],
+                    ]
+                ))->render());
             }
         });
 
@@ -180,6 +249,11 @@ class CustomTableController extends AdminControllerBase
                 ->default(config('exment.revision_count', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
             ;
+
+            $form->select('data_submit_redirect', exmtrans("system.data_submit_redirect"))
+                ->options(DataSubmitRedirectEx::transKeyArray("custom_table.data_submit_redirect_options"))
+                ->default(DataSubmitRedirectEx::INHERIT)
+                ->help(exmtrans("system.help.data_submit_redirect"));
 
             $form->exmheader(exmtrans('role_group.permission_setting'))->hr();
 
@@ -255,6 +329,7 @@ class CustomTableController extends AdminControllerBase
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
+            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $model->createTable();
 
             // redirect custom column page
@@ -309,7 +384,7 @@ $('.{$class}-delete').unbind('click').click(function() {
         preConfirmValidate: function(input){
             if (input != "$keyword") {
                 return "{$trans['delete_keyword']}";
-            } 
+            }
 
             return true;
         }
@@ -461,12 +536,90 @@ HTML;
 
         return $form;
     }
+    /**
+     * Make a formMultiColumn.
+     *
+     * @return Form
+     */
+    protected function formQrCodeSetting($id = null)
+    {
+        $form = new Form(new CustomTable());
+        $custom_table = CustomTable::getEloquent($id);
+        $manualUrl = getManualUrl('2d_barcode?id='.exmtrans('custom_table.qr_code.image_size'));
+        $form->setTitle(exmtrans("custom_table.qr_code.setting"));
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id, $manualUrl) {
+            $form->exmheader(exmtrans("custom_table.qr_code.content"))->hr();
+            $form->text('text_qr', exmtrans("custom_table.qr_code.text"))
+                ->attribute(['maxlength' => 8])
+                ->help(exmtrans("custom_table.qr_code.text_qr_description"));
+            $custom_column_arr = CustomColumn::where('custom_table_id', $id)
+                    ->where([
+                        'options->required' => 1,
+                        'options->unique' => 1,
+                        'column_type' => 'auto_number',
+                    ])->get()->mapWithKeys(function ($item) {
+                        return [$item->id => $item->column_view_name];
+                    })->toArray();
+            $custom_column_arr = ['id' => 'ID'] + $custom_column_arr;
+            $form->select('refer_column', exmtrans("custom_table.qr_code.refer_column"))
+                ->options($custom_column_arr)
+                ->help(exmtrans("custom_table.qr_code.refer_column_description"));
+            $form->exmheader(exmtrans("custom_table.qr_code.image_size"))->hr();
+            $form->number('cell_width', exmtrans("custom_table.qr_code.cell_width"))->default(62)->min(1);
+            $form->number('cell_height', exmtrans("custom_table.qr_code.cell_height"))->default(31)->min(1);
+            $form->number('margin_left', exmtrans("custom_table.qr_code.margin_left"))->default(9);
+            $form->number('margin_top', exmtrans("custom_table.qr_code.margin_top"))->default(9);
+            $form->number('col_per_page', exmtrans("custom_table.qr_code.column_per_page"))->default(3)->min(1);
+            $form->number('row_per_page', exmtrans("custom_table.qr_code.row_per_page"))->default(9)->min(1);
+            $form->number('col_spacing', exmtrans("custom_table.qr_code.column_spacing"))->default(3);
+            $form->number('row_spacing', exmtrans("custom_table.qr_code.row_spacing"))->help(sprintf(exmtrans("custom_table.qr_code.description"), $manualUrl));
+            $form->exmheader(exmtrans("custom_table.qr_code.advance_setting"))->hr();
+            $custom_form_arr = CustomForm::where('custom_table_id', $id)->get()->mapWithKeys(function ($item) {
+                return [$item->id => $item->form_view_name];
+            })->toArray();
+            $form->select('form_after_read', exmtrans("custom_table.qr_code.form_after_read"))
+                ->options($custom_form_arr)
+                ->default(array_key_first($custom_form_arr));
+            $form->select('action_after_read', exmtrans("custom_table.qr_code.action_after_read"))
+                ->options(DataQrRedirect::transKeyArray("custom_table.data_qr_redirect_options"))
+                ->default(DataQrRedirect::TOP);
+        })->disableHeader();
+        
+
+        $form->hidden('qrcodesetting')->default(1);
+        $form->ignore('qrcodesetting');
+
+
+        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
+            $tools->disableDelete();
+
+            // if edit mode
+            if ($id != null) {
+                $model = CustomTable::getEloquent($id);
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
+            }
+            TableService::appendActivateSwalButtonQRCode($tools, $custom_table);
+        });
+
+        $form->disableEditingCheck(false);
+        $form->saved(function (Form $form) {
+            if (request()->get('after-save') != '1') {
+                return;
+            }
+
+            $model = $form->model();
+            admin_toastr(trans('admin.update_succeeded'));
+            return redirect(admin_urls_query('table', $model->id, 'edit', ['qrcodesetting' => 1, 'after-save' => 1]));
+        });
+
+        return $form;
+    }
 
     /**
      * get columns select options.include system date
      * @param CustomTable $custom_table
      * @param array $selectOptions
-     * @param array items
+     * @return array|mixed[]
      */
     protected function getColumnsSelectOptions($custom_table, $selectOptions = [])
     {
@@ -480,9 +633,10 @@ HTML;
     /**
      * Edit interface.
      *
-     * @param mixed   $id
+     * @param Request $request
      * @param Content $content
-     * @return Content
+     * @param $id
+     * @return Content|void
      */
     public function edit(Request $request, Content $content, $id)
     {
@@ -493,6 +647,10 @@ HTML;
         if ($request->has('columnmulti')) {
             return $this->AdminContent($content)->body($this->formMultiColumn($id)->edit($id));
         }
+        if ($request->has('qrcodesetting')) {
+            $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.qr_code.setting"), exmtrans("qrcode.description"), 'fa-table');
+            return $this->AdminContent($content)->body($this->formQrCodeSetting($id)->edit($id));
+        }
 
         return parent::edit($request, $content, $id);
     }
@@ -502,14 +660,20 @@ HTML;
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|void
      */
     public function update($id)
     {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
+            return;
+        }
+
         if (request()->has('columnmulti')) {
             return $this->formMultiColumn($id)->update($id);
         }
-
+        if (request()->has('qrcodesetting')) {
+            return $this->formQrCodeSetting($id)->update($id);
+        }
         return $this->form($id)->update($id);
     }
 
@@ -616,5 +780,88 @@ HTML;
             'title' => exmtrans("change_page_menu.change_page_label"),
             'showSubmit' => false,
         ]);
+    }
+
+    /**
+     * Showing copy modal
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return Response
+     */
+    public function copyModal(Request $request, $id)
+    {
+        $copy_table = CustomTable::getEloquent($id);
+        $actionPath = admin_urls('table', $id, 'copy');
+        // create form fields
+        $form = new ModalForm();
+        $form->action($actionPath);
+
+        $form->descriptionHtml(exmtrans('custom_table.help.copy_custom_table'));
+
+        $form->display('copy_from_table', exmtrans("custom_table.copy_from_table"))
+            ->displayText($copy_table->table_view_name);
+
+        $form->text('table_name', exmtrans("custom_table.table_name"))
+            ->required()
+            ->rules("max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/")
+            ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
+
+        $form->text('table_view_name', exmtrans("custom_table.table_view_name"))
+            ->required()
+            ->rules("max:40")
+            ->help(exmtrans('common.help.view_name'));
+
+        $form->setWidth(9, 2);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_table.copy_custom_table')
+        ]);
+    }
+
+    /**
+     * Copy custom_table
+     *
+     * @param Request $request
+     * @param $id
+     * @return Response
+     */
+    public function copyTable(Request $request, $id)
+    {
+        /** @var ExmentCustomValidator $validator */
+        $validator = \Validator::make($request->all(), [
+            'table_name' => "max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
+            'table_view_name' => "max:40"
+        ], [], [
+            'table_name' => exmtrans("custom_table.table_name"),
+            'table_view_name' => exmtrans("custom_table.table_view_name")
+        ]);
+
+        if (!$validator->passes()) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => implode(' ', $validator->getMessageStrings()),
+                'errors' => [],
+            ]);
+        }
+
+        $target_table = CustomTable::getEloquent($id);
+        $inputs = $request->only(['table_name','table_view_name']);
+        try {
+            $response = $target_table->copyTable($inputs);
+        } catch (\Exception $e) {
+            $response = [
+                'result' => false,
+                'toastr' => $e->getMessage(),
+                'errors' => [],
+            ];
+        }
+
+        if (isset($response)) {
+            return getAjaxResponse($response);
+        }
+        return getAjaxResponse(false);
     }
 }

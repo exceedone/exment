@@ -133,12 +133,12 @@ class WorkflowNotifyController extends Controller
         return $grid;
     }
 
-
-
     /**
      * Make a form builder.
      *
-     * @return Form
+     * @param $id
+     * @param $copy_id
+     * @return Form|false|void
      */
     protected function form($id = null, $copy_id = null)
     {
@@ -257,9 +257,11 @@ class WorkflowNotifyController extends Controller
     /**
      * Show interface.
      *
-     * @param mixed   $id
+     * @param Request $request
      * @param Content $content
-     * @return Content
+     * @param $workflow_id
+     * @param $id
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function show(Request $request, Content $content, $workflow_id, $id)
     {
@@ -301,7 +303,7 @@ class WorkflowNotifyController extends Controller
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($workflow_id, $id)
     {

@@ -4,6 +4,9 @@ namespace Exceedone\Exment\DataItems\Grid;
 
 use Encore\Admin\Form;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginButtonType;
+use Exceedone\Exment\Form\Tools;
 
 class CalendarGrid extends GridBase
 {
@@ -23,6 +26,12 @@ class CalendarGrid extends GridBase
         $this->setNewButton($tools);
         $this->setTableMenuButton($tools);
         $this->setViewMenuButton($tools);
+
+        $listButtons = Plugin::pluginPreparingButton(PluginButtonType::CALENDAR_MENUBUTTON, $this->custom_table);
+        foreach ($listButtons as $listButton) {
+            $button = new Tools\PluginMenuButton($listButton, $this->custom_table);
+            $tools[] = $button->render();
+        }
 
         return view('exment::widgets.calendar', [
             'view_id' => $this->custom_view->suuid,
@@ -66,5 +75,21 @@ class CalendarGrid extends GridBase
 
         // filter setting
         static::setFilterFields($form, $custom_table);
+    }
+
+    /**
+     * Set filter fileds form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @param boolean $is_aggregate
+     * @return void
+     */
+    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    {
+        parent::setFilterFields($form, $custom_table, $is_aggregate);
+
+        $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
+            ->option(exmtrans("condition.condition_reverse_options"));
     }
 }

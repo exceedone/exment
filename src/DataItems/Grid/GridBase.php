@@ -89,6 +89,9 @@ abstract class GridBase
 
         // replace view
         $this->custom_view = CustomView::getAllData($this->custom_table);
+        $service = $this->custom_view->getSearchService();
+        $group_view->setSearchService($service);
+        
         $filters = [];
         foreach ($group_keys as $key => $value) {
             $custom_view_column = CustomViewColumn::findByCkey($key);
@@ -108,8 +111,26 @@ abstract class GridBase
             }
         }
         $filter_func = function ($model) use ($filters, $group_view) {
-            $group_view->custom_view_filters = collect($filters);
+            $filter_raws = [];
+            foreach ($filters as $filter) {
+                if (isset($filter->view_group_condition)) {
+                    $filter_raws[] = $filter;
+                } else {
+                    $group_view->custom_view_filters->push($filter);
+                }
+            }
             $group_view->filterModel($model);
+            foreach ($filter_raws as $filter_raw) {
+                $column_item = $filter_raw->column_item;
+                $value_table_column = $column_item->getTableColumn();
+                $query_value = $column_item->convertFilterValue($filter_raw->view_filter_condition_value_text);
+                if (is_nullorempty($query_value)) {
+                    $model->whereNull($value_table_column);
+                } else {
+                    $column = \DB::getQueryGrammar()->getDateFormatString($filter_raw->view_group_condition, $value_table_column);
+                    $model->whereRaw("$column = '$query_value'");
+                }
+            }
             return $model;
         };
         return $filter_func;

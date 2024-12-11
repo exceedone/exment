@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\ColumnItems\CustomItem;
@@ -18,15 +21,20 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 /**
  * @property-read string $display_avatar
  * @phpstan-consistent-constructor
+ * @property mixed $users
  * @property mixed $workflow_values
  * @property mixed $workflow_value
  * @property mixed $value
+ * @property mixed $belong_role_groups
+ * @property mixed $belong_organizations
  * @property mixed $titleColumn
  * @property mixed $revisionFormattedFields
  * @property mixed $revisionFormattedFieldNames
@@ -36,6 +44,16 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
  * @property mixed $orderColumn
  * @property mixed $dontKeepRevisionOf
  * @property mixed $custom_table_name
+ * @property mixed $created_user_id
+ * @property mixed $login_user
+ * @property mixed $login_users
+ * @property mixed $deleted_user_id
+ * @property mixed $created_at
+ * @property mixed $deleted_at
+ * @property mixed $revisionEnabled
+ * @method mixed getUserId()
+ * @method static ExtendedBuilder withoutGlobalScopes(array $scopes = null)
+ * @method static ExtendedBuilder where($column, $operator = null, $value = null, $boolean = 'and')
  */
 abstract class CustomValue extends ModelBase
 {
@@ -98,6 +116,11 @@ abstract class CustomValue extends ModelBase
      */
     protected $file_uuids = [];
 
+    /**
+     * result validate destroy.
+     * if true, pass validate destroy
+     */
+    protected $validation_destroy = false;
 
     /**
      * Create a new Eloquent model instance.
@@ -129,8 +152,6 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get all workflow values
-     *
-     * @return void
      */
     public function workflow_values()
     {
@@ -168,7 +189,14 @@ abstract class CustomValue extends ModelBase
     {
         return $this->getUser('deleted_user_id', true, true);
     }
-
+    public function getValidationDestroy()
+    {
+        return $this->validation_destroy;
+    }
+    public function setValidationDestroy($value)
+    {
+        $this->validation_destroy = $value;
+    }
 
     /**
      * Whether this model disable delete
@@ -209,8 +237,6 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get workflow status tag. Please escape workflow_status_name
-     *
-     * @return void
      */
     public function getWorkflowStatusTagAttribute()
     {
@@ -373,7 +399,9 @@ abstract class CustomValue extends ModelBase
             $results[] = $v->toArray();
         }
 
-        return collect($results);
+        /** @var Collection $collection */
+        $collection = collect($results);
+        return $collection;
     }
 
     /**
@@ -490,6 +518,13 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
+            // call deleted event plugins
+            Plugin::pluginExecuteEvent(PluginEventType::DELETED, $model->custom_table, [
+                'custom_table' => $model->custom_table,
+                'custom_value' => $model,
+                'force_delete' => $model->isForceDeleting(),
+            ]);
+
             // Delete file hard delete
             if ($model->isForceDeleting()) {
                 // Execute notify if delete_force_custom_value is true
@@ -852,6 +887,24 @@ abstract class CustomValue extends ModelBase
         });
     }
 
+    /**
+     * Delete the model from the database.
+     *
+     * @return bool|null
+     *
+     * @throws \LogicException
+     */
+    public function delete()
+    {
+        if(!$this->getValidationDestroy()) {
+            $res = Plugin::pluginValidateDestroy($this);
+            if (!empty($res)) {
+                throw new \Exception(array_get($res, 'message'));
+            }
+            $this->setValidationDestroy(true);
+        }
+        parent::delete();
+    }
 
     /**
      * delete relation if record delete
@@ -874,6 +927,13 @@ abstract class CustomValue extends ModelBase
                     if ($deleteForce) {
                         $child->forceDelete();
                     } else {
+                        if(!$child->getValidationDestroy()) {
+                            $res = Plugin::pluginValidateDestroy($child);
+                            if (!empty($res)) {
+                                throw new \Exception(array_get($res, 'message'));
+                            }
+                            $child->setValidationDestroy(true);
+                        }
                         $child->delete();
                     }
                 });
@@ -1291,7 +1351,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Get document list
      *
-     * @return Collection
+     * @return \Illuminate\Database\Eloquent\Collection|AbstractPaginator
      */
     public function getDocuments($options = [])
     {
@@ -1402,6 +1462,7 @@ abstract class CustomValue extends ModelBase
         if ($relation instanceof CustomColumn) {
             // get custom column as array
             // target column is select table and has index, get index name
+            /** @phpstan-ignore-next-line Right side of && is always true. */
             if (ColumnType::isSelectTable($relation->column_type) && $relation->indexEnabled()) {
                 $index_name = $relation->getIndexColumnName();
                 // get children values where this id

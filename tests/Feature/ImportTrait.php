@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
 
 trait ImportTrait
 {
@@ -15,6 +16,7 @@ trait ImportTrait
             setlocale(LC_CTYPE, 'C');
         }
 
+        /** @var Csv $reader */
         $reader = IOFactory::createReader('Csv');
         $reader->setInputEncoding('UTF-8');
         $reader->setDelimiter(",");

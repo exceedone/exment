@@ -76,14 +76,18 @@ class Date extends CustomItem
     /**
      * Get date again use format
      *
-     * @return \Carbon\Carbon|null
+     * @param $v
+     * @param $format
+     * @return string|null
      */
     protected function getDateUseValue($v, $format)
     {
         if (is_array($v)) {
+            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
             return (new \Carbon\Carbon(array_get($v, 'date')))->format($format) ?? null;
         }
 
+        /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
         return (new \Carbon\Carbon($v))->format($format) ?? null;
     }
 
@@ -142,7 +146,7 @@ class Date extends CustomItem
     /**
      * Whether this is autodate
      *
-     * @return true
+     * @return bool
      */
     protected function autoDate()
     {

@@ -7,6 +7,20 @@ use Encore\Admin\Form\Field;
 
 class NestedEmbeddedForm extends EmbeddedForm
 {
+    protected $data_key;
+
+    /**
+     * EmbeddedForm constructor.
+     *
+     * @param string $column
+     */
+    public function __construct($column, $data_key = null)
+    {
+        $this->data_key = $data_key;
+
+        parent::__construct($column);
+    }
+
     /**
      * Set `elementClass` for fields inside nestedembed fields.
      *
@@ -50,6 +64,9 @@ class NestedEmbeddedForm extends EmbeddedForm
             }
         } else {
             $elementClass = [$key. "_" . $column, $column];
+            if (isset($this->data_key) && is_numeric($this->data_key)) {
+                $elementClass[] = "rownum_" . $this->data_key;
+            }
         }
 
         return $field
@@ -59,7 +76,7 @@ class NestedEmbeddedForm extends EmbeddedForm
     /**
      * Get script of template.
      *
-     * @return string
+     * @return string|array
      */
     public function getScripts()
     {
@@ -78,6 +95,56 @@ class NestedEmbeddedForm extends EmbeddedForm
             }
         }
 
-        return implode("\r\n", $scripts);
+        return $scripts;
+//        return implode("\r\n", $scripts);
+    }
+
+    /**
+     * Set original values for fields.
+     *
+     * @param array|string $data
+     *
+     * @return $this
+     */
+    public function setOriginal($data)
+    {
+        if (empty($data)) {
+            $data = [];
+        }
+
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        $this->original = $data;
+
+        return $this;
+    }
+
+    /**
+     * Set original data for each field.
+     *
+     * @param string $key
+     *
+     * @return void
+     */
+    protected function setFieldOriginalValue($key)
+    {
+        $this->fields->each(function (Field $field) use ($key) {
+            if ($field->column() === $key) {
+                $field->setOriginal($this->original);
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Get data key.
+     *
+     * @return int|string
+     */
+    public function getDataKey()
+    {
+        return $this->data_key;
     }
 }

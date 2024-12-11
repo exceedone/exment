@@ -31,11 +31,11 @@ trait AuthTrait
 
         $val = System::site_logo();
         if (!boolval(config('exment.disable_login_header_logo', false)) && !is_nullorempty($val)) {
-            $array['header_image'] = admin_url('auth/login/header');
+            $array['header_image'] = admin_url('auth/file/header');
         }
         $val = System::login_page_image();
         if (!is_nullorempty($val)) {
-            $array['background_image'] = admin_url('auth/login/background');
+            $array['background_image'] = admin_url('auth/file/background');
         }
         $val = System::login_page_image_type();
         if (!is_nullorempty($val)) {
@@ -76,6 +76,11 @@ trait AuthTrait
     /**
      * Initiate a logout request across all the SSO infrastructure.
      *
+     * @param Request $request
+     * @param $provider_name
+     * @param $options
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|void
+     * @throws \OneLogin\Saml2\Error
      */
     protected function logoutSaml(Request $request, $provider_name, $options = [])
     {
@@ -98,9 +103,8 @@ trait AuthTrait
     /**
      * Send the response after the user was authenticated.
      *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse|\Illuminate\Http\Response
      */
     protected function sendLoginResponse(Request $request)
     {

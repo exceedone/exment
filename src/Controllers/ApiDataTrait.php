@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\ColumnItems\CustomColumns\Editor;
+use Exceedone\Exment\Enums\ColumnType;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
@@ -59,14 +62,12 @@ trait ApiDataTrait
         return $this->modifyAfterGetValue($request, $model);
     }
 
-
     /**
      * get table columns data. seletcting column, and search.
      *
      * @param Request $request
-     * @param string $tableKey
      * @param string $column_name
-     * @return Response
+     * @return false|string|Response
      */
     protected function _columnData(Request $request, $column_name)
     {
@@ -166,11 +167,12 @@ trait ApiDataTrait
         });
     }
 
-
     /**
      * Modify logic for getting value
-     *
-     * @return mixed
+     * @param Request $request
+     * @param Collection|\Illuminate\Pagination\LengthAwarePaginator|CustomValue $target
+     * @param $options
+     * @return array|CustomValue|\Illuminate\Pagination\LengthAwarePaginator|mixed|void
      */
     protected function modifyAfterGetValue(Request $request, $target, $options = [])
     {
@@ -205,7 +207,7 @@ trait ApiDataTrait
             );
 
             if (boolval($options['makeHidden'])) {
-                // execute makehidden
+                /** @phpstan-ignore-next-line Call to an undefined method Illuminate\Pagination\LengthAwarePaginator::makeHidden(). */
                 $results = $target->makeHidden($this->custom_table->getMakeHiddenArray());
 
                 // if need to convert to custom values, call setSelectTableValues, for performance
@@ -217,6 +219,7 @@ trait ApiDataTrait
                 $results->map(function ($result) use ($request) {
                     $this->modifyCustomValue($request, $result);
                 });
+                /** @phpstan-ignore-next-lineAccess to an undefined property Illuminate\Pagination\LengthAwarePaginator::$value. */
                 $target->value = $results;
             }
 
@@ -229,6 +232,11 @@ trait ApiDataTrait
         }
         // as single model
         elseif ($target instanceof CustomValue) {
+            $editor_cols = CustomColumn::where('custom_table_id', $this->custom_table->id)->where('column_type', ColumnType::EDITOR)->get();
+            foreach($editor_cols as $col) {
+                $val = $target->getValue($col->column_name);
+                $target->setValue($col->column_name, Editor::replaceImgUrl($val, ['dirName' => true]));
+            }
             if (boolval($options['makeHidden'])) {
                 $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
                 return $this->modifyCustomValue($request, $target);

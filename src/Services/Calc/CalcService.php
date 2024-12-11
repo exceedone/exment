@@ -38,20 +38,21 @@ class CalcService
      * Create calc formula info for form.
      *
      * @param CustomTable $custom_table
-     * @param array $custom_form_block
-     * @return array set above values:
+     * @param CustomFormBlock $custom_form_block
+     * @return array[] set above values:
      *     'formula': formula string.
      *     'target_column': Defined formula setting column.
      *     'formula_column': formula column's name. Contains trigger column.
      *     'type': string, values ['dynamic', 'summary', 'count', 'select_table'],
      *     'child_relation_name': if relation is 1:n, set child relation name.
-     *     'pivot_column': if select_table, set pivot culumn's name.
+     *     'pivot_column': if select_table, set pivot column's name.
      */
     public static function getCalcFormArray(CustomTable $custom_table, CustomFormBlock $custom_form_block)
     {
         $calc_formulas = [];
         $calc_counts = [];
 
+        /** @phpstan-ignore-next-line  $relationInfo Ternary operator condition is always true. */
         $relationInfo = $custom_form_block ? $custom_form_block->getRelationInfo($custom_table) : null;
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             if ($form_column->form_column_type != FormColumnType::COLUMN) {
@@ -204,13 +205,12 @@ class CalcService
         return $results;
     }
 
-
     /**
      * Get column options for calc
      *
-     * @param string|int|null $id
-     * @param CustomTable $custom_table
-     * @return array
+     * @param $id
+     * @param $custom_table
+     * @return \Illuminate\Support\Collection
      * [
      *     'val': set value if clicked
      *     'type': calc type
@@ -229,13 +229,10 @@ class CalcService
         return $options;
     }
 
-
     /**
      * Get Symbols
      *
-     * @param string|int|null $id
-     * @param CustomTable $custom_table
-     * @return array
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
      */
     public static function getSymbols()
     {
