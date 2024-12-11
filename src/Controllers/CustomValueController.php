@@ -403,9 +403,19 @@ class CustomValueController extends AdminControllerTableBase
             $content = $show_item->createShowForm();
         } else {
             $this->AdminContent($content);
-            $content->row($show_item->createShowForm());
-            $content->row(function ($row) use ($show_item) {
-                $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+            $class_type = config('exment.show_page_class_type', 1);
+            $content->row(function ($row) use ($show_item, $class_type) {
+                if ($class_type != 1) {
+                    $row->class([static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+                }
+                $row->column(12, $show_item->createShowForm());
+            });
+            $content->row(function ($row) use ($show_item, $class_type) {
+                if ($class_type == 2) {
+                    $row->class(['row-eq-height']);
+                } else {
+                    $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+                }
                 $show_item->setOptionBoxes($row);
             });
         }
