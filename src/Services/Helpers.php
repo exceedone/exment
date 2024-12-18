@@ -1818,4 +1818,31 @@ if (!function_exists('admin_exclusion_path')) {
             return json_decode($json, $assoc, $depth, $options);
         }
     }
+
+    if (!function_exists('convert_to_valid_filename')) {
+        /**
+         * Replace characters that cannot be used in filename
+         *
+         * @param string $filename The filename to be sanitized
+         * @return string The sanitized filename
+         */
+        function convert_to_valid_filename(string $filename): string
+        {
+            $from = ['/', ':', '*', '?', '"', '<', '>', '|'];
+            $to = ['_', '_', '_', '_', '_', '[', ']', '_'];
+    
+            $patterns = array_map(function($val) {
+                return '#\\'.$val.'#';
+            }, $from);
+    
+            // Replace characters that cannot be used in filename
+            $validName = preg_replace($patterns, $to, $filename);
+            
+            // Truncate the filename if it exceeds 255 characters
+            if (strlen($validName) > 255) {
+                $validName = substr($validName, 0, 255);
+            }
+            return $validName;
+        }
+    }
 }
