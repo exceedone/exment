@@ -42,7 +42,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Elibyy\TCPDF\Facades\TCPDF;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Model\CustomForm;
-use Exceedone\Exment\Enums\DataQrRedirect;
 use Exceedone\Exment\Model\CustomColumn;
 
 class CustomValueController extends AdminControllerTableBase
@@ -309,6 +308,11 @@ class CustomValueController extends AdminControllerTableBase
             })->replicate($copy_id);
         } else {
             $form = $this->form(null);
+            $jan_code = $request->get("jan_code");
+            if($jan_code) {
+                $form->hidden("jan_code")->default($jan_code);
+                $form->hidden("table_code")->default($this->custom_table->id);
+            }
         }
 
 
@@ -1137,7 +1141,10 @@ class CustomValueController extends AdminControllerTableBase
         });
     }
 
-    public function formCreateQrcode(Request $request, $table_id)
+    /**
+     * create qrcode form
+     */
+    protected function formCreateQrcode(Request $request, $table_id)
     {
         $form = new ModalForm();
         $form->action(route('exment.create_qrcode', ['tableKey' => $table_id]));
@@ -1153,7 +1160,10 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
-    public function createQrCode(Request $request, $table_id)
+    /**
+     * create qrcode and assign to data
+     */
+    protected function createQrCode(Request $request, $table_id)
     {
         $qr_number = $request->get('qr_number');
         if ($qr_number < 1) {
@@ -1182,10 +1192,13 @@ class CustomValueController extends AdminControllerTableBase
                 'message' => exmtrans("common.message.error_execute"),
             ]);
         }
-        $this->qrCreateOrDownloadResponse($tmpPath, $fileName, true);
+        $this->qrCreateOrDownloadResponse($tmpPath, $fileName, true, $table_id);
     }
 
-    public function qrcodeDownload(Request $request, $table_id)
+    /**
+     * download qrcode to pdf
+     */
+    protected function qrcodeDownload(Request $request, $table_id)
     {
         $selected_custom_value_id = $request->get('select_ids');
         if (is_null($selected_custom_value_id)) {
@@ -1195,12 +1208,20 @@ class CustomValueController extends AdminControllerTableBase
             ]);
         }
         [$tmpPath, $fileName] = $this->createPdf($selected_custom_value_id, $table_id);
-        $this->qrCreateOrDownloadResponse($tmpPath, $fileName);
+        $this->qrCreateOrDownloadResponse($tmpPath, $fileName, false, $table_id);
     }
 
-    protected function qrCreateOrDownloadResponse($tmpPath, $fileName, $isCreate = false)
+    /**
+     * download qrcode response
+     */
+    protected function qrCreateOrDownloadResponse($tmpPath, $fileName, $isCreate = false, $table_id = null)
     {
-        if (isset($tmpPath)) {
+        if (isset($tmpPath) && $table_id) {
+            $table = CustomTable::getEloquent($table_id);
+            if (!$table->getOption('qr_use')) {
+                $table->setOption('qr_use', true);
+                $table->save();
+            }
             $response = getAjaxResponse([
                 'fileBase64' => base64_encode(\File::get($tmpPath)),
                 'fileContentType' => \File::mimeType($tmpPath),
@@ -1316,12 +1337,12 @@ class CustomValueController extends AdminControllerTableBase
         return [$tmpPath, $fileName];
     }
 
-        /**
+    /**
      * Create image of sticker/label for adding to exported excel file.
      *
      * @return array
      */
-    public function createStickerImg($selected_id, $sticker_img_width, $sticker_img_height, $selected_custom_value, $refer_column_value = null)
+    protected function createStickerImg($selected_id, $sticker_img_width, $sticker_img_height, $selected_custom_value, $refer_column_value = null)
     {
         $qr_file_name = 'qrcode_id-' . $selected_id . '_' . Carbon::now()->format('YmdHis') . '.png';
         $qr_file_path = getFullpath($qr_file_name, Define::DISKNAME_ADMIN_TMP);
@@ -1422,7 +1443,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return void
      */
-    public function deleteTmpFile($file_path)
+    protected function deleteTmpFile($file_path)
     {
         if (\File::exists($file_path)) {
             try {
@@ -1437,7 +1458,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return string
      */
-    public function createQRUrl($selected_id)
+    protected function createQRUrl($selected_id)
     {
         $url = admin_urls('qr-code', $this->custom_table->table_name, $selected_id);
         return $url;
@@ -1448,7 +1469,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return float
      */
-    public function mmToPixel($mmVal)
+    protected function mmToPixel($mmVal)
     {
         $one_mm_to_pixel = 3.7795275591;
         return $mmVal * $one_mm_to_pixel;
