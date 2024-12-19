@@ -139,7 +139,7 @@ class CustomTableController extends AdminControllerBase
      *
      * @param Request $request
      * @param string $id
-     * @param boolean $active_qr_flg
+     * @param boolean $active_jan_flg
      * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function toggleActivateJancode(Request $request, $id, $active_jan_flg)

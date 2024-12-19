@@ -20,6 +20,7 @@ class JanCodeController extends Controller
      *
      * @param Request $request
      * @param $id
+     * @return string
      */
     protected function scanRedirect(Request $request, $id)
     {
@@ -27,6 +28,7 @@ class JanCodeController extends Controller
             ->where('jan_code', $id)
             ->whereNotNull('table_id')
             ->first();
+        $url = '';
         if ($jan_code) {
             $table_id = $jan_code->table_id;
             $target_id = $jan_code->target_id;
@@ -107,7 +109,6 @@ class JanCodeController extends Controller
         $grid->disableRowSelector();
         $table_active_jan_codes = DB::table('custom_tables')
                 ->where('options->active_jan_flg', true)
-                ->get()
                 ->pluck('id')
                 ->toArray();
         $grid->model()->whereIn('id', $table_active_jan_codes);
