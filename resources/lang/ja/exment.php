@@ -114,6 +114,7 @@ return [
             'cannot_preview' => '※:nameは、編集中のプレビュー機能に対応していません。確認する場合、一度保存後に実施してください。',
             'preview_error' => 'プレビューの有効期限が切れました。この画面を閉じ、再度プレビューを実施してください。',
             'csrf_error' => '有効期限が切れたので、ブラウザを開き直してください。',
+            'not_edit_column_type' => '列種類は変更不可です。',
         ],
 
         'help' =>[
@@ -235,6 +236,7 @@ return [
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
         'email_multiline' => 'Eメールアドレスでない行が含まれています。',
         'duplicate_relation' => 'すでに関連付けられているテーブルです。',
+        'filename_not_allow' => ':attributeには、禁則文字が使用されています。ファイル名を変更して再度実施してください。',
         
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
@@ -439,7 +441,7 @@ return [
             'system_values_pos' => 'データ編集画面及びデータ詳細画面でシステム項目を表示する位置を設定します。',
             'data_submit_redirect' => 'カスタムデータの保存後にリダイレクトする画面の既定値を設定することができます。この項目を設定すると、データ入力画面で、保存後のデータ遷移先チェックボックスにチェックが入ります。',
             'header_user_info' => 'ヘッダーのユーザー情報に表示する内容を設定することができます。空欄にした場合は非表示になります。',
-            'api_available' => 'YESにした場合、APIを使用することができます。',
+            'api_available' => 'YESにする前に、Laravelキーを作成ください。作成方法は<a href="%sapiを使用する" target="_blank">こちら</a>です。YESにした場合、APIを使用することができます。',
             'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
@@ -658,8 +660,8 @@ return [
                 'form_menubutton_show' => 'データ詳細のメニューボタン',
                 'form_menubutton_create' => 'フォームのメニューボタン（新規作成時）',
                 'form_menubutton_edit' => 'フォームのメニューボタン（更新時）',
-                'workflow_action_executing' => 'ワークフロース実行前',
-                'workflow_action_executed' => 'ワークフロース実行後',
+                'workflow_action_executing' => 'ワークフロー実行前',
+                'workflow_action_executed' => 'ワークフロー実行後',
                 'notify_executing' => '通知前',
                 'notify_executed' => '通知後',
             ]

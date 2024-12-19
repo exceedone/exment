@@ -765,10 +765,14 @@ HTML;
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|void
      */
     public function update($id)
     {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
+            return;
+        }
+
         if (request()->has('columnmulti')) {
             return $this->formMultiColumn($id)->update($id);
         }

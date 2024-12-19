@@ -6,6 +6,7 @@ use Encore\Admin\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Form\Field\Hidden;
+use Encore\Admin\Form\Field\Select;
 use Encore\Admin\Form\NestedForm;
 
 /**
@@ -193,7 +194,10 @@ class HasManyTable extends HasMany
 
         // set label viewclass hidden
         $field->setLabelClass(['hidden']);
-        $field->setElementClass(['w-100'])->attribute(['style' => 'max-width:999999px']);
+        $field->setElementClass(['w-100']);
+        if (!($field instanceof Select)) {
+            $field->attribute(['style' => 'max-width:999999px']);
+        }
         $field->setWidth(12, 0);
 
         // get help text

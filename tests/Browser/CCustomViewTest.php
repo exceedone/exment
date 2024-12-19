@@ -95,6 +95,65 @@ class CCustomViewTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * Create custom view.
+     */
+    public function testAddSummaryViewSuccess()
+    {
+        $pre_cnt = CustomView::count();
+        $custom_table = CustomTable::getEloquent('custom_value_edit_all');
+
+        $data = [
+            'custom_table_id' => $custom_table->id,
+            'view_kind_type' => 1,
+            'view_view_name' => 'TestSummaryView',
+            'view_type' => 0,
+            'default_flg' => 0,
+            'pager_count' => 0,
+
+            'custom_view_columns' => [
+                'new_1' => [
+                    'view_column_target' => "workflow_status?table_id={$custom_table->id}",
+                    'view_column_name' => null,
+                    'order' => 0,
+                    '_remove_' => 0,
+                ]
+            ],
+            'custom_view_summaries' => [
+                'new_1' => [
+                    'view_column_target' => "id?table_id={$custom_table->id}",
+                    'view_summary_condition' => 3,
+                    '_remove_' => 0,
+                ]
+            ]
+        ];
+
+        $this->post(admin_url('view/custom_value_edit_all'), $data);
+        $this->assertPostResponse($this->response, admin_url('view/custom_value_edit_all'));
+
+        $this->visit(admin_url('view/custom_value_edit_all'))
+            ->seePageIs(admin_url('view/custom_value_edit_all'))
+            ->seeInElement('td', 'TestSummaryView')
+            ->assertEquals($pre_cnt + 1, CustomView::count())
+        ;
+
+        $raw = CustomView::orderBy('id', 'desc')->first();
+        $custom_view_column = $raw->custom_view_columns->first();
+        $uniqueName = $custom_view_column->column_item->uniqueName();
+        $params = [
+            'group_view' => $raw->suuid,
+            'group_key' => json_encode([$uniqueName => '1'])
+        ];
+
+        $url = admin_urls_query('data', 'custom_value_edit_all', $params);
+        $this->visit($url)
+            ->seeInElement('td', '1000')
+        ;
+
+        $this->delete(admin_url('view/custom_value_edit_all/' . $raw->id));
+        $this->assertPostResponse($this->response, null);
+    }
+
 
     /**
      * Create custom view contains field.
@@ -214,7 +273,7 @@ class CCustomViewTest extends ExmentKitTestCase
                     $callback($query, $v);
                 }
 
-                $this->assertTrue($query->exists(), "custom view items not contains items.　custom_view_id:${id}, k:${k}, key:${key}, view_target:{$v['view_column_target']}, view_column_type:${column_type}, view_column_target_id:{$column_type_target}, view_column_table_id:${column_table_id}");
+                $this->assertTrue($query->exists(), "custom view items not contains items.　custom_view_id:{$id}, k:{$k}, key:{$key}, view_target:{$v['view_column_target']}, view_column_type:{$column_type}, view_column_target_id:{$column_type_target}, view_column_table_id:{$column_table_id}");
             }
         }
     }

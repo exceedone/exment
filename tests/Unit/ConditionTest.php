@@ -592,11 +592,12 @@ class ConditionTest extends UnitTestBase
     public function testColumnSelectNotExistsTrue()
     {
         $this->_testColumnSelect('bar', ["baz", null, '', 0, 123], FilterOption::SELECT_NOT_EXISTS, true);
+        $this->_testColumnSelect(123, [111, '234', [456, 789]], FilterOption::SELECT_NOT_EXISTS, true);
     }
     public function testColumnSelectNotExistsFalse()
     {
         $this->_testColumnSelect('foo', ['foo'], FilterOption::SELECT_NOT_EXISTS, false);
-        $this->_testColumnSelect(123, [123, '123'], FilterOption::SELECT_NOT_EXISTS, false);
+        $this->_testColumnSelect(123, [123, '123', [456, 123]], FilterOption::SELECT_NOT_EXISTS, false);
     }
 
     public function testColumnSelectNotNullTrue()
@@ -649,17 +650,17 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnSelectMultiNotExistsTrue()
     {
-        $this->_testColumnSelectMulti(['foo', 'bar'], ['baz', null, 0], FilterOption::SELECT_NOT_EXISTS, true);
-        $this->_testColumnSelectMulti([123, 456, 789], [234, '567', [777]], FilterOption::SELECT_NOT_EXISTS, true);
+        $this->_testColumnSelectMulti(['foo', 'bar'], ['baz', null, 0, ['aaa', 'bbb']], FilterOption::SELECT_NOT_EXISTS, true);
+        $this->_testColumnSelectMulti([123, 456, 789], [234, '567', [777, 999]], FilterOption::SELECT_NOT_EXISTS, true);
         $this->_testColumnSelectMulti(['イタリア', 'カナダ'], [
-            '日本', ['イタリア', '中国'], ['アメリカ', 'カナダ']], FilterOption::SELECT_NOT_EXISTS, true, TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA);
+            '日本', ['フランス', '中国'], ['アメリカ', '韓国', 'イギリス']], FilterOption::SELECT_NOT_EXISTS, true, TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA);
     }
     public function testColumnSelectMultiNotExistsFalse()
     {
-        $this->_testColumnSelectMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'bar']], FilterOption::SELECT_NOT_EXISTS, false);
-        $this->_testColumnSelectMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::SELECT_NOT_EXISTS, false);
+        $this->_testColumnSelectMulti(['foo', 'bar'], ['foo', 'bar', ['foo', 'baz']], FilterOption::SELECT_NOT_EXISTS, false);
+        $this->_testColumnSelectMulti([123, 456, 789], [123, '123', [123, 456], [789, 111]], FilterOption::SELECT_NOT_EXISTS, false);
         $this->_testColumnSelectMulti(['イタリア', 'カナダ'], [
-            ['イタリア', 'カナダ']], FilterOption::SELECT_NOT_EXISTS, false, TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA);
+            'カナダ', ['イタリア', 'カナダ'], ['アメリカ', 'カナダ', '中国']], FilterOption::SELECT_NOT_EXISTS, false, TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA);
     }
     public function testColumnSelectMultiNotNullTrue()
     {
@@ -1129,11 +1130,11 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnUserMultiNeTrue()
     {
-        $this->_testColumnUserMulti([123, 456, 789], [234, '567', null, 0, [777]], FilterOption::USER_NE, true);
+        $this->_testColumnUserMulti([123, 456, 789], [234, '567', null, 0, [777], [111, 222]], FilterOption::USER_NE, true);
     }
     public function testColumnUserMultiNeFalse()
     {
-        $this->_testColumnUserMulti([123, 456, 789], [123, '123', [123, 456], [789, 123]], FilterOption::USER_NE, false);
+        $this->_testColumnUserMulti([123, 456, 789], [123, '123', [123, 456], [333, 789]], FilterOption::USER_NE, false);
     }
     public function testColumnUserMultiNotNullTrue()
     {
