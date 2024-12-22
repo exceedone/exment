@@ -13,6 +13,10 @@ class CustomColumnValidationTest extends UnitTestBase
     use CustomColumnTrait;
 
     // required, unneccesarry, etc ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccess()
     {
         $this->executeTestEdit([
@@ -21,6 +25,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testRequired()
     {
         $this->executeTestEdit([
@@ -31,6 +38,8 @@ class CustomColumnValidationTest extends UnitTestBase
 
     /**
      * Update check,. It's Success
+     *
+     * @return void
      */
     public function testRequiredUpdate()
     {
@@ -38,6 +47,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ], [], [], 1);
     }
 
+    /**
+     * @return void
+     */
     public function testUnnecessary()
     {
         $this->executeTestEdit([
@@ -49,18 +61,30 @@ class CustomColumnValidationTest extends UnitTestBase
     }
 
     // Text ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessText()
     {
         $this->executeTestAllColumns(ColumnType::TEXT, [
             ColumnType::TEXT => 'abc',
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testSuccessText2()
     {
         $this->executeTestAllColumns(ColumnType::TEXT, [
             ColumnType::TEXT => 1,
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testTextNotString()
     {
         $this->executeTestAllColumns(ColumnType::TEXT, [
@@ -73,12 +97,20 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // Textarea ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessTextarea()
     {
         $this->executeTestAllColumns(ColumnType::TEXTAREA, [
             ColumnType::TEXTAREA => "abc\r\ndef",
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testSuccessTextarea2()
     {
         $this->executeTestAllColumns(ColumnType::TEXTAREA, [
@@ -88,12 +120,20 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // Textarea ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessEditor()
     {
         $this->executeTestAllColumns(ColumnType::EDITOR, [
             ColumnType::EDITOR => "abc\r\ndef",
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testSuccessEditor2()
     {
         $this->executeTestAllColumns(ColumnType::EDITOR, [
@@ -103,6 +143,10 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // Url ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessUrl()
     {
         $this->executeTestAllColumns(ColumnType::URL, [
@@ -110,6 +154,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testUrlNotString()
     {
         $this->executeTestAllColumns(ColumnType::URL, [
@@ -118,6 +165,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::URL => [$this->getErrorMessage('url', ColumnType::URL)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testUrlNotString2()
     {
         $this->executeTestAllColumns(ColumnType::URL, [
@@ -127,6 +178,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testUrlNotUrl()
     {
         $this->executeTestAllColumns(ColumnType::URL, [
@@ -138,6 +192,10 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // Email ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessEmail()
     {
         $this->executeTestAllColumns(ColumnType::EMAIL, [
@@ -145,6 +203,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testEmailNotString()
     {
         $this->executeTestAllColumns(ColumnType::EMAIL, [
@@ -153,6 +214,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::EMAIL => [$this->getErrorMessage('email', ColumnType::EMAIL)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testEmailNotString2()
     {
         $this->executeTestAllColumns(ColumnType::EMAIL, [
@@ -162,6 +227,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testEmailNotEmail()
     {
         $this->executeTestAllColumns(ColumnType::EMAIL, [
@@ -173,6 +241,10 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // Integer ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessInteger()
     {
         $this->executeTestAllColumns(ColumnType::INTEGER, [
@@ -180,6 +252,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessInteger2()
     {
         $this->executeTestAllColumns(ColumnType::INTEGER, [
@@ -187,6 +262,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessInteger3()
     {
         $this->executeTestAllColumns(ColumnType::INTEGER, [
@@ -194,6 +272,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testIntegerNot()
     {
         $this->executeTestAllColumns(ColumnType::INTEGER, [
@@ -202,6 +283,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::INTEGER => [$this->getErrorMessage('integer', ColumnType::INTEGER)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testIntegerNot2()
     {
         $this->executeTestAllColumns(ColumnType::INTEGER, [
@@ -215,6 +300,10 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // DECIMAL ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessDecimal()
     {
         $this->executeTestAllColumns(ColumnType::DECIMAL, [
@@ -222,6 +311,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDecimal2()
     {
         $this->executeTestAllColumns(ColumnType::DECIMAL, [
@@ -229,6 +321,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDecimal3()
     {
         $this->executeTestAllColumns(ColumnType::DECIMAL, [
@@ -236,6 +331,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDecimal4()
     {
         $this->executeTestAllColumns(ColumnType::DECIMAL, [
@@ -243,6 +341,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDecimal5()
     {
         $this->executeTestAllColumns(ColumnType::DECIMAL, [
@@ -250,6 +351,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDecimal6()
     {
         $this->executeTestAllColumns(ColumnType::DECIMAL, [
@@ -257,6 +361,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDecimalNot()
     {
         $this->executeTestAllColumns(ColumnType::DECIMAL, [
@@ -265,6 +372,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DECIMAL => [$this->getErrorMessage('numeric', ColumnType::DECIMAL)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testDecimalNot2()
     {
         $this->executeTestAllColumns(ColumnType::DECIMAL, [
@@ -277,6 +388,10 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // CURRENCY ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessCurrency()
     {
         $this->executeTestAllColumns(ColumnType::CURRENCY, [
@@ -284,6 +399,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessCurrency2()
     {
         $this->executeTestAllColumns(ColumnType::CURRENCY, [
@@ -291,6 +409,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessCurrency3()
     {
         $this->executeTestAllColumns(ColumnType::CURRENCY, [
@@ -298,6 +419,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessCurrency4()
     {
         $this->executeTestAllColumns(ColumnType::CURRENCY, [
@@ -305,6 +429,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessCurrency5()
     {
         $this->executeTestAllColumns(ColumnType::CURRENCY, [
@@ -312,6 +439,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessCurrency6()
     {
         $this->executeTestAllColumns(ColumnType::CURRENCY, [
@@ -320,6 +450,9 @@ class CustomColumnValidationTest extends UnitTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCurrencyNot()
     {
         $this->executeTestAllColumns(ColumnType::CURRENCY, [
@@ -328,6 +461,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::CURRENCY => [$this->getErrorMessage('numeric', ColumnType::CURRENCY)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testCurrencyNot2()
     {
         $this->executeTestAllColumns(ColumnType::CURRENCY, [
@@ -340,6 +477,10 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // DATE ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessDate()
     {
         $this->executeTestAllColumns(ColumnType::DATE, [
