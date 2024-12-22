@@ -24,6 +24,8 @@ class CustomOperationTest extends UnitTestBase
 
     /**
      * update data at once
+     *
+     * @return void
      */
     public function testUpdateSelectId()
     {
@@ -56,6 +58,8 @@ class CustomOperationTest extends UnitTestBase
 
     /**
      * update multiple data at once
+     *
+     * @return void
      */
     public function testUpdateSelectIds()
     {
@@ -83,6 +87,8 @@ class CustomOperationTest extends UnitTestBase
 
     /**
      * update data with filter
+     *
+     * @return void
      */
     public function testUpdateSelectFilter()
     {
@@ -119,6 +125,8 @@ class CustomOperationTest extends UnitTestBase
 
     /**
      * update data with filter
+     *
+     * @return void
      */
     public function testUpdateSelectFilterError()
     {
@@ -150,11 +158,14 @@ class CustomOperationTest extends UnitTestBase
         $result = $operation->execute($custom_table, $custom_value->id);
 
         $this->assertFalse($result === true);
+        /** @phpstan-ignore-next-line Call to function is_string() with false will always evaluate to false. */
         $this->assertTrue(is_string($result));
     }
 
     /**
      * update data with filter
+     *
+     * @return void
      */
     public function testUpdateSelectFilterNotError()
     {
@@ -189,11 +200,14 @@ class CustomOperationTest extends UnitTestBase
         $result = $operation->execute($custom_table, $custom_value->id);
 
         $this->assertFalse($result === true);
+        /** @phpstan-ignore-next-line Call to function is_string() with false will always evaluate to false.   */
         $this->assertTrue(is_string($result));
     }
 
     /**
      * update data with filter
+     *
+     * @return void
      */
     public function testUpdateSelectFilterNot()
     {
@@ -241,6 +255,8 @@ class CustomOperationTest extends UnitTestBase
 
     /**
      * update data with create event
+     *
+     * @return void
      */
     public function testOperationByCreate()
     {
@@ -268,6 +284,8 @@ class CustomOperationTest extends UnitTestBase
 
     /**
      * update data with update event
+     *
+     * @return void
      */
     public function testOperationByUpdate()
     {
@@ -298,6 +316,8 @@ class CustomOperationTest extends UnitTestBase
 
     /**
      * delete custom table with operation setting
+     *
+     * @return void
      */
     public function testTableDeleteWithOperation()
     {
@@ -322,6 +342,12 @@ class CustomOperationTest extends UnitTestBase
         $this->assertCount(0, CustomOperationColumn::where('custom_operation_id', $id)->get());
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $ids
+     * @param array<mixed>$settings
+     * @return void
+     */
     protected function _checkUpdateValue($custom_table, $ids, $settings = [])
     {
         $ids = stringToArray($ids);
@@ -362,6 +388,10 @@ class CustomOperationTest extends UnitTestBase
         }
     }
 
+    /**
+     * @param array<mixed> $settings
+     * @return CustomOperation
+     */
     protected function _prepareCustomOperation(array $settings = [])
     {
         $settings = array_merge(
