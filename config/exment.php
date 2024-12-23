@@ -1162,4 +1162,20 @@ return [
     | Even if 'userview_disabled' is false
     */
     'userview_unavailable_table' => env('EXMENT_USERVIEW_UNAVAILABLE_TABLE', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default english text for SCAN code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_scan_button_en' => env('EXMENT_TEXT_SCAN_BUTTON_EN', '2D barcode／JANcode'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default japanese text for SCAN code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_scan_button_ja' => env('EXMENT_TEXT_SCAN_BUTTON_JA', '二次元／JANバーコード'),
 ];
