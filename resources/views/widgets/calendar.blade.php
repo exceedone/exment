@@ -15,15 +15,15 @@
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale : "{{ $locale }}",
-            plugins: [ 'dayGrid', 'interaction', 'timeGrid' ],
-            header: {
+            headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
-            height: 'parent',
+            height: 'auto',
             fixedWeekCount: false,
-            eventRender: function(info) {
+            eventDidMount: function(info) {
+            // eventRender: function(info) {
                 info.el.setAttribute('data-toggle', 'tooltip');
                 info.el.setAttribute('data-original-title', info.event.title);
             },
@@ -49,7 +49,13 @@
                 minute: '2-digit'
             },
             // showing event size
-            eventLimit:5,
+            // eventLimit:5,
+            dayMaxEventRows: true,
+            views: {
+                timeGrid: {
+                    dayMaxEventRows: 5
+                }
+            },
             // put your options and callbacks here
             events: {
                 url: "{{ $data_url }}",
