@@ -335,22 +335,21 @@ class CustomValueDeleteTest extends FeatureTestBase
     protected function assertCustomRelationCount(CustomValue $custom_value, int $dataCount, int $deleteCount)
     {
         // delete custom relation is 1:n value
-        $relations = CustomRelation::getRelationsByParent($custom_value->custom_table, RelationType::ONE_TO_MANY);
-        // loop relations
-        foreach ($relations as $relation) {
-            $children = $custom_value->getChildrenValues($relation, true)
-                ->withTrashed()
-                ->get();
+        $relation = CustomRelation::getRelationByParentChild($custom_value->custom_table, 
+            TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE, RelationType::ONE_TO_MANY);
 
-            $dataCountResult = $children->filter(function ($child) {
-                return !$child->trashed();
-            })->count();
-            $deleteCountResult = $children->filter(function ($child) {
-                return $child->trashed();
-            })->count();
+        $children = $custom_value->getChildrenValues($relation, true)
+            ->withTrashed()
+            ->get();
 
-            $this->assertMatch($dataCountResult, $dataCount);
-            $this->assertMatch($deleteCountResult, $deleteCount);
-        }
+        $dataCountResult = $children->filter(function ($child) {
+            return !$child->trashed();
+        })->count();
+        $deleteCountResult = $children->filter(function ($child) {
+            return $child->trashed();
+        })->count();
+
+        $this->assertMatch($dataCountResult, $dataCount);
+        $this->assertMatch($deleteCountResult, $deleteCount);
     }
 }
