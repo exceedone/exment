@@ -1,5 +1,5 @@
-<div class="btn-group pull-right">
-<a class="btn btn-sm {{$button_class}} {{!is_nullorempty($menulist) ? 'dropdown-toggle' : ''}}" 
+<div class="btn-group d-flex justify-content-end">
+<a class="btn justify-content-center align-items-center d-flex btn-sm {{$button_class}} {{!is_nullorempty($menulist) ? 'dropdown-toggle' : ''}}" 
     style="margin-right:5px;"
     data-widgetmodal_url="{{$ajax}}"
     data-widgetmodal_method="GET"
@@ -9,7 +9,7 @@
     {!! $attributes !!}
 >
     <i class="fa {{$icon}}"></i>
-    <span class="hidden-xs">&nbsp;{{$label}}</span>
+    <span class="d-none d-md-block">&nbsp;{{$label}}</span>
 
     @if(!is_nullorempty($menulist))
     <span class="caret"></span>
