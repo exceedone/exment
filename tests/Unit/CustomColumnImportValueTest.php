@@ -224,15 +224,6 @@ class CustomColumnImportValueTest extends UnitTestBase
         ]);
     }
 
-
-
-
-
-
-
-
-
-
     /**
      * Check import value result
      *
