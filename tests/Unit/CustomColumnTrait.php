@@ -10,6 +10,8 @@ trait CustomColumnTrait
     /**
      * Get CustomColumn model.
      * *We can create custom column model if not save database.
+     * @param string $column_type
+     * @param array<mixed> $options
      *
      * @return CustomColumn
      */
@@ -28,8 +30,10 @@ trait CustomColumnTrait
     /**
      * Get Custom Value and column item.
      * *We can create custom value model if not save database.
+     * @param mixed $custom_column
+     * @param mixed $value
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function getCustomValueAndColumnItem(&$custom_column, $value)
     {

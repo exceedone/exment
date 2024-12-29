@@ -488,6 +488,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDate2()
     {
         $this->executeTestAllColumns(ColumnType::DATE, [
@@ -495,6 +498,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDate3()
     {
         $this->executeTestAllColumns(ColumnType::DATE, [
@@ -505,6 +511,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDate4()
     {
         $this->executeTestAllColumns(ColumnType::DATE, [
@@ -515,6 +524,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDateNot()
     {
         $this->executeTestAllColumns(ColumnType::DATE, [
@@ -523,6 +535,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATE => [$this->getErrorMessage('date', ColumnType::DATE)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testDateNot2()
     {
         $this->executeTestAllColumns(ColumnType::DATE, [
@@ -531,6 +547,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATE => [$this->getErrorMessage('date', ColumnType::DATE)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testDateNot3()
     {
         $this->executeTestAllColumns(ColumnType::DATE, [
@@ -539,6 +559,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATE => [$this->getErrorMessage('date', ColumnType::DATE)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testDateNot4()
     {
         $this->executeTestAllColumns(ColumnType::DATE, [
@@ -552,24 +576,40 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // TIME ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessTime()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
             ColumnType::TIME => '03:00:00',
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testSuccessTime2()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
             ColumnType::TIME => '1234',
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testSuccessTime3()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
             ColumnType::TIME => '12:34',
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testSuccessTime4()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
@@ -577,6 +617,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testTimeNot()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
@@ -585,6 +628,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::TIME => [$this->getErrorMessage('regex', ColumnType::TIME)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testTimeNot2()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
@@ -593,6 +640,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::TIME => [$this->getErrorMessage('regex', ColumnType::TIME)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testTimeNot3()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
@@ -601,6 +652,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::TIME => [$this->getErrorMessage('regex', ColumnType::TIME)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testTimeNot4()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
@@ -609,6 +664,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::TIME => [$this->getErrorMessage('regex', ColumnType::TIME)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testTimeNot5()
     {
         $this->executeTestAllColumns(ColumnType::TIME, [
@@ -622,6 +681,10 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // DATETIME ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testSuccessDatetime()
     {
         $this->executeTestAllColumns(ColumnType::DATETIME, [
@@ -629,6 +692,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDatetime2()
     {
         $this->executeTestAllColumns(ColumnType::DATETIME, [
@@ -636,6 +702,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDatetime3()
     {
         $this->executeTestAllColumns(ColumnType::DATETIME, [
@@ -646,6 +715,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSuccessDatetime4()
     {
         $this->executeTestAllColumns(ColumnType::DATETIME, [
@@ -656,6 +728,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDatetimeNot()
     {
         $this->executeTestAllColumns(ColumnType::DATETIME, [
@@ -664,6 +739,10 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATETIME => [$this->getErrorMessage('date', ColumnType::DATETIME)],
         ]);
     }
+
+    /**
+     * @return void
+     */
     public function testDatetimeNot2()
     {
         $this->executeTestAllColumns(ColumnType::DATETIME, [
@@ -672,6 +751,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATETIME => [$this->getErrorMessage('date', ColumnType::DATETIME)],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testDatetimeNot3()
     {
         $this->executeTestAllColumns(ColumnType::DATETIME, [
@@ -680,6 +762,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATETIME => [$this->getErrorMessage('date', ColumnType::DATETIME)],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testDatetimeNot4()
     {
         $this->executeTestAllColumns(ColumnType::DATETIME, [
@@ -692,24 +777,36 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // SELECT ----------------------------------------------------
+    /**
+     * @return void
+     */
     public function testSuccessSelect()
     {
         $this->executeTestAllColumns(ColumnType::SELECT, [
             ColumnType::SELECT => 'foo',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelect2()
     {
         $this->executeTestAllColumns(ColumnType::SELECT, [
             ColumnType::SELECT => 'foo,bar',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelect3()
     {
         $this->executeTestAllColumns(ColumnType::SELECT, [
             ColumnType::SELECT => ['foo','bar'],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectNot()
     {
         $this->executeTestAllColumns(ColumnType::SELECT, [
@@ -720,6 +817,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ])],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectNot2()
     {
         $this->executeTestAllColumns(ColumnType::SELECT, [
@@ -730,6 +830,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ])],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectNot3()
     {
         $this->executeTestAllColumns(ColumnType::SELECT, [
@@ -745,36 +848,54 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // SELECT_VALTEXT ----------------------------------------------------
+    /**
+     * @return void
+     */
     public function testSuccessSelectValText()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => 'foo',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelectValText2()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => 'FOO',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelectValText3()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => 'foo,bar',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelectValText4()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => 'FOO,bar',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelectValText5()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => ['foo', 'bar'],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelectValText6()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
@@ -782,6 +903,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSelectValTextNot()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
@@ -792,6 +916,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ])],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectValTextNot2()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
@@ -802,6 +929,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ])],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectValTextNot3()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
@@ -812,6 +942,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ])],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectValTextNot4()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
@@ -822,6 +955,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ])],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectValTextNot5()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
@@ -836,18 +972,27 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // SELECT_TABLE ----------------------------------------------------
+    /**
+     * @return void
+     */
     public function testSuccessSelectTable()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
             ColumnType::SELECT_TABLE => '1',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelectTable2()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
             ColumnType::SELECT_TABLE => '1,2',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessSelectTable3()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
@@ -855,6 +1000,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSelectTableNot()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
@@ -870,6 +1018,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectTableNot2()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
@@ -884,6 +1035,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectTableNot3()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
@@ -899,6 +1053,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSelectTableNot4()
     {
         $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
@@ -937,72 +1094,108 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // YESNO ----------------------------------------------------
+    /**
+     * @return void
+     */
     public function testSuccessYesNo()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => 1,
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo2()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => '1',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo3()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => 0,
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo4()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => '0',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo5()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => 'YES',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo6()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => 'yes',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo7()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => 'NO',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo8()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => 'no',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo9()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => true,
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo10()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => false,
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo11()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
             ColumnType::YESNO => 'true',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessYesNo12()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
@@ -1010,6 +1203,9 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testYesNoNot()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
@@ -1020,6 +1216,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ])],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testYesNoNot2()
     {
         $this->executeTestAllColumns(ColumnType::YESNO, [
@@ -1034,30 +1233,45 @@ class CustomColumnValidationTest extends UnitTestBase
 
 
     // BOOLEAN ----------------------------------------------------
+    /**
+     * @return void
+     */
     public function testSuccessBoolean()
     {
         $this->executeTestAllColumns(ColumnType::BOOLEAN, [
             ColumnType::BOOLEAN => 'ok',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessBoolean2()
     {
         $this->executeTestAllColumns(ColumnType::BOOLEAN, [
             ColumnType::BOOLEAN => 'OK',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessBoolean3()
     {
         $this->executeTestAllColumns(ColumnType::BOOLEAN, [
             ColumnType::BOOLEAN => 'ng',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testSuccessBoolean4()
     {
         $this->executeTestAllColumns(ColumnType::BOOLEAN, [
             ColumnType::BOOLEAN => 'NG',
         ]);
     }
+    /**
+     * @return void
+     */
     public function testBooleanNot()
     {
         $this->executeTestAllColumns(ColumnType::BOOLEAN, [
@@ -1068,6 +1282,9 @@ class CustomColumnValidationTest extends UnitTestBase
             ])],
         ]);
     }
+    /**
+     * @return void
+     */
     public function testBooleanNot2()
     {
         $this->executeTestAllColumns(ColumnType::BOOLEAN, [
@@ -1080,10 +1297,13 @@ class CustomColumnValidationTest extends UnitTestBase
     }
 
 
-
-
-
-
+    /**
+     * @param array<mixed> $values
+     * @param array<mixed> $errors
+     * @param array<mixed> $matches
+     * @param mixed|null $id
+     * @return void
+     */
     protected function executeTestEdit(array $values, array $errors = [], array $matches = [], $id = null)
     {
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel($id);
@@ -1091,6 +1311,13 @@ class CustomColumnValidationTest extends UnitTestBase
         $this->executeTest($custom_value, $values, $errors, $matches);
     }
 
+    /**
+     * @param string $column_type
+     * @param array<mixed> $values
+     * @param array<mixed> $errors
+     * @param array<mixed> $matches
+     * @return void
+     */
     protected function executeTestAllColumns($column_type, array $values, array $errors = [], array $matches = [])
     {
         $custom_column = $this->getCustomColumnModel($column_type);
@@ -1099,6 +1326,13 @@ class CustomColumnValidationTest extends UnitTestBase
         $this->executeTest($custom_value, $values, $errors, $matches);
     }
 
+    /**
+     * @param mixed $custom_value
+     * @param array<mixed> $values
+     * @param array<mixed> $errors
+     * @param array<mixed> $matches
+     * @return void
+     */
     protected function executeTest($custom_value, array $values, array $errors = [], array $matches = [])
     {
         $isSuccess = count($errors) == 0;
@@ -1131,13 +1365,22 @@ class CustomColumnValidationTest extends UnitTestBase
         }
     }
 
+    /**
+     * @param mixed $validatekey
+     * @param mixed $column
+     * @param array<mixed> $messages
+     * @return mixed
+     */
     protected function getErrorMessage($validatekey, $column, array $messages = [])
     {
         $array = array_merge($messages, ['attribute' => $column]);
         return trans("validation.$validatekey", $array);
     }
 
-    // ...
+    /**
+     * @param null|string $id
+     * @return void
+     */
     protected function login($id = null)
     {
         $this->be(LoginUser::find($id ?? 1));
