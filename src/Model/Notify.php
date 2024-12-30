@@ -225,6 +225,7 @@ class Notify extends ModelBase
                             'user' => $user,
                             'custom_value' => $custom_value,
                             'action_setting' => $action_setting,
+                            'final_user' => $user->id() === $users->last()->id(),
                         ]);
                     }
                     // throw mailsend Exception
@@ -361,6 +362,7 @@ class Notify extends ModelBase
                         'custom_table' => $custom_table,
                         'custom_value' => $custom_value,
                         'action_setting' => $action_setting,
+                        'final_user' => $user->id() === $users->last()->id(),
                     ]);
                 }
                 // throw mailsend Exception
@@ -433,6 +435,7 @@ class Notify extends ModelBase
                             'workflow_value' => $workflow_value,
                         ],
                         'action_setting' => $action_setting,
+                        'final_user' => $user->id() === $users->last()->id(),
                     ]);
                 }
                 // throw mailsend Exception
@@ -575,6 +578,7 @@ class Notify extends ModelBase
                         'body' => $body,
                         'attach_files' => $attach_files,
                         'action_setting' => $action_setting,
+                        'final_user' => $target_user_key === end($target_user_keys),
                     ]);
                 }
                 // throw mailsend Exception

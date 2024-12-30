@@ -84,6 +84,11 @@ return [
         'no_use' => '使用しない',
         'default_export' => 'エクスポート',
         'condition_reverse' => '<反転> ',
+        'save' => '保存',
+        'no_file_download' => 'ダウンロード対象のファイルがありません',
+        'english' => '英語',
+        'japanese' => '日本語',
+        'back_button' => '戻る',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -109,6 +114,7 @@ return [
             'cannot_preview' => '※:nameは、編集中のプレビュー機能に対応していません。確認する場合、一度保存後に実施してください。',
             'preview_error' => 'プレビューの有効期限が切れました。この画面を閉じ、再度プレビューを実施してください。',
             'csrf_error' => '有効期限が切れたので、ブラウザを開き直してください。',
+            'not_edit_column_type' => '列種類は変更不可です。',
         ],
 
         'help' =>[
@@ -230,6 +236,7 @@ return [
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
         'email_multiline' => 'Eメールアドレスでない行が含まれています。',
         'duplicate_relation' => 'すでに関連付けられているテーブルです。',
+        'filename_not_allow' => ':attributeには、禁則文字が使用されています。ファイル名を変更して再度実施してください。',
         
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
@@ -434,7 +441,7 @@ return [
             'system_values_pos' => 'データ編集画面及びデータ詳細画面でシステム項目を表示する位置を設定します。',
             'data_submit_redirect' => 'カスタムデータの保存後にリダイレクトする画面の既定値を設定することができます。この項目を設定すると、データ入力画面で、保存後のデータ遷移先チェックボックスにチェックが入ります。',
             'header_user_info' => 'ヘッダーのユーザー情報に表示する内容を設定することができます。空欄にした場合は非表示になります。',
-            'api_available' => 'YESにした場合、APIを使用することができます。',
+            'api_available' => 'YESにする前に、Laravelキーを作成ください。作成方法は<a href="%sapiを使用する" target="_blank">こちら</a>です。YESにした場合、APIを使用することができます。',
             'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
@@ -580,6 +587,7 @@ return [
             'editor' => 'エディター',
             'html' => 'HTML',
             'notify_navbar' => '通知一覧',
+            'barcode' => '二次元／JANバーコード',
         ],
 
         'dashboard_menulist' => [
@@ -652,8 +660,8 @@ return [
                 'form_menubutton_show' => 'データ詳細のメニューボタン',
                 'form_menubutton_create' => 'フォームのメニューボタン（新規作成時）',
                 'form_menubutton_edit' => 'フォームのメニューボタン（更新時）',
-                'workflow_action_executing' => 'ワークフロース実行前',
-                'workflow_action_executed' => 'ワークフロース実行後',
+                'workflow_action_executing' => 'ワークフロー実行前',
+                'workflow_action_executed' => 'ワークフロー実行後',
                 'notify_executing' => '通知前',
                 'notify_executed' => '通知後',
             ]
@@ -1045,6 +1053,8 @@ return [
         'notify' => '通知設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
+        'qrcode' => '二次元バーコード設定',
+        'jancode' => 'JANバーコード設定',
     ],
 
     'workflow' => [
@@ -1185,12 +1195,63 @@ return [
         'expand_setting' => '拡張設定',
         'copy_from_table' => 'コピー元テーブル',
         'copy_custom_table' => 'カスタムテーブルをコピーする',
+        'no_selected' => '対象データが選択されていません',
+        'qr_code' => [
+            'setting' => '二次元バーコード設定',
+            'content' => '二次元バーコードの補足情報',
+            'text' => 'タイトル',
+            'image_size' => '二次元バーコードのレイアウトサイズ',
+            'cell_width' => 'Cell width',
+            'cell_height' => 'Cell height',
+            'margin_left' => 'Margin left',
+            'margin_top' => 'Margin top',
+            'column_per_page' => 'Column per page',
+            'row_per_page' => 'Row per page',
+            'column_spacing' => 'Columnn spacing',
+            'row_spacing' => 'Row spacing',
+            'form_after_read' => '二次元バーコード読込後のフォーム',
+            'action_after_read' => 'データ登録後のアクション',
+            'download' => '%sダウンロード',
+            'create' => '%s新規作成',
+            'form_title' => '二次元バーコード新規作成',
+            'reading' => '%s読込',
+            'description' => '二次元バーコードのレイアウトサイズ設定は<a href="%s" target="_blank">こちら</a>をご参照ください。',
+            'number_qr' => '二次元バーコードの件数',
+            'advance_setting' => '二次元バーコード読込',
+            'text_button' => 'ボタン表示名',
+            'text_button_description' => '二次元バーコード新規作成、二次元バーコードダウンロードボタンの「二次元バーコード」の表示名を設定します。',
+            'created' => '作成しました。',
+            'download_complete' => '二次元バーコードのダウンロードを完了しました',
+            'table_not_found' => 'この二次元バーコードコードの表が見つかりません',
+            'validate_qr_number' => '二次元バーコードコードの数は 0 より大きくなければなりません',
+            'refer_column' => '表示列',
+            'refer_column_description' => '二次元バーコードの右側にカスタムデータの指定列の情報を表示します。<br/>※ID列または自動採番列（ユニーク（一意）かつ必須であること）を選択できます。',
+            'text_qr_description' => '二次元バーコードの右側に表示される固定文言です。',
+        ],
+        'jan_code' => [
+            'setting' => 'JANバーコード設定',
+            'advance_setting' => 'JANバーコード読込',
+            'form_after_edit' => '編集フォーム',
+            'form_after_create' => '登録フォーム',
+            'table_not_found' => 'この Jancode のテーブルが見つかりません',
+            'action_after_edit' => 'データ編集後のアクション',
+            'action_after_create' => 'データ登録後のアクション',
+            'header' => 'JANバーコード利用のテーブル一覧',
+            'description' => 'JANバーコード登録したいテーブルを選択してください。',
+        ],
         'data_submit_redirect_options' => [
             "inherit"               => "システム設定に合わせる",
             'list'                  => '一覧',
             'view'                  => '表示',
             'continue_editing'      => '編集を続ける',
             'continue_creating'     => '新規作成する',
+        ],
+        'data_qr_redirect_options' => [
+            'top'                   => 'TOP画面表示',
+            'list'                  => '一覧表示',
+            'view'                  => '詳細画面表示',
+            'continue_editing'      => '編集画面表示',
+            'camera'                => 'カメラ起動',
         ],
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
@@ -1213,6 +1274,10 @@ return [
             'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
             'delete_confirm_error' => 'キーワードが正しくありません。',
             'copy_custom_table' => '通常設定、拡張設定、カスタム列をコピーします。<br />その他の設定は対象外になります。手動で設定を行ってください。',
+            'qrcode_activate' => 'このテーブルの二次元バーコード機能を有効化にします。有効化しますか？',
+            'qrcode_deactivate' => 'このテーブルの二次元バーコード機能を無効化にします。無効化しますか？',
+            'jancode_activate' => 'このテーブルのJANバーコード機能を有効にします。有効にしますか?',
+            'jancode_deactivate' => 'このテーブルのJANバーコード機能は無効になります。無効にしますか?<br/>なお、有効時に紐づけられたJANバーコードの情報はのこるため、JANバーコード読込を行うと、このテブールのデータが表示されます。',
         ],
 
         'custom_column_multi' => [
@@ -2184,6 +2249,13 @@ return [
             'menu' => 'メニュー',
             'role_group' => '役割グループ',
         ]
+    ],
+
+    'qrcode' => [
+        'description' => 'このテーブルの二次元バーコード設定を行います。',
+    ],
+    'jancode' => [
+        'description' => 'このテーブルのJANバーコード設定を行います。',
     ],
 
     'custom_value' => [

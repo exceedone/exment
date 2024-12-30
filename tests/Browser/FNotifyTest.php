@@ -162,7 +162,7 @@ class FNotifyTest extends ExmentKitTestCase
 
         $domDocument = new \DOMDocument();
         libxml_use_internal_errors(true);
-        $domDocument->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        $domDocument->loadHTML($html);
         libxml_clear_errors();
 
         return $domDocument;

@@ -111,7 +111,14 @@ trait CustomViewTrait
         $query = $custom_table->getValueQuery();
         if ($view_kind_type == ViewKindType::AGGREGATE) {
             $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
-            $data = $grid->getQuery($query)->get();
+            $query = $grid->getQuery($query);
+            if (!is_null($offset = array_get($options, 'offset'))) {
+                $query->offset($offset);
+            }
+            if (!is_null($limit = array_get($options, 'limit'))) {
+                $query->limit($limit);
+            }
+            $data = $query->get();
         } else {
             $custom_view->setValueFilters($query);
             $query = $custom_view->getSearchService()->query();
@@ -183,7 +190,7 @@ trait CustomViewTrait
                 $column_setting['options']['view_pivot_table_id'] = $custom_table->id;
                 $column_setting['options']['view_pivot_column_id'] = $this->getTargetColumnId([
                     'column_name' => $column_setting['reference_column'],
-                ], $custom_table, true);
+                ], boolval(array_get($column_setting, 'is_refer'))? $refer_table: $custom_table, true);
             }
         } else {
             $view_column_table_id = $custom_table->id;

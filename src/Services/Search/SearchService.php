@@ -357,15 +357,16 @@ class SearchService
         $column_item = $column->column_item;
 
         // get group's column. this is wraped.
-        $wrap_column = $column_item->getGroupByWrapTableColumn();
         $sqlAsName = \Exment::wrapColumn($column_item->sqlAsName());
 
         // if has sub query(for child relation), set to sub query
         $isSubQuery = false;
         if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
             $isSubQuery = true;
-            $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($wrap_column, $sqlAsName) {
+            $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($column_item, $sqlAsName) {
+                $wrap_column = $column_item->getGroupByWrapTableColumn(true);
                 $subquery->selectRaw("$wrap_column AS $sqlAsName");
+                $wrap_column = $column_item->getGroupByWrapTableColumn();
                 $subquery->groupByRaw($wrap_column);
             };
         }
@@ -420,10 +421,10 @@ class SearchService
 
             // set to default query group by.
             // Need MIN, MAX.
-            $result_column = $column_item->getGroupByJoinResultWrapTableColumn();
-            if (!is_nullorempty($result_column)) {
-                $this->query->groupByRaw($result_column);
-            }
+            // $result_column = $column_item->getGroupByJoinResultWrapTableColumn();
+            // if (!is_nullorempty($result_column)) {
+            //     $this->query->groupByRaw($result_column);
+            // }
         }
         // default, set to default query.
         else {

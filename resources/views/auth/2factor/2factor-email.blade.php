@@ -12,7 +12,7 @@
                 <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                 @endforeach @endif
 
-                <input type="input" class="form-control" placeholder="{{ exmtrans('2factor.message.input_number') }}" name="verify_code" value="{{ old('verify_code') }}" required />
+                <input type="text" class="form-control" placeholder="{{ exmtrans('2factor.message.input_number') }}" name="verify_code" value="{{ old('verify_code') }}" required />
             </div>
             
             <div class="row">

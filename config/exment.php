@@ -1099,6 +1099,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | class type of default show page 
+    |--------------------------------------------------------------------------
+    |
+    | set class for container of default show page.
+    | 1. only option boxes(default).
+    | 2. only show form.
+    | 3. both option boxes and show form.
+    |
+    */
+    'show_page_class_type' => env('EXMENT_SHOW_PAGE_CLASS_TYPE', 1),
+
+    /*
+    |--------------------------------------------------------------------------
     | Attachments are available to users with view permission
     |--------------------------------------------------------------------------
     |
@@ -1134,4 +1147,45 @@ return [
     |
     */
     'search_keep_default_view' => env('EXMENT_SEARCH_KEEP_DEFAULT_VIEW', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default english text for qr code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_qr_button_en' => env('EXMENT_TEXT_QR_BUTTON_EN', '2D barcode'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default japanese text for qr code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_qr_button_ja' => env('EXMENT_TEXT_QR_BUTTON_JA', '二次元バーコード'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Unavailable user view ( for tables )
+    |--------------------------------------------------------------------------
+    |
+    | Even if 'userview_disabled' is false
+    */
+    'userview_unavailable_table' => env('EXMENT_USERVIEW_UNAVAILABLE_TABLE', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default english text for SCAN code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_scan_button_en' => env('EXMENT_TEXT_SCAN_BUTTON_EN', '2D barcode／JANcode'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default japanese text for SCAN code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_scan_button_ja' => env('EXMENT_TEXT_SCAN_BUTTON_JA', '二次元／JANバーコード'),
 ];
