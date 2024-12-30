@@ -12,12 +12,11 @@
         </li>
     @else
         <li class="treeview">
-            <a href="#">
-                <i class="fa {{$item['icon']}}"></i>
+            <a href="#" class="has-subs" data-bs-toggle="collapse" data-bs-target="#collapse-{{$item['id']}}" aria-expanded="false">
+            <i class="fa {{$item['icon']}}"></i>
                 <span>{{$item['title']}}</span>
-                <i class="fa fa-angle-left pull-right"></i>
             </a>
-            <ul class="treeview-menu">
+            <ul id="collapse-{{$item['id']}}" class="btn-toggle-nav list-unstyled collapse fw-normal pb-1">
                 @foreach($item['children'] as $item)
                     @include('admin::partials.menu', $item)
                 @endforeach
