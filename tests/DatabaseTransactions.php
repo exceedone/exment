@@ -42,7 +42,7 @@ trait DatabaseTransactions
     /**
      * The database connections that should have transactions.
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function connectionsToTransact()
     {

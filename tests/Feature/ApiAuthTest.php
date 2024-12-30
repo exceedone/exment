@@ -15,6 +15,9 @@ class ApiAuthTest extends ApiTestBase
 {
     use DatabaseTransactions;
 
+    /**
+     * @return void
+     */
     public function testApiAuthReadTrue()
     {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_READ]);
@@ -34,6 +37,9 @@ class ApiAuthTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testApiAuthWriteTrue()
     {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
@@ -57,6 +63,9 @@ class ApiAuthTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testApiAuthReadFalse()
     {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
@@ -74,6 +83,9 @@ class ApiAuthTest extends ApiTestBase
             ->assertStatus(404);
     }
 
+    /**
+     * @return void
+     */
     public function testApiAuthWriteFalse()
     {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
@@ -97,6 +109,9 @@ class ApiAuthTest extends ApiTestBase
         ->assertStatus(404);
     }
 
+    /**
+     * @return void
+     */
     public function testWebApiAuthTrue()
     {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
@@ -129,6 +144,9 @@ class ApiAuthTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testWebApiAuthReadFalse()
     {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_READ]);
@@ -154,6 +172,9 @@ class ApiAuthTest extends ApiTestBase
             ->assertStatus(404);
     }
 
+    /**
+     * @return void
+     */
     public function testWebApiAuthWriteFalse()
     {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
@@ -181,6 +202,10 @@ class ApiAuthTest extends ApiTestBase
 
 
     // public form api ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testPublicFormApiAuthTrue()
     {
         $uri = $this->getPublicFormApiUri(TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -196,6 +221,9 @@ class ApiAuthTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testPublicFormApiAuthReadFalse()
     {
         // dummy uri
@@ -222,6 +250,9 @@ class ApiAuthTest extends ApiTestBase
             ->assertStatus(404);
     }
 
+    /**
+     * @return void
+     */
     public function testPublicFormApiAuthWriteFalse()
     {
         // dummy uri
