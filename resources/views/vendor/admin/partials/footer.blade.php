@@ -1,5 +1,5 @@
 <!-- Main Footer -->
-<footer class="d-flex justify-content-between align-items-center bg-white py-3 px-4 fixed-bottom" style="margin-left: 280px;">
+<footer class="d-flex justify-content-between align-items-center bg-white py-3 px-4 fixed-bottom">
     
 
     <!-- To the left -->
@@ -9,7 +9,7 @@
         <a href="#" role="readQRDashboard" data-qr_action="url"></a>
     </div>
     <!-- To the right -->
-    <div class="d-flex align-items-center">
+    <div class="d-flex align-items-center d-none d-lg-block">
         @if(config('admin.show_version'))
         <strong>Version</strong>&nbsp;&nbsp;<span id="version">{!! \Exment::version() !!}</span>
         @endif
