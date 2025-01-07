@@ -59,7 +59,7 @@
                         ['class' => 'form-control', 'style' => 'width:400px;']) }}
                     </div>
                     {{-- select hasmany or hasmanytable --}}
-                    @if($custom_form_block['form_block_type'] == '1')
+                    @if($custom_form_block['form_block_type'] != '0')
                     <div class="form-group">
                         {{ Form::label("", exmtrans('custom_form.form_block_order'), ['class' => 'control-label', 'style' => 'padding-left:15px;padding-right:15px;'])
                         }} {{ Form::number("{$custom_form_block['header_name']}[options][form_block_order]", $custom_form_block['form_block_order'], ['class' => 'form-control', 'style' => 'width:70px', 'min' => '0', 'step' => '1']) }}
