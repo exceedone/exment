@@ -1,8 +1,8 @@
 <div class="box box-{{ $style }}">
-    <div class="box-header with-border">
+    <div class="box-header with-border d-flex justify-content-between border-bottom border-light p-1 mb-3">
         <h3 class="box-title">{{ $title }}</h3>
 
-        <div class="box-tools">
+        <div class="box-tools d-flex flex-row-reverse">
             {!! $tools !!}
         </div>
     </div>

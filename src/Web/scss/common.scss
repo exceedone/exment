@@ -362,7 +362,6 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     .modal-tile-item {
         display: flex;
         align-items: center;
-        justify-content: center;
         min-height: 100px;
         .sub-buttons {
             margin-top: 0.5em;
@@ -375,7 +374,6 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     .modal-tile-item-icon {
         display: flex;
         align-items: center;
-        justify-content: center;
         a.btn {
             width: 70px;
             height: 60px;

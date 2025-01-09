@@ -43,10 +43,56 @@ var Exment;
             }
             $(window).trigger(EVENT_SHOW_LOADED);
         }
+        static setLoading(event) {
+            const button = event.target;
+            if (!(button && (button.classList.contains('submit') || button.type === 'submit'))) {
+                return;
+            }
+        
+            const originalText = button.innerHTML;
+            const originalDisabledState = button.disabled;
+            button.innerHTML = 'Loading...';
+            button.disabled = true;
+        
+            const form = $(button).closest('form');
+        
+            if (form.data('submitted')) {
+                button.innerHTML = originalText;
+                button.disabled = originalDisabledState;
+                return;
+            }
+        
+            form.data('submitted', true);
+        
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = originalDisabledState;
+        
+                if (form.length) {
+                    form.submit();
+                }
+        
+                form.data('submitted', false);
+            }, 1000); // Giả lập thời gian tải 1 giây
+        }
+        
+        static bindSubmitButtons() {
+            $('button.submit, button[type="submit"]').off('click').on('click', function (event) {
+                Exment.CustomScriptEvent.setLoading(event);
+            });
+        }
+        
     }
     Exment.CustomScriptEvent = CustomScriptEvent;
 })(Exment || (Exment = {}));
 $(function () {
+    Exment.CustomScriptEvent.bindSubmitButtons();
     Exment.CustomScriptEvent.AddEvent();
     Exment.CustomScriptEvent.AddEventOnce();
+    $(document).on('pjax:complete', function () {
+        Exment.CustomScriptEvent.bindSubmitButtons(); 
+    });
+    $('#filter-box').on('show', function () {        
+        Exment.CustomScriptEvent.bindSubmitButtons();
+    });
 });
