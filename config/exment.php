@@ -1099,6 +1099,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | class type of default show page 
+    |--------------------------------------------------------------------------
+    |
+    | set class for container of default show page.
+    | 1. only option boxes(default).
+    | 2. only show form.
+    | 3. both option boxes and show form.
+    |
+    */
+    'show_page_class_type' => env('EXMENT_SHOW_PAGE_CLASS_TYPE', 1),
+
+    /*
+    |--------------------------------------------------------------------------
     | Maximum length of strings to display in the grid
     |--------------------------------------------------------------------------
     |
@@ -1149,4 +1162,20 @@ return [
     | Even if 'userview_disabled' is false
     */
     'userview_unavailable_table' => env('EXMENT_USERVIEW_UNAVAILABLE_TABLE', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default english text for SCAN code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_scan_button_en' => env('EXMENT_TEXT_SCAN_BUTTON_EN', '2D barcode／JANcode'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default japanese text for SCAN code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_scan_button_ja' => env('EXMENT_TEXT_SCAN_BUTTON_JA', '二次元／JANバーコード'),
 ];
