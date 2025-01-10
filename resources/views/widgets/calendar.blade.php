@@ -22,8 +22,9 @@
             },
             height: 'auto',
             fixedWeekCount: false,
+            weekNumbers: true,
+            navLinks: true,
             eventDidMount: function(info) {
-            // eventRender: function(info) {
                 info.el.setAttribute('data-toggle', 'tooltip');
                 info.el.setAttribute('data-original-title', info.event.title);
             },
@@ -49,13 +50,7 @@
                 minute: '2-digit'
             },
             // showing event size
-            // eventLimit:5,
-            dayMaxEventRows: true,
-            views: {
-                timeGrid: {
-                    dayMaxEventRows: 5
-                }
-            },
+            dayMaxEventRows: 5,
             // put your options and callbacks here
             events: {
                 url: "{{ $data_url }}",
@@ -70,10 +65,10 @@
 </script>
 <style>
 
-.fc-sun {
+.fc-day-sun a{
     color: red;
 }
-.fc-sat {
+.fc-day-sat a{
     color: blue;
 }
 .fc-day-grid-event:hover{

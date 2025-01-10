@@ -7,7 +7,7 @@
             locale : "{{ $locale }}",
             //height: 'auto',
             height: 395, // dashboard box height - 5
-            eventRender: function(info) {
+            eventDidMount: function(info) {
                 info.el.setAttribute('data-toggle', 'tooltip');
                 info.el.setAttribute('data-original-title', info.event.title);
             },
@@ -31,19 +31,17 @@
                 minute: '2-digit'
             },
             // showing event size. if over, dialog.
-            eventLimit:5,
+            dayMaxEventRows: 3,
             @if($calendar_type == 'month') 
-            plugins: [ 'dayGrid', 'interaction' ],
             fixedWeekCount: false,
             @else
-            plugins: [ 'list' ],
             defaultView: 'listWeek',
             views: {
                 listDay: { buttonText: "{{ exmtrans("calendar.calendar_button_options.day") }}" },
                 listWeek: { buttonText: "{{ exmtrans("calendar.calendar_button_options.week") }}" },
                 listMonth: { buttonText: "{{ exmtrans("calendar.calendar_button_options.month") }}" }
             },
-            header: {
+            headerToolbar: {
               left: 'prev,next today',
               center: 'title',
               right: 'listDay,listWeek,listMonth'
@@ -64,10 +62,10 @@
 
 <style>
 
-.fc-sun {
+.fc-day-sun a{
     color: red;
 }
-.fc-sat {
+.fc-day-sat a{
     color: blue;
 }
 .fc-day-grid-event:hover{
@@ -79,10 +77,10 @@
 .box-body .fc {
     margin-top: 0px;
 }
-.fc-toolbar.fc-header-toolbar {
+.fc .fc-toolbar.fc-header-toolbar {
     margin-bottom: 0.2em;
 }
-.fc-button {
+.fc .fc-button {
     padding: .2em .4em
 }
 .box.box-dashboard .box-body .box-body-inner-body {
