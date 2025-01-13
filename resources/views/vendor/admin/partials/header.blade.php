@@ -2,7 +2,7 @@
 <header class="custom-navbar navbar navbar-light p-0 align-items-stretch main-header">
     <a class="navbar-brand menu-width bg-semi-dark text-center logo" href="{{ admin_url('/') }}">
         <span class="short">{!! config('admin.logo-mini', config('admin.name')) !!}</span><span
-            class="long user-image">{!! config('admin.logo', config('admin.name')) !!}</span>
+            class="long user-image logo-lg">{!! config('admin.logo', config('admin.name')) !!}</span>
     </a>
     <div class="d-flex flex-fill flex-wrap header-items navbar">
 
@@ -17,14 +17,14 @@
         </ul> --}}
 
 
-        <ul class="nav order-2 ms-auto d-flex align-items-center gap-3">
+        <ul class="nav order-2 ms-auto d-flex align-items-center gap-4">
 
             {!! Admin::getNavbar()->render() !!}
 
             <li class="nav-item">
                 <div class="dropdown user-menu d-flex align-items-center px-3" href="#" role="button"
                     id="user-menu-link" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span class="inline rounded-circle user-image">
+                    <span class="inline rounded-circle user-image" style="margin-right: 10px;">
                         <img src="{{ Admin::user()->display_avatar }}" alt="User Image">
                     </span>
                     <span class="d-none d-sm-inline text-white">{{ Admin::user()->name }}</span>
