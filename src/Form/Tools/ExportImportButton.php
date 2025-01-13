@@ -57,7 +57,7 @@ class ExportImportButton extends ModalTileMenuButton
         parent::__construct([
             'label' => $label,
             'icon' => 'fa-download',
-            'button_class' => 'btn-info',
+            'button_class' => 'btn-twitter',
         ]);
     }
 

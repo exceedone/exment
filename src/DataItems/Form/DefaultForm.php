@@ -758,7 +758,7 @@ EOT;
                 $select->buttons([
                     [
                         'label' => trans('admin.search'),
-                        'btn_class' => 'btn-info',
+                        'btn_class' => 'btn-twitter',
                         'icon' => 'fa-search',
                         'attributes' => [
                             'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
@@ -805,7 +805,7 @@ EOT;
             $select->buttons([
                 [
                     'label' => trans('admin.search'),
-                    'btn_class' => 'btn-info',
+                    'btn_class' => 'btn-twitter',
                     'icon' => 'fa-search',
                     'attributes' => [
                         'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),

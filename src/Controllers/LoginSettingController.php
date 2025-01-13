@@ -615,7 +615,7 @@ class LoginSettingController extends AdminControllerBase
         $form->ajaxButton('login_2factor_verify_button', exmtrans("2factor.submit_verify_code"))
             ->help(exmtrans("2factor.help.submit_verify_code"))
             ->url(route('exment.2factor_verify'))
-            ->button_class('btn-sm btn-info')
+            ->button_class('btn-sm btn-twitter')
             ->button_label(exmtrans('2factor.submit_verify_code'))
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
 

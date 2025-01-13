@@ -2,11 +2,11 @@
     <div class="box-header with-border">
         <div class="pull-right">
             <div class="btn-group pull-right" style="margin-right: 5px">
-                <button type="button" style="margin-right:5px;" class="btn btn-sm btn-info btn-backup">
+                <button type="button" style="margin-right:5px;" class="btn btn-sm btn-twitter btn-backup">
                     <i class="fa fa-download"></i> {{exmtrans("backup.backup")}}
                 </button>
 
-                <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal')}}" type="button" class="btn btn-sm btn-info">
+                <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal')}}" type="button" class="btn btn-sm btn-twitter">
                     <i class="fa fa-upload"></i> {{exmtrans("backup.restore")}}
                 </a>
             </div>

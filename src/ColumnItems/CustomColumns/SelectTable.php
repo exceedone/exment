@@ -207,7 +207,7 @@ class SelectTable extends CustomItem
         if ($this->isShowSearchButton($this->form_column_options)) {
             $buttons[] = [
                 'label' => trans('admin.search'),
-                'btn_class' => 'btn-info',
+                'btn_class' => 'btn-twitter',
                 'icon' => 'fa-search',
                 'attributes' => [
                     'data-widgetmodal_url' => admin_urls_query('data', $this->target_table->table_name, ['modalframe' => 1]),

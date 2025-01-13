@@ -419,7 +419,7 @@ class SystemController extends AdminControllerBase
 
     //     $form->ajaxButton('call_update', exmtrans("system.call_update"))
     //         ->url(admin_urls('system', 'call_update'))
-    //         ->button_class('btn-sm btn-info')
+    //         ->button_class('btn-sm btn-twitter')
     //         ->button_label(exmtrans('system.call_update'))
     //         ->confirm(true)
     //         ->confirm_title(trans('admin.confirm'))

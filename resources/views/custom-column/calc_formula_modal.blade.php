@@ -8,7 +8,7 @@
             </span>
         <textarea id="calc_formula_input" rows="3" class="w-100">{{$value}}</textarea>
 
-        <button type="button" id="validateFormula" class="btn btn-info">{{exmtrans('custom_column.calc_formula.validate_formula')}}</button>
+        <button type="button" id="validateFormula" class="btn btn-twitter">{{exmtrans('custom_column.calc_formula.validate_formula')}}</button>
         <span id="validateResult" style="margin-left: 5px;">
             <span id="validateResultSuccess" class="validateResultSuccess"><i class="fa fa-circle-o"></i>{{exmtrans('custom_column.calc_formula.message.validate_success')}}</span>
             <span id="validateResultError" class="validateResultError"><i class="fa fa-times"></i>{{exmtrans('custom_column.calc_formula.message.validate_error')}}</span>

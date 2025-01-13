@@ -71,7 +71,7 @@ class CCustomCopyTest extends ExmentKitTestCase
             ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
             ->seeOuterElement('input[id=label]', 'copy unit test')
             ->seeOuterElement('input[id=icon]', 'fa-android')
-            ->seeOuterElement('input[id=button_class]', 'btn-info')
+            ->seeOuterElement('input[id=button_class]', 'btn-twitter')
         ;
 
         foreach ($custom_copy->custom_copy_columns as $custom_copy_column) {
@@ -290,7 +290,7 @@ class CCustomCopyTest extends ExmentKitTestCase
             'options' => [
                 'label' => 'copy unit test',
                 'icon' => 'fa-android',
-                'button_class' => 'btn-info',
+                'button_class' => 'btn-twitter',
             ],
             'custom_copy_columns' => [],
             'custom_copy_input_columns' => [],

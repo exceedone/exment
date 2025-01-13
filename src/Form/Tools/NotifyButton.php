@@ -67,7 +67,7 @@ EOT;
         return view('exment::tools.modal-button', [
             'suuid' => $suuid,
             'label' => $label ?? null,
-            'button_class' => 'btn-info',
+            'button_class' => 'btn-twitter',
             'icon' => 'fa-envelope-o',
             'url' => $url
         ]);

@@ -22,7 +22,7 @@ trait UserOrganizationItemTrait
         if (!boolval(config('exment.select_table_modal_search_disabled', false))) {
             $buttons[] = [
                 'label' => trans('admin.search'),
-                'btn_class' => 'btn-info',
+                'btn_class' => 'btn-twitter',
                 'icon' => 'fa-search',
                 'attributes' => [
                     'data-widgetmodal_url' => admin_urls_query('data', $target_table->table_name, ['modalframe' => 1]),
