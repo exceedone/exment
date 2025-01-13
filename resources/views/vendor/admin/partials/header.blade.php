@@ -24,7 +24,7 @@
             <li class="nav-item">
                 <div class="dropdown user-menu d-flex align-items-center px-3" href="#" role="button"
                     id="user-menu-link" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span class="inline rounded-circle user-image" style="margin-right: 10px;">
+                    <span class="inline rounded-circle user-image">
                         <img src="{{ Admin::user()->display_avatar }}" alt="User Image">
                     </span>
                     <span class="d-none d-sm-inline text-white">{{ Admin::user()->name }}</span>

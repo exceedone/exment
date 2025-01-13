@@ -20,7 +20,7 @@
 
         <div class="custom-menu">
             <ul class="list-unstyled ps-0 root" id="menu">
-            <li class="header">Menu</li>
+            <li class="header">{{ trans('admin.menu') }}</li>
                 @each('admin::partials.menu', Admin::menu(), 'item')
             </ul>
         </div>
