@@ -64,7 +64,7 @@ class BootstrapPublicForm
             'vendor/exment/mathjs/math.min.js',
             'vendor/exment/js/numberformat.js',
             'vendor/exment/fullcalendar/index.global.min.js',
-            'vendor/exment/fullcalendar/core/locales-all.global.min.js',
+            'vendor/exment/fullcalendar/locales-all.global.min.js',
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
