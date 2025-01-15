@@ -35,7 +35,7 @@
             @if($calendar_type == 'month') 
             fixedWeekCount: false,
             @else
-            defaultView: 'listWeek',
+            initialView : 'listWeek',
             views: {
                 listDay: { buttonText: "{{ exmtrans("calendar.calendar_button_options.day") }}" },
                 listWeek: { buttonText: "{{ exmtrans("calendar.calendar_button_options.week") }}" },
@@ -62,11 +62,15 @@
 
 <style>
 
-.fc-day-sun a{
-    color: red;
+.fc-day-sun {
+    .fc-col-header-cell-cushion,.fc-daygrid-day-number,.fc-list-day-text,.fc-list-day-side-text{
+        color: red;
+    }
 }
-.fc-day-sat a{
-    color: blue;
+.fc-day-sat {
+    .fc-col-header-cell-cushion,.fc-daygrid-day-number,.fc-list-day-text,.fc-list-day-side-text{
+        color: blue;
+    }
 }
 .fc-day-grid-event:hover{
     opacity:0.8;

@@ -65,11 +65,15 @@
 </script>
 <style>
 
-.fc-day-sun a{
-    color: red;
+.fc-day-sun {
+    .fc-col-header-cell-cushion,.fc-daygrid-day-number{
+        color: red;
+    }
 }
-.fc-day-sat a{
-    color: blue;
+.fc-day-sat {
+    .fc-col-header-cell-cushion,.fc-daygrid-day-number{
+        color: blue;
+    }
 }
 .fc-day-grid-event:hover{
     opacity:0.8;
