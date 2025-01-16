@@ -49,6 +49,7 @@
                 hour: '2-digit',
                 minute: '2-digit'
             },
+            eventDisplay: "block",
             // showing event size
             dayMaxEventRows: 5,
             // put your options and callbacks here

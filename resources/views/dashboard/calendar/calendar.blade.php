@@ -32,6 +32,7 @@
             },
             // showing event size. if over, dialog.
             dayMaxEventRows: 3,
+            eventDisplay: "block",
             @if($calendar_type == 'month') 
             fixedWeekCount: false,
             @else
