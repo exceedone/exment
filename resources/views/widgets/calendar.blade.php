@@ -11,6 +11,7 @@
 
 <script>
     $(function () {
+        const date = new UltraDate();
         var calendarEl = document.getElementById('calendar');
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -50,6 +51,19 @@
                 minute: '2-digit'
             },
             eventDisplay: "block",
+            dayCellDidMount: function(info) {
+                date.setFullYear(
+                    info.date.getFullYear(),
+                    info.date.getMonth(),
+                    info.date.getDate()
+                );
+                const holiday = date.getHoliday();
+                if (holiday !== "") {
+                    info.el.getElementsByClassName('fc-daygrid-day-top')[0].insertAdjacentHTML("beforeend", "<div class=\"holiday-name fc-daygrid-day-number\">" + holiday + "</div>");
+                    info.el.getElementsByClassName('fc-daygrid-day-number')[0].setAttribute('style','margin-left:auto');
+                    info.el.classList.add("fc-day-hol");
+                }
+            },
             // showing event size
             dayMaxEventRows: 5,
             // put your options and callbacks here
@@ -66,7 +80,7 @@
 </script>
 <style>
 
-.fc-day-sun {
+.fc-day-sun,.fc-day-hol {
     .fc-col-header-cell-cushion,.fc-daygrid-day-number{
         color: red;
     }
@@ -78,5 +92,10 @@
 }
 .fc-day-grid-event:hover{
     opacity:0.8;
+}
+.holiday-name {
+    width: 90px;
+    font-size: 13px;
+    color: red;
 }
 </style>

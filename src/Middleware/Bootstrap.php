@@ -73,6 +73,7 @@ class Bootstrap
             'vendor/exment/js/numberformat.js',
             'vendor/exment/fullcalendar/index.global.min.js',
             'vendor/exment/fullcalendar/locales-all.global.min.js',
+            'vendor/exment/fullcalendar/UltraDate.min.js',
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',

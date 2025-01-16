@@ -1,6 +1,7 @@
 <div id='calendar' data-calendar-id="{{$suuid}}"></div>
 <script type="text/javascript">
     $(function () {
+        const date = new UltraDate();
         var calendarEl = $('#calendar[data-calendar-id="{{$suuid}}"]').get(0);
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -35,7 +36,21 @@
             eventDisplay: "block",
             @if($calendar_type == 'month') 
             fixedWeekCount: false,
+            dayCellDidMount: function(info) {
+                date.setFullYear(
+                    info.date.getFullYear(),
+                    info.date.getMonth(),
+                    info.date.getDate()
+                );
+                const holiday = date.getHoliday();
+                if (holiday !== "") {
+                    info.el.getElementsByClassName('fc-daygrid-day-top')[0].insertAdjacentHTML("beforeend", "<div class=\"holiday-name fc-daygrid-day-number\">" + holiday + "</div>");
+                    info.el.getElementsByClassName('fc-daygrid-day-number')[0].setAttribute('style','margin-left:auto');
+                    info.el.classList.add("fc-day-hol");
+                }
+            },
             @else
+            navLinks: true,
             initialView : 'listWeek',
             views: {
                 listDay: { buttonText: "{{ exmtrans("calendar.calendar_button_options.day") }}" },
@@ -46,6 +61,18 @@
               left: 'prev,next today',
               center: 'title',
               right: 'listDay,listWeek,listMonth'
+            },
+            dayHeaderDidMount: function(info) {
+                date.setFullYear(
+                    info.date.getFullYear(),
+                    info.date.getMonth(),
+                    info.date.getDate()
+                );
+                const holiday = date.getHoliday();
+                if (holiday !== "") {
+                    info.el.getElementsByClassName('fc-list-day-text')[0].insertAdjacentHTML("afterend", "<a class=\"holiday-name\">" + holiday + "</a>");
+                    info.el.classList.add("fc-day-hol");
+                }
             },
             @endif
             events: {
@@ -63,7 +90,7 @@
 
 <style>
 
-.fc-day-sun {
+.fc-day-sun,.fc-day-hol {
     .fc-col-header-cell-cushion,.fc-daygrid-day-number,.fc-list-day-text,.fc-list-day-side-text{
         color: red;
     }
@@ -93,5 +120,10 @@
 }
 .box.box-dashboard .box-body {
     padding-top: 0;
+}
+.holiday-name {
+    width: 90px;
+    font-size: 13px;
+    color: red;
 }
 </style>
