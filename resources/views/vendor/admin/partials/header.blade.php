@@ -4,9 +4,9 @@
         <span class="short">{!! config('admin.logo-mini', config('admin.name')) !!}</span><span
             class="long user-image logo-lg">{!! config('admin.logo', config('admin.name')) !!}</span>
     </a>
-    <div class="d-flex flex-fill flex-wrap header-items navbar">
+    <div class="d-flex flex-fill flex-nowrap header-items navbar">
 
-        <a class="flex-shrink order-1 order-sm-0 valign-header px-4" type="button" id='menu-toggle' aria-controls="menu"
+        <a class="flex-shrink order-0 order-sm-0 valign-header px-4" type="button" id='menu-toggle' aria-controls="menu"
             aria-expanded="false" aria-label="Toggle navigation">
             <i class="fa fa-bars"></i>
         </a>
