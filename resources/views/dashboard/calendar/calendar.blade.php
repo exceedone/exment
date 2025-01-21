@@ -129,4 +129,7 @@
     font-size: 13px;
     color: red;
 }
+.fc-h-event .fc-event-time {
+    overflow: visible;
+}
 </style>

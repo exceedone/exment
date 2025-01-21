@@ -59,8 +59,26 @@
                 );
                 const holiday = date.getHoliday();
                 if (holiday !== "") {
-                    info.el.getElementsByClassName('fc-daygrid-day-top')[0].insertAdjacentHTML("beforeend", "<div class=\"holiday-name fc-daygrid-day-number\">" + holiday + "</div>");
-                    info.el.getElementsByClassName('fc-daygrid-day-number')[0].setAttribute('style','margin-left:auto');
+                    switch (info.view.type) {
+                        case 'dayGridMonth':
+                            info.el.getElementsByClassName('fc-daygrid-day-top')[0].insertAdjacentHTML("beforeend", "<div class=\"holiday-name fc-daygrid-day-number\">" + holiday + "</div>");
+                            info.el.getElementsByClassName('fc-daygrid-day-number')[0].setAttribute('style','margin-left:auto');
+                            info.el.classList.add("fc-day-hol");                            
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            },
+            dayHeaderDidMount: function(info) {
+                date.setFullYear(
+                    info.date.getFullYear(),
+                    info.date.getMonth(),
+                    info.date.getDate()
+                );
+                const holiday = date.getHoliday();
+                if (holiday !== "") {
+                    info.el.getElementsByTagName('a')[0].insertAdjacentHTML("afterend", "<a class=\"holiday-name fc-col-header-cell-cushion\">" + holiday + "</a>");
                     info.el.classList.add("fc-day-hol");
                 }
             },
@@ -93,12 +111,15 @@
         color: blue;
     }
 }
-.fc-day-grid-event:hover{
+.fc-day-grid-event:hover {
     opacity:0.8;
 }
 .holiday-name {
     width: 90px;
     font-size: 13px;
     color: red;
+}
+.fc-daygrid-day-number {
+    font-size: 20px;
 }
 </style>
