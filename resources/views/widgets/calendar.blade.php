@@ -64,6 +64,9 @@
                     info.el.classList.add("fc-day-hol");
                 }
             },
+            dayCellContent: function (e) {
+                return e.dayNumberText.replace("日", "");
+            },
             // showing event size
             dayMaxEventRows: 5,
             // put your options and callbacks here

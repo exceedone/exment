@@ -49,6 +49,9 @@
                     info.el.classList.add("fc-day-hol");
                 }
             },
+            dayCellContent: function (e) {
+                return e.dayNumberText.replace("日", "");
+            },
             @else
             navLinks: true,
             initialView : 'listWeek',
