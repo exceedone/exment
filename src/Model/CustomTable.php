@@ -786,6 +786,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $errors = [];
+        if( isset($input['value']) ) $input = $input['value'];
 
         $custom_column_names = $this->custom_columns_cache->map(function ($custom_column) {
             return $custom_column->column_name;
