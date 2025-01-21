@@ -66,8 +66,18 @@ trait AuthTrait
 
     protected function logoutSso(Request $request, $login_user, $options = [])
     {
-        if ($login_user->login_type == LoginType::SAML) {
-            return $this->logoutSaml($request, $login_user->login_provider, $options);
+        switch ($login_user->login_type) {
+            case LoginType::SAML:
+                return $this->logoutSaml($request, $login_user->login_provider, $options);
+                break;
+            case LoginType::OAUTH:
+                $provider_name = $login_user->login_provider;
+                if ( LoginSetting::getOAuthSetting($provider_name)->getOption('oauth_option_single_logout') == 1 ) {
+                    return redirect( LoginSetting::getSocialiteProvider($provider_name)->getLogoutUrl( \URL::route('exment.login') ) );    
+                }
+                break;
+            default:
+                break;
         }
 
         return redirect(\URL::route('exment.login'));

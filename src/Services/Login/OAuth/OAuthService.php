@@ -148,6 +148,14 @@ class OAuthService implements LoginServiceInterface
                 $form->display('oauth_redirect_url', exmtrans('login.redirect_url'))->default($login_setting->exment_callback_url);
             }
         }
+
+        $form->exmheader(exmtrans('login.saml_option'))->hr()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
+
+        $form->switchbool('oauth_option_single_logout', exmtrans("login.oauth_option_single_logout"))
+        ->help(exmtrans("login.help.oauth_option_single_logout"))
+        ->default("0")
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
     }
 
     /**
