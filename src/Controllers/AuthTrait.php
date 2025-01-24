@@ -72,8 +72,15 @@ trait AuthTrait
                 break;
             case LoginType::OAUTH:
                 $provider_name = $login_user->login_provider;
-                if ( LoginSetting::getOAuthSetting($provider_name)->getOption('oauth_option_single_logout') == 1 ) {
-                    return redirect( LoginSetting::getSocialiteProvider($provider_name)->getLogoutUrl( \URL::route('exment.login') ) );    
+                $oauth_setting = LoginSetting::getOAuthSetting($provider_name);
+
+                // Only if oauth provider type is 'other'
+                // ( Because no other provider type has 'getLogoutUrl' )
+                if ( $oauth_setting->getOption('oauth_provider_type') == 'other' ) {
+                    $socialite_provider = LoginSetting::getSocialiteProvider($provider_name);
+                    if ( $oauth_setting->getOption('oauth_option_single_logout') == 1 && method_exists($socialite_provider, 'getLogoutUrl')  ) {
+                        return redirect( $socialite_provider->getLogoutUrl( \URL::route('exment.login') ) );
+                    }
                 }
                 break;
             default:
