@@ -1,5 +1,5 @@
 <!-- Main Footer -->
-<footer class="app-footer">
+<footer class="app-footer d-flex justify-content-between align-items-center">
     
 
     <!-- To the left -->
@@ -14,6 +14,7 @@
         @endif
     </div>
 </footer>
+
 
 <script>
     var backButton = "{{ exmtrans('common.back_button') }}";
