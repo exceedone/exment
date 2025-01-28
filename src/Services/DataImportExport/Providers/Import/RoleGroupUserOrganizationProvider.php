@@ -93,11 +93,12 @@ class RoleGroupUserOrganizationProvider extends ProviderBase
         $data = array_get($dataAndModel, 'data');
  
         $errors = [];
+        $model = new RoleGroup();
 
         // execute validation
         /** @var ExmentCustomValidator $validator */
         $validator = \Validator::make($data, [
-            'role_group_id' => 'required|exists:' . RoleGroup::make()->getTable() . ',id',
+            'role_group_id' => 'required|exists:' . $model->getTable() . ',id',
             'role_group_user_org_type' => 'required|in:' . SystemTableName::USER . ',' . SystemTableName::ORGANIZATION,
             'role_group_target_id' => 'required',
         ]);

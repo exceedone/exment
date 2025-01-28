@@ -30,7 +30,8 @@ class RoleGroupPermissionPluginProvider extends RoleGroupPermissionProvider
      */
     protected function addValidateTypeRules(&$rules) : void
     {
-        $rules['role_group_target_id'] = 'required|exists:' . Plugin::make()->getTable() . ',id';
+        $model = new Plugin();
+        $rules['role_group_target_id'] = 'required|exists:' . $model->getTable() . ',id';
     }
 
     /**

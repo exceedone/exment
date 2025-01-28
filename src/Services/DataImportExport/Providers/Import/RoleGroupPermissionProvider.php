@@ -95,8 +95,9 @@ class RoleGroupPermissionProvider extends ProviderBase
  
         $errors = [];
 
+        $model = new RoleGroup();
         $rules = [
-            'role_group_id' => 'required|exists:' . RoleGroup::make()->getTable() . ',id',
+            'role_group_id' => 'required|exists:' . $model->getTable() . ',id',
         ];
 
         foreach($this->permission_keys as $permission_key)

@@ -32,6 +32,7 @@ class RoleGroupPermissionTableProvider extends RoleGroupPermissionProvider
     protected function addValidateTypeRules(&$rules) : void
     {
         $ids = CustomTable::whereIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER())->pluck('id')->toArray();        
-        $rules['role_group_target_id'] = 'required|exists:' . CustomTable::make()->getTable() . ',id|not_in:'. implode(',', $ids);
+        $model = new CustomTable();
+        $rules['role_group_target_id'] = 'required|exists:' . $model->getTable() . ',id|not_in:'. implode(',', $ids);
     }
 }

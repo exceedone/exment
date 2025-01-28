@@ -116,9 +116,7 @@ class RoleGroupAction implements ActionInterface
             case 'role_group_permission_table':
                 return new Import\RoleGroupPermissionTableProvider();
             case 'role_group_user_organization':
-                return new Import\RoleGroupUserOrganizationProvider([
-                    'primary_key' => $this->primary_key,
-                ]);
+                return new Import\RoleGroupUserOrganizationProvider();
         }
 
     }
