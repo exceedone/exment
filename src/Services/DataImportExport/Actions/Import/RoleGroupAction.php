@@ -105,27 +105,20 @@ class RoleGroupAction implements ActionInterface
                 return new Import\RoleGroupProvider([
                     'primary_key' => $this->primary_key,
                 ]);
-                break;
             case 'role_group_permission_system':
                 return new Import\RoleGroupPermissionSystemProvider();
-                break;
             case 'role_group_permission_role':
                 return new Import\RoleGroupPermissionRoleProvider();
-                break;
             case 'role_group_permission_plugin':
                 return new Import\RoleGroupPermissionPluginProvider();
-                break;
             case 'role_group_permission_master':
                 return new Import\RoleGroupPermissionMasterProvider();
-                break;
             case 'role_group_permission_table':
                 return new Import\RoleGroupPermissionTableProvider();
-                break;
             case 'role_group_user_organization':
                 return new Import\RoleGroupUserOrganizationProvider([
                     'primary_key' => $this->primary_key,
                 ]);
-                break;
         }
 
     }

@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\System;
 
 class RoleGroupPermissionSystemProvider extends RoleGroupPermissionProvider
 {
-    public function __construct($args = [])
+    public function __construct()
     {
         $this->role_group_target_id = 0;
         $this->permission_keys = Permission::SYSTEM_ROLE_PERMISSIONS;

@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\Plugin;
 
 class RoleGroupPermissionPluginProvider extends RoleGroupPermissionProvider
 {
-    public function __construct($args = [])
+    public function __construct()
     {
         $this->role_group_permission_type = RoleType::PLUGIN;
         $this->permission_keys = Permission::ROLE_GROUP_PLUGIN_PERMISSION;

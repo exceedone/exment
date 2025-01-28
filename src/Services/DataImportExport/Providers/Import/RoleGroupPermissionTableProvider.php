@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class RoleGroupPermissionTableProvider extends RoleGroupPermissionProvider
 {
-    public function __construct($args = [])
+    public function __construct()
     {
         $this->role_group_permission_type = RoleType::TABLE;
         $this->permission_keys = Permission::TABLE_ROLE_PERMISSION;
