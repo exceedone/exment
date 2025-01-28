@@ -433,6 +433,12 @@ namespace Exment {
                 }
                 linkElem.closest('a,.rowclick').trigger('click');
             }).addClass('tableHoverLinkEvent');
+
+            $('.janCodeRow').on('click', function (ev) {
+                let janCodeId = $(ev.target).closest('tr').attr('jan-code-id');
+                let id = $(ev.target).closest('tr').attr('id');
+                window.location.href = admin_url("/assign-jan-code/?table_id=") + id + "&jan_code_id=" + janCodeId;
+            });
         }
 
         /**

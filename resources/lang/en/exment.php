@@ -88,6 +88,7 @@ return [
         'no_file_download' => 'There are no files to download',
         'english' => 'English',
         'japanese' => 'Japanese',
+        'back_button' => 'BACK',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -440,7 +441,7 @@ return [
             'system_values_pos' => 'Set the position to display system values on the data edit screen and data details screen.',
             'data_submit_redirect' => 'You can set the default value for the page to redirect after saving custom data. When this item is set, the check box for the data transition destination after saving will be checked on the data entry page.',
             'header_user_info' => 'You can set the content to be displayed in the user information in the header. If left blank, it will be hidden.',
-            'api_available' => 'If set to YES, you can use the API.',
+            'api_available' => 'Please create a Laravel key before selecting YES. Please refer to <a href="%suse-api" target="_blank">here<i class="fa fa-external-link"></i></a>. If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
             'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
@@ -586,7 +587,7 @@ return [
             'editor' => 'Editor',
             'html' => 'HTML',
             'notify_navbar' => 'Notify list',
-            'qr_code' => '2D Barcode',
+            'barcode' => '2D/JAN Barcode',
         ],
 
         'dashboard_menulist' => [
@@ -1053,6 +1054,7 @@ return [
         'custom_value' => 'Data List',
         'error_select' => 'Please select only one record.',
         'qrcode' => '2D Barcode Setting',
+        'jancode' => 'Jancode Setting',
     ],
 
     'workflow' => [
@@ -1225,6 +1227,17 @@ return [
             'refer_column_description' => 'The information of the specified column of custom data will be displayed to the right of the 2D barcode.<br/>*You can select the ID column or the auto-number column (must be unique and required).',
             'text_qr_description' => 'Fixed text displayed on the right side of the 2D barcode.',
         ],
+        'jan_code' => [
+            'setting' => 'Jancode Setting',
+            'advance_setting' => 'Jancode reading',
+            'form_after_edit' => 'Form edit data',
+            'form_after_create' => 'Form create data',
+            'table_not_found' => 'Table of this Jancode not found',
+            'action_after_edit' => 'Action after data edit',
+            'action_after_create' => 'Action after data registration',
+            'header' => 'Jan code table',
+            'description' => 'Choose table for this jancode',
+        ],
         'data_submit_redirect_options' => [
             'inherit'               => 'Match system settings',
             'list'                  => 'List',
@@ -1262,6 +1275,8 @@ return [
             'copy_custom_table' => 'Copy normal settings, advanced settings and custom columns. <br />Other settings are out of scope. Please set manually.',
             'qrcode_activate' => 'Enable the 2D barcode function for this table. Do you want to enable it?',
             'qrcode_deactivate' => 'The 2D barcode function for this table will be disabled. Do you want to disable it?',
+            'jancode_activate' => 'Enable the Jancode function for this table. Do you want to enable it?',
+            'jancode_deactivate' => 'The Jancode function for this table will be disabled. Do you want to disable it?<br/><br/>Furthermore, the information of the linked JAN barcode will remain when it is valid, so when you scan a JAN barcode, the data in this table will be displayed.',
         ],
 
         'custom_column_multi' => [
@@ -2244,6 +2259,10 @@ return [
 
     'qrcode' => [
         'description' => 'Set the two-dimensional barcode for this table.',
+    ],
+
+    'jancode' => [
+        'description' => 'Set the jancode for this table.',
     ],
 
     'custom_value' => [
