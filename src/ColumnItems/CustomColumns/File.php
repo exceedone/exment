@@ -83,6 +83,7 @@ class File extends CustomItem
         }
 
         if (is_array($value)) {
+            $file_path = [];
             foreach ($value as $val) {
                 $result = $this->getImportFilePath($val);
                 if ($result === false) {
