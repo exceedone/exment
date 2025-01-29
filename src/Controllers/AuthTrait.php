@@ -69,7 +69,6 @@ trait AuthTrait
         switch ($login_user->login_type) {
             case LoginType::SAML:
                 return $this->logoutSaml($request, $login_user->login_provider, $options);
-                break;
             case LoginType::OAUTH:
                 $provider_name = $login_user->login_provider;
                 $oauth_setting = LoginSetting::getOAuthSetting($provider_name);
