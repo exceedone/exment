@@ -84,6 +84,9 @@ class TestDataSeeder extends Seeder
         $this->createPlugin();
     }
 
+    /**
+     * @return void
+     */
     protected function createSystem()
     {
         // create system data
@@ -98,6 +101,9 @@ class TestDataSeeder extends Seeder
         }
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function createUserOrg()
     {
         // First, create "boss" column.
@@ -186,6 +192,10 @@ class TestDataSeeder extends Seeder
         return $values['user'];
     }
 
+    /**
+     * @param mixed $users
+     * @return void
+     */
     protected function createRelationTables($users)
     {
         $menu = $this->createMenuParent([
@@ -454,6 +464,11 @@ class TestDataSeeder extends Seeder
     }
 
 
+    /**
+     * @param mixed $menu
+     * @param mixed $users
+     * @return void
+     */
     protected function createAllColumnsTable($menu, $users)
     {
         $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
@@ -503,6 +518,11 @@ class TestDataSeeder extends Seeder
         $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
     }
 
+    /**
+     * @param mixed $menu
+     * @param mixed $users
+     * @return void
+     */
     protected function createAllColumnsTableForTest($menu, $users)
     {
         $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
@@ -649,6 +669,11 @@ class TestDataSeeder extends Seeder
         $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
     }
 
+    /**
+     * @param mixed $menu
+     * @param mixed $users
+     * @return void
+     */
     protected function createUnicodeDataTable($menu, $users)
     {
         $select_array = ['日本', 'アメリカ', '中国', 'イタリア', 'カナダ'];
@@ -725,8 +750,9 @@ class TestDataSeeder extends Seeder
 
     /**
      * create multiple selected values
-     *
-     * @return array
+     * @param array<string|int> $array
+     * @param int $randMax
+     * @return array<mixed>
      */
     protected function getMultipleSelectValue($array = ['foo','bar','baz'], $randMax = 1)
     {
@@ -741,7 +767,7 @@ class TestDataSeeder extends Seeder
     /**
      * Create relation filter to custom form column
      *
-     * @param array $selectRelation 'parent' and 'child' array
+     * @param array<mixed> $selectRelation 'parent' and 'child' array
      * @param CustomTable $custom_table
      * @return void
      */
@@ -779,6 +805,10 @@ class TestDataSeeder extends Seeder
         }
     }
 
+    /**
+     * @param array<mixed> $options
+     * @return mixed
+     */
     protected function createMenuParent($options = [])
     {
         $options = array_merge(
@@ -804,9 +834,9 @@ class TestDataSeeder extends Seeder
     /**
      * Create custom tables
      *
-     * @param array $users
+     * @param array<mixed> $users
      * @param Menu $menu menu model
-     * @return array
+     * @return array<mixed>
      */
     protected function createTables($users, $menu)
     {
@@ -882,7 +912,7 @@ class TestDataSeeder extends Seeder
      * Create table
      *
      * @param string $keyName table_name
-     * @param array $options
+     * @param array<mixed> $options
      * @return CustomTable
      */
     protected function createTable($keyName, $options = [])
@@ -1011,6 +1041,10 @@ class TestDataSeeder extends Seeder
         return $custom_table;
     }
 
+    /**
+     * @param mixed $custom_tables
+     * @return void
+     */
     protected function createPermission($custom_tables)
     {
         foreach ($custom_tables as $permission => $custom_table) {
@@ -1023,6 +1057,11 @@ class TestDataSeeder extends Seeder
         }
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param array<mixed> $options
+     * @return array<mixed>
+     */
     protected function createValue($custom_table, $options = [])
     {
         $options = array_merge([
@@ -1097,6 +1136,9 @@ class TestDataSeeder extends Seeder
     }
 
 
+    /**
+     * @return void
+     */
     protected function createMailTemplate()
     {
         $custom_table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
@@ -1121,8 +1163,9 @@ class TestDataSeeder extends Seeder
 
     /**
      * Create date value
-     *
-     * @return string ymd string
+     * @param mixed $user_id
+     * @param mixed $new_id
+     * @return string | null ymd string
      */
     protected function getDateValue($user_id, $new_id): ?string
     {
@@ -1177,7 +1220,7 @@ class TestDataSeeder extends Seeder
 
     /**
      * Create Notify
-     *
+     * @param mixed $custom_table
      * @return string|int notify id
      */
     protected function createNotify($custom_table)
@@ -1201,6 +1244,8 @@ class TestDataSeeder extends Seeder
 
     /**
      * Create Notify
+     * @param mixed $custom_table
+     * @return void
      */
     protected function createNotifyButton($custom_table)
     {
@@ -1246,7 +1291,7 @@ class TestDataSeeder extends Seeder
 
     /**
      * Create Notify
-     *
+     * @param mixed $custom_table
      * @return string|int|null notify id
      */
     protected function createNotifyLimit($custom_table)
@@ -1279,7 +1324,7 @@ class TestDataSeeder extends Seeder
 
     /**
      * Create Form (and priority, public)
-     *
+     * @param CustomTable $custom_table
      * @return void
      */
     protected function createForm(CustomTable $custom_table)
@@ -1360,7 +1405,10 @@ class TestDataSeeder extends Seeder
 
     /**
      * Create View
-     *
+     * @param mixed $custom_table
+     * @param mixed $custom_columns
+     * @param mixed $createCustomView
+     * @param mixed $createSummaryView
      * @return void
      */
     protected function createView($custom_table, $custom_columns, $createCustomView, $createSummaryView)
@@ -1559,6 +1607,14 @@ class TestDataSeeder extends Seeder
         }
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $view_type
+     * @param mixed $view_kind_type
+     * @param mixed $view_view_name
+     * @param array<mixed> $options
+     * @return CustomView
+     */
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
     {
         return CustomView::create([
@@ -1570,6 +1626,15 @@ class TestDataSeeder extends Seeder
         ]);
     }
 
+    /**
+     * @param mixed $custom_view_id
+     * @param mixed $view_column_type
+     * @param mixed $view_column_table_id
+     * @param mixed $view_column_target_id
+     * @param mixed $view_filter_condition
+     * @param mixed $view_filter_condition_value_text
+     * @return void
+     */
     protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text)
     {
         $custom_view_filter = new CustomViewFilter();
@@ -1582,6 +1647,13 @@ class TestDataSeeder extends Seeder
         $custom_view_filter->save();
     }
 
+    /**
+     * @param mixed $custom_view_name
+     * @param mixed $custom_table
+     * @param mixed $custom_columns
+     * @param mixed $sort_settings
+     * @return void
+     */
     protected function createSortCustomView($custom_view_name, $custom_table, $custom_columns, $sort_settings = [])
     {
         $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::DEFAULT, $custom_table->table_name . $custom_view_name, ['condition_join' => 'and']);
@@ -1622,6 +1694,17 @@ class TestDataSeeder extends Seeder
         }
     }
 
+    /**
+     * @param mixed $custom_view_id
+     * @param mixed $view_column_type
+     * @param mixed $view_column_table_id
+     * @param mixed $view_column_target_id
+     * @param mixed $sort
+     * @param mixed $priority
+     * @param mixed $view_pivot_table_id
+     * @param mixed $view_pivot_column_id
+     * @return void
+     */
     protected function createCustomViewSort($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $sort, $priority, $view_pivot_table_id = null, $view_pivot_column_id = null)
     {
         $custom_view_sort = new CustomViewSort();
@@ -1640,6 +1723,13 @@ class TestDataSeeder extends Seeder
         $custom_view_sort->save();
     }
 
+    /**
+     * @param mixed $custom_view_id
+     * @param mixed $view_column_table_id
+     * @param mixed $order
+     * @param array<mixed> $options
+     * @return void
+     */
     protected function createSystemViewColumn($custom_view_id, $view_column_table_id, $order, array $options = [])
     {
         $custom_view_column = new CustomViewColumn();
@@ -1654,6 +1744,14 @@ class TestDataSeeder extends Seeder
         $custom_view_column->save();
     }
 
+    /**
+     * @param mixed $custom_view_id
+     * @param mixed $view_column_table_id
+     * @param mixed $view_column_target_id
+     * @param mixed $order
+     * @param array<mixed> $options
+     * @return void
+     */
     protected function createViewColumn($custom_view_id, $view_column_table_id, $view_column_target_id, $order, array $options = [])
     {
         $custom_view_column = new CustomViewColumn();
@@ -1668,6 +1766,14 @@ class TestDataSeeder extends Seeder
         $custom_view_column->save();
     }
 
+    /**
+     * @param mixed $custom_view_id
+     * @param mixed $view_column_table_id
+     * @param mixed $view_column_target_id
+     * @param mixed $view_summary_condition
+     * @param mixed $options
+     * @return void
+     */
     protected function createSummaryColumn($custom_view_id, $view_column_table_id, $view_column_target_id, $view_summary_condition, $options = null)
     {
         $custom_view_summary = new CustomViewSummary();
@@ -1684,7 +1790,10 @@ class TestDataSeeder extends Seeder
 
     /**
      * Create Notify Navibar
-     *
+     * @param mixed $custom_table
+     * @param mixed $notify_id
+     * @param mixed $custom_value
+     * @param mixed $read_flg
      * @return void
      */
     protected function createNotifyNavbar($custom_table, $notify_id, $custom_value, $read_flg)
@@ -1701,6 +1810,9 @@ class TestDataSeeder extends Seeder
         $notify_navbar->save();
     }
 
+    /**
+     * @return void
+     */
     protected function createApiSetting()
     {
         // init api

@@ -14,6 +14,8 @@ class CCustomColumnTest extends ExmentKitTestCase
 {
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -23,6 +25,7 @@ class CCustomColumnTest extends ExmentKitTestCase
 
     /**
      * Check custom column display.
+     * @return void
      */
     public function testDisplayColummSetting()
     {
@@ -49,6 +52,9 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '既定のビューに追加する');
     }
     // Create custom column --one line--
+    /**
+     * @return void
+     */
     public function testAddOneLineTextColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -101,9 +107,9 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->matchStatusCode(200)
             ->see('onelinetext')
             ->seeInField('column_view_name', 'One Line Text Update')
-            ->seeInField('options[required]', 1)
-            ->seeInField('options[index_enabled]', 1)
-            ->seeInField('options[unique]', 1)
+            ->seeInField('options[required]', '1')
+            ->seeInField('options[index_enabled]', '1')
+            ->seeInField('options[unique]', '1')
             ->seeInField('options[default]', 'あああ')
             ->seeInField('options[string_length]', "128")
             ->seeInField('options[available_characters][]', 'lower')
@@ -111,6 +117,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Multi line--
+    /**
+     * @return void
+     */
     public function testAddMultiLineTextColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -169,6 +178,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Editor--
+    /**
+     * @return void
+     */
     public function testAddEditorColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -223,6 +235,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --URL--
+    /**
+     * @return void
+     */
     public function testAddURLColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -277,6 +292,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Email--
+    /**
+     * @return void
+     */
     public function testAddEmailColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -331,6 +349,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Integer--
+    /**
+     * @return void
+     */
     public function testAddIntegerColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -406,6 +427,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Decimal--
+    /**
+     * @return void
+     */
     public function testAddDecimalColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -476,6 +500,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Currency--
+    /**
+     * @return void
+     */
     public function testAddCurrencyColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -552,6 +579,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Date--
+    /**
+     * @return void
+     */
     public function testAddDateColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -609,6 +639,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Time--
+    /**
+     * @return void
+     */
     public function testAddTimeColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -666,6 +699,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --DateTime--
+    /**
+     * @return void
+     */
     public function testAddDateTimeColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -723,6 +759,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Select--
+    /**
+     * @return void
+     */
     public function testAddSelectColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -781,6 +820,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Select Value Text--
+    /**
+     * @return void
+     */
     public function testAddSelectValueTextColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -842,6 +884,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Select Table--
+    /**
+     * @return void
+     */
     public function testAddSelectTableColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -906,6 +951,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --YesNo--
+    /**
+     * @return void
+     */
     public function testAddYesNoColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -962,6 +1010,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Boolean--
+    /**
+     * @return void
+     */
     public function testAddBooleanColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -1026,6 +1077,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --AutoNumber--
+    /**
+     * @return void
+     */
     public function testAddAutoNumberColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -1082,6 +1136,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Image--
+    /**
+     * @return void
+     */
     public function testAddImageColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -1136,6 +1193,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --File--
+    /**
+     * @return void
+     */
     public function testAddFileColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -1190,6 +1250,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --User--
+    /**
+     * @return void
+     */
     public function testAddUserColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -1247,6 +1310,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create custom column --Organization--
+    /**
+     * @return void
+     */
     public function testAddOrganizationColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
@@ -1304,6 +1370,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create Custom Column Fail --Nothing Input--
+    /**
+     * @return void
+     */
     public function testAddFailWithMissingInfo()
     {
         $this->visit(admin_url('column/test/create'))
@@ -1315,6 +1384,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
     // Create Custom Column Fail --Duplicate Column Name--
+    /**
+     * @return void
+     */
     public function testAddFailWithExistedColumnName()
     {
         $this->visit(admin_url('column/test/create'))
@@ -1329,6 +1401,9 @@ class CCustomColumnTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return mixed
+     */
     protected function getNewestColumn()
     {
         return CustomColumn::orderBy('id', 'desc')->first();

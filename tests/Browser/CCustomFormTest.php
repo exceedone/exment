@@ -10,6 +10,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -19,6 +21,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * prepare test table.
+     *
+     * @return void
      */
     public function testPrepareTestTable()
     {
@@ -28,6 +32,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * prepare test columns.
+     *
+     * @return void
      */
     public function testPrepareTestColumn()
     {
@@ -37,6 +43,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * prepare test columns and relation.
+     *
+     * @return void
      */
     public function testPrepareTestColumnAndRelation()
     {
@@ -47,6 +55,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * Check custom form display.
+     *
+     * @return void
      */
     public function testDisplayFormSetting()
     {
@@ -89,6 +99,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * Create custom form.
+     *
+     * @return void
      */
     public function testAddFormSuccess()
     {

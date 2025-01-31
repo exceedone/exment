@@ -20,6 +20,10 @@ class CPublicFormTest extends ExmentKitTestCase
 
     /**
      * pre-excecute process before test.
+     *
+     * @param bool $fake
+     *
+     * @return void
      */
     protected function setUp(bool $fake = false): void
     {
@@ -34,6 +38,8 @@ class CPublicFormTest extends ExmentKitTestCase
 
     /**
      * Check public form display.
+     *
+     * @return void
      */
     public function testDisplayPublicForm()
     {
@@ -115,6 +121,11 @@ class CPublicFormTest extends ExmentKitTestCase
         \DB::rollback();
     }
     // Create public form
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
     public function testAddPublicFormSuccess()
     {
         \DB::beginTransaction();
@@ -204,7 +215,7 @@ class CPublicFormTest extends ExmentKitTestCase
         // Create public form with maxmum parameter
         $this->post(admin_url('formpublic/custom_value_edit_all'), $form);
 
-        $response = $this->visit(admin_url('form/custom_value_edit_all'))
+        $this->visit(admin_url('form/custom_value_edit_all'))
             ->seePageIs(admin_url('form/custom_value_edit_all'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'Public Form Unit Test')
@@ -361,6 +372,11 @@ class CPublicFormTest extends ExmentKitTestCase
     }
 
     // Update public form
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
     public function testUpdatePublicFormSuccess()
     {
         \DB::beginTransaction();
@@ -377,7 +393,7 @@ class CPublicFormTest extends ExmentKitTestCase
             'public_form_view_name' => 'Public Form Unit Test',
         ]);
 
-        $response = $this->visit(admin_url('form/custom_value_edit_all'))
+        $this->visit(admin_url('form/custom_value_edit_all'))
             ->seePageIs(admin_url('form/custom_value_edit_all'))
             ->matchStatusCode(200)
             ->seeInElement('td', 'Public Form Unit Test')
@@ -571,6 +587,10 @@ class CPublicFormTest extends ExmentKitTestCase
     }
 
     // Create Public Form Fail --Nothing Input--
+
+    /**
+     * @return void
+     */
     public function testAddFailWithMissingInfo()
     {
         $this->visit(admin_url('formpublic/custom_value_edit_all/create'))
@@ -582,6 +602,9 @@ class CPublicFormTest extends ExmentKitTestCase
     }
 
     // View Public Form Fail --Out of term--
+    /**
+     * @return void
+     */
     public function testAddFailOutOfTerm()
     {
         \DB::beginTransaction();
@@ -618,6 +641,10 @@ class CPublicFormTest extends ExmentKitTestCase
     }
 
     // View Public Form Fail --Out of term--
+
+    /**
+     * @return void
+     */
     public function testAddFailDeactivate1()
     {
         // Not call database transaction and rollback.
@@ -651,6 +678,10 @@ class CPublicFormTest extends ExmentKitTestCase
     }
 
     // View Public Form Fail --Out of term--
+
+    /**
+     * @return void
+     */
     public function testAddFailDeactivate2()
     {
         // Not call database transaction and rollback.
@@ -665,11 +696,17 @@ class CPublicFormTest extends ExmentKitTestCase
         ;
     }
 
+    /**
+     * @return mixed
+     */
     protected function getNewestForm()
     {
         return PublicForm::orderBy('id', 'desc')->first();
     }
 
+    /**
+     * @return mixed
+     */
     protected function getStylePluginId()
     {
         /** @var Plugin $plugin */
@@ -677,6 +714,9 @@ class CPublicFormTest extends ExmentKitTestCase
         return $plugin->id;
     }
 
+    /**
+     * @return mixed
+     */
     protected function getScriptPluginId()
     {
         /** @var Plugin $plugin */

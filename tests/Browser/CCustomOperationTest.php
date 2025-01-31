@@ -27,6 +27,8 @@ class CCustomOperationTest extends ExmentKitTestCase
 
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -36,6 +38,8 @@ class CCustomOperationTest extends ExmentKitTestCase
 
     /**
      * Check custom value operation setting display.
+     *
+     * @return void
      */
     public function testDisplayOperationSetting()
     {
@@ -75,6 +79,8 @@ class CCustomOperationTest extends ExmentKitTestCase
      * operation type: buttoln.
      * operation target: single custom value.
      * filter: no
+     *
+     * @return void
      */
     public function testOperationOneNoFilter()
     {
@@ -141,6 +147,8 @@ class CCustomOperationTest extends ExmentKitTestCase
      * operation type: bulk update.
      * operation target: multiple custom value.
      * filter: yes
+     *
+     * @return void
      */
     public function testOperationMultiWithFilter()
     {
@@ -288,6 +296,8 @@ class CCustomOperationTest extends ExmentKitTestCase
     /**
      * operation type: create.
      * filter: yes
+     *
+     * @return void
      */
     public function testOperationCreate()
     {
@@ -393,6 +403,8 @@ class CCustomOperationTest extends ExmentKitTestCase
     /**
      * operation type: update.
      * filter: yes
+     *
+     * @return void
      */
     public function testOperationUpdate()
     {
@@ -496,6 +508,8 @@ class CCustomOperationTest extends ExmentKitTestCase
     /**
      * operation type: create, update.
      * filter: yes
+     *
+     * @return void
      */
     public function testOperationMultiType()
     {
@@ -588,6 +602,9 @@ class CCustomOperationTest extends ExmentKitTestCase
 
     /**
      * Create custom value operation setting.
+     * @param mixed $target_table
+     * @param array<mixed> $params
+     * @return mixed
      */
     protected function _addOperationData($target_table, $params = [])
     {
@@ -640,7 +657,8 @@ class CCustomOperationTest extends ExmentKitTestCase
     /**
      * Get filter condition options
      *
-     * @return array
+     * @param mixed $filter_type
+     * @return array<mixed>
      */
     protected function getFilterSelectOptions($filter_type): array
     {
@@ -653,7 +671,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     /**
      * Get user column's options
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function getUserSelectOptions(): array
     {
@@ -666,7 +684,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     /**
      * Get role group column's options
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function getRoleSelectOptions(): array
     {

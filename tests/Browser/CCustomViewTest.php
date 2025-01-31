@@ -15,6 +15,8 @@ class CCustomViewTest extends ExmentKitTestCase
 
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -24,6 +26,8 @@ class CCustomViewTest extends ExmentKitTestCase
 
     /**
      * prepare test table.
+     *
+     * @return void
      */
     public function testPrepareTestTable()
     {
@@ -32,6 +36,8 @@ class CCustomViewTest extends ExmentKitTestCase
 
     /**
      * prepare test columns.
+     *
+     * @return void
      */
     public function testPrepareTestColumn()
     {
@@ -41,6 +47,8 @@ class CCustomViewTest extends ExmentKitTestCase
 
     /**
      * Check custom view display.
+     *
+     * @return void
      */
     public function testDisplayViewSetting()
     {
@@ -66,6 +74,8 @@ class CCustomViewTest extends ExmentKitTestCase
 
     /**
      * Create custom view.
+     *
+     * @return void
      */
     public function testAddViewSuccess()
     {
@@ -98,6 +108,8 @@ class CCustomViewTest extends ExmentKitTestCase
 
     /**
      * Create custom view contains field.
+     *
+     * @return void
      */
     public function testAddViewSuccessContainsField()
     {
