@@ -68,6 +68,13 @@ class ChangeField extends Field
      */
     protected $filterKind = null;
 
+    /**
+     * allow null
+     *
+     * @var bool
+     */
+    protected $allowNull = false;
+
     protected static $scripts = [];
 
     protected function getElementClass()
@@ -92,6 +99,13 @@ class ChangeField extends Field
     public function ajax($ajax)
     {
         $this->ajax = $ajax;
+
+        return $this;
+    }
+
+    public function allowNull($allowNull = true)
+    {
+        $this->allowNull = $allowNull;
 
         return $this;
     }
@@ -203,7 +217,8 @@ EOT;
 
         if (isset($field)) {
             if (!($field instanceof \Exceedone\Exment\Form\Field\SwitchField) &&
-                !($field instanceof \Exceedone\Exment\Form\Field\Checkboxone)) {
+                !($field instanceof \Exceedone\Exment\Form\Field\Checkboxone) &&
+                !$this->allowNull) {
                 // required if visible
                 $field->required();
             }
