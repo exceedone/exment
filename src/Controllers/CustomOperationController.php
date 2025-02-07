@@ -119,6 +119,7 @@ class CustomOperationController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('operation', $this->custom_table));
         });
 
@@ -301,6 +302,7 @@ class CustomOperationController extends AdminControllerTableBase
         });
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
+            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->add(new Tools\CustomTableMenuButton('operation', $custom_table));
         });
         $form->disableEditingCheck(false);

@@ -240,7 +240,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         if (is_nullorempty($this->target) || is_nullorempty($target_key) || is_nullorempty($target_name)) {
             return null;
         }
-
+        /** @phpstan-ignore-next-line constructor expects array, string|null given */
         $field = new ChangeField($this->className, $this->label);
         $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
         $field->adminField(function () use ($target_key, $show_condition_key) {

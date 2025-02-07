@@ -183,6 +183,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
+                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
                 $row = new Row($form);
             }
             // no record
@@ -194,6 +195,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
+                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given*/
                 $row = new Row($form);
             }
 
@@ -317,7 +319,7 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
-
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
         $row = new Row($form);
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
@@ -362,7 +364,7 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::EDIT,
             'custom_value' => $custom_value
         ]);
-
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([

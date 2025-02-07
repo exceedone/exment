@@ -66,7 +66,7 @@ trait ColumnOptionQueryTrait
      * it contains $column_type, $column_table_id, $column_type_target
      *
      * @param mixed $view_column_target
-     * @param string $column_table_name_key
+     * @param string|null $column_table_name_key
      * @return array [$column_type, $column_table_id, $column_type_target]
      */
     protected function getViewColumnTargetItems($view_column_target, $column_table_name_key = 'custom_view')

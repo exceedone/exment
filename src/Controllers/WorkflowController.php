@@ -106,7 +106,7 @@ class WorkflowController extends AdminControllerBase
                 ))->render());
             }
 
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
+            /** @phpstan-ignore-next-line Cannot call method canActivate() on stdClass. */
             if ($actions->row->canActivate()) {
                 $actions->prepend((new Tools\ModalLink(
                     admin_urls('workflow', $actions->row->id, 'activateModal'),
@@ -673,7 +673,7 @@ class WorkflowController extends AdminControllerBase
         $form->html(view('exment::workflow.beginning', [
             'items' => $results
         ])->render());
-
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('workflow.beginning'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => admin_url('workflow'),

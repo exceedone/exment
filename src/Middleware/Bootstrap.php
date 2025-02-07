@@ -105,6 +105,7 @@ class Bootstrap
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }
+        /** @phpstan-ignore-next-line jslast() expects null, string given */
         Ad::jslast(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // delete object
@@ -119,7 +120,7 @@ class Bootstrap
 
         // get url
         let url = $(ev.target).closest('[data-exment-delete]').data('exment-delete');
-        
+
         Exment.CommonEvent.ShowSwal(url, {
             title: "$delete_confirm",
             confirm:"$confirm",

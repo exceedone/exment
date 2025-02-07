@@ -194,7 +194,7 @@ class CustomOperation extends ModelBase
      * Check all operations related to custom-table
      * If operation type and filter is matched, then update target column's value
      *
-     * @param CustomOperationType|array $operation_types
+     * @param CustomOperationType|array|string $operation_types
      * @param CustomValue $custom_value
      * @param boolean $is_save
      */

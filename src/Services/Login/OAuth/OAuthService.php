@@ -198,8 +198,10 @@ class OAuthService implements LoginServiceInterface
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
                 return LoginService::getLoginResult(
+                    /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
                     SsoLoginErrorType::SYNC_VALIDATION_ERROR,
                     exmtrans('login.sso_provider_error_validate', ['errors' => implode(' ', $validator->getMessageStrings())]),
+                    /** @phpstan-ignore-next-line  getLoginResult() expects array|null, Illuminate\Support\MessageBag given */
                     $validator->errors(),
                     $custom_login_user
                 );
@@ -207,6 +209,7 @@ class OAuthService implements LoginServiceInterface
                 $errors = LoginService::validateUniques($custom_login_user);
                 if (count($errors) > 0) {
                     return LoginService::getLoginResult(
+                        /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
                         SsoLoginErrorType::SYNC_VALIDATION_ERROR,
                         exmtrans('login.sso_provider_error_validate', ['errors' => implode(' ', $errors)]),
                         $errors,
@@ -217,11 +220,12 @@ class OAuthService implements LoginServiceInterface
             }
         } catch (\Exception $ex) {
             \Log::error($ex);
-
+            /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } catch (\Throwable $ex) {
             \Log::error($ex);
 
+            /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
@@ -308,7 +312,7 @@ class OAuthService implements LoginServiceInterface
      * Set custom config for login setting controller.
      *
      * @param $provider_name
-     * @param \Encore\Admin\Form $form
+     * @param \Encore\Admin\Form|\Encore\Admin\Form\EmbeddedForm $form
      * @return void
      */
     public static function setLoginSettingForm($provider_name, $form)

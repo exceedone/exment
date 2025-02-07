@@ -135,6 +135,7 @@ class RoleGroupController extends AdminControllerBase
     {
         $isRolePermissionPage = $request->get('form_type') != 2;
         $form = $isRolePermissionPage ? $this->form() : $this->formUserOrganization();
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $box = new Box(trans('admin.create'), $form);
         $this->appendTools($box, null, $isRolePermissionPage);
         return $this->AdminContent($content)->body($box);

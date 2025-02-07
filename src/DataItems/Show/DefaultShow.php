@@ -85,7 +85,7 @@ class DefaultShow extends ShowBase
     protected function setSystemValues($show)
     {
         $trashed = boolval(request()->get('trashed'));
-
+        /** @phpstan-ignore-next-line class Encore\Admin\Show\Field constructor expects string, null given */
         $field = (new ShowField(null, null))->system_values([
             'withTrashed' => $trashed])->setWidth(12, 0);
 
@@ -442,7 +442,7 @@ class DefaultShow extends ShowBase
                         'add_id' => true,
                     ]));
                 });
-
+                /** @phpstan-ignore-next-line column() expects int, array<string, int> given */
                 $row->column(['xs' => 12, 'sm' => 12], $grid->render());
             }
         }
@@ -552,6 +552,7 @@ EOT;
                 'No.'.($revision->revision_no)
             )->setWidth(9, 2);
         }
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
     }
 
@@ -653,7 +654,7 @@ EOT;
 
             Admin::script($script);
         }
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
     }
 
@@ -705,7 +706,7 @@ EOT;
             ->setLabelClass(['d-none'])
             ->setWidth(12, 0);
         }
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
 
