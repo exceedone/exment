@@ -37,7 +37,7 @@ class RoleGroupType extends EnumBase
         });
     }
 
-    protected function getRoleGroupPermissions()
+    public function getRoleGroupPermissions()
     {
         switch ($this->lowerKey()) {
             case self::SYSTEM()->lowerKey():

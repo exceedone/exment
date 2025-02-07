@@ -2026,6 +2026,12 @@ return [
         'role_group_name' => '役割グループ名(英数字)',
         'role_group_view_name' => '役割グループ表示名',
         'description_system_admin' => '<span class="red">※システム管理者権限の追加は、メニューの「システム設定」→「システム管理者」より追加してください。</span>',
+        'role_group_id' => '役割グループID',
+        'role_group_permission_type' => '権限設定の種類',
+        'role_group_target_plugin' => '対象のプラグインID',
+        'role_group_target_table' => '対象のテーブルID',
+        'role_group_user_org_type' => 'ユーザー・組織区分',
+        'role_group_user_org_target_id' => 'ユーザー・組織ID',
         'permissions' => '権限詳細',
         'permission_setting' => '権限設定',
         'user_organization_setting' => 'ユーザー・組織設定',
@@ -2122,6 +2128,7 @@ return [
 
         'error' => [
             'cannot_accessable_and_value' => '権限「全データの参照」と「%s」を同時に設定することはできません。',
+            'cannot_plugin_access_permission' => '利用・アクセスを設定できないプラグインです',
         ],
     ],
 
@@ -2288,6 +2295,7 @@ return [
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
+            'import_error_format_sheet' => '%s(行%d) : %s',
             'target_column_name' => '置換対象列名(英数字)',
 
             'help' => [
@@ -2312,6 +2320,9 @@ return [
                 'file_column_not_match' => '列名 :column_name は、テーブル :table_name のファイル・画像列に存在しません。',
                 'file_not_found' => 'ファイル :file_name が、取込ディレクトリ :dir_path に存在しません。',
                 'file_column_extension_not_match' => '列file_nameと列display_file_nameの拡張子は、同じ値を指定してください。',
+                'target_table_not_found' => '指定された権限対象のテーブルが存在しません。',
+                'permission_not_exists' => '権限「%s」は存在しません。',
+                'user_org_not_exists' => '指定された%sは存在しません。',
             ],
         ],
         'sendmail' => [

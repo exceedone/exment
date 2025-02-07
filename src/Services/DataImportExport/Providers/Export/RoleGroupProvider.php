@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 
-class LoginUserProvider extends ProviderBase
+class RoleGroupProvider extends ProviderBase
 {
     protected $grid;
 
@@ -23,7 +23,7 @@ class LoginUserProvider extends ProviderBase
      */
     public function name()
     {
-        return 'login_user';
+        return 'role_group';
     }
 
     /**
@@ -56,32 +56,22 @@ class LoginUserProvider extends ProviderBase
         // 1st row, column name
         $rows[] = [
             'id',
-            'user_code',
-            'user_name',
-            'email',
-            'use_loginuser',
-            'create_password_auto',
-            'password',
-            'send_password',
+            'role_group_name',
+            'role_group_view_name',
+            'role_group_order',
+            'description',
+            'delete_flg'
         ];
 
         // 2nd row, column view name
-        $table_user = CustomTable::getEloquent(SystemTableName::USER);
         $rows[] = [
             exmtrans('common.id'),
-            CustomColumn::getEloquent('user_code', $table_user)->column_view_name ?? 'user_code',
-            CustomColumn::getEloquent('user_name', $table_user)->column_view_name ?? 'user_name',
-            CustomColumn::getEloquent('email', $table_user)->column_view_name ?? 'email',
-            exmtrans('user.use_loginuser'),
-            exmtrans('user.create_password_auto'),
-            exmtrans('user.password'),
-            exmtrans('user.send_password'),
+            exmtrans('role_group.role_group_name'),
+            exmtrans('role_group.role_group_view_name'),
+            exmtrans('role_group.role_group_order'),
+            exmtrans('custom_table.field_description'),
+            exmtrans('common.deleted')
         ];
-
-        if (!System::first_change_password()) {
-            $rows[0][] = 'password_reset_flg';
-            $rows[1][] = exmtrans('user.password_reset_flg');
-        }
 
         return $rows;
     }
@@ -118,11 +108,10 @@ class LoginUserProvider extends ProviderBase
             $body_items = [];
             // add items
             $body_items[] = $record->id;
-            $body_items[] = $record->getValue('user_code');
-            $body_items[] = $record->getValue('user_name');
-            $body_items[] = $record->getValue('email');
-            $body_items[] = isset($record->login_user) ? '1' : null; // use_loginuser
-            $body_items[] = null; // for password
+            $body_items[] = $record->role_group_name;
+            $body_items[] = $record->role_group_view_name;
+            $body_items[] = $record->role_group_order;
+            $body_items[] = $record->description;
 
             $bodies[] = $body_items;
         }
