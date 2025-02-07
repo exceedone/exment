@@ -305,6 +305,9 @@ class TestDataSeeder extends Seeder
                 return $view->view_kind_type == ViewKindType::FILTER;
             });
 
+            $child_table_2 = $this->createTable('child_table_2' . $relationItem['suffix'], $childOptions);
+            $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $child_table_2]);
+
             // cerate pivot table
             $pivot_table = $this->createTable('pivot_table' . $relationItem['suffix'], [
                 'menuParentId' => $menu->id,
