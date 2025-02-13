@@ -1402,8 +1402,8 @@ class CustomValueController extends AdminControllerTableBase
             $sticker_img,
             $font_size,
             0,
-            $x_cordinate,
-            ($sticker_img_height + $height_ww) / 3,
+            intval($x_cordinate),
+            intval(($sticker_img_height + $height_ww) / 3),
             $black,
             $font,
             $text_qr
@@ -1420,8 +1420,8 @@ class CustomValueController extends AdminControllerTableBase
                         $sticker_img,
                         $font_size,
                         0,
-                        $x_cordinate,
-                        $y_cordinate,
+                        intval($x_cordinate),
+                        intval($y_cordinate),
                         $black,
                         $font,
                         $line
@@ -1433,12 +1433,12 @@ class CustomValueController extends AdminControllerTableBase
         imagecopyresized(
             $sticker_img,
             $qr_img,
-            $img_margin_top_right,
-            $img_margin_top_right,
+            intval($img_margin_top_right),
+            intval($img_margin_top_right),
             0,
             0,
-            $qr_img_width,
-            $qr_img_height,
+            intval($qr_img_width),
+            intval($qr_img_height),
             200,
             200
         );

@@ -75,7 +75,7 @@ class RoleGroupController extends AdminControllerBase
             if (boolval(config('exment.role_group_import_export', false)) && $hasCreatePermission) {
                 $button = new Tools\ExportImportButton(admin_url('role_group'), $grid, false, true);
                 $button->setBaseKey('common');
-                $tools->prepend($button);
+                $tools->prepend($button->render());
             }
         });
 
