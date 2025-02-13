@@ -1527,19 +1527,19 @@ class TestDataSeeder extends Seeder
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::DATE;
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
-                $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
+                return $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
                     'view_group_condition' => 'ym',
                 ]);
             });
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::INTEGER;
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
-                $this->createSummaryColumn($custom_view->id, $custom_table->id, $custom_column->id, SummaryCondition::SUM);
+                return $this->createSummaryColumn($custom_view->id, $custom_table->id, $custom_column->id, SummaryCondition::SUM);
             });
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_name == 'select';
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
-                $this->createCustomViewFilter(
+                return $this->createCustomViewFilter(
                     $custom_view->id,
                     ConditionType::COLUMN,
                     $custom_table->id,
