@@ -278,7 +278,7 @@ class Exment
                 if (!$json) {
                     return [null, null];
                 }
-                $packages = array_get($json, 'packages.'.Define::COMPOSER_PACKAGE_NAME);
+                $packages = array_get($json, 'package.versions');
                 if (!$packages) {
                     return [null, null];
                 }
