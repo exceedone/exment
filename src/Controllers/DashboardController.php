@@ -321,7 +321,7 @@ EOT;
             }
 
             // addhome button
-            $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
+            $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default py-2"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
 
         $form->saved(function ($form) {
