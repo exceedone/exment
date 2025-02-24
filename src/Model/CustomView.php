@@ -276,6 +276,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->_search_service = null;
     }
 
+    /**
+     * set search service.
+     */
+    public function setSearchService(SearchService $service)
+    {
+        $this->_search_service = $service;
+    }
+
 
     /**
      * get eloquent using request settion.

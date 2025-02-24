@@ -88,6 +88,7 @@ return [
         'no_file_download' => 'ダウンロード対象のファイルがありません',
         'english' => '英語',
         'japanese' => '日本語',
+        'back_button' => '戻る',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -440,7 +441,7 @@ return [
             'system_values_pos' => 'データ編集画面及びデータ詳細画面でシステム項目を表示する位置を設定します。',
             'data_submit_redirect' => 'カスタムデータの保存後にリダイレクトする画面の既定値を設定することができます。この項目を設定すると、データ入力画面で、保存後のデータ遷移先チェックボックスにチェックが入ります。',
             'header_user_info' => 'ヘッダーのユーザー情報に表示する内容を設定することができます。空欄にした場合は非表示になります。',
-            'api_available' => 'YESにした場合、APIを使用することができます。',
+            'api_available' => 'YESにする前に、Laravelキーを作成ください。作成方法は<a href="%sapiを使用する" target="_blank">こちら</a>です。YESにした場合、APIを使用することができます。',
             'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
@@ -586,7 +587,7 @@ return [
             'editor' => 'エディター',
             'html' => 'HTML',
             'notify_navbar' => '通知一覧',
-            'qr_code' => '二次元バーコード',
+            'barcode' => '二次元／JANバーコード',
         ],
 
         'dashboard_menulist' => [
@@ -1053,6 +1054,7 @@ return [
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
         'qrcode' => '二次元バーコード設定',
+        'jancode' => 'JANバーコード設定',
     ],
 
     'workflow' => [
@@ -1226,6 +1228,17 @@ return [
             'refer_column_description' => '二次元バーコードの右側にカスタムデータの指定列の情報を表示します。<br/>※ID列または自動採番列（ユニーク（一意）かつ必須であること）を選択できます。',
             'text_qr_description' => '二次元バーコードの右側に表示される固定文言です。',
         ],
+        'jan_code' => [
+            'setting' => 'JANバーコード設定',
+            'advance_setting' => 'JANバーコード読込',
+            'form_after_edit' => '編集フォーム',
+            'form_after_create' => '登録フォーム',
+            'table_not_found' => 'この Jancode のテーブルが見つかりません',
+            'action_after_edit' => 'データ編集後のアクション',
+            'action_after_create' => 'データ登録後のアクション',
+            'header' => 'JANバーコード利用のテーブル一覧',
+            'description' => 'JANバーコード登録したいテーブルを選択してください。',
+        ],
         'data_submit_redirect_options' => [
             "inherit"               => "システム設定に合わせる",
             'list'                  => '一覧',
@@ -1263,6 +1276,8 @@ return [
             'copy_custom_table' => '通常設定、拡張設定、カスタム列をコピーします。<br />その他の設定は対象外になります。手動で設定を行ってください。',
             'qrcode_activate' => 'このテーブルの二次元バーコード機能を有効化にします。有効化しますか？',
             'qrcode_deactivate' => 'このテーブルの二次元バーコード機能を無効化にします。無効化しますか？',
+            'jancode_activate' => 'このテーブルのJANバーコード機能を有効にします。有効にしますか?',
+            'jancode_deactivate' => 'このテーブルのJANバーコード機能は無効になります。無効にしますか?<br/>なお、有効時に紐づけられたJANバーコードの情報は残るため、JANバーコードを読込を行うと、このテーブルのデータが表示されます。',
         ],
 
         'custom_column_multi' => [
@@ -1289,6 +1304,7 @@ return [
             'table_label_format' => '見出しフォーマット設定',
             'table_label_format_string' => 'フォーマット文字列',
             'form_action_disable_flg' => '画面からの変更不可',
+            'gridrow_select_transition' => '行クリック時の画面遷移',
 
             'help' => [
                 'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -1305,6 +1321,12 @@ return [
                 'delete' => '削除',
                 'import' => 'インポート',
                 'export' => 'エクスポート',
+            ],
+            'gridrow_select_options' => [
+                'default' => '既定値に合わせる',
+                'edit' => 'データ編集画面',
+                'show' => 'データ詳細画面',
+                'none' => '遷移しない',
             ],
             'share_trigger_type_options' => [
                 'create' => '新規作成時',
@@ -1552,6 +1574,7 @@ return [
         'suggest_column_label' => 'テーブル列',
         'suggest_other_label' => 'その他',
         'form_block_name' => 'フォームブロック名',
+        'form_block_order' => '表示順',
         'field_default' => '標準',
         'read_only' => '読み取り専用',
         'view_only' => '表示専用',
@@ -2003,6 +2026,12 @@ return [
         'role_group_name' => '役割グループ名(英数字)',
         'role_group_view_name' => '役割グループ表示名',
         'description_system_admin' => '<span class="red">※システム管理者権限の追加は、メニューの「システム設定」→「システム管理者」より追加してください。</span>',
+        'role_group_id' => '役割グループID',
+        'role_group_permission_type' => '権限設定の種類',
+        'role_group_target_plugin' => '対象のプラグインID',
+        'role_group_target_table' => '対象のテーブルID',
+        'role_group_user_org_type' => 'ユーザー・組織区分',
+        'role_group_user_org_target_id' => 'ユーザー・組織ID',
         'permissions' => '権限詳細',
         'permission_setting' => '権限設定',
         'user_organization_setting' => 'ユーザー・組織設定',
@@ -2099,6 +2128,7 @@ return [
 
         'error' => [
             'cannot_accessable_and_value' => '権限「全データの参照」と「%s」を同時に設定することはできません。',
+            'cannot_plugin_access_permission' => '利用・アクセスを設定できないプラグインです',
         ],
     ],
 
@@ -2239,6 +2269,9 @@ return [
     'qrcode' => [
         'description' => 'このテーブルの二次元バーコード設定を行います。',
     ],
+    'jancode' => [
+        'description' => 'このテーブルのJANバーコード設定を行います。',
+    ],
 
     'custom_value' => [
         'description' => 'このテーブルのデータ一覧を表示します。',
@@ -2262,6 +2295,7 @@ return [
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
+            'import_error_format_sheet' => '%s(行%d) : %s',
             'target_column_name' => '置換対象列名(英数字)',
 
             'help' => [
@@ -2286,6 +2320,9 @@ return [
                 'file_column_not_match' => '列名 :column_name は、テーブル :table_name のファイル・画像列に存在しません。',
                 'file_not_found' => 'ファイル :file_name が、取込ディレクトリ :dir_path に存在しません。',
                 'file_column_extension_not_match' => '列file_nameと列display_file_nameの拡張子は、同じ値を指定してください。',
+                'target_table_not_found' => '指定された権限対象のテーブルが存在しません。',
+                'permission_not_exists' => '権限「%s」は存在しません。',
+                'user_org_not_exists' => '指定された%sは存在しません。',
             ],
         ],
         'sendmail' => [

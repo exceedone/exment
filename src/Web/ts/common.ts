@@ -44,7 +44,10 @@ namespace Exment {
             CommonEvent.addShowModalEvent();
             CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
-            if (!$('#gridrow_select_disabled').val()) {
+
+            let gridrow_select_transition = $('#gridrow_select_transition').val() || "default";
+            if (gridrow_select_transition !== 'none' &&
+               (gridrow_select_transition !== 'default' || !$('#gridrow_select_disabled').val())) {
                 CommonEvent.tableHoverLink();
             }
 
@@ -407,8 +410,13 @@ namespace Exment {
                 }
                 
                 let editFlg = $('#gridrow_select_edit').val();
+                let tableOpt = $('#gridrow_select_transition').val();
                 let linkElem = $(ev.target).closest('tr').find('.rowclick');
-                
+                if (tableOpt == 'edit') {
+                    editFlg = 1;
+                } else if (tableOpt == 'show') {
+                    editFlg = 0;
+                }
                 if (editFlg) {
                     if (!hasValue(linkElem)) {
                         linkElem = $(ev.target).closest('tr').find('.fa-edit');
@@ -433,6 +441,12 @@ namespace Exment {
                 }
                 linkElem.closest('a,.rowclick').trigger('click');
             }).addClass('tableHoverLinkEvent');
+
+            $('.janCodeRow').on('click', function (ev) {
+                let janCodeId = $(ev.target).closest('tr').attr('jan-code-id');
+                let id = $(ev.target).closest('tr').attr('id');
+                window.location.href = admin_url("/assign-jan-code/?table_id=") + id + "&jan_code_id=" + janCodeId;
+            });
         }
 
         /**

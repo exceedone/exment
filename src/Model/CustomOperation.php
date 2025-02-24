@@ -286,7 +286,11 @@ class CustomOperation extends ModelBase
                 return [$column_name => Enums\OperationValueType::getOperationValue($custom_column, $operation_column['update_value_text'], $model)];
             }
 
-            return [$column_name => $operation_column['update_value_text']];
+            $update_value_text = $operation_column->update_value_text;
+            if (is_nullorempty($update_value_text)) {
+                $update_value_text = null;
+            }
+            return [$column_name => $update_value_text];
         });
 
         $input_updates = [];

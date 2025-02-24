@@ -11,7 +11,7 @@
                     @endforeach @endif
 
                     <div style="position:relative;">
-                        <input type="input" class="form-control" placeholder="{{ exmtrans('login.email_or_usercode') }}" name="username" value="{{ old('username') }}" required>
+                        <input type="text" class="form-control" placeholder="{{ exmtrans('login.email_or_usercode') }}" name="username" value="{{ old('username') }}" required>
                         <span class="glyphicon glyphicon-user form-control-feedback"></span>
                     </div>
                 </div>

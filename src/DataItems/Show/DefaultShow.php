@@ -354,8 +354,11 @@ class DefaultShow extends ShowBase
 
         $trashed = boolval(request()->get('trashed'));
 
+        $custom_form_blocks = $this->custom_form->custom_form_blocks->sortBy(function ($item, $key) {
+            return $item->getOption('form_block_order')?? -1;
+        });
         // loop for custom form blocks
-        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+        foreach ($custom_form_blocks as $custom_form_block) {
             // if available is false, continue
             if (!$custom_form_block->available) {
                 continue;
@@ -379,6 +382,8 @@ class DefaultShow extends ShowBase
                 $classname = getModelName($target_table);
                 $grid = new Grid(new $classname());
                 $grid->setTitle($block_label);
+                $grid->setName($target_table->table_name);
+                $grid->model()->setSortName($target_table->table_name . '_sort');
 
                 // one to many
                 if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {

@@ -76,8 +76,11 @@ class DefaultForm extends FormBase
         $force_caculate_column = [];
         $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array, $force_caculate_column);
 
+        $custom_form_blocks = $this->custom_form->custom_form_blocks->sortBy(function ($item, $key) {
+            return $item->getOption('form_block_order')?? -1;
+        });
         // loop for custom form blocks
-        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+        foreach ($custom_form_blocks as $custom_form_block) {
             // if available is false, continue
             if (!$custom_form_block->available) {
                 continue;

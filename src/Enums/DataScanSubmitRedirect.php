@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Enums;
 
-class DataQrRedirect extends EnumBase
+class DataScanSubmitRedirect extends EnumBase
 {
     public const TOP = '5';
     public const LIST = '4';
