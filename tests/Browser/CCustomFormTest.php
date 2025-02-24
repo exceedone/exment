@@ -142,7 +142,9 @@ class CCustomFormTest extends ExmentKitTestCase
     }
 
     /**
-     * avairable relation blocks.
+     * available relation blocks.
+     *
+     * @return void
      */
     public function testRelationFormSuccess()
     {

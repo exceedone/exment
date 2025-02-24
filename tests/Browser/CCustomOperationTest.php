@@ -605,6 +605,8 @@ class CCustomOperationTest extends ExmentKitTestCase
      * operation type: button.
      * operation update value: blank
      * filter: no
+     *
+     * @return void
      */
     public function testOperationUpdateBlank()
     {

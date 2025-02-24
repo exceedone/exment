@@ -107,6 +107,8 @@ class CCustomViewTest extends ExmentKitTestCase
 
     /**
      * Create custom view.
+     *
+     * @return void
      */
     public function testAddSummaryViewSuccess()
     {
