@@ -1,6 +1,6 @@
 <div class="box box-dashboard custom-border-success card p-2 {{isset($suuid) ? 'box-success' : ''}}" data-suuid="{{$suuid}}" {!! $attributes !!}>
-    <div class="box-header with-border  d-flex justify-content-between  border-bottom p-1">
-        <h3 class="box-title fs-5">
+    <div class="box-header with-border  d-flex justify-content-between  border-bottom">
+        <h3 class="box-title fs-4">
             @if(isset($title))
             {{ $title }}
             @else
@@ -20,7 +20,7 @@
                 @else
                 <div class="btn-group pull-right" style="margin-right: 5px">
                     @if(count($dashboardboxes_newbuttons) > 0)
-                        <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button type="button" class="btn btn-sm btn-success  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fa fa-plus"></i><span class="hidden-xs">&nbsp;{{trans('admin.new')}}</span>
                             <span class="caret"></span> 
                         </button>

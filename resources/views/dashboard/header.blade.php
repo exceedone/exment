@@ -1,5 +1,5 @@
 <div class="box box-info custom-border-info card">
-    <div class="box-header with-border p-3 d-flex justify-content-end">
+    <div class="box-header with-border p-2 d-flex justify-content-end">
         <div class="btn-group pull-right" style="margin-right: 5px">
             <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-window-maximize"></i>&nbsp;{{exmtrans('dashboard.header')}}&nbsp;:&nbsp;{{ $current_dashboard->dashboard_view_name }}
