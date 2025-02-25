@@ -1,8 +1,8 @@
 @if ($positon == 'bottom')
 <hr />
 @endif
-<div class="system-values">
-    <div class="system-values-flows">
+<div class="system-values pt-3">
+    <div class="system-values-flows d-flex justify-content-start">
     @foreach($workflows as $item)
     <div class="system-values-flow">
         <p class="system-values-label"><i class="fa fa-check-square-o" aria-hidden="true"></i>&nbsp;{{$item['label']}}</p>

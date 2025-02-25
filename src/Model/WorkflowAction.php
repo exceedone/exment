@@ -738,8 +738,9 @@ class WorkflowAction extends ModelBase
         $showSubmit = !WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exment::user()->base_user);
 
         if ($showSubmit) {
-            $form->descriptionHtml(exmtrans('workflow.message.action_execute'));
+            $form->descriptionHtml('<p style="padding-left: 30px;">' . exmtrans('workflow.message.action_execute') . '</p>');
         }
+        
 
         $form->display('action_name', exmtrans('workflow.action_name'))
             ->default($this->action_name);
