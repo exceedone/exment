@@ -284,7 +284,7 @@ class Exment
                 }
 
                 // sort by timestamp
-                $sortedPackages = collect($packages)->sortByDesc('time');
+                $sortedPackages = collect($packages)->sortByDesc('version_normalized');
                 foreach ($sortedPackages as $key => $package) {
                     // if version is "dev-", continue
                     if (substr($key, 0, 4) == 'dev-') {
