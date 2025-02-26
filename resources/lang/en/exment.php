@@ -947,7 +947,7 @@ return [
             'mapping_description' => 'The field name returned by the provider must match the user field name in Exment. Please enter the field name returned from the provider. <br/>If you enter multiple values ​​separated by commas, the fields that have values ​​will be retrieved with priority from the beginning. <br /> Also, if you want to combine multiple fields, type "${Field_Name}". (Example: ${last_name} ${first_name})',
             'login_test_sso' => 'The :login_type redirect URL for testing.<span class="red">*When performing the test, temporarily add or change the above URL to the callback URL of the provider\'s :login_type setting.</span>',
                 
-            'oauth_option_single_logout' => 'Set to Yes if you want to log out not only from Exment but also from the ID provider',
+            'oauth_option_single_logout' => 'Set to Yes if you want to log out not only from Exment but also from the ID provider.<span class="red">*Okta is not supported.</span>',
                 
             'ldap_base_dn' => 'Enter the basic DN (distinguished name) used for authentication.',
             'ldap_filter' => 'Enter the attributes and attribute values ​​used for openLDAP authentication. (Ex: (objectClass=inetOrgPerson)(objectClass=person))',
