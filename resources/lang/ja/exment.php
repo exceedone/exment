@@ -864,6 +864,9 @@ return [
         'oauth_client_id' => 'クライアントID',
         'oauth_client_secret' => 'クライアントシークレット',
         'oauth_scope' => 'スコープ',
+
+        'oauth_option' => 'オプション設定',         
+        'oauth_option_single_logout' => 'シングル・サインアウト',
         
         'user_setting' => 'ユーザー設定',
         'mapping_user_column' => 'アカウント検索列',
@@ -943,7 +946,9 @@ return [
             'jit_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
             'mapping_description' => 'プロバイダから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。プロバイダから返却されるフィールド名を入力してください。<br/>カンマ区切りで複数入力した場合、値の存在するフィールドを、先頭から優先して取得します。<br />また、複数のフィールドを結合したい場合、"${フィールド名}"と入力してください。(例：${last_name} ${first_name})',
             'login_test_sso' => 'テスト用の:login_typeリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダの:login_type設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
-                
+
+            'oauth_option_single_logout' => 'Exmentだけでなく、IDプロバイダーからもログアウトする場合は、YESにしてください。<span class="red">※現在、Oktaには対応しておりません。</span>',
+            
             'ldap_base_dn' => '認証に使用する基本DN(識別名)を入力してください。',
             'ldap_filter' => 'openLDAPの認証時に利用する、属性と属性値を入力してください。(例：(objectClass=inetOrgPerson)(objectClass=person))',
             'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
