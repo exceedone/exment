@@ -1,6 +1,6 @@
 <div class="{{$viewClass['form-group']}} {!! ($errors->has($errorKey['start'].'start') || $errors->has($errorKey['end'].'end')) ? 'has-error' : ''  !!}">
 
-    <label for="{{$id['start']}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
+    <label for="{{$id['start']}}" class="{{$viewClass['label']}} control-label text-lg-end text-nowrap">{{$label}}</label>
 
     <div class="{{$viewClass['field']}}">
 
