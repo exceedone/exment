@@ -1,5 +1,5 @@
 <div class="box box-{{ $style }} card p-2 custom-border-info">
-    <div class="box-header with-border d-flex justify-content-between border-bottom p-1">
+    <div class="box-header with-border d-flex justify-content-between border-bottom p-1 pb-2">
         <h4 class="box-title">{{ $title }}</h4>
 
         <div class="box-tools d-flex flex-row-reverse">

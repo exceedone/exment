@@ -1,5 +1,5 @@
 <div class="box box-dashboard custom-border-success card p-2 {{isset($suuid) ? 'box-success' : ''}}" data-suuid="{{$suuid}}" {!! $attributes !!}>
-    <div class="box-header with-border  d-flex justify-content-between  border-bottom">
+    <div class="box-header with-border  d-flex justify-content-between  border-bottom pb-2">
         <h3 class="box-title fs-4">
             @if(isset($title))
             {{ $title }}
