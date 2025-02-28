@@ -17,7 +17,7 @@
         </ul> --}}
 
 
-        <ul class="nav order-2 ms-auto d-flex align-items-center gap-4">
+        <ul class="nav order-2 ms-auto d-flex align-items-center">
 
             {!! Admin::getNavbar()->render() !!}
 

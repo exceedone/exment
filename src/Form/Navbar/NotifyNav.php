@@ -19,14 +19,14 @@ class NotifyNav implements Renderable
         return <<<EOT
         <input id="notify_navbar_noitem" type="hidden" value="$no_newitem" />
 <li class="navbar-notify dropdown notifications-menu">
-    <a href="javascript:void(0);" class="container-notify hidden-xs" data-toggle="dropdown">
+    <a href="javascript:void(0);" class="container-notify hidden-xs p-3" data-bs-toggle="dropdown">
       <i class="fa fa-bell"></i>
     </a>
 
-    <ul class="dropdown-menu notifications-menu-dropdown">
+    <ul class="dropdown-menu notifications-menu-dropdown dropdown-menu-end">
         <li>
         <!-- inner menu: contains the actual data -->
-        <ul class="menu">
+        <ul class="menu p-3 border-bottom">
         </ul>
         </li>
         <li class="footer"><a href="$list_url">$list</a></li>
