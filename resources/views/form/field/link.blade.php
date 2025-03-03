@@ -1,5 +1,5 @@
 <div class="form-group {!! !$errors->has($label) ?: 'has-error' !!}">
-    <label for="{{$id}}" class="col-sm-2 control-label text-lg-end text-nowrap">{{$label}}</label>
+    <label for="{{$id}}" class="col-sm-2 control-label text-lg-end pt-2">{{$label}}</label>
     <div class="{{$viewClass['field']}}">
         @include('admin::form.error')
 

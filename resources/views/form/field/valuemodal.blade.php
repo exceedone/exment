@@ -1,7 +1,7 @@
 <div class="block-valuemodal">
     <div class="{{$viewClass['form-group']}} {!! !$errors->has($errorKey) ?: 'has-error' !!}">
 
-        <label for="{{$id}}" class="{{$viewClass['label']}} control-label text-lg-end text-nowrap">{{$label}}</label>
+        <label for="{{$id}}" class="{{$viewClass['label']}} control-label text-lg-end pt-2">{{$label}}</label>
 
         <div class="{{$viewClass['field']}}" id="{{$id}}">
             @include('admin::form.error')

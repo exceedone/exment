@@ -1,6 +1,6 @@
 <div class="{{$viewClass['form-group']}} {!! !$errors->has($errorKey) ? '' : 'has-error' !!}" style="margin-bottom:0;">
 
-    <label for="{{$id}}" class="{{$viewClass['label']}} control-label text-lg-end text-nowrap">&nbsp;</label>
+    <label for="{{$id}}" class="{{$viewClass['label']}} control-label text-lg-end pt-2">&nbsp;</label>
 
     <div class="{{$viewClass['field']}}">
         @foreach($options as $option => $label)
