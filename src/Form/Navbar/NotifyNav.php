@@ -29,7 +29,7 @@ class NotifyNav implements Renderable
         <ul class="menu p-3 border-bottom">
         </ul>
         </li>
-        <li class="footer"><a href="$list_url">$list</a></li>
+        <li class="footer text-center"><a href="$list_url">$list</a></li>
     </ul>
 </li>
 EOT;

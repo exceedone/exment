@@ -11,7 +11,7 @@
     @endif
     
     @if(isset($description))
-        <div class="col-sm-{{$tablewidth['width']}} col-sm-offset-{{$tablewidth['offset']}}" style="margin-bottom:20px;">
+        <div class="col-sm-{{$tablewidth['width']}} offset-sm-{{$tablewidth['offset']}}" style="margin-bottom:20px;">
             @if($escapeDescription)
             {{ $description }}
             @else
@@ -19,7 +19,7 @@
             @endif
         </div>
     @endif
-    <div class="{{ str_starts_with($column, 'pivot') ? 'table-container ' : '' }}col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} col-sm-offset-{{$tablewidth['offset']}}">
+    <div class="{{ str_starts_with($column, 'pivot') ? 'table-container ' : '' }}col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} offset-sm-{{$tablewidth['offset']}}">
         <table id="has-many-table-{{$column}}-table" class="{{ str_starts_with($column, 'pivot') ? 'scrollable-table ' : '' }}table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
             <thead>
             <tr class="active">
