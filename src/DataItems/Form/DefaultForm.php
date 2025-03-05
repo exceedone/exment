@@ -221,7 +221,7 @@ EOT;
     protected function setCustomFormColumns($form, $custom_form_block)
     {
         $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
-        $target_id = $this->id;
+        // $target_id = $this->id;
         if (method_exists($form, 'getDataKey')) {
             $data_key = $form->getDataKey();
             if (is_numeric($data_key)) {
