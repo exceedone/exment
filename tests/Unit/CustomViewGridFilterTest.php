@@ -3,11 +3,13 @@
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\DatabaseTransactions;
+use Exceedone\Exment\Tests\TestDefine;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Tests\TestDefine;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\DataItems\Grid\DefaultGrid;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
@@ -320,6 +322,161 @@ class CustomViewGridFilterTest extends UnitTestBase
         });
     }
 
+    /**
+     * Grid Filter = auto number
+     */
+    public function testFuncFilterAutoNumber()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('auto_number', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $this->__testGridFilter([$db_column_name => 'a'], function ($data) {
+            $actual = array_get($data, 'value.auto_number');
+            return Str::startsWith($actual, 'a');
+        });
+    }
+
+    /**
+     * Grid Filter = user
+     */
+    public function testFuncFilterUser()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('user', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $this->__testGridFilter([$db_column_name => [2,4]], function ($data) {
+            $actual = array_get($data, 'value.user');
+            return in_array($actual, [2,4]);
+        });
+    }
+
+    /**
+     * Grid Filter = organization
+     */
+    public function testFuncFilterOrganization()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('organization', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $this->__testGridFilter([$db_column_name => [1,5]], function ($data) {
+            $actual = array_get($data, 'value.organization');
+            return in_array($actual, [1,5]);
+        });
+    }
+
+    /**
+     * Grid Filter = select_multiple
+     */
+    public function testFuncFilterSelectMulti()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('select_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $this->__testGridFilter([$db_column_name => ['foo','baz']], function ($data) {
+            $actual = array_get($data, 'value.select_multiple');
+            return in_array('foo', $actual) || in_array('baz', $actual);
+        });
+    }
+
+    /**
+     * Grid Filter = select_valtext_multiple
+     */
+    public function testFuncFilterSelectValMulti()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('select_valtext_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $this->__testGridFilter([$db_column_name => ['baz']], function ($data) {
+            $actual = array_get($data, 'value.select_valtext_multiple');
+            return in_array('baz', $actual);
+        });
+    }
+
+    /**
+     * Grid Filter = select_table_multiple
+     */
+    public function testFuncFilterSelectTableMulti()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('select_table_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $this->__testGridFilter([$db_column_name => [5,10]], function ($data) {
+            $actual = array_get($data, 'value.select_table_multiple');
+            return in_array(5, $actual) || in_array(10, $actual);
+        });
+    }
+
+    /**
+     * Grid Filter = user_multiple
+     */
+    public function testFuncFilterUserMulti()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('user_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $this->__testGridFilter([$db_column_name => [3,4]], function ($data) {
+            $actual = array_get($data, 'value.user_multiple');
+            return in_array(3, $actual) || in_array(4, $actual);
+        });
+    }
+
+    /**
+     * Grid Filter = organization_multiple
+     */
+    public function testFuncFilterOrganizationMulti()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('organization_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $this->__testGridFilter([$db_column_name => [2]], function ($data) {
+            $actual = array_get($data, 'value.organization_multiple');
+            return in_array(2, $actual);
+        });
+    }
+
+    /**
+     * Grid Filter = file_multiple
+     */
+    public function testFuncFilterFileMulti()
+    {
+        $this->init();
+
+        $custom_column = CustomColumn::getEloquent('file_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_table = $custom_column->custom_table;
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_COLUMN, TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test1.txt');
+
+        $custom_value = $custom_table->getValueModel(5);
+        $custom_value->setValue('file_multiple', [$file->path])->save();
+
+        $file->saveCustomValue($custom_value->id, $custom_column, $custom_table);
+    
+        $this->__testGridFilter([$db_column_name => 'test1'], function ($data) {
+            $actual = array_get($data, 'value.file_multiple');
+            return collect($actual)->contains(function($path) {
+                $file = ExmentFile::getData($path);
+                return Str::startsWith($file->filename, 'test1');
+            });
+        });
+    }
+
     protected function init()
     {
         $this->initAllTest();
@@ -337,6 +494,7 @@ class CustomViewGridFilterTest extends UnitTestBase
         $request->merge(['execute_filter' => '1']);
         $grid = $default->grid();
         $grid->getFilter()->disableIdFilter(false);
+        $grid->paginate(100);
 
         $list = $grid->applyFilter(false);
         if ($count) {
