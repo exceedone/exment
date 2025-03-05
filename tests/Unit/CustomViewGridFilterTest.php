@@ -101,7 +101,9 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        \DB::table($dbTableName)->where('id', 10)->update(['value->text' => 'hoge']);
+        $json_func = $this->getJsonUpdateFunction();
+        \DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.text', 'hoge')")]);
 
         $custom_column = CustomColumn::getEloquent('text', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -120,7 +122,9 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        \DB::table($dbTableName)->where('id', 10)->update(['value->url' => 'https://exment.net/docs/#/ja/']);
+        $json_func = $this->getJsonUpdateFunction();
+        \DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.url', 'https://exment.net/docs/#/ja/')")]);
 
         $custom_column = CustomColumn::getEloquent('url', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -139,7 +143,9 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        \DB::table($dbTableName)->where('id', 10)->update(['value->email' => 'hoge@test.com']);
+        $json_func = $this->getJsonUpdateFunction();
+        \DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.email', 'hoge@test.com')")]);
 
         $custom_column = CustomColumn::getEloquent('email', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -206,8 +212,11 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        \DB::table($dbTableName)->where('id', 10)->update(['value->date' => '2020-11-30']);
-        \DB::table($dbTableName)->where('id', 20)->update(['value->date' => '2020-12-01']);
+        $json_func = $this->getJsonUpdateFunction();
+        \DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.date', '2020-11-30')")]);
+        \DB::table($dbTableName)->where('id', 20)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.date', '2020-12-01')")]);
 
         $custom_column = CustomColumn::getEloquent('date', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -226,8 +235,11 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        \DB::table($dbTableName)->where('id', 10)->update(['value->time' => '10:00:00']);
-        \DB::table($dbTableName)->where('id', 20)->update(['value->time' => '09:59:59']);
+        $json_func = $this->getJsonUpdateFunction();
+        \DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.time', '10:00:00')")]);
+        \DB::table($dbTableName)->where('id', 20)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.time', '09:59:59')")]);
 
         $custom_column = CustomColumn::getEloquent('time', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -246,8 +258,11 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        \DB::table($dbTableName)->where('id', 10)->update(['value->datetime' => '2020-11-30 23:59:59']);
-        \DB::table($dbTableName)->where('id', 20)->update(['value->datetime' => '2020-12-01 00:00:01']);
+        $json_func = $this->getJsonUpdateFunction();
+        \DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.datetime', '2020-11-30 23:59:59')")]);
+        \DB::table($dbTableName)->where('id', 20)
+            ->update(['value' => \DB::raw("{$json_func}(value, '$.datetime', '2020-12-01 00:00:01')")]);
 
         $custom_column = CustomColumn::getEloquent('datetime', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -506,6 +521,16 @@ class CustomViewGridFilterTest extends UnitTestBase
 
             /** @var mixed $data */
             $this->assertTrue($matchResult, 'matchResult is false. Target id is ' . $data->id);
+        }
+    }
+
+    protected function getJsonUpdateFunction(): string
+    {
+        $db_default = config('database.default', 'mysql');
+        if ($db_default == 'sqlsrv') {
+            return 'JSON_MODIFY';
+        } else {
+            return 'JSON_SET';
         }
     }
 }
