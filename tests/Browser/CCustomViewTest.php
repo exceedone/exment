@@ -6,6 +6,7 @@ use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewGridFilter;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 
 class CCustomViewTest extends ExmentKitTestCase
@@ -276,5 +277,158 @@ class CCustomViewTest extends ExmentKitTestCase
                 $this->assertTrue($query->exists(), "custom view items not contains items.　custom_view_id:{$id}, k:{$k}, key:{$key}, view_target:{$v['view_column_target']}, view_column_type:{$column_type}, view_column_target_id:{$column_type_target}, view_column_table_id:{$column_table_id}");
             }
         }
+    }
+
+    /**
+     * check custom view grid filters initialized default.
+     */
+    public function testCheckDefaultGridFilter()
+    {
+        $custom_table = CustomTable::getEloquent('exmenttest_view');
+        $raw = CustomView::where('custom_table_id', $custom_table->id)->where('view_view_name', 'TestView2')->first();
+        $suuid = array_get($raw, 'suuid');
+
+        $this->visit(admin_url("data/exmenttest_view?view={$suuid}"));
+
+        $response = $this->get(admin_url("data/exmenttest_view?filter_ajax=1"));
+        $content = $response->response->getContent();
+        if (is_json($content)) {
+            $json = json_decode_ex($content, true);
+            $html = array_get($json, 'html');
+
+            $pattern = '/<label\b[^>]*>\s*ID\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*作成日時\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*更新日時\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*作成ユーザー\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*更新ユーザー\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*Integer\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*One Line Text\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*Date and Time\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*Select From Static Value\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*User Single\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+        }
+    }
+
+    /**
+     * Add custom view grid filters.
+     */
+    public function testAddViewSuccessGridFilter()
+    {
+        $custom_table = CustomTable::getEloquent('exmenttest_view');
+        $custom_column_text = CustomColumn::getEloquent('onelinetext', $custom_table);
+        $custom_column_user = CustomColumn::getEloquent('user_single', $custom_table);
+
+        $user_table = CustomTable::getEloquent('user');
+        $custom_column_username = CustomColumn::getEloquent('user_name', $user_table);
+
+        $raw = CustomView::where('custom_table_id', $custom_table->id)->where('view_view_name', 'TestView2')->first();
+        $id = array_get($raw, 'id');
+        $suuid = array_get($raw, 'suuid');
+
+        $data = [
+            'custom_view_grid_filters' => [
+                'new_1' => [
+                    'view_column_target' => "id?table_id={$custom_table->id}",
+                    '_remove_' => 0,
+                ],
+                'new_2' => [
+                    'view_column_target' => "{$custom_column_text->id}?table_id={$custom_table->id}",
+                    '_remove_' => 0,
+                ],
+            ],
+        ];
+
+        $this->put(admin_url("view/exmenttest_view/{$id}"), $data);
+        
+        $this->visit(admin_url("data/exmenttest_view?view={$suuid}"));
+
+        $response = $this->get(admin_url("data/exmenttest_view?filter_ajax=1"));
+        $content = $response->response->getContent();
+        if (is_json($content)) {
+            $json = json_decode_ex($content, true);
+            $html = array_get($json, 'html');
+
+            $pattern = '/<label\b[^>]*>\s*ID\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*One Line Text\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*作成日時\s*<\/label>/i';
+            $this->assertFalse(preg_match($pattern, $html) === 1);
+        }
+    }
+
+    /**
+     * Update custom view grid filters.
+     */
+    public function testUpdateViewSuccessGridFilter()
+    {
+        $custom_table = CustomTable::getEloquent('exmenttest_view');
+        $custom_column_user = CustomColumn::getEloquent('user_single', $custom_table);
+
+        $user_table = CustomTable::getEloquent('user');
+        $custom_column_username = CustomColumn::getEloquent('user_name', $user_table);
+
+        $raw = CustomView::where('custom_table_id', $custom_table->id)->where('view_view_name', 'TestView2')->first();
+        $id = array_get($raw, 'id');
+        $suuid = array_get($raw, 'suuid');
+
+        $grid_filters = CustomViewGridFilter::where('custom_view_id', $id)->pluck('id');
+
+        $data = [
+            'custom_view_grid_filters' => [
+                $grid_filters[0] => [
+                    'view_column_target' => "updated_user?table_id={$custom_table->id}",
+                    'id' => $grid_filters[0],
+                    '_remove_' => 0,
+                ],
+                $grid_filters[1] => [
+                    'view_column_target' => "{$custom_column_username->id}?table_id={$user_table->id}&view_pivot_column_id={$custom_column_user->id}&view_pivot_table_id={$custom_table->id}",
+                    'id' => $grid_filters[1],
+                    '_remove_' => 0,
+                ],
+            ],
+        ];
+
+        $this->put(admin_url("view/exmenttest_view/{$id}"), $data);
+        
+        $this->visit(admin_url("data/exmenttest_view?view={$suuid}"));
+
+        $response = $this->get(admin_url("data/exmenttest_view?filter_ajax=1"));
+        $content = $response->response->getContent();
+        if (is_json($content)) {
+            $json = json_decode_ex($content, true);
+            $html = array_get($json, 'html');
+
+            $pattern = '/<label\b[^>]*>\s*更新ユーザー\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*User Single : ユーザー名\s*<\/label>/i';
+            $this->assertTrue(preg_match($pattern, $html) === 1);
+
+            $pattern = '/<label\b[^>]*>\s*One Line Text\s*<\/label>/i';
+            $this->assertFalse(preg_match($pattern, $html) === 1);
+        }
+
     }
 }
