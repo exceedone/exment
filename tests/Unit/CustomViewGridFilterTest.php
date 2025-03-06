@@ -526,8 +526,7 @@ class CustomViewGridFilterTest extends UnitTestBase
 
     protected function getJsonUpdateFunction(): string
     {
-        $db_default = config('database.default', 'mysql');
-        if ($db_default == 'sqlsrv') {
+        if (\Exment::isSqlServer()) {
             return 'JSON_MODIFY';
         } else {
             return 'JSON_SET';
