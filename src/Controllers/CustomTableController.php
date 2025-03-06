@@ -481,6 +481,7 @@ HTML;
             $form->select('unique1', exmtrans("custom_table.custom_column_multi.unique1"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
+                    'include_parent_id' => true
                 ]));
             $form->select('unique2', exmtrans("custom_table.custom_column_multi.unique2"))->required()
                 ->options($custom_table->getColumnsSelectOptions([

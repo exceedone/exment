@@ -452,9 +452,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if (is_nullorempty($value)) {
                     continue;
                 }
-                $custom_column = CustomColumn::getEloquent($value);
-                if (boolval(array_get($custom_column->options, 'multiple_enabled'))) {
-                    return;
+                $custom_column = $value;
+                if ($value != SystemColumn::PARENT_ID) {
+                    $custom_column = CustomColumn::getEloquent($value);
+                    if (boolval(array_get($custom_column->options, 'multiple_enabled'))) {
+                        return;
+                    }
                 }
                 $i["unique{$key}"] = $custom_column;
             }
@@ -840,20 +843,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
                             continue;
                         }
-                        $column = CustomColumn::getEloquent($column_id);
-                        if (is_null($column)) {
-                            continue;
+                        $column = null;
+                        if ($column_id == SystemColumn::PARENT_ID) {
+                            $column_name = SystemColumn::PARENT_ID;
+                        } else {
+                            $column = CustomColumn::getEloquent($column_id);
+                            if (is_null($column)) {
+                                continue;
+                            }
+                            $column_name = $prefix . $column->column_name;
                         }
                         // get input value
-                        $value = array_get($input, $prefix . $column->column_name);
-                        $other = array_get($row, $prefix . $column->column_name);
+                        $value = array_get($input, $column_name);
+                        $other = array_get($row, $column_name);
                         if (is_null($value) && is_null($other)) {
                             continue;
                         }
                         if ($value != $other) {
                             return false;
                         }
-                        $column_keys[] = $column;
+                        $column_keys[] = $column ?? $column_name;
                     }
                     return !empty($column_keys);
                 });
@@ -866,25 +875,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         continue;
                     }
 
-                    $column = CustomColumn::getEloquent($column_id);
-                    if (is_null($column)) {
-                        continue;
-                    }
+                    if ($column_id == SystemColumn::PARENT_ID) {
+                        // get parent_id
+                        $value = null;
+                        if (array_has($input, SystemColumn::PARENT_ID)) {
+                            $value = array_get($input, SystemColumn::PARENT_ID);
+                        } elseif (isset($custom_value)) {
+                            $value = $custom_value->{SystemColumn::PARENT_ID};
+                        }
+                        $query->where(SystemColumn::PARENT_ID, $value);
 
-                    // get value
-                    $value = null;
-                    if (array_has($input, $prefix . $column->column_name)) {
-                        $value = array_get($input, $prefix . $column->column_name);
-                    } elseif (isset($custom_value)) {
-                        $value = $custom_value->getValue($column->column_name, ValueType::PURE_VALUE);
-                    }
-                    if (is_array($value)) {
-                        $value = json_encode(array_filter($value));
-                    }
+                        $column_keys[] = SystemColumn::PARENT_ID;
 
-                    $query->where($column->getQueryKey(), $value);
+                    } else {
 
-                    $column_keys[] = $column;
+                        $column = CustomColumn::getEloquent($column_id);
+                        if (is_null($column)) {
+                            continue;
+                        }
+    
+                        // get value
+                        $value = null;
+                        if (array_has($input, $prefix . $column->column_name)) {
+                            $value = array_get($input, $prefix . $column->column_name);
+                        } elseif (isset($custom_value)) {
+                            $value = $custom_value->getValue($column->column_name, ValueType::PURE_VALUE);
+                        }
+                        if (is_array($value)) {
+                            $value = json_encode(array_filter($value));
+                        }
+    
+                        $query->where($column->getQueryKey(), $value);
+    
+                        $column_keys[] = $column;
+                    }
                 }
 
                 if (empty($column_keys)) {
@@ -893,7 +917,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
                 // if all column's value is empty, continue.
                 if (collect($column_keys)->filter(function ($column) use ($input, $prefix) {
-                    return !is_nullorempty(array_get($input, $prefix . $column->column_name));
+                    if ($column == SystemColumn::PARENT_ID) {
+                        $value = array_get($input, $column);
+                    } else {
+                        $value = array_get($input, $prefix . $column->column_name);
+                    }
+                    return !is_nullorempty($value);
                 })->count() == 0) {
                     continue;
                 }
@@ -913,13 +942,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             if ($is_duplicate) {
                 $errorTexts = collect($column_keys)->map(function ($column_key) {
-                    return $column_key->column_view_name;
+                    if ($column_key == SystemColumn::PARENT_ID) {
+                        return exmtrans("custom_relation.parent_custom_table");
+                    } else {
+                        return $column_key->column_view_name;
+                    }
                 });
                 $errorText = implode(exmtrans('common.separate_word'), $errorTexts->toArray());
 
                 // append error message
                 foreach ($column_keys as $column_key) {
-                    $errors[$options['column_name_prefix'] . $column_key->column_name] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
+                    $errMsg = exmtrans('custom_value.help.multiple_uniques', $errorText);
+                    if ($column_key == SystemColumn::PARENT_ID) {
+                        $errors[$column_key] = [$errMsg];
+                    } else {
+                        $errors[$options['column_name_prefix'] . $column_key->column_name] = [$errMsg];
+                    }
                     if (!$options['appendErrorAllColumn']) {
                         break;
                     }
@@ -2281,6 +2319,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_workflow_work_users' => false,
                 'include_condition' => false,
                 'include_form_type' => false,
+                'include_parent_id' => false,
                 'ignore_attachment' => false,
                 'ignore_autonumber' => false,
                 'ignore_multiple' => false,
@@ -2301,6 +2340,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_workflow_work_users = $selectOptions['include_workflow_work_users'];
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
+        $include_parent_id = $selectOptions['include_parent_id'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
         $ignore_autonumber = $selectOptions['ignore_autonumber'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
@@ -2342,7 +2382,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 [
                     'append_table' => $append_table,
                     'index_enabled_only' => $index_enabled_only,
-                    'include_parent' => $include_parent,
+                    'include_parent' => $include_parent || $include_parent_id,
                     'include_system' => $include_system,
                     'include_workflow' => $include_workflow,
                     'include_workflow_work_users' => $include_workflow_work_users,
