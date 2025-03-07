@@ -57,7 +57,9 @@
 </div>
 
 <script>
-$('.selectitembox-body').load(function () {
-    $('.selectitembox-loading').fadeOut(200);
+$(document).ready(function() {
+    $('.selectitembox-body').on('load', function () {
+        $('.selectitembox-loading').fadeOut(200);
+    });
 });
 </script>
