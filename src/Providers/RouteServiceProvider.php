@@ -10,6 +10,9 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -22,6 +25,13 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected $namespace = 'Exceedone\Exment\Controllers';
 
+    public function boot(): void
+    {
+        $rate_limit = config('exment.api_max_rate_limit', 60);
+        RateLimiter::for('api', function (Request $request) use ($rate_limit) {
+            return Limit::perMinute($rate_limit)->by($request->user()?->id ?: $request->ip());
+        });
+    }
     /**
      * Define the routes for the application.
      *
