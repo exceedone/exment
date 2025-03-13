@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\SystemColumn;
 
 /**
  * @phpstan-consistent-constructor
@@ -35,7 +36,7 @@ class CustomViewColumn extends ModelBase
     public static $templateItems = [
         'excepts' => [
             'import' => ['custom_table', 'view_column_target', 'custom_column', 'target_view_name', 'view_group_condition', 'view_pivot_column_name', 'view_pivot_table_name'],
-            'export' => ['custom_table', 'custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_table_id', 'view_column_target_id', 'view_pivot_column_id', 'view_pivot_table_id', 'view_group_condition'],
+            'export' => ['custom_table', 'custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_table_id', 'view_column_target_id', 'view_pivot_column_id', 'view_pivot_table_id', 'view_group_condition', 'view_column_end_date'],
         ],
         'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
         'parent' => 'custom_view_id',
@@ -166,5 +167,26 @@ class CustomViewColumn extends ModelBase
     public function getViewColumnEndDateTypeAttribute()
     {
         return $this->getOption('end_date_type');
+    }
+
+    /**
+     * Export template replace json
+     *
+     * @param array $json
+     * @return void
+     */
+    protected function exportReplaceJson(&$json)
+    {
+        $end_date_type = array_get($json, 'options.end_date_type');
+        $end_date_target = array_get($json, 'options.end_date_target');
+
+        if ($end_date_target) {
+            if ($end_date_type == ConditionType::COLUMN) {
+                $custom_column = CustomColumn::find($end_date_target);
+                $json['end_date_target_name'] = $custom_column? $custom_column->column_name: null;
+            } elseif ($end_date_type == ConditionType::SYSTEM) {
+                $json['end_date_target_name'] =  SystemColumn::getOption(['id' => $end_date_target])['name'];
+            }
+        }
     }
 }
