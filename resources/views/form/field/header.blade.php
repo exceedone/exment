@@ -13,7 +13,7 @@
     </div>
 
     @if($hr)
-    <hr style="margin: 0px 15px;" />
+    <hr class="fixed-border-color" style="margin: 0px 15px;"  />
     @endif
 </div>
 

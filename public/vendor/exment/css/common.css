@@ -3801,7 +3801,7 @@ table img.image_html:hover {
 }
 .system-values .system-values-list li {
   list-style: none;
-  border-left: solid 6px #2d8fdd;
+  border-left: solid 6px #2d8fdd !important;
   margin: 0.5em 2px;
   padding: 0.4em 8px;
   width: 160px;
