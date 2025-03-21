@@ -10,7 +10,7 @@
 
     <div class="embed-{{$column}}-forms">
 
-        <div class="embed-{{$column}}-form fields-group">
+        <div class="embed-{{$column}}-form fields-group pt-3">
 
             @foreach($form->fields() as $field)
                 {!! $field->render() !!}

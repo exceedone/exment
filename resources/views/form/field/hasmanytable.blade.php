@@ -1,5 +1,5 @@
 
-<div id="has-many-table-{{$column}}" class="has-many-table-{{$column}} form-group has-many-table-div">
+<div id="has-many-table-{{$column}}" class="has-many-table-{{$column}} form-group has-many-table-div pb-5">
     @if($enableHeader)
     <div class="row">
         <div class="col-sm-12">
@@ -48,22 +48,22 @@
                 @endforeach
 
                 @if($options['allowOptions'])
-                <td class="text-center" style="vertical-align:middle;">
+                <td class="text-center row col-auto d-flex justify-content-center" style="vertical-align:middle;">
                     @foreach($form['hiddens'] as $hidden)
                     {!! $hidden->render() !!}
                     @endforeach
                     
                     @if($hasRowUpDown)
-                    <a href="javascript:void(0);" class="btn btn-xs btn-primary row-move row-move-down" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
+                    <a href="javascript:void(0);" class="btn btn-sm btn-primary mb-2 bs5 fa-xs d-inline-block " data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
                         <i class="fa fa-arrow-down" style=""></i>
                     </a>
-                    <a href="javascript:void(0);" class="btn btn-xs btn-success row-move row-move-up" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
+                    <a href="javascript:void(0);" class="btn btn-sm btn-success mt-2 fa-xs d-inline-block " data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
                         <i class="fa fa-arrow-up" style=""></i>
                     </a>
                     @endif
 
                     @if($options['allowDelete'] && ($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index))
-                    <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-xs' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
+                    <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-sm fa-xs' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
                         <i class="fa fa-trash" style=""></i>
                     </a>
                     @endif
@@ -100,15 +100,15 @@
                 {!! $hidden->render() !!}
                 @endforeach
                 @if($hasRowUpDown)
-                <a href="javascript:void(0);" class="btn btn-xs btn-primary row-move row-move-down" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
+                <a href="javascript:void(0);" class="btn btn-sm btn-primary mb-2 bs5" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
                     <i class="fa fa-arrow-down" style=""></i>
                 </a>
-                <a href="javascript:void(0);" class="btn btn-xs btn-success row-move row-move-up" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
+                <a href="javascript:void(0);" class="btn btn-sm btn-success mt-2" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
                     <i class="fa fa-arrow-up" style=""></i>
                 </a>
                 @endif
 
-                <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-xs' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
+                <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-sm' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
                     <i class="fa fa-trash" style=""></i>
                 </a>
             </td>
