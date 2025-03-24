@@ -15,7 +15,7 @@
             <input type="checkbox" class="grid-select-all" />
             &nbsp;
             <div class="btn-group">
-                <a class="btn btn-sm btn-default">&nbsp;<span class="hidden-xs">{{trans('admin.action')}}</span></a>
+                <a class="btn btn-sm btn-default">&nbsp;<span class="d-none d-md-inline">{{trans('admin.action')}}</span></a>
                 <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
@@ -26,7 +26,7 @@
             </div>
             <a class="btn btn-sm btn-primary grid-refresh" title="{{trans('admin.refresh')}}">
                 <i class="fa fa-refresh"></i>
-                <span class="hidden-xs"> {{trans('admin.refresh')}}</span>
+                <span class="d-none d-md-inline"> {{trans('admin.refresh')}}</span>
             </a> 
         </span>
     </div>

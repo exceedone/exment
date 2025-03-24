@@ -441,7 +441,7 @@ SCRIPT;
         return <<<HTML
 <div class="btn-group pull-right" style="margin-right: 5px">
     <a href="javascript:void(0);" class="btn btn-sm btn-danger {$class}-delete" title="{$trans['delete']}">
-        <i class="fa fa-trash"></i><span class="hidden-xs">  {$trans['delete']}</span>
+        <i class="fa fa-trash"></i><span class="d-none d-md-inline">  {$trans['delete']}</span>
     </a>
 </div>
 HTML;

@@ -14,11 +14,11 @@
     </div>
     
     @foreach($custom_form_blocks as $index => $custom_form_block)
-    <div class="box box-custom_form_block">
-        <div class="box-header with-border">
+    <div class="box card box-custom_form_block">
+        <div class="box-header card-header with-border d-flex justify-content-between p-2 px-3">
             <h3 class="box-title">{{$custom_form_block['label']}}</h3>
-            <div class="box-tools pull-right">
-                <button type="button" class="btn btn-box-tool" data-widget="collapse">
+            <div class="box-tools ms-auto">
+                <button type="button" class="btn btn-box-tool shadow-none" data-bs-toggle="collapse" data-bs-target=".custom_form_block">
                     <i class="fa fa-minus"></i>
                 </button>
             </div>
@@ -39,7 +39,7 @@
             {{ Form::hidden("{$custom_form_block['header_name']}[available]", $custom_form_block['available'], ['class' => 'custom_form_block_available']) }} 
             @endif
 
-            <div class="custom_form_block" style="display:{{ boolval($custom_form_block['available']) ? 'block' : 'none' }}">
+            <div class="custom_form_block row collapse show p-3">
                 {{-- Form Block Label --}}
                 <div class="col-sm-12">
                     {{-- select hasmany or hasmanytable --}}
@@ -53,7 +53,7 @@
                     @endif
                 </div>
                 <div class="form-inline col-sm-12">
-                    <div class="form-group">
+                    <div class="form-group d-flex">
                         {{ Form::label("", exmtrans('custom_form.form_block_name'), ['class' => 'control-label', 'style' => 'padding-right:15px;'])
                         }} {{ Form::text("{$custom_form_block['header_name']}[form_block_view_name]", $custom_form_block['form_block_view_name'],
                         ['class' => 'form-control', 'style' => 'width:400px;']) }}
@@ -150,7 +150,7 @@
 
     
     <div style="background-color: #FFF; width: 100%; overflow: hidden; padding: 10px; margin-bottom:2em;">
-        <div class="btn-group pull-right">
+        <div class="btn-group float-end flex-row-reverse">
             <button type="submit" id="admin-submit" class="btn btn-info pull-right" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{__('admin.save')}}">@lang('admin.save')</button>
         
             <label class="pull-right" style="margin: 5px 10px 0 0;">

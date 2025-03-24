@@ -6,18 +6,18 @@
         @if($has_edit_permission)
         <div class="btn-group pull-right" style="margin-right: 5px">
             <a href="{{$custom_value->getUrl(['uri' => 'edit'])}}" class="btn btn-sm btn-primary" title="{{ trans('admin.edit') }}">
-                <i class="fa fa-edit"></i><span class="hidden-xs"> {{ trans('admin.edit') }}</span>
+                <i class="fa fa-edit"></i><span class="d-none d-md-inline"> {{ trans('admin.edit') }}</span>
             </a>
         </div>
         @endif
         <div class="btn-group pull-right" style="margin-right: 5px">
             <a href="{{$show_url}}" class="btn btn-sm btn-default" title="{{ trans('admin.show') }}">
-                <i class="fa fa-eye"></i><span class="hidden-xs"> {{ trans('admin.show') }}</span>
+                <i class="fa fa-eye"></i><span class="d-none d-md-inline"> {{ trans('admin.show') }}</span>
             </a>
         </div>
         <div class="btn-group pull-right" style="margin-right: 5px">
             <a href="{{$custom_value->getUrl(['list' => true])}}" class="btn btn-sm btn-default" title="{{ trans('admin.list') }}">
-                <i class="fa fa-list"></i><span class="hidden-xs"> {{ trans('admin.list') }}</span>
+                <i class="fa fa-list"></i><span class="d-none d-md-inline"> {{ trans('admin.list') }}</span>
             </a>
         </div>
         {!! $change_page_menu !!}
