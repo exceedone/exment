@@ -29,7 +29,8 @@ class RouteServiceProvider extends ServiceProvider
     {
         $rate_limit = config('exment.api_max_rate_limit', 60);
         RateLimiter::for('api', function (Request $request) use ($rate_limit) {
-            return Limit::perMinute($rate_limit)->by($request->user()?->id ?: $request->ip());
+            $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
+            return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
         });
     }
     /**
