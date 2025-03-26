@@ -1,5 +1,5 @@
 
-<div class="form-group">
+<div class="form-group pb-3">
     <div class="row" {!! $attributes !!} >
         <div class="col-sm-12" >
             <h{{$no}} class="field-header" style="margin: 0px 70px;">
