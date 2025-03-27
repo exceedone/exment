@@ -286,4 +286,16 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     {
         return "json_unquote(" . $this->wrap($value, $prefixAlias) . ")";
     }
+
+    /**
+     * Wrap and add json_extract if needs
+     *
+     * @param mixed $column
+     * @param string $path
+     * @return string
+     */
+    public function wrapJsonExtract($column, $path = '$')
+    {
+        return "json_extract({$this->wrap($column)}, '{$path}')";
+    }
 }
