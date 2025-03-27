@@ -1,7 +1,7 @@
 
 @if($enableHeader)
 <div class="">
-    <h4 class="field-header">{{ $label }}</h4>
+    <h4 class="field-header px-5">{{ $label }}</h4>
 </div>
 <hr style="margin-top: 0px;">
 @endif
