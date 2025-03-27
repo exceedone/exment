@@ -3,7 +3,7 @@
     @if($enableHeader)
     <div class="row">
         <div class="col-sm-12">
-            <h4 class="field-header" style="padding: 0 70px;">{{ $label }}</h4>
+            <h4 class="field-header px-5">{{ $label }}</h4>
         </div>
     </div>
 
