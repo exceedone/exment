@@ -1578,6 +1578,7 @@ class TestDataSeeder extends Seeder
                  * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
                  * given.   */
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
+                /** @phpstan-ignore-next-line  */
                 return $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
                     'view_group_condition' => 'ym',
                 ]);
@@ -1589,6 +1590,7 @@ class TestDataSeeder extends Seeder
                  * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
                  * given.   */
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
+                /** @phpstan-ignore-next-line */
                 return $this->createSummaryColumn($custom_view->id, $custom_table->id, $custom_column->id, SummaryCondition::SUM);
             });
             collect($custom_columns)->filter(function ($custom_column) {
@@ -1598,6 +1600,7 @@ class TestDataSeeder extends Seeder
                  * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
                  * given.   */
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
+                /** @phpstan-ignore-next-line */
                 return $this->createCustomViewFilter(
                     $custom_view->id,
                     ConditionType::COLUMN,
