@@ -1168,7 +1168,7 @@ class TestDataSeeder extends Seeder
      * Create date value
      * @param mixed $user_id
      * @param mixed $new_id
-     * @return string | null ymd string
+     * @return string|null ymd string
      */
     protected function getDateValue($user_id, $new_id): ?string
     {

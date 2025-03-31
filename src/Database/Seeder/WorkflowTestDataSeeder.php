@@ -678,7 +678,7 @@ class WorkflowTestDataSeeder extends Seeder
     /**
      * @param mixed $wfValue
      * @param mixed $workflowObj
-     * @param mixed | null $custom_value
+     * @param mixed|null $custom_value
      * @return void
      */
     protected function saveWorkflowValue($wfValue, $workflowObj, $custom_value = null)
@@ -701,7 +701,7 @@ class WorkflowTestDataSeeder extends Seeder
      * @param mixed $workflow
      * @param mixed $custom_value
      * @param mixed $statusTo
-     * @param mixed | null $nextActions
+     * @param mixed|null $nextActions
      * @return mixed
      */
     protected function getNextActionAuthorities($workflow, $custom_value, $statusTo, $nextActions = null)
