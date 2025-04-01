@@ -11,6 +11,9 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class UnitPerformanceTest extends TestCase
 {
+    /**
+     * @return void
+     */
     public function testGetEloquentPerformance()
     {
         // $time_start = microtime(true);
@@ -57,6 +60,9 @@ class UnitPerformanceTest extends TestCase
         $this->assertTrue(true);
     }
 
+    /**
+     * @return void
+     */
     public function testEloquentPermissionPerformance()
     {
         $this->be(LoginUser::find(2)); // user1
@@ -124,6 +130,11 @@ class UnitPerformanceTest extends TestCase
         $this->assertTrue(true);
     }
 
+    /**
+     * @param string $funcName
+     * @param callable $callback
+     * @return void
+     */
     protected function showMicrotimeLog($funcName, $callback)
     {
         $time_start = microtime(true);

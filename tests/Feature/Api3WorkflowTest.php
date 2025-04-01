@@ -10,6 +10,9 @@ use Exceedone\Exment\Model\CustomValue;
 
 class Api3WorkflowTest extends ApiTestBase
 {
+    /**
+     * @return void
+     */
     public function testGetWorkflowList()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -22,6 +25,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(3, 'data');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowListAll()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -34,6 +40,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(4, 'data');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowListWithCount()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -45,6 +54,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(2, 'data');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowListById()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -56,6 +68,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertSeeText('workflow_common_no_complete');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowListByMultiId()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -67,6 +82,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(2, 'data');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowListExpand()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -85,6 +103,9 @@ class Api3WorkflowTest extends ApiTestBase
                 ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowListNotFound()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -96,6 +117,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(0, 'data');
     }
 
+    /**
+     * @return void
+     */
     public function testWrongScopeGetWorkflowList()
     {
         $token = $this->getAdminAccessToken([ApiScope::ME]);
@@ -109,6 +133,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflow()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -120,6 +147,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertSeeText('workflow_common_no_complete');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowExpand()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -134,6 +164,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowNotFound()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -147,6 +180,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowStatusList()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -158,6 +194,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(3);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowStatusListNotFound()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -171,6 +210,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowActionList()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -182,6 +224,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(3);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowActionListNotFound()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -195,6 +240,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowStatus()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -214,6 +262,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowStatusNotFound()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -227,6 +278,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowAction()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -250,6 +304,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowActionNotFound()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -263,6 +320,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowData()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -283,6 +343,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowDataExpand()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -298,6 +361,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowDataNotFound()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -311,6 +377,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowDataNotStart()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -324,6 +393,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyGetWorkflowDataTable()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
@@ -337,6 +409,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyGetWorkflowData()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
@@ -350,6 +425,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowUser()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -363,6 +441,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowUserOrg()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -377,6 +458,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowUserAll()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -388,6 +472,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(2);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowUserAsUser()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -399,6 +486,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertSeeText('dev0-userB');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowUserNotFound()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -412,6 +502,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowUserEnd()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -425,6 +518,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyGetWorkflowUserTable()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
@@ -438,6 +534,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyGetWorkflowUser()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
@@ -454,6 +553,9 @@ class Api3WorkflowTest extends ApiTestBase
 
     // Execute action 1 - Fix user ----------------------------------------------------
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowExecAction()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -466,6 +568,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertSeeText('action3');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowExecActionAll()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -478,6 +583,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertSeeText('action2');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowExecActionZero()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -489,6 +597,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(0);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowExecActionNotFound()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -506,6 +617,9 @@ class Api3WorkflowTest extends ApiTestBase
     // Execute action 2 - Get by userinfo ----------------------------------------------------
     // dev1-userC → dev0-userB
 
+    /**
+     * @return void
+     */
     public function testGetWorkflow2ExecAction()
     {
         $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_READ]);
@@ -518,6 +632,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertSeeText('send');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflow2ExecActionAll()
     {
         $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -530,6 +647,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertSeeText('send');
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflow2ExecActionZero()
     {
         $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_READ]);
@@ -541,6 +661,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(0);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflow2ExecActionNotFound()
     {
         $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_READ]);
@@ -556,6 +679,9 @@ class Api3WorkflowTest extends ApiTestBase
 
 
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowExecActionNoTable()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -569,6 +695,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowExecActionEnd()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -582,6 +711,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyGetWorkflowExecActionTable()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
@@ -595,6 +727,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyGetWorkflowExecAction()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
@@ -608,6 +743,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowHistory()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -619,6 +757,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(2);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowHistoryZero()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -630,6 +771,9 @@ class Api3WorkflowTest extends ApiTestBase
             ->assertJsonCount(0);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowHistoryNotFound()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
@@ -643,6 +787,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetWorkflowHistoryNoTable()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -656,6 +803,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyGetWorkflowHistoryTable()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
@@ -669,6 +819,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyGetWorkflowHistory()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
@@ -685,6 +838,9 @@ class Api3WorkflowTest extends ApiTestBase
 
     // post value (!!! test execute workflow at once !!!)-------------------------------------
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowNoNext()
     {
         $token = $this->getUserAccessToken('dev0-userB', 'dev0-userB', [ApiScope::WORKFLOW_EXECUTE]);
@@ -703,6 +859,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowWithNext()
     {
         $token = $this->getUserAccessToken('dev0-userB', 'dev0-userB', [ApiScope::WORKFLOW_EXECUTE]);
@@ -738,6 +897,9 @@ class Api3WorkflowTest extends ApiTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowNoParam()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -753,6 +915,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowNoComment()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -768,6 +933,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflow()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -789,6 +957,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowMultiUser()
     {
         $token = $this->getUserAccessToken('dev0-userB', 'dev0-userB', [ApiScope::WORKFLOW_EXECUTE]);
@@ -810,6 +981,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowNoAction()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -825,6 +999,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowWrongAction()
     {
         $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -840,6 +1017,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowActionWithFilterError()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -861,6 +1041,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowActionWithFilter1()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -884,6 +1067,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowNotFound()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -899,6 +1085,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflowNoTable()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -914,6 +1103,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyExecuteWorkflowTable()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -929,6 +1121,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testDenyExecuteWorkflow()
     {
         $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -944,6 +1139,9 @@ class Api3WorkflowTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testWrongScopeExecuteWorkflow()
     {
         $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
@@ -965,6 +1163,9 @@ class Api3WorkflowTest extends ApiTestBase
     // Execute action 2 - Get by userinfo ----------------------------------------------------
     // dev1-userC → dev0-userB
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflow2WithNext()
     {
         $token = $this->getDev1UserCAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -998,6 +1199,9 @@ class Api3WorkflowTest extends ApiTestBase
         $this->assertMatch($workflow_value->workflow_status_to_id, 8);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflow2WrongAction()
     {
         $token = $this->getDevUserBAccessToken([ApiScope::WORKFLOW_EXECUTE]);
@@ -1013,6 +1217,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecuteWorkflow2WrongUser()
     {
         $token = $this->getUserAccessToken('dev2-userE', 'dev2-userE', [ApiScope::WORKFLOW_EXECUTE]);
@@ -1028,6 +1235,9 @@ class Api3WorkflowTest extends ApiTestBase
         ]);
     }
 
+    /**
+     * @return void
+     */
     public function testExecute2Workflow()
     {
         $token = $this->getDevUserBAccessToken([ApiScope::WORKFLOW_EXECUTE]);

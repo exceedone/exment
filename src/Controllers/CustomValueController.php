@@ -1306,7 +1306,7 @@ class CustomValueController extends AdminControllerTableBase
             // 一時ファイルの名前を生成する
             $fileName = '2D-barcode_' . Carbon::now()->format('YmdHis') . '.pdf';
             $tmpPath = getFullpath($fileName, Define::DISKNAME_ADMIN_TMP);
-            /** @phpstan-ignore-next-line Instantiated class Elibyy\TCPDF\Facades\TCPDF not found. */            
+            /** @phpstan-ignore-next-line Instantiated class Elibyy\TCPDF\Facades\TCPDF not found. */
             $pdf = new TCPDF;
             /** @phpstan-ignore-next-line Call to static method setAutoPageBreak() on an unknown class Elibyy\TCPDF\Facades\TCPDF. */
             $pdf::setAutoPageBreak(true, 0);
@@ -1412,7 +1412,7 @@ class CustomValueController extends AdminControllerTableBase
             $y_cordinate = ($sticker_img_height - $img_margin_top_right) / 3 * 2;
             $bbox = imagettfbbox($font_size, 0, $font, $refer_column_value);
             $text_width = floor(strlen($refer_column_value) / ($bbox[2] / ($sticker_img_width / 2)));
-            $wrapped_text = wordwrap($refer_column_value, $text_width > 24 ? 24 : 15, "\n", true);     
+            $wrapped_text = wordwrap($refer_column_value, $text_width > 24 ? 24 : 15, "\n", true);
             $lines = explode("\n", $wrapped_text);
             foreach ($lines as $key => $line) {
                 if ($key < 2) {
@@ -1491,7 +1491,7 @@ class CustomValueController extends AdminControllerTableBase
 
     /**
      * Set hidden element to content block
-     * 
+     *
      * @param Content $content
      */
     protected function setHiddens($content)
@@ -1499,7 +1499,7 @@ class CustomValueController extends AdminControllerTableBase
         $gridrow_select_transition = $this->custom_table->getOption('gridrow_select_transition');
 
         if (is_nullorempty($gridrow_select_transition) || $gridrow_select_transition == 'default') {
-            return;            
+            return;
         }
 
         $html = "<input type='hidden' id='gridrow_select_transition' value='{$gridrow_select_transition}' />";

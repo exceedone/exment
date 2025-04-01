@@ -6,6 +6,11 @@ use Exceedone\Exment\Services\Plugin\PluginValidatorBase;
 
 class Plugin extends PluginValidatorBase
 {
+    /**
+     * Validate input values
+     *
+     * @return bool
+     */
     public function validate()
     {
         $result = true;

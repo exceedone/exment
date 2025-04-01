@@ -8,6 +8,8 @@ class Plugin extends PluginButtonBase
 {
     /**
      * Plugin Button
+     *
+     * @return array<string, mixed>
      */
     public function execute()
     {

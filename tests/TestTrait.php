@@ -20,8 +20,8 @@ trait TestTrait
     /**
      * Assert that the response is a superset of the given JSON.
      *
-     * @param  array  $data1
-     * @param  array  $data2
+     * @param  array<mixed>  $data1
+     * @param  array<mixed>  $data2
      * @param  bool  $strict
      * @return $this
      */
@@ -39,12 +39,23 @@ trait TestTrait
         return $this;
     }
 
+    /**
+     * @param  mixed $value1
+     * @param mixed $value2
+     * @return Browser\ExmentKitTestCase|Feature\ApiTestBase|Feature\CustomValueDeleteTest|Feature\DocumentImportTest|Feature\FeatureTestBase|Feature\FileImportTest|Feature\FileImportTestBase|Feature\ImportExportTest|Feature\NotifyTest|Feature\PluginTest|Unit\LaravelAdminFieldTest|Unit\NotifyTest|Unit\OAuthLoginTest|Unit\UnitTestBase|Unit\ViewWithParentTest
+     */
     protected function assertMatch($value1, $value2)
     {
         return $this->_assertMatch($value1, $value2, true);
     }
 
 
+    /**
+     * @param string $pattern
+     * @param string $string
+     * @param string $message
+     * @return void
+     */
     protected function assertMatchRegex(string $pattern, string $string, string $message = ''): void
     {
         if (method_exists($this, 'assertMatchesRegularExpression')) {
@@ -55,11 +66,22 @@ trait TestTrait
         $this->assertRegExp($pattern, $string, $message);
     }
 
+    /**
+     * @param mixed $value1
+     * @param mixed $value2
+     * @return Browser\ExmentKitTestCase|Feature\ApiTestBase|Feature\CustomValueDeleteTest|Feature\DocumentImportTest|Feature\FeatureTestBase|Feature\FileImportTest|Feature\FileImportTestBase|Feature\ImportExportTest|Feature\NotifyTest|Feature\PluginTest|Unit\LaravelAdminFieldTest|Unit\NotifyTest|Unit\OAuthLoginTest|Unit\UnitTestBase|Unit\ViewWithParentTest
+     */
     protected function assertNotMatch($value1, $value2)
     {
         return $this->_assertMatch($value1, $value2, false);
     }
 
+    /**
+     * @param mixed  $value1
+     * @param mixed  $value2
+     * @param bool $isTrue
+     * @return $this
+     */
     protected function _assertMatch($value1, $value2, bool $isTrue)
     {
         $messageV1 = is_array($value1) ? json_encode($value1) : $value1;
@@ -92,7 +114,7 @@ trait TestTrait
     /**
      * Skip test temporarily.
      *
-     * @param $skipMatch
+     * @param mixed $skipMatch
      * @param string|null $messsage
      * @return void
      * @throws \Exception
@@ -143,7 +165,7 @@ trait TestTrait
      * Check custom value's permission after getting api
      *
      * @param CustomTable $custom_table
-     * @param array $ids
+     * @param array<mixed> $ids
      * @param \Closure|null $filterCallback
      * @return void
      */
@@ -169,6 +191,9 @@ trait TestTrait
     }
 
 
+    /**
+     * @return string
+     */
     protected function getTextDirPath(): string
     {
         $dir = storage_path('app/tests');
@@ -177,6 +202,10 @@ trait TestTrait
         return $dir;
     }
 
+    /**
+     * @param string $fileName
+     * @return string
+     */
     protected function getTextFilePath($fileName = 'file.txt'): string
     {
         $dir = $this->getTextDirPath();
@@ -189,6 +218,10 @@ trait TestTrait
         return $file;
     }
 
+    /**
+     * @param string $imageName
+     * @return mixed|string
+     */
     protected function getTextImagePath($imageName = 'image.png')
     {
         $dir = $this->getTextDirPath();
@@ -202,12 +235,20 @@ trait TestTrait
         return $file;
     }
 
+    /**
+     * @param string $fileName
+     * @return mixed
+     */
     protected function getTextFileObject($fileName = 'file.txt')
     {
         $file = $this->getTextFilePath($fileName);
         return \File::get($file);
     }
 
+    /**
+     * @param string $imageName
+     * @return mixed
+     */
     protected function getTextImageObject($imageName = 'image.png')
     {
         $file = $this->getTextImagePath($imageName);
@@ -215,6 +256,13 @@ trait TestTrait
     }
 
 
+    /**
+     * @param mixed $obj
+     * @param mixed $methodName
+     * @param mixed[] $args
+     * @return mixed
+     * @throws \ReflectionException
+     */
     protected function callProtectedMethod($obj, $methodName, ...$args)
     {
         $method = new \ReflectionMethod(get_class($obj), $methodName);
@@ -222,6 +270,13 @@ trait TestTrait
         return $method->invoke($obj, ...$args);
     }
 
+    /**
+     * @param mixed $className
+     * @param mixed $methodName
+     * @param mixed[] $args
+     * @return mixed
+     * @throws \ReflectionException
+     */
     protected function callStaticProtectedMethod($className, $methodName, ...$args)
     {
         $method = new \ReflectionMethod($className, $methodName);

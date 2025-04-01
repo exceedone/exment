@@ -197,6 +197,7 @@ class SamlService implements LoginServiceInterface
      * Execute login test
      *
      * @param Request $request
+     * @param mixed $login_setting
      * @return void
      */
     public static function loginTest(Request $request, $login_setting)
