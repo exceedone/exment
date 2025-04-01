@@ -1,7 +1,7 @@
-<div class="box">
+<div class="box card p-3">
     <div class="box-header with-border">
-        <div class="pull-right">
-            <div class="btn-group pull-right" style="margin-right: 5px">
+        <div class="float-end pb-3">
+            <div class="btn-group float-end" style="margin-right: 5px">
                 <button type="button" style="margin-right:5px;" class="btn btn-sm btn-twitter btn-backup">
                     <i class="fa fa-download"></i> {{exmtrans("backup.backup")}}
                 </button>
@@ -16,7 +16,7 @@
             &nbsp;
             <div class="btn-group">
                 <a class="btn btn-sm btn-default">&nbsp;<span class="d-none d-md-inline">{{trans('admin.action')}}</span></a>
-                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">
+                <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>

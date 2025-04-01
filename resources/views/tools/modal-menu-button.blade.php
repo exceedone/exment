@@ -1,16 +1,19 @@
-<div class="btn-group d-flex justify-content-end p-0 ">
-<a class="btn justify-content-center align-items-center d-flex {{$button_class}} {{!is_nullorempty($menulist) ? 'dropdown-toggle' : ''}}" 
-    style="margin-right:5px;"
-    data-bs-toggle="dropdown"
-    data-widgetmodal_url="{{$ajax}}"
-    data-widgetmodal_method="GET"
-    data-widgetmodal_expand='{{$expand}}'
-    data-widgetmodal_uuid='{{$uuid}}'
-    data-widgetmodal_html='{{isset($html) && is_nullorempty($menulist)}}'
-    {!! $attributes !!}
->
-    <i class="fa {{$icon}}"></i>
-    <span class="d-none d-lg-block">&nbsp;{{$label}}</span>
+<div class="btn-group d-flex justify-content-end p-0">
+    @if((!is_null($ajax) && trim($ajax) !== '') || !empty($menulist) || (!empty($icon) && !empty($label)))
+    <a class="btn justify-content-center align-items-center d-flex  py-1 {{$button_class}} {{!is_nullorempty($menulist) ? 'dropdown-toggle' : ''}}" 
+        style="margin-right:5px;"
+        data-bs-toggle="dropdown"
+        data-widgetmodal_url="{{$ajax ?? ''}}"
+        data-widgetmodal_method="GET"
+        data-widgetmodal_expand='{{$expand}}'
+        data-widgetmodal_uuid='{{$uuid}}'
+        data-widgetmodal_html='{{isset($html) && is_nullorempty($menulist)}}'
+        {!! $attributes !!}
+        >
+        <i class="fa {{$icon}}"></i>
+        <span class="d-none d-lg-block">&nbsp;{{$label}}</span>
+    </a>
+    @endif
 
     @if(!is_nullorempty($menulist))
     <ul class="dropdown-menu">
@@ -43,5 +46,4 @@
         {!! $html !!}
     </div>
     @endif
-
 </div>
