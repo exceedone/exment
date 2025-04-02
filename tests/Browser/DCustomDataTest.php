@@ -339,8 +339,8 @@ class DCustomDataTest extends ExmentKitTestCase
         $group_column = CustomViewColumn::where('custom_view_id', $group_view->id)->where('options->view_group_condition', GroupCondition::YM)->first();
         $count = $custom_table->getValueModel()
             ->whereIn('value->select', ['bar', 'baz'])
-            ->where('value->date', '>=', \Carbon\Carbon::now()->startOfMonth())
-            ->where('value->date', '<=', \Carbon\Carbon::now()->endOfMonth())
+            ->where('value->date', '>=', \Carbon\Carbon::now()->startOfMonth()->toDateString())
+            ->where('value->date', '<=', \Carbon\Carbon::now()->endOfMonth()->toDateString())
             ->count();
         $group_str = http_build_query([
             'view' => $all_view->suuid,

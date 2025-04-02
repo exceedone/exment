@@ -129,7 +129,13 @@ abstract class GridBase
                 $value_table_column = $column_item->getTableColumn();
                 $query_value = $column_item->convertFilterValue($filter_raw->view_filter_condition_value_text);
                 if (is_nullorempty($query_value)) {
-                    $model->whereNull($value_table_column);
+                    if ($filter_raw->is_multiple) {
+                        $model->where(function($query) use($value_table_column) {
+                            $query->whereNull($value_table_column)->orWhere($value_table_column, '[]');
+                        });
+                    } else {
+                        $model->whereNull($value_table_column);
+                    }
                 } else {
                     if ($filter_raw->is_multiple) {
                         $column = \DB::getQueryGrammar()->wrapJsonExtract($value_table_column);
