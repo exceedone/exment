@@ -31,8 +31,8 @@
     }
 </style>
 
-<div class="checkboxtable form-group">
-    <div class="{{$viewClass['label']}} table-right" style="{{ $scrollx ? 'margin-top: 20px' : '' }}">
+<div class="checkboxtable form-group pb-3">
+    <div class="{{$viewClass['label']}} table-right float-start" style="{{ $scrollx ? 'margin-top: 20px' : '' }}">
     
         <div class="checkboxtable-header"></div>
         <div class="table-section table-container w-100 border-solid">
