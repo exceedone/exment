@@ -18,7 +18,7 @@
 
             <label for="{{array_get($id, 'action_name')}}" class="control-label small asterisk">{{exmtrans('workflow.action_name')}}</label>
             <div class="input-group">
-                <span class="input-group-addon"><i class="fa fa-pencil fa-fw"></i></span>
+                <span class="input-group-addon d-flex align-items-center justify-content-center"><i class="fa fa-pencil fa-fw"></i></span>
                 <input id="{{array_get($id, 'action_name')}}" type="text" name="{{array_get($name, 'action_name')}}" value="{{ old(array_get($column, 'action_name'), array_get($value, 'action_name'))}}" class="form-control {{array_get($class, 'action_name')}}" style="max-width:999999px" placeholder="{{exmtrans('workflow.action_name')}}" required>
             </div>
         </div>

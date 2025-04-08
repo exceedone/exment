@@ -107,7 +107,7 @@ return [
             'sendmail_succeeded' => 'メールを送信しました。',
             'input_keyword' => '「%s」と入力してください。',
             'no_permission' => '(権限がありません)',
-            'file_drag_drop' => 'ファイルをドラッグ＆ドロップしてください',
+            'file_drag_drop' => 'ファイルをドラッグ＆ドロップ・・・',
             'modal_confirm' => '実施する場合は、「%s」を入力してください。',
             'label_link' => ':labelは、<a href=":link" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご確認ください。',
             'preview' => 'この画面はプレビューです。内容を最新化する場合、元々のウィンドウで、再度プレビューボタンをクリックしてください。',
