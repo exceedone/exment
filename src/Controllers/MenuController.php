@@ -207,10 +207,18 @@ class MenuController extends AdminControllerBase
                 return $contoller->getViewList($custom_table, false);
             })
         ;
-        $form->text('uri', trans('admin.uri'))
-            ->attribute(['data-filter' => json_encode([
-                'key' => 'menu_type', 'readonlyValue' => [MenuType::SYSTEM, MenuType::PLUGIN, MenuType::TABLE, MenuType::PARENT_NODE]
-            ])]);
+        $uriField = $form->text('uri', trans('admin.uri'))
+            ->attribute([
+                'data-filter' => json_encode([
+                    'key' => 'menu_type',
+                    'readonlyValue' => [MenuType::SYSTEM, MenuType::PLUGIN, MenuType::TABLE, MenuType::PARENT_NODE]
+                ])
+            ]);
+
+        if (isset($id)) {
+            $uriField->addElementClass('pe-none');
+        }
+
         if (!isset($id)) {
             $form->text('menu_name', exmtrans("menu.menu_name"))
             ->required()
