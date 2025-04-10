@@ -6,8 +6,8 @@
     </a>
     <div class="d-flex flex-fill flex-nowrap header-items navbar">
 
-        <a class="flex-shrink order-0 order-sm-0 valign-header px-4" type="button" id='menu-toggle' aria-controls="menu"
-            aria-expanded="false" aria-label="Toggle navigation">
+        <a class="flex-shrink order-0 order-sm-0 valign-header px-4" type="button" id='menu-toggle' aria-controls="sidebar"
+            aria-expanded="false" aria-label="Toggle navigation"  data-bs-toggle="collapse" data-bs-target="#sidebar">
             <i class="fa fa-bars"></i>
         </a>
 
@@ -57,3 +57,13 @@
         </ul>
     </div>
 </header>
+<script>
+$(document).ready(function() {
+    $('#sidebar').on('hidden.bs.collapse', function() {
+        $('.main-header .logo').css('width', '0');
+    });
+    $('#sidebar').on('show.bs.collapse', function() {
+        $('.main-header .logo').css('width', ''); 
+    });
+});
+</script>
