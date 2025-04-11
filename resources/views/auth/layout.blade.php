@@ -12,14 +12,17 @@
   @endif
 
   <!-- Bootstrap 3.3.5 -->
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/css/bootstrap.min.css") }}">
+  <!-- <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/css/bootstrap.min.css") }}"> -->
+  <link rel="stylesheet" href="{{ admin_asset("vendor/open-admin/bootstrap5-editable/css/bootstrap-editable.css") }}">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/all.min.css") }}">
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/v4-shims.min.css") }}">
   <!-- Theme style -->
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/dist/css/AdminLTE.min.css") }}">
+  <!-- <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/dist/css/AdminLTE.min.css") }}"> -->
+  <link rel="stylesheet" href="{{ admin_asset("vendor/open-admin/AdminLTE4/css/adminlte.min.css") }}">
+
   <!-- iCheck -->
-  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/square/blue.css") }}">
+  <!-- <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/square/blue.css") }}"> -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.css") }}">
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -43,6 +46,17 @@
       background-position: center;
     @endif
   }
+
+  .form-check-input {
+    position: absolute !important;
+    top: 18vh !important;
+    left: 7vw !important;
+    opacity: 1 !important; 
+    width: 1.2em !important; 
+    height: 1.2em !important; 
+    margin: 0 !important; 
+    border: 1px solid #000 !important;
+}
   </style>
 </head>
 <body class="hold-transition login-page">
@@ -57,7 +71,7 @@
               </a>
           </div>
           <!-- /.login-logo -->
-          <div class="login-box-body">
+          <div class="card p-3 login-box-body">
               @yield('content')
           </div>
           <!-- /.login-box-body -->
@@ -68,7 +82,7 @@
 <!-- Bootstrap 3.3.5 -->
 <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script>
 <!-- iCheck -->
-<script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js")}}"></script>
+<!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js")}}"></script> -->
 
 <script src="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.js")}}"></script>
 <script src="{{ admin_asset("/vendor/exment/js/common_all.js")}}"></script>
