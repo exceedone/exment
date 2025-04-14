@@ -1,4 +1,4 @@
-<div class="form-group ">
+<div class="form-group p-2">
     <span>{{$filepath}}</span>
 </div>
 <style>
@@ -10,7 +10,7 @@
     <textarea id="edit_plugin_file" class="form-control">{{$filedata}}</textarea>
 </div>
 <div class="col-md-12">
-    <div class="btn-group pull-right">
+    <div class="btn-group float-end edit-file">
         <button id="update_plugin_file" class="btn btn-primary" style="margin-right: 5px">{{ exmtrans('common.updated') }}</button>
         <button id="delete_plugin_file" class="btn btn-danger">{{ exmtrans('common.deleted') }}</button>
     </div>

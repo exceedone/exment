@@ -1,5 +1,5 @@
 <div class="form-group">
-    <div class="{{$viewClass['field']}} {{$offset}} mx-auto p-2 pt-4" {!! $attributes !!} >
+    <div class="{{$viewClass['field']}} {{$offset}}" {!! $attributes !!} >
         @if($escape)
         {{ $label }}
         @else
