@@ -31,7 +31,7 @@
     }
 </style>
 
-<div class="checkboxtable form-group pb-3">
+<div class="checkboxtable form-group pt-3">
     <div class="{{$viewClass['label']}} table-right float-start" style="{{ $scrollx ? 'margin-top: 20px' : '' }}">
     
         <div class="checkboxtable-header"></div>
@@ -40,7 +40,7 @@
                 @foreach($items as $item)
                 <div class="table-row w-100">
                     <div class="table-cell border-solid">
-                        <div class="checkboxtable-body text-right {{!is_nullorempty(array_get($item, 'error')) ? 'has-error' : ''}}">
+                        <div class="checkboxtable-body text-end {{!is_nullorempty(array_get($item, 'error')) ? 'has-error' : ''}}">
                             <label for="{{$id}}" class="control-label table-label">{{$item['label']}}</label>
                     
                             @if(!is_nullorempty(array_get($item, 'error')))

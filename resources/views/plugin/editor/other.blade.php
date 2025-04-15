@@ -6,7 +6,7 @@
 <input type="hidden" id="nodeid" value="{{ $nodeid }}">
 @if(isset($can_delete) && boolval($can_delete))
 <div class="col-md-12">
-    <div class="btn-group pull-right">
+    <div class="btn-group float-end">
         <button id="delete_plugin_file" class="btn btn-danger">{{ exmtrans('common.deleted') }}</button>
     </div>
 </div>

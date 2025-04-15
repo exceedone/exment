@@ -1,5 +1,5 @@
 @if ($positon == 'bottom')
-<hr />
+<hr class="hr border-bottom"/>
 @endif
 <div class="system-values pt-3">
     <div class="system-values-flows d-flex justify-content-start">
@@ -21,5 +21,5 @@
     </ul>
 </div>
 @if ($positon == 'top')
-<hr />
+<hr class="hr border-bottom"/>
 @endif
