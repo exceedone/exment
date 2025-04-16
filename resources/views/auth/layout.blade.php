@@ -49,8 +49,8 @@
 
   .form-check-input {
     position: absolute !important;
-    top: 18vh !important;
-    left: 7vw !important;
+    top: 54% !important;
+    left: 27% !important;
     opacity: 1 !important; 
     width: 1.2em !important; 
     height: 1.2em !important; 
