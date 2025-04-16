@@ -63,21 +63,19 @@ var Exment;
             }
         
             form.data('submitted', true);
-        
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 button.innerHTML = originalText;
                 button.disabled = originalDisabledState;
-        
-                if (form.length) {
-                    form.submit();
-                }
-        
                 form.data('submitted', false);
-            }, 1000); // Giả lập thời gian tải 1 giây
+            }, 2000);
+        
+            if (form.length) {
+                form.submit();
+            }
         }
         
         static bindSubmitButtons() {
-            $('button.submit, button[type="submit"]').off('click').on('click', function (event) {
+            $('button.submit, button[type="submit"], #search-btn').off('click').on('click', function (event) {
                 Exment.CustomScriptEvent.setLoading(event);
             });
         }
