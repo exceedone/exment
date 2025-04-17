@@ -88,6 +88,7 @@
         });
 
         calendar.render();
+        $(calendarEl).data('fullCalendarObj',calendar);
     });
 </script>
 
