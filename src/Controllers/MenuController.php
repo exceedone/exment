@@ -51,6 +51,7 @@ class MenuController extends AdminControllerBase
                     $this->createMenuForm($form);
                     $form->hidden('_token')->default(csrf_token());
 
+                    /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
                     $column->append((new Box(trans('admin.new'), $form))->style('success'));
                 });
             });

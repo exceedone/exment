@@ -129,6 +129,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ->where('active_flg', 1);
     }
 
+    public function notify_all()
+    {
+        return $this->hasMany(Notify::class, 'target_id')
+            ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES());
+}
+
     public function operations(): HasMany
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
@@ -545,7 +551,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->from_custom_copies()->delete();
             $model->to_custom_copies()->delete();
             $model->operations()->delete();
-            $model->notifies()->delete();
+            $model->notify_all()->delete();
 
             // delete items
             Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
@@ -786,6 +792,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $errors = [];
+        if( isset($input['value']) ) $input = $input['value'];
 
         $custom_column_names = $this->custom_columns_cache->map(function ($custom_column) {
             return $custom_column->column_name;
@@ -1595,10 +1602,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set selectTable value's. for after calling from select_table object
      *
-     * @param \Illuminate\Support\Collection|null $customValueCollection
+     * @param \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|null $customValueCollection
      * @return void
      */
-    public function setSelectTableValues(?\Illuminate\Support\Collection $customValueCollection)
+    public function setSelectTableValues(\Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection|null $customValueCollection)
     {
         if (empty($customValueCollection)) {
             return;
@@ -1973,7 +1980,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $field->attribute(['data-target_table_name' => array_get($this, 'table_name')]);
         /** @phpstan-ignore-next-line */
         $field->buttons($options['buttons']);
-
+        /** @phpstan-ignore-next-line options() expects array, Closure given */
         $field->options(function ($value, $field) use ($thisObj, $selectOption) {
             $selectOption['selected_value'] = (!empty($field) ? $field->getOld() : null) ?? $value;
             return $thisObj->getSelectOptions($selectOption);

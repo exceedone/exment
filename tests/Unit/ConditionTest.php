@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Carbon\Carbon;
+use Illuminate\Support\Stringable;
 
 /**
  * Condition test.
@@ -85,11 +86,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnTextNullCheck(2, FilterOption::NULL, false);
     }
 
-    protected function _testColumnText($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnText($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::TEXT, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnTextNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnTextNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::TEXT, $target_value, $filterOption, $result);
     }
@@ -133,16 +134,17 @@ class ConditionTest extends UnitTestBase
     }
     public function testColumnIntegerNullFalse()
     {
-        $this->_testColumnIntegerNullCheck(2, FilterOption::NULL, false);
+        /** @phpstan-ignore-next-line str expects string|null, int given */
+        $this->_testColumnIntegerNullCheck(2, str(FilterOption::NULL), false);
         $this->_testColumnIntegerNullCheck('2', FilterOption::NULL, false);
         $this->_testColumnIntegerNullCheck('0', FilterOption::NULL, false);
         $this->_testColumnIntegerNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnInteger($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnInteger($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::INTEGER, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnIntegerNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnIntegerNullCheck($target_value, int|Stringable $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::INTEGER, $target_value, $filterOption, $result);
     }
@@ -251,11 +253,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnDecimalNullCheck('0.0', FilterOption::NULL, false);
         $this->_testColumnDecimalNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnDecimal($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnDecimal($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::DECIMAL, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnDecimalNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnDecimalNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::DECIMAL, $target_value, $filterOption, $result);
     }
@@ -569,11 +571,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnDateNullCheck('2020-02-04 08:19:54', FilterOption::NULL, false);
         $this->_testColumnDateNullCheck('1970.01.01 09:00:00', FilterOption::NULL, false);
     }
-    protected function _testColumnDate($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnDate($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::DATE, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnDateNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnDateNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::DATE, $target_value, $filterOption, $result);
     }
@@ -624,11 +626,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectNullCheck('0', FilterOption::NULL, false);
         $this->_testColumnSelectNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnSelect($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnSelect($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::SELECT, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnSelectNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnSelectNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::SELECT, $target_value, $filterOption, $result);
     }
@@ -692,11 +694,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectMultiNullCheck(['0'], FilterOption::NULL, false);
         $this->_testColumnSelectMultiNullCheck([0], FilterOption::NULL, false);
     }
-    protected function _testColumnSelectMulti($target_value, array $values, string $filterOption, bool $result, string $tableName = null)
+    protected function _testColumnSelectMulti($target_value, array $values, int $filterOption, bool $result, string $tableName = null)
     {
         $this->__testColumn('select_multiple', $target_value, $values, $filterOption, $result, $tableName);
     }
-    protected function _testColumnSelectMultiNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnSelectMultiNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck('select_multiple', $target_value, $filterOption, $result);
     }
@@ -746,11 +748,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectValNullCheck('0', FilterOption::NULL, false);
         $this->_testColumnSelectValNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnSelectVal($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnSelectVal($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::SELECT_VALTEXT, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnSelectValNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnSelectValNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::SELECT_VALTEXT, $target_value, $filterOption, $result);
     }
@@ -802,11 +804,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectValMultiNullCheck(['0'], FilterOption::NULL, false);
         $this->_testColumnSelectValMultiNullCheck([0], FilterOption::NULL, false);
     }
-    protected function _testColumnSelectValMulti($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnSelectValMulti($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn('select_valtext_multiple', $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnSelectValMultiNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnSelectValMultiNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck('select_valtext_multiple', $target_value, $filterOption, $result);
     }
@@ -854,11 +856,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectTableNullCheck('0', FilterOption::NULL, false);
         $this->_testColumnSelectTableNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnSelectTable($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnSelectTable($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::SELECT_TABLE, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnSelectTableNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnSelectTableNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::SELECT_TABLE, $target_value, $filterOption, $result);
     }
@@ -903,11 +905,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnSelectTableMultiNullCheck(['0'], FilterOption::NULL, false);
         $this->_testColumnSelectTableMultiNullCheck([0], FilterOption::NULL, false);
     }
-    protected function _testColumnSelectTableMulti($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnSelectTableMulti($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn('select_table_multiple', $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnSelectTableMultiNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnSelectTableMultiNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck('select_table_multiple', $target_value, $filterOption, $result);
     }
@@ -956,11 +958,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnYesNoNullCheck('0', FilterOption::NULL, false);
         $this->_testColumnYesNoNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnYesNo($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnYesNo($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::YESNO, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnYesNoNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnYesNoNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::YESNO, $target_value, $filterOption, $result);
     }
@@ -1009,11 +1011,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnBooleanNullCheck(1, FilterOption::NULL, false);
         $this->_testColumnBooleanNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnBoolean($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnBoolean($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::BOOLEAN, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnBooleanNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnBooleanNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::BOOLEAN, $target_value, $filterOption, $result);
     }
@@ -1070,11 +1072,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnUserNullCheck('0', FilterOption::NULL, false);
         $this->_testColumnUserNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnUser($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnUser($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::USER, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnUserNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnUserNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::USER, $target_value, $filterOption, $result);
     }
@@ -1159,11 +1161,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnUserMultiNullCheck(['0'], FilterOption::NULL, false);
         $this->_testColumnUserMultiNullCheck([0], FilterOption::NULL, false);
     }
-    protected function _testColumnUserMulti($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnUserMulti($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn('user_multiple', $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnUserMultiNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnUserMultiNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck('user_multiple', $target_value, $filterOption, $result);
     }
@@ -1210,11 +1212,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnOrganizationNullCheck('0', FilterOption::NULL, false);
         $this->_testColumnOrganizationNullCheck(0, FilterOption::NULL, false);
     }
-    protected function _testColumnOrganization($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnOrganization($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn(ColumnType::ORGANIZATION, $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnOrganizationNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnOrganizationNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck(ColumnType::ORGANIZATION, $target_value, $filterOption, $result);
     }
@@ -1259,11 +1261,11 @@ class ConditionTest extends UnitTestBase
         $this->_testColumnOrgMultiNullCheck(['0'], FilterOption::NULL, false);
         $this->_testColumnOrgMultiNullCheck([0], FilterOption::NULL, false);
     }
-    protected function _testColumnOrgMulti($target_value, array $values, string $filterOption, bool $result)
+    protected function _testColumnOrgMulti($target_value, array $values, int $filterOption, bool $result)
     {
         $this->__testColumn('organization_multiple', $target_value, $values, $filterOption, $result);
     }
-    protected function _testColumnOrgMultiNullCheck($target_value, string $filterOption, bool $result)
+    protected function _testColumnOrgMultiNullCheck($target_value, int $filterOption, bool $result)
     {
         $this->__testColumnNullCheck('organization_multiple', $target_value, $filterOption, $result);
     }
@@ -1444,11 +1446,11 @@ class ConditionTest extends UnitTestBase
      * @param string $column_name
      * @param mixed $target_value dummy set to value
      * @param array $values dummy set to condition for loop item
-     * @param string $filterOption
+     * @param int $filterOption
      * @param boolean $result
      * @return void
      */
-    protected function __testColumn(string $column_name, $target_value, array $values, string $filterOption, bool $result, string $tableName = null)
+    protected function __testColumn(string $column_name, $target_value, array $values, int $filterOption, bool $result, string $tableName = null)
     {
         $this->initAllTest();
 
@@ -1485,11 +1487,11 @@ class ConditionTest extends UnitTestBase
      * @param string $condition_type_detail
      * @param mixed $target_value
      * @param array $values
-     * @param string $filterOption
+     * @param int $filterOption
      * @param boolean $result
      * @return void
      */
-    protected function __testConditionColumn(string $condition_type_detail, $target_value, array $values, string $filterOption, bool $result, $prevTest = null)
+    protected function __testConditionColumn(string $condition_type_detail, $target_value, array $values, int $filterOption, bool $result, $prevTest = null)
     {
         $this->initAllTest();
 
@@ -1519,11 +1521,11 @@ class ConditionTest extends UnitTestBase
      *
      * @param string $column_name
      * @param $target_value
-     * @param string $filterOption
+     * @param int|Stringable $filterOption
      * @param bool $result
      * @return void
      */
-    protected function __testColumnNullCheck(string $column_name, $target_value, string $filterOption, bool $result)
+    protected function __testColumnNullCheck(string $column_name, $target_value, int|Stringable $filterOption, bool $result)
     {
         $this->initAllTest();
 
@@ -1548,11 +1550,11 @@ class ConditionTest extends UnitTestBase
      *
      * @param string $status_name
      * @param $value
-     * @param string $filterOption
+     * @param int $filterOption
      * @param bool $result
      * @return void
      */
-    protected function __testWorkflowStatus(string $status_name, $value, string $filterOption, bool $result)
+    protected function __testWorkflowStatus(string $status_name, $value, int $filterOption, bool $result)
     {
         $this->initAllTest();
 
@@ -1586,11 +1588,11 @@ class ConditionTest extends UnitTestBase
      * Execute test for workflow work user
      *
      * @param bool $hasAuth
-     * @param string $filterOption
+     * @param int $filterOption
      * @param bool $result
      * @return void
      */
-    protected function __testWorkflowWorkUser(bool $hasAuth, string $filterOption, bool $result)
+    protected function __testWorkflowWorkUser(bool $hasAuth, int $filterOption, bool $result)
     {
         $this->initAllTest();
         $this->be(Model\LoginUser::find(1));

@@ -88,7 +88,7 @@ class File extends ModelBase
         );
 
         $file = static::getData($path);
-        
+
         if (is_null($file)) {
             return null;
         }
@@ -368,7 +368,7 @@ class File extends ModelBase
      *
      * @param string|null $file_type file type
      * @param  string  $path directory and file path(Please join.)
-     * @param  \Illuminate\Http\UploadedFile|\Symfony\Component\HttpFoundation\File\UploadedFile $content file content
+     * @param  \Illuminate\Http\UploadedFile|\Symfony\Component\HttpFoundation\File\UploadedFile|string|null $content file content
      * @return File
      */
     public static function put(?string $file_type, $path, $content, array $options = [])
@@ -415,7 +415,7 @@ class File extends ModelBase
     /**
      * Get file model using path or uuid
      *
-     * @param string|File $pathOrUuids
+     * @param string|File|array $pathOrUuids
      * @return File|null
      */
     public static function getData($pathOrUuids)

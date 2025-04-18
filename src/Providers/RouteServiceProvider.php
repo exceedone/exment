@@ -126,7 +126,6 @@ class RouteServiceProvider extends ServiceProvider
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');
             $this->setResouce($router, 'plugin', 'PluginController');
-            $this->setResouce($router, 'role_group', 'RoleGroupController');
             $this->setResouce($router, 'table', 'CustomTableController');
             $this->setResouce($router, 'workflow', 'WorkflowController');
 
@@ -142,6 +141,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
+
+            $router->get("role_group/importModal", 'RoleGroupController@importModal');
+            $router->post("role_group/import", 'RoleGroupController@import');
+            $this->setResouce($router, 'role_group', 'RoleGroupController');
 
             $router->get('role', function () {
                 return redirect(admin_urls('role_group'));

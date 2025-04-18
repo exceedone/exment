@@ -88,7 +88,7 @@ class Auth2factorService
      * Add database and Send verify
      *
      * @param string $verify_type
-     * @param string $verify_code
+     * @param string|int $verify_code
      * @param \Carbon\Carbon $valid_period_datetime
      * @param string|CustomValue $mail_template
      * @param array $mail_prms

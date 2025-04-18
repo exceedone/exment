@@ -183,6 +183,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
+                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
                 $row = new Row($form);
             }
             // no record
@@ -194,6 +195,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
+                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given*/
                 $row = new Row($form);
             }
 
@@ -262,6 +264,8 @@ class CustomValueController extends AdminControllerTableBase
 
         $content->row($row);
 
+        $this->setHiddens($content);
+
         if (!$modal) {
             PartialCrudService::setGridContent($this->custom_table, $content);
         }
@@ -315,7 +319,7 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
-
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
         $row = new Row($form);
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
@@ -360,7 +364,7 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::EDIT,
             'custom_value' => $custom_value
         ]);
-
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
@@ -1398,8 +1402,8 @@ class CustomValueController extends AdminControllerTableBase
             $sticker_img,
             $font_size,
             0,
-            $x_cordinate,
-            ($sticker_img_height + $height_ww) / 3,
+            intval($x_cordinate),
+            intval(($sticker_img_height + $height_ww) / 3),
             $black,
             $font,
             $text_qr
@@ -1416,8 +1420,8 @@ class CustomValueController extends AdminControllerTableBase
                         $sticker_img,
                         $font_size,
                         0,
-                        $x_cordinate,
-                        $y_cordinate,
+                        intval($x_cordinate),
+                        intval($y_cordinate),
                         $black,
                         $font,
                         $line
@@ -1429,12 +1433,12 @@ class CustomValueController extends AdminControllerTableBase
         imagecopyresized(
             $sticker_img,
             $qr_img,
-            $img_margin_top_right,
-            $img_margin_top_right,
+            intval($img_margin_top_right),
+            intval($img_margin_top_right),
             0,
             0,
-            $qr_img_width,
-            $qr_img_height,
+            intval($qr_img_width),
+            intval($qr_img_height),
             200,
             200
         );
@@ -1483,5 +1487,24 @@ class CustomValueController extends AdminControllerTableBase
     {
         $one_mm_to_pixel = 3.7795275591;
         return $mmVal * $one_mm_to_pixel;
+    }
+
+    /**
+     * Set hidden element to content block
+     * 
+     * @param Content $content
+     */
+    protected function setHiddens($content)
+    {
+        $gridrow_select_transition = $this->custom_table->getOption('gridrow_select_transition');
+
+        if (is_nullorempty($gridrow_select_transition) || $gridrow_select_transition == 'default') {
+            return;            
+        }
+
+        $html = "<input type='hidden' id='gridrow_select_transition' value='{$gridrow_select_transition}' />";
+        $row = new Row($html);
+        $row->class('block_hidden');
+        $content->row($row);
     }
 }

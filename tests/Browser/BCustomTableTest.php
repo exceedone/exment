@@ -77,6 +77,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->type('test description', 'description')
                 ->type('#ff0000', 'options[color]')
                 ->type('fa-automobile', 'options[icon]')
+            /** @phpstan-ignore-next-line  */
                 ->type(50, 'options[revision_count]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url('column/test'))

@@ -118,6 +118,7 @@ class BackupController extends AdminControllerBase
             ->min(0)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
+        /** @phpstan-ignore-next-line  constructor expects string, Encore\Admin\Widgets\Form given. */
         return new Box(exmtrans("backup.setting_header"), $form);
     }
 

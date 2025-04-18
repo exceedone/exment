@@ -15,7 +15,7 @@ class SwitchField extends AdminSwitchField
 
     public function render()
     {
-        /** @phpstan-ignore-next-line Call to function is_null() with string will always evaluate to false and Result of && is always false */
+        /** @phpstan-ignore-next-line Call to function is_null() with string will always evaluate to false. it needs to fix laravel-admin */
         if (is_null($this->value()) && is_null($this->getOld())) {
             $this->value = $this->states['off']['value'];
         }

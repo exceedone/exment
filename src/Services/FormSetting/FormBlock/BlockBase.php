@@ -129,7 +129,8 @@ abstract class BlockBase
             'header_name' => $this->getHtmlHeaderName(),
             'suggests' => $this->getSuggestItems(),
             'custom_form_rows' => $this->getCustomFormRows(),
-            'hasmany_type' => $this->custom_form_block->getOption('hasmany_type')
+            'hasmany_type' => $this->custom_form_block->getOption('hasmany_type'),
+            'form_block_order' => $this->custom_form_block->getOption('form_block_order')
         ];
     }
 
@@ -230,11 +231,11 @@ abstract class BlockBase
     /**
      * Set formColumn list
      *
-     * @param  Collection  $custom_form_column_items    FormColumn list
+     * @param  Collection|\Tightenco\Collect\Support\Collection  $custom_form_column_items    FormColumn list
      *
      * @return  self
      */
-    public function setCustomFormColumnItems(Collection $custom_form_column_items)
+    public function setCustomFormColumnItems(Collection|\Tightenco\Collect\Support\Collection $custom_form_column_items)
     {
         $this->custom_form_column_items = $custom_form_column_items;
 

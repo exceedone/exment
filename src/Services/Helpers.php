@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\ErrorCode;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
@@ -139,7 +140,7 @@ if (!function_exists('is_nullorempty')) {
         if (is_array($obj) && count($obj) == 0) {
             return true;
         }
-        if ($obj instanceof \Illuminate\Support\Collection && $obj->count() == 0) {
+        if ($obj instanceof Collection && $obj->count() == 0) {
             return true;
         }
         return false;
@@ -193,6 +194,7 @@ if (!function_exists('floorDigit')) {
         if ($digit < 0) {
             $digit = 0;
         }
+        /** @phpstan-ignore-next-line strpos expects string, float|int|null given */
         $numPointPosition = intval(strpos($num, '.'));
 
         // if for display
@@ -200,6 +202,7 @@ if (!function_exists('floorDigit')) {
         if ($numPointPosition === 0) { //$num is an integer
             $result = $num;
         } else {
+            /** @phpstan-ignore-next-line substr expects string, float|int|null given */
             $result = floatval(substr($num, 0, $numPointPosition + $digit + 1));
             ;
         }
@@ -654,7 +657,7 @@ if (!function_exists('hasDuplicateDate')) {
     /**
      * Check dates Duplicate
      *
-     * @param array $dates array of between ['start':Carbon, 'end':Carbon]
+     * @param array|Collection $dates array of between ['start':Carbon, 'end':Carbon]
      * @return boolean Duplicate:true
      */
     function hasDuplicateDate($dates)
@@ -865,7 +868,7 @@ if (!function_exists('stringToArray')) {
             return $value;
         }
 
-        if ($value instanceof \Illuminate\Support\Collection) {
+        if ($value instanceof Collection) {
             return $value->toArray();
         }
 
@@ -896,7 +899,7 @@ if (!function_exists('breakCommaToArray')) {
             return $value;
         }
 
-        if ($value instanceof \Illuminate\Support\Collection) {
+        if ($value instanceof Collection) {
             return $value->toArray();
         }
 
@@ -928,7 +931,7 @@ if (!function_exists('toArray')) {
             return $value;
         }
 
-        if ($value instanceof \Illuminate\Support\Collection) {
+        if ($value instanceof Collection) {
             return $value->all();
         }
 
@@ -958,7 +961,7 @@ if (!function_exists('arrayToString')) {
         if (is_array($value)) {
             return implode(',', $value);
         }
-        if ($value instanceof \Illuminate\Support\Collection) {
+        if ($value instanceof Collection) {
             return $value->implode(',');
         }
 
@@ -1011,7 +1014,7 @@ if (!function_exists('is_list')) {
             return false;
         }
 
-        return is_array($value) || $value instanceof \Illuminate\Support\Collection;
+        return is_array($value) || $value instanceof Collection;
     }
 }
 
@@ -1816,6 +1819,33 @@ if (!function_exists('admin_exclusion_path')) {
             }
 
             return json_decode($json, $assoc, $depth, $options);
+        }
+    }
+
+    if (!function_exists('convert_to_valid_filename')) {
+        /**
+         * Replace characters that cannot be used in filename
+         *
+         * @param string $filename The filename to be sanitized
+         * @return string The sanitized filename
+         */
+        function convert_to_valid_filename(string $filename): string
+        {
+            $from = ['/', ':', '*', '?', '"', '<', '>', '|'];
+            $to = ['_', '_', '_', '_', '_', '[', ']', '_'];
+    
+            $patterns = array_map(function($val) {
+                return '#\\'.$val.'#';
+            }, $from);
+    
+            // Replace characters that cannot be used in filename
+            $validName = preg_replace($patterns, $to, $filename);
+            
+            // Truncate the filename if it exceeds 255 characters
+            if (strlen($validName) > 255) {
+                $validName = substr($validName, 0, 255);
+            }
+            return $validName;
         }
     }
 }

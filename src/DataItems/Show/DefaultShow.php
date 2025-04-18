@@ -85,7 +85,7 @@ class DefaultShow extends ShowBase
     protected function setSystemValues($show)
     {
         $trashed = boolval(request()->get('trashed'));
-
+        /** @phpstan-ignore-next-line class Encore\Admin\Show\Field constructor expects string, null given */
         $field = (new ShowField(null, null))->system_values([
             'withTrashed' => $trashed])->setWidth(12, 0);
 
@@ -354,8 +354,11 @@ class DefaultShow extends ShowBase
 
         $trashed = boolval(request()->get('trashed'));
 
+        $custom_form_blocks = $this->custom_form->custom_form_blocks->sortBy(function ($item, $key) {
+            return $item->getOption('form_block_order')?? -1;
+        });
         // loop for custom form blocks
-        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+        foreach ($custom_form_blocks as $custom_form_block) {
             // if available is false, continue
             if (!$custom_form_block->available) {
                 continue;
@@ -439,7 +442,7 @@ class DefaultShow extends ShowBase
                         'add_id' => true,
                     ]));
                 });
-
+                /** @phpstan-ignore-next-line column() expects int, array<string, int> given */
                 $row->column(['xs' => 12, 'sm' => 12], $grid->render());
             }
         }
@@ -549,6 +552,7 @@ EOT;
                 'No.'.($revision->revision_no)
             )->setWidth(9, 2);
         }
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
     }
 
@@ -597,10 +601,11 @@ EOT;
         // show document list
         if (count($documents) > 0) {
             $html = [];
+            $allow_delete = config('exment.allow_delete_attachment', false);
             foreach ($documents as $index => $d) {
                 $html[] = "<p>" . view('exment::form.field.documentlink', [
                     'document' => $d,
-                    'candelete' => $this->custom_value->enableDelete(true) === true,
+                    'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
                 ])->render() . "</p>";
             }
             // loop and add as link
@@ -650,7 +655,7 @@ EOT;
 
             Admin::script($script);
         }
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
     }
 
@@ -702,7 +707,7 @@ EOT;
             ->setLabelClass(['d-none'])
             ->setWidth(12, 0);
         }
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
 

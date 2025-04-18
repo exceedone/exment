@@ -63,6 +63,7 @@ class CustomTableController extends AdminControllerBase
     {
         $content = $this->AdminContent($content);
 
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Grid given*/
         $row = new Row($this->grid());
         $row->class(['block_custom_table']);
 
@@ -168,6 +169,7 @@ class CustomTableController extends AdminControllerBase
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuAjaxButton given */
             $tools->append(new Tools\CustomTableMenuAjaxButton());
         });
 
@@ -202,7 +204,7 @@ class CustomTableController extends AdminControllerBase
             // add data
             if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 $linker = (new Linker())
-                    /** @phpstan-ignore-next-line fix laravel-admin documentation */
+                    /** @phpstan-ignore-next-line Cannot call method getGridUrl() on stdClass. */
                 ->url($actions->row->getGridUrl())
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));
@@ -547,6 +549,10 @@ HTML;
                 ->default(ShowPositionType::DEFAULT)
                 ->options(ShowPositionType::transArray("system.system_values_pos_options"))
                 ->help(exmtrans("system.help.system_values_pos"))
+            ;
+            $form->select('gridrow_select_transition', exmtrans("custom_table.custom_column_multi.gridrow_select_transition"))
+                ->default('default')
+                ->options(exmtrans('custom_table.custom_column_multi.gridrow_select_options'))
             ;
 
             if (boolval(config('exment.expart_mode', false))) {
