@@ -38,7 +38,8 @@
 @endforeach
  
 @if($has_edit_permission && $has_diff)
-<div class="form-group ">
+<div class="form-group row">
+    <div class="col-sm-2"></div>
     <div class="col-sm-5 col-sm-offset-2">
         <form action="{{ $form_url }}" method="POST" pjax-container>
             <input type="hidden" name="revision" value="{{$revision_suuid}}" />
