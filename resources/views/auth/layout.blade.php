@@ -86,9 +86,13 @@
       </div>
       <!-- /.login-box -->
 <!-- jQuery 2.1.4 -->
-<script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
+<!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script> -->
 <!-- Bootstrap 3.3.5 -->
-<script src="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script>
+<!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script> -->
+<!-- jQuery 2.1.4 -->
+<script src="{{ admin_asset("/vendor/open-admin/AdminLTE4/js/bootstrap.bundle.min.js")}} "></script>
+<!-- Bootstrap 3.3.5 -->
+<script src="{{ admin_asset("/vendor/open-admin/AdminLTE4/js/adminlte.min.js")}}"></script>
 <!-- iCheck -->
 <!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js")}}"></script> -->
 

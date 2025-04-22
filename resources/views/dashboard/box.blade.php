@@ -38,7 +38,7 @@
     <div class="box-body-inner">
         <div class="box-body-inner-header box-body-inneritem d-flex justify-content-end pt-3"></div>
         <div class="box-body-inner-body box-body-inneritem"></div>
-        <div class="box-body-inner-footer box-body-inneritem"></div>
+        <div class="box-body-inner-footer box-body-inneritem mt-3"></div>
     </div>
 </div>
 <!-- /.box-body -->

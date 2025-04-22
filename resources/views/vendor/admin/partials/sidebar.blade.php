@@ -1,5 +1,5 @@
 {!! \Exceedone\Exment\Form\Widgets\Modal::widgetModalRender() !!}
-<aside id="sidebar" class="menu-width sidebar collapse" style="border-right:1px solid #d2d6de">
+<aside id="sidebar" class="menu-width sidebar hidden-mb collapse show" style="border-right:1px solid #d2d6de">
 
 
     <div class="user-panel d-flex">
@@ -40,17 +40,18 @@
                     $('.main-header .logo').css('width', '');
                 });
             } else {
-                $('#sidebar').addClass('collapse').removeClass('show');
                 $('.main-header .logo').css('width', '');
             }
         }
         $('#sidebar').on('show.bs.collapse', function () {
             if ($(window).width() <= 576) {
                 $('#main.content-wrapper').css('margin-left', '230px');
+                $('#sidebar').removeClass('hidden-mb');
             }
         });
         $('#sidebar').on('hidden.bs.collapse', function () {
             if ($(window).width() <= 576) {
+                $('#sidebar').removeClass('hidden-mb');
                 $('#main.content-wrapper').css('margin-left', '0');
             }
         });
