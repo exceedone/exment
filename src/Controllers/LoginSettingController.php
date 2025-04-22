@@ -258,7 +258,7 @@ class LoginSettingController extends AdminControllerBase
                     route('exment.logintest_modal', ['id' => $login_setting->id]),
                     [
                         'label' => exmtrans('login.login_test'),
-                        'button_class' => 'btn-success',
+                        'button_class' => 'btn-success p-2',
                         'icon' => 'fa-check-circle',
                     ]
                 ));

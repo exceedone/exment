@@ -525,7 +525,7 @@ table img.image_html{
     
         li{
             list-style: none;
-            border-left: solid 6px #2d8fdd !important;
+            border-left: solid 6px #2d8fdd;
             margin:0.5em 2px;
             padding: 0.4em 8px;
             width:160px; 
@@ -641,6 +641,7 @@ table img.image_html{
             margin-right: -55px;
             padding-right: 60px;
             max-width: 100000px;
+            padding:10px 0;
         }
     
         .dropdown-toggle{
