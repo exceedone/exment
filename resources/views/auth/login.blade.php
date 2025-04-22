@@ -43,23 +43,23 @@
         </form>
 
         @if($show_default_login_provider)
-            <div style="margin:10px 0; text-align:center;">
-                <p><a href="{{admin_url('auth/forget')}}">{{ exmtrans('login.forget_password') }}</a></p>
+            <div style="margin-top:10px; text-align:center;">
+                <p class="m-0"><a href="{{admin_url('auth/forget')}}" class="text-decoration-none">{{ exmtrans('login.forget_password') }}</a></p>
             </div>
         @endif
     @endif
 
     @if(count($login_providers) > 0)
-        <div class="social-auth-links text-center">
+        <div class="social-auth-links text-center m-0">
             @if($show_default_form)
-                <p>- OR -</p>
+                <p class="m-1">- OR -</p>
             @endif
             @foreach($login_providers as $login_provider_name => $login_provider)
                 @include('exment::auth.login_button_style')
             @endforeach
             @foreach($login_providers as $login_provider_name => $login_provider)
-                <a href="{{ $login_provider['login_url'] }}" class="btn w-100 click_disabled {{ $login_provider['btn_name'] ?? '' }}">
-                    <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> {{ $login_provider['display_name'] }}
+                <a href="{{ $login_provider['login_url'] }}" class="btn w-100 mt-1 btn-social click_disabled {{ $login_provider['btn_name'] ?? '' }}">
+                    <i class=" fa {{ $login_provider['font_owesome'] ?? '' }}"></i> {{ $login_provider['display_name'] }}
                 </a>
             @endforeach
             @if($errors->has('sso_error'))
