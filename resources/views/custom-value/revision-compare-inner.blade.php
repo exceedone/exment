@@ -1,12 +1,12 @@
 
-<div class="form-group ">
-    <label class="col-sm-5 col-sm-offset-2"><div class="box-body">{{exmtrans('revision.old_revision')}}</div></label>
-    <label class="col-sm-5"><div class="box-body">{{exmtrans('revision.new_revision')}}</div></label>
+<div class="form-group row  d-flex justify-content-end">
+    <label class="col-sm-5 col-sm-offset-2 fw-bold"><div class="box-body">{{exmtrans('revision.old_revision')}}</div></label>
+    <label class="col-sm-5 fw-bold"><div class="box-body">{{exmtrans('revision.new_revision')}}</div></label>
 </div>
 
 
-<div class="form-group ">
-    <label class="col-sm-2 control-label">{{exmtrans('revision.revision_info')}}</label>
+<div class=" form-group row">
+    <label class="col-sm-2 col-form-label">{{exmtrans('revision.revision_info')}}</label>
     <div class="col-sm-5 old-col">
         @include('exment::custom-value.revision-compare-info', ['revinfo' => $old_revision, 'trashed' => $trashed]) 
     </div>
@@ -17,8 +17,8 @@
     
 @foreach($table_columns as $table_column)
 
-<div class="form-group flexheight">
-    <label class="col-sm-2 control-label">{{ $table_column['label'] }}</label>
+<div class="form-group flexheight row">
+    <label class="col-sm-2 col-form-label">{{ $table_column['label'] }}</label>
     <div class="col-sm-5 old-col">
         <div class="box box-solid box-default no-margin box-show flexheight-inner {{$table_column['diff'] ? 'box-diff' : ''}}">
             <!-- /.box-header -->
@@ -38,7 +38,8 @@
 @endforeach
  
 @if($has_edit_permission && $has_diff)
-<div class="form-group ">
+<div class="form-group row">
+    <div class="col-sm-2"></div>
     <div class="col-sm-5 col-sm-offset-2">
         <form action="{{ $form_url }}" method="POST" pjax-container>
             <input type="hidden" name="revision" value="{{$revision_suuid}}" />

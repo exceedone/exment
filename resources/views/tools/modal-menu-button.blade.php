@@ -1,4 +1,4 @@
-<div class="btn-group d-flex justify-content-end p-0">
+<div class="btn-group float-end p-0">
     @if((!is_null($ajax) && trim($ajax) !== '') || !empty($menulist) || (!empty($icon) && !empty($label)))
     <a class="btn justify-content-center align-items-center d-flex  p-2 {{$button_class}} {{!is_nullorempty($menulist) ? 'dropdown-toggle' : ''}}" 
         style="margin-right:5px;"
