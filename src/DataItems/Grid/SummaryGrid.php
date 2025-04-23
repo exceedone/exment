@@ -198,11 +198,15 @@ class SummaryGrid extends GridBase
         $column_item = $column->column_item;
         $column_label = $column_item->label();
 
-        $grid->column($column_item->sqlAsName(), $column_label)
+        $grid_column = $grid->column($column_item->sqlAsName(), $column_label)
             ->sort($column_item->sortable())
             ->display(function ($id, $column, $custom_value) use ($column_item) {
                 return $column_item->setCustomValue($custom_value)->html();
             })->escape(false);
+
+        if (!\Exment::isSqlServer() && $column instanceof CustomViewColumn) {
+            $grid_column->cast($column_item->getCastName(true));
+        }
 
         return $this;
     }
