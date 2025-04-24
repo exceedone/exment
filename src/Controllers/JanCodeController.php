@@ -85,7 +85,9 @@ class JanCodeController extends Controller
      */
     protected function listTable(Request $request, $id, Content $content)
     {
-        $row = new Row($this->grid($id));
+        $grid = $this->grid($id);
+        $row = new Row();
+        $row->column(12, $grid);
         $content->header(exmtrans("custom_table.jan_code.header"))
             ->headericon('fa-pencil')
             ->description(exmtrans("custom_table.jan_code.description"));

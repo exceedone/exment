@@ -7,9 +7,12 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Tests\DatabaseTransactions;
 
 class PermissionUpDownTest extends UnitTestBase
 {
+    use DatabaseTransactions;
+
     protected function init()
     {
         System::clearCache();

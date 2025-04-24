@@ -11,7 +11,7 @@
         @foreach(array_get($group, 'items', []) as $item)
         <div class="col-md-12 col-lg-6 modal-tile-col">
             <div class="modal-tile-item">
-                <div class="col-sm-3 modal-tile-item-icon mx-3">
+                <div class="col-sm-3 modal-tile-item-icon ms-3">
                     @if(!is_nullorempty(array_get($item, 'href')))
                         <a href="{{array_get($item, 'href')}}" class="btn btn-default">
                             <i class="fa {{array_get($item, 'icon')}}" aria-hidden="true"></i>

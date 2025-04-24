@@ -873,7 +873,7 @@ trait ItemTrait
     /**
      * Set where query for grid filter. If class is "ExmWhere".
      *
-     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder|\Illuminate\Database\Eloquent\Builder $query
      * @param mixed $input
      * @return void
      */

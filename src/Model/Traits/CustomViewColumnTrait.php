@@ -309,6 +309,18 @@ trait CustomViewColumnTrait
         }
         array_forget($json, 'view_pivot_column_name');
         array_forget($json, 'view_pivot_table_name');
+
+        ///// set options.end_date_target
+        if (array_key_value_exists("end_date_target_name", $json)) {
+            list($end_date_target, $end_date_table_id) = static::getColumnAndTableId(
+                array_get($json, "options.end_date_type"),
+                array_get($json, "end_date_target_name"),
+                $custom_table
+            );
+
+            array_set($json, 'options.end_date_target', $end_date_target);
+        }
+        array_forget($json, 'end_date_target_name');
     }
 
     public static function findByCkey($ckey)

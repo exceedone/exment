@@ -155,6 +155,7 @@ class TemplateController extends AdminControllerBase
     protected function exportBox(Content $content)
     {
         $form = $this->exportBoxForm();
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $content->row((new Box(exmtrans('template.header_export'), $form))->style('info'));
     }
 
@@ -222,7 +223,7 @@ class TemplateController extends AdminControllerBase
         $form->descriptionHtml(exmtrans('template.description_import'));
         $this->addTemplateTile($form);
         $form->hidden('_token')->default(csrf_token());
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $content->row((new Box(exmtrans('template.header_import'), $form))->style('info'));
     }
 

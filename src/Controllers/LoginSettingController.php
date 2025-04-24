@@ -235,6 +235,7 @@ class LoginSettingController extends AdminControllerBase
                 $provider_name = array_get($request->old(), 'options.oauth_provider_type') == 'other' ? array_get($request->old(), 'options.oauth_provider_name') : array_get($request->old(), 'options.oauth_provider_type');
             }
             if (!is_nullorempty($provider_name)) {
+
                 LoginServiceBase\OAuth\OAuthService::setLoginSettingForm($provider_name, $form);
             }
             // Form options area -- End
@@ -257,7 +258,7 @@ class LoginSettingController extends AdminControllerBase
                     route('exment.logintest_modal', ['id' => $login_setting->id]),
                     [
                         'label' => exmtrans('login.login_test'),
-                        'button_class' => 'btn-success',
+                        'button_class' => 'btn-success p-2',
                         'icon' => 'fa-check-circle',
                     ]
                 ));
@@ -315,6 +316,7 @@ class LoginSettingController extends AdminControllerBase
     protected function globalSettingBox(Request $request)
     {
         $form = $this->globalSettingForm($request);
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('common.detail_setting'), $form);
         return $box;
     }

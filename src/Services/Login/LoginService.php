@@ -341,7 +341,7 @@ class LoginService
                 'url' => route('exment.login_activate', ['id' => $login_setting->id]),
                 'label' => exmtrans('common.activate'),
                 'icon' => 'fa-check-circle',
-                'btn_class' => 'btn-success',
+                'btn_class' => 'btn-success p-2',
                 'title' => exmtrans('common.activate'),
                 'text' => exmtrans('login.help.activate'),
                 'method' => 'post',
@@ -351,7 +351,7 @@ class LoginService
             $tools->append(new Tools\SwalInputButton([
                 'url' => route('exment.login_deactivate', ['id' => $login_setting->id]),
                 'label' => exmtrans('common.deactivate'),
-                'icon' => 'fa-check-circle',
+                'icon' => 'fa-check-circle p-2',
                 'btn_class' => 'btn-default',
                 'title' => exmtrans('common.deactivate'),
                 'text' => exmtrans('login.help.deactivate'),

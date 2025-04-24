@@ -85,6 +85,7 @@ class SummaryGrid extends GridBase
             $edit_flg = $this->custom_table->enableEdit(true) === true;
             if ($edit_flg && $this->custom_table->enableExport() === true) {
                 $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false);
+                /** @phpstan-ignore-next-line append expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
                 $tools->append($button->setCustomTable($this->custom_table));
             }
 
@@ -94,9 +95,11 @@ class SummaryGrid extends GridBase
             }
 
             if ($this->custom_table->enableTableMenuButton()) {
+                /** @phpstan-ignore-next-line expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
                 $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
             }
             if ($this->custom_table->enableViewMenuButton()) {
+                /** @phpstan-ignore-next-line expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
                 $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
             }
         });

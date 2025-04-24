@@ -57,13 +57,3 @@
         </ul>
     </div>
 </header>
-<script>
-$(document).ready(function() {
-    $('#sidebar').on('hidden.bs.collapse', function() {
-        $('.main-header .logo').css('width', '0');
-    });
-    $('#sidebar').on('show.bs.collapse', function() {
-        $('.main-header .logo').css('width', ''); 
-    });
-});
-</script>

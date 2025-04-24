@@ -1156,6 +1156,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | show import export button on role group view
+    |--------------------------------------------------------------------------
+    |
+    */
+    'role_group_import_export' => env('ROLE_GROUP_IMPORT_EXPORT', false),
+    /*
+    |--------------------------------------------------------------------------
     | Unavailable user view ( for tables )
     |--------------------------------------------------------------------------
     |
@@ -1178,4 +1185,12 @@ return [
     |
     */
     'text_scan_button_ja' => env('EXMENT_TEXT_SCAN_BUTTON_JA', '二次元／JANバーコード'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | allow the deletion of attachments even when deletion from form is restricted.
+    |--------------------------------------------------------------------------
+    |
+    */
+    'allow_delete_attachment' => env('EXMENT_ALLOW_DELETE_ATTACHMENT', false),
 ];

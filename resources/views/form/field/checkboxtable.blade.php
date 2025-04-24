@@ -54,7 +54,7 @@
         </div>
     </div>
     @if($scrollx)
-        <div class="wrapper-scroll-top col-md-10"><div class="wrapper-scroll-top-content"></div></div>
+        <div class="wrapper-scroll-top col-md-10 overflow-auto"><div class="wrapper-scroll-top-content"></div></div>
     @endif
     <div class="{{$viewClass['field']}} table-left {{ $scrollx ? 'wrapper-scroll-bottom' : '' }}" style="overflow-y:hidden; overflow-x:auto; white-space: nowrap;">
         <div class="checkboxtable-header">

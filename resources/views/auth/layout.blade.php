@@ -24,6 +24,7 @@
   <!-- iCheck -->
   <!-- <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/square/blue.css") }}"> -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.css") }}">
+  <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/open-admin/css/button-custom.css") }}">
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
@@ -47,16 +48,23 @@
     @endif
   }
 
+  .form-check {
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    gap: 0.5em; 
+  }
+
   .form-check-input {
-    position: absolute !important;
-    top: 54% !important;
-    left: 27% !important;
-    opacity: 1 !important; 
-    width: 1.2em !important; 
-    height: 1.2em !important; 
-    margin: 0 !important; 
-    border: 1px solid #000 !important;
-}
+      width: 1.2em;
+      height: 1.2em;
+      margin: 0; 
+      border: 1px solid #000;
+      flex-shrink: 0; 
+  }
+  .form-check-input {
+      position: static !important;
+  }
   </style>
 </head>
 <body class="hold-transition login-page">
@@ -78,9 +86,13 @@
       </div>
       <!-- /.login-box -->
 <!-- jQuery 2.1.4 -->
-<script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
+<!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script> -->
 <!-- Bootstrap 3.3.5 -->
-<script src="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script>
+<!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script> -->
+<!-- jQuery 2.1.4 -->
+<script src="{{ admin_asset("/vendor/open-admin/AdminLTE4/js/bootstrap.bundle.min.js")}} "></script>
+<!-- Bootstrap 3.3.5 -->
+<script src="{{ admin_asset("/vendor/open-admin/AdminLTE4/js/adminlte.min.js")}}"></script>
 <!-- iCheck -->
 <!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js")}}"></script> -->
 

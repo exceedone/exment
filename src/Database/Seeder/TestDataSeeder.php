@@ -305,6 +305,9 @@ class TestDataSeeder extends Seeder
                 return $view->view_kind_type == ViewKindType::FILTER;
             });
 
+            $child_table_2 = $this->createTable('child_table_2' . $relationItem['suffix'], $childOptions);
+            $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $child_table_2]);
+
             // cerate pivot table
             $pivot_table = $this->createTable('pivot_table' . $relationItem['suffix'], [
                 'menuParentId' => $menu->id,
@@ -1524,19 +1527,19 @@ class TestDataSeeder extends Seeder
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::DATE;
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
-                $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
+                return $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
                     'view_group_condition' => 'ym',
                 ]);
             });
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::INTEGER;
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
-                $this->createSummaryColumn($custom_view->id, $custom_table->id, $custom_column->id, SummaryCondition::SUM);
+                return $this->createSummaryColumn($custom_view->id, $custom_table->id, $custom_column->id, SummaryCondition::SUM);
             });
             collect($custom_columns)->filter(function ($custom_column) {
                 return $custom_column->indexEnabled && $custom_column->column_name == 'select';
             })->first(function ($custom_column, $index) use ($custom_view, $custom_table) {
-                $this->createCustomViewFilter(
+                return $this->createCustomViewFilter(
                     $custom_view->id,
                     ConditionType::COLUMN,
                     $custom_table->id,

@@ -76,8 +76,12 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function getOperationFilterValue($target_key, $target_name, $show_condition_key = true)
     {
+        /** @phpstan-ignore-next-line constructor expects array, string|null given */
         $field = new ChangeField($this->className, $this->label);
         $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
+        if ($target_key == Enums\OperationUpdateType::DEFAULT) {
+            $field->allowNull();
+        }
         $field->adminField(function ($data, $field) use ($target_key, $target_name, $show_condition_key) {
             return $this->getOperationFilterValueChangeField($target_key, $target_name, $show_condition_key);
         });

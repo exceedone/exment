@@ -865,6 +865,9 @@ return [
         'oauth_client_secret' => 'Client Secret',
         'oauth_scope' => 'Scope',
         
+        'oauth_option' => 'Option Setting',         
+        'oauth_option_single_logout' => 'Single Logout',
+        
         'user_setting' => 'User Setting',
         'mapping_user_column' => 'Account Search Column',
         'mapping_setting' => 'Mapping Setting',
@@ -943,6 +946,8 @@ return [
             'jit_rolegroups' => 'Please fill in if you want to assign a default role group when creating a new user.',
             'mapping_description' => 'The field name returned by the provider must match the user field name in Exment. Please enter the field name returned from the provider. <br/>If you enter multiple values ​​separated by commas, the fields that have values ​​will be retrieved with priority from the beginning. <br /> Also, if you want to combine multiple fields, type "${Field_Name}". (Example: ${last_name} ${first_name})',
             'login_test_sso' => 'The :login_type redirect URL for testing.<span class="red">*When performing the test, temporarily add or change the above URL to the callback URL of the provider\'s :login_type setting.</span>',
+                
+            'oauth_option_single_logout' => 'Set to Yes if you want to log out not only from Exment but also from the ID provider.<span class="red">*Okta is not supported.</span>',
                 
             'ldap_base_dn' => 'Enter the basic DN (distinguished name) used for authentication.',
             'ldap_filter' => 'Enter the attributes and attribute values ​​used for openLDAP authentication. (Ex: (objectClass=inetOrgPerson)(objectClass=person))',
@@ -1276,7 +1281,7 @@ return [
             'qrcode_activate' => 'Enable the 2D barcode function for this table. Do you want to enable it?',
             'qrcode_deactivate' => 'The 2D barcode function for this table will be disabled. Do you want to disable it?',
             'jancode_activate' => 'Enable the Jancode function for this table. Do you want to enable it?',
-            'jancode_deactivate' => 'The Jancode function for this table will be disabled. Do you want to disable it?<br/><br/>Furthermore, the information of the linked JAN barcode will remain when it is valid, so when you scan a JAN barcode, the data in this table will be displayed.',
+            'jancode_deactivate' => 'The Jancode function for this table will be disabled. Do you want to disable it?<br/><br/>Please note that the information of the linked JAN barcode remains when it is active, so when the JAN barcode is scanned, the data from this table will be displayed.',
         ],
 
         'custom_column_multi' => [
@@ -1303,6 +1308,7 @@ return [
             'table_label_format' => 'Headline format setting',
             'table_label_format_string' => 'Headline format string',
             'form_action_disable_flg' => 'Cannot changed from display',
+            'gridrow_select_transition' => 'Screen transition when row is clicked',
 
             'help' => [
                 'table_labels' => 'When selecting data, set the wording column to be displayed on the page. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
@@ -1319,6 +1325,12 @@ return [
                 'delete' => 'Delete',
                 'import' => 'Import',
                 'export' => 'Export',
+            ],
+            'gridrow_select_options' => [
+                'default' => 'Match Default',
+                'edit' => 'Data Edit',
+                'show' => 'Data Detail',
+                'none' => 'No transition',
             ],
             'share_trigger_type_options' => [
                 'create' => 'Created',
@@ -1566,6 +1578,7 @@ return [
         'suggest_column_label' => 'Table Column',
         'suggest_other_label' => 'Other',
         'form_block_name' => 'Form Block Name',
+        'form_block_order' => 'Form Block Display Order',
         'field_default' => 'Standard',
         'read_only' => 'Read Only',
         'view_only' => 'View Only',
@@ -2017,6 +2030,12 @@ return [
         'role_group_name' => 'Role Group Name',
         'role_group_view_name' => 'Role Group View Name',
         'description_system_admin' => '<span class="red">*To add system administrator privileges, go to "System Settings / System Administrator" from the menu.</span>',
+        'role_group_id' => 'Role group ID',
+        'role_group_permission_type' => 'Types of permission settings',
+        'role_group_target_plugin' => 'Target plugin ID',
+        'role_group_target_table' => 'Target table ID',
+        'role_group_user_org_type' => 'User/Organization type',
+        'role_group_user_org_target_id' => 'User/Organization ID',
         'permissions' => 'Role Detail',
         'permission_setting' => 'Permission Setting',
         'user_organization_setting' => 'User/organization setting',
@@ -2113,6 +2132,7 @@ return [
 
         'error' => [
             'cannot_accessable_and_value' => 'The permissions "Browse all data" and "%s" cannot be set at the same time.',
+            'cannot_plugin_access_permission' => 'This is a plugin for which usage and access cannot be configured.',
         ],
     ],
 
@@ -2280,6 +2300,7 @@ return [
             'error_flow' => 'Error Handling',
             'import_error_message' => 'Error Message',
             'import_error_format' => 'Line %d : %s',
+            'import_error_format_sheet' => '%s(Line %d) : %s',
             'target_column_name' => 'Replacement target column name (alphanumeric characters)',
 
             'help' => [
@@ -2304,6 +2325,9 @@ return [
                 'file_column_not_match' => 'The column name :column_name does not exist in the file / image column of table :table_name.',
                 'file_not_found' => 'The file :file_name does not exist in the capture directory :dir_path.',
                 'file_column_extension_not_match' => 'Specify the same value for the extension of the column file_name and the column display_file_name.',
+                'target_table_not_found' => 'The table for the specified privilege does not exist.',
+                'permission_not_exists' => 'Permission "%s" does not exist.',
+                'user_org_not_exists' => 'The specified %s does not exist.',
             ],
         ],
         'sendmail' => [

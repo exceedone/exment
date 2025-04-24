@@ -33,7 +33,12 @@ class LoginUserProvider extends ProviderBase
     {
         $headers = $this->getHeaders();
 
-        $bodies = $this->getBodies($this->getRecords());
+        // if only template, output only headers
+        if ($this->template) {
+            $bodies = [];
+        } else {
+            $bodies = $this->getBodies($this->getRecords());
+        }
         // get output items
         $outputs = array_merge($headers, $bodies);
 
