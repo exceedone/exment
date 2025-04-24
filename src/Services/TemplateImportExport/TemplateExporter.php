@@ -174,6 +174,7 @@ class TemplateExporter
             ->with('custom_view_filters')
             ->with('custom_view_sorts')
             ->with('custom_view_summaries')
+            ->with('custom_view_grid_filters')
             ->with('custom_view_columns.custom_table')
             ->with('custom_view_filters.custom_table')
             ->with('custom_view_sorts.custom_table')

@@ -88,6 +88,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             'custom_view_filters' => CustomViewFilter::class,
             'custom_view_sorts' => CustomViewSort::class,
             'custom_view_summaries' => CustomViewSummary::class,
+            'custom_view_grid_filters' => CustomViewGridFilter::class,
         ],
     ];
 
