@@ -12,11 +12,11 @@
         </li>
     @else
         <li class="treeview menu-item p-0" data-uri="{{ $item['uri'] }}">
-            <a href="#" id="toggle-submenu-{{$item['id']}}" onclick="toggleMenu(event)" class="has-subs p-3" data-target="#submenu-{{$item['id']}}">
+            <a href="#" id="toggle-submenu-{{$item['id']}}" class="has-subs p-3" data-target="#submenu-{{$item['id']}}">
                 <i class="fa {{$item['icon']}}"></i>
                 <span>{{$item['title']}}</span>
             </a>
-            <ul id="submenu-{{$item['id']}}" class="submenu list-unstyled fw-normal pb-1 mt-0 ms-4" style="display: none;">
+            <ul id="submenu-{{$item['id']}}" class="submenu list-unstyled fw-normal pb-1 mt-0 ms-2" style="display: none;">
                 @foreach($item['children'] as $child)
                     @include('admin::partials.menu', ['item' => $child])
                 @endforeach
@@ -40,67 +40,64 @@
 </style>
 
 <script>
-function toggleMenu(e) {
-    e.preventDefault();
-    const targetId = e.currentTarget.getAttribute('data-target');
-    const submenu = document.querySelector(targetId);    
-    const toggleLink = e.currentTarget;
-    const menuItem = toggleLink.closest('.menu-item');
-    
-    const topLevelMenuItem = !menuItem.closest('.submenu') ? menuItem : null;
-    
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.has-subs').forEach(function (toggleLink) {
+        toggleLink.addEventListener('click', function (e) {
+            e.preventDefault();
 
-    document.querySelectorAll('.submenu').forEach(function(otherSubmenu) {
-        if (otherSubmenu !== submenu) {
-            otherSubmenu.style.display = 'none';
-        }
-    });
-    document.querySelectorAll('.has-subs').forEach(function(otherLink) {
-        if (otherLink !== toggleLink) {
-            otherLink.classList.remove('active');
-        }
-    });
-    document.querySelectorAll('.menu-item').forEach(function(otherItem) {
-        if (otherItem !== menuItem) {
-            otherItem.classList.remove('active');
-        }
+            const targetId = toggleLink.getAttribute('data-target');
+            const submenu = document.querySelector(targetId);
+            const menuItem = toggleLink.closest('.menu-item');
+            document.querySelectorAll('.submenu').forEach(function (otherSubmenu) {
+                if (otherSubmenu !== submenu) {
+                    otherSubmenu.style.display = 'none';
+                }
+            });
+            document.querySelectorAll('.has-subs').forEach(function (otherLink) {
+                if (otherLink !== toggleLink) {
+                    otherLink.classList.remove('active');
+                }
+            });
+            document.querySelectorAll('.menu-item').forEach(function (otherItem) {
+                if (otherItem !== menuItem) {
+                    otherItem.classList.remove('active');
+                }
+            });
+
+            if (submenu) {
+                if (submenu.style.display === 'none' || submenu.style.display === '') {
+                    submenu.style.display = 'block';
+                    toggleLink.classList.add('active');
+                    menuItem.classList.add('active');
+                } else {
+                    submenu.style.display = 'none';
+                    toggleLink.classList.remove('active');
+                    menuItem.classList.remove('active');
+                }
+            }
+        });
     });
 
-    if (submenu) {
-        if (submenu.style.display === 'none' || submenu.style.display === '') {
-            submenu.style.display = 'block';
-            toggleLink.classList.add('active');
-            menuItem.classList.add('active');
-        } else {
-            submenu.style.display = 'none';
-            toggleLink.classList.remove('active');
-            menuItem.classList.remove('active');
-        }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.menu-item:not(.treeview)').forEach(function(menuItem) {
-        menuItem.addEventListener('click', function(e) {
+    document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (menuItem) {
+        menuItem.addEventListener('click', function (e) {
             const isInSubmenu = menuItem.closest('.submenu') !== null;
-            
 
             if (isInSubmenu) {
-                document.querySelectorAll('.menu-item:not(.treeview)').forEach(function(item) {
+                document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (item) {
                     item.classList.remove('active');
                 });
             } else {
-                document.querySelectorAll('.menu-item').forEach(function(item) {
+                document.querySelectorAll('.menu-item').forEach(function (item) {
                     item.classList.remove('active');
                 });
-                
-                document.querySelectorAll('.submenu').forEach(function(submenu) {
-                submenu.style.display = 'none';
-            });
+                document.querySelectorAll('.submenu').forEach(function (submenu) {
+                    submenu.style.display = 'none';
+                });
             }
+
             this.classList.add('active');
-            
-            document.querySelectorAll('.has-subs').forEach(function(link) {
+
+            document.querySelectorAll('.has-subs').forEach(function (link) {
                 link.classList.remove('active');
             });
         });

@@ -46,7 +46,7 @@ var Exment;
                                 $('.navbar-notify .fa-bell').removeClass('ring');
                             });
                         }
-                        $('.container-notify').append('<span class="label label-danger">' + data.count + '</span>');
+                        $('.container-notify').append('<span class="label label-danger fw-bold">' + data.count + '</span>');
                         for (let i = 0; i < data.items.length; i++) {
                             let d = data.items[i];
                             const isNew = $.inArray(d.id, this.notify_navbar_ids) === -1;

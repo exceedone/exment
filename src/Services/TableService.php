@@ -83,7 +83,7 @@ class TableService
                 'url' => route('exment.qrcode_download', ['tableKey' => $custom_table->id]),
                 'label' => $label_download,
                 'icon' => 'fa-arrow-circle-down',
-                'btn_class' => 'btn-success download-qr',
+                'btn_class' => 'btn-success download-qr p-2',
                 'title' => exmtrans("common.download"),
                 'text' => exmtrans('common.message.confirm_execute', exmtrans('common.download')),
                 'method' => 'post'
