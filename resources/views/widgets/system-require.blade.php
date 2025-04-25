@@ -2,7 +2,7 @@
 <div class="container-fluid">
     <div class="row row-eq-height">
         @foreach($checkResult->getItems() as $check)
-        <div class="col-xs-12 col-sm-6 require_item p-4">
+        <div class="col-xs-12 col-sm-6 require_item">
             <h4 class="require_item_header corsor-pointer" data-bs-toggle="collapse" data-bs-target="#collapse{{$loop->index}}">
                 <i class="fa {{$check->getResultClassSet()['fontawesome']}}" aria-hidden="true" style="color: {{$check->getResultClassSet()['color']}}"></i>
                 {{$check->getLabel()}}
