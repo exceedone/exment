@@ -18,7 +18,7 @@ class NotifyNav implements Renderable
 
         return <<<EOT
         <input id="notify_navbar_noitem" type="hidden" value="$no_newitem" />
-<li class="navbar-notify dropdown notifications-menu">
+<li class="navbar-notify dropdown notifications-menu d-none d-md-block">
     <a href="javascript:void(0);" class="container-notify hidden-xs p-3" data-bs-toggle="dropdown">
       <i class="fa fa-bell"></i>
     </a>

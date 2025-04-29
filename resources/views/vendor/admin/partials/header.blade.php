@@ -1,5 +1,5 @@
 <!-- Main Header -->
-<header class="custom-navbar navbar navbar-light p-0 align-items-stretch main-header">
+<header class="custom-navbar navbar navbar-light p-0 align-items-stretch main-header d-flex flex-column flex-md-row w-100">
     <a class="navbar-brand menu-width bg-semi-dark text-center logo" href="{{ admin_url('/') }}">
         <span class="short">{!! config('admin.logo-mini', config('admin.name')) !!}</span><span
             class="long user-image logo-lg">{!! config('admin.logo', config('admin.name')) !!}</span>

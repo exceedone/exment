@@ -26,37 +26,39 @@
 </aside>
 
 <script>
-    $(document).ready(function () {
-        function updateSidebar() {
-            if ($(window).width() > 576) {
-                $('#sidebar').removeClass('collapse').addClass('show');
-                $('.main-header .logo').css('width', '');
+$(document).ready(function () {
+    function updateSidebar() {
+        const isMobile = $(window).width() <= 768;
 
-                $('#sidebar').on('hidden.bs.collapse', function () {
-                    $('.main-header .logo').css('width', '0');
-                });
-
-                $('#sidebar').on('show.bs.collapse', function () {
-                    $('.main-header .logo').css('width', '');
-                });
-            } else {
-                $('.main-header .logo').css('width', '');
-            }
+        if (isMobile) {
+            $('#sidebar').addClass('collapse').removeClass('show hidden-mb');
+            $('#main.content-wrapper').css('margin-left', '0');
+        } else {
+            $('#sidebar').removeClass('collapse hidden-mb').addClass('show');
+            $('#main.content-wrapper').css('margin-left', '');
+            $('.main-header .logo').css('width', '');
         }
-        $('#sidebar').on('show.bs.collapse', function () {
-            if ($(window).width() <= 576) {
-                $('#main.content-wrapper').css('margin-left', '230px');
-                $('#sidebar').removeClass('hidden-mb');
-            }
-        });
-        $('#sidebar').on('hidden.bs.collapse', function () {
-            if ($(window).width() <= 576) {
-                $('#sidebar').removeClass('hidden-mb');
-                $('#main.content-wrapper').css('margin-left', '0');
-            }
-        });
+    }
 
-        $(window).on('resize', updateSidebar);
-        updateSidebar();
+    $('#sidebar').on('show.bs.collapse', function () {
+        if ($(window).width() <= 768) {
+            $('#main.content-wrapper').css('margin-left', '230px');
+            $('#sidebar').removeClass('hidden-mb');
+        } else {
+            $('.main-header .logo').css('width', '');
+        }
     });
+
+    $('#sidebar').on('hidden.bs.collapse', function () {
+        if ($(window).width() <= 768) {
+            $('#main.content-wrapper').css('margin-left', '0');
+            $('#sidebar').addClass('hidden-mb');
+        } else {
+            $('.main-header .logo').css('width', '0');
+        }
+    });
+
+    $(window).on('resize', updateSidebar);
+    updateSidebar();
+});
 </script>
