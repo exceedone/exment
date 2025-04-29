@@ -26,7 +26,7 @@ class NotifyNav implements Renderable
     <ul class="dropdown-menu notifications-menu-dropdown dropdown-menu-end">
         <li>
         <!-- inner menu: contains the actual data -->
-        <ul class="menu p-3 border-bottom">
+        <ul class="menu ps-0">
         </ul>
         </li>
         <li class="footer text-center"><a href="$list_url">$list</a></li>
