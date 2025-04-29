@@ -4,17 +4,17 @@
 
     @if($show_default_form)
         <form action="{{ admin_url('auth/login') }}" method="post">
-            <div class="mb-3 {!! !$errors->has('username') ?: 'is-invalid' !!}">
-                @if($errors->has('username')) 
-                    @foreach($errors->get('username') as $message)
-                        <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label><br>
-                    @endforeach 
-                @endif
-                <div class="position-relative">
-                    <input type="text" class="form-control" placeholder="{{ exmtrans('login.email_or_usercode') }}" name="username" value="{{ old('username') }}" required>
-                    <span class="position-absolute top-50 end-0 translate-middle-y pe-3"><i class="fa fa-user"></i></span>
-                </div>
+        <div class="mb-3 {!! !$errors->has('username') ?: 'is-invalid' !!}">
+            @if($errors->has('username')) 
+                @foreach($errors->get('username') as $message)
+                    <label class="control-label mb-1 text-danger fw-bold" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label><br>
+                @endforeach 
+            @endif
+            <div class="position-relative">
+                <input type="text" class="form-control {!! !$errors->has('username') ?: 'is-invalid' !!}" placeholder="{{ exmtrans('login.email_or_usercode') }}" name="username" value="{{ old('username') }}" required>
+                <span class="position-absolute top-50 end-0 translate-middle-y pe-3"><i class="fa fa-user"></i></span>
             </div>
+        </div>
             <div class="mb-3 {!! !$errors->has('password') ?: 'is-invalid' !!}">
                 @if($errors->has('password')) 
                     @foreach($errors->get('password') as $message)
@@ -72,3 +72,9 @@
         </div>
     @endif
 @endsection
+
+<style>
+    .form-control.is-invalid {
+        background-image: none !important;
+    }
+</style>
