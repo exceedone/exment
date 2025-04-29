@@ -65,7 +65,7 @@
             @if($errors->has('sso_error'))
                 <div class="is-invalid">
                     @foreach($errors->get('sso_error') as $message)
-                        <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label><br>
+                        <label class="control-label mt-1 text-danger fw-bold" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label><br>
                     @endforeach 
                 </div>
             @endif
