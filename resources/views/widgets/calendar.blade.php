@@ -1,5 +1,5 @@
-<div class="box">
-    <div class="box-header with-border">
+<div class="box card p-2">
+    <div class="box-header with-border pb-2">
         <span>
             @foreach($tools as $tool)
             {!! $tool !!}

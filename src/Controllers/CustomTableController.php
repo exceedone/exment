@@ -441,8 +441,8 @@ SCRIPT;
         Admin::script($script);
 
         return <<<HTML
-<div class="btn-group pull-right" style="margin-right: 5px">
-    <a href="javascript:void(0);" class="btn btn-sm btn-danger {$class}-delete" title="{$trans['delete']}">
+<div class="btn-group float-end" style="margin-right: 5px">
+    <a href="javascript:void(0);" class="btn btn-sm btn-danger d-flex align-items-center p-2 {$class}-delete" title="{$trans['delete']}">
         <i class="fa fa-trash"></i><span class="d-none d-md-inline">  {$trans['delete']}</span>
     </a>
 </div>

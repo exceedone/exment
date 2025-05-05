@@ -156,7 +156,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                 $form->color('header_background_color', exmtrans("custom_form_public.header_background_color"))
                     ->help(exmtrans("custom_form_public.help.header_background_color"))
                     ->attribute(['data-filter' => json_encode(['key' => 'design_setting_use_header', 'value' => '1'])])
-                    ->default('#3c8dbc')
+                    ->default('#0d6efd')
                 ;
 
                 $fileOption = static::getFileOptions($custom_table, $id);

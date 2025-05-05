@@ -393,7 +393,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeInElement('h3[class=box-title]', '編集')
             ->seeInElement('span', $target_form->form_view_name)
             ->seeInField('public_form_view_name', 'Public Form Unit Test')
-            ->seeInField('header_background_color', '#3c8dbc')
+            ->seeInField('header_background_color', '#0d6efd')
             ->seeInField('design_setting[use_header]', '1')
             ->seeInField('header_text_color', '#FFFFFF')
             ->seeInField('background_color_outer', '#FFFFFF')

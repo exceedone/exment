@@ -1354,7 +1354,7 @@ class TestDataSeeder extends Seeder
                     'validity_period_end' => null,
                     'validity_period_start' => null,
                     'footer_background_color' => '#000000',
-                    'header_background_color' => '#3c8dbc',
+                    'header_background_color' => '#0d6efd',
                 ],
             ]);
         }
