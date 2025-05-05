@@ -25,7 +25,7 @@ class PublicContent implements Renderable
 
     protected $background_color = '#FFFFFF';
     protected $background_color_outer = '#F9FAFC';
-    protected $header_background_color = '#3C8DBC';
+    protected $header_background_color = '#0d6efd';
     protected $footer_background_color = '#FFFFFF';
     protected $header_text_color = '#FFFFFF';
     protected $footer_text_color = '#000000';

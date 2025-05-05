@@ -6,7 +6,7 @@
                 <button type="button" class="close border-0 bg-transparent" data-bs-dismiss="modal"
                     aria-label="Close"><span aria-hidden="true">&times;</span></button>
             </div>
-            <div class="modal-body pe-5">
+            <div class="modal-body">
                 {!! $body !!}
             </div>
             <div class="modal-footer d-flex justify-content-between">

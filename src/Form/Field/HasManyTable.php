@@ -193,7 +193,7 @@ class HasManyTable extends HasMany
         $requires[] = is_array($field->getAttributes()) && array_has($field->getAttributes(), 'required');
 
         // set label viewclass hidden
-        $field->setLabelClass(['hidden']);
+        $field->setLabelClass(['d-none']);
         $field->setElementClass(['w-100']);
         if (!($field instanceof Select)) {
             $field->attribute(['style' => 'max-width:999999px']);

@@ -27,7 +27,7 @@
                     </div>
                     <div class="sub-buttons">
                         @foreach(array_get($item, 'buttons', []) as $button)
-                        <a href="{{array_get($button, 'href')}}" class="btn btn-default btn-sm" {!! array_get($button, 'attributes') !!}>
+                        <a href="{{array_get($button, 'href')}}" class="btn btn-default btn-sm p-2" {!! array_get($button, 'attributes') !!}>
                             <i class="fa {{array_get($button, 'icon')}}" aria-hidden="true"></i>&nbsp;{{array_get($button, 'label')}}
                         </a>
                         @endforeach

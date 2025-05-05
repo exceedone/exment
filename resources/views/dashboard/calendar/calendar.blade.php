@@ -93,6 +93,7 @@
 
 <style>
 
+
 .fc-day-sun,.fc-day-hol {
     .fc-col-header-cell-cushion,.fc-daygrid-day-number,.fc-list-day-text,.fc-list-day-side-text{
         color: red;

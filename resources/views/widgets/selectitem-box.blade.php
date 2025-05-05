@@ -10,12 +10,12 @@
 
 <div class="selectitembox-footer" style="">
     @foreach($items as $item)
-    <div class="selectitembox-item" style="height:60px; margin:10px 0;" 
+    <div class="selectitembox-item row" style="height:60px; margin:10px 0;" 
         data-selectitem="{{array_get($item, 'name')}}"  
         data-multiple="{{boolval(array_get($item, 'multiple'))}}" 
         data-selectitem-icon="{{array_get($item, 'icon')}}" 
         data-selectitem-color="{{array_get($item, 'color', '#FFFFFF')}}" 
-        data-selectitem-background_color="{{array_get($item, 'background_color', '#3c8dbc')}}"
+        data-selectitem-background_color="{{array_get($item, 'background_color', '#0d6efd')}}"
         data-selectitem-target_class="{{$target_class}}"
         data-selectitem-widgetmodal_uuid="{{$widgetmodal_uuid}}"
     >
@@ -24,7 +24,7 @@
         <div class="col-sm-11">
             <div style="border:1px solid #d2d6de; height:60px; overflow-y: auto;" class="selectitembox-item-inner">
                 @foreach(array_get($item, 'items', []) as $i)
-                <span class="selectitembox-value" style="position: relative; display: inline-block; margin: 3px 2px; padding: 1px 10px; border-radius: 4px; background-color: {{array_get($i, 'background_color', array_get($item, 'background_color', '#3c8dbc'))}};  color: {{array_get($i, 'color', array_get($item, 'color', '#FFFFFF'))}}">
+                <span class="selectitembox-value" style="position: relative; display: inline-block; margin: 3px 2px; padding: 1px 10px; border-radius: 4px; background-color: {{array_get($i, 'background_color', array_get($item, 'background_color', '#0d6efd'))}};  color: {{array_get($i, 'color', array_get($item, 'color', '#FFFFFF'))}}">
                     @if(array_has($i, 'icon') || array_has($item, 'icon'))
                         <i class="fa {{array_get($i, 'icon', array_get($item, 'icon'))}}"></i>
                     @endif
@@ -42,7 +42,7 @@
         </div>
 
         <template>
-        <span class="selectitembox-value" style="position: relative; display: inline-block; margin: 3px 2px; padding: 1px 10px; border-radius: 4px; background-color: {{array_get($item, 'background_color', '#3c8dbc')}};  color: {{array_get($item, 'color', '#FFFFFF')}}">
+        <span class="selectitembox-value" style="position: relative; display: inline-block; margin: 3px 2px; padding: 1px 10px; border-radius: 4px; background-color: {{array_get($item, 'background_color', '#0d6efd')}};  color: {{array_get($item, 'color', '#FFFFFF')}}">
             <i class="fa {{array_get($item, 'icon')}}"></i>
 
             <span class="selectitem-label">%label%</span>
