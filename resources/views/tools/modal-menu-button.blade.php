@@ -10,7 +10,7 @@
         data-widgetmodal_html='{{isset($html) && is_nullorempty($menulist)}}'
         {!! $attributes !!}
         >
-        <i class="fa {{$icon}}"></i>
+        <i class="fa {{$icon}} p-1"></i>
         <span class="d-none d-lg-block">&nbsp;{{$label}}</span>
     </a>
     @endif

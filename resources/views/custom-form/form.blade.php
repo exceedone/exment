@@ -86,7 +86,7 @@
 
                 <div class="row">
                 <div class="col-9">
-                    <div class="custom_form_column_block"
+                    <div class="custom_form_column_block pt-3"
                         data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}">
 
                         <div class="custom_form_column_items">
@@ -94,7 +94,7 @@
                                 @include('exment::custom-form.row-columns.row', ['row' => $custom_form_item_row])
                             @endforeach
 
-                            <div class="row row-eq-height row_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
+                            <div class="row pt-3 row-eq-height row_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                                 @include('exment::custom-form.row-columns.addarea')
                             </div>
                         </div>
@@ -141,7 +141,7 @@
                     </div>
 
                     <div class="template_item_row d-none">
-                        <div class="row row-eq-height row_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
+                        <div class="row pt-3 row-eq-height row_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                             @include('exment::custom-form.row-columns.addarea')
                         </div>
                     </div>
