@@ -957,4 +957,33 @@ class RelationTable
             $join->on($tableName . '.id', 'workflow_values_wf.morph_id');
         });
     }
+
+
+    /**
+     * Create subquery for Workflow status join
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder|\Illuminate\Database\Eloquent\Builder $query
+     * @param CustomTable $custom_table
+     * @param boolean $or_option
+     * @return void
+     */
+    public static function setCommentSubquery($query, CustomTable $custom_table, bool $or_option = false)
+    {
+        $tableName = getDBTableName($custom_table);
+        $tableNameComment = getDBTableName(SystemTableName::COMMENT);
+        $columnName = CustomColumn::getEloquent('comment_detail', SystemTableName::COMMENT)->getQueryKey();
+
+        $subquery = \DB::table($tableName)
+            ->leftJoin($tableNameComment, function ($join) use ($tableName, $tableNameComment, $custom_table) {
+                $join->on($tableNameComment . '.parent_id', "$tableName.id")
+                    ->where($tableNameComment . '.parent_type', $custom_table->table_name)
+                    ->whereNull($tableNameComment . '.deleted_at');
+            })->select(["$tableName.id as comment_id", "$tableNameComment.$columnName as comment"]);
+
+        // join query is $or_option is true then leftJoin
+        $joinFunc = $or_option ? 'leftJoinSub' : 'joinSub';
+        $query->{$joinFunc}($subquery, 'comment_values', function ($join) use ($tableName) {
+            $join->on($tableName . '.id', 'comment_values.comment_id');
+        });
+    }
 }
