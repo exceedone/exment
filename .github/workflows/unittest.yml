@@ -2,12 +2,6 @@ name: phpunit
 
 on:
   pull_request:
-    paths:
-      - 'config/**'
-      - 'database/**'
-      - 'resources/**'
-      - 'src/**'
-      - 'tests/**'
 
 env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
