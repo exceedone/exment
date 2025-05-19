@@ -8,6 +8,7 @@ use Exceedone\Exment\Services\DataImportExport;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use Illuminate\Support\Arr;
+use Carbon\Carbon;
 
 class LogController extends AdminControllerBase
 {
@@ -50,6 +51,14 @@ class LogController extends AdminControllerBase
             $filter->equal('method', exmtrans('operation_log.method'))->select(array_combine(OperationLog::$methods, OperationLog::$methods));
             $filter->like('path', exmtrans('operation_log.path'));
             $filter->equal('ip', exmtrans('operation_log.ip'));
+            $filter->betweendatetime(function ($query, $input) {
+                if (array_key_value_exists('start', $input)) {
+                    $query->whereDateMarkExment('created_at', Carbon::parse($input['start']), '>=', true);
+                }
+                if (array_key_value_exists('end', $input)) {
+                    $query->whereDateMarkExment('created_at', Carbon::parse($input['end']), '<=', true);
+                }
+            }, exmtrans('common.created_at'))->date();
         });
 
         // create exporter
