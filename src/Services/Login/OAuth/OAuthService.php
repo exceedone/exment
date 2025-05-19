@@ -65,6 +65,10 @@ class OAuthService implements LoginServiceInterface
     }
 
 
+    /**
+     * @param LoginSetting $login_setting
+     * @return \Exceedone\Exment\Form\Widgets\ModalForm
+     */
     public static function getTestForm(LoginSetting $login_setting)
     {
         return LoginService::getTestFormSso($login_setting);
@@ -162,7 +166,7 @@ class OAuthService implements LoginServiceInterface
      * Execute login test
      *
      * @param Request $request
-     * @param $login_setting
+     * @param mixed $login_setting
      * @return mixed
      */
     public static function loginTest(Request $request, $login_setting)

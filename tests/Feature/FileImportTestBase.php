@@ -19,11 +19,32 @@ abstract class FileImportTestBase extends FeatureTestBase
      */
     protected $dirpath;
 
+    /**
+     * @return mixed
+     */
     abstract protected function getImportPath();
+
+    /**
+     * @return mixed
+     */
     abstract protected function getSourceFilePath();
+
+    /**
+     * @param string $target_name
+     * @return mixed
+     */
     abstract protected function getCommand(string $target_name);
+
+    /**
+     * @param string $file_path
+     * @param bool $isCsv
+     * @return mixed
+     */
     abstract protected function assertFileTest(string $file_path, bool $isCsv);
 
+    /**
+     * @return void
+     */
     protected function init()
     {
         try {
@@ -97,6 +118,11 @@ abstract class FileImportTestBase extends FeatureTestBase
     }
 
 
+    /**
+     * @param mixed $fileColumns
+     * @param array<mixed> $array
+     * @return Model\File|void|null
+     */
     protected function getMatchedPath($fileColumns, $array)
     {
         foreach (toArray($fileColumns) as $fileColumn) {

@@ -133,6 +133,10 @@ class LdapService implements LoginServiceInterface
         return $builder->findBy($login_setting->getOption('ldap_search_key'), $username);
     }
 
+    /**
+     * @param LoginSetting $login_setting
+     * @return ModalForm
+     */
     public static function getTestForm(LoginSetting $login_setting)
     {
         $form = new ModalForm(System::get_system_values());
@@ -228,7 +232,7 @@ class LdapService implements LoginServiceInterface
      * Execute login test
      *
      * @param Request $request
-     * @param $login_setting
+     * @param mixed $login_setting
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public static function loginTest(Request $request, $login_setting)
@@ -253,7 +257,7 @@ class LdapService implements LoginServiceInterface
      *
      * @param Request $request
      * @param LoginSetting $login_setting
-     * @return array $result(bool), $message(string), $adminMessage(string), $custom_login_user
+     * @return array<mixed> $result(bool), $message(string), $adminMessage(string), $custom_login_user
      */
     protected static function loginCallback(Request $request, $login_setting)
     {

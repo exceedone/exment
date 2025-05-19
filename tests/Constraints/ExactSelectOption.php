@@ -19,7 +19,7 @@ class ExactSelectOption extends PageConstraint
      * Select options.
      * key: option's value, value: text.
      *
-     * @var array
+     * @var array<mixed>
      */
     protected $options;
 
@@ -27,7 +27,7 @@ class ExactSelectOption extends PageConstraint
      * Real select options.
      * key: option's value, value: text.
      *
-     * @var array
+     * @var array<mixed>
      */
     protected $realOptions;
 
@@ -46,7 +46,7 @@ class ExactSelectOption extends PageConstraint
      * Create a new constraint instance.
      *
      * @param  string  $element
-     * @param  array  $options
+     * @param  array<mixed>  $options
      * @return void
      */
     public function __construct($element, array $options)
@@ -102,8 +102,8 @@ class ExactSelectOption extends PageConstraint
     /**
      * Contains 2 array
      *
-     * @param array|Collection $testArr1
-     * @param array|Collection $targetArr2
+     * @param array<mixed>|Collection<int|string, mixed> $testArr1
+     * @param array<mixed>|Collection<int|string, mixed> $targetArr2
      * @return boolean
      */
     protected function contains2Array($testArr1, $targetArr2): bool
@@ -115,7 +115,7 @@ class ExactSelectOption extends PageConstraint
      * Get the options value from a select field.
      *
      * @param  \Symfony\Component\DomCrawler\Crawler  $select
-     * @return array
+     * @return array<mixed>
      */
     protected function getOptionsItemFromSelect(Crawler $select)
     {

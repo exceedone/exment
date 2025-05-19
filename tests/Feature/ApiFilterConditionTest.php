@@ -19,6 +19,8 @@ class ApiFilterConditionTest extends ExmentKitTestCase
 {
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -26,138 +28,218 @@ class ApiFilterConditionTest extends ExmentKitTestCase
         $this->login();
     }
 
-
+    /**
+     * @return void
+     */
     public function testConditionApiColumnText()
     {
         $this->__testConditionApiColumn(ColumnType::TEXT, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnTestarea()
     {
         $this->__testConditionApiColumn(ColumnType::TEXTAREA, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnEditor()
     {
         $this->__testConditionApiColumn(ColumnType::EDITOR, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnUrl()
     {
         $this->__testConditionApiColumn(ColumnType::URL, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnEmail()
     {
         $this->__testConditionApiColumn(ColumnType::EMAIL, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnInteger()
     {
         $this->__testConditionApiColumn(ColumnType::INTEGER, FilterType::NUMBER);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnDecimal()
     {
         $this->__testConditionApiColumn(ColumnType::DECIMAL, FilterType::NUMBER);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnCurrency()
     {
         $this->__testConditionApiColumn(ColumnType::CURRENCY, FilterType::NUMBER);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnDate()
     {
         $this->__testConditionApiColumn(ColumnType::DATE, FilterType::DAY);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnTime()
     {
         $this->__testConditionApiColumn(ColumnType::TIME, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnDateTime()
     {
         $this->__testConditionApiColumn(ColumnType::DATETIME, FilterType::DAY);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnSelect()
     {
         $this->__testConditionApiColumn(ColumnType::SELECT, FilterType::SELECT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnSelectValtext()
     {
         $this->__testConditionApiColumn(ColumnType::SELECT_VALTEXT, FilterType::SELECT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnSelectTable()
     {
         $this->__testConditionApiColumn(ColumnType::SELECT_TABLE, FilterType::SELECT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnYesNo()
     {
         $this->__testConditionApiColumn(ColumnType::YESNO, FilterType::YESNO);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnBoolean()
     {
         $this->__testConditionApiColumn(ColumnType::BOOLEAN, FilterType::YESNO);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnAutoNumber()
     {
         $this->__testConditionApiColumn(ColumnType::AUTO_NUMBER, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnImage()
     {
         $this->__testConditionApiColumn(ColumnType::IMAGE, FilterType::FILE);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnFile()
     {
         $this->__testConditionApiColumn(ColumnType::FILE, FilterType::FILE);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnUser()
     {
         $this->__testConditionApiColumn(ColumnType::USER, FilterType::USER);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiColumnOrganization()
     {
         $this->__testConditionApiColumn(ColumnType::ORGANIZATION, FilterType::SELECT);
     }
 
     // System Column ----------------------------------------------------
+    /**
+     * @return void
+     */
     public function testConditionApiSystemId()
     {
         $this->__testConditionApiSystem(SystemColumn::ID, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiSystemSuuid()
     {
         $this->__testConditionApiSystem(SystemColumn::SUUID, FilterType::DEFAULT);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiSystemCreatedAt()
     {
         $this->__testConditionApiSystem(SystemColumn::CREATED_AT, FilterType::DAY);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiSystemUpdatedAt()
     {
         $this->__testConditionApiSystem(SystemColumn::UPDATED_AT, FilterType::DAY);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiSystemCreateUser()
     {
         $this->__testConditionApiSystem(SystemColumn::CREATED_USER, FilterType::USER);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiSystemUpdateUser()
     {
         $this->__testConditionApiSystem(SystemColumn::UPDATED_USER, FilterType::USER);
@@ -165,21 +247,33 @@ class ApiFilterConditionTest extends ExmentKitTestCase
 
 
     // ConditionDetail ----------------------------------------------------
+    /**
+     * @return void
+     */
     public function testConditionApiConditionUser()
     {
         $this->__testConditionApiConditionDetail(ConditionTypeDetail::USER, FilterType::CONDITION);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiConditionOrganization()
     {
         $this->__testConditionApiConditionDetail(ConditionTypeDetail::ORGANIZATION, FilterType::CONDITION);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiConditionRole()
     {
         $this->__testConditionApiConditionDetail(ConditionTypeDetail::ROLE, FilterType::CONDITION);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiConditionForm()
     {
         $this->__testConditionApiConditionDetail(ConditionTypeDetail::FORM, FilterType::CONDITION);
@@ -188,11 +282,17 @@ class ApiFilterConditionTest extends ExmentKitTestCase
 
 
     // Workflow ----------------------------------------------------
+    /**
+     * @return void
+     */
     public function testConditionApiWorkflowStatus()
     {
         $this->__testConditionApiWorkflow('workflow_status', FilterType::WORKFLOW);
     }
 
+    /**
+     * @return void
+     */
     public function testConditionApiWorkflowWorkUser()
     {
         $this->__testConditionApiWorkflow('workflow_work_users', FilterType::WORKFLOW_WORK_USER);
@@ -303,6 +403,11 @@ class ApiFilterConditionTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @param string $url
+     * @param string $filterType
+     * @return void
+     */
     protected function checkTestResult(string $url, string $filterType)
     {
         $this->get($url);

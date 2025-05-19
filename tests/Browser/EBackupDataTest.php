@@ -11,6 +11,8 @@ class EBackupDataTest extends ExmentKitTestCase
 {
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -20,6 +22,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * Initialize backup config.
+     *
+     * @return void
      */
     public function testInitializeBackupConfig()
     {
@@ -53,6 +57,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * display backup page.
+     *
+     * @return void
      */
     public function testDisplayBackupData()
     {
@@ -92,6 +98,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * Backup data.
+     *
+     * @return void
      */
     public function testBackupDataSuccess1()
     {
@@ -100,6 +108,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * Restore data.
+     *
+     * @return void
      */
     public function testRestoreDataSuccess1()
     {
@@ -108,6 +118,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * Save backup config.
+     *
+     * @return void
      */
     public function testBackupConfigSave()
     {
@@ -145,6 +157,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * Backup data. --after setting change--
+     *
+     * @return void
      */
     public function testBackupDataSuccess2()
     {
@@ -153,6 +167,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * Restore data. --after setting change--
+     *
+     * @return void
      */
     public function testRestoreDataSuccess2()
     {
@@ -161,6 +177,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * Backup when config target is not selected.
+     *
+     * @return void
      */
     public function testBackupNoTarget()
     {
@@ -195,6 +213,9 @@ class EBackupDataTest extends ExmentKitTestCase
         }
     }
 
+    /**
+     * @return void
+     */
     protected function backupData()
     {
         try {
@@ -221,6 +242,9 @@ class EBackupDataTest extends ExmentKitTestCase
         ;
     }
 
+    /**
+     * @return void
+     */
     protected function restoreData()
     {
         try {
@@ -247,6 +271,8 @@ class EBackupDataTest extends ExmentKitTestCase
 
     /**
      * Get all archive file path.
+     *
+     * @return array<mixed>
      */
     protected function getArchiveFiles()
     {

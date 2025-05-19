@@ -54,7 +54,7 @@ class Plugin extends PluginDashboardBase
     /**
      * 現在のデータを取得
      *
-     * @param $id
+     * @param null|mixed $id
      * @return \Exceedone\Exment\Database\Eloquent\ExtendedBuilder|CustomValue|\Illuminate\Database\Eloquent\Model|object|null
      */
     protected function getData($id = null)
@@ -68,6 +68,10 @@ class Plugin extends PluginDashboardBase
         }
     }
 
+    /**
+     * @param mixed $data
+     * @return array<string, mixed>
+     */
     protected function getParams($data)
     {
         return

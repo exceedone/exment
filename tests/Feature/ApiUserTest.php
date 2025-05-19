@@ -10,6 +10,9 @@ class ApiUserTest extends ApiTestBase
 {
     // Me ----------------------------------------------------
 
+    /**
+     * @return void
+     */
     public function testWrongScopeMe()
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
@@ -23,6 +26,9 @@ class ApiUserTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetMe()
     {
         $token = $this->getAdminAccessToken([ApiScope::ME]);
@@ -48,6 +54,9 @@ class ApiUserTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testWrongScopeMeApiKey()
     {
         $token = $this->getAdminAccessTokenAsApiKey([ApiScope::VALUE_READ]);
@@ -61,6 +70,9 @@ class ApiUserTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetMeApiKey()
     {
         $token = $this->getAdminAccessTokenAsApiKey([ApiScope::ME]);
@@ -90,6 +102,9 @@ class ApiUserTest extends ApiTestBase
 
     // Avatar ----------------------------------------------------
 
+    /**
+     * @return void
+     */
     public function testWrongScopeAvatar()
     {
         $token = $this->getUser1AccessToken([ApiScope::VALUE_READ]);
@@ -103,6 +118,9 @@ class ApiUserTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetAvatarDefaultBase64()
     {
         // User1 not has icon.
@@ -117,6 +135,9 @@ class ApiUserTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetAvatarBase64Null()
     {
         // User1 not has icon.
@@ -131,6 +152,9 @@ class ApiUserTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetAvatarBase64()
     {
         // User2 has icon.
@@ -145,6 +169,9 @@ class ApiUserTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testGetAvatar()
     {
         // User2 has icon.
@@ -158,6 +185,9 @@ class ApiUserTest extends ApiTestBase
         $this->assertMatch(base64_encode($content), TestDefine::FILE_USER_BASE64);
     }
 
+    /**
+     * @return void
+     */
     public function testGetAvatar2()
     {
         // User2 has icon.
@@ -171,6 +201,9 @@ class ApiUserTest extends ApiTestBase
         $this->assertMatch(base64_encode($content), TestDefine::FILE_USER_BASE64);
     }
 
+    /**
+     * @return void
+     */
     public function testGetAvatarDefault()
     {
         // User1 has not icon.
@@ -184,6 +217,9 @@ class ApiUserTest extends ApiTestBase
         $this->assertMatch(base64_encode($content), TestDefine::FILE_USERDEFALUT_BASE64);
     }
 
+    /**
+     * @return void
+     */
     public function testGetAvatarNotHas()
     {
         // User1 has not icon.

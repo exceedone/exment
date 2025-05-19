@@ -12,6 +12,9 @@ use Exceedone\Exment\Enums\SystemColumn;
 
 class ReplaceFormatTest extends UnitTestBase
 {
+    /**
+     * @return void
+     */
     public function testReplaceDateString()
     {
         $dateStrings = [
@@ -30,6 +33,9 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceDateValue()
     {
         $dateValues = [
@@ -56,6 +62,9 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceNow()
     {
         $dateFormats = [
@@ -77,6 +86,9 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceValueDateFormat()
     {
         $dateFormats = [
@@ -98,6 +110,9 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceValueUrl()
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);
@@ -105,6 +120,9 @@ class ReplaceFormatTest extends UnitTestBase
         $this->assertMatch($info->getUrl(), $text);
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceSystemValue()
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);
@@ -117,6 +135,9 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceValue()
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);
@@ -129,6 +150,9 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceCustomTableName()
     {
         $custom_table = CustomTable::getEloquent('information');
@@ -137,6 +161,9 @@ class ReplaceFormatTest extends UnitTestBase
         $this->assertMatch($custom_table->table_name, $text);
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceCustomTableViewName()
     {
         $custom_table = CustomTable::getEloquent('information');
@@ -145,6 +172,9 @@ class ReplaceFormatTest extends UnitTestBase
         $this->assertMatch($custom_table->table_view_name, $text);
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceUuid()
     {
         $keys = ['uuid'];
@@ -154,6 +184,9 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceSystem()
     {
         $keys = [
@@ -169,6 +202,9 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testReplaceWorkflow()
     {
         // get workflow last value

@@ -18,6 +18,7 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
     /**
+     * @return void
      */
     public function testDisplayCreateDashboard()
     {
@@ -35,6 +36,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateDashboard()
     {
         $this->visit(admin_url('dashboard/create'))
@@ -60,6 +64,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testEditDashboard()
     {
         $model = $this->getDashboardTestModel();
@@ -78,6 +85,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testDisplayCreateBoxList()
     {
         $model = $this->getDashboardTestModel();
@@ -103,6 +113,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxList()
     {
         $model = $this->getDashboardTestModel();
@@ -140,6 +153,9 @@ class GDashboardTest extends ExmentKitTestCase
 
 
 
+    /**
+     * @return void
+     */
     public function testDisplayCreateBoxSystem()
     {
         $model = $this->getDashboardTestModel();
@@ -164,6 +180,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxSystemGuideline()
     {
         $this->_testCreateDashboardSystem('SystemGuidelineTest', Enums\DashboardBoxSystemPage::GUIDELINE, 1, 2);
@@ -172,6 +191,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxSystemNews()
     {
         $this->_testCreateDashboardSystem('SystemNewsTest', Enums\DashboardBoxSystemPage::NEWS, 1, 3);
@@ -181,6 +203,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxSystemEditor()
     {
         $this->_testCreateDashboardSystem('SystemEditorTest', Enums\DashboardBoxSystemPage::EDITOR, 2, 1, [
@@ -190,6 +215,9 @@ class GDashboardTest extends ExmentKitTestCase
         //ToDo: How to test real dashboard item
     }
 
+    /**
+     * @return void
+     */
     public function testCreateBoxSystemHtml()
     {
         $this->_testCreateDashboardSystem('SystemHtmlTest', Enums\DashboardBoxSystemPage::HTML, 2, 2, [
@@ -202,6 +230,9 @@ class GDashboardTest extends ExmentKitTestCase
 
 
 
+    /**
+     * @return void
+     */
     public function testDisplayCreateBoxChart()
     {
         $model = $this->getDashboardTestModel();
@@ -233,6 +264,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxChartBar()
     {
         $this->_testCreateDashboardChart('ChartBarTest', Enums\ChartType::BAR, 2, 3, [
@@ -243,6 +277,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxChartLine()
     {
         $this->_testCreateDashboardChart('ChartLineTest', Enums\ChartType::LINE, 3, 1, [
@@ -253,6 +290,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxChartPie()
     {
         $this->_testCreateDashboardChart('ChartPieTest', Enums\ChartType::PIE, 3, 2, [
@@ -264,6 +304,9 @@ class GDashboardTest extends ExmentKitTestCase
 
 
 
+    /**
+     * @return void
+     */
     public function testDisplayCreateBoxCalendar()
     {
         $model = $this->getDashboardTestModel();
@@ -290,6 +333,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxCalendarMonth()
     {
         $this->_testCreateDashboardCalendar('CalendarMonthTest', Enums\CalendarType::MONTH, 3, 3);
@@ -298,6 +344,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCreateBoxCalendarList()
     {
         $this->_testCreateDashboardCalendar('CalendarListTest', Enums\CalendarType::LIST, 4, 1);
@@ -306,10 +355,14 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
-
-
-
-
+    /**
+     * @param string $dashboard_box_view_name
+     * @param int $system_type
+     * @param int $row_no
+     * @param int $column_no
+     * @param array<string> $options
+     * @return void
+     */
     protected function _testCreateDashboardSystem($dashboard_box_view_name, $system_type, $row_no, $column_no, array $options = [])
     {
         $model = $this->getDashboardTestModel();
@@ -353,7 +406,7 @@ class GDashboardTest extends ExmentKitTestCase
      * @param string $chart_type
      * @param int $row_no
      * @param int $column_no
-     * @param array $options
+     * @param array<string> $options
      * @return void
      */
     protected function _testCreateDashboardChart($dashboard_box_view_name, $chart_type, $row_no, $column_no, array $options = [])
@@ -402,6 +455,14 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @param string $dashboard_box_view_name
+     * @param string $calendar_type
+     * @param int $row_no
+     * @param int $column_no
+     * @param array<mixed> $options
+     * @return void
+     */
     protected function _testCreateDashboardCalendar($dashboard_box_view_name, $calendar_type, $row_no, $column_no, array $options = [])
     {
         $model = $this->getDashboardTestModel();
@@ -444,6 +505,9 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @return Model\Dashboard
+     */
     protected function getDashboardTestModel(): Model\Dashboard
     {
         $model = Model\Dashboard::where('dashboard_name', 'DashboardTest')->first();
@@ -452,6 +516,12 @@ class GDashboardTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @param Model\Dashboard $dashboard
+     * @param int $row_no
+     * @param int $column_no
+     * @return Model\DashboardBox
+     */
     protected function getDashboardBoxModel(Model\Dashboard $dashboard, $row_no, $column_no): Model\DashboardBox
     {
         $model = Model\DashboardBox::where('dashboard_id', $dashboard->id)

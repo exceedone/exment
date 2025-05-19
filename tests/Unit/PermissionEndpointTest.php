@@ -158,6 +158,9 @@ class PermissionEndpointTest extends UnitTestBase
     ];
 
 
+    /**
+     * @return void
+     */
     protected function init()
     {
         System::clearCache();
@@ -179,6 +182,9 @@ class PermissionEndpointTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testPermissionAnonymousDeny()
     {
         $this->init();
@@ -209,6 +215,9 @@ class PermissionEndpointTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testPermissionNoPermissionDeny()
     {
         $this->init();
@@ -244,6 +253,9 @@ class PermissionEndpointTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testPermissionAllEditDeny()
     {
         $this->init();
@@ -279,8 +291,11 @@ class PermissionEndpointTest extends UnitTestBase
     }
 
 
-
-
+    /**
+     * @param string $endpoint
+     * @param bool $expectResult
+     * @return void
+     */
     protected function executeTestPermission(string $endpoint, bool $expectResult)
     {
         $permission = new Permission([
@@ -291,6 +306,12 @@ class PermissionEndpointTest extends UnitTestBase
         $this->assertTrue($expectResult ? $isPass : !$isPass, "Endpoint {$endpoint}, expect Permission is " . ($expectResult ? 'Pass' : 'Deny') . ", but result is "  . ($expectResult ? 'Deny' : 'Pass'));
     }
 
+    /**
+     * @param string $endpoint
+     * @param bool $expectResult
+     * @param LoginUser $user
+     * @return void
+     */
     protected function executeTestPermissionUser(string $endpoint, bool $expectResult, LoginUser $user)
     {
         $isPass = $user->visible($endpoint);
