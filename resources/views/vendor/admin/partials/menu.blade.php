@@ -24,29 +24,29 @@
         </li>
     @endif
 @endif
-<style>
-.treeview .has-subs::after {
-    content: '\f054'; 
-    font-family: 'Font Awesome 5 Free';
-    font-weight: 900;
-    float: right;
-    transition: transform 0.3s;
-    top: 19px !important;
-}
 
-.treeview .has-subs.active::after {
-    transform: rotate(135deg); 
-}
-</style>
+@once
+    <style>
+    .treeview .has-subs::after {
+        content: '\f054';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        float: right;
+        transition: transform 0.3s;
+        top: 19px !important;
+    }
 
-<script>
-    // Kiểm tra xem script đã chạy chưa
+    .treeview .has-subs.active::after {
+        transform: rotate(135deg);
+    }
+    </style>
+
+    <script>
     if (!window.menuScriptInitialized) {
         window.menuScriptInitialized = true;
 
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.has-subs').forEach(function (toggleLink, index) {
-                // Xóa listener cũ (nếu có)
                 toggleLink.removeEventListener('click', handleSubmenuClick);
                 toggleLink.addEventListener('click', handleSubmenuClick);
 
@@ -54,7 +54,7 @@
 
             function handleSubmenuClick(e) {
                 e.preventDefault();
-                e.stopPropagation(); // Ngăn sự kiện lan truyền
+                e.stopPropagation(); 
 
 
                 const targetId = this.getAttribute('data-target');
@@ -69,7 +69,6 @@
 
                 const currentDisplay = submenu.style.display || getComputedStyle(submenu).display;
 
-                // Đóng tất cả submenu khác và bỏ trạng thái active
                 
                 document.querySelectorAll('.submenu').forEach(function (otherSubmenu) {
                     if (otherSubmenu !== submenu) {
@@ -87,7 +86,6 @@
                     }
                 });
 
-                // Toggle submenu
                 if (currentDisplay === 'none' || currentDisplay === '') {
                     submenu.style.display = 'block';
                     this.classList.add('active');
@@ -101,7 +99,6 @@
                 
             }
 
-            // Xử lý click vào menu-item không có submenu
             document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (menuItem, index) {
                 menuItem.removeEventListener('click', handleMenuItemClick);
                 menuItem.addEventListener('click', handleMenuItemClick);
@@ -109,11 +106,10 @@
             });
 
             function handleMenuItemClick(e) {
-                e.stopPropagation(); // Ngăn sự kiện lan truyền
+                e.stopPropagation(); 
 
                 const isInSubmenu = this.closest('.submenu') !== null;
 
-                // Xóa trạng thái active của các menu-item khác
                 if (isInSubmenu) {
                     document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (item) {
                         item.classList.remove('active');
@@ -130,9 +126,9 @@
                     });
                 }
 
-                // Thêm trạng thái active cho menu-item được click
                 this.classList.add('active');
             }
         });
     }
-</script>
+    </script>
+@endonce
