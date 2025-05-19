@@ -367,4 +367,16 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     {
         return $this->wrap($value, $prefixAlias);
     }
+
+    /**
+     * Wrap and add json_extract if needs
+     *
+     * @param mixed $column
+     * @param string $path
+     * @return string
+     */
+    public function wrapJsonExtract($column, $path = '$')
+    {
+        return $this->wrap($column);
+    }
 }

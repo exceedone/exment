@@ -839,6 +839,87 @@ class CustomViewSummaryTest extends UnitTestBase
     }
 
     /**
+     * FilterOption = Group(parent:user,order:2), Summary(integer/sum/child_table,order:1)
+     * bugfix: set order to child table column occurs exception. 
+     */
+    public function testFuncSummaryChildOrder()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => 'parent_table',
+            'column_settings' => [[
+                'column_name' => 'user',
+                'options' => [
+                    'sort_type' => 1,
+                    'sort_order' => 2,
+                ]
+            ]],
+            'summary_settings' => [[
+                'reference_table' => 'child_table',
+                'is_child' => true,
+                'column_name' => 'integer',
+                'summary_condition' => SummaryCondition::SUM,
+                'options' => [
+                    'sort_type' => 1,
+                    'sort_order' => 1,
+                ]
+            ]],
+        ];
+
+        $summaries = $this->getCustomViewSummary($options);
+
+        $defaults = $this->getCustomViewDataAll($options);
+
+        foreach ($summaries as $summary) {
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
+                return $data['user'] == $summary['key'];
+            })->sum(function ($data) {
+                return collect($data['child_table.integer'])->sum();
+            });
+            $this->assertTrue($result == $summary['value']);
+        }
+    }
+
+    /**
+     * FilterOption = Group(parent:user,order:1), Summary(integer/sum/child_table)
+     * check if user sort by id as number
+     */
+    public function testFuncSummaryChildOrder2()
+    {
+        if (\Exment::isSqlServer()) {
+            $this->markTestSkipped('SQL Serverでは対象外のテストです。');
+        }
+
+        $this->init();
+
+        $options = [
+            'target_table_name' => 'parent_table',
+            'column_settings' => [[
+                'column_name' => 'user',
+                'options' => [
+                    'sort_type' => 1,
+                    'sort_order' => 1,
+                ]
+            ]],
+            'summary_settings' => [[
+                'reference_table' => 'child_table',
+                'is_child' => true,
+                'column_name' => 'integer',
+                'summary_condition' => SummaryCondition::SUM
+            ]],
+        ];
+
+        $summaries = $this->getCustomViewSummary($options);
+
+        $users = collect($summaries)->map(function($summary) {
+            return (int)$summary['key'];
+        });
+
+        $this->assertTrue($users->sort()->values()->toArray() === $users->values()->toArray());
+    }
+
+    /**
      * FilterOption = Group(select_table:date:YM), Sum(integer)
      */
     public function testFuncSummarySelect()
@@ -1204,7 +1285,7 @@ class CustomViewSummaryTest extends UnitTestBase
                     }
                     return isMatchString($column_data, $summary['key']);
                 } else {
-                    return is_null($summary['key']) && (is_null($column_data));
+                    return is_null($summary['key']) && (empty($column_data));
                 }
             })->count();
             $this->assertTrue(isMatchString($summary['value'], $result));
