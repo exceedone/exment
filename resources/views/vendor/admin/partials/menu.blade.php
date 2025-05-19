@@ -40,67 +40,99 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.has-subs').forEach(function (toggleLink) {
-        toggleLink.addEventListener('click', function (e) {
-            e.preventDefault();
+    // Kiểm tra xem script đã chạy chưa
+    if (!window.menuScriptInitialized) {
+        window.menuScriptInitialized = true;
 
-            const targetId = toggleLink.getAttribute('data-target');
-            const submenu = document.querySelector(targetId);
-            const menuItem = toggleLink.closest('.menu-item');
-            document.querySelectorAll('.submenu').forEach(function (otherSubmenu) {
-                if (otherSubmenu !== submenu) {
-                    otherSubmenu.style.display = 'none';
-                }
-            });
-            document.querySelectorAll('.has-subs').forEach(function (otherLink) {
-                if (otherLink !== toggleLink) {
-                    otherLink.classList.remove('active');
-                }
-            });
-            document.querySelectorAll('.menu-item').forEach(function (otherItem) {
-                if (otherItem !== menuItem) {
-                    otherItem.classList.remove('active');
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.has-subs').forEach(function (toggleLink, index) {
+                // Xóa listener cũ (nếu có)
+                toggleLink.removeEventListener('click', handleSubmenuClick);
+                toggleLink.addEventListener('click', handleSubmenuClick);
+
             });
 
-            if (submenu) {
-                if (submenu.style.display === 'none' || submenu.style.display === '') {
+            function handleSubmenuClick(e) {
+                e.preventDefault();
+                e.stopPropagation(); // Ngăn sự kiện lan truyền
+
+
+                const targetId = this.getAttribute('data-target');
+                const submenu = document.querySelector(targetId);
+                const menuItem = this.closest('.menu-item');
+
+
+                if (!submenu) {
+                    console.error('Submenu not found for ID:', targetId);
+                    return;
+                }
+
+                const currentDisplay = submenu.style.display || getComputedStyle(submenu).display;
+
+                // Đóng tất cả submenu khác và bỏ trạng thái active
+                
+                document.querySelectorAll('.submenu').forEach(function (otherSubmenu) {
+                    if (otherSubmenu !== submenu) {
+                        otherSubmenu.style.display = 'none';
+                    }
+                });
+                document.querySelectorAll('.has-subs').forEach(function (otherLink) {
+                    if (otherLink !== this) {
+                        otherLink.classList.remove('active');
+                    }
+                }, this);
+                document.querySelectorAll('.menu-item').forEach(function (otherItem) {
+                    if (otherItem !== menuItem) {
+                        otherItem.classList.remove('active');
+                    }
+                });
+
+                // Toggle submenu
+                if (currentDisplay === 'none' || currentDisplay === '') {
                     submenu.style.display = 'block';
-                    toggleLink.classList.add('active');
+                    this.classList.add('active');
                     menuItem.classList.add('active');
                 } else {
                     submenu.style.display = 'none';
-                    toggleLink.classList.remove('active');
+                    this.classList.remove('active');
                     menuItem.classList.remove('active');
                 }
-            }
-        });
-    });
 
-    document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (menuItem) {
-        menuItem.addEventListener('click', function (e) {
-            const isInSubmenu = menuItem.closest('.submenu') !== null;
-
-            if (isInSubmenu) {
-                document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (item) {
-                    item.classList.remove('active');
-                });
-            } else {
-                document.querySelectorAll('.menu-item').forEach(function (item) {
-                    item.classList.remove('active');
-                });
-                document.querySelectorAll('.submenu').forEach(function (submenu) {
-                    submenu.style.display = 'none';
-                });
+                
             }
 
-            this.classList.add('active');
+            // Xử lý click vào menu-item không có submenu
+            document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (menuItem, index) {
+                menuItem.removeEventListener('click', handleMenuItemClick);
+                menuItem.addEventListener('click', handleMenuItemClick);
 
-            document.querySelectorAll('.has-subs').forEach(function (link) {
-                link.classList.remove('active');
             });
+
+            function handleMenuItemClick(e) {
+                e.stopPropagation(); // Ngăn sự kiện lan truyền
+
+                const isInSubmenu = this.closest('.submenu') !== null;
+
+                // Xóa trạng thái active của các menu-item khác
+                if (isInSubmenu) {
+                    document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (item) {
+                        item.classList.remove('active');
+                    });
+                } else {
+                    document.querySelectorAll('.menu-item').forEach(function (item) {
+                        item.classList.remove('active');
+                    });
+                    document.querySelectorAll('.submenu').forEach(function (submenu) {
+                        submenu.style.display = 'none';
+                    });
+                    document.querySelectorAll('.has-subs').forEach(function (link) {
+                        link.classList.remove('active');
+                    });
+                }
+
+                // Thêm trạng thái active cho menu-item được click
+                this.classList.add('active');
+            }
         });
-    });
-});
+    }
 </script>
