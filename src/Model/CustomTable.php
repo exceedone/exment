@@ -1546,11 +1546,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // if has relations, set with
         if (!is_nullorempty($custom_view)) {
-            if (System::requestSession(Define::SYSTEM_KEY_SESSION_COMMENT_FILTER_CHECK) === true) {
-                // add query
-                RelationTable::setCommentSubquery($query, $this, false);
-            }
-
             $relations = $custom_view->custom_view_columns_cache->map(function ($custom_view_column) {
                 $column_item = $custom_view_column->column_item;
                 if (empty($column_item)) {

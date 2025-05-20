@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Unit;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
@@ -490,6 +491,35 @@ class CustomViewGridFilterTest extends UnitTestBase
                 return Str::startsWith($file->filename, 'test1');
             });
         });
+    }
+
+    /**
+     * Grid Filter = comment
+     */
+    public function testFuncFilterComment()
+    {
+        $this->init();
+
+        $this->saveComment(1, 'hogehoge');
+
+        $this->__testGridFilter(['comment' => 'hoge'], function ($data) {
+            return getModelName(SystemTableName::COMMENT)::where('parent_id', array_get($data, 'id'))
+                ->where('value->comment_detail', 'LIKE', '%hoge&')
+                ->exists();
+        }, 1);
+    }
+
+    protected function saveComment($id, $comment)
+    {
+        // save Comment Model
+        $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
+        $model->parent_id = $id;
+        $model->parent_type = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        $model->setValue([
+            'comment_detail' => $comment,
+        ]);
+        $model->save();
+
     }
 
     protected function init()
