@@ -44,7 +44,8 @@ class CommentItem extends SystemItem
                 ->from($tableNameComment)
                 ->whereColumn("{$tableNameComment}.parent_id", "{$tableName}.id")
                 ->where("{$tableNameComment}.parent_type", $this->custom_table->table_name)
-                ->where("{$tableNameComment}.{$columnName}", 'LIKE', "%{$input}%");
+                ->where("{$tableNameComment}.{$columnName}", 'LIKE', "%{$input}%")
+                ->whereNull('deleted_at');
         });
     }
 }
