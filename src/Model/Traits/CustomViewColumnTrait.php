@@ -380,19 +380,6 @@ trait CustomViewColumnTrait
             ];
         }
 
-        switch ($this->view_column_type) {
-            case ConditionType::COLUMN:
-                return [
-                    'table_name' => $table_name,
-                    'column_name' => CustomColumn::getEloquent($this->view_pivot_column_id)->column_name ?? null,
-                ];
-            case ConditionType::SYSTEM:
-                return [
-                    'table_name' => $table_name,
-                    'column_name' => SystemColumn::getOption(['id' => $this->view_pivot_column_id])['name'] ?? null,
-                ];
-        }
-        return [];
     }
 
     /**
