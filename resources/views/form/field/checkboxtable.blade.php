@@ -90,7 +90,7 @@
                     <div class="table-cell border-solid">
                         <span class="icheck" style="width:{{$checkWidth}}px; display:inline-block; text-align:center;">
                             <label class="checkbox-inline" style="margin-top:5px">
-                                <input type="checkbox" name="{{$item['name']}}[]" value="{{$option}}" class="{{$class}}" {{ in_array($option, (array)old(array_get($item, 'key'), $item['values'])) || ($item['values'] === null && in_array($label, $checked)) ?'checked':'' }} 
+                                <input type="checkbox" name="{{$item['name']}}[]" value="{{$option}}" class="{{$class}}" {{ in_array($option, (array) old(array_get($item, 'key'), $item['values'])) || ($item['values'] === null && in_array($label, $checked)) ? 'checked' : '' }} 
                                     {{ in_array($option, array_get($item, 'disables', [])) ? ' disabled' : '' }}  {!! $attributes !!} 
                                 />
                             </label>
@@ -123,7 +123,6 @@
         }
     </style>
     <script>
-        $(function () {
             $(window).off("exment:loaded", changeText).on("exment:loaded", changeText);
             function changeText() {
                 $(function(){
@@ -137,6 +136,5 @@
                     });
                 });
             }
-        });
     </script>
 @endif

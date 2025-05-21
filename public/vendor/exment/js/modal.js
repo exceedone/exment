@@ -224,7 +224,7 @@ var Exment;
                 modalSize = res.modalSize;
             }
             let modalClass = hasValue(res.modalClass) ? ' ' + res.modalClass : '';
-            $('.exment-modal-dialog').removeClass().addClass('exment-modal-dialog modal-dialog ' + modalSize + modalClass);
+            $('.exment-modal-dialog').removeClass().addClass('exment-modal-dialog modal-dialog d-flex justify-content-center w-75 ' + modalSize + modalClass);
             Exment.ModalEvent.enableSubmit(button);
         }
         static enableSubmit(button) {
