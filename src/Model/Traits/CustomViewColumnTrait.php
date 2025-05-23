@@ -103,6 +103,10 @@ trait CustomViewColumnTrait
         elseif ($this->view_column_type == ConditionType::PARENT_ID) {
             $this->_custom_item = ColumnItems\ParentItem::getItem(CustomTable::getEloquent($this->view_column_table_id));
         }
+        // comment
+        elseif ($this->view_column_type == ConditionType::COMMENT) {
+            $this->_custom_item = ColumnItems\CommentItem::getItem(CustomTable::getEloquent($this->view_column_table_id));
+        }
         // system column
         else {
             $this->_custom_item = ColumnItems\SystemItem::getItem(CustomTable::getEloquent($this->view_column_table_id), $this->view_column_target);

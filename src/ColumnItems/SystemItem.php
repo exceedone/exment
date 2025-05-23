@@ -428,6 +428,8 @@ class SystemItem implements ItemInterface
                 return (string)FilterOption::WORKFLOW_EQ_STATUS;
             case SystemColumn::WORKFLOW_WORK_USERS:
                 return (string)FilterOption::WORKFLOW_EQ_WORK_USER;
+            case SystemColumn::COMMENT:
+                return (string)FilterOption::LIKE;
         }
 
         return null;

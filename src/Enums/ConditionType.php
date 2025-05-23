@@ -17,6 +17,7 @@ class ConditionType extends EnumBase
     public const PARENT_ID = "2";
     public const WORKFLOW = "3";
     public const CONDITION = "4";
+    public const COMMENT = "5";
 
     public static function isTableItem($condition_type)
     {
@@ -42,6 +43,9 @@ class ConditionType extends EnumBase
             }
             if (in_array($systemEnum, [SystemColumn::PARENT_ID])) {
                 return static::PARENT_ID;
+            }
+            if (in_array($systemEnum, [SystemColumn::COMMENT])) {
+                return static::COMMENT;
             }
             return static::SYSTEM;
         }
