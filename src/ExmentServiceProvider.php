@@ -264,6 +264,9 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::boot();
 
+        foreach ($this->getMiddlewareGroups() as $key => $middleware) {
+            app('router')->middlewareGroup($key, $middleware);
+        }
         $this->bootApp();
         $this->bootSetting();
         $this->bootDatabase();
@@ -301,11 +304,6 @@ class ExmentServiceProvider extends ServiceProvider
         // register route middleware.
         foreach ($this->routeMiddleware as $key => $middleware) {
             app('router')->aliasMiddleware($key, $middleware);
-        }
-
-        ////// register middleware group.
-        foreach ($this->getMiddlewareGroups() as $key => $middleware) {
-            app('router')->middlewareGroup($key, $middleware);
         }
 
         // register database
@@ -347,7 +345,6 @@ class ExmentServiceProvider extends ServiceProvider
             );
         }
 
-        Passport::ignoreMigrations();
     }
 
     protected function publish()

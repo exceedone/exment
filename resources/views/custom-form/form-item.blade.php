@@ -47,7 +47,7 @@
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'row_no'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'column_no'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'width'])
-        {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[required]", array_get($custom_form_column, 'required'), ['class' => 'required_item']) }}
+        <input type="hidden" name="{{ $custom_form_block['header_name'] }}{{ $custom_form_column['header_column_name'] }}[required]" value="{{ array_get($custom_form_column, 'required') }}" class="required_item" />
         @endif
 
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'delete_flg'])

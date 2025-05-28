@@ -31,14 +31,11 @@
             {{-- Use checkbox only relation block --}} 
             @if($custom_form_block['form_block_type'] != '0')
             <div class="custom_form_block_available pt-3 ms-3">
-                {{ Form::checkbox("{$custom_form_block['header_name']}[available]", 1, $custom_form_block['available'], 
-                ['id' => "custom_form_block_{$custom_form_block['header_name']}__available_",
-                'class' => 'icheck icheck_toggleblock custom_form_block_available', 'data-add-icheck' => '1']) }} 
-                {{ Form::label("custom_form_block_{$custom_form_block['header_name']}__available_",
-                exmtrans('common.available')) }}
+                <input type="checkbox" name="{{ $custom_form_block['header_name'] }}[available]" value="1" id="custom_form_block_{{ $custom_form_block['header_name'] }}__available_" class="icheck icheck_toggleblock custom_form_block_available" data-add-icheck="1" {{ $custom_form_block['available'] ? 'checked' : '' }} />
+                <label for="custom_form_block_{{ $custom_form_block['header_name'] }}__available_">{{ exmtrans('common.available') }}</label>
             </div>
             @else 
-            {{ Form::hidden("{$custom_form_block['header_name']}[available]", $custom_form_block['available'], ['class' => 'custom_form_block_available']) }} 
+            <input type="hidden" name="{{ $custom_form_block['header_name'] }}[available]" value="{{ $custom_form_block['available'] }}" class="custom_form_block_available" />
             @endif
 
         <div class="custom_form_block row collapse {{ $custom_form_block['available'] ? 'show' : '' }} p-3">
@@ -47,11 +44,8 @@
                 {{-- select hasmany or hasmanytable --}}
                 @if($custom_form_block['form_block_type'] == '1')
                 <div class="form-group mb-3">
-                    {{ Form::checkbox("{$custom_form_block['header_name']}[options][hasmany_type]", 1, array_get($custom_form_block, 'hasmany_type'), 
-                    ['id' => "custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
-                    'class' => 'icheck icheck_hasmany_type', 'data-add-icheck' => '1']) }} 
-                    {{ Form::label("custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
-                    exmtrans('custom_form.hasmany_type')) }}
+                    <input type="checkbox" name="{{ $custom_form_block['header_name'] }}[options][hasmany_type]" value="1" id="custom_form_block_{{ $custom_form_block['id'] }}__options__hasmany_type_" class="icheck icheck_hasmany_type" data-add-icheck="1" {{ \Illuminate\Support\Arr::get($custom_form_block, 'hasmany_type') ? 'checked' : '' }} />
+                    <label for="custom_form_block_{{ $custom_form_block['id'] }}__options__hasmany_type_">{{ exmtrans('custom_form.hasmany_type') }}</label>
                     <i class="fa fa-info-circle" 
                        data-help-text="{{exmtrans('custom_form.help.hasmany_type_table')}}" 
                        data-help-title="{{exmtrans('custom_form.hasmany_type')}}"></i>
@@ -61,15 +55,14 @@
             <div class="form-inline col-12 pt-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="form-group d-flex align-items-center">
-                        {{ Form::label("", exmtrans('custom_form.form_block_name'), ['class' => 'control-label', 'style' => 'padding-right:15px;'])
-                        }} {{ Form::text("{$custom_form_block['header_name']}[form_block_view_name]", $custom_form_block['form_block_view_name'],
-                        ['class' => 'form-control', 'style' => 'width:400px;']) }}
+                        <label class="control-label" style="padding-right:15px;">{{ exmtrans('custom_form.form_block_name') }}</label>
+                        <input type="text" name="{{ $custom_form_block['header_name'] }}[form_block_view_name]" value="{{ $custom_form_block['form_block_view_name'] }}" class="form-control" style="width:400px;" />
                     </div>
                     {{-- select hasmany or hasmanytable --}}
                     @if($custom_form_block['form_block_type'] != '0')
                     <div class="form-group d-flex align-items-center">
-                        {{ Form::label("", exmtrans('custom_form.form_block_order'), ['class' => 'control-label', 'style' => 'padding-left:15px;padding-right:15px;'])
-                        }} {{ Form::number("{$custom_form_block['header_name']}[options][form_block_order]", $custom_form_block['form_block_order'], ['class' => 'form-control', 'style' => 'width:70px', 'min' => '0', 'step' => '1']) }}
+                        <label class="control-label" style="padding-left:15px;padding-right:15px;">{{ exmtrans('custom_form.form_block_order') }}</label>
+                        <input type="number" name="{{ $custom_form_block['header_name'] }}[options][form_block_order]" value="{{ $custom_form_block['form_block_order'] }}" class="form-control" style="width:70px" min="0" step="1" />
                     </div>
                     @endif
                     </div>
@@ -162,8 +155,8 @@
 
     @endforeach
     {{-- /custom_form_block --}}
-    {{csrf_field() }} @if($editmode)
-    <input type="hidden" name="_method" value="PUT" class="_method"> @endif
+{{ csrf_field() }} @if($editmode)
+    <input type="hidden" name="_method" value="PUT" class="_method" /> @endif
 
     
     <div style="background-color: #FFF; width: 100%; overflow: hidden; padding: 10px; margin-bottom:2em;">
