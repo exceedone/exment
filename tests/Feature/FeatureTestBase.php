@@ -16,7 +16,7 @@ abstract class FeatureTestBase extends TestCase
     /**
      * Boot the testing helper traits.
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function setUpTraits()
     {

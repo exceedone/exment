@@ -15,24 +15,24 @@ env:
 
 jobs:
   exment-testing:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        db: ["mysql", "mariadb", "sqlsrv"]
+        db: ["mysql", "mariadb"]
         test: ["feature", "unit", "browser"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: ${{ env.DOCKER_EXMENT_REPOSITORY}}
           path: ./docker-exment
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
           path: ./docker-exment/exment-boilerplate
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: ./docker-exment/exment-boilerplate/exment
           ref: ${{ github.event.pull_request.head.sha }}

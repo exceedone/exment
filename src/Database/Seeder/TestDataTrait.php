@@ -9,6 +9,9 @@ use Exceedone\Exment\Tests\TestDefine;
 
 trait TestDataTrait
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function getUsersAndOrgs()
     {
         // set users

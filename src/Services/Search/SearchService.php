@@ -371,17 +371,36 @@ class SearchService
             };
         }
 
-        // set group by. Maybe if has subquery, set again.
-        $wrap_column = $column_item->getGroupByWrapTableColumn(false, $isSubQuery);
-        $this->query->groupByRaw($wrap_column);
+        if (\Exment::isSqlServer()) {
+            // set group by. Maybe if has subquery, set again.
+            $wrap_column = $column_item->getGroupByWrapTableColumn(false, $isSubQuery);
+            $this->query->groupByRaw($wrap_column);
 
-        // get group's column for select. this is wraped.
-        $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
-        // set select column. And add "as".
-        $this->query->selectRaw("$wrap_column AS $sqlAsName");
+            // get group's column for select. this is wraped.
+            $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
+            // set select column. And add "as".
+            $this->query->selectRaw("$wrap_column AS $sqlAsName");
 
-        // if has sort order, set order by
-        $this->setSummaryOrderBy($column, $wrap_column);
+            // if has sort order, set order by
+            $this->setSummaryOrderBy($column, $wrap_column);
+        } else {
+            // get group's column for select. this is wraped.
+            $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
+            // set select column. And add "as".
+            $this->query->selectRaw("$wrap_column AS $sqlAsName");
+
+            // set group by. 
+            $this->query->groupByRaw($sqlAsName);
+
+            // case sqlasname
+            $cast = $column_item->getCastName(true);
+            if (isset($cast)) {
+                $sqlAsName = "CAST($sqlAsName AS $cast)";
+            }
+            // if has sort order, set order by
+            $this->setSummaryOrderBy($column, $sqlAsName);
+        }
+
 
         return $this;
     }
@@ -432,7 +451,7 @@ class SearchService
         }
 
         // if has sort order, set order by
-        $this->setSummaryOrderBy($column, $wrap_column);
+        $this->setSummaryOrderBy($column, $sqlAsName);
 
         return $this;
     }

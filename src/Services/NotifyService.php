@@ -322,7 +322,7 @@ class NotifyService
     /**
      * Execute Notify test
      *
-     * @param array $params
+     * @param array<mixed> $params
      * @return Notifications\SenderBase
      */
     public static function executeTestNotify($params = []): Notifications\SenderBase

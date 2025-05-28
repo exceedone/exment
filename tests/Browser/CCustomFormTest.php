@@ -15,6 +15,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -25,6 +27,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * prepare test table and columns.
+     *
+     * @return void
      */
     protected function prepareTestTables()
     {
@@ -38,9 +42,11 @@ class CCustomFormTest extends ExmentKitTestCase
             $custom_table->delete();
         }
     }
-    
+
     /**
      * Check custom form display.
+     *
+     * @return void
      */
     public function testDisplayFormSetting()
     {
@@ -76,6 +82,8 @@ class CCustomFormTest extends ExmentKitTestCase
 
     /**
      * Create custom form.
+     *
+     * @return void
      */
     public function testAddFormSuccess()
     {
@@ -134,7 +142,9 @@ class CCustomFormTest extends ExmentKitTestCase
     }
 
     /**
-     * avairable relation blocks.
+     * available relation blocks.
+     *
+     * @return void
      */
     public function testRelationFormSuccess()
     {
@@ -156,7 +166,7 @@ class CCustomFormTest extends ExmentKitTestCase
                 $block->custom_form_id = $id;
                 $block->form_block_type = 1;
                 $block->form_block_target_table_id = $relation->child_custom_table_id;
-            } 
+            }
             $block->setOption('form_block_order', $idx);
             $block->available = 1;
             $block->save();

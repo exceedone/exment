@@ -22,7 +22,9 @@ class CustomViewColumn extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
     use Traits\AutoSUuidTrait;
-    use Traits\CustomViewColumnTrait;
+    use Traits\CustomViewColumnTrait{
+        Traits\CustomViewColumnTrait::exportReplaceJson as exportReplaceJsonTrait;
+    }
     use Traits\CustomViewColumnOptionTrait;
     use Traits\ConditionTypeTrait;
     use Traits\TemplateTrait;
@@ -177,6 +179,8 @@ class CustomViewColumn extends ModelBase
      */
     protected function exportReplaceJson(&$json)
     {
+        self:: exportReplaceJsonTrait($json);
+
         $end_date_type = array_get($json, 'options.end_date_type');
         $end_date_target = array_get($json, 'options.end_date_target');
 

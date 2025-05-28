@@ -40,7 +40,7 @@ class WorkflowTestDataSeeder extends Seeder
 
     /**
      * Create Workflow
-     *
+     * @param mixed $users
      * @return void
      */
     protected function createWorkflow($users)
@@ -539,7 +539,7 @@ class WorkflowTestDataSeeder extends Seeder
 
                     if (isset($item['options'])) {
                         $header->options = $item['options'];
-                    } 
+                    }
 
                     $header->save();
 
@@ -554,7 +554,7 @@ class WorkflowTestDataSeeder extends Seeder
                             $conditions['target_column_id'] = $target_column->id;
                         }
                         Condition::create($conditions);
-                    } 
+                    }
                 }
 
                 $actionStatusFromTo['workflow_action_id'] = $workflowaction->id;
@@ -675,6 +675,12 @@ class WorkflowTestDataSeeder extends Seeder
         $this->saveWorkflowValue($wfValue, $workflowObj);
     }
 
+    /**
+     * @param mixed $wfValue
+     * @param mixed $workflowObj
+     * @param mixed|null $custom_value
+     * @return void
+     */
     protected function saveWorkflowValue($wfValue, $workflowObj, $custom_value = null)
     {
         $wfValue->save();
@@ -692,8 +698,11 @@ class WorkflowTestDataSeeder extends Seeder
 
     /**
      * get next action Authorities
-     *
-     * @return \Illuminate\Support\Collection
+     * @param mixed $workflow
+     * @param mixed $custom_value
+     * @param mixed $statusTo
+     * @param mixed|null $nextActions
+     * @return mixed
      */
     protected function getNextActionAuthorities($workflow, $custom_value, $statusTo, $nextActions = null)
     {

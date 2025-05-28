@@ -17,6 +17,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -26,6 +28,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * prepare test table.
+     *
+     * @return void
      */
     public function testPrepareTestTable()
     {
@@ -35,6 +39,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * prepare test columns.
+     *
+     * @return void
      */
     public function testPrepareTestColumn()
     {
@@ -43,6 +49,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * prepare test user.
+     *
+     * @return void
      */
     public function testPrepareUser()
     {
@@ -68,6 +76,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * prepare test organization.
+     *
+     * @return void
      */
     public function testPrepareOrganization()
     {
@@ -100,6 +110,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * create custom data.
+     *
+     * @return void
      */
     public function testAddRecordSuccess()
     {
@@ -166,6 +178,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * update custom data.
+     *
+     * @return void
      */
     public function testEditRecord1()
     {
@@ -193,6 +207,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * update custom data.
+     *
+     * @return void
      */
     public function testEditRecord2()
     {
@@ -250,6 +266,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * create custom relation ont to many.
+     *
+     * @return void
      */
     public function testAddRelationOneToManyWithUserTable()
     {
@@ -258,6 +276,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * create custom relation many to many.
+     *
+     * @return void
      */
     public function testAddRelationManyToManyWithOrganizationTable()
     {
@@ -266,6 +286,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * Check filtered custom data grid display.
+     *
+     * @return void
      */
     public function testDisplayGridFilter()
     {
@@ -285,6 +307,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * Check filtered custom data grid display(encode params).
+     *
+     * @return void
      */
     public function testDisplayGridFilterEncode()
     {
@@ -305,6 +329,8 @@ class DCustomDataTest extends ExmentKitTestCase
     // !!! 一覧ソートバグ対応用の追加です
     /**
      * Check sorted custom data grid display.
+     *
+     * @return void
      */
     public function testDisplayGridSort()
     {
@@ -329,6 +355,8 @@ class DCustomDataTest extends ExmentKitTestCase
     // !!! 「集計データの明細を表示する」のバグ対応用の追加です
     /**
      * Check summary grid data detail by all data view.
+     *
+     * @return void
      */
     public function testDisplaySummaryGridDetail1()
     {
@@ -339,8 +367,8 @@ class DCustomDataTest extends ExmentKitTestCase
         $group_column = CustomViewColumn::where('custom_view_id', $group_view->id)->where('options->view_group_condition', GroupCondition::YM)->first();
         $count = $custom_table->getValueModel()
             ->whereIn('value->select', ['bar', 'baz'])
-            ->where('value->date', '>=', \Carbon\Carbon::now()->startOfMonth())
-            ->where('value->date', '<=', \Carbon\Carbon::now()->endOfMonth())
+            ->where('value->date', '>=', \Carbon\Carbon::now()->startOfMonth()->toDateString())
+            ->where('value->date', '<=', \Carbon\Carbon::now()->endOfMonth()->toDateString())
             ->count();
         $group_str = http_build_query([
             'view' => $all_view->suuid,
@@ -359,6 +387,8 @@ class DCustomDataTest extends ExmentKitTestCase
 
     /**
      * Check summary grid data detail by all data view (date with group condition).
+     *
+     * @return void
      */
     public function testDisplaySummaryGridDetail2()
     {
@@ -377,7 +407,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 Define::COLUMN_ITEM_UNIQUE_PREFIX .$group_column->suuid => ''
             ]
         ]);
-    
+
         // Check custom view data
         $this->visit(admin_url("data/all_columns_table_fortest?$group_str"))
             ->seeInElement('td.column-date', '')

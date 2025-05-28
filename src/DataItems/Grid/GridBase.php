@@ -95,6 +95,7 @@ abstract class GridBase
         $filters = [];
         foreach ($group_keys as $key => $value) {
             $custom_view_column = CustomViewColumn::findByCkey($key);
+            $column_item = $custom_view_column->column_item;
             $custom_view_filter = new CustomViewFilter();
             $custom_view_filter->custom_view_id = $custom_view_column->custom_view_id;
             $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
@@ -102,6 +103,9 @@ abstract class GridBase
             $custom_view_filter->view_group_condition = $custom_view_column->view_group_condition;
             $custom_view_filter->view_filter_condition = FilterOption::EQ;
             $custom_view_filter->view_filter_condition_value_text = $value;
+            if ($column_item->isMultipleEnabled()) {
+                $custom_view_filter->is_multiple = true;
+            }
             $filters[] = $custom_view_filter;
             if ($custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id']) {
                 System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
@@ -113,7 +117,7 @@ abstract class GridBase
         $filter_func = function ($model) use ($filters, $group_view) {
             $filter_raws = [];
             foreach ($filters as $filter) {
-                if (isset($filter->view_group_condition)) {
+                if (isset($filter->view_group_condition) || $filter->is_multiple) {
                     $filter_raws[] = $filter;
                 } else {
                     $group_view->custom_view_filters->push($filter);
@@ -125,10 +129,21 @@ abstract class GridBase
                 $value_table_column = $column_item->getTableColumn();
                 $query_value = $column_item->convertFilterValue($filter_raw->view_filter_condition_value_text);
                 if (is_nullorempty($query_value)) {
-                    $model->whereNull($value_table_column);
+                    if ($filter_raw->is_multiple) {
+                        $model->where(function($query) use($value_table_column) {
+                            $query->whereNull($value_table_column)->orWhere($value_table_column, '[]');
+                        });
+                    } else {
+                        $model->whereNull($value_table_column);
+                    }
                 } else {
-                    $column = \DB::getQueryGrammar()->getDateFormatString($filter_raw->view_group_condition, $value_table_column);
-                    $model->whereRaw("$column = '$query_value'");
+                    if ($filter_raw->is_multiple) {
+                        $column = \DB::getQueryGrammar()->wrapJsonExtract($value_table_column);
+                        $model->whereRaw("$column = '$filter_raw->view_filter_condition_value_text'");
+                    } else {
+                        $column = \DB::getQueryGrammar()->getDateFormatString($filter_raw->view_group_condition, $value_table_column);
+                        $model->whereRaw("$column = '$query_value'");
+                    }
                 }
             }
             return $model;

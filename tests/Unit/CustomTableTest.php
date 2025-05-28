@@ -9,6 +9,9 @@ use Exceedone\Exment\Enums\SystemColumn;
 
 class CustomTableTest extends UnitTestBase
 {
+    /**
+     * @return void
+     */
     public function testFuncGetMatchedCustomValues1()
     {
         $info = CustomTable::getEloquent('information');
@@ -28,6 +31,9 @@ class CustomTableTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testFuncGetMatchedCustomValues2()
     {
         $info = CustomTable::getEloquent('information');
@@ -47,6 +53,9 @@ class CustomTableTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testFuncCopyCustomTable()
     {
         $from_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);

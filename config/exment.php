@@ -1193,4 +1193,12 @@ return [
     |
     */
     'allow_delete_attachment' => env('EXMENT_ALLOW_DELETE_ATTACHMENT', false),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | API rate limit per minute
+    |--------------------------------------------------------------------------
+    |
+    */
+    'api_max_rate_limit' => env('EXMENT_API_MAX_RATE_LIMIT', 60),
 ];

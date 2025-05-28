@@ -10,6 +10,8 @@ class Plugin extends PluginImportBase
 {
     /**
      * execute
+     *
+     * @return bool
      */
     public function execute()
     {
@@ -60,6 +62,10 @@ class Plugin extends PluginImportBase
         return true;
     }
 
+    /**
+     * @return \PhpOffice\PhpSpreadsheet\Reader\IReader
+     * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
+     */
     protected function createReader()
     {
         return IOFactory::createReader('Xlsx');

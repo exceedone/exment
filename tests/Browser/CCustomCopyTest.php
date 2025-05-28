@@ -20,6 +20,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * pre-excecute process before test.
+     * @return void
      */
     protected function setUp(): void
     {
@@ -29,6 +30,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Check custom value copy setting display.
+     * @return void
      */
     public function testDisplayCopySetting()
     {
@@ -60,6 +62,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Create custom value copy all field.
+     * @return void
      */
     public function testAddCopySetting()
     {
@@ -93,6 +96,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Update custom value copy input field.
+     * @return void
      */
     public function testUpdateCopySetting()
     {
@@ -136,6 +140,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Copy custom value in same table.
+     * @return void
      */
     public function testCustomValueCopySameTable()
     {
@@ -146,6 +151,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Copy custom value all field.
+     * @return void
      */
     public function testCustomValueCopyAll()
     {
@@ -156,6 +162,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Copy custom value all field.
+     * @return void
      */
     public function testCustomValueCopyInput()
     {
@@ -173,6 +180,10 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Copy custom value.
+     * @param mixed $custom_copy
+     * @param array<mixed> $data
+     *
+     * @return void
      */
     public function _executeCopy($custom_copy, $data = [])
     {
@@ -215,6 +226,9 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Update custom value copy contains field.
+     * @param mixed $copy
+     * @param bool $with_input
+     * @return void
      */
     protected function _updateCopyData($copy, bool $with_input = false)
     {
@@ -273,6 +287,8 @@ class CCustomCopyTest extends ExmentKitTestCase
 
     /**
      * Create custom value copy contains field.
+     * @param bool $is_same
+     * @return mixed
      */
     protected function _addCopyData($is_same = false)
     {

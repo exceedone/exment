@@ -10,6 +10,10 @@ use Exceedone\Exment\Middleware\Morph;
 trait ExmentTestTrait
 {
     use DatabaseMigrations;
+
+    /**
+     * @var bool $databaseSetup
+     */
     public static $databaseSetup = false;
 
     /**
@@ -26,6 +30,9 @@ trait ExmentTestTrait
         return $app;
     }
 
+    /**
+     * @return void
+     */
     protected function setUpExment()
     {
         \App::setLocale('en');
@@ -63,6 +70,9 @@ trait ExmentTestTrait
         }
     }
 
+    /**
+     * @return void
+     */
     protected function dropAllTables()
     {
         \Artisan::call('migrate:reset');

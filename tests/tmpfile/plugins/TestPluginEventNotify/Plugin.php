@@ -8,6 +8,8 @@ class Plugin extends PluginEventBase
 {
     /**
      * Plugin Event
+     *
+     * @return bool
      */
     public function execute()
     {
