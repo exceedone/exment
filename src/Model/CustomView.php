@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property mixed $created_user_id
  * @method static int count($columns = '*')
  * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
- * @method static ExtendedBuilder create(array $attributes = [])
+ * @method static static create(array $attributes = [])
  */
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -88,6 +88,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             'custom_view_filters' => CustomViewFilter::class,
             'custom_view_sorts' => CustomViewSort::class,
             'custom_view_summaries' => CustomViewSummary::class,
+            'custom_view_grid_filters' => CustomViewGridFilter::class,
         ],
     ];
 

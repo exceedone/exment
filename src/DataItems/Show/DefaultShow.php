@@ -601,10 +601,11 @@ EOT;
         // show document list
         if (count($documents) > 0) {
             $html = [];
+            $allow_delete = config('exment.allow_delete_attachment', false);
             foreach ($documents as $index => $d) {
                 $html[] = "<p>" . view('exment::form.field.documentlink', [
                     'document' => $d,
-                    'candelete' => $this->custom_value->enableDelete(true) === true,
+                    'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
                 ])->render() . "</p>";
             }
             // loop and add as link

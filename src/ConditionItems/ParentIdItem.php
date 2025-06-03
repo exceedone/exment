@@ -18,9 +18,17 @@ class ParentIdItem extends SystemItem
      */
     public function setQuerySort($query, CustomViewSort $custom_view_sort)
     {
-        $view_column_target = 'parent_id';
+        $column_item = $custom_view_sort->column_item;
+        if (!isset($column_item)) {
+            return;
+        }
+
+        $view_column_target = $column_item->getCastWrapTableColumn('parent_id');
+        $sort_order = $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc';
+
         //set order
-        $query->orderby($view_column_target, $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc');
+        // $view_column_target is wraped
+        $query->orderByRaw("$view_column_target $sort_order");
     }
 
 

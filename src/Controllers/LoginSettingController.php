@@ -444,7 +444,7 @@ class LoginSettingController extends AdminControllerBase
      * Showing login test modal
      *
      * @param Request $request
-     * @param $id
+     * @param mixed $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function loginTestModal(Request $request, $id)
@@ -465,7 +465,7 @@ class LoginSettingController extends AdminControllerBase
      * execute login test for form
      *
      * @param Request $request
-     * @param $id
+     * @param mixed $id
      * @return mixed
      */
     public function loginTestForm(Request $request, $id)
@@ -479,7 +479,7 @@ class LoginSettingController extends AdminControllerBase
      * execute login test for SSO
      *
      * @param Request $request
-     * @param $id
+     * @param mixed $id
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function loginTestSso(Request $request, $id)
@@ -513,7 +513,7 @@ class LoginSettingController extends AdminControllerBase
      *
      * @param Request $request
      * @param Content $content
-     * @param $id
+     * @param mixed $id
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function loginTestCallback(Request $request, Content $content, $id)

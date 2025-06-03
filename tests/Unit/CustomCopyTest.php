@@ -18,6 +18,10 @@ class CustomCopyTest extends UnitTestBase
     use DatabaseTransactions;
     use CustomTableTrait;
 
+
+    /**
+     * @return void
+     */
     protected function init()
     {
         System::clearCache();
@@ -25,6 +29,8 @@ class CustomCopyTest extends UnitTestBase
 
     /**
      * copy to same table, all columns
+     *
+     * @return void
      */
     public function testCopySameTableAll()
     {
@@ -50,6 +56,8 @@ class CustomCopyTest extends UnitTestBase
 
     /**
      * copy to same table, input some columns
+     *
+     * @return void
      */
     public function testCopySameTableInput()
     {
@@ -75,6 +83,8 @@ class CustomCopyTest extends UnitTestBase
 
     /**
      * copy to another table, all columns
+     *
+     * @return void
      */
     public function testCopyOtherTableAll()
     {
@@ -95,6 +105,8 @@ class CustomCopyTest extends UnitTestBase
 
     /**
      * copy to another table, input some columns
+     *
+     * @return void
      */
     public function testCopyOtherTableInput()
     {
@@ -120,6 +132,8 @@ class CustomCopyTest extends UnitTestBase
 
     /**
      * delete custom table with copy setting
+     *
+     * @return void
      */
     public function testTableDeleteWithCopy()
     {
@@ -142,6 +156,12 @@ class CustomCopyTest extends UnitTestBase
         $this->assertCount(0, CustomCopyColumn::where('custom_copy_id', $id)->get());
     }
 
+    /**
+     * @param mixed $custom_value
+     * @param string $redirect
+     * @param array<mixed> $settings
+     * @return void
+     */
     protected function _compareCopyValue($custom_value, $redirect, $settings = [])
     {
         $path_array = explode('/', $redirect);
@@ -161,6 +181,10 @@ class CustomCopyTest extends UnitTestBase
         }
     }
 
+    /**
+     * @param array<string, mixed> $options
+     * @return \Exceedone\Exment\Model\CustomCopy.
+     */
     protected function _prepareCustomCopy(array $options = [])
     {
         $options = array_merge(
@@ -216,7 +240,7 @@ class CustomCopyTest extends UnitTestBase
      * @param mixed $custom_copy
      * @param mixed $custom_column
      * @param mixed $column_type
-     * @return array
+     * @return array<mixed>
      */
     protected function _getCustomCopyColumnInfo($custom_copy, $custom_column, $column_type = CopyColumnType::DEFAULT)
     {

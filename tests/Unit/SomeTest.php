@@ -13,6 +13,9 @@ use Exceedone\Exment\Tests\TestDefine;
  */
 class SomeTest extends UnitTestBase
 {
+    /**
+     * @return void
+     */
     public function testFloatDigit()
     {
         $this->assertMatch(floorDigit(37, 0), 37);
@@ -42,6 +45,9 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(36.29, 3), 36.29);
     }
 
+    /**
+     * @return void
+     */
     public function testFloatDigitMinus()
     {
         $this->assertMatch(floorDigit(-37, 0), -37);
@@ -71,6 +77,9 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(-36.29, 3), -36.29);
     }
 
+    /**
+     * @return void
+     */
     public function testFloatDigitZero()
     {
         $this->assertMatch(floorDigit(37, 0, true), '37');
@@ -100,6 +109,9 @@ class SomeTest extends UnitTestBase
         $this->assertMatch(floorDigit(36.29, 3, true), '36.290');
     }
 
+    /**
+     * @return void
+     */
     public function testFloatDigitZeroMinus()
     {
         $this->assertMatch(floorDigit(-37, 0, true), '-37');

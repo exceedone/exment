@@ -11,7 +11,7 @@ use Exceedone\Exment\Model\CustomColumn;
 class Plugin extends PluginViewBase
 {
     /**
-     *
+     * @return mixed
      */
     public function grid()
     {
@@ -21,6 +21,7 @@ class Plugin extends PluginViewBase
 
     /**
      * (2) このプラグイン独自のエンドポイント
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update()
     {
@@ -59,6 +60,10 @@ class Plugin extends PluginViewBase
     }
 
 
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
     protected function values()
     {
         $query = $this->custom_table->getValueQuery();
@@ -81,6 +86,10 @@ class Plugin extends PluginViewBase
     }
 
 
+    /**
+     * @param  mixed $items
+     * @return array<mixed>
+     */
     protected function getBoardItems($items)
     {
         $category = CustomColumn::getEloquent($this->custom_view->getCustomOption('category'));

@@ -23,6 +23,7 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(id), Summary(id), Filter(id)
+     * @return void
      */
     public function testFuncGroupId()
     {
@@ -60,6 +61,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(suuid), Summary(suuid/count)
+     *
+     * @return void
      */
     public function testFuncGroupSuuid()
     {
@@ -90,6 +93,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(text), Summary(integer/sum)
+     *
+     * @return void
      */
     public function testFuncGroupText()
     {
@@ -121,6 +126,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(integer), Summary(date/min)
+     *
+     * @return void
      */
     public function testFuncGroupInteger()
     {
@@ -152,6 +159,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(date), Summary(currency/min)
+     *
+     * @return void
      */
     public function testFuncGroupDate()
     {
@@ -187,6 +196,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(date/Y), Summary(decimal/sum)
+     *
+     * @return void
      */
     public function testFuncGroupDateY()
     {
@@ -224,6 +235,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(date/YM), Summary(currency/sum)
+     *
+     * @return void
      */
     public function testFuncGroupDateYM()
     {
@@ -262,6 +275,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(date/YMD), Summary(time/min)
+     *
+     * @return void
      */
     public function testFuncGroupDateYMD()
     {
@@ -300,6 +315,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(date/M), Summary(datetime/max)
+     *
+     * @return void
      */
     public function testFuncGroupDateM()
     {
@@ -337,6 +354,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(date/D), Summary(created_at/max)
+     *
+     * @return void
      */
     public function testFuncGroupDateD()
     {
@@ -377,6 +396,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(date/W), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupDateW()
     {
@@ -417,6 +438,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(date/Time), Summary(integer/max)
+     *
+     * @return void
      */
     public function testFuncGroupTime()
     {
@@ -451,6 +474,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(datetime), Summary(suuid/max)
+     *
+     * @return void
      */
     public function testFuncGroupDateTime()
     {
@@ -486,6 +511,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(datetime/YMD), Summary(decimal/max)
+     *
+     * @return void
      */
     public function testFuncGroupDateTimeYMD()
     {
@@ -523,6 +550,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupSelect()
     {
@@ -531,6 +560,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select_multiple), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupSelectMultiple()
     {
@@ -539,6 +570,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select_valtext), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupSelectValue()
     {
@@ -547,6 +580,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select_valtext_multiple), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupSelectValueMultiple()
     {
@@ -555,6 +590,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select_table), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupSelectTable()
     {
@@ -563,6 +600,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select_table_multiple), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupSelectTableMultiple()
     {
@@ -571,6 +610,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(yesno), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupYesNo()
     {
@@ -579,6 +620,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(boolean), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupBoolean()
     {
@@ -587,6 +630,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(auto_number), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupAutoNumber()
     {
@@ -595,6 +640,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(user), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupUser()
     {
@@ -603,6 +650,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(user_multiple), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupUserMultiple()
     {
@@ -611,6 +660,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(organization), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupOrganization()
     {
@@ -619,6 +670,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(organization_multiple), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupOrganizationMultiple()
     {
@@ -627,6 +680,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(created_at), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupCreatedAt()
     {
@@ -635,6 +690,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(created_at/YMD), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupCreatedAtYmd()
     {
@@ -645,6 +702,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(updated_at), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupUpdatedAt()
     {
@@ -653,6 +712,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(updated_at/YM), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupUpdatedAtYm()
     {
@@ -663,6 +724,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(created_user), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupCreatedUser()
     {
@@ -671,6 +734,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(updated_user), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupUpdatedUser()
     {
@@ -679,6 +744,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select_table.id), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupSelectTableId()
     {
@@ -692,6 +759,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select_table.yesno), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupSelectTableYesNo()
     {
@@ -704,6 +773,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(user.user_name), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupUserTableUserName()
     {
@@ -716,6 +787,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(organization.parent_organization), Summary(id/count)
+     *
+     * @return void
      */
     public function testFuncGroupOrgTableParentOrg()
     {
@@ -728,6 +801,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(parent:multiples_of_3), Summary(integer/sum/child_table)
+     *
+     * @return void
      */
     public function testFuncSummaryChild()
     {
@@ -762,6 +837,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(parent:date:YM), Min(date/child_table)
+     *
+     * @return void
      */
     public function testFuncSummaryChild2()
     {
@@ -803,6 +880,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(parent:multiples_of_3), Summary(integer/sum/child_table)
+     *
+     * @return void
      */
     public function testFuncSummaryChildDelete()
     {
@@ -839,7 +918,90 @@ class CustomViewSummaryTest extends UnitTestBase
     }
 
     /**
+     * FilterOption = Group(parent:user,order:2), Summary(integer/sum/child_table,order:1)
+     * bugfix: set order to child table column occurs exception. 
+     */
+    public function testFuncSummaryChildOrder()
+    {
+        $this->init();
+
+        $options = [
+            'target_table_name' => 'parent_table',
+            'column_settings' => [[
+                'column_name' => 'user',
+                'options' => [
+                    'sort_type' => 1,
+                    'sort_order' => 2,
+                ]
+            ]],
+            'summary_settings' => [[
+                'reference_table' => 'child_table',
+                'is_child' => true,
+                'column_name' => 'integer',
+                'summary_condition' => SummaryCondition::SUM,
+                'options' => [
+                    'sort_type' => 1,
+                    'sort_order' => 1,
+                ]
+            ]],
+        ];
+
+        $summaries = $this->getCustomViewSummary($options);
+
+        $defaults = $this->getCustomViewDataAll($options);
+
+        foreach ($summaries as $summary) {
+            $result = collect($defaults)->filter(function ($data) use ($summary) {
+                return $data['user'] == $summary['key'];
+            })->sum(function ($data) {
+                return collect($data['child_table.integer'])->sum();
+            });
+            $this->assertTrue($result == $summary['value']);
+        }
+    }
+
+    /**
+     * FilterOption = Group(parent:user,order:1), Summary(integer/sum/child_table)
+     * check if user sort by id as number
+     */
+    public function testFuncSummaryChildOrder2()
+    {
+        if (\Exment::isSqlServer()) {
+            $this->markTestSkipped('SQL Serverでは対象外のテストです。');
+        }
+
+        $this->init();
+
+        $options = [
+            'target_table_name' => 'parent_table',
+            'column_settings' => [[
+                'column_name' => 'user',
+                'options' => [
+                    'sort_type' => 1,
+                    'sort_order' => 1,
+                ]
+            ]],
+            'summary_settings' => [[
+                'reference_table' => 'child_table',
+                'is_child' => true,
+                'column_name' => 'integer',
+                'summary_condition' => SummaryCondition::SUM
+            ]],
+        ];
+
+        $summaries = $this->getCustomViewSummary($options);
+
+        $users = collect($summaries)->map(function($summary) {
+            return (int)$summary['key'];
+        });
+
+        $this->assertTrue($users->sort()->values()->toArray() === $users->values()->toArray());
+    }
+
+    /**
      * FilterOption = Group(select_table:date:YM), Sum(integer)
+     *
+     * @return void
      */
     public function testFuncSummarySelect()
     {
@@ -887,6 +1049,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(select_table:date:w), Sum(integer)
+     *
+     * @return void
      */
     public function testFuncSummarySelectDelete()
     {
@@ -938,6 +1102,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(parent_table.user), Summary(integer/max)
+     *
+     * @return void
      */
     public function testFuncGroupParent()
     {
@@ -971,6 +1137,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(parent_table.user, odd_even), Summary(integer/sum)
+     *
+     * @return void
      */
     public function testFuncGroupParentChild()
     {
@@ -1008,6 +1176,7 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(updated_user), Summary(id/count/child_table_n_n)
+     * @return void
      */
     public function testFuncSummaryChildNN()
     {
@@ -1044,6 +1213,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(odd_even), Summary(id/count/child_table_n_n)
+     *
+     * @return void
      */
     public function testFuncSummaryChildNNDelete()
     {
@@ -1082,6 +1253,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(odd_even), Summary(id/count/parent_table_n_n)
+     *
+     * @return void
      */
     public function testFuncSummaryParentNNDelete()
     {
@@ -1122,6 +1295,7 @@ class CustomViewSummaryTest extends UnitTestBase
 
     /**
      * FilterOption = Group(workflow_status), Summary(currency/sum)
+     * @return void
      */
     public function testFuncGroupWorkflow()
     {
@@ -1153,6 +1327,12 @@ class CustomViewSummaryTest extends UnitTestBase
         }
     }
 
+    /**
+     * @param string $column_name
+     * @param string $condition_type
+     * @param array<mixed> $column_options
+     * @return void
+     */
     protected function commonTestCount($column_name, $condition_type = ConditionType::COLUMN, $column_options = [])
     {
         $this->commonTestCountBase([
@@ -1162,6 +1342,10 @@ class CustomViewSummaryTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * @param array<string, mixed> $column_settings
+     * @return void
+     */
     protected function commonTestCountBase($column_settings)
     {
         $this->init();
@@ -1204,13 +1388,18 @@ class CustomViewSummaryTest extends UnitTestBase
                     }
                     return isMatchString($column_data, $summary['key']);
                 } else {
-                    return is_null($summary['key']) && (is_null($column_data));
+                    return is_null($summary['key']) && (empty($column_data));
                 }
             })->count();
             $this->assertTrue(isMatchString($summary['value'], $result));
         }
     }
 
+    /**
+     * @param mixed $datevalue
+     * @param string|null $format
+     * @return mixed
+     */
     protected function convertDateToString($datevalue, $format = null)
     {
         if (is_null($format)) {
@@ -1222,6 +1411,11 @@ class CustomViewSummaryTest extends UnitTestBase
         ];
         return $datevalue->format($dateStrings[strtolower($format)]);
     }
+
+    /**
+     * @param array<string, mixed> $options
+     * @return mixed
+     */
     protected function getCustomViewSummary($options)
     {
         return $this->getCustomViewData($options, ViewKindType::AGGREGATE)->map(function ($data) {
@@ -1234,6 +1428,10 @@ class CustomViewSummaryTest extends UnitTestBase
         });
     }
 
+    /**
+     * @param array<string, mixed> $options
+     * @return mixed
+     */
     protected function getCustomViewDataCount($options)
     {
         System::clearCache();
@@ -1243,6 +1441,10 @@ class CustomViewSummaryTest extends UnitTestBase
         return $this->getCustomViewData($options);
     }
 
+    /**
+     * @param array<string, mixed> $options
+     * @return mixed
+     */
     protected function getCustomViewDataAll($options)
     {
         System::clearCache();
@@ -1301,6 +1503,7 @@ class CustomViewSummaryTest extends UnitTestBase
                 }
                 $column_data = $this->getColumnValue($data, $column_name, $condition_type);
 
+                /** @phpstan-ignore-next-line Instanceof between Exceedone\Exment\Model\CustomValue|null and Illuminate\Support\Collection will always evaluate to false. */
                 if ($column_data instanceof \Illuminate\Support\Collection) {
                     $column_data = $column_data->map(function ($item) {
                         if ($item instanceof Model) {
@@ -1317,6 +1520,12 @@ class CustomViewSummaryTest extends UnitTestBase
         })->toArray();
     }
 
+    /**
+     * @param mixed $data
+     * @param string $column_name
+     * @param string|null $condition_type
+     * @return CustomValue|null
+     */
     protected function getColumnValue($data, $column_name, $condition_type)
     {
         $column_data = null;
@@ -1331,6 +1540,9 @@ class CustomViewSummaryTest extends UnitTestBase
         return $column_data;
     }
 
+    /**
+     * @return void
+     */
     protected function init()
     {
         $this->initAllTest();

@@ -7,28 +7,49 @@ use Exceedone\Exment\Enums\SystemRequireResult;
 
 class SystemRequireTest extends UnitTestBase
 {
+    /**
+     * @return null
+     */
     protected function init()
     {
         $this->initAllTest();
     }
 
 
+    /**
+     * @return null
+     */
     public function testMemoryValue()
     {
+        /** @phpstan-ignore-next-line Result of method
+         * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
+         * used.  */
         return $this->_test(SystemRequire\MemorySize::class, function () {
             return str_replace('m', '', str_replace('M', '', ini_get('memory_limit')));
         });
     }
 
+    /**
+     * @return null
+     */
     public function testFileUploadSize()
     {
+        /** @phpstan-ignore-next-line Result of method
+         * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
+         * used.  */
         return $this->_test(SystemRequire\FileUploadSize::class, function () {
             return  \Exment::getUploadMaxFileSize();
         });
     }
 
+    /**
+     * @return null
+     */
     public function testFilePermission()
     {
+        /** @phpstan-ignore-next-line Result of method
+         * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
+         * used.  */
         return $this->_test(SystemRequire\FilePermission::class, function () {
             return [];
         }, function ($value, $exceptValue) {
@@ -37,8 +58,14 @@ class SystemRequireTest extends UnitTestBase
     }
 
 
+    /**
+     * @return null
+     */
     public function testFilePermissionInstaller()
     {
+        /** @phpstan-ignore-next-line Result of method
+         * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
+         * used.  */
         return $this->_test(SystemRequire\FilePermissionInstaller::class, function () {
             return [];
         }, function ($value, $exceptValue) {
@@ -46,8 +73,14 @@ class SystemRequireTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return null
+     */
     public function testBackupRestore()
     {
+        /** @phpstan-ignore-next-line Result of method
+         * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
+         * used.  */
         return $this->_test(SystemRequire\BackupRestore::class, function () {
             if (\Exment::isSqlServer()) {
                 return SystemRequireResult::WARNING;
@@ -56,8 +89,14 @@ class SystemRequireTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return null
+     */
     public function testComposer()
     {
+        /** @phpstan-ignore-next-line Result of method
+         * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
+         * used.  */
         return $this->_test(SystemRequire\Composer::class, function () {
             //$command = 'composer --version';
             $command = 'composer%s --version';
@@ -73,14 +112,26 @@ class SystemRequireTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return null
+     */
     public function testComposerVersionMin()
     {
+        /** @phpstan-ignore-next-line Result of method
+         * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
+         * used.  */
         return $this->_test(SystemRequireTestComposerMin::class, function () {
             return SystemRequireResult::WARNING;
         });
     }
 
 
+    /**
+     * @param string $classname
+     * @param \Closure $exceptValueFunc
+     * @param \Closure|null $resultFunc
+     * @return void
+     */
     protected function _test($classname, \Closure $exceptValueFunc, ?\Closure $resultFunc = null)
     {
         $obj = new $classname();

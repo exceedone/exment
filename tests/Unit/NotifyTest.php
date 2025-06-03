@@ -22,6 +22,10 @@ class NotifyTest extends UnitTestBase
 {
     use TestTrait;
 
+    /**
+     * @param bool $fake
+     * @return void
+     */
     protected function init(bool $fake)
     {
         $this->initAllTest();
@@ -34,6 +38,9 @@ class NotifyTest extends UnitTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testNotifyMail()
     {
         $subject = 'テスト';
@@ -51,6 +58,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyMailTemplate()
     {
         /** @var mixed $mail_template */
@@ -70,6 +80,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyMailTemplateParams()
     {
         $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_2')->first();
@@ -92,6 +105,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyMail3()
     {
         $subject = 'テスト';
@@ -109,6 +125,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyMail4()
     {
         $subject = 'テスト';
@@ -126,6 +145,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyMail5()
     {
         $subject = 'テスト';
@@ -143,6 +165,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyMail6()
     {
         $subject = 'テスト';
@@ -160,6 +185,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyMail7()
     {
         $subject = 'テスト';
@@ -177,6 +205,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyMailDisdableHistory()
     {
         /** @var mixed $mail_template */
@@ -199,6 +230,9 @@ class NotifyTest extends UnitTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testNotifyMailAttachment()
     {
         $subject = 'テスト';
@@ -232,6 +266,9 @@ class NotifyTest extends UnitTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testNotifySlack()
     {
         $this->init(true);
@@ -258,6 +295,9 @@ class NotifyTest extends UnitTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testNotifyTeams()
     {
         $this->init(true);
@@ -283,6 +323,9 @@ class NotifyTest extends UnitTestBase
         );
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyNavbar()
     {
         $this->init(false);
@@ -304,6 +347,9 @@ class NotifyTest extends UnitTestBase
         $this->assertEquals(array_get($data, 'target_user_id'), $user->id);
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyUpdate()
     {
         sleep(1);
@@ -332,6 +378,10 @@ class NotifyTest extends UnitTestBase
     }
 
     // Test as executeNotifyAction ----------------------------------------------------
+
+    /**
+     * @return void
+     */
     public function testNotifyUpdateAction()
     {
         $this->init(false);
@@ -394,7 +444,11 @@ class NotifyTest extends UnitTestBase
     }
 
 
-
+    /**
+     * @param array<mixed> $params
+     * @param \Closure $checkCallback
+     * @return void
+     */
     protected function _testNotifyMail(array $params, \Closure $checkCallback)
     {
         $this->init(true);
@@ -582,6 +636,8 @@ class NotifyTest extends UnitTestBase
 
 
     /**
+     * @param array<string>|string $target_emails
+     * @param array<mixed>  $exceptUsers
      * @return void
      */
     protected function _testNotifyTargetFixedEmail($target_emails, array $exceptUsers)
@@ -604,9 +660,11 @@ class NotifyTest extends UnitTestBase
     }
 
 
-
-
     /**
+     * @param CustomTable $custom_table
+     * @param mixed $notify_action_target
+     * @param \Closure $checkCallback
+     * @param array<mixed> $action_setting
      * @return void
      */
     protected function _testNotifyTarget(CustomTable $custom_table, $notify_action_target, \Closure $checkCallback, array $action_setting = [])

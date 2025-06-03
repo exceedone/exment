@@ -20,6 +20,11 @@ use Exceedone\Exment\Tests\TestDefine;
 
 trait CustomViewTrait
 {
+    /**
+     * @param array<mixed> $options
+     * @param string $view_kind_type
+     * @return mixed
+     */
     protected function getCustomViewData(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
     {
         list($custom_view, $data) = $this->getCustomView($options, $view_kind_type);
@@ -27,6 +32,11 @@ trait CustomViewTrait
         return $data;
     }
 
+    /**
+     * @param array<mixed> $options
+     * @param string $view_kind_type
+     * @return array<mixed>
+     */
     protected function createCustomViewAll(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
     {
         $options = array_merge(
@@ -102,6 +112,11 @@ trait CustomViewTrait
         return [$custom_table, $custom_view];
     }
 
+    /**
+     * @param array<mixed> $options
+     * @param string $view_kind_type
+     * @return array<mixed>
+     */
     protected function getCustomView(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
     {
         $get_count = array_get($options, 'get_count')?? false;
@@ -133,6 +148,12 @@ trait CustomViewTrait
         return [$custom_view, $data];
     }
 
+    /**
+     * @param array<mixed> $setting
+     * @param mixed $custom_table
+     * @param bool $is_pivot
+     * @return int|mixed|null
+     */
     protected function getTargetColumnId($setting, $custom_table, $is_pivot = false)
     {
         if (!isset($setting['column_name'])) return null;
@@ -148,6 +169,12 @@ trait CustomViewTrait
         return $column_id;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @return array<mixed>
+     */
     protected function getViewSummaryInfo($custom_table, $custom_view, $column_setting)
     {
         $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
@@ -155,6 +182,13 @@ trait CustomViewTrait
         return $options;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @param int $index
+     * @return array<mixed>
+     */
     protected function getViewColumnInfo($custom_table, $custom_view, $column_setting, $index)
     {
         $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
@@ -162,6 +196,12 @@ trait CustomViewTrait
         return $options;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @return array<mixed>
+     */
     protected function getViewFilterInfo($custom_table, $custom_view, $column_setting)
     {
         $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
@@ -171,6 +211,12 @@ trait CustomViewTrait
         return $options;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @return array<mixed>
+     */
     protected function getViewSortInfo($custom_table, $custom_view, $column_setting)
     {
         $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
@@ -180,6 +226,12 @@ trait CustomViewTrait
         return $options;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @return array<mixed>
+     */
     protected function getViewColumnBase($custom_table, $custom_view, $column_setting)
     {
         if (isset($column_setting['reference_table'])) {
@@ -206,6 +258,14 @@ trait CustomViewTrait
         ];
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $view_type
+     * @param mixed $view_kind_type
+     * @param mixed $view_view_name
+     * @param array<mixed> $options
+     * @return \Exceedone\Exment\Model\CustomView
+     */
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
     {
         return CustomView::create([
@@ -217,6 +277,15 @@ trait CustomViewTrait
         ]);
     }
 
+    /**
+     * @param mixed $custom_view_id
+     * @param mixed $view_column_type
+     * @param mixed $view_column_table_id
+     * @param mixed $view_column_target_id
+     * @param mixed $view_filter_condition
+     * @param mixed $view_filter_condition_value_text
+     * @return CustomViewFilter
+     */
     protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text = null)
     {
         $custom_view_filter = new CustomViewFilter();
@@ -234,7 +303,7 @@ trait CustomViewTrait
     /**
      * Get column id for filter, column, etc
      *
-     * @param array $setting
+     * @param array<mixed> $setting
      * @param CustomTable $custom_table
      * @return string
      */

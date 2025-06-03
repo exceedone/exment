@@ -9,6 +9,10 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class PermissionValueTest extends UnitTestBase
 {
+    /**
+     * @param string $loginId
+     * @return void
+     */
     protected function init($loginId)
     {
         System::clearCache();
@@ -16,7 +20,9 @@ class PermissionValueTest extends UnitTestBase
         $this->be(LoginUser::find($loginId));
     }
 
-
+    /**
+     * @return void
+     */
     public function testCustomValueAllTableAdmin()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
@@ -27,6 +33,9 @@ class PermissionValueTest extends UnitTestBase
         $this->checkCustomValuePermission($custom_table, $ids);
     }
 
+    /**
+     * @return void
+     */
     public function testCustomValueFilterAdmin()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
@@ -38,6 +47,9 @@ class PermissionValueTest extends UnitTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testCustomValueAllTable()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_USER2);
@@ -48,6 +60,9 @@ class PermissionValueTest extends UnitTestBase
         $this->checkCustomValuePermission($custom_table, $ids);
     }
 
+    /**
+     * @return void
+     */
     public function testCustomValueFilter()
     {
         $this->init(TestDefine::TESTDATA_USER_LOGINID_USER2);

@@ -18,7 +18,7 @@ trait ColumnOptionQueryTrait
      * @param string $column_key
      * @param boolean $append_table if true, append table info to qeury
      * @param string $table_id target table id
-     * @param array $options
+     * @param array<mixed> $options
      * @return string
      */
     protected static function getOptionKey($column_key, $append_table = true, $table_id = null, $options = [])
@@ -26,11 +26,23 @@ trait ColumnOptionQueryTrait
         return \Exment::getOptionKey($column_key, $append_table, $table_id, $options);
     }
 
+    /**
+     * @param mixed $options
+     * @param mixed $key
+     * @param mixed $value
+     * @param mixed $table_view_name
+     * @return void
+     */
     protected static function setKeyValueOption(&$options, $key, $value, $table_view_name)
     {
         $options[$key] = static::getViewColumnLabel($value, $table_view_name);
     }
 
+    /**
+     * @param mixed $value
+     * @param mixed $table_view_name
+     * @return mixed|string
+     */
     protected static function getViewColumnLabel($value, $table_view_name)
     {
         return isset($table_view_name) ? $table_view_name . ' : ' . $value : $value;
@@ -39,7 +51,9 @@ trait ColumnOptionQueryTrait
     /**
      * Get params(custom_table, column_name etc) from query
      *
-     * @return array
+     * @param mixed $query
+     * @param mixed $defaultCustomTable
+     * @return array<mixed>
      */
     protected static function getOptionParams($query, $defaultCustomTable)
     {
@@ -67,7 +81,7 @@ trait ColumnOptionQueryTrait
      *
      * @param mixed $view_column_target
      * @param string|null $column_table_name_key
-     * @return array [$column_type, $column_table_id, $column_type_target]
+     * @return array<mixed> [$column_type, $column_table_id, $column_type_target]
      */
     protected function getViewColumnTargetItems($view_column_target, $column_table_name_key = 'custom_view')
     {
@@ -111,8 +125,8 @@ trait ColumnOptionQueryTrait
      * Get column's options (only parameter target column)
      *
      * @param string $table_name
-     * @param array $options
-     * @return array
+     * @param array<mixed> $options
+     * @return array<mixed>
      */
     protected function getColumnSelectOption(string $table_name, array $options): array
     {
@@ -127,8 +141,8 @@ trait ColumnOptionQueryTrait
      * Get column's options
      *
      * @param string $table_name
-     * @param array $options
-     * @return array
+     * @param array<mixed> $options
+     * @return array<mixed>
      */
     protected function getColumnSelectOptions(string $table_name, array $options = []): array
     {

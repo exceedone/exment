@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Storage;
  */
 class TestPluginDiskService extends PluginDiskService
 {
+    /**
+     * @param mixed $plugin
+     * @return void
+     */
     public function initDiskService($plugin)
     {
         $this->plugin = $plugin;

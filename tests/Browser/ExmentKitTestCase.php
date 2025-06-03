@@ -17,11 +17,15 @@ abstract class ExmentKitTestCase extends BaseTestCase
     use \Tests\CreatesApplication;
     use TestTrait;
 
+    /**
+     * @var string
+     */
     protected $baseUrl;
 
 
     /**
      * pre-excecute process before test.
+     * @return void
      */
     protected function setUp(): void
     {
@@ -34,7 +38,7 @@ abstract class ExmentKitTestCase extends BaseTestCase
     /**
      * Boot the testing helper traits.
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function setUpTraits()
     {
@@ -48,12 +52,21 @@ abstract class ExmentKitTestCase extends BaseTestCase
     }
 
     // ...
+
+    /**
+     * @param mixed|null $id
+     * @return void
+     */
     protected function login($id = null)
     {
         $this->be(LoginUser::find($id?? 1));
     }
 
 
+    /**
+     * @param string|int $code
+     * @return $this
+     */
     protected function matchStatusCode($code)
     {
         $this->assertTrue($code == $this->response->getStatusCode(), "Expects {$code}, but result is " . $this->response->getStatusCode());
@@ -80,7 +93,7 @@ abstract class ExmentKitTestCase extends BaseTestCase
      * Assert that a select cptions  an element.
      *
      * @param  string  $element
-     * @param  array  $options key: option's value, value: text
+     * @param  array<mixed>  $options key: option's value, value: text
      * @param  bool  $negate
      * @return $this
      */
@@ -93,7 +106,7 @@ abstract class ExmentKitTestCase extends BaseTestCase
      * Assert that a select options  an element.
      *
      * @param  string  $element
-     * @param  array  $options key: option's value, value: text
+     * @param  array<mixed>  $options key: option's value, value: text
      * @param  bool  $negate
      * @return $this
      */
