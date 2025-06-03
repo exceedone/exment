@@ -481,15 +481,20 @@ HTML;
             $form->select('unique1', exmtrans("custom_table.custom_column_multi.unique1"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
-                    'include_parent_id' => true
+                    'include_parent_id' => true,
+                    'ignore_many_to_many' => true
                 ]));
             $form->select('unique2', exmtrans("custom_table.custom_column_multi.unique2"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
+                    'include_parent_id' => true,
+                    'ignore_many_to_many' => true
                 ]));
             $form->select('unique3', exmtrans("custom_table.custom_column_multi.unique3"))
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
+                    'include_parent_id' => true,
+                    'ignore_many_to_many' => true
                 ]));
             $form->hidden('multisetting_type')->default(MultisettingType::MULTI_UNIQUES);
         })->setTableColumnWidth(4, 4, 3, 1)
