@@ -1408,7 +1408,7 @@ abstract class CustomValue extends ModelBase
     /**
      * get parent value
      */
-    public function getParentValue(?CustomRelation $custom_relation = null)
+    public function getParentValue(?CustomRelation $custom_relation = null, bool $noScope = false)
     {
         // if not has arg or custom relation is one to many
         if (!$custom_relation || $custom_relation->relation_type == RelationType::ONE_TO_MANY) {
@@ -1418,7 +1418,11 @@ abstract class CustomValue extends ModelBase
 
             $parent = CustomTable::getEloquent($this->parent_type);
             if (isset($parent)) {
-                $model = $parent->getValueModel($this->parent_id);
+                if ($noScope) {
+                    $model = $parent->getValueModel()->withoutGlobalScopes()->find($this->parent_id);
+                } else {
+                    $model = $parent->getValueModel($this->parent_id);
+                }
             }
 
             return $model ?? null;
@@ -1790,8 +1794,12 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::WORKFLOW_LOCK();
         }
 
-        if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true) {
-            return $code;
+        if (!is_null($parent_value = $this->getParentValue())) {
+            if ($code = $parent_value->enableAccess() !== true) {
+                return $code;
+            } elseif ($parent_value->lockedWorkflow()) {
+                return ErrorCode::WORKFLOW_LOCK();
+            }
         }
 
         if ($this->trashed()) {
@@ -1830,8 +1838,12 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::DELETE_DISABLED();
         }
 
-        if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true) {
-            return $code;
+        if (!is_null($parent_value = $this->getParentValue())) {
+            if ($code = $parent_value->enableAccess() !== true) {
+                return $code;
+            } elseif ($parent_value->lockedWorkflow()) {
+                return ErrorCode::WORKFLOW_LOCK();
+            }
         }
 
         return true;
