@@ -79,7 +79,7 @@ class CustomValueModelScope implements Scope
             // get only has role
             $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
 
-            $builder->where(function($builder) use($user, $enum, $db_table_name, $inherit_parent) {
+            $builder->where(function($builder) use($user, $enum, $db_table_name, $inherit_parent, $parent_table) {
                 $builder->whereHas('custom_value_authoritables', function ($builder) use ($user, $enum) {
                     $builder->whereInMultiple(
                         ['authoritable_user_org_type', 'authoritable_target_id'],
@@ -87,7 +87,7 @@ class CustomValueModelScope implements Scope
                         true
                     );
                 });
-                if ($inherit_parent) {
+                if ($inherit_parent && $parent_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                     $builder->orWhere(function($builder) use ($user, $enum, $db_table_name) {
                         $builder->whereExists(function ($builder) use ($user, $enum, $db_table_name) {
                             $builder->select(\DB::raw(1))

@@ -1794,12 +1794,8 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::WORKFLOW_LOCK();
         }
 
-        if (!is_null($parent_value = $this->getParentValue())) {
-            if ($code = $parent_value->enableAccess() !== true) {
-                return $code;
-            } elseif ($parent_value->lockedWorkflow()) {
-                return ErrorCode::WORKFLOW_LOCK();
-            }
+        if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true) {
+            return $code;
         }
 
         if ($this->trashed()) {
@@ -1838,12 +1834,8 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::DELETE_DISABLED();
         }
 
-        if (!is_null($parent_value = $this->getParentValue())) {
-            if ($code = $parent_value->enableAccess() !== true) {
-                return $code;
-            } elseif ($parent_value->lockedWorkflow()) {
-                return ErrorCode::WORKFLOW_LOCK();
-            }
+        if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true) {
+            return $code;
         }
 
         return true;

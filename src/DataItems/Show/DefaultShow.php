@@ -170,11 +170,9 @@ class DefaultShow extends ShowBase
                     $tools->disableList();
                 }
 
-                if (!is_null($parent_value = $this->custom_value->getParentValue(null, true))) {
-                    if ($parent_value->enableAccess() !== true || $parent_value->lockedWorkflow()) {
-                        $tools->disableEdit();
-                        $tools->disableDelete();
-                    }
+                if (!is_null($parent_value = $this->custom_value->getParentValue(null, true)) && $parent_value->enableEdit(true) !== true) {
+                    $tools->disableEdit();
+                    $tools->disableDelete();
                 }
 
                 if ($this->modal) {
@@ -274,8 +272,8 @@ class DefaultShow extends ShowBase
                                 'redirectUrl' => admin_urls("data", $this->custom_table->table_name),
                             ]));
 
-                        // if parent data does not exist or has not been deleted 
-                        if (!$parent_value || !$parent_value->trashed()) {
+                            // if parent data does not exist or has not been deleted 
+                            if (!$parent_value || !$parent_value->trashed()) {
                                 // add restore button
                                 $tools->prepend(new Tools\SwalInputButton([
                                     'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "restoreClick"),
