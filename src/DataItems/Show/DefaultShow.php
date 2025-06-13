@@ -170,7 +170,7 @@ class DefaultShow extends ShowBase
                     $tools->disableList();
                 }
 
-                if (!is_null($parent_value = $this->custom_value->getParentValue()) && $parent_value->enableEdit(true) !== true) {
+                if (!is_null($parent_value = $this->custom_value->getParentValue(null, true)) && $parent_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                     $tools->disableDelete();
                 }
@@ -238,9 +238,12 @@ class DefaultShow extends ShowBase
                                 $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $this->custom_value->id));
                             }
                         }
-                        foreach ($operations as $operation) {
-                            if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
-                                $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
+
+                        if ($enableEdit === true) {
+                            foreach ($operations as $operation) {
+                                if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
+                                    $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
+                                }
                             }
                         }
 
@@ -269,15 +272,18 @@ class DefaultShow extends ShowBase
                                 'redirectUrl' => admin_urls("data", $this->custom_table->table_name),
                             ]));
 
-                            // add restore button
-                            $tools->prepend(new Tools\SwalInputButton([
-                                'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "restoreClick"),
-                                'label' => exmtrans('custom_value.restore'),
-                                'icon' => 'fa-undo',
-                                'btn_class' => 'btn-warning',
-                                'title' => exmtrans('custom_value.message.restore'),
-                                'method' => 'get',
-                            ]));
+                            // if parent data does not exist or has not been deleted 
+                            if (!$parent_value || !$parent_value->trashed()) {
+                                // add restore button
+                                $tools->prepend(new Tools\SwalInputButton([
+                                    'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "restoreClick"),
+                                    'label' => exmtrans('custom_value.restore'),
+                                    'icon' => 'fa-undo',
+                                    'btn_class' => 'btn-warning',
+                                    'title' => exmtrans('custom_value.message.restore'),
+                                    'method' => 'get',
+                                ]));
+                            }
                         }
                     }
 

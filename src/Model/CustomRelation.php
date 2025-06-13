@@ -317,6 +317,15 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         static::deleting(function ($model) {
             // Delete items
             $model->deletingChildren();
+            // Clear child table option (inherit parent permission)
+            if ($model->relation_type == RelationType::ONE_TO_MANY) {
+                $child_table = $model->child_custom_table;
+                if (boolval($child_table->getOption('inherit_parent_permission'))) {
+                    $child_table->setOption('inherit_parent_permission');
+                    $child_table->save();
+                }
+                return;
+            }
         });
     }
 

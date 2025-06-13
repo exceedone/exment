@@ -2921,7 +2921,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        $result = $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+
+        // check parent data permission
+        if ($result !== true && isset($id) && boolval($this->getOption('inherit_parent_permission'))) {
+            $relation = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
+            if (!empty($relation)) {
+                $parent_table = $relation->parent_custom_table;
+                if (isset($parent_table)) {
+                    if (is_numeric($id)) {
+                        $model = $this->getValueModel($id);
+                    } else {
+                        $model = $id;
+                    }
+                    if ($model instanceof CustomValue && $parent_value = $model->getParentValue(null, true)) {
+                        $result = $parent_table->hasPermissionData($parent_value);
+                    }
+                }
+            }
+        }
+        return $result;
     }
 
     /**
