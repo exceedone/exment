@@ -18,7 +18,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Validator as ExmentValidator;
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
 use Carbon\Carbon;
@@ -26,7 +26,7 @@ use Carbon\Carbon;
 /**
  * For login controller
  */
-class AuthController extends \Encore\Admin\Controllers\AuthController
+class AuthController extends \OpenAdminCore\Admin\Controllers\AuthController
 {
     use AuthTrait;
 

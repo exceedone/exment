@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 use Exceedone\Exment\Enums\CurrencySymbol;
 
 class Currency extends Decimal

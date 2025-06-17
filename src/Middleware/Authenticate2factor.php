@@ -6,7 +6,7 @@ use Closure;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 
-class Authenticate2factor extends \Encore\Admin\Middleware\Authenticate
+class Authenticate2factor extends \OpenAdminCore\Admin\Middleware\Authenticate
 {
     /**
      * Handle an incoming request.

@@ -2,7 +2,7 @@
 
 namespace App\Plugins\TestPluginView;
 
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 use Exceedone\Exment\Services\Plugin\PluginViewBase;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomTable;

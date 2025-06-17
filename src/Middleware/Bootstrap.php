@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
-use Encore\Admin\Facades\Admin as Ad;
+use OpenAdminCore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
 
@@ -39,7 +39,7 @@ class Bootstrap
             return;
         }
 
-        Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
+        Ad::navbar(function (\OpenAdminCore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
             $navbar->left(new \Exceedone\Exment\Form\Navbar\Hidden());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav());

@@ -12,13 +12,13 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
-//use Encore\Admin\Controllers\HasResourceActions;
-use Encore\Admin\Form;
-use Encore\Admin\Layout\Column;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Tree;
-use Encore\Admin\Widgets\Box;
+//use OpenAdminCore\Admin\Controllers\HasResourceActions;
+use OpenAdminCore\Admin\Form;
+use OpenAdminCore\Admin\Layout\Column;
+use OpenAdminCore\Admin\Layout\Content;
+use OpenAdminCore\Admin\Layout\Row;
+use OpenAdminCore\Admin\Tree;
+use OpenAdminCore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -45,13 +45,13 @@ class MenuController extends AdminControllerBase
                 $row->column(5, $this->treeView()->render());
 
                 $row->column(7, function (Column $column) {
-                    $form = new \Encore\Admin\Widgets\Form();
+                    $form = new \OpenAdminCore\Admin\Widgets\Form();
                     $form->action(admin_url('auth/menu'));
 
                     $this->createMenuForm($form);
                     $form->hidden('_token')->default(csrf_token());
 
-                    /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
+                    /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
                     $column->append((new Box(trans('admin.new'), $form))->style('success'));
                 });
             });
@@ -83,7 +83,7 @@ class MenuController extends AdminControllerBase
     }
 
     /**
-     * @return \Encore\Admin\Tree
+     * @return \OpenAdminCore\Admin\Tree
      */
     protected function treeView()
     {

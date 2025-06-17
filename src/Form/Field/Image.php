@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class Image extends \Encore\Admin\Form\Field\Image
+class Image extends \OpenAdminCore\Admin\Form\Field\Image
 {
     /**
      *  Validation rules.

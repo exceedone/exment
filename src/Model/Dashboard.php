@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Encore\Admin\Facades\Admin;
+use OpenAdminCore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Permission;

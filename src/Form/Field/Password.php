@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class Password extends \Encore\Admin\Form\Field\Password
+class Password extends \OpenAdminCore\Admin\Form\Field\Password
 {
     protected $showToggleIcon = false;
 

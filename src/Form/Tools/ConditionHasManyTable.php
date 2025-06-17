@@ -14,7 +14,7 @@ class ConditionHasManyTable
     /**
      * laravel-admin form
      *
-     * @var \Encore\Admin\Form
+     * @var \OpenAdminCore\Admin\Form
      */
     protected $form;
 
@@ -167,7 +167,7 @@ class ConditionHasManyTable
                 $form->select($condition_key_name, $this->condition_key_label)
                 ->required()
                 // ignore HasOptionRule.
-                ->removeRules(\Encore\Admin\Validator\HasOptionRule::class)
+                ->removeRules(\OpenAdminCore\Admin\Validator\HasOptionRule::class)
                 ->options(function ($val, $select, $model) use ($condition_target_name, $filterKind) {
                     if (!isset($val)) {
                         return [];

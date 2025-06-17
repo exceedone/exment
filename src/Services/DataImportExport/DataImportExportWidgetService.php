@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
-use Encore\Admin\Widgets\Grid\Exporters\AbstractExporter;
+use OpenAdminCore\Admin\Widgets\Grid\Exporters\AbstractExporter;
 
 /**
  * Data import export service for widget grid.

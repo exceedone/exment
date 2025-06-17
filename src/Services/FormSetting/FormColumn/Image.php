@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
-use Encore\Admin\Widgets\Form as WidgetForm;
+use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Model\File as ExmentFile;
 
 /**

@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Validator;
@@ -83,7 +83,7 @@ class Yesno extends CustomItem
 
     protected function getRemoveValidates()
     {
-        return [\Encore\Admin\Validator\HasOptionRule::class];
+        return [\OpenAdminCore\Admin\Validator\HasOptionRule::class];
     }
 
     /**

@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use OpenAdminCore\Admin\Layout\Content;
+use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
+use OpenAdminCore\Admin\Widgets\Box;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -118,7 +118,7 @@ class BackupController extends AdminControllerBase
             ->min(0)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
-        /** @phpstan-ignore-next-line  constructor expects string, Encore\Admin\Widgets\Form given. */
+        /** @phpstan-ignore-next-line  constructor expects string, OpenAdminCore\Admin\Widgets\Form given. */
         return new Box(exmtrans("backup.setting_header"), $form);
     }
 

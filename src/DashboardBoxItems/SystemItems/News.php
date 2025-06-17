@@ -4,7 +4,7 @@ namespace Exceedone\Exment\DashboardBoxItems\SystemItems;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Encore\Admin\Widgets\Table as WidgetTable;
+use OpenAdminCore\Admin\Widgets\Table as WidgetTable;
 use Carbon\Carbon;
 
 class News

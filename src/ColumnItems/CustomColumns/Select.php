@@ -6,9 +6,9 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\FilterOption;
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Field\RadioButton;
-use Encore\Admin\Form\Field;
+use OpenAdminCore\Admin\Form\Field;
 
 class Select extends CustomItem
 {
@@ -131,7 +131,7 @@ class Select extends CustomItem
 
     protected function getRemoveValidates()
     {
-        return [\Encore\Admin\Validator\HasOptionRule::class];
+        return [\OpenAdminCore\Admin\Validator\HasOptionRule::class];
     }
 
     protected function setAdminFilterOptions(&$filter)

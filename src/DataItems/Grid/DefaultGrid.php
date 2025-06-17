@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\DataItems\Grid;
 
-use Encore\Admin\Grid;
-use Encore\Admin\Grid\Linker;
+use OpenAdminCore\Admin\Grid;
+use OpenAdminCore\Admin\Grid\Linker;
 use Exceedone\Exment\Grid\Tools as GridTools;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\SelectItemBox;
@@ -24,7 +24,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 // todo 一覧ソートバグ対応用の追加です
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -443,7 +443,7 @@ class DefaultGrid extends GridBase
             if ($import === true || $export === true) {
                 // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
                 $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $export === true, $import === true, $export === true);
-                /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
+                /** @phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
                 $tools->append($button->setCustomTable($this->custom_table));
             }
 
@@ -453,11 +453,11 @@ class DefaultGrid extends GridBase
 
             // add page change button(contains view seting)
             if ($this->custom_table->enableTableMenuButton()) {
-                /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+                /** @phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
                 $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
             }
             if ($this->custom_table->enableViewMenuButton()) {
-                /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
+                /** @phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
                 $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
             }
 

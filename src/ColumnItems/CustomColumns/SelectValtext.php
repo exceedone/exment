@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\Validator;
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 
 class SelectValtext extends Select
 {

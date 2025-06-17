@@ -76,7 +76,7 @@ trait ExportCommandTrait
      * Get export action
      *
      * @param CustomTable $custom_table
-     * @param \Encore\Admin\Grid $grid
+     * @param \OpenAdminCore\Admin\Grid $grid
      * @param array $options
      * @return \Exceedone\Exment\Services\DataImportExport\Actions\Export\ActionInterface
      */

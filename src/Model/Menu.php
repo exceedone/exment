@@ -6,7 +6,7 @@ use Exceedone\Exment\Database\Query\Grammars\SqlServerGrammar;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\TemplateImportResult;
-use Encore\Admin\Auth\Database\Menu as AdminMenu;
+use OpenAdminCore\Admin\Auth\Database\Menu as AdminMenu;
 use Illuminate\Support\Facades\DB;
 
 /**

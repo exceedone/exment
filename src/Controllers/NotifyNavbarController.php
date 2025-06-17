@@ -2,12 +2,12 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Grid\Linker;
+use OpenAdminCore\Admin\Form;
+use OpenAdminCore\Admin\Grid;
+use OpenAdminCore\Admin\Grid\Linker;
 use Exceedone\Exment\Model\CustomValue;
 use Illuminate\Http\Request;
-use Encore\Admin\Show;
+use OpenAdminCore\Admin\Show;
 use Exceedone\Exment\Form\Tools\SwalMenuButton;
 use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
@@ -46,7 +46,7 @@ class NotifyNavbarController extends AdminControllerBase
         $grid->disableExport();
 
         $grid->tools(function (Grid\Tools $tools) {
-            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\SwalMenuButton given */
+            /** @phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\SwalMenuButton given */
             $tools->append(new SwalMenuButton($this->getMenuList()));
             $tools->batch(function (Grid\Tools\BatchActions $batch) {
                 $batch->add(exmtrans('notify_navbar.all_check'), new BatchCheck());

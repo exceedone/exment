@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class Text extends \Encore\Admin\Form\Field\Text
+class Text extends \OpenAdminCore\Admin\Form\Field\Text
 {
     public function render()
     {

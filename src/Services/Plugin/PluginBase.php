@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\Plugin;
 
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 
 trait PluginBase
 {

@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\Permission;
 
-class AuthenticatePluginApi extends \Encore\Admin\Middleware\Authenticate
+class AuthenticatePluginApi extends \OpenAdminCore\Admin\Middleware\Authenticate
 {
     /**
      * Handle an incoming request.

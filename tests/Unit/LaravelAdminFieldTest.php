@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Middleware\Initialize;
-use Encore\Admin\Widgets\Form;
+use OpenAdminCore\Admin\Widgets\Form;
 use Tests\TestCase;
 
 class LaravelAdminFieldTest extends TestCase

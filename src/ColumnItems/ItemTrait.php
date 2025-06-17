@@ -12,7 +12,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Grid\Filter as ExmFilter;
 use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
-use Encore\Admin\Show\Field as ShowField;
+use OpenAdminCore\Admin\Show\Field as ShowField;
 use Illuminate\Contracts\Database\Query\Builder;
 
 /**

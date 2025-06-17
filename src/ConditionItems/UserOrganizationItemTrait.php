@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Encore\Admin\Form\Field;
+use OpenAdminCore\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomTable;
 
 trait UserOrganizationItemTrait

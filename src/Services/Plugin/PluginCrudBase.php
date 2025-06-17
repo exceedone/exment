@@ -4,11 +4,11 @@ namespace Exceedone\Exment\Services\Plugin;
 
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Encore\Admin\Widgets\Grid\Grid;
-use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Layout\Content;
+use OpenAdminCore\Admin\Widgets\Grid\Grid;
+use OpenAdminCore\Admin\Widgets\Form;
+use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
+use OpenAdminCore\Admin\Widgets\Box;
+use OpenAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 
 /**

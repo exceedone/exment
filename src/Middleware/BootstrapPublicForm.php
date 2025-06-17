@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
-use Encore\Admin\Facades\Admin as Ad;
+use OpenAdminCore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Model\PublicForm;
 
 /**

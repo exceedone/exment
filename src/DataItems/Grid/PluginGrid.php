@@ -2,12 +2,12 @@
 
 namespace Exceedone\Exment\DataItems\Grid;
 
-use Encore\Admin\Grid;
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Grid;
+use OpenAdminCore\Admin\Form;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
-use Encore\Admin\Widgets\Box;
+use OpenAdminCore\Admin\Widgets\Box;
 
 class PluginGrid extends GridBase
 {

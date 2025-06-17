@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field\Hidden;
+use OpenAdminCore\Admin\Form\Field\Hidden;
 
 /**
  * Gooele ReCaptcha

@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Services\Installer;
 
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
+use OpenAdminCore\Admin\Widgets\Box;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
@@ -129,7 +129,7 @@ trait InitializeFormTrait
             ->attribute(['data-senddata' => json_encode(['test_mail_to'])])
             ->button_label(exmtrans('system.submit_test_mail'))
             ->send_params('test_mail_to');
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
         return new Box(exmtrans("system.submit_test_mail"), $form);
     }
 

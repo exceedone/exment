@@ -4,9 +4,9 @@ namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\MessageBag;
-use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
+use OpenAdminCore\Admin\Widgets\Form;
+use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
+use OpenAdminCore\Admin\Widgets\Box;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 
@@ -93,7 +93,7 @@ class CrudForm extends CrudBase
     protected function form(bool $isCreate, $id = null)
     {
         $form = $this->getForm($isCreate, $id);
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
         $box = new Box(trans($isCreate ? 'admin.create' : 'admin.edit'), $form);
         $box->style('info');
         $this->setFormTools($id, $box);

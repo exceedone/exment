@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
-use Encore\Admin\Widgets\Form as WidgetForm;
+use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
 
 /**
  */

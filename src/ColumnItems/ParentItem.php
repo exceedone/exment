@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use Encore\Admin\Form\Field\Select;
-use Encore\Admin\Form\Field\MultipleSelect;
+use OpenAdminCore\Admin\Form\Field\Select;
+use OpenAdminCore\Admin\Form\Field\MultipleSelect;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Enums\FilterType;

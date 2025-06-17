@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Middleware;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\PublicForm;
 
-class PublicFormSession extends \Encore\Admin\Middleware\Session
+class PublicFormSession extends \OpenAdminCore\Admin\Middleware\Session
 {
     /**
      * Get session path

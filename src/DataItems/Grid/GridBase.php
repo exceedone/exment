@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\DataItems\Grid;
 
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
+use OpenAdminCore\Admin\Form;
+use OpenAdminCore\Admin\Grid;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;

@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
-use Encore\Admin\Form;
-use Encore\Admin\Widgets\Form as WidgetForm;
+use OpenAdminCore\Admin\Form;
+use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\FormLabelType;

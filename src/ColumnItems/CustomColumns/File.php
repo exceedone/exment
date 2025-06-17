@@ -3,8 +3,8 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use Encore\Admin\Form;
-use Encore\Admin\Form\Field;
+use OpenAdminCore\Admin\Form;
+use OpenAdminCore\Admin\Form\Field;
 use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;

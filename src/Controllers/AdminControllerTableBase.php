@@ -3,17 +3,17 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
-use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Layout\Content;
+use OpenAdminCore\Admin\Auth\Permission as Checker;
+use OpenAdminCore\Admin\Facades\Admin;
+use OpenAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use App\Http\Controllers\Controller;
 
 /**
  * Admin(Exment) Controller for root-table
  *
-* @method \Encore\Admin\Grid grid()
-* @method \Encore\Admin\Form form($id = null)
+* @method \OpenAdminCore\Admin\Grid grid()
+* @method \OpenAdminCore\Admin\Form form($id = null)
  */
 abstract class AdminControllerTableBase extends Controller
 {

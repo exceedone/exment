@@ -5,8 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Services\DataImportExport;
-use Encore\Admin\Grid;
-use Encore\Admin\Show;
+use OpenAdminCore\Admin\Grid;
+use OpenAdminCore\Admin\Show;
 use Illuminate\Support\Arr;
 use Carbon\Carbon;
 
@@ -68,7 +68,7 @@ class LogController extends AdminControllerBase
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $button = new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true, false);
             $button->setBaseKey('common');
-            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
+            /** @phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
             $tools->append($button);
         });
 

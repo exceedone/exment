@@ -4,7 +4,7 @@ namespace Exceedone\Exment\PartialCrudItems\Providers;
 
 use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Enums\SystemTableName;
-use Encore\Admin\Tree;
+use OpenAdminCore\Admin\Tree;
 
 /**
  * OrgazanizationTreeItem

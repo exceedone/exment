@@ -14,15 +14,15 @@ parameters:
         - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
         -
-            message: "#^Call to an undefined method Encore\\\\Admin.#"
+            message: "#^Call to an undefined method OpenAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*
 
         -
-            message: "#^Method Encore\\\\Admin.#"
+            message: "#^Method OpenAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*
 
         -
-            message: "#^Access to an undefined property Encore\\\\Admin.#"
+            message: "#^Access to an undefined property OpenAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*
 
         -

@@ -4,8 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Illuminate\Database\Eloquent\Builder;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Grid\Linker;
+use OpenAdminCore\Admin\Facades\Admin;
+use OpenAdminCore\Admin\Grid\Linker;
 use Exceedone\Exment\Services\Search\SearchService;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ViewType;

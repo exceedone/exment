@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission as PermissionEnum;
-use Encore\Admin\Auth\Permission as AdminPermission;
+use OpenAdminCore\Admin\Auth\Permission as AdminPermission;
 
 class Permission
 {

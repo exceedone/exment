@@ -2,13 +2,13 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Widgets\Box;
-use Encore\Admin\Grid;
+use OpenAdminCore\Admin\Form;
+use OpenAdminCore\Admin\Auth\Permission as Checker;
+use OpenAdminCore\Admin\Facades\Admin;
+use OpenAdminCore\Admin\Layout\Content;
+use OpenAdminCore\Admin\Layout\Row;
+use OpenAdminCore\Admin\Widgets\Box;
+use OpenAdminCore\Admin\Grid;
 use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
@@ -183,7 +183,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
-                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
+                /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Form given */
                 $row = new Row($form);
             }
             // no record
@@ -195,7 +195,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
-                /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given*/
+                /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Form given*/
                 $row = new Row($form);
             }
 
@@ -319,7 +319,7 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
+        /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Form given */
         $row = new Row($form);
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([
@@ -364,7 +364,7 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::EDIT,
             'custom_value' => $custom_value
         ]);
-        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Form given */
+        /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Form given */
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $row->attribute([

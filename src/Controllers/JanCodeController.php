@@ -8,10 +8,10 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\DataScanSubmitRedirect;
 use Exceedone\Exment\Model\CustomForm;
 use Illuminate\Support\Facades\DB;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Layout\Row;
-use Encore\Admin\Grid;
-use Encore\Admin\Widgets\Grid\Column;
+use OpenAdminCore\Admin\Layout\Content;
+use OpenAdminCore\Admin\Layout\Row;
+use OpenAdminCore\Admin\Grid;
+use OpenAdminCore\Admin\Widgets\Grid\Column;
 
 class JanCodeController extends Controller
 {

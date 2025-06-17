@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field\Workflow;
 
-use Encore\Admin\Form\Field\Select;
+use OpenAdminCore\Admin\Form\Field\Select;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 
 class Options extends Select

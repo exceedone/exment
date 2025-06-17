@@ -4,11 +4,11 @@ namespace Exceedone\Exment\DashboardBoxItems\SystemItems;
 
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Define;
-use Encore\Admin\Grid\Linker;
+use OpenAdminCore\Admin\Grid\Linker;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\NotifyNavbar as NotifyNavbarModel;
-use Encore\Admin\Widgets\Table as WidgetTable;
+use OpenAdminCore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Support\Collection;
 
 class NotifyNavbar

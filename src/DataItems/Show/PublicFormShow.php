@@ -2,12 +2,12 @@
 
 namespace Exceedone\Exment\DataItems\Show;
 
-use Encore\Admin\Form;
+use OpenAdminCore\Admin\Form;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Form\Show as PublicShow;
-use Encore\Admin\Show\Field as ShowField;
+use OpenAdminCore\Admin\Show\Field as ShowField;
 use Exceedone\Exment\ColumnItems\ItemInterface;
 use Illuminate\Database\Eloquent\Relations;
 
