@@ -26,109 +26,48 @@
 @endif
 
 @once
-    <style>
-    .treeview .has-subs::after {
-        content: '\f054';
-        font-family: 'Font Awesome 5 Free';
-        font-weight: 900;
-        float: right;
-        transition: transform 0.3s;
-        top: 19px !important;
-    }
-
-    .treeview .has-subs.active::after {
-        transform: rotate(135deg);
-    }
-    </style>
-
     <script>
-    if (!window.menuScriptInitialized) {
-        window.menuScriptInitialized = true;
-
         document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.has-subs').forEach(function (toggleLink, index) {
-                toggleLink.removeEventListener('click', handleSubmenuClick);
-                toggleLink.addEventListener('click', handleSubmenuClick);
 
-            });
+            document.querySelectorAll('.has-subs').forEach(function (toggleLink) {
+                toggleLink.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-            function handleSubmenuClick(e) {
-                e.preventDefault();
-                e.stopPropagation(); 
+                    const targetId = this.getAttribute('data-target');
+                    const submenu = document.querySelector(targetId);
+                    const menuItem = this.closest('.menu-item');
 
-
-                const targetId = this.getAttribute('data-target');
-                const submenu = document.querySelector(targetId);
-                const menuItem = this.closest('.menu-item');
-
-
-                if (!submenu) {
-                    console.error('Submenu not found for ID:', targetId);
-                    return;
-                }
-
-                const currentDisplay = submenu.style.display || getComputedStyle(submenu).display;
-
-                
-                document.querySelectorAll('.submenu').forEach(function (otherSubmenu) {
-                    if (otherSubmenu !== submenu) {
-                        otherSubmenu.style.display = 'none';
+                    if (!submenu) {
+                        console.error('Submenu not found for ID:', targetId);
+                        return;
                     }
-                });
-                document.querySelectorAll('.has-subs').forEach(function (otherLink) {
-                    if (otherLink !== this) {
-                        otherLink.classList.remove('active');
-                    }
-                }, this);
-                document.querySelectorAll('.menu-item').forEach(function (otherItem) {
-                    if (otherItem !== menuItem) {
-                        otherItem.classList.remove('active');
-                    }
-                });
 
-                if (currentDisplay === 'none' || currentDisplay === '') {
-                    submenu.style.display = 'block';
-                    this.classList.add('active');
-                    menuItem.classList.add('active');
-                } else {
-                    submenu.style.display = 'none';
-                    this.classList.remove('active');
-                    menuItem.classList.remove('active');
-                }
+                    const currentDisplay = submenu.style.display || getComputedStyle(submenu).display;
 
-                
-            }
-
-            document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (menuItem, index) {
-                menuItem.removeEventListener('click', handleMenuItemClick);
-                menuItem.addEventListener('click', handleMenuItemClick);
-
-            });
-
-            function handleMenuItemClick(e) {
-                e.stopPropagation(); 
-
-                const isInSubmenu = this.closest('.submenu') !== null;
-
-                if (isInSubmenu) {
-                    document.querySelectorAll('.menu-item:not(.treeview)').forEach(function (item) {
-                        item.classList.remove('active');
+                    document.querySelectorAll('.submenu').forEach(function (otherSubmenu) {
+                        if (otherSubmenu !== submenu) {
+                            otherSubmenu.style.display = 'none';
+                            const otherSubmenuId = otherSubmenu.id;
+                            const otherToggleLink = document.querySelector(`[data-target="#${otherSubmenuId}"]`);
+                            const otherMenuItem = otherToggleLink ? otherToggleLink.closest('.menu-item') : null;
+                            if (otherToggleLink) otherToggleLink.classList.remove('active');
+                            if (otherMenuItem) otherMenuItem.classList.remove('active');
+                        }
                     });
-                } else {
-                    document.querySelectorAll('.menu-item').forEach(function (item) {
-                        item.classList.remove('active');
-                    });
-                    document.querySelectorAll('.submenu').forEach(function (submenu) {
+
+                    if (currentDisplay === 'none' || currentDisplay === '') {
+                        submenu.style.display = 'block';
+                        this.classList.add('active');
+                        menuItem.classList.add('active');
+                    } else {
                         submenu.style.display = 'none';
-                    });
-                    document.querySelectorAll('.has-subs').forEach(function (link) {
-                        link.classList.remove('active');
-                    });
-                }
+                        this.classList.remove('active');
+                        menuItem.classList.remove('active');
+                    }
+                });
+            });
 
-                this.classList.add('active');
-            }
         });
-    }
     </script>
 @endonce
