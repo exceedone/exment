@@ -8,6 +8,8 @@ return [
         'error' => 'Error',
         'warning' => 'Warning',
         'import' => 'Import',
+        'import_ai_ocr' => 'Import AI-OCR',
+        'import_multi' => 'Import Multi',
         'plugin' => 'Plugin',
         'copy' => 'Copy',
         'shared' => 'Share',
@@ -129,6 +131,8 @@ return [
             'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.',
             'import' => 'Displays a dialog for executing import.',
             'import_max_row_count' => 'Up to :count data items can be imported at one time. For data with more than that number, split and upload.',
+            'import_ai_ocr' => 'Import image/pdf file for AI-OCR feature.',
+            'import_multi_ai_ocr' => 'Import image/pdf files for AI-OCR feature.',
             'init_flg' => 'Cannot edit after save.',
             'more_help' => '<span class="red">For a detailed explanation, click the "?" Icon at the top right of the page and check the manual.</span>',
             'more_help_here' => 'Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
@@ -145,7 +149,7 @@ return [
             'sat' => 'Sat',
             'sun' => 'Sun',
         ],
-        
+
         'bootstrap_duallistbox_container' => [
             'nonSelectedListLabel' => 'Candidate data list',
             'selectedListLabel' => 'Selected data list',
@@ -355,50 +359,50 @@ return [
             "skin-black" => "Header:White&nbsp;&nbsp;&nbsp;&nbsp;SideBar:Black",
             "skin-black-light" => "Header:White&nbsp;&nbsp;&nbsp;&nbsp;SideBar:White",
         ],
-        
+
         'site_layout_options' => [
             "layout_default" => "Default",
             "layout_mini" => "Small Icon",
         ],
-        
+
         'date_format_options' => [
             'format_default' => 'Default（Y-m-d H:i:s）',
             'format_slash' => 'Custom（Y/m/d H:i:s）',
             'format_local' => 'Local（Y年m月d日 H時i分s秒）',
         ],
-        
+
         'filter_search_type_options' => [
             'forward' => 'Forward',
             'all' => 'All',
         ],
-        
+
         'system_values_pos_options' => [
             'default' => 'Adjust to system settings',
             'top' => 'Displayed at the top',
             'bottom' => 'Displayed at the bottom',
             'hide' => 'Hide',
         ],
-        
+
         'date_format_list' => [
             'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
             'format_local' => ['d/m/Y', 'd/m/Y H:i:s', 'H:i:s'],
         ],
-        
+
         'joined_org_filter_role_group_options' => [
             'all' => 'Include parent/child hierarchies of your organization',
             'only_upper' => 'Include parent hierarchy of your organization ',
             'only_downer' => 'Include child hierarchy of your organization',
             'only_join' => 'Only your organization',
         ],
-          
+
         'joined_org_filter_custom_value_options' => [
             'all' => 'Include parent/child hierarchies of your organization',
             'only_upper' => 'Include parent hierarchy of your organization ',
             'only_downer' => 'Include child hierarchy of your organization',
             'only_join' => 'Only your organization',
         ],
-          
+
         'filter_multi_orguser_options' => [
             'not_filter' => 'Not filter',
             'all' => 'Organization to which the logged-in user belongs and organization of parent-child hierarchy. And, the users to which they belong',
@@ -422,12 +426,12 @@ return [
             "repeat" => "Repeat",
             "cover" => "Display image size fix to page",
         ],
-        
+
         'system_mail_body_type_options' => [
             "html" => "HTML",
             "plain" => "Text",
         ],
-        
+
         'help' =>[
             'site_name' => 'The site name displayed in the upper left of the page.',
             'site_name_short' => 'An abbreviation for the site name to be displayed when the menu is collapsed.',
@@ -560,7 +564,7 @@ return [
             'calendar' => 'Calendar',
             'plugin' => 'Plugin',
         ],
-        
+
         'dashboard_box_options' => [
             'target_table_id' => 'Target Table',
             'target_view_id' => 'Target View',
@@ -700,7 +704,7 @@ return [
             'crud_autherror_auth_help' => 'You have not been authenticated or your certification has expired.<br/>To display this page, please log in and authenticate.',
             'crud_autherror_setting_auth_help' => 'Authentication settings have not been made. Move to the plug-in setting screen and set the authentication.',
         ],
-    
+
         'plugin_type_options' => [
             'page' => 'Page',
             'trigger' => 'Trigger',
@@ -823,7 +827,7 @@ return [
             'email' => 'Please enter an email address that can receive system notifications.',
             'password' => 'Please enter an alphabetic number or symbol with at least 8 letters',
             'change_only' => 'Enter only when making changes.',
-            
+
             'use_loginuser' => 'By checking, this user will be able to log in to the system.',
             'reset_password' => 'By checking, the password will be reset.',
             'create_password_auto' => 'By checking, the password is automatically generated. (An email will be sent to the relevant user.)',
@@ -864,10 +868,10 @@ return [
         'oauth_client_id' => 'Client ID',
         'oauth_client_secret' => 'Client Secret',
         'oauth_scope' => 'Scope',
-        
-        'oauth_option' => 'Option Setting',         
+
+        'oauth_option' => 'Option Setting',
         'oauth_option_single_logout' => 'Single Logout',
-        
+
         'user_setting' => 'User Setting',
         'mapping_user_column' => 'Account Search Column',
         'mapping_setting' => 'Mapping Setting',
@@ -884,7 +888,7 @@ return [
         'saml_idp_sso_url' => 'IdP Sign-on URL',
         'saml_idp_ssout_url' => 'IdP Sign-out URL',
         'saml_idp_x509' => 'IdP X.509 Certificate',
-        
+
         'saml_sp' => 'SP Setting',
         'saml_sp_entityid' => 'SP Entity ID',
         'saml_sp_name_id_format' => 'SP Name ID Format',
@@ -897,7 +901,7 @@ return [
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
         'saml_option_proxy_vars' => 'Use Proxy',
-        
+
         'ldap_setting' => 'LDAP Setting',
         'ldap_name' => 'LDAP Name',
         'ldap_hosts' => 'Host Name',
@@ -919,9 +923,9 @@ return [
         'login_button_background_color_hover' => 'Background Color(hover)',
         'login_button_font_color' => 'Font Color',
         'login_button_font_color_hover' => 'Font Color(hover)',
-        
+
         'custom_setting' => 'Custom Setting',
-        
+
         'login_test' => 'Login Test',
         'login_test_redirect' => 'Redirect URL for Test',
 
@@ -946,9 +950,9 @@ return [
             'jit_rolegroups' => 'Please fill in if you want to assign a default role group when creating a new user.',
             'mapping_description' => 'The field name returned by the provider must match the user field name in Exment. Please enter the field name returned from the provider. <br/>If you enter multiple values ​​separated by commas, the fields that have values ​​will be retrieved with priority from the beginning. <br /> Also, if you want to combine multiple fields, type "${Field_Name}". (Example: ${last_name} ${first_name})',
             'login_test_sso' => 'The :login_type redirect URL for testing.<span class="red">*When performing the test, temporarily add or change the above URL to the callback URL of the provider\'s :login_type setting.</span>',
-                
+
             'oauth_option_single_logout' => 'Set to Yes if you want to log out not only from Exment but also from the ID provider.<span class="red">*Okta is not supported.</span>',
-                
+
             'ldap_base_dn' => 'Enter the basic DN (distinguished name) used for authentication.',
             'ldap_filter' => 'Enter the attributes and attribute values ​​used for openLDAP authentication. (Ex: (objectClass=inetOrgPerson)(objectClass=person))',
             'ldap_search_key' => 'Enter the login code attribute used for authentication.',
@@ -1048,6 +1052,7 @@ return [
 
     'change_page_menu' =>[
         'change_page_label' => 'Table Detail Setting',
+        'ai_ocr_import' => 'AI-OCR Import',
         'custom_table' => 'Table Setting',
         'custom_column' => 'Column Detail Setting',
         'custom_view' => 'View Setting',
@@ -1151,7 +1156,7 @@ return [
             'action_execute' => 'Perform the following actions:',
             'nextuser_not_found' => 'The following working user does not exist. Please contact the administrator.',
         ],
-        
+
         'comment_options' => [
             'required' => 'Required',
             'nullable' => 'Nullable',
@@ -1180,6 +1185,7 @@ return [
         'field_description' => 'Description',
         'color' => 'Color',
         'icon' => 'Icon',
+        'ai_ocr_flg' => 'USE AI-OCR',
         'search_enabled' => 'Search Enabled',
         'one_record_flg' => 'Save Only One Record',
         'attachment_flg' => 'Use Attachment File',
@@ -1260,6 +1266,7 @@ return [
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
+            'ai_ocr_flg' => 'If set to YES, can automatically import data from attached image or pdf files (according to the corresponding search keyword you want).',
             'search_enabled' => 'If set on, can search from search display.',
             'one_record_flg' => 'Can Save Only One Record. For example, yourself company information.',
             'attachment_flg' => 'If set to YES, you can add attachments to each data.',
@@ -1340,7 +1347,7 @@ return [
                 'edit' => 'Edit',
                 'view' => 'Share',
             ],
-            
+
             'filter_condition_compare_options' => [
                 'eq' => 'Match at A and B',
                 'ne' => 'Not Match at A and B',
@@ -1355,7 +1362,7 @@ return [
             ],
         ],
     ],
-    
+
     'custom_column' => [
         'header' => 'Custom Column Detail Setting',
         'description' => 'Setting details with customer list. these define required fields, searchable fields, etc.',
@@ -1382,6 +1389,8 @@ return [
         ],
         'options' => [
             'header' => 'Detail Option',
+            'ocr_search_keyword' => 'OCR Search Keyword',
+            'ocr_extraction_role' => 'OCR Extraction Role',
             'index_enabled' => 'Index Enabled',
             'freeword_search' => 'Freeword Search Target',
             'unique' => 'Unique',
@@ -1472,8 +1481,19 @@ return [
             "user" => "User",
             "organization" => "Organization",
         ],
+        'ocr_extraction_role_options' => [
+            "same_line" => "Same Line",
+            "next_line" => "Next Line",
+            "previous_line" => "Previous Line",
+            "after_keyword" => "After Keyword",
+            "before_keyword" => "Before Keyword",
+            "below_keyword" => "Below Keyword",
+            "above_keyword" => "Above Keyword",
+        ],
         'help' => [
             'column_type' => 'Please select this column type. When entering data, the form changes according to the column type.',
+            'ocr_search_keyword' => 'Please enter the keyword used to search the value in the attached file via OCR.',
+            'ocr_extraction_role' => 'Please select relative location of the value to the ocr search keyword in the attached file.',
             'index_enabled' => 'If set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>',
             'freeword_search' => 'If set to YES, it will be the target column when performing a free word search.',
             'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
@@ -1533,7 +1553,7 @@ return [
             'dot' => '"."(Dot)',
             'symbol' => 'Symbol',
         ],
-        
+
         'calc_formula' => [
             'calc_formula' => 'Calc Formula',
             'dynamic' => 'Column',
@@ -1829,7 +1849,7 @@ return [
         'input_column_description' => 'When the data update timing is a button, a form (dialog) for setting the update value can be displayed. <br/> Please set the column to input.',
         'dialog_description' => "Enter the value to update the data of %s.",
         'active_flg' => 'Active Flg',
-        
+
         'operation_type_options' => [
             'bulk_update' => 'Pressing button on the list page',
             'button' => 'Pressing the button on the data details',
@@ -1983,7 +2003,7 @@ return [
             'select-eq' => 'Include search value',
             'select-ne' => 'Do not include search values',
         ],
-        
+
         'custom_view_menulist' => [
             'setting' => 'Open Setting',
             'current_view_edit' => 'Edit Current View Setting',
@@ -1992,7 +2012,7 @@ return [
             'create_sum' => 'Create Summary View',
             'create_calendar' => 'Calendar view new creation',
             'create_filter' => 'Create condition view new',
-            
+
             'help' => [
                 'current_view_edit' => 'Change the settings of the currently displayed view.',
                 'current_view_replicate' => 'Duplicate the current view settings and create a new view.',
@@ -2211,7 +2231,7 @@ return [
             'parent_node' => 'Parent Node',
             'custom' => 'Custom URL',
         ],
-        
+
         'system_definitions' => [
             'home' => 'HOME',
             'system' => 'System Setting',
@@ -2254,7 +2274,7 @@ return [
         'upload_template' => 'Upload',
         'export_target' => 'Export Target',
         'target_tables' => 'Target Tables',
-        
+
         'help' => [
             'thumbnail' => 'Recommended size:256px*256px',
             'upload_template' => 'The template zip file exported or created in Excel, and import the settings into this system.',
@@ -2282,6 +2302,7 @@ return [
         'description' => 'Display the data list of this table.',
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
+        'import_multi_ai_ocr' => 'Import Multi AI-OCR',
         'export' => 'Export',
         'default_export' => 'Export(All System/Custom Columns)',
         'view_export' => 'Export(as View)',
@@ -2294,6 +2315,7 @@ return [
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',
+            'import_multi_files' => 'Import Multi Files',
             'import_file_select' => 'Select CSV File',
             'primary_key' => 'Promary Key',
             'import_plugin' => 'Import Plugin',
@@ -2306,6 +2328,8 @@ return [
             'help' => [
                 'description' => 'You can import the data of each table into Exment. <br />Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for details such as the procedure.',
                 'custom_table_file' => 'Select the %s file that you output the template.',
+                'custom_table_ai_ocr_file' => 'Select the image, pdf file you want AI-OCR to automatically retrieve information into the data table.',
+                'custom_table_ai_ocr_multi_file' => 'Select the image, pdf files you want AI-OCR to automatically retrieve information into the data table.',
                 'primary_key' => 'Select the field to narrow down the update data.<br />If this field value matches existing data, it will be imported as update data.<br />If matching data does not exist, it will be imported as new data.',
                 'import_plugin' => 'If you want to process the import file independently, select it after uploading the plug-in in advance.',
                 'error_flow' => 'If an error occurs due to incomplete data , select whether to capture normal data.',
@@ -2362,6 +2386,8 @@ return [
             'view_export_all' => 'Exports all data in the format of the currently displayed view.',
             'view_export_page' => 'Exports the data for the current page in the format of the currently displayed view.',
             'template' => 'Download the template file to use for the import.',
+            'import_multi_ai_ocr' => 'Import multiple files image, pdf for AI-OCR feature',
+            'import_run_ai_ocr' => 'Import image/pdf file for AI-OCR feature. After successful import, the system will automatically run AI-OCR and update new data.',
             'import' => 'Displays a dialog for executing import. *For the data to be imported, use the data output by "Export Template" or "Export(All System/Custom Columns)".',
             'document_upload' => 'You can upload attachments related to this data. The maximum file size of one file is :max_size, and you can upload up to :max_count files at a time.',
         ],
@@ -2521,7 +2547,7 @@ return [
             'notify_moved' => 'Notification settings have moved. Please delete it from the menu.',
         ],
     ],
-    
+
     'operation_log' => [
         'description' => 'View operation log list.',
         'user_id' => 'User ID',
@@ -2531,7 +2557,7 @@ return [
         'ip' => 'IP Address',
         'input' => 'Input/Query',
     ],
-    
+
     'chart' => [
         'chartitem_label' => 'Chart Label',
         'chartitem_manual' => 'Chart Setting',
@@ -2541,7 +2567,7 @@ return [
             'line' => 'Line chart',
             'pie' => 'Pie chart',
         ],
-        
+
         'help' => [
             'chartitem_manual' => '*Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for the setting contents of the graph.'
         ],
@@ -2558,13 +2584,13 @@ return [
             'day' => 'Day',
         ]
     ],
-    
+
     'validator' => [
         'required_if_ex' => [
             'notify_actions' => 'Notify Actions'
         ]
     ],
-    
+
     'api' => [
         'scopes' => [
             'me' => 'Get Login User Info',
@@ -2654,7 +2680,7 @@ return [
             'success' => 'Executed password reset.',
         ],
     ],
-    
+
     'condition' => [
         'condition_target' => 'Condition Item',
         'condition_key' => 'Search Condition',
