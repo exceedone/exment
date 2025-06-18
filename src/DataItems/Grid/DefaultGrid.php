@@ -558,7 +558,7 @@ class DefaultGrid extends GridBase
                     $enableCreate = false;
                 }
 
-                if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
+                if (!is_null($parent_value = $actions->row->getParentValue(null, true)) && $parent_value->enableEdit(true) !== true) {
                     $enableCreate = false;
                     $enableEdit = false;
                     $enableDelete = false;
@@ -576,21 +576,24 @@ class DefaultGrid extends GridBase
                     $actions->disableView();
                     $actions->disableDelete();
 
-                    // add restore link
-                    $restoreUrl = $actions->row->getUrl() . '/restoreClick';
-                    $linker = (new Linker())
-                        ->icon('fa-undo')
-                        ->script(true)
-                        ->linkattributes([
-                            'data-add-swal' => $restoreUrl,
-                            'data-add-swal-title' => exmtrans('custom_value.restore'),
-                            'data-add-swal-text' => exmtrans('custom_value.message.restore'),
-                            'data-add-swal-method' => 'get',
-                            'data-add-swal-confirm' => trans('admin.confirm'),
-                            'data-add-swal-cancel' => trans('admin.cancel'),
-                        ])
-                        ->tooltip(exmtrans('custom_value.restore'));
-                    $actions->append($linker);
+                    // if parent data does not exist or has not been deleted 
+                    if (!$parent_value || !$parent_value->trashed()) {
+                        // add restore link
+                        $restoreUrl = $actions->row->getUrl() . '/restoreClick';
+                        $linker = (new Linker())
+                            ->icon('fa-undo')
+                            ->script(true)
+                            ->linkattributes([
+                                'data-add-swal' => $restoreUrl,
+                                'data-add-swal-title' => exmtrans('custom_value.restore'),
+                                'data-add-swal-text' => exmtrans('custom_value.message.restore'),
+                                'data-add-swal-method' => 'get',
+                                'data-add-swal-confirm' => trans('admin.confirm'),
+                                'data-add-swal-cancel' => trans('admin.cancel'),
+                            ])
+                            ->tooltip(exmtrans('custom_value.restore'));
+                        $actions->append($linker);
+                    }
 
                     // append show url
                     $showUrl = $actions->row->getUrl() . '?trashed=1';
@@ -615,6 +618,18 @@ class DefaultGrid extends GridBase
                             'data-add-swal-cancel' => trans('admin.cancel'),
                         ])
                         ->tooltip(exmtrans('custom_value.hard_delete'));
+                    $actions->append($linker);
+
+                } elseif ($actions->row->trashed()) {
+                    $actions->disableView();
+                    $actions->disableDelete();
+                    // append show url
+                    $showUrl = $actions->row->getUrl() . '?trashed=1';
+                    // add new edit link
+                    $linker = (new Linker())
+                        ->url($showUrl)
+                        ->icon('fa-eye')
+                        ->tooltip(trans('admin.show'));
                     $actions->append($linker);
                 }
 
