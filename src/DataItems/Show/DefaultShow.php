@@ -600,6 +600,8 @@ EOT;
             return;
         }
 
+        $aiOcrEnabled = $this->custom_table->isAiOcrEnabled();
+
         $form = new WidgetForm();
         $form->disableReset();
         $form->disableSubmit();
@@ -610,9 +612,9 @@ EOT;
             $allow_delete = config('exment.allow_delete_attachment', false);
             foreach ($documents as $index => $d) {
                 $html[] = "<p>" . view('exment::form.field.documentlink', [
-                    'document' => $d,
-                    'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
-                ])->render() . "</p>";
+                        'document' => $d,
+                        'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
+                    ])->render() . "</p>";
             }
             // loop and add as link
             $form->html(implode("", $html))
@@ -620,27 +622,35 @@ EOT;
                 ->setWidth(8, 3);
         }
 
-        // add file uploader
+        // If AI OCR is enabled → only for 1 file and hide drag & drop
         if ($useFileUpload) {
-            $max_count = config('exment.document_upload_max_count', 5);
-            $options = array_merge(Define::FILE_OPTION(), [
-                'showUpload' => true,
-                'showPreview' => true,
-                'showCancel' => false,
-                'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'fileupload'),
-                'uploadExtraData'=> [
-                    '_token' => csrf_token()
-                ],
-                'minFileCount' => 1,
-                'maxFileCount' => $max_count,
-            ]);
+            $max_count = $aiOcrEnabled ? 1 : config('exment.document_upload_max_count', 5);
+            $import_type = $aiOcrEnabled ? 'fileUploadRunAiOcr' : 'fileupload';
+
+            $options = Define::FILE_OPTION();
+
+            $options['showUpload'] = true;
+            $options['uploadUrl'] = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, $import_type);
+            $options['uploadExtraData'] = [ '_token' => csrf_token() ];
+            $options['minFileCount'] = 1;
+            $options['maxFileCount'] = $max_count;
+            $options['dropZoneEnabled'] = !$aiOcrEnabled;
+            if ($aiOcrEnabled) {
+                $options['allowedFileExtensions'] = ['jpg', 'jpeg', 'png', 'bmp', 'gif', 'tiff', 'pdf'];
+                Admin::script("
+                    $(document).on('ready pjax:success', function () {
+                        $('.file_data').attr('accept', '.jpg,.jpeg,.png,.bmp,.gif,.tiff,.pdf');
+                    });
+                ");
+            }
 
             $input_id = 'file_data';
+            $help_text = $aiOcrEnabled ? exmtrans('custom_value.help.import_run_ai_ocr') : exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(\Exment::getUploadMaxFileSize()), 'max_count' => $max_count]);
 
             $form->multipleFile($input_id, trans('admin.upload'))
                 ->options($options)
                 ->setLabelClass(['d-none'])
-                ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(\Exment::getUploadMaxFileSize()), 'max_count' => $max_count]))
+                ->help($help_text)
                 ->setWidth(12, 0);
             $script = <<<EOT
             var uploadCount = null;
@@ -661,8 +671,9 @@ EOT;
 
             Admin::script($script);
         }
-        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
-        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
+
+        $title_text = $aiOcrEnabled ? exmtrans('common.import_ai_ocr') : exmtrans("common.attachment");
+        $row->column(['xs' => 12, 'sm' => 6], (new Box($title_text, $form->render()))->style('info'));
     }
 
     protected function getComments()

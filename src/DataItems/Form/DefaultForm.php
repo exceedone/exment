@@ -283,6 +283,11 @@ EOT;
                 }
 
                 $field->setWidth(8, 2);
+
+                // Get Options AI-OCR
+                // Set Custom Column Options to field
+                $field->setOptions($form_column->custom_column->options);
+
                 // push field to form
                 $form->pushFieldAndOption($field, [
                     'row' => $form_column->row_no,
@@ -557,6 +562,10 @@ EOT;
 
             if (!$disableToolsButton && $custom_table->enableTableMenuButton()) {
                 $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
+                // AI-OCR: Add Import Button When Create Table Ony
+                if ($isButtonCreate && $custom_table->isAiOcrEnabled()) {
+                    $tools->add((new Tools\CustomTableAiOcrImportButton(admin_urls('data', $custom_table->table_name), $custom_table)));
+                }
             }
         });
     }

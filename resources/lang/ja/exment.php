@@ -8,6 +8,8 @@ return [
         'error' => 'エラー',
         'warning' => '警告',
         'import' => 'インポート',
+        'import_ai_ocr' => 'インポートAI-OCR',
+        'import_multi' => 'インポート一覧',
         'plugin' => 'プラグイン',
         'copy' => 'コピー',
         'shared' => '共有',
@@ -129,6 +131,8 @@ return [
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
             'import' => 'インポート実行のためのダイアログを表示します。',
             'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。それ以上の件数のデータは、分割してアップロードをいただくか、<a href=":manual" target="_blank">大量データ投入<i class="fa fa-external-link"></i></a>を行ってください。',
+            'import_ai_ocr' => 'AI-OCR 機能用の画像/PDF ファイルをインポートします。',
+            'import_multi_ai_ocr' => 'AI-OCR 機能で使用する複数の画像/PDF ファイルをインポートします。',
             'init_flg' => '保存後、変更はできません。',
             'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
             'more_help_here' => '詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -145,7 +149,7 @@ return [
             'sat' => '土',
             'sun' => '日',
         ],
-        
+
         'bootstrap_duallistbox_container' => [
             'nonSelectedListLabel' => '候補データ一覧',
             'selectedListLabel' => '選択済データ一覧',
@@ -237,7 +241,7 @@ return [
         'email_multiline' => 'Eメールアドレスでない行が含まれています。',
         'duplicate_relation' => 'すでに関連付けられているテーブルです。',
         'filename_not_allow' => ':attributeには、禁則文字が使用されています。ファイル名を変更して再度実施してください。',
-        
+
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
         'not_gt' => ':attribute1の値は、:attribute2より大きい値である必要があります。',
@@ -335,7 +339,7 @@ return [
         'recaptcha_type' => 'Google reCAPTCHA',
         'recaptcha_site_key' => 'Google reCAPTCHA サイトキー',
         'recaptcha_secret_key' => 'Google reCAPTCHA シークレットキー',
-        
+
         'release_note' => 'リリースノート',
         'call_update_header' => 'アップデート実施（β）',
         'call_update' => 'アップデート実施',
@@ -361,30 +365,30 @@ return [
             "skin-black" => "ヘッダー：白&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
             "skin-black-light" => "ヘッダー：白&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：白",
         ],
-        
+
         'site_layout_options' => [
             "layout_default" => "標準",
             "layout_mini" => "小アイコン",
         ],
-        
+
         'date_format_options' => [
             'format_default' => '標準（Y-m-d H:i:s）',
             'format_slash' => 'カスタム（Y/m/d H:i:s）',
             'format_local' => 'ローカル（Y年m月d日 H時i分s秒）',
         ],
-        
+
         'filter_search_type_options' => [
             'forward' => '前方一致',
             'all' => '部分一致',
         ],
-        
+
         'system_values_pos_options' => [
             'default' => 'システム設定に合わせる',
             'top' => '上部',
             'bottom' => '下部',
             'hide' => '非表示',
         ],
-        
+
         'date_format_list' => [
             'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
@@ -397,14 +401,14 @@ return [
             'only_downer' => '役割グループが設定された組織の、子階層のユーザーも役割の範囲に含める',
             'only_join' => '役割グループが設定された組織のユーザーのみ',
         ],
-          
+
         'joined_org_filter_custom_value_options' => [
             'all' => 'データが共有された組織の、親子階層のユーザーも共有範囲に含める',
             'only_upper' => 'データが共有された組織の、親階層のユーザーも共有範囲に含める',
             'only_downer' => 'データが共有された組織の、子階層のユーザーも共有範囲に含める',
             'only_join' => 'データが共有された組織のユーザーのみ',
         ],
-          
+
         'filter_multi_orguser_options' => [
             'not_filter' => '絞り込みを行わない',
             'all' => 'ログインユーザーが所属する組織と、親子階層の組織。ならびに、それらの所属ユーザー',
@@ -428,12 +432,12 @@ return [
             "repeat" => "繰り返し表示",
             "cover" => "画像サイズをページに合わせて表示",
         ],
-        
+
         'system_mail_body_type_options' => [
             "html" => "HTML",
             "plain" => "テキスト",
         ],
-        
+
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -570,7 +574,7 @@ return [
             'calendar' => 'カレンダー',
             'plugin' => 'プラグイン',
         ],
-        
+
         'dashboard_box_options' => [
             'target_table_id' => '対象のテーブル',
             'target_view_id' => '対象のビュー',
@@ -710,7 +714,7 @@ return [
             'crud_autherror_auth_help' => '認証されていないか、認証の有効期限が切れています。<br/>このページを表示するためには、ログインを実施し、認証を行ってください。',
             'crud_autherror_setting_auth_help' => '認証設定が行われていません。プラグイン設定画面に遷移し、認証設定を行ってください。',
         ],
-    
+
         'plugin_type_options' => [
             'page' => '画面',
             'trigger' => '機能',
@@ -833,7 +837,7 @@ return [
             'email' => 'システム通知を受信できるメールアドレスを入力してください。',
             'password' => '英数記号で8文字以上記入してください。',
             'change_only' => '変更を行う場合のみ入力します。',
-            
+
             'use_loginuser' => 'YESにすることで、このユーザーがシステムにログインすることができるようになります。',
             'reset_password' => 'YESにすることで、パスワードが再設定されます。',
             'create_password_auto' => 'YESにすることで、パスワードが自動生成されます。(該当ユーザーにメールが送信されます)',
@@ -875,9 +879,9 @@ return [
         'oauth_client_secret' => 'クライアントシークレット',
         'oauth_scope' => 'スコープ',
 
-        'oauth_option' => 'オプション設定',         
+        'oauth_option' => 'オプション設定',
         'oauth_option_single_logout' => 'シングル・サインアウト',
-        
+
         'user_setting' => 'ユーザー設定',
         'mapping_user_column' => 'アカウント検索列',
         'mapping_setting' => 'マッピング設定',
@@ -894,7 +898,7 @@ return [
         'saml_idp_sso_url' => 'IdP サインオンURL',
         'saml_idp_ssout_url' => 'IdP サインアウトURL',
         'saml_idp_x509' => 'IdP X.509 Certificate',
-        
+
         'saml_sp' => 'SP設定',
         'saml_sp_entityid' => 'SP Entity ID',
         'saml_sp_name_id_format' => 'SP Name ID Format',
@@ -907,7 +911,7 @@ return [
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
         'saml_option_proxy_vars' => 'Proxy使用',
-        
+
         'ldap_setting' => 'LDAP設定',
         'ldap_name' => 'LDAP名(英数字)',
         'ldap_hosts' => 'ホスト名',
@@ -931,7 +935,7 @@ return [
         'login_button_font_color_hover' => '文字色(オンマウス)',
 
         'custom_setting' => '独自設定',
-        
+
         'login_test' => 'ログインテスト',
         'login_test_redirect' => 'テスト用リダイレクトURL',
 
@@ -958,7 +962,7 @@ return [
             'login_test_sso' => 'テスト用の:login_typeリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダの:login_type設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
 
             'oauth_option_single_logout' => 'Exmentだけでなく、IDプロバイダーからもログアウトする場合は、YESにしてください。<span class="red">※現在、Oktaには対応しておりません。</span>',
-            
+
             'ldap_base_dn' => '認証に使用する基本DN(識別名)を入力してください。',
             'ldap_filter' => 'openLDAPの認証時に利用する、属性と属性値を入力してください。(例：(objectClass=inetOrgPerson)(objectClass=person))',
             'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
@@ -1058,6 +1062,7 @@ return [
 
     'change_page_menu' =>[
         'change_page_label' => 'テーブル詳細設定',
+        'ai_ocr_import' => 'AI-OCRインポート',
         'custom_table' => 'テーブル設定',
         'custom_column' => 'カスタム列設定',
         'custom_view' => 'ビュー設定',
@@ -1120,7 +1125,7 @@ return [
         'first_executed_user' => '最初の実行ユーザー',
         'executed_user' => '実行ユーザー',
         'created_user' => 'データ作成ユーザー',
-        
+
 
         'help' => [
             'saved_redirect_column' => '保存しました！次はアクションを設定してください。',
@@ -1162,7 +1167,7 @@ return [
             'action_execute' => '以下のアクションを実行します。',
             'nextuser_not_found' => '次の作業ユーザーが存在しません。管理者に問い合わせください。',
         ],
-        
+
         'comment_options' => [
             'required' => '必須',
             'nullable' => '任意',
@@ -1191,6 +1196,7 @@ return [
         'field_description' => '説明',
         'color' => '色',
         'icon' => 'アイコン',
+        'ai_ocr_flg' => 'AI-OCR機能使用',
         'search_enabled' => '検索可能',
         'one_record_flg' => '1件のみ登録可能',
         'attachment_flg' => '添付ファイル使用',
@@ -1274,6 +1280,7 @@ return [
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
+            'ai_ocr_flg' => 'YESに設定すると、指定した検索キーワードに基づいて、添付された画像やPDFファイルから自動的にデータを取り込むことができます。',
             'search_enabled' => 'YESにした場合、検索画面から検索可能になります。',
             'one_record_flg' =>'データを1件のみ登録可能かどうかの設定です。自社情報など、データが1件しか存在しないテーブルの場合、YESにしてください。',
             'attachment_flg' => 'YESにした場合、各データに添付ファイルを追加することができます。',
@@ -1357,7 +1364,7 @@ return [
                 'edit' => '編集',
                 'view' => '閲覧',
             ],
-                
+
             'filter_condition_compare_options' => [
                 'eq' => 'AとBで合致する',
                 'ne' => 'AとBで合致しない',
@@ -1366,13 +1373,13 @@ return [
                 'gte' => 'AはB以上である',
                 'lte' => 'AはB以下である',
             ],
-            
+
             'compare_column_options' => [
                 'system_date' => 'システム日付',
             ],
         ],
     ],
-    
+
     'custom_column' => [
         'header' => 'カスタム列設定',
         'description' => 'カスタム列ごとの設定を行います。列の必須項目、検索可能フィールドなどを定義します。',
@@ -1399,6 +1406,8 @@ return [
         ],
         'options' => [
             'header' => '詳細オプション',
+            'ocr_search_keyword' => 'OCR検索キーワード',
+            'ocr_extraction_role' => 'OCR抽出設定',
             'index_enabled' => '検索インデックス',
             'freeword_search' => 'フリーワード検索対象',
             'unique' => 'ユニーク(一意)',
@@ -1489,8 +1498,19 @@ return [
             "user" => "ユーザー",
             "organization" => "組織",
         ],
+        'ocr_extraction_role_options' => [
+            "same_line" => "同じ行",
+            "next_line" => "次の行",
+            "previous_line" => "前の行",
+            "after_keyword" => "キーワードの後",
+            "before_keyword" => "キーワードの前",
+            "below_keyword" => "キーワードの下",
+            "above_keyword" => "キーワードの上",
+        ],
         'help' => [
             'column_type' => 'この列の種類を選択してください。データ入力時に、列種類に合わせてフォームが変更されます。保存後、変更はできません。',
+            'ocr_search_keyword' => 'OCRを使用して添付ファイル内の値を検索するためのキーワードをご入力ください。',
+            'ocr_extraction_role' => '添付ファイル内のOCR検索キーワードに対する値の相対位置を選択してください。',
             'index_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'freeword_search' => 'YESにすることで、検索バーに文字列を入れて検索を行う際、検索対象となります。',
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
@@ -1550,7 +1570,7 @@ return [
             'dot' => '"."(ドット)',
             'symbol' => '記号',
         ],
-        
+
         'calc_formula' => [
             'calc_formula' => '計算式',
             'dynamic' => '列',
@@ -2000,7 +2020,7 @@ return [
             'select-eq' => '検索値を含む',
             'select-ne' => '検索値を含まない',
         ],
-        
+
         'custom_view_menulist' => [
             'setting' => '設定を開く',
             'current_view_edit' => '現在のビュー設定変更',
@@ -2228,7 +2248,7 @@ return [
             'parent_node' => '親階層',
             'custom' => 'カスタムURL',
         ],
-        
+
         'system_definitions' => [
             'home' => 'HOME',
             'system' => 'システム設定',
@@ -2271,7 +2291,7 @@ return [
         'upload_template' => 'アップロード',
         'export_target' => 'エクスポート対象',
         'target_tables' => 'エクスポート対象テーブル',
-        
+
         'help' => [
             'thumbnail' => '推奨サイズ：256px*256px',
             'upload_template' => 'エクスポートしたテンプレートzipファイルや、Excelフォーマットで作成した設定ファイルをアップロードして、このシステムに設定をインポートします。',
@@ -2298,6 +2318,7 @@ return [
         'description' => 'このテーブルのデータ一覧を表示します。',
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
+        'import_multi_ai_ocr' => 'インポート一覧 AI-OCR',
         'export' => 'エクスポート',
         'default_export' => 'エクスポート(すべてのシステム列・カスタム列)',
         'view_export' => 'エクスポート(ビュー形式)',
@@ -2310,6 +2331,7 @@ return [
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',
+            'import_multi_files' => 'インポート一覧ファイル',
             'import_file_select' => 'CSVもしくはExcelファイルを選択',
             'primary_key' => '主キー',
             'import_plugin' => 'インポートプラグイン',
@@ -2322,6 +2344,8 @@ return [
             'help' => [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'custom_table_file' => 'インポートする%sファイルを選択してください。',
+                'custom_table_ai_ocr_file' => 'AI-OCR で自動的に情報を抽出してデータテーブルに取り込むための画像・PDFファイルを選択してください。',
+                'custom_table_ai_ocr_multi_file' => 'AI-OCR で自動的に情報を抽出してデータテーブルに取り込むための画像・PDFファイルを複数選択してください。',
                 'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。<br />※カスタム列は、「ユニーク」かつ「検索インデックス」列が表示されます。',
                 'import_plugin' => '取込ファイルを独自に処理する場合は、あらかじめプラグインをアップロードした上で選択してください。',
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',
@@ -2378,6 +2402,8 @@ return [
             'view_export_all' => '現在表示しているビューの形式で、すべてのデータをエクスポートします。',
             'view_export_page' => '現在表示しているビューの形式で、現在のページのデータをエクスポートします。',
             'template' => 'インポートに使用する、テンプレートファイルをダウンロードします。',
+            'import_run_ai_ocr' => 'AI-OCR機能用に画像/PDFファイルをインポートします。インポートが成功すると、システムは自動的にAI-OCRを実行し、新しいデータを更新します。',
+            'import_multi_ai_ocr' => 'AI-OCR機能用に複数のファイル（画像、PDF）をインポート',
             'import' => 'インポート実行のためのダイアログを表示します。※インポートのためのデータは、「テンプレート出力」か、「エクスポート(すべてのシステム列・カスタム列)」で出力したデータで行ってください。',
             'document_upload' => 'このデータに関連する添付ファイルをアップロードすることができます。1ファイルの最大ファイルサイズは:max_sizeで、一度に:max_countファイルまでアップロードすることができます。',
     ],
@@ -2537,7 +2563,7 @@ return [
             'notify_moved' => '通知設定は移動しました。メニューから削除をお願いします。',
         ],
     ],
-    
+
     'operation_log' => [
         'description' => '操作ログを一覧表示します。',
         'user_id' => 'ユーザーID',
@@ -2547,7 +2573,7 @@ return [
         'ip' => 'IPアドレス',
         'input' => '入力・クエリ',
     ],
-    
+
     'chart' => [
         'chartitem_label' => 'データ見出し',
         'chartitem_manual' => 'チャートの設定内容',
@@ -2574,13 +2600,13 @@ return [
             'day' => '日',
         ]
     ],
-    
+
     'validator' => [
         'required_if_ex' => [
             'notify_actions' => '実施アクション'
         ]
     ],
-    
+
     'api' => [
         'scopes' => [
             'me' => 'ログインユーザー情報の取得',
@@ -2620,7 +2646,7 @@ return [
             'unsupported_view_kind_type' => '指定したビューの種類は、APIでサポートされていません。',
             'not_contains_custom_form' => 'このフォームでは、指定のAPIは実行できません。',
         ],
-        
+
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
