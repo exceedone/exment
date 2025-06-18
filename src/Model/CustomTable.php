@@ -2286,6 +2286,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_system' => true,
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
+                'include_comment' => false,
                 'include_condition' => false,
                 'include_form_type' => false,
                 'ignore_attachment' => false,
@@ -2306,6 +2307,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_system = $selectOptions['include_system'];
         $include_workflow = $selectOptions['include_workflow'];
         $include_workflow_work_users = $selectOptions['include_workflow_work_users'];
+        $include_comment = $selectOptions['include_comment'];
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
@@ -2353,6 +2355,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_system' => $include_system,
                     'include_workflow' => $include_workflow,
                     'include_workflow_work_users' => $include_workflow_work_users,
+                    'include_comment' => $include_comment,
                     'ignore_attachment' => $ignore_attachment,
                     'ignore_autonumber' => $ignore_autonumber,
                     'ignore_multiple' => $ignore_multiple,
@@ -2496,6 +2499,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_system' => true,
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
+                'include_comment' => false,
                 'include_condition' => false,
                 'include_form_type' => false,
                 'table_view_name' => null,
@@ -2517,6 +2521,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_system = $selectOptions['include_system'];
         $include_workflow = $selectOptions['include_workflow'];
         $include_workflow_work_users = $selectOptions['include_workflow_work_users'];
+        $include_comment = $selectOptions['include_comment'];
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
         $table_view_name = $selectOptions['table_view_name'];
@@ -2615,6 +2620,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($include_workflow_work_users && !is_null(Workflow::getWorkflowByTable($this))) {
             // check contains workflow in table
             $setSystemColumn(['name' => 'workflow_work_users']);
+        }
+
+        if ($include_comment && boolval($this->getOption('comment_flg')?? true)) {
+            // check contains comment in table
+            $setSystemColumn(['name' => 'comment']);
         }
     }
 

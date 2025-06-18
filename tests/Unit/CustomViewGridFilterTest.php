@@ -5,11 +5,13 @@ namespace Exceedone\Exment\Tests\Unit;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Enums\FileType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\DataItems\Grid\DefaultGrid;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
@@ -344,13 +346,16 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $target = $custom_table->getValueModel()->find(10);
+        $auto_number = substr($target->getValue('auto_number'), 0, 5);
+
         $custom_column = CustomColumn::getEloquent('auto_number', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
-        $this->__testGridFilter([$db_column_name => 'a'], function ($data) {
-            $actual = array_get($data, 'value.auto_number');
-            return Str::startsWith($actual, 'a');
-        });
+        $this->__testGridFilter([$db_column_name => $auto_number], function ($data) {
+            return array_get($data, 'id') == 10;
+        }, 1);
     }
 
     /**
@@ -492,18 +497,89 @@ class CustomViewGridFilterTest extends UnitTestBase
         });
     }
 
+    /**
+     * Grid Filter = comment
+     */
+    public function testFuncFilterComment()
+    {
+        $this->init();
+
+        $this->saveComment(10, 'fugafuga');
+        $this->saveComment(10, 'start hoge end');
+
+        $this->__testGridFilter(['comment' => 'hoge'], function ($data) {
+            return array_get($data, 'id') == 10;
+        }, 1, function() {
+            System::setRequestSession('setting.grid_filter_disable_flg', []);
+        });
+    }
+
+    /**
+     * Grid Filter = comment, filter japanese
+     */
+    public function testFuncFilterCommentJp()
+    {
+        $this->init();
+
+        $this->saveComment(10, 'ダミーコメント');
+        $this->saveComment(10, 'いろいろ\nてすと\nします');
+
+        $this->__testGridFilter(['comment' => 'てすと'], function ($data) {
+            return array_get($data, 'id') == 10;
+        }, 1, function() {
+            System::setRequestSession('setting.grid_filter_disable_flg', []);
+        });
+    }
+
+    /**
+     * Grid Filter = comment, multiple result
+     */
+    public function testFuncFilterCommentMulti()
+    {
+        $this->init();
+
+        $this->saveComment(10, 'fugafuga');
+        $this->saveComment(10, 'start hoge end');
+        $this->saveComment(10, 'hogehoge');
+        $this->saveComment(20, '\nhoge');
+
+        $this->__testGridFilter(['comment' => 'hoge'], function ($data) {
+            return in_array(array_get($data, 'id'), [10, 20]);
+        }, 2, function() {
+            System::setRequestSession('setting.grid_filter_disable_flg', []);
+        });
+    }
+
+    protected function saveComment($id, $comment)
+    {
+        // save Comment Model
+        $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
+        $model->parent_id = $id;
+        $model->parent_type = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        $model->setValue([
+            'comment_detail' => $comment,
+        ]);
+        $result = $model->save();
+
+    }
+
     protected function init()
     {
         $this->initAllTest();
     }
 
-    protected function __testGridFilter(array $filters, \Closure $testCallback, ?int $count = null)
+    protected function __testGridFilter(array $filters, \Closure $testCallback, ?int $count = null, $prevTest = null)
     {
         $this->init();
 
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $custom_view = CustomView::getAllData($custom_table);
         $default = new DefaultGrid($custom_table, $custom_view);
+
+        if ($prevTest instanceof \Closure) {
+            call_user_func($prevTest);
+        }
+
         $request = request();
         $request->merge($filters);
         $request->merge(['execute_filter' => '1']);
