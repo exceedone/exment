@@ -8,6 +8,8 @@ class BCustomTableTest extends ExmentKitTestCase
 {
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -18,6 +20,8 @@ class BCustomTableTest extends ExmentKitTestCase
 
     /**
      * display custom table list.
+     *
+     * @return void
      */
     public function testDisplayInstalledTable()
     {
@@ -36,6 +40,7 @@ class BCustomTableTest extends ExmentKitTestCase
 
     /**
      * display custom table create page.
+     * @return void
      */
     public function testDisplayCustomTableCreate()
     {
@@ -63,6 +68,7 @@ class BCustomTableTest extends ExmentKitTestCase
 
     /**
      * create custom table.
+     * @return void
      */
     public function testCreateCustomTableSuccess()
     {
@@ -77,6 +83,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->type('test description', 'description')
                 ->type('#ff0000', 'options[color]')
                 ->type('fa-automobile', 'options[icon]')
+            /** @phpstan-ignore-next-line  */
                 ->type(50, 'options[revision_count]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url('column/test'))
@@ -86,6 +93,7 @@ class BCustomTableTest extends ExmentKitTestCase
 
     /**
      * edit custom table.
+     * @return void
      */
     public function testEditCustomTableSuccess()
     {

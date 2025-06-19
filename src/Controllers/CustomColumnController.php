@@ -80,6 +80,35 @@ class CustomColumnController extends AdminControllerTableBase
     }
 
     /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response|void
+     */
+    public function update($tableKey, $id)
+    {   
+        //Validation table value
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
+            return;
+        }
+        if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
+            return;
+        }
+        if (request()->has('column_type')) {
+            $column_type = request()->get('column_type');
+            $column = $this->custom_columns->first(function ($value) use ($id) {
+                return $value->id == $id;
+            });
+            if (!$this->validateEditColumnType($column, $column_type)) {
+                return;
+            }
+        }
+
+        return $this->form($id)->update($id);
+    }
+
+    /**
      * Create interface.
      *
      * @return Content|void
@@ -134,6 +163,7 @@ class CustomColumnController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
+            /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('column', $this->custom_table));
         });
 
@@ -220,7 +250,6 @@ class CustomColumnController extends AdminControllerTableBase
             ->help(exmtrans('common.help.view_name'));
 
         if (!isset($id)) {
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
             $id = $form->model()->id;
         }
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
@@ -346,6 +375,7 @@ class CustomColumnController extends AdminControllerTableBase
             if (isset($id) && boolval(CustomColumn::getEloquent($id)->disabled_delete)) {
                 $tools->disableDelete();
             }
+            /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->add(new Tools\CustomTableMenuButton('column', $custom_table));
         });
         return $form;

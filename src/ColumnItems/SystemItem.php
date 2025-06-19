@@ -421,10 +421,15 @@ class SystemItem implements ItemInterface
             case SystemColumn::UPDATED_AT:
                 // Use custom query. So return null.
                 return null;
+            case SystemColumn::CREATED_USER:
+            case SystemColumn::UPDATED_USER:
+                return (string)FilterOption::USER_EQ;
             case SystemColumn::WORKFLOW_STATUS:
                 return (string)FilterOption::WORKFLOW_EQ_STATUS;
             case SystemColumn::WORKFLOW_WORK_USERS:
                 return (string)FilterOption::WORKFLOW_EQ_WORK_USER;
+            case SystemColumn::COMMENT:
+                return (string)FilterOption::LIKE;
         }
 
         return null;
@@ -436,7 +441,7 @@ class SystemItem implements ItemInterface
             case SystemColumn::CREATED_AT:
             case SystemColumn::UPDATED_AT:
                 return ExmFilter\BetweenDatetime::class;
-        }
+            }
 
         return ExmWhere::class;
     }
@@ -472,6 +477,18 @@ class SystemItem implements ItemInterface
         $option = $this->getSystemColumnOption();
         if (array_get($option, 'type') == 'datetime') {
             $filter->date();
+        } elseif (array_get($option, 'type') == 'user') {
+            $target_table = CustomTable::getEloquent(SystemTableName::USER);
+            $selectOption = [
+                'display_table' => $target_table
+            ];
+            $ajax = $target_table->getOptionAjaxUrl($selectOption);
+    
+            $filter->multipleSelect(function ($value) use ($target_table, $selectOption) {
+                $selectOption['selected_value'] = $value;
+                // get DB option value
+                return $target_table->getSelectOptions($selectOption);
+            })->ajax($ajax);
         }
     }
 

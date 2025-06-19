@@ -39,6 +39,7 @@ trait HasResourceActions
             }
         }
 
+        /** @phpstan-ignore-next-line explode expects string, int given*/
         $rows = collect(explode(',', $id))->filter();
 
         // check row's disabled_delete

@@ -11,6 +11,8 @@ class CCustomRelationTest extends ExmentKitTestCase
 
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -20,6 +22,8 @@ class CCustomRelationTest extends ExmentKitTestCase
 
     /**
      * prepare test table.
+     *
+     * @return void
      */
     public function testPrepareTestTable()
     {
@@ -29,6 +33,8 @@ class CCustomRelationTest extends ExmentKitTestCase
 
     /**
      * Check custom relation display.
+     *
+     * @return void
      */
     public function testDisplayRelationSetting()
     {
@@ -51,6 +57,7 @@ class CCustomRelationTest extends ExmentKitTestCase
 
     /**
      * Create & edit custom relation --one to many--.
+     * @return void
      */
     public function testAddRelationOneToManySuccess()
     {
@@ -87,6 +94,8 @@ class CCustomRelationTest extends ExmentKitTestCase
 
     /**
      * Create custom relation --many to many--.
+     *
+     * @return void
      */
     public function testAddRelationManyToManySuccess()
     {
@@ -118,13 +127,15 @@ class CCustomRelationTest extends ExmentKitTestCase
 
     /**
      * Drop custom relation.
+     *
+     * @return void
      */
     public function testDropOneLineTextColumn()
     {
-        /** @var CustomTable $custom_table */
+        /** @var CustomTable|null $custom_table */
         $custom_table = CustomTable::where('table_name', 'exmenttest_contract')->first();
         $table_id = $custom_table->id;
-        /** @var CustomRelation $row */
+        /** @var CustomRelation|null $row */
         $row = CustomRelation::where('parent_custom_table_id', $table_id)->first();
 
         $pre_cnt = CustomRelation::count();

@@ -27,6 +27,10 @@ class PluginTest extends FeatureTestBase
     use PluginTestTrait;
     use DatabaseTransactions;
 
+    /**
+     * @param bool $fake
+     * @return void
+     */
     protected function init(bool $fake)
     {
         $this->initAllTest();

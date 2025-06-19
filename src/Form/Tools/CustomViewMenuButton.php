@@ -75,18 +75,8 @@ class CustomViewMenuButton extends ModalTileMenuButton
             }
         }
 
-        $compare = function ($a, $b) {
-            $atype = array_get($a, 'view_kind_type');
-            $btype = array_get($b, 'view_kind_type');
-
-            if ($atype == ViewKindType::ALLDATA) {
-                return -1;
-            } elseif ($btype == ViewKindType::ALLDATA) {
-                return 1;
-            } else {
-                return $atype <=> $btype;
-            }
-        };
+        $sort_options = config('exment.sort_custom_view_options', 0);
+        $compare = $this->getCompare($sort_options);
         usort($userviews, $compare);
         usort($systemviews, $compare);
 
@@ -146,6 +136,52 @@ class CustomViewMenuButton extends ModalTileMenuButton
         ]];
 
         return parent::html();
+    }
+
+
+    protected function getCompare(int $sort_options)
+    {
+        switch ($sort_options) {
+            case 0:
+                return function ($a, $b) {
+                    $atype = array_get($a, 'view_kind_type');
+                    $btype = array_get($b, 'view_kind_type');
+        
+                    if ($atype == ViewKindType::ALLDATA) {
+                        return -1;
+                    } elseif ($btype == ViewKindType::ALLDATA) {
+                        return 1;
+                    } else {
+                        return $atype <=> $btype;
+                    }
+                };
+            case 1:
+                return function ($a, $b) {
+                    $atype = array_get($a, 'view_kind_type');
+                    $btype = array_get($b, 'view_kind_type');
+    
+                    if ($atype == $btype) {
+                        $aorder = array_get($a, 'order');
+                        $border = array_get($b, 'order');
+                        return $aorder <=> $border;
+                    } else {
+                        if ($atype == ViewKindType::ALLDATA) {
+                            return -1;
+                        } elseif ($btype == ViewKindType::ALLDATA) {
+                            return 1;
+                        } else {
+                            return $atype <=> $btype;
+                        }
+                    }
+                };
+            case 2:
+                return function ($a, $b) {
+                    $aorder = array_get($a, 'order');
+                    $border = array_get($b, 'order');
+                    return $aorder <=> $border;
+                };
+                        
+        }
     }
 
 

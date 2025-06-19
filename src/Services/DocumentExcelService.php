@@ -38,14 +38,14 @@ class DocumentExcelService
     /**
      * Before saving callback
      *
-     * @var \Closure
+     * @var \Closure|null
      */
     protected $savingCallback;
 
     /**
      * after called callback
      *
-     * @var \Closure
+     * @var \Closure|null
      */
     protected $calledCallback;
 

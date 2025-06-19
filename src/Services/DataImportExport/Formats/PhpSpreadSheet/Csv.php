@@ -106,6 +106,7 @@ class Csv extends PhpSpreadSheet
 
     protected function getCsvArray($file, array $options = [])
     {
+        /** @phpstan-ignore-next-line setlocale expects array|string|null, int given */
         $original_locale = setlocale(LC_CTYPE, 0);
 
         // set C locale

@@ -6,6 +6,9 @@ use Exceedone\Exment\Enums\ApiScope;
 
 class PluginApiTest extends ApiTestBase
 {
+    /**
+     * @return void
+     */
     public function testSampleApiColumn()
     {
         $token = $this->getAdminAccessToken([ApiScope::PLUGIN]);
@@ -22,6 +25,9 @@ class PluginApiTest extends ApiTestBase
             ]);
     }
 
+    /**
+     * @return void
+     */
     public function testSampleApiTableColumn()
     {
         $token = $this->getAdminAccessToken([ApiScope::PLUGIN]);

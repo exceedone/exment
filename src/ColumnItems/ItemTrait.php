@@ -63,7 +63,7 @@ trait ItemTrait
      *     'public_form': If this form is public_form, set publcform model
      *     'as_confirm' : If this form is before confirm, set true.
      * ]
-     * @var array
+     * @var array|null
      */
     protected $options = [];
 
@@ -107,7 +107,7 @@ trait ItemTrait
     /**
      * CustomForm
      *
-     * @var CustomForm
+     * @var CustomForm|null
      */
     protected $custom_form;
 
@@ -463,6 +463,11 @@ trait ItemTrait
             case SummaryCondition::SUM:
             case SummaryCondition::COUNT:
                 $new_summary_condition = SummaryCondition::getSummaryConditionName(SummaryCondition::SUM);
+                break;
+            case SummaryCondition::MIN:
+            case SummaryCondition::MAX:
+                $new_summary_condition = SummaryCondition::getSummaryConditionName($summary_condition);
+                break;
         }
 
         // get wraped, joined table, and sub query's as name.
@@ -580,6 +585,7 @@ trait ItemTrait
 
         $item = $this;
         $field->as(function ($v) use ($item) {
+            /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\ColumnItems\SystemItem) will always evaluate to false. */
             if (is_null($this)) {
                 return '';
             }
@@ -595,7 +601,7 @@ trait ItemTrait
     /**
      * Set custom form column options
      *
-     * @param  array  $form_column_options  Custom form column options
+     * @param  array|CustomFormColumn|null  $form_column_options  Custom form column options
      *
      * @return  self|void
      */
@@ -615,7 +621,7 @@ trait ItemTrait
     /**
      * Set other_form_columns
      *
-     * @param  array  $other_form_columns Other form columns
+     * @param  array|null  $other_form_columns Other form columns
      *
      * @return  self|void
      */
@@ -871,7 +877,7 @@ trait ItemTrait
     /**
      * Set where query for grid filter. If class is "ExmWhere".
      *
-     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder|\Illuminate\Database\Eloquent\Builder $query
      * @param mixed $input
      * @return void
      */
@@ -935,11 +941,11 @@ trait ItemTrait
     /**
      * Get weekday format
      *
-     * @return string
+     * @return string|null
      */
     protected function getWeekdayFormat($val)
     {
-        $queries = [];
+        if (is_null($val)) return null;
 
         // get weekday and no list
         $weekdayNos = $this->getWeekdayNolist();

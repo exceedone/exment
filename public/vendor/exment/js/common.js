@@ -41,7 +41,9 @@ var Exment;
             CommonEvent.addShowModalEvent();
             CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
-            if (!$('#gridrow_select_disabled').val()) {
+            let gridrow_select_transition = $('#gridrow_select_transition').val() || "default";
+            if (gridrow_select_transition !== 'none' &&
+                (gridrow_select_transition !== 'default' || !$('#gridrow_select_disabled').val())) {
                 CommonEvent.tableHoverLink();
             }
             $.numberformat('[number_format]:not(".disableNumberFormat")');
@@ -364,7 +366,14 @@ var Exment;
                     return;
                 }
                 let editFlg = $('#gridrow_select_edit').val();
+                let tableOpt = $('#gridrow_select_transition').val();
                 let linkElem = $(ev.target).closest('tr').find('.rowclick');
+                if (tableOpt == 'edit') {
+                    editFlg = 1;
+                }
+                else if (tableOpt == 'show') {
+                    editFlg = 0;
+                }
                 if (editFlg) {
                     if (!hasValue(linkElem)) {
                         linkElem = $(ev.target).closest('tr').find('.fa-edit');
@@ -389,6 +398,12 @@ var Exment;
                 }
                 linkElem.closest('a,.rowclick').trigger('click');
             }).addClass('tableHoverLinkEvent');
+
+            $('.janCodeRow').on('click', function (ev) {
+                let janCodeId = $(ev.target).closest('tr').attr('jan-code-id');
+                let id = $(ev.target).closest('tr').attr('id');
+                window.location.href = admin_url("/assign-jan-code/?table_id=") + id + "&jan_code_id=" + janCodeId;
+            });
         }
         /**
          * Set changedata event
@@ -438,8 +453,8 @@ var Exment;
         /**
         * get model and change value
         */
-        static changeModelData($target, data = null) {
-            return __awaiter(this, void 0, void 0, function* () {
+        static changeModelData($target_1) {
+            return __awaiter(this, arguments, void 0, function* ($target, data = null) {
                 var $d = $.Deferred();
                 // get parent element from the form field.
                 var $parent = CommonEvent.getParentRow($target);

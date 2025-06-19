@@ -8,6 +8,8 @@ class Plugin extends PluginBatchBase
 {
     /**
      * execute
+     *
+     * @return void
      */
     public function execute()
     {

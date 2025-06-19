@@ -34,7 +34,13 @@ class SystemColumn extends EnumBase
     public const DELETED_USER = 'deleted_user';
     public const WORKFLOW_STATUS = 'workflow_status';
     public const WORKFLOW_WORK_USERS = 'workflow_work_users';
+    public const COMMENT = 'comment';
 
+    /**
+     * We should use `const OPTIONS` instead of `protected static $options`.
+     *
+     * @var array[]
+     */
     protected static $options = [
         'id' => ['id' => 1, 'name' => 'id', 'sqlname' => 'id', 'default' => true, 'order' => 1, 'header' => true, 'summary' => true, 'min_width' => 30, 'max_width' => 100, 'grid_filter' => true, 'grid_filter_system' => true],
         'suuid' => ['id' => 2, 'name' => 'suuid', 'sqlname' => 'suuid', 'default' => false, 'order' => 2, 'header' => true, 'min_width' => 100, 'max_width' => 300],
@@ -43,11 +49,12 @@ class SystemColumn extends EnumBase
         'created_at' => ['id' => 96, 'type' => 'datetime', 'name' => 'created_at', 'sqlname' => 'created_at', 'default' => true, 'order' => 81, 'footer' => true, 'summary' => true, 'min_width' => 100, 'max_width' => 300, 'grid_filter' => true, 'grid_filter_system' => true],
         'updated_at' => ['id' => 97, 'type' => 'datetime', 'name' => 'updated_at', 'sqlname' => 'updated_at', 'default' => true, 'order' => 82, 'footer' => true, 'summary' => true, 'min_width' => 100, 'max_width' => 300, 'grid_filter' => true, 'grid_filter_system' => true],
         'deleted_at' => ['id' => 101, 'type' => 'datetime', 'name' => 'deleted_at', 'sqlname' => 'deleted_at', 'default' => false, 'order' => 83, 'min_width' => 100, 'max_width' => 300],
-        'created_user' => ['id' => 98, 'type' => 'user', 'name' => 'created_user', 'sqlname' => 'created_user_id', 'tagname' => 'created_user_tag', 'avatarname' => 'created_user_avatar', 'default' => false, 'order' => 91, 'footer' => true, 'min_width' => 100, 'max_width' => 300],
-        'updated_user' => ['id' => 99, 'type' => 'user', 'name' => 'updated_user', 'sqlname' => 'updated_user_id', 'tagname' => 'updated_user_tag', 'avatarname' => 'updated_user_avatar', 'default' => false, 'order' => 92, 'footer' => true, 'min_width' => 100, 'max_width' => 300],
+        'created_user' => ['id' => 98, 'type' => 'user', 'name' => 'created_user', 'sqlname' => 'created_user_id', 'tagname' => 'created_user_tag', 'avatarname' => 'created_user_avatar', 'default' => false, 'order' => 91, 'footer' => true, 'min_width' => 100, 'max_width' => 300, 'grid_filter' => true, 'grid_filter_system' => true],
+        'updated_user' => ['id' => 99, 'type' => 'user', 'name' => 'updated_user', 'sqlname' => 'updated_user_id', 'tagname' => 'updated_user_tag', 'avatarname' => 'updated_user_avatar', 'default' => false, 'order' => 92, 'footer' => true, 'min_width' => 100, 'max_width' => 300, 'grid_filter' => true, 'grid_filter_system' => true],
         'deleted_user' => ['id' => 102, 'type' => 'user', 'name' => 'deleted_user', 'sqlname' => 'deleted_user_id', 'tagname' => 'deleted_user_tag', 'avatarname' => 'deleted_user_avatar', 'default' => false, 'order' => 93, 'min_width' => 100, 'max_width' => 300],
         'workflow_status' => ['id' => 201, 'type' => 'workflow', 'name' => 'workflow_status', 'tagname' => 'workflow_status_tag', 'sqlname' => 'workflow_status_to_id', 'default' => false, 'grid_filter' => true, 'grid_filter_system' => false],
         'workflow_work_users' => ['id' => 202, 'name' => 'workflow_work_users', 'tagname' => 'workflow_work_users_tag', 'default' => false, 'grid_filter' => true, 'grid_filter_system' => false],
+        'comment' => ['id' => 301, 'name' => 'comment', 'tagname' => 'comment_tag', 'default' => false, 'grid_filter' => true, 'grid_filter_system' => false],
     ];
 
     public function id()
@@ -63,6 +70,11 @@ class SystemColumn extends EnumBase
     public static function isWorkflow($key)
     {
         return in_array($key, [static::WORKFLOW_STATUS, static::WORKFLOW_WORK_USERS]);
+    }
+
+    public static function isComment($key)
+    {
+        return in_array($key, [static::COMMENT]);
     }
 
     public static function getEnum($value, $default = null, $include_id = true)

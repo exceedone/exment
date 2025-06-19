@@ -157,7 +157,7 @@ abstract class ViewFilterBase
     /**
      * Create instance, for view filter
      *
-     * @param string $view_filter_condition
+     * @param string|int $view_filter_condition
      * @return ViewFilterBase|null
      */
     public static function make($view_filter_condition, $column_item, array $options = []): ?ViewFilterBase
@@ -231,13 +231,14 @@ abstract class ViewFilterBase
 
 
     /**
-     * Whether this conditon is number.
+     * Whether this condition is number.
      * If number, compare "eq" and "ne" is as number.
      *
      * @return boolean
      */
     public function isNumeric(): bool
     {
+        /** @phpstan-ignore-next-line Negated boolean expression is always false. */
         if (!$this->condition) {
             return false;
         }

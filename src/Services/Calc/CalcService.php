@@ -52,6 +52,7 @@ class CalcService
         $calc_formulas = [];
         $calc_counts = [];
 
+        /** @phpstan-ignore-next-line  $relationInfo Ternary operator condition is always true. */
         $relationInfo = $custom_form_block ? $custom_form_block->getRelationInfo($custom_table) : null;
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             if ($form_column->form_column_type != FormColumnType::COLUMN) {

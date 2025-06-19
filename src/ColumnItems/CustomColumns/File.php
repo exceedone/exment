@@ -83,20 +83,24 @@ class File extends CustomItem
         }
 
         if (is_array($value)) {
-            $value = collect($value)->implode(",");
-        }
-
-        // Get file info by url
-        // only check by uuid
-        $uuid = pathinfo(trim($value, '/'), PATHINFO_FILENAME);
-        if (is_nullorempty($uuid)) {
+            $file_path = [];
+            foreach ($value as $val) {
+                $result = $this->getImportFilePath($val);
+                if ($result === false) {
+                    return [
+                        'skip' => true,
+                    ];
+                }
+                $file_path[] = $result;
+            }
             return [
-                'skip' => true,
+                'result' => true,
+                'value' => $file_path
             ];
         }
 
-        $file = ExmentFile::where('uuid', $uuid)->first();
-        if (!isset($file)) {
+        $result = $this->getImportFilePath($value);
+        if ($result === false) {
             return [
                 'skip' => true,
             ];
@@ -105,8 +109,24 @@ class File extends CustomItem
         // return file path
         return [
             'result' => true,
-            'value' => $file->path,
+            'value' => $result
         ];
+    }
+
+    protected function getImportFilePath($value)
+    {
+        // Get file info by url
+        // only check by uuid
+        $uuid = pathinfo(trim($value, '/'), PATHINFO_FILENAME);
+        if (is_nullorempty($uuid)) {
+            return false;
+        }
+
+        $file = ExmentFile::where('uuid', $uuid)->first();
+        if (!isset($file)) {
+            return false;
+        }
+        return $file->path;
     }
 
     protected function getAdminFieldClass()
@@ -324,6 +344,7 @@ class File extends CustomItem
         if (!is_null($accept_extensions = array_get($options, 'accept_extensions'))) {
             $validates[] = new Validator\FileRule(stringToArray($accept_extensions));
         }
+        $validates[] = new Validator\FileNameRule();
     }
 
     protected function getCustomField($classname, $column_name_prefix = null)

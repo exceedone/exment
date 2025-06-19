@@ -32,9 +32,8 @@ class DocumentProvider extends FileColumnProvider
      * validate data row
      * @param int $line_no
      * @param array $dataAndModel
-     * @param array $validate_columns(not use)
+     * @param array|null $validate_columns(not use)
      * @param array $dataObjects
-     * @return array
      */
     public function validateDataRow($line_no, $dataAndModel, $validate_columns, $dataObjects)
     {

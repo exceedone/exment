@@ -106,7 +106,7 @@ class WorkflowController extends AdminControllerBase
                 ))->render());
             }
 
-            /** @phpstan-ignore-next-line fix laravel-admin documentation */
+            /** @phpstan-ignore-next-line Cannot call method canActivate() on stdClass. */
             if ($actions->row->canActivate()) {
                 $actions->prepend((new Tools\ModalLink(
                     admin_urls('workflow', $actions->row->id, 'activateModal'),
@@ -596,6 +596,7 @@ class WorkflowController extends AdminControllerBase
 
         $results = [];
 
+        /** @phpstan-ignore-next-line Call to function is_null() with mixed will always evaluate to false. */
         if (is_null($results = old('workflow_tables'))) {
             $workflowTables = WorkflowTable::with(['workflow', 'custom_table'])->get()
             ->filter(function ($workflowTable) {
@@ -672,7 +673,7 @@ class WorkflowController extends AdminControllerBase
         $form->html(view('exment::workflow.beginning', [
             'items' => $results
         ])->render());
-
+        /** @phpstan-ignore-next-line constructor expects string, Encore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('workflow.beginning'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => admin_url('workflow'),
@@ -990,32 +991,30 @@ class WorkflowController extends AdminControllerBase
                     }
                 }
 
-                if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT || WorkflowWorkTargetType::GET_BY_USERINFO) {
-                    // if contains other FIX action in same acthion
-                    foreach ($workflow_actions as $validateIndex => $workflow_action_validate) {
-                        if ($key == $validateIndex) {
-                            continue;
-                        }
-
-                        if (array_get($workflow_action, 'status_from') != array_get($workflow_action_validate, 'status_from')) {
-                            continue;
-                        }
-
-                        // It's ok if ignore_work
-                        if (array_boolval($workflow_action_validate, 'ignore_work')) {
-                            continue;
-                        }
-
-                        $work_targets_validate = jsonToArray(array_get($workflow_action_validate, 'work_targets'));
-
-                        if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT) {
-                            if (array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')) {
-                                continue;
-                            }
-                            $errors->add("$errorKey.{$key_condition}", exmtrans("workflow.message." . array_get($work_targets_validate, 'work_target_type') . "_and_action_select"));
-                        }
-                        break;
+                // if contains other FIX action in same acthion
+                foreach ($workflow_actions as $validateIndex => $workflow_action_validate) {
+                    if ($key == $validateIndex) {
+                        continue;
                     }
+
+                    if (array_get($workflow_action, 'status_from') != array_get($workflow_action_validate, 'status_from')) {
+                        continue;
+                    }
+
+                    // It's ok if ignore_work
+                    if (array_boolval($workflow_action_validate, 'ignore_work')) {
+                        continue;
+                    }
+
+                    $work_targets_validate = jsonToArray(array_get($workflow_action_validate, 'work_targets'));
+
+                    if ($work_target_type == WorkflowWorkTargetType::ACTION_SELECT) {
+                        if (array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')) {
+                            continue;
+                        }
+                        $errors->add("$errorKey.{$key_condition}", exmtrans("workflow.message." . array_get($work_targets_validate, 'work_target_type') . "_and_action_select"));
+                    }
+                    break;
                 }
             }
 
@@ -1211,7 +1210,12 @@ class WorkflowController extends AdminControllerBase
                     ->options(exmtrans("condition.condition_join_options"))
                     ->attribute(['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])])
                     ->default(array_get($work_condition, "condition_join") ?? 'and');
-            }
+
+                $form->checkboxone("condition_reverse_{$index}", exmtrans("condition.condition_reverse"))
+                    ->option(exmtrans("condition.condition_reverse_options"))
+                    ->attribute(['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])])
+                    ->default(array_get($work_condition, "condition_reverse") ?? '0');
+                }
         }
 
         $form->hidden('valueModalUuid')->default($request->get('widgetmodal_uuid'));            // add message

@@ -10,6 +10,9 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -22,6 +25,14 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected $namespace = 'Exceedone\Exment\Controllers';
 
+    public function boot(): void
+    {
+        $rate_limit = config('exment.api_max_rate_limit', 60);
+        RateLimiter::for('api', function (Request $request) use ($rate_limit) {
+            $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
+            return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
+        });
+    }
     /**
      * Define the routes for the application.
      *
@@ -118,11 +129,14 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             $router->get('table/{id}/copyModal', 'CustomTableController@copyModal');
             $router->post('table/{id}/copy', 'CustomTableController@copyTable');
+            $router->post('table/{id}/qrcode_activate', 'CustomTableController@qrcodeActivate')->name('exment.qrcode_activate');
+            $router->post('table/{id}/qrcode_deactivate', 'CustomTableController@qrcodeDeactivate')->name('exment.qrcode_deactivate');
+            $router->post('table/{id}/jancode_activate', 'CustomTableController@jancodeActivate')->name('exment.jancode_activate');
+            $router->post('table/{id}/jancode_deactivate', 'CustomTableController@jancodeDeactivate')->name('exment.jancode_deactivate');
 
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');
             $this->setResouce($router, 'plugin', 'PluginController');
-            $this->setResouce($router, 'role_group', 'RoleGroupController');
             $this->setResouce($router, 'table', 'CustomTableController');
             $this->setResouce($router, 'workflow', 'WorkflowController');
 
@@ -139,9 +153,18 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
 
+            $router->get("role_group/importModal", 'RoleGroupController@importModal');
+            $router->post("role_group/import", 'RoleGroupController@import');
+            $this->setResouce($router, 'role_group', 'RoleGroupController');
+
             $router->get('role', function () {
                 return redirect(admin_urls('role_group'));
             });
+
+            $router->get('qr-code/{tableName}/{id}', 'QrCodeController@scanRedirect');
+            $router->get('jan-code/{id}', 'JanCodeController@scanRedirect');
+            $router->get('jan-code/table/{id}', 'JanCodeController@listTable');
+            $router->get('assign-jan-code', 'JanCodeController@assignJancode');
 
             $router->get('search', 'SearchController@index');
             $router->get('search/lists', 'SearchController@getLists');
@@ -187,6 +210,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
             $router->delete("data/{tableKey}/{id}/deletecomment/{suuid}", 'CustomValueController@deleteComment');
+            $router->post("data/{tableKey}/qrcode_download", 'CustomValueController@qrcodeDownload')->name('exment.qrcode_download');
+            $router->get("data/{tableKey}/form_create_qrcode", 'CustomValueController@formCreateQrcode')->name('exment.form_create_qrcode');
+            $router->post("data/{tableKey}/create_qrcode", 'CustomValueController@createQrcode')->name('exment.create_qrcode');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
@@ -296,8 +322,8 @@ class RouteServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'admin_anonymous_simple'],
         ], function (Router $router) {
             $router->get('favicon', 'FileController@downloadFavicon');
-            $router->get('auth/login/background', 'FileController@downloadLoginBackground');
-            $router->get('auth/login/header', 'FileController@downloadLoginHeader');
+            $router->get('auth/file/background', 'FileController@downloadLoginBackground');
+            $router->get('auth/file/header', 'FileController@downloadLoginHeader');
         });
     }
 

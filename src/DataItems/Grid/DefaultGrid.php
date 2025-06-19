@@ -27,6 +27,7 @@ use Illuminate\Http\Request;
 use Encore\Admin\Form;
 // todo 一覧ソートバグ対応用の追加です
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class DefaultGrid extends GridBase
 {
@@ -135,6 +136,7 @@ class DefaultGrid extends GridBase
                 ->setClasses($className)
                 ->setHeaderStyle($item->gridHeaderStyle())
                 ->display(function ($v) use ($item) {
+                    /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\DataItems\Grid\DefaultGrid) will always evaluate to false. */
                     if (is_null($this)) {
                         return '';
                     }
@@ -315,7 +317,9 @@ class DefaultGrid extends GridBase
                 $filterItems[] = $custom_view_grid_filter->column_item;
             }
 
-            return collect($filterItems);
+            /** @var Collection $collection */
+            $collection =  collect($filterItems);
+            return $collection;
         }
 
         foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => true]) as $filterKey => $filterType) {
@@ -332,11 +336,28 @@ class DefaultGrid extends GridBase
         // filter workflow
         if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
             foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
+                if (!SystemColumn::isWorkflow($filterKey)) {
+                    continue;
+                }
                 if ($this->custom_table->gridFilterDisable($filterKey)) {
                     continue;
                 }
 
                 $filterItems[] = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
+            }
+        }
+
+        // filter comment
+        if (boolval($this->custom_table->getOption('comment_flg')?? true)) {
+            foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
+                if (!SystemColumn::isComment($filterKey)) {
+                    continue;
+                }
+                if ($this->custom_table->gridFilterDisable($filterKey)) {
+                    continue;
+                }
+
+                $filterItems[] = ColumnItems\CommentItem::getItem($this->custom_table);
             }
         }
 
@@ -439,6 +460,7 @@ class DefaultGrid extends GridBase
             if ($import === true || $export === true) {
                 // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
                 $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $export === true, $import === true, $export === true);
+                /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\ExportImportButton given */
                 $tools->append($button->setCustomTable($this->custom_table));
             }
 
@@ -448,9 +470,11 @@ class DefaultGrid extends GridBase
 
             // add page change button(contains view seting)
             if ($this->custom_table->enableTableMenuButton()) {
+                /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
                 $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
             }
             if ($this->custom_table->enableViewMenuButton()) {
+                /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */
                 $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
             }
 
@@ -534,7 +558,7 @@ class DefaultGrid extends GridBase
                     $enableCreate = false;
                 }
 
-                if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
+                if (!is_null($parent_value = $actions->row->getParentValue(null, true)) && $parent_value->enableEdit(true) !== true) {
                     $enableCreate = false;
                     $enableEdit = false;
                     $enableDelete = false;
@@ -552,21 +576,24 @@ class DefaultGrid extends GridBase
                     $actions->disableView();
                     $actions->disableDelete();
 
-                    // add restore link
-                    $restoreUrl = $actions->row->getUrl() . '/restoreClick';
-                    $linker = (new Linker())
-                        ->icon('fa-undo')
-                        ->script(true)
-                        ->linkattributes([
-                            'data-add-swal' => $restoreUrl,
-                            'data-add-swal-title' => exmtrans('custom_value.restore'),
-                            'data-add-swal-text' => exmtrans('custom_value.message.restore'),
-                            'data-add-swal-method' => 'get',
-                            'data-add-swal-confirm' => trans('admin.confirm'),
-                            'data-add-swal-cancel' => trans('admin.cancel'),
-                        ])
-                        ->tooltip(exmtrans('custom_value.restore'));
-                    $actions->append($linker);
+                    // if parent data does not exist or has not been deleted 
+                    if (!$parent_value || !$parent_value->trashed()) {
+                        // add restore link
+                        $restoreUrl = $actions->row->getUrl() . '/restoreClick';
+                        $linker = (new Linker())
+                            ->icon('fa-undo')
+                            ->script(true)
+                            ->linkattributes([
+                                'data-add-swal' => $restoreUrl,
+                                'data-add-swal-title' => exmtrans('custom_value.restore'),
+                                'data-add-swal-text' => exmtrans('custom_value.message.restore'),
+                                'data-add-swal-method' => 'get',
+                                'data-add-swal-confirm' => trans('admin.confirm'),
+                                'data-add-swal-cancel' => trans('admin.cancel'),
+                            ])
+                            ->tooltip(exmtrans('custom_value.restore'));
+                        $actions->append($linker);
+                    }
 
                     // append show url
                     $showUrl = $actions->row->getUrl() . '?trashed=1';
@@ -591,6 +618,18 @@ class DefaultGrid extends GridBase
                             'data-add-swal-cancel' => trans('admin.cancel'),
                         ])
                         ->tooltip(exmtrans('custom_value.hard_delete'));
+                    $actions->append($linker);
+
+                } elseif ($actions->row->trashed()) {
+                    $actions->disableView();
+                    $actions->disableDelete();
+                    // append show url
+                    $showUrl = $actions->row->getUrl() . '?trashed=1';
+                    // add new edit link
+                    $linker = (new Linker())
+                        ->url($showUrl)
+                        ->icon('fa-eye')
+                        ->tooltip(trans('admin.show'));
                     $actions->append($linker);
                 }
 
@@ -777,6 +816,7 @@ class DefaultGrid extends GridBase
             'append_table' => true,
             'include_parent' => true,
             'include_workflow' => true,
+            'include_comment' => true,
             'index_enabled_only' => true,
             'only_system_grid_filter' => true,
             'ignore_many_to_many' => true,
@@ -800,5 +840,21 @@ class DefaultGrid extends GridBase
         })->setTableColumnWidth(8, 4)
         ->rowUpDown('order', 10)
         ->descriptionHtml(exmtrans("custom_view.description_custom_view_grid_filters", $manualUrl));
+    }
+
+    /**
+     * Set filter fileds form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @param boolean $is_aggregate
+     * @return void
+     */
+    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    {
+        parent::setFilterFields($form, $custom_table, $is_aggregate);
+
+        $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
+            ->option(exmtrans("condition.condition_reverse_options"));
     }
 }

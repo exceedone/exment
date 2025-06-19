@@ -79,7 +79,9 @@ class Tile extends Field
     }
     public function render()
     {
+        /** @phpstan-ignore-next-line Instanceof between array and Closure will always evaluate to false. it needs to fix laravel-admin */
         if ($this->options instanceof \Closure) {
+            /** @phpstan-ignore-next-line Left side of && is always true and Right side of && is always true */
             if ($this->form && $this->form->model()) {
                 $this->options = $this->options->bindTo($this->form->model());
             }
@@ -92,7 +94,7 @@ class Tile extends Field
 
         // template search url
         $this->script = <<<EOT
-    
+
     $(document).on('click.exment_tile', '[data-ajax-link]', {}, function(ev){
         searchTemplate(null, $(ev.target).data('ajax-link'));
     });
@@ -100,8 +102,8 @@ class Tile extends Field
     $(document).off('click', '#tile-{$this->column} .tile').on('click', '#tile-{$this->column} .tile', {}, function(event){
         var tile = $(event.target).closest('.tile');
         var hasActive = tile.hasClass('active');
-        
-        // not multipled 
+
+        // not multipled
         if(!{$multipled}){
             var tile_group = $(event.target).closest('.tile-group');
             tile_group.find('.tile').removeClass('active');

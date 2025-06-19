@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 class CustomValueModelScope implements Scope
@@ -24,6 +25,19 @@ class CustomValueModelScope implements Scope
     {
         $table_name = $model->custom_table->table_name;
         $db_table_name = getDBTableName($table_name);
+
+        // check if inherit parent permissions and get parent table
+        $inherit_parent = boolval($model->custom_table->getOption('inherit_parent_permission'));
+        $parent_table = null;
+        if ($inherit_parent) {
+            $relation = CustomRelation::getRelationByChild($model->custom_table, RelationType::ONE_TO_MANY);
+            if (!empty($relation)) {
+                $parent_table = $relation->parent_custom_table;
+            }
+            if (empty($parent_table)) {
+                $inherit_parent = false;
+            }
+        }
 
         // get user info
         $user = \Exment::user();
@@ -57,17 +71,37 @@ class CustomValueModelScope implements Scope
             return;
         } elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
+        } elseif ($inherit_parent && $parent_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+            return;
         }
         // if user has edit or view table
         elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            $builder->whereHas('custom_value_authoritables', function ($builder) use ($user) {
-                // get only has role
-                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-                $builder->whereInMultiple(
-                    ['authoritable_user_org_type', 'authoritable_target_id'],
-                    $user->getUserAndOrganizationIds($enum),
-                    true
-                );
+            // get only has role
+            $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+
+            $builder->where(function($builder) use($user, $enum, $db_table_name, $inherit_parent, $parent_table) {
+                $builder->whereHas('custom_value_authoritables', function ($builder) use ($user, $enum) {
+                    $builder->whereInMultiple(
+                        ['authoritable_user_org_type', 'authoritable_target_id'],
+                        $user->getUserAndOrganizationIds($enum),
+                        true
+                    );
+                });
+                if ($inherit_parent && $parent_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+                    $builder->orWhere(function($builder) use ($user, $enum, $db_table_name) {
+                        $builder->whereExists(function ($builder) use ($user, $enum, $db_table_name) {
+                            $builder->select(\DB::raw(1))
+                                ->from('custom_value_authoritables')
+                                ->whereColumn('custom_value_authoritables.parent_id', "{$db_table_name}.parent_id")
+                                ->whereColumn('custom_value_authoritables.parent_type', "{$db_table_name}.parent_type")
+                                ->whereInMultiple(
+                                    ['authoritable_user_org_type', 'authoritable_target_id'],
+                                    $user->getUserAndOrganizationIds($enum),
+                                    true
+                                );
+                        });
+                    });
+                }
             });
         }
         // if not role, set always false result.

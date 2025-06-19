@@ -83,6 +83,12 @@ return [
         'no_selected' => '未選択',
         'no_use' => '使用しない',
         'default_export' => 'エクスポート',
+        'condition_reverse' => '<反転> ',
+        'save' => '保存',
+        'no_file_download' => 'ダウンロード対象のファイルがありません',
+        'english' => '英語',
+        'japanese' => '日本語',
+        'back_button' => '戻る',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -108,6 +114,7 @@ return [
             'cannot_preview' => '※:nameは、編集中のプレビュー機能に対応していません。確認する場合、一度保存後に実施してください。',
             'preview_error' => 'プレビューの有効期限が切れました。この画面を閉じ、再度プレビューを実施してください。',
             'csrf_error' => '有効期限が切れたので、ブラウザを開き直してください。',
+            'not_edit_column_type' => '列種類は変更不可です。',
         ],
 
         'help' =>[
@@ -229,6 +236,7 @@ return [
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
         'email_multiline' => 'Eメールアドレスでない行が含まれています。',
         'duplicate_relation' => 'すでに関連付けられているテーブルです。',
+        'filename_not_allow' => ':attributeには、禁則文字が使用されています。ファイル名を変更して再度実施してください。',
         
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
@@ -433,7 +441,7 @@ return [
             'system_values_pos' => 'データ編集画面及びデータ詳細画面でシステム項目を表示する位置を設定します。',
             'data_submit_redirect' => 'カスタムデータの保存後にリダイレクトする画面の既定値を設定することができます。この項目を設定すると、データ入力画面で、保存後のデータ遷移先チェックボックスにチェックが入ります。',
             'header_user_info' => 'ヘッダーのユーザー情報に表示する内容を設定することができます。空欄にした場合は非表示になります。',
-            'api_available' => 'YESにした場合、APIを使用することができます。',
+            'api_available' => 'YESにする前に、Laravelキーを作成ください。作成方法は<a href="%sapiを使用する" target="_blank">こちら</a>です。YESにした場合、APIを使用することができます。',
             'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
@@ -579,6 +587,7 @@ return [
             'editor' => 'エディター',
             'html' => 'HTML',
             'notify_navbar' => '通知一覧',
+            'barcode' => '二次元／JANバーコード',
         ],
 
         'dashboard_menulist' => [
@@ -643,6 +652,7 @@ return [
             'event_trigger_options' => [
                 'saving' => '保存直前',
                 'saved' => '保存後',
+                'deleted' => '削除後',
                 'loading' => '画面読み込み前',
                 'loaded' => '画面読み込み後',
                 'grid_menubutton' => '一覧画面のメニューボタン',
@@ -650,8 +660,8 @@ return [
                 'form_menubutton_show' => 'データ詳細のメニューボタン',
                 'form_menubutton_create' => 'フォームのメニューボタン（新規作成時）',
                 'form_menubutton_edit' => 'フォームのメニューボタン（更新時）',
-                'workflow_action_executing' => 'ワークフロース実行前',
-                'workflow_action_executed' => 'ワークフロース実行後',
+                'workflow_action_executing' => 'ワークフロー実行前',
+                'workflow_action_executed' => 'ワークフロー実行後',
                 'notify_executing' => '通知前',
                 'notify_executed' => '通知後',
             ]
@@ -854,6 +864,9 @@ return [
         'oauth_client_id' => 'クライアントID',
         'oauth_client_secret' => 'クライアントシークレット',
         'oauth_scope' => 'スコープ',
+
+        'oauth_option' => 'オプション設定',         
+        'oauth_option_single_logout' => 'シングル・サインアウト',
         
         'user_setting' => 'ユーザー設定',
         'mapping_user_column' => 'アカウント検索列',
@@ -933,7 +946,9 @@ return [
             'jit_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
             'mapping_description' => 'プロバイダから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。プロバイダから返却されるフィールド名を入力してください。<br/>カンマ区切りで複数入力した場合、値の存在するフィールドを、先頭から優先して取得します。<br />また、複数のフィールドを結合したい場合、"${フィールド名}"と入力してください。(例：${last_name} ${first_name})',
             'login_test_sso' => 'テスト用の:login_typeリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダの:login_type設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
-                
+
+            'oauth_option_single_logout' => 'Exmentだけでなく、IDプロバイダーからもログアウトする場合は、YESにしてください。<span class="red">※現在、Oktaには対応しておりません。</span>',
+            
             'ldap_base_dn' => '認証に使用する基本DN(識別名)を入力してください。',
             'ldap_filter' => 'openLDAPの認証時に利用する、属性と属性値を入力してください。(例：(objectClass=inetOrgPerson)(objectClass=person))',
             'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
@@ -1043,6 +1058,8 @@ return [
         'notify' => '通知設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
+        'qrcode' => '二次元バーコード設定',
+        'jancode' => 'JANバーコード設定',
     ],
 
     'workflow' => [
@@ -1176,6 +1193,7 @@ return [
         'all_user_editable_flg' => '全ユーザーが編集可能',
         'all_user_viewable_flg' => '全ユーザーが閲覧可能',
         'all_user_accessable_flg' => '全ユーザーが参照可能',
+        'inherit_parent_permission' => '親データの権限で閲覧可能',
         'add_parent_menu_flg' => 'メニューに追加する',
         'add_notify_flg' => '通知に追加する',
         'add_parent_menu' => '追加先の親メニュー',
@@ -1183,12 +1201,63 @@ return [
         'expand_setting' => '拡張設定',
         'copy_from_table' => 'コピー元テーブル',
         'copy_custom_table' => 'カスタムテーブルをコピーする',
+        'no_selected' => '対象データが選択されていません',
+        'qr_code' => [
+            'setting' => '二次元バーコード設定',
+            'content' => '二次元バーコードの補足情報',
+            'text' => 'タイトル',
+            'image_size' => '二次元バーコードのレイアウトサイズ',
+            'cell_width' => 'Cell width',
+            'cell_height' => 'Cell height',
+            'margin_left' => 'Margin left',
+            'margin_top' => 'Margin top',
+            'column_per_page' => 'Column per page',
+            'row_per_page' => 'Row per page',
+            'column_spacing' => 'Columnn spacing',
+            'row_spacing' => 'Row spacing',
+            'form_after_read' => '二次元バーコード読込後のフォーム',
+            'action_after_read' => 'データ登録後のアクション',
+            'download' => '%sダウンロード',
+            'create' => '%s新規作成',
+            'form_title' => '二次元バーコード新規作成',
+            'reading' => '%s読込',
+            'description' => '二次元バーコードのレイアウトサイズ設定は<a href="%s" target="_blank">こちら</a>をご参照ください。',
+            'number_qr' => '二次元バーコードの件数',
+            'advance_setting' => '二次元バーコード読込',
+            'text_button' => 'ボタン表示名',
+            'text_button_description' => '二次元バーコード新規作成、二次元バーコードダウンロードボタンの「二次元バーコード」の表示名を設定します。',
+            'created' => '作成しました。',
+            'download_complete' => '二次元バーコードのダウンロードを完了しました',
+            'table_not_found' => 'この二次元バーコードコードの表が見つかりません',
+            'validate_qr_number' => '二次元バーコードコードの数は 0 より大きくなければなりません',
+            'refer_column' => '表示列',
+            'refer_column_description' => '二次元バーコードの右側にカスタムデータの指定列の情報を表示します。<br/>※ID列または自動採番列（ユニーク（一意）かつ必須であること）を選択できます。',
+            'text_qr_description' => '二次元バーコードの右側に表示される固定文言です。',
+        ],
+        'jan_code' => [
+            'setting' => 'JANバーコード設定',
+            'advance_setting' => 'JANバーコード読込',
+            'form_after_edit' => '編集フォーム',
+            'form_after_create' => '登録フォーム',
+            'table_not_found' => 'この Jancode のテーブルが見つかりません',
+            'action_after_edit' => 'データ編集後のアクション',
+            'action_after_create' => 'データ登録後のアクション',
+            'header' => 'JANバーコード利用のテーブル一覧',
+            'description' => 'JANバーコード登録したいテーブルを選択してください。',
+        ],
         'data_submit_redirect_options' => [
             "inherit"               => "システム設定に合わせる",
             'list'                  => '一覧',
             'view'                  => '表示',
             'continue_editing'      => '編集を続ける',
             'continue_creating'     => '新規作成する',
+        ],
+        'data_qr_redirect_options' => [
+            'top'                   => 'TOP画面表示',
+            'list'                  => '一覧表示',
+            'view'                  => '詳細画面表示',
+            'continue_editing'      => '編集画面表示',
+            'camera'                => 'カメラ起動',
         ],
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
@@ -1204,6 +1273,7 @@ return [
             'all_user_editable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを編集可能になります。',
             'all_user_viewable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを閲覧可能になります。',
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
+            'inherit_parent_permission' => 'YESにした場合、親データ（1対多）の権限でデータを閲覧できます。ただし、このテーブル自体に担当者の閲覧等の権限を持っている必要があります。',
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
             'add_notify_flg' => 'データの新規作成・更新・共有、コメント時に、権限のあるユーザーに、システム内通知を行う設定を、テーブルの新規作成後に追加することができます。追加する場合はYESにしてください。<br/>※テーブルの新規作成時のみ設定できます。更新時は「通知」画面より設定してください。',
@@ -1211,6 +1281,10 @@ return [
             'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
             'delete_confirm_error' => 'キーワードが正しくありません。',
             'copy_custom_table' => '通常設定、拡張設定、カスタム列をコピーします。<br />その他の設定は対象外になります。手動で設定を行ってください。',
+            'qrcode_activate' => 'このテーブルの二次元バーコード機能を有効化にします。有効化しますか？',
+            'qrcode_deactivate' => 'このテーブルの二次元バーコード機能を無効化にします。無効化しますか？',
+            'jancode_activate' => 'このテーブルのJANバーコード機能を有効にします。有効にしますか?',
+            'jancode_deactivate' => 'このテーブルのJANバーコード機能は無効になります。無効にしますか?<br/>なお、有効時に紐づけられたJANバーコードの情報は残るため、JANバーコードを読込を行うと、このテーブルのデータが表示されます。',
         ],
 
         'custom_column_multi' => [
@@ -1237,6 +1311,7 @@ return [
             'table_label_format' => '見出しフォーマット設定',
             'table_label_format_string' => 'フォーマット文字列',
             'form_action_disable_flg' => '画面からの変更不可',
+            'gridrow_select_transition' => '行クリック時の画面遷移',
 
             'help' => [
                 'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -1253,6 +1328,12 @@ return [
                 'delete' => '削除',
                 'import' => 'インポート',
                 'export' => 'エクスポート',
+            ],
+            'gridrow_select_options' => [
+                'default' => '既定値に合わせる',
+                'edit' => 'データ編集画面',
+                'show' => 'データ詳細画面',
+                'none' => '遷移しない',
             ],
             'share_trigger_type_options' => [
                 'create' => '新規作成時',
@@ -1500,6 +1581,7 @@ return [
         'suggest_column_label' => 'テーブル列',
         'suggest_other_label' => 'その他',
         'form_block_name' => 'フォームブロック名',
+        'form_block_order' => '表示順',
         'field_default' => '標準',
         'read_only' => '読み取り専用',
         'view_only' => '表示専用',
@@ -1841,6 +1923,7 @@ return [
             'use_view_infobox' => 'YESにすることで、ビューの上部に、業務内容や、ユーザーへのメッセージなどを記入できる、情報ボックスを設定することができます。',
             'view_infobox_title' => '情報ボックスに表示するタイトルを記入してください。',
             'view_infobox' => '情報ボックスに表示するHTMLを記入してください。※画像、スクリプトは入力できません。',
+            'order' => 'カスタムビューのメニューボタンの表示順です。',
         ],
 
         'column_sort_options' => [
@@ -1950,6 +2033,12 @@ return [
         'role_group_name' => '役割グループ名(英数字)',
         'role_group_view_name' => '役割グループ表示名',
         'description_system_admin' => '<span class="red">※システム管理者権限の追加は、メニューの「システム設定」→「システム管理者」より追加してください。</span>',
+        'role_group_id' => '役割グループID',
+        'role_group_permission_type' => '権限設定の種類',
+        'role_group_target_plugin' => '対象のプラグインID',
+        'role_group_target_table' => '対象のテーブルID',
+        'role_group_user_org_type' => 'ユーザー・組織区分',
+        'role_group_user_org_target_id' => 'ユーザー・組織ID',
         'permissions' => '権限詳細',
         'permission_setting' => '権限設定',
         'user_organization_setting' => 'ユーザー・組織設定',
@@ -2046,6 +2135,7 @@ return [
 
         'error' => [
             'cannot_accessable_and_value' => '権限「全データの参照」と「%s」を同時に設定することはできません。',
+            'cannot_plugin_access_permission' => '利用・アクセスを設定できないプラグインです',
         ],
     ],
 
@@ -2183,6 +2273,13 @@ return [
         ]
     ],
 
+    'qrcode' => [
+        'description' => 'このテーブルの二次元バーコード設定を行います。',
+    ],
+    'jancode' => [
+        'description' => 'このテーブルのJANバーコード設定を行います。',
+    ],
+
     'custom_value' => [
         'description' => 'このテーブルのデータ一覧を表示します。',
         'template' => 'テンプレート出力',
@@ -2205,6 +2302,7 @@ return [
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
+            'import_error_format_sheet' => '%s(行%d) : %s',
             'target_column_name' => '置換対象列名(英数字)',
 
             'help' => [
@@ -2229,6 +2327,9 @@ return [
                 'file_column_not_match' => '列名 :column_name は、テーブル :table_name のファイル・画像列に存在しません。',
                 'file_not_found' => 'ファイル :file_name が、取込ディレクトリ :dir_path に存在しません。',
                 'file_column_extension_not_match' => '列file_nameと列display_file_nameの拡張子は、同じ値を指定してください。',
+                'target_table_not_found' => '指定された権限対象のテーブルが存在しません。',
+                'permission_not_exists' => '権限「%s」は存在しません。',
+                'user_org_not_exists' => '指定された%sは存在しません。',
             ],
         ],
         'sendmail' => [
@@ -2561,6 +2662,7 @@ return [
         'condition_key' => '条件',
         'condition_value' => '条件値',
         'condition_join' => '条件の結合',
+        'condition_reverse' => '条件の反転',
         'condition_type_options' => [
             'user' => 'ログインユーザー',
             'organization' => 'ログインユーザーの所属組織',
@@ -2589,6 +2691,10 @@ return [
         'condition_join_options' => [
             'and' => 'すべての条件に一致',
             'or' => 'いずれかの条件に一致',
+        ],
+
+        'condition_reverse_options' => [
+            '1' => '条件を反転する',
         ],
     ],
 ];

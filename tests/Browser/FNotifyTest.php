@@ -13,6 +13,8 @@ class FNotifyTest extends ExmentKitTestCase
 {
     /**
      * pre-excecute process before test.
+     *
+     * @return void
      */
     protected function setUp(): void
     {
@@ -22,6 +24,8 @@ class FNotifyTest extends ExmentKitTestCase
 
     /**
      * test notify button html
+     *
+     * @return void
      */
     public function testNotifyButtonHtml()
     {
@@ -47,6 +51,8 @@ class FNotifyTest extends ExmentKitTestCase
 
     /**
      * test notify button test html, and attachment
+     *
+     * @return void
      */
     public function testNotifyButtonHtmlAttachment()
     {
@@ -76,6 +82,8 @@ class FNotifyTest extends ExmentKitTestCase
 
     /**
      * test notify button test post
+     *
+     * @return void
      */
     public function testNotifyButtonPost()
     {
@@ -123,7 +131,11 @@ class FNotifyTest extends ExmentKitTestCase
     }
 
 
-
+    /**
+     * @param CustomTable $custom_table
+     * @param string $suffix
+     * @return mixed
+     */
     protected function getNotify(CustomTable $custom_table, string $suffix)
     {
         // get notify info
@@ -134,6 +146,12 @@ class FNotifyTest extends ExmentKitTestCase
         ;
     }
 
+    /**
+     * @param CustomTable $custom_table
+     * @param CustomValue $custom_value
+     * @param Notify $notify
+     * @return string
+     */
     protected function getNotifyUrl(CustomTable $custom_table, CustomValue $custom_value, Notify $notify)
     {
         return admin_urls_query('data', $custom_table->table_name, $custom_value->id, 'notifyClick', [
@@ -143,6 +161,11 @@ class FNotifyTest extends ExmentKitTestCase
     }
 
 
+    /**
+     * @param string $url
+     * @return \DOMDocument
+     * @throws \Exception
+     */
     protected function getDomDocument(string $url): \DOMDocument
     {
         // check config update
@@ -162,13 +185,19 @@ class FNotifyTest extends ExmentKitTestCase
 
         $domDocument = new \DOMDocument();
         libxml_use_internal_errors(true);
-        $domDocument->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        $domDocument->loadHTML($html);
         libxml_clear_errors();
 
         return $domDocument;
     }
 
 
+    /**
+     * @param \DOMDocument $domDocument
+     * @param string $tagName
+     * @param \Closure $callback
+     * @return bool
+     */
     protected function hasContainsHtml(\DOMDocument $domDocument, string $tagName, \Closure $callback): bool
     {
         $selects = $domDocument->getElementsByTagName($tagName);

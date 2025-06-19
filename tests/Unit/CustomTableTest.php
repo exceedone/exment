@@ -9,11 +9,14 @@ use Exceedone\Exment\Enums\SystemColumn;
 
 class CustomTableTest extends UnitTestBase
 {
+    /**
+     * @return void
+     */
     public function testFuncGetMatchedCustomValues1()
     {
         $info = CustomTable::getEloquent('information');
 
-        $keys = [1,3,5];
+        $keys = ["1","3","5"];
         $values = $info->getMatchedCustomValues($keys);
 
         foreach ($keys as $key) {
@@ -23,11 +26,14 @@ class CustomTableTest extends UnitTestBase
             $this->assertTrue(array_get($value, 'id') == $key);
         }
 
-        foreach ([2, 4] as $key) {
+        foreach (["2", "4"] as $key) {
             $this->assertTrue(!array_has($values, $key));
         }
     }
 
+    /**
+     * @return void
+     */
     public function testFuncGetMatchedCustomValues2()
     {
         $info = CustomTable::getEloquent('information');
@@ -47,6 +53,9 @@ class CustomTableTest extends UnitTestBase
         }
     }
 
+    /**
+     * @return void
+     */
     public function testFuncCopyCustomTable()
     {
         $from_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
@@ -120,7 +129,7 @@ class CustomTableTest extends UnitTestBase
                         $to = $to_table->custom_columns_cache->filter(function($column) use($to_value){
                             return $column->id == $to_value;
                         })->first();
-            
+
                         $this->assertEquals($from->column_name, $to->column_name);
                         break;
                     default:

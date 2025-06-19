@@ -76,8 +76,11 @@ class DefaultForm extends FormBase
         $force_caculate_column = [];
         $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array, $force_caculate_column);
 
+        $custom_form_blocks = $this->custom_form->custom_form_blocks->sortBy(function ($item, $key) {
+            return $item->getOption('form_block_order')?? -1;
+        });
         // loop for custom form blocks
-        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+        foreach ($custom_form_blocks as $custom_form_block) {
             // if available is false, continue
             if (!$custom_form_block->available) {
                 continue;
@@ -168,7 +171,7 @@ class DefaultForm extends FormBase
         }
 
         // add calc_formula_array and changedata_array info
-        
+
         if (count($calc_formula_array) > 0) {
             $json = json_encode($calc_formula_array);
             $columns = json_encode($force_caculate_column);
@@ -218,7 +221,7 @@ EOT;
     protected function setCustomFormColumns($form, $custom_form_block)
     {
         $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
-        $target_id = $this->id;
+        // $target_id = $this->id;
         if (method_exists($form, 'getDataKey')) {
             $data_key = $form->getDataKey();
             if (is_numeric($data_key)) {
@@ -246,7 +249,7 @@ EOT;
      *
      * @param Form $form
      * @param CustomFormBlock $custom_form_block
-     * @param CustomValue|null $target_custom_value
+     * @param CustomValue|number|null $target_custom_value
      * @param CustomRelation|null $relation
      * @return \Closure
      */

@@ -1099,9 +1099,106 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | class type of default show page 
+    |--------------------------------------------------------------------------
+    |
+    | set class for container of default show page.
+    | 1. only option boxes(default).
+    | 2. only show form.
+    | 3. both option boxes and show form.
+    |
+    */
+    'show_page_class_type' => env('EXMENT_SHOW_PAGE_CLASS_TYPE', 1),
+
+    /*
+    |--------------------------------------------------------------------------
     | Maximum length of strings to display in the grid
     |--------------------------------------------------------------------------
     |
     */
     'grid_mat_length' => env('EXMENT_GRID_MAX_LENGTH', 50),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Specify custom view sorting options
+    |--------------------------------------------------------------------------
+    |
+    | 0(default):view_type > view_kind_type > id.
+    | 1:view_type > view_kind_type > order.
+    | 2:view_type > order.
+    |
+    */
+    'sort_custom_view_options' => env('EXMENT_SORT_CUSTOM_VIEW_OPTIONS', 0),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maintain default view with freeword search for each table
+    |--------------------------------------------------------------------------
+    |
+    */
+    'search_keep_default_view' => env('EXMENT_SEARCH_KEEP_DEFAULT_VIEW', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default english text for qr code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_qr_button_en' => env('EXMENT_TEXT_QR_BUTTON_EN', '2D barcode'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default japanese text for qr code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_qr_button_ja' => env('EXMENT_TEXT_QR_BUTTON_JA', '二次元バーコード'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | show import export button on role group view
+    |--------------------------------------------------------------------------
+    |
+    */
+    'role_group_import_export' => env('ROLE_GROUP_IMPORT_EXPORT', false),
+    /*
+    |--------------------------------------------------------------------------
+    | Unavailable user view ( for tables )
+    |--------------------------------------------------------------------------
+    |
+    | Even if 'userview_disabled' is false
+    */
+    'userview_unavailable_table' => env('EXMENT_USERVIEW_UNAVAILABLE_TABLE', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default english text for SCAN code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_scan_button_en' => env('EXMENT_TEXT_SCAN_BUTTON_EN', '2D barcode／JANcode'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default japanese text for SCAN code button
+    |--------------------------------------------------------------------------
+    |
+    */
+    'text_scan_button_ja' => env('EXMENT_TEXT_SCAN_BUTTON_JA', '二次元／JANバーコード'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | allow the deletion of attachments even when deletion from form is restricted.
+    |--------------------------------------------------------------------------
+    |
+    */
+    'allow_delete_attachment' => env('EXMENT_ALLOW_DELETE_ATTACHMENT', false),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | API rate limit per minute
+    |--------------------------------------------------------------------------
+    |
+    */
+    'api_max_rate_limit' => env('EXMENT_API_MAX_RATE_LIMIT', 60),
 ];

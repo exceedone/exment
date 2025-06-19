@@ -83,6 +83,12 @@ return [
         'no_selected' => 'unselected',
         'no_use' => 'do not use',
         'default_export' => 'Export',
+        'condition_reverse' => '<Reverse> ',
+        'save' => 'Save',
+        'no_file_download' => 'There are no files to download',
+        'english' => 'English',
+        'japanese' => 'Japanese',
+        'back_button' => 'BACK',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -108,6 +114,7 @@ return [
             'cannot_preview' => '*:name does not support the preview function during editing. If you want to check it, save it once and then do it.',
             'preview_error' => 'The preview has expired. Please close this screen and preview again.',
             'csrf_error' => 'The expiration date has expired, so please reopen your browser.',
+            'not_edit_column_type' => 'The column type cannot be changed.',
         ],
 
         'help' =>[
@@ -229,6 +236,7 @@ return [
         'using_index_column' => 'Search index cannot be released because it is in use by a view.',
         'email_multiline' => 'Contains lines that are not email addresses.',
         'duplicate_relation' => 'The table is already associated.',
+        'filename_not_allow' => 'A prohibited character is used in :attribute. Please change the file name and try again.',
 
         'not_match' => 'The value of :attribute1 and the value of :attribute1 are different.',
         'not_notmatch' => ':attribute1 and :attribute2 must have different values.',
@@ -433,7 +441,7 @@ return [
             'system_values_pos' => 'Set the position to display system values on the data edit screen and data details screen.',
             'data_submit_redirect' => 'You can set the default value for the page to redirect after saving custom data. When this item is set, the check box for the data transition destination after saving will be checked on the data entry page.',
             'header_user_info' => 'You can set the content to be displayed in the user information in the header. If left blank, it will be hidden.',
-            'api_available' => 'If set to YES, you can use the API.',
+            'api_available' => 'Please create a Laravel key before selecting YES. Please refer to <a href="%suse-api" target="_blank">here<i class="fa fa-external-link"></i></a>. If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
             'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
@@ -579,6 +587,7 @@ return [
             'editor' => 'Editor',
             'html' => 'HTML',
             'notify_navbar' => 'Notify list',
+            'barcode' => '2D/JAN Barcode',
         ],
 
         'dashboard_menulist' => [
@@ -643,6 +652,7 @@ return [
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
                 'saved' => 'After Saving',
+                'deleted' => 'After Deletion',
                 'loading' => 'Before Loading',
                 'loaded' => 'After Loading',
                 'grid_menubutton' => 'Menu button on List View',
@@ -855,6 +865,9 @@ return [
         'oauth_client_secret' => 'Client Secret',
         'oauth_scope' => 'Scope',
         
+        'oauth_option' => 'Option Setting',         
+        'oauth_option_single_logout' => 'Single Logout',
+        
         'user_setting' => 'User Setting',
         'mapping_user_column' => 'Account Search Column',
         'mapping_setting' => 'Mapping Setting',
@@ -933,6 +946,8 @@ return [
             'jit_rolegroups' => 'Please fill in if you want to assign a default role group when creating a new user.',
             'mapping_description' => 'The field name returned by the provider must match the user field name in Exment. Please enter the field name returned from the provider. <br/>If you enter multiple values ​​separated by commas, the fields that have values ​​will be retrieved with priority from the beginning. <br /> Also, if you want to combine multiple fields, type "${Field_Name}". (Example: ${last_name} ${first_name})',
             'login_test_sso' => 'The :login_type redirect URL for testing.<span class="red">*When performing the test, temporarily add or change the above URL to the callback URL of the provider\'s :login_type setting.</span>',
+                
+            'oauth_option_single_logout' => 'Set to Yes if you want to log out not only from Exment but also from the ID provider.<span class="red">*Okta is not supported.</span>',
                 
             'ldap_base_dn' => 'Enter the basic DN (distinguished name) used for authentication.',
             'ldap_filter' => 'Enter the attributes and attribute values ​​used for openLDAP authentication. (Ex: (objectClass=inetOrgPerson)(objectClass=person))',
@@ -1043,6 +1058,8 @@ return [
         'notify' => 'Notification Setting',
         'custom_value' => 'Data List',
         'error_select' => 'Please select only one record.',
+        'qrcode' => '2D Barcode Setting',
+        'jancode' => 'Jancode Setting',
     ],
 
     'workflow' => [
@@ -1175,6 +1192,7 @@ return [
         'all_user_editable_flg' => 'All Users Can Edit',
         'all_user_viewable_flg' => 'All Users Can View',
         'all_user_accessable_flg' => 'All Users Can Access',
+        'inherit_parent_permission' => 'Viewable with Permissions of Parent data',
         'add_parent_menu_flg' => 'Add Menu',
         'add_notify_flg' => 'Add To Notification',
         'add_parent_menu' => 'Target Parent Menu',
@@ -1182,12 +1200,63 @@ return [
         'expand_setting' => 'Extended Settings',
         'copy_from_table' => 'Original table',
         'copy_custom_table' => 'Copy custom table',
+        'no_selected' => 'No target data selected',
+        'qr_code' => [
+            'setting' => '2D Barcode Setting',
+            'content' => 'Supplementary information for 2D barcodes',
+            'text' => 'Title',
+            'image_size' => '2D barcode layout size',
+            'cell_width' => 'Cell width',
+            'cell_height' => 'Cell height',
+            'margin_left' => 'Margin left',
+            'margin_top' => 'Margin top',
+            'column_per_page' => 'Column per page',
+            'row_per_page' => 'Row per page',
+            'column_spacing' => 'Columnn spacing',
+            'row_spacing' => 'Row spacing',
+            'form_after_read' => 'Form after scanning the 2D barcode',
+            'action_after_read' => 'Action after data registration',
+            'download' => 'Download %s',
+            'create' => 'Create new %s',
+            'form_title' => 'Create a new 2D barcode',
+            'reading' => 'Reading %s',
+            'description' => 'Please see <a href="%s" target="_blank">here</a> for 2D barcode layout size settings.',
+            'number_qr' => 'Number of 2D barcode',
+            'advance_setting' => '2D barcode reading',
+            'text_button' => 'Button display name',
+            'text_button_description' => 'Set the display name for "2D barcode" on the 2D barcode new creation and 2D barcode download buttons.',
+            'created' => 'Create success',
+            'download_complete' => '2D barcode download completed',
+            'table_not_found' => 'Table of this 2D barcode not found',
+            'validate_qr_number' => 'Number of 2D barcodes must be greater than 0',
+            'refer_column' => 'Represents column',
+            'refer_column_description' => 'The information of the specified column of custom data will be displayed to the right of the 2D barcode.<br/>*You can select the ID column or the auto-number column (must be unique and required).',
+            'text_qr_description' => 'Fixed text displayed on the right side of the 2D barcode.',
+        ],
+        'jan_code' => [
+            'setting' => 'Jancode Setting',
+            'advance_setting' => 'Jancode reading',
+            'form_after_edit' => 'Form edit data',
+            'form_after_create' => 'Form create data',
+            'table_not_found' => 'Table of this Jancode not found',
+            'action_after_edit' => 'Action after data edit',
+            'action_after_create' => 'Action after data registration',
+            'header' => 'Jan code table',
+            'description' => 'Choose table for this jancode',
+        ],
         'data_submit_redirect_options' => [
             'inherit'               => 'Match system settings',
             'list'                  => 'List',
             'view'                  => 'View',
             'continue_editing'      => 'Continue editing',
             'continue_creating'     => 'Continue creating',
+        ],
+        'data_qr_redirect_options' => [
+            'top'               => 'Top screen',
+            'list'                  => 'List',
+            'view'                  => 'View',
+            'continue_editing'      => 'Continue editing',
+            'camera'     => 'Camera',
         ],
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
@@ -1203,6 +1272,7 @@ return [
             'all_user_editable_flg' => 'If set to YES, all users will be able to edit all the data in this table.',
             'all_user_viewable_flg' => 'If set to YES, all users will be able to view all the data in this table.',
             'all_user_accessable_flg' => 'If set to YES, all users will be able to see all the data in this table.<br/>*It is not displayed on the menu or list page, it can be displayed only with internal data or reference from another table.',
+            'inherit_parent_permission' => 'If set to YES, the data can be viewed based on the the parent data(1:N) permissions. However, you must have viewing or similar permissions for this table itself.',
             'add_parent_menu_flg' => 'After creating custom table, you can add it to the menu. To add it, please set it to YES. *It will be displayed after updating the browser. <br /> *It can be set only when new table is created. When updating please set it from "Menu" page.',
             'add_parent_menu' => 'Please select the menu name to be parent.',
             'add_notify_flg' => 'You can add settings for performing in-system notification to authorized users when creating/updating/sharing/commenting data, after creating a new table. Please add YES if you want to add.<br/>* It can be set only when creating a new table. Please set from the "notification" page when updating.',
@@ -1210,6 +1280,10 @@ return [
             'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
             'copy_custom_table' => 'Copy normal settings, advanced settings and custom columns. <br />Other settings are out of scope. Please set manually.',
+            'qrcode_activate' => 'Enable the 2D barcode function for this table. Do you want to enable it?',
+            'qrcode_deactivate' => 'The 2D barcode function for this table will be disabled. Do you want to disable it?',
+            'jancode_activate' => 'Enable the Jancode function for this table. Do you want to enable it?',
+            'jancode_deactivate' => 'The Jancode function for this table will be disabled. Do you want to disable it?<br/><br/>Please note that the information of the linked JAN barcode remains when it is active, so when the JAN barcode is scanned, the data from this table will be displayed.',
         ],
 
         'custom_column_multi' => [
@@ -1236,6 +1310,7 @@ return [
             'table_label_format' => 'Headline format setting',
             'table_label_format_string' => 'Headline format string',
             'form_action_disable_flg' => 'Cannot changed from display',
+            'gridrow_select_transition' => 'Screen transition when row is clicked',
 
             'help' => [
                 'table_labels' => 'When selecting data, set the wording column to be displayed on the page. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
@@ -1252,6 +1327,12 @@ return [
                 'delete' => 'Delete',
                 'import' => 'Import',
                 'export' => 'Export',
+            ],
+            'gridrow_select_options' => [
+                'default' => 'Match Default',
+                'edit' => 'Data Edit',
+                'show' => 'Data Detail',
+                'none' => 'No transition',
             ],
             'share_trigger_type_options' => [
                 'create' => 'Created',
@@ -1499,6 +1580,7 @@ return [
         'suggest_column_label' => 'Table Column',
         'suggest_other_label' => 'Other',
         'form_block_name' => 'Form Block Name',
+        'form_block_order' => 'Form Block Display Order',
         'field_default' => 'Standard',
         'read_only' => 'Read Only',
         'view_only' => 'View Only',
@@ -1840,6 +1922,7 @@ return [
             'use_view_infobox' => 'By setting YES, you can set an information box at the top of the view where you can enter business details and messages to users.',
             'view_infobox_title' => 'Enter the title to be displayed in the information box.',
             'view_infobox' => 'Please fill in the HTML to be displayed in the information box. *Images and scripts cannot be entered.',
+            'order' => 'Display order of custom view menu buttons.',
         ],
 
         'column_sort_options' => [
@@ -1949,6 +2032,12 @@ return [
         'role_group_name' => 'Role Group Name',
         'role_group_view_name' => 'Role Group View Name',
         'description_system_admin' => '<span class="red">*To add system administrator privileges, go to "System Settings / System Administrator" from the menu.</span>',
+        'role_group_id' => 'Role group ID',
+        'role_group_permission_type' => 'Types of permission settings',
+        'role_group_target_plugin' => 'Target plugin ID',
+        'role_group_target_table' => 'Target table ID',
+        'role_group_user_org_type' => 'User/Organization type',
+        'role_group_user_org_target_id' => 'User/Organization ID',
         'permissions' => 'Role Detail',
         'permission_setting' => 'Permission Setting',
         'user_organization_setting' => 'User/organization setting',
@@ -2045,6 +2134,7 @@ return [
 
         'error' => [
             'cannot_accessable_and_value' => 'The permissions "Browse all data" and "%s" cannot be set at the same time.',
+            'cannot_plugin_access_permission' => 'This is a plugin for which usage and access cannot be configured.',
         ],
     ],
 
@@ -2182,6 +2272,14 @@ return [
         ]
     ],
 
+    'qrcode' => [
+        'description' => 'Set the two-dimensional barcode for this table.',
+    ],
+
+    'jancode' => [
+        'description' => 'Set the jancode for this table.',
+    ],
+
     'custom_value' => [
         'description' => 'Display the data list of this table.',
         'template' => 'Export Template',
@@ -2204,6 +2302,7 @@ return [
             'error_flow' => 'Error Handling',
             'import_error_message' => 'Error Message',
             'import_error_format' => 'Line %d : %s',
+            'import_error_format_sheet' => '%s(Line %d) : %s',
             'target_column_name' => 'Replacement target column name (alphanumeric characters)',
 
             'help' => [
@@ -2228,6 +2327,9 @@ return [
                 'file_column_not_match' => 'The column name :column_name does not exist in the file / image column of table :table_name.',
                 'file_not_found' => 'The file :file_name does not exist in the capture directory :dir_path.',
                 'file_column_extension_not_match' => 'Specify the same value for the extension of the column file_name and the column display_file_name.',
+                'target_table_not_found' => 'The table for the specified privilege does not exist.',
+                'permission_not_exists' => 'Permission "%s" does not exist.',
+                'user_org_not_exists' => 'The specified %s does not exist.',
             ],
         ],
         'sendmail' => [
@@ -2560,6 +2662,7 @@ return [
         'condition_key' => 'Search Condition',
         'condition_value' => 'Condtion Value',
         'condition_join' => 'Condtion Join',
+        'condition_reverse' => 'Condtion Reverse',
         'condition_type_options' => [
             'user' => 'User',
             'organization' => 'Organization',
@@ -2588,6 +2691,10 @@ return [
         'condition_join_options' => [
             'and' => 'Match All Condition',
             'or' => 'Match Any Condition',
+        ],
+
+        'condition_reverse_options' => [
+            '1' => 'Reverse condition',
         ],
     ],
 ];

@@ -99,6 +99,9 @@ class PatchDataCommand extends Command
             case '2factor':
                 $this->import2factorTemplate();
                 return 0;
+            case 'error_sendmail':
+                $this->importErrorSendMailTemplate();
+                return 0;
             case 'zip_password':
                 $this->importZipPasswordTemplate();
                 return 0;
@@ -1881,6 +1884,18 @@ class PatchDataCommand extends Command
             MailKeyName::PUBLICFORM_COMPLETE_USER,
             MailKeyName::PUBLICFORM_COMPLETE_ADMIN,
             MailKeyName::PUBLICFORM_ERROR,
+        ]);
+    }
+
+    /**
+     * import mail template for error sending mail
+     *
+     * @return void
+     */
+    protected function importErrorSendMailTemplate()
+    {
+        $this->patchMailTemplate([
+            MailKeyName::SENDMAIL_ERROR,
         ]);
     }
 

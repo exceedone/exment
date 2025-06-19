@@ -192,7 +192,7 @@ class SearchService
      * Add an "order by" clause to the query.
      * If CustomColumn, and linkage(relation or select table), add where exists query.
      *
-     * @param  \Closure|\Illuminate\Database\Query\Builder|\Illuminate\Database\Query\Expression|string  $column
+     * @param  \Closure|CustomColumn|\Illuminate\Database\Query\Builder|\Illuminate\Database\Query\Expression|string  $column
      * @param  string  $direction
      * @return $this
      *
@@ -357,30 +357,50 @@ class SearchService
         $column_item = $column->column_item;
 
         // get group's column. this is wraped.
-        $wrap_column = $column_item->getGroupByWrapTableColumn();
         $sqlAsName = \Exment::wrapColumn($column_item->sqlAsName());
 
         // if has sub query(for child relation), set to sub query
         $isSubQuery = false;
         if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
             $isSubQuery = true;
-            $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($wrap_column, $sqlAsName) {
+            $relationTable->subQueryCallbacks[] = function ($subquery, $relationTable) use ($column_item, $sqlAsName) {
+                $wrap_column = $column_item->getGroupByWrapTableColumn(true);
                 $subquery->selectRaw("$wrap_column AS $sqlAsName");
+                $wrap_column = $column_item->getGroupByWrapTableColumn();
                 $subquery->groupByRaw($wrap_column);
             };
         }
 
-        // set group by. Maybe if has subquery, set again.
-        $wrap_column = $column_item->getGroupByWrapTableColumn(false, $isSubQuery);
-        $this->query->groupByRaw($wrap_column);
+        if (\Exment::isSqlServer()) {
+            // set group by. Maybe if has subquery, set again.
+            $wrap_column = $column_item->getGroupByWrapTableColumn(false, $isSubQuery);
+            $this->query->groupByRaw($wrap_column);
 
-        // get group's column for select. this is wraped.
-        $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
-        // set select column. And add "as".
-        $this->query->selectRaw("$wrap_column AS $sqlAsName");
+            // get group's column for select. this is wraped.
+            $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
+            // set select column. And add "as".
+            $this->query->selectRaw("$wrap_column AS $sqlAsName");
 
-        // if has sort order, set order by
-        $this->setSummaryOrderBy($column, $wrap_column);
+            // if has sort order, set order by
+            $this->setSummaryOrderBy($column, $wrap_column);
+        } else {
+            // get group's column for select. this is wraped.
+            $wrap_column = $column_item->getGroupByWrapTableColumn(true, $isSubQuery);
+            // set select column. And add "as".
+            $this->query->selectRaw("$wrap_column AS $sqlAsName");
+
+            // set group by. 
+            $this->query->groupByRaw($sqlAsName);
+
+            // case sqlasname
+            $cast = $column_item->getCastName(true);
+            if (isset($cast)) {
+                $sqlAsName = "CAST($sqlAsName AS $cast)";
+            }
+            // if has sort order, set order by
+            $this->setSummaryOrderBy($column, $sqlAsName);
+        }
+
 
         return $this;
     }
@@ -420,10 +440,10 @@ class SearchService
 
             // set to default query group by.
             // Need MIN, MAX.
-            $result_column = $column_item->getGroupByJoinResultWrapTableColumn();
-            if (!is_nullorempty($result_column)) {
-                $this->query->groupByRaw($result_column);
-            }
+            // $result_column = $column_item->getGroupByJoinResultWrapTableColumn();
+            // if (!is_nullorempty($result_column)) {
+            //     $this->query->groupByRaw($result_column);
+            // }
         }
         // default, set to default query.
         else {
@@ -431,7 +451,7 @@ class SearchService
         }
 
         // if has sort order, set order by
-        $this->setSummaryOrderBy($column, $wrap_column);
+        $this->setSummaryOrderBy($column, $sqlAsName);
 
         return $this;
     }
@@ -623,7 +643,7 @@ class SearchService
      * Get relation table info
      *
      * @param CustomTable $whereCustomTable
-     * @return RelationTable relation table info
+     * @return RelationTable|null relation table info
      */
     protected function getRelationTable($whereCustomTable, bool $asSummary = false, $filterObj = null)
     {
@@ -809,7 +829,7 @@ class SearchService
     /**
      * Get condition params
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter|Notify|null $column
      * @return array
      *  offset0 : target column's table id
      *  offset1 : target column's id
@@ -846,7 +866,7 @@ class SearchService
     /**
      * Get column item
      *
-     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter $column
+     * @param CustomViewColumn|CustomViewSort|CustomViewFilter|CustomViewSummary|CustomViewGridFilter|Notify $column
      * @return mixed
      */
     protected function getColumnItem($column)

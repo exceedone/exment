@@ -69,14 +69,16 @@ class StatusSelects extends Select
             $this->script = "$('.workflow_actions_status_from').select2($configs);";
         }
 
+        /** @phpstan-ignore-next-line Instanceof between array and Closure will always evaluate to false. */
         if ($this->options instanceof \Closure) {
+            /** @phpstan-ignore-next-line Left side of && is always true. and Right side of && is always true. */
             if ($this->form && $this->form->model()) {
                 $this->options = $this->options->bindTo($this->form->model());
             }
 
             $this->options(call_user_func($this->options, $this->value, $this, $this->form->model()));
         }
-
+        /** @phpstan-ignore-next-line array_filter expects (callable(mixed): bool)|null, 'strlen' given */
         $this->options = array_filter($this->options, 'strlen');
 
         // Whether is show id

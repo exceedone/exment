@@ -26,6 +26,8 @@ class HPluginPageTest extends ExmentKitTestCase
 
     /**
      * display plugin page.
+     *
+     * @return void
      */
     public function testDisplayPluginPage()
     {
@@ -42,6 +44,8 @@ class HPluginPageTest extends ExmentKitTestCase
 
     /**
      * setting plugin dashboard.
+     *
+     * @return void
      */
     public function testSettingDashboard()
     {
@@ -75,6 +79,8 @@ class HPluginPageTest extends ExmentKitTestCase
 
     /**
      * display plugin dashboard.
+     *
+     * @return void
      */
     public function testDisplayDashboard()
     {
@@ -99,6 +105,8 @@ class HPluginPageTest extends ExmentKitTestCase
 
     /**
      * delete plugin dashboard.
+     *
+     * @return void
      */
     public function testDeleteDashboard()
     {
@@ -114,6 +122,8 @@ class HPluginPageTest extends ExmentKitTestCase
 
     /**
      * test plugin script.
+     *
+     * @return void
      */
     public function testScriptAddress()
     {
@@ -128,6 +138,8 @@ class HPluginPageTest extends ExmentKitTestCase
 
     /**
      * test plugin style.
+     *
+     * @return void
      */
     public function testStyleCss()
     {

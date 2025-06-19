@@ -28,6 +28,10 @@ class CustomValueDeleteTest extends FeatureTestBase
     use TestTrait;
     use PluginTestTrait;
 
+    /**
+     * @param bool $isDeleteHardForce
+     * @return void
+     */
     protected function init(bool $isDeleteHardForce)
     {
         $this->initAllTest();
@@ -39,7 +43,9 @@ class CustomValueDeleteTest extends FeatureTestBase
 
     /**
      * Initialize test data
-     *
+     * @param CustomTable $custom_table
+     * @param CustomColumn $custom_column
+     * @param \Closure $setValueCallback
      * @return CustomValue
      */
     protected function initTestData(CustomTable $custom_table, CustomColumn $custom_column, \Closure $setValueCallback = null)
@@ -87,7 +93,7 @@ class CustomValueDeleteTest extends FeatureTestBase
     /**
      * Initialize test data
      *
-     * @return array
+     * @return array<mixed>
      */
     protected function initTestDataRelation1n()
     {
@@ -112,6 +118,9 @@ class CustomValueDeleteTest extends FeatureTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testSoftDelete()
     {
         $this->init(false);
@@ -143,6 +152,9 @@ class CustomValueDeleteTest extends FeatureTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testForceDelete()
     {
         $this->init(true);
@@ -165,7 +177,9 @@ class CustomValueDeleteTest extends FeatureTestBase
     }
 
 
-
+    /**
+     * @return void
+     */
     public function testSoftDeleteRelation()
     {
         $this->init(false);
@@ -233,6 +247,9 @@ class CustomValueDeleteTest extends FeatureTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testForceDeleteRelation()
     {
         $this->init(true);
@@ -289,7 +306,7 @@ class CustomValueDeleteTest extends FeatureTestBase
      *
      * @param CustomTable $custom_table
      * @param string $custom_value_id
-     * @return array
+     * @return array<mixed>
      */
     protected function getCustomValueInfo(CustomTable $custom_table, $custom_value_id)
     {
@@ -331,26 +348,30 @@ class CustomValueDeleteTest extends FeatureTestBase
 
     /**
      * assert CustomRelation Count
+     * @param CustomValue $custom_value
+     * @param int $dataCount
+     * @param int $deleteCount
+     *
+     * @return void
      */
     protected function assertCustomRelationCount(CustomValue $custom_value, int $dataCount, int $deleteCount)
     {
         // delete custom relation is 1:n value
-        $relations = CustomRelation::getRelationsByParent($custom_value->custom_table, RelationType::ONE_TO_MANY);
-        // loop relations
-        foreach ($relations as $relation) {
-            $children = $custom_value->getChildrenValues($relation, true)
-                ->withTrashed()
-                ->get();
+        $relation = CustomRelation::getRelationByParentChild($custom_value->custom_table, 
+            TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE, RelationType::ONE_TO_MANY);
 
-            $dataCountResult = $children->filter(function ($child) {
-                return !$child->trashed();
-            })->count();
-            $deleteCountResult = $children->filter(function ($child) {
-                return $child->trashed();
-            })->count();
+        $children = $custom_value->getChildrenValues($relation, true)
+            ->withTrashed()
+            ->get();
 
-            $this->assertMatch($dataCountResult, $dataCount);
-            $this->assertMatch($deleteCountResult, $deleteCount);
-        }
+        $dataCountResult = $children->filter(function ($child) {
+            return !$child->trashed();
+        })->count();
+        $deleteCountResult = $children->filter(function ($child) {
+            return $child->trashed();
+        })->count();
+
+        $this->assertMatch($dataCountResult, $dataCount);
+        $this->assertMatch($deleteCountResult, $deleteCount);
     }
 }

@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property mixed $created_user_id
  * @method static int count($columns = '*')
  * @method static ExtendedBuilder orderBy($column, $direction = 'asc')
- * @method static ExtendedBuilder create(array $attributes = [])
+ * @method static static create(array $attributes = [])
  */
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -88,6 +88,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             'custom_view_filters' => CustomViewFilter::class,
             'custom_view_sorts' => CustomViewSort::class,
             'custom_view_summaries' => CustomViewSummary::class,
+            'custom_view_grid_filters' => CustomViewGridFilter::class,
         ],
     ];
 
@@ -274,6 +275,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function resetSearchService()
     {
         $this->_search_service = null;
+    }
+
+    /**
+     * set search service.
+     */
+    public function setSearchService(SearchService $service)
+    {
+        $this->_search_service = $service;
     }
 
 
@@ -490,7 +499,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * @param mixed $tableObj table_name, object or id eic
      * @param boolean $getSettingValue if true, getting from UserSetting table
      * @param boolean $is_dashboard call by dashboard
-     * @return CustomView
+     * @return CustomView|null
      */
     public static function getDefault($tableObj, $getSettingValue = true, $is_dashboard = false)
     {
@@ -750,7 +759,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $service->setRelationJoin($filter);
             }
 
-            $query->where(function ($query) use ($custom_view_filters, $service) {
+            $func = boolval($this->condition_reverse)? 'whereNot': 'where';
+            $query->{$func}(function ($query) use ($custom_view_filters, $service) {
                 foreach ($custom_view_filters as $filter) {
                     $service->whereCustomViewFilter($filter, $this->filter_is_or, $query);
                 }
@@ -959,6 +969,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setConditionJoinAttribute($val)
     {
         $this->setOption('condition_join', $val);
+
+        return $this;
+    }
+
+    public function getConditionReverseAttribute()
+    {
+        return $this->getOption('condition_reverse');
+    }
+
+    public function setConditionReverseAttribute($val)
+    {
+        $this->setOption('condition_reverse', $val);
 
         return $this;
     }

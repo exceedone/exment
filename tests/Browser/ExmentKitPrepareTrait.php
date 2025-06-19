@@ -8,6 +8,11 @@ trait ExmentKitPrepareTrait
 {
     /**
      * Prepare custom relation for form test.
+     * @param string $parent_table
+     * @param string $child_table
+     * @param int|null $relation_type
+     *
+     * @return void
      */
     protected function createCustomRelation($parent_table, $child_table, $relation_type = 1)
     {
@@ -26,6 +31,12 @@ trait ExmentKitPrepareTrait
 
     /**
      * Prepare custom table for test.
+     *
+     * @param string $table_name
+     * @param int|null $search_enabled
+     * @param int|null $one_record_flg
+     *
+     * @return void
      */
     protected function createCustomTable($table_name, $search_enabled = 1, $one_record_flg = 0)
     {
@@ -58,6 +69,11 @@ trait ExmentKitPrepareTrait
 
     /**
      * Prepare custom column all columntype.
+     *
+     * @param string $table_name
+     * @param null|mixed $targets
+     *
+     * @return void
      */
     protected function createCustomColumns($table_name, $targets = null)
     {

@@ -53,6 +53,12 @@ composer require psr/simple-cache=^2.0.0
 ~~~
 git clone https://github.com/hirossyi73/exment.git
 ~~~
+- (任意)あなたのlaravel-adminリポジトリをクローンします。
+(ex. https://github.com/hirossyi73/laravel-admin.git)
+
+~~~
+git clone https://github.com/hirossyi73/laravel-admin.git
+~~~
 
 - Laravelプロジェクトフォルダ直下の、composer.jsonを書き換えます。
 **便宜上、下記の記述にコメントを記載していますが、実際はコメントを削除してください。**
@@ -67,6 +73,8 @@ git clone https://github.com/hirossyi73/exment.git
         "psr/simple-cache": "2.0.0",
         // 行追加
         "exceedone/exment": "dev-master"
+        // 任意
+        ,"exceedone/laravel-admin": "dev-master as 4.10.10"
     },
 
     "autoload": {
@@ -84,6 +92,15 @@ git clone https://github.com/hirossyi73/exment.git
         {
             "type": "path",
             "url": "packages/hirossyi73/exment",
+            "options": {
+                "symlink": true
+            }
+        }
+        // 任意
+        ,
+        {
+            "type": "path",
+            "url": "packages/hirossyi73/laravel-admin",
             "options": {
                 "symlink": true
             }

@@ -200,7 +200,7 @@ class PluginType extends EnumBase
     /**
      * Get plugin class using plugin type
      *
-     * @param string $plugin_type
+     * @param string|null $plugin_type
      * @param Plugin $plugin
      * @param array $options
      * @return mixed
@@ -245,6 +245,7 @@ class PluginType extends EnumBase
                             'event_type' => array_get($options, 'event_type'),
                             'page_type' => array_get($options, 'page_type'),
                             'is_modal' => array_get($options, 'is_modal'),
+                            'force_delete' => array_get($options, 'force_delete'),
                         ]
                     );
                 case PluginType::BATCH:

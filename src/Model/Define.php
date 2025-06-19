@@ -17,7 +17,7 @@ class Define
 {
     public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
     public const COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN = 'exceedone/laravel-admin';
-    public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
+    public const COMPOSER_VERSION_CHECK_URL = 'https://packagist.org/packages/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
     public const EXMENT_NEWS_LINK = 'https://exment.net/archives/category/news';
     public const USER_IMAGE_LINK = 'vendor/exment/images/user.png';
@@ -67,7 +67,7 @@ class Define
         'header_user_info' => ['type' => 'array', 'default' => SystemColumn::CREATED_AT, 'group' => 'advanced'],
 
         // name is "flg", but array is OK.
-        'grid_filter_disable_flg' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
+        'grid_filter_disable_flg' => ['type' => 'array', 'default' => 'comment', 'group' => 'advanced'] ,
 
         'system_values_pos' => ['default' => 'top', 'group' => 'advanced'],
 
@@ -340,6 +340,8 @@ class Define
         ['name' => 'operation', 'href' => 'operation/:table_name', 'icon' => 'fa-reply-all', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_operation', 'description' => 'custom_operation.description'],
         ['name' => 'notify', 'href' => 'notify/:table_name', 'icon' => 'fa-bell', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.notify', 'description' => 'notify.description'],
         ['name' => 'data', 'href' => 'data/:table_name', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value', 'description' => 'custom_value.description'],
+        ['name' => 'qrcode', 'href' => 'table/:id/edit?qrcodesetting=1', 'icon' => 'fa-qrcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.qrcode', 'description' => 'qrcode.description'],
+        ['name' => 'jancode', 'href' => 'table/:id/edit?jancodesetting=1', 'icon' => 'fa-barcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.jancode', 'description' => 'jancode.description'],
     ];
 
     public const CUSTOM_VALUE_TRAITS = [

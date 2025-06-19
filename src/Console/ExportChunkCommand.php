@@ -48,9 +48,10 @@ class ExportChunkCommand extends Command
 
     protected function getParameters()
     {
+        /** @var null|string $table_name */
         $table_name = $this->argument("table_name");
 
-        if (!isset($table_name)) {
+        if ($table_name === null) {
             throw new \Exception('parameter table name is empty');
         }
 
@@ -117,6 +118,7 @@ class ExportChunkCommand extends Command
             $message = null;
 
             $executeCount = 0;
+            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
             for ($i = $options['start'] ?? 1; $i <= $options['end'] ?? 1000; $i++) {
                 $grid = new Grid(new $classname());
                 // set data get range
@@ -125,7 +127,7 @@ class ExportChunkCommand extends Command
                 if (isset($options['view']) && $options['view'] instanceof CustomView) {
                     $options['view']->filterSortModel($grid->model());
                 }
-
+                /* @phpstan-ignore-next-line str_pad expects string, int given */
                 $seq = str_pad($i, $options['seqlength'], 0, STR_PAD_LEFT);
 
                 $service = (new DataImportExport\DataImportExportService())

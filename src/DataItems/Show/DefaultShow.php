@@ -85,7 +85,7 @@ class DefaultShow extends ShowBase
     protected function setSystemValues($show)
     {
         $trashed = boolval(request()->get('trashed'));
-
+        /** @phpstan-ignore-next-line class Encore\Admin\Show\Field constructor expects string, null given */
         $field = (new ShowField(null, null))->system_values([
             'withTrashed' => $trashed])->setWidth(12, 0);
 
@@ -123,6 +123,7 @@ class DefaultShow extends ShowBase
 
                     $field = new ShowField($item->name(), $item->label());
                     $field->as(function ($v) use ($item) {
+                        /** @phpstan-ignore-next-line Call to function is_null() with $this(Exceedone\Exment\DataItems\Show\DefaultShow) will always evaluate to false. */
                         if (is_null($this)) {
                             return '';
                         }
@@ -169,7 +170,7 @@ class DefaultShow extends ShowBase
                     $tools->disableList();
                 }
 
-                if (!is_null($parent_value = $this->custom_value->getParentValue()) && $parent_value->enableEdit(true) !== true) {
+                if (!is_null($parent_value = $this->custom_value->getParentValue(null, true)) && $parent_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                     $tools->disableDelete();
                 }
@@ -237,9 +238,12 @@ class DefaultShow extends ShowBase
                                 $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $this->custom_value->id));
                             }
                         }
-                        foreach ($operations as $operation) {
-                            if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
-                                $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
+
+                        if ($enableEdit === true) {
+                            foreach ($operations as $operation) {
+                                if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
+                                    $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
+                                }
                             }
                         }
 
@@ -268,15 +272,18 @@ class DefaultShow extends ShowBase
                                 'redirectUrl' => admin_urls("data", $this->custom_table->table_name),
                             ]));
 
-                            // add restore button
-                            $tools->prepend(new Tools\SwalInputButton([
-                                'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "restoreClick"),
-                                'label' => exmtrans('custom_value.restore'),
-                                'icon' => 'fa-undo',
-                                'btn_class' => 'btn-warning',
-                                'title' => exmtrans('custom_value.message.restore'),
-                                'method' => 'get',
-                            ]));
+                            // if parent data does not exist or has not been deleted 
+                            if (!$parent_value || !$parent_value->trashed()) {
+                                // add restore button
+                                $tools->prepend(new Tools\SwalInputButton([
+                                    'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "restoreClick"),
+                                    'label' => exmtrans('custom_value.restore'),
+                                    'icon' => 'fa-undo',
+                                    'btn_class' => 'btn-warning',
+                                    'title' => exmtrans('custom_value.message.restore'),
+                                    'method' => 'get',
+                                ]));
+                            }
                         }
                     }
 
@@ -353,8 +360,11 @@ class DefaultShow extends ShowBase
 
         $trashed = boolval(request()->get('trashed'));
 
+        $custom_form_blocks = $this->custom_form->custom_form_blocks->sortBy(function ($item, $key) {
+            return $item->getOption('form_block_order')?? -1;
+        });
         // loop for custom form blocks
-        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+        foreach ($custom_form_blocks as $custom_form_block) {
             // if available is false, continue
             if (!$custom_form_block->available) {
                 continue;
@@ -378,6 +388,8 @@ class DefaultShow extends ShowBase
                 $classname = getModelName($target_table);
                 $grid = new Grid(new $classname());
                 $grid->setTitle($block_label);
+                $grid->setName($target_table->table_name);
+                $grid->model()->setSortName($target_table->table_name . '_sort');
 
                 // one to many
                 if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
@@ -436,7 +448,7 @@ class DefaultShow extends ShowBase
                         'add_id' => true,
                     ]));
                 });
-
+                /** @phpstan-ignore-next-line column() expects int, array<string, int> given */
                 $row->column(['xs' => 12, 'sm' => 12], $grid->render());
             }
         }
@@ -546,6 +558,7 @@ EOT;
                 'No.'.($revision->revision_no)
             )->setWidth(9, 2);
         }
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
     }
 
@@ -594,10 +607,11 @@ EOT;
         // show document list
         if (count($documents) > 0) {
             $html = [];
+            $allow_delete = config('exment.allow_delete_attachment', false);
             foreach ($documents as $index => $d) {
                 $html[] = "<p>" . view('exment::form.field.documentlink', [
                     'document' => $d,
-                    'candelete' => $this->custom_value->enableDelete(true) === true,
+                    'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
                 ])->render() . "</p>";
             }
             // loop and add as link
@@ -647,7 +661,7 @@ EOT;
 
             Admin::script($script);
         }
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
     }
 
@@ -699,7 +713,7 @@ EOT;
             ->setLabelClass(['d-none'])
             ->setWidth(12, 0);
         }
-
+        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
 

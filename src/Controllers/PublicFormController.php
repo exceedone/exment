@@ -22,7 +22,7 @@ use Exceedone\Exment\Enums\Permission;
 class PublicFormController extends Controller
 {
     /**
-     * @var PublicForm
+     * @var PublicForm|null
      */
     protected $public_form;
 
@@ -31,7 +31,7 @@ class PublicFormController extends Controller
     protected $form_item;
 
     /**
-     * @var CustomForm
+     * @var CustomForm|null
      */
     protected $custom_form;
 
@@ -230,7 +230,7 @@ class PublicFormController extends Controller
                 $public_form->setContentOption($content, ['isContainer' => true]);
 
                 $content->row($public_form->getCompleteView($request, $form->model()));
-
+                /** @phpstan-ignore-next-line response expects array|Illuminate\Contracts\View\View|string|null, Exceedone\Exment\Form\PublicContent given */
                 return response($content);
             });
 

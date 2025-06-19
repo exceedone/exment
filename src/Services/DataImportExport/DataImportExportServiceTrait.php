@@ -178,7 +178,7 @@ trait DataImportExportServiceTrait
 
         $files = $formatObj
             ->datalist($datalist)
-            ->filebasename($this->exportAction->filebasename())
+            ->filebasename(convert_to_valid_filename($this->exportAction->filebasename()))
             ->createFile();
 
         /** @phpstan-ignore-next-line  */

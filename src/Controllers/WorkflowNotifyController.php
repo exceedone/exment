@@ -303,7 +303,7 @@ class WorkflowNotifyController extends Controller
      *
      * @param int $id
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($workflow_id, $id)
     {

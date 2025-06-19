@@ -131,9 +131,16 @@ trait NotifyTrait
                     ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_EMAIL]],
                 ])
             ]);
-
+        $selected_value = [];
+        $form_index = $form->getIndex();
+        if($form_index !== null ) {
+            if(isset($notify->action_settings[$form_index]['target_users'])) {
+                $selected_value = $notify->action_settings[$form_index]['target_users'];
+            }
+        }
         list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
             'display_table' => $custom_table,
+            'selected_value'=> $selected_value
         ]);
 
         $field = $form->multipleSelect('target_users', exmtrans('notify.target_users'))
@@ -153,8 +160,14 @@ trait NotifyTrait
         }
 
         if (System::organization_available()) {
+            if($form_index !== null ) {
+                if(isset($notify->action_settings[$form_index]['target_organizations'])) {
+                    $selected_value = $notify->action_settings[$form_index]['target_organizations'];
+                }
+            }
             list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
+                'selected_value'=> $selected_value
             ]);
 
             $field = $form->multipleSelect('target_organizations', exmtrans('notify.target_organizations'))
@@ -274,7 +287,7 @@ trait NotifyTrait
 
         $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
 
-        if (!in_array($notify->custom_table_id, $custom_tables)) {
+        if (!in_array($notify->target_id, $custom_tables)) {
             Checker::error();
             return false;
         }

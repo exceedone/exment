@@ -20,6 +20,11 @@ use Exceedone\Exment\Tests\TestDefine;
 
 trait CustomViewTrait
 {
+    /**
+     * @param array<mixed> $options
+     * @param string $view_kind_type
+     * @return mixed
+     */
     protected function getCustomViewData(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
     {
         list($custom_view, $data) = $this->getCustomView($options, $view_kind_type);
@@ -27,6 +32,11 @@ trait CustomViewTrait
         return $data;
     }
 
+    /**
+     * @param array<mixed> $options
+     * @param string $view_kind_type
+     * @return array<mixed>
+     */
     protected function createCustomViewAll(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
     {
         $options = array_merge(
@@ -34,6 +44,7 @@ trait CustomViewTrait
                 'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
                 'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
                 'condition_join' => 'and',
+                'condition_reverse' => '0',
                 'filter_settings' => [],
                 'column_settings' => [],
                 'sort_settings' => [],
@@ -44,6 +55,7 @@ trait CustomViewTrait
         $login_user_id = array_get($options, 'login_user_id');
         $target_table_name = array_get($options, 'target_table_name');
         $condition_join = array_get($options, 'condition_join');
+        $condition_reverse = array_get($options, 'condition_reverse');
         $filter_settings = array_get($options, 'filter_settings');
         $column_settings = array_get($options, 'column_settings');
         $sort_settings = array_get($options, 'sort_settings');
@@ -59,7 +71,10 @@ trait CustomViewTrait
             'view_view_name' => $custom_table->table_name . '-view-unittest',
             'view_type' => ViewType::SYSTEM,
             'view_kind_type' => $view_kind_type,
-            'options' => ['condition_join' => $condition_join?? 'and'],
+            'options' => [
+                'condition_join' => $condition_join?? 'and',
+                'condition_reverse' => $condition_reverse?? '0'
+            ],
         ]);
 
         foreach ($column_settings as $index => $column_setting) {
@@ -97,6 +112,11 @@ trait CustomViewTrait
         return [$custom_table, $custom_view];
     }
 
+    /**
+     * @param array<mixed> $options
+     * @param string $view_kind_type
+     * @return array<mixed>
+     */
     protected function getCustomView(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
     {
         $get_count = array_get($options, 'get_count')?? false;
@@ -106,9 +126,18 @@ trait CustomViewTrait
         $query = $custom_table->getValueQuery();
         if ($view_kind_type == ViewKindType::AGGREGATE) {
             $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
-            $data = $grid->getQuery($query)->get();
+            $query = $grid->getQuery($query);
+            if (!is_null($offset = array_get($options, 'offset'))) {
+                $query->offset($offset);
+            }
+            if (!is_null($limit = array_get($options, 'limit'))) {
+                $query->limit($limit);
+            }
+            $data = $query->get();
         } else {
-            $custom_view->filterSortModel($query);
+            $custom_view->setValueFilters($query);
+            $query = $custom_view->getSearchService()->query();
+            //$custom_view->filterSortModel($query);
             if ($get_count) {
                 $data = $query->count();
             } else {
@@ -119,8 +148,16 @@ trait CustomViewTrait
         return [$custom_view, $data];
     }
 
+    /**
+     * @param array<mixed> $setting
+     * @param mixed $custom_table
+     * @param bool $is_pivot
+     * @return int|mixed|null
+     */
     protected function getTargetColumnId($setting, $custom_table, $is_pivot = false)
     {
+        if (!isset($setting['column_name'])) return null;
+
         if ($setting['column_name'] == SystemColumn::PARENT_ID) {
             $column_id = $is_pivot ? $setting['column_name'] : Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
         } elseif (!isset($setting['condition_type']) || $setting['condition_type'] == ConditionType::COLUMN) {
@@ -132,6 +169,12 @@ trait CustomViewTrait
         return $column_id;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @return array<mixed>
+     */
     protected function getViewSummaryInfo($custom_table, $custom_view, $column_setting)
     {
         $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
@@ -139,6 +182,13 @@ trait CustomViewTrait
         return $options;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @param int $index
+     * @return array<mixed>
+     */
     protected function getViewColumnInfo($custom_table, $custom_view, $column_setting, $index)
     {
         $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
@@ -146,6 +196,12 @@ trait CustomViewTrait
         return $options;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @return array<mixed>
+     */
     protected function getViewFilterInfo($custom_table, $custom_view, $column_setting)
     {
         $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
@@ -155,6 +211,12 @@ trait CustomViewTrait
         return $options;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @return array<mixed>
+     */
     protected function getViewSortInfo($custom_table, $custom_view, $column_setting)
     {
         $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
@@ -164,6 +226,12 @@ trait CustomViewTrait
         return $options;
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $custom_view
+     * @param mixed $column_setting
+     * @return array<mixed>
+     */
     protected function getViewColumnBase($custom_table, $custom_view, $column_setting)
     {
         if (isset($column_setting['reference_table'])) {
@@ -174,7 +242,7 @@ trait CustomViewTrait
                 $column_setting['options']['view_pivot_table_id'] = $custom_table->id;
                 $column_setting['options']['view_pivot_column_id'] = $this->getTargetColumnId([
                     'column_name' => $column_setting['reference_column'],
-                ], $custom_table, true);
+                ], boolval(array_get($column_setting, 'is_refer'))? $refer_table: $custom_table, true);
             }
         } else {
             $view_column_table_id = $custom_table->id;
@@ -190,6 +258,14 @@ trait CustomViewTrait
         ];
     }
 
+    /**
+     * @param mixed $custom_table
+     * @param mixed $view_type
+     * @param mixed $view_kind_type
+     * @param mixed $view_view_name
+     * @param array<mixed> $options
+     * @return \Exceedone\Exment\Model\CustomView
+     */
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
     {
         return CustomView::create([
@@ -201,6 +277,15 @@ trait CustomViewTrait
         ]);
     }
 
+    /**
+     * @param mixed $custom_view_id
+     * @param mixed $view_column_type
+     * @param mixed $view_column_table_id
+     * @param mixed $view_column_target_id
+     * @param mixed $view_filter_condition
+     * @param mixed $view_filter_condition_value_text
+     * @return CustomViewFilter
+     */
     protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text = null)
     {
         $custom_view_filter = new CustomViewFilter();
@@ -218,7 +303,7 @@ trait CustomViewTrait
     /**
      * Get column id for filter, column, etc
      *
-     * @param array $setting
+     * @param array<mixed> $setting
      * @param CustomTable $custom_table
      * @return string
      */

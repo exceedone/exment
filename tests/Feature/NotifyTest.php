@@ -21,6 +21,10 @@ class NotifyTest extends FeatureTestBase
 {
     use TestTrait;
 
+    /**
+     * @param bool $fake
+     * @return void
+     */
     protected function init(bool $fake)
     {
         $this->initAllTest();
@@ -168,6 +172,9 @@ class NotifyTest extends FeatureTestBase
     }
 
 
+    /**
+     * @return void
+     */
     public function testNotifySchedule()
     {
         $this->init(false);
@@ -210,6 +217,9 @@ class NotifyTest extends FeatureTestBase
         $this->assertEquals(array_get($data, 'trigger_user_id'), $user_id);
     }
 
+    /**
+     * @return void
+     */
     public function testNotifyButton()
     {
         $this->init(false);
@@ -254,7 +264,10 @@ class NotifyTest extends FeatureTestBase
     }
 
 
-
+    /**
+     * @return void
+     * @throws \ReflectionException
+     */
     public function testNotifyWorkflow()
     {
         $this->init(false);
@@ -337,6 +350,10 @@ class NotifyTest extends FeatureTestBase
         $this->assertTrue($data->count() === 1, 'NotifyNavbar count excepts 1, but count is ' . $data->count());
     }
 
+    /**
+     * @param string $keyName
+     * @return mixed
+     */
     protected function getMailTemplate($keyName)
     {
         return CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', $keyName)->first();

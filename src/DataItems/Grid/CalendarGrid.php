@@ -76,4 +76,20 @@ class CalendarGrid extends GridBase
         // filter setting
         static::setFilterFields($form, $custom_table);
     }
+
+    /**
+     * Set filter fileds form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @param boolean $is_aggregate
+     * @return void
+     */
+    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    {
+        parent::setFilterFields($form, $custom_table, $is_aggregate);
+
+        $form->checkboxone('condition_reverse', exmtrans("condition.condition_reverse"))
+            ->option(exmtrans("condition.condition_reverse_options"));
+    }
 }

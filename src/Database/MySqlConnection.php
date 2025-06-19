@@ -23,6 +23,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      */
     public function getSchemaBuilder()
     {
+        /** @phpstan-ignore-next-line Call to function is_null() with Illuminate\Database\Schema\Grammars\Grammar will always evaluate to false. */
         if (is_null($this->schemaGrammar)) {
             $this->useDefaultSchemaGrammar();
         }
@@ -82,10 +83,17 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $column_statistics = static::isContainsColumnStatistics() ? '--column-statistics=0' : '';
 
         $mysqldump = static::getMysqlDumpPath();
+        $ls_output = shell_exec($mysqldump . ' --help');
+        if (strpos($ls_output, '--set-gtid-purged') !== false) {
+            $set_gtid = ' --set-gtid-purged=OFF';
+        } else {
+            $set_gtid = '';
+        }
         $command = sprintf(
-            '%s %s --no-tablespaces -h %s -u %s --password=%s -P %s',
+            '%s %s %s --no-tablespaces -h %s -u %s --password=%s -P %s',
             $mysqldump,
             $column_statistics,
+            $set_gtid,
             $host,
             $username,
             $password,
@@ -202,7 +210,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     protected function backupTable($tempDir, $table)
     {
         // create tsv file
-        $file = new \SplFileObject(path_join($tempDir, $table.'.tsv'), 'w');
+        $file = new \SplFileObject(path_join($tempDir, $table . '.tsv'), 'w');
         $file->setCsvControl("\t");
 
         // get column definition
@@ -315,7 +323,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 }
                 \DB::table($table)->truncate();
 
-                $cmd =<<<__EOT__
+                $cmd = <<<__EOT__
                 LOAD DATA local INFILE '%s'
                 INTO TABLE %s
                 CHARACTER SET 'UTF8'
