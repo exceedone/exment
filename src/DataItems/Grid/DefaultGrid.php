@@ -558,10 +558,18 @@ class DefaultGrid extends GridBase
                     $enableCreate = false;
                 }
 
-                if (!is_null($parent_value = $actions->row->getParentValue(null, true)) && $parent_value->enableEdit(true) !== true) {
-                    $enableCreate = false;
-                    $enableEdit = false;
-                    $enableDelete = false;
+                if (!is_null($parent_value = $actions->row->getParentValue(null, true))) {
+                    if (boolval($custom_table->getOption('editable_with_parent')??1)) {
+                        if ($parent_value->enableEdit(true) !== true) {
+                            $enableCreate = false;
+                            $enableEdit = false;
+                            $enableDelete = false;
+                        }
+                    } elseif ($parent_value->enableAccess() !== true)  {
+                        $enableCreate = false;
+                        $enableEdit = false;
+                        $enableDelete = false;
+                    }
                 }
 
                 if (!$enableEdit) {
