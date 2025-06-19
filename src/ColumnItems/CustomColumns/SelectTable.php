@@ -825,7 +825,7 @@ class SelectTable extends CustomItem
      * @param string $mark
      * @param string $value
      * @param string|null $q
-     * @return void
+     * @return $this
      */
     public function setSearchOrWhere(&$query, $mark, $value, $q)
     {

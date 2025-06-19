@@ -59,7 +59,15 @@ class ExtendedBuilder extends Builder
         if (count($bindings) > 0) {
             $query = preg_replace_callback('/\?/', function() use (&$bindings) {
                 $binding = array_shift($bindings);
-                return is_numeric($binding) ? $binding : "'" . addslashes($binding) . "'";
+
+                if (is_string($binding)) {
+                    // if database is not sqlserver or binding is not unicode encoding string, add slash
+                    if (\Exment::isSqlServer() == false || !preg_match('/\\\\u[0-9a-fA-F]{4}/', $binding)) {
+                        $binding = addslashes($binding);
+                    }
+                }
+
+                return is_numeric($binding) ? $binding : "'" . $binding . "'";
             }, $sql);
         } else {
             $query = $sql;
