@@ -29,6 +29,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\TextAlignType;
 use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\OcrExtractionRoleType;
 use Exceedone\Exment\Validator;
 use Illuminate\Validation\Rule;
 
@@ -87,7 +88,7 @@ class CustomColumnController extends AdminControllerTableBase
      * @return \Illuminate\Http\Response|void
      */
     public function update($tableKey, $id)
-    {   
+    {
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
@@ -141,12 +142,17 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         })->escape(false);
-        $grid->column('options->freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
-            return \Exment::getTrueMark($val);
-        })->escape(false);
-        $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
-            return \Exment::getTrueMark($val);
-        })->escape(false);
+        if ($this->custom_table->isAiOcrEnabled()) {
+            $grid->column('options->ocr_search_keyword', exmtrans("custom_column.options.ocr_search_keyword"));
+            $grid->column('options->ocr_extraction_role', exmtrans("custom_column.options.ocr_extraction_role"));
+        } else {
+            $grid->column('options->freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
+                return \Exment::getTrueMark($val);
+            })->escape(false);
+            $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
+                return \Exment::getTrueMark($val);
+            })->escape(false);
+        }
         $grid->column('order', exmtrans("custom_column.order"))->sortable()->editable();
 
         if (isset($this->custom_table)) {
@@ -288,6 +294,13 @@ class CustomColumnController extends AdminControllerTableBase
         }
 
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item, $id) {
+            if ($this->custom_table->isAiOcrEnabled()) {
+                $form->text('ocr_search_keyword', exmtrans("custom_column.options.ocr_search_keyword"))
+                    ->help(exmtrans("custom_column.help.ocr_search_keyword"));
+                $form->select('ocr_extraction_role', exmtrans("custom_column.options.ocr_extraction_role"))
+                    ->help(exmtrans("custom_column.help.ocr_extraction_role"))
+                    ->options(OcrExtractionRoleType::transArray('custom_column.ocr_extraction_role_options'));
+            }
             $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules([
