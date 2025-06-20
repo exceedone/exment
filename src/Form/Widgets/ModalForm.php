@@ -27,7 +27,7 @@ class ModalForm extends WidgetForm
      *
      * @return array
      */
-    public function getScript()
+    public function getScript(): string
     {
         return collect($this->fields)->map(function ($field) {
             /* @var Field $field  */

@@ -77,7 +77,7 @@ class ChangeField extends Field
 
     protected static $scripts = [];
 
-    protected function getElementClass()
+    public function getElementClass(): array
     {
         if (preg_match('/(^[^\[\]]+)\[([^\[\]]+)\]\[([^\[\]]+)\]$/', $this->elementName, $array_result)) {
             array_shift($array_result);
@@ -198,7 +198,7 @@ EOT;
         static::$scripts[] = $script;
     }
 
-    public function getScript()
+    public function getScript(): string
     {
         $script = collect(static::$scripts)->filter()->unique()->implode("");
         //static::$scripts = [];

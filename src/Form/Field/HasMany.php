@@ -132,7 +132,7 @@ EOT;
         return $script;
     }
 
-    public function getScript()
+    public function getScript(): string
     {
         list($template, $script) = $this->buildNestedForm($this->column, $this->builder)
             ->getTemplateHtmlAndScript();

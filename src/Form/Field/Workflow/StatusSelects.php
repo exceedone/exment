@@ -38,7 +38,7 @@ class StatusSelects extends Select
      *
      * @return $this
      */
-    public function setElementClass($class)
+    public function setElementClass($class): self
     {
         $classItem = collect($class)->map(function ($c) {
             return is_array($c) ? implode("_", $c) : $c;
