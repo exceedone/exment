@@ -1063,6 +1063,7 @@ return [
     'change_page_menu' =>[
         'change_page_label' => 'Table Detail Setting',
         'ai_ocr_import' => 'AI-OCR Import',
+        'ai_ocr_run' => 'Run AI-OCR',
         'custom_table' => 'Table Setting',
         'custom_column' => 'Column Detail Setting',
         'custom_view' => 'View Setting',
@@ -2331,6 +2332,7 @@ return [
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',
+            'import_ai_ocr' => 'Import AI-OCR',
             'import_multi_files' => 'Import Multi Files',
             'import_file_select' => 'Select CSV File',
             'primary_key' => 'Promary Key',

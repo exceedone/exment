@@ -1063,6 +1063,7 @@ return [
     'change_page_menu' =>[
         'change_page_label' => 'テーブル詳細設定',
         'ai_ocr_import' => 'AI-OCRインポート',
+        'ai_ocr_run' => 'AI-OCR実行',
         'custom_table' => 'テーブル設定',
         'custom_column' => 'カスタム列設定',
         'custom_view' => 'ビュー設定',
@@ -2331,6 +2332,7 @@ return [
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',
+            'import_ai_ocr' => 'インポートファイルAI-OCR',
             'import_multi_files' => 'インポート一覧ファイル',
             'import_file_select' => 'CSVもしくはExcelファイルを選択',
             'primary_key' => '主キー',

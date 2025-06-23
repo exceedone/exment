@@ -533,7 +533,7 @@ trait DataImportExportServiceTrait
 
         /** @phpstan-ignore-next-line */
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'importAiOcr'))
-            ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
+            ->file('custom_table_file', exmtrans('custom_value.import.import_ai_ocr'))
             ->rules('mimes:' . implode(',', array_keys($formats)))->setWidth(8, 3)->addElementClass('custom_table_file')
             ->options($fileOption)
             ->required()
@@ -559,12 +559,51 @@ trait DataImportExportServiceTrait
             ->addElementClass('import_error_message')
             ->help(exmtrans('custom_value.import.help.import_error_message'));
 
+        $form->attribute(['id' => 'form-import-ai-ocr']);
+        $form->addCustomScriptToArray([
+            <<<'JS'
+            setTimeout(() => {
+                const form = document.querySelector('#form-import-ai-ocr');
+                const submitBtn = document.querySelector('#modal-showmodal .modal-submit');
+                if (!form || !submitBtn) return;
+
+                submitBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+                    const action = form.getAttribute('action');
+
+                    fetch(action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.result && data.files_path) {
+                            window.dispatchEvent(new CustomEvent('ai-ocr-uploaded', {
+                                detail: { files_path: data.files_path }
+                            }));
+                            $('#modal-showmodal').modal('hide');
+                        }
+                    })
+                    .catch(err => {
+                    });
+                });
+            }, 200);
+            JS
+        ]);
+
         $this->importAction->setImportModalItems($form);
 
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
-            'title' => exmtrans('common.import') . ' - ' . $this->importAction->getImportHeaderViewName()
+            'preventSubmit' => true,    // prevent parent modal reload
+            'title' => exmtrans('common.import_ai_ocr') . ' - ' . $this->importAction->getImportHeaderViewName()
         ]);
     }
 
@@ -605,7 +644,7 @@ trait DataImportExportServiceTrait
             ->setWidth(8, 3);
 
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'importMultiAiOcr'))
-        ->file('custom_table_files', exmtrans('custom_value.import.import_multi_files'))
+        ->file('custom_table_files[]', exmtrans('custom_value.import.import_multi_files'))
         ->rules('mimes:' . implode(',', array_keys($formats))) // MIME rules
         ->setWidth(8, 3)
             ->addElementClass('custom_table_files')
@@ -636,11 +675,50 @@ trait DataImportExportServiceTrait
             ->addElementClass('import_error_message')
             ->help(exmtrans('custom_value.import.help.import_error_message'));
 
+        $form->attribute(['id' => 'form-import-multi-ai-ocr']);
+        $form->addCustomScriptToArray([
+            <<<'JS'
+            setTimeout(() => {
+                const form = document.querySelector('#form-import-multi-ai-ocr');
+                const submitBtn = document.querySelector('#modal-showmodal .modal-submit');
+                if (!form || !submitBtn) return;
+
+                submitBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+                    const action = form.getAttribute('action');
+
+                    fetch(action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.result && data.files_path) {
+                            window.dispatchEvent(new CustomEvent('ai-ocr-multi-uploaded', {
+                                detail: { files_path: data.files_path }
+                            }));
+                            $('#modal-showmodal').modal('hide');
+                        }
+                    })
+                    .catch(err => {
+                    });
+                });
+            }, 200);
+            JS
+        ]);
+
         $this->importAction->setImportModalItems($form);
 
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
+            'preventSubmit' => true,    // prevent parent modal reload
             'title' => exmtrans('common.import_multi') . ' - ' . $this->importAction->getImportHeaderViewName()
         ]);
     }
