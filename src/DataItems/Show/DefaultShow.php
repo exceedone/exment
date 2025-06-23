@@ -616,35 +616,27 @@ EOT;
                 ->setWidth(8, 3);
         }
 
-        // If AI OCR is enabled → only for 1 file and hide drag & drop
-        if ($useFileUpload) {
-            $max_count = $aiOcrEnabled ? 1 : config('exment.document_upload_max_count', 5);
-            $import_type = $aiOcrEnabled ? 'fileUploadRunAiOcr' : 'fileupload';
-
-            $options = Define::FILE_OPTION();
-
-            $options['showUpload'] = true;
-            $options['uploadUrl'] = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, $import_type);
-            $options['uploadExtraData'] = [ '_token' => csrf_token() ];
-            $options['minFileCount'] = 1;
-            $options['maxFileCount'] = $max_count;
-            $options['dropZoneEnabled'] = !$aiOcrEnabled;
-            if ($aiOcrEnabled) {
-                $options['allowedFileExtensions'] = ['jpg', 'jpeg', 'png', 'bmp', 'gif', 'tiff', 'pdf'];
-                Admin::script("
-                    $(document).on('ready pjax:success', function () {
-                        $('.file_data').attr('accept', '.jpg,.jpeg,.png,.bmp,.gif,.tiff,.pdf');
-                    });
-                ");
-            }
+        // If AI OCR is enabled → Uploaded File View Only
+        if ($useFileUpload && !$aiOcrEnabled) {
+            $max_count = config('exment.document_upload_max_count', 5);
+            $options = array_merge(Define::FILE_OPTION(), [
+                'showUpload' => true,
+                'showPreview' => true,
+                'showCancel' => false,
+                'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'fileupload'),
+                'uploadExtraData'=> [
+                    '_token' => csrf_token()
+                ],
+                'minFileCount' => 1,
+                'maxFileCount' => $max_count,
+            ]);
 
             $input_id = 'file_data';
-            $help_text = $aiOcrEnabled ? exmtrans('custom_value.help.import_run_ai_ocr') : exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(\Exment::getUploadMaxFileSize()), 'max_count' => $max_count]);
 
             $form->multipleFile($input_id, trans('admin.upload'))
                 ->options($options)
                 ->setLabelClass(['d-none'])
-                ->help($help_text)
+                ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(\Exment::getUploadMaxFileSize()), 'max_count' => $max_count]))
                 ->setWidth(12, 0);
             $script = <<<EOT
             var uploadCount = null;
@@ -823,6 +815,39 @@ EOT;
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+
+    public function fileuploadTemp($httpfiles)
+    {
+        if (is_nullorempty($httpfiles)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
+        $tempId = (string) \Str::uuid();
+        $tableKey = $this->custom_table->table_name;
+        $disk = config('admin.upload.disk');
+        $files_path = $path = implode(DIRECTORY_SEPARATOR, [
+            storage_path('app'),
+            $disk,
+            'ai_ocr_temp',
+            $tableKey,
+            $tempId,
+        ]);
+
+        $files_array = is_array($httpfiles) ? $httpfiles : [$httpfiles];
+        foreach (toArray($files_array) as $httpfile) {
+            $filename = $httpfile->getClientOriginalName();
+            ExmentFile::storeAs(FileType::AI_OCR, $httpfile, "ai_ocr_temp/{$tableKey}/{$tempId}", $filename, [], $tableKey);
+        }
+
+        return getAjaxResponse([
+            'result'            => true,
+            'message'           => trans('admin.upload_succeeded'),
+            'files_path'        => $files_path,
         ]);
     }
 

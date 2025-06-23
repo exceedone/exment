@@ -461,6 +461,12 @@ class DefaultGrid extends GridBase
                 $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
             }
 
+            // AI-OCR
+            if ($this->custom_table->isAiOcrEnabled()) {
+                /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableRunMultiAiOcrButton given */
+                $tools->append(new Tools\CustomTableRunMultiAiOcrButton(admin_urls('data', $this->custom_table->table_name, 'runMultiAiOcr'), $this->custom_table, $this->custom_view));
+            }
+
             // add plugin button
             if ($listButtons !== null && count($listButtons) > 0) {
                 foreach ($listButtons as $listButton) {

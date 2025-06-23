@@ -188,6 +188,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("data/{tableKey}/importMultiAiOcrModal", 'CustomValueController@importMultiAiOcrModal');
             $router->post("data/{tableKey}/importMultiAiOcr", 'CustomValueController@importMultiAiOcr');
             $router->post("data/{tableKey}/{id}/fileUploadRunAiOcr", 'CustomValueController@fileUploadRunAiOcr');
+            $router->post("data/{tableKey}/runAiOcr", 'AiOcrController@runAiOcr');
+            $router->post("data/{tableKey}/runMultiAiOcr", 'AiOcrController@runMultiAiOcr');
 
             $router->get("data/{tableKey}/importModal", 'CustomValueController@importModal');
             $router->post("data/{tableKey}/import", 'CustomValueController@import');

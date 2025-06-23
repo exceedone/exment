@@ -18,7 +18,7 @@ class CustomTableAiOcrImportButton extends ModalTileMenuButton
         parent::__construct([
             'label' => exmtrans('change_page_menu.ai_ocr_import'),
             'icon' => 'fa-upload',
-            'button_class' => 'btn-success',
+            'button_class' => 'btn-twitter',
         ]);
 
         $this->modal_title = exmtrans('change_page_menu.ai_ocr_import');

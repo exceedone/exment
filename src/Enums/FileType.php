@@ -33,4 +33,6 @@ class FileType extends EnumBase
      * Public form logo etc.
      */
     public const PUBLIC_FORM = '6';
+
+    public const AI_OCR = '7';
 }

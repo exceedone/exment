@@ -572,14 +572,24 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * @param Request $request
      */
-    public function importAiOcr(Request $request)
+    public function importAiOcr(Request $request, $tableKey)
     {
-        if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
             return $response;
         }
+        $show_item = $this->custom_form->show_item;
 
-        $grid = $this->custom_view->grid_item;
-        return $grid->import($request);
+        return $show_item->fileuploadTemp($request->file('custom_table_file'));
+    }
+
+    public function importMultiAiOcr(Request $request, $tableKey)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
+            return $response;
+        }
+        $show_item = $this->custom_form->show_item;
+
+        return $show_item->fileuploadTemp($request->file('custom_table_files'));
     }
 
     /**
@@ -597,22 +607,6 @@ class CustomValueController extends AdminControllerTableBase
         return $service->getImportAiOcrModal($importlist);
     }
 
-    /**
-     * @param Request $request
-     */
-    public function importMultiAiOcr(Request $request)
-    {
-        if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
-            return $response;
-        }
-
-        $grid = $this->custom_view->grid_item;
-        return $grid->import($request);
-    }
-
-    /**
-     * get import ai_ocr modal
-     */
     public function importMultiAiOCrModal(Request $request, $tableKey)
     {
         if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
