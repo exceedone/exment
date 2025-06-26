@@ -27,13 +27,15 @@ class CustomTableRunAiOcrButton extends ModalTileMenuButton
 
     public function render()
     {
+        $label = exmtrans('change_page_menu.ai_ocr_run');
+
         return <<<HTML
         <div class="btn-group pull-right" style="margin-right: 5px">
             <button id="run-ai-ocr-btn"
                     class="btn btn-sm btn-success"
                     style="display:none;"
                     data-file-path="">
-                <i class="fa fa-robot"></i><span class="hidden-xs">&nbsp;&nbsp;Run AI-OCR</span>
+                <i class="fa fa-robot"></i><span class="hidden-xs">&nbsp;&nbsp;{$label}</span>
             </button>
         </div>
         HTML;
