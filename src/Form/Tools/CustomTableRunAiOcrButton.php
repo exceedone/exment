@@ -27,13 +27,15 @@ class CustomTableRunAiOcrButton extends ModalTileMenuButton
 
     public function render()
     {
+        $label = exmtrans('change_page_menu.ai_ocr_run');
+
         return <<<HTML
         <div class="btn-group pull-right" style="margin-right: 5px">
             <button id="run-ai-ocr-btn"
                     class="btn btn-sm btn-success"
                     style="display:none;"
                     data-file-path="">
-                <i class="fa fa-robot"></i><span class="hidden-xs">&nbsp;&nbsp;Run AI-OCR</span>
+                <i class="fa fa-robot"></i><span class="hidden-xs">&nbsp;&nbsp;{$label}</span>
             </button>
         </div>
         HTML;
@@ -49,13 +51,14 @@ class CustomTableRunAiOcrButton extends ModalTileMenuButton
             btn.style.display = 'inline-block';
         });
 
-        $(document).on('click', '#run-ai-ocr-btn', function () {
+        $(document).off('click', '#run-ai-ocr-btn').on('click', '#run-ai-ocr-btn', function () {
             const filePath = this.getAttribute('data-file-path');
             if (!filePath) {
                 alert("Upload File not found.");
                 return;
             }
 
+            document.body.style.cursor = 'wait';
             fetch('{$this->run_ai_ocr_endpoint}', {
                 method: 'POST',
                 headers: {
@@ -66,8 +69,31 @@ class CustomTableRunAiOcrButton extends ModalTileMenuButton
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
+                document.body.style.cursor = 'default';
+                if (data.message === "OCR completed" && data.result) {
                     alert('AI-OCR processed successfully.');
+                    const result = data.result;
+                    for (const key in result) {
+                        const { value, value_type } = result[key];
+                        switch (value_type) {
+                        case 'editor':
+                            const inputFieldTextArea = document.querySelector(`textarea[name="value[\${key}]"]`)
+                            if (inputFieldTextArea) {
+                                const editor = tinymce.get(inputFieldTextArea.id);
+                                if (editor) {
+                                    editor.setContent(value);
+                                }
+                            }
+                            break;
+                        default:
+                            const inputField = document.querySelector(`[name="value[\${key}]"]`);
+                            if (inputField) {
+                                inputField.value = value.replace(/[^\d.-]/g, '');
+                            } else {
+                            }
+                            break;
+                        }
+                    }
                 } else {
                     alert('AI-OCR processing error.');
                 }

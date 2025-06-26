@@ -490,15 +490,6 @@ class CustomValueController extends AdminControllerTableBase
         return $show_item->fileupload($request->file('file_data'));
     }
 
-    public function fileUploadRunAiOcr(Request $request, $tableKey, $id)
-    {
-        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
-            return $response;
-        }
-        $show_item = $this->custom_form->show_item->id($id);
-        return $show_item->fileupload($request->file('file_data'));
-    }
-
     /**
      * file delete custom column.
      */

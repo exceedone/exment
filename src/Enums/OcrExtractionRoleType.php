@@ -11,4 +11,5 @@ class OcrExtractionRoleType extends EnumBase
     public const BEFORE_KEYWORD = 'before_keyword';
     public const BELOW_KEYWORD = 'below_keyword';
     public const ABOVE_KEYWORD = 'above_keyword';
+    public const CONTAINS_KEYWORD = 'contains_keyword';
 }

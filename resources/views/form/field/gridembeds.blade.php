@@ -7,7 +7,11 @@
 @endif
 
 <div id="embed-{{$column}}" class="embed-{{$column}}">
-    <label class="ai-ocr-uploaded-label" style="display: none;">AI-OCR Files Uploaded. Please click the 'Run AI-OCR' button to process the file and auto-fill the fields.</label>
+    <label class="ai-ocr-uploaded-label" style="display: none;">
+        {{ exmtrans('custom_column.help.ai_ocr_file_imported', [
+            'button' => exmtrans('change_page_menu.ai_ocr_run')
+        ]) }}
+    </label>
     <div class="embed-{{$column}}-forms">
         <div class="embed-{{$column}}-form fields-group">
             @foreach($fieldGroups as $fieldRow)
@@ -25,7 +29,10 @@
                                         <label class="col-md-2  control-label"></label>
                                         <div class="col-md-8 ">
                                             <span class="text-danger fw-semibold">
-                                                AI-OCR: Automatically filled from image/PDF using keyword "{{ $options['ocr_search_keyword'] }}" at position "{{ $options['ocr_extraction_role'] }}". Manually entered values will take priority.
+                                                {{ exmtrans('custom_column.help.ai_ocr_hint', [
+                                                    'keyword' => $options['ocr_search_keyword'] ?? '',
+                                                    'role' => $options['ocr_extraction_role'] ?? ''
+                                                ]) }}
                                             </span>
                                         </div>
                                     </div>
