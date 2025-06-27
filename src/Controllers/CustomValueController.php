@@ -560,6 +560,56 @@ class CustomValueController extends AdminControllerTableBase
         return $service->getImportModal($importlist);
     }
 
+    /**
+     * @param Request $request
+     */
+    public function importAiOcr(Request $request, $tableKey)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
+            return $response;
+        }
+        $show_item = $this->custom_form->show_item;
+
+        return $show_item->fileuploadTemp($request->file('custom_table_file'));
+    }
+
+    public function importMultiAiOcr(Request $request, $tableKey)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
+            return $response;
+        }
+        $show_item = $this->custom_form->show_item;
+
+        return $show_item->fileuploadTemp($request->file('custom_table_files'));
+    }
+
+    /**
+     * get import ai_ocr modal
+     */
+    public function importAiOCrModal(Request $request, $tableKey)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
+            return $response;
+        }
+
+        $grid = $this->custom_view->grid_item;
+        $service = $grid->getImportExportService();
+        $importlist = Plugin::pluginPreparingImport($this->custom_table);
+        return $service->getImportAiOcrModal($importlist);
+    }
+
+    public function importMultiAiOCrModal(Request $request, $tableKey)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
+            return $response;
+        }
+
+        $grid = $this->custom_view->grid_item;
+        $service = $grid->getImportExportService();
+        $importlist = Plugin::pluginPreparingImport($this->custom_table);
+        return $service->getImportMultiAiOcrModal($importlist);
+    }
+
     //Function handle plugin click event
     /**
      * @param Request $request

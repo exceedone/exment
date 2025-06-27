@@ -10,6 +10,19 @@ class Number extends \Encore\Admin\Form\Field\Number
     protected $defaultEmpty = false;
     protected $fieldWidth = 100;
 
+    protected $options = [];
+
+    public function setOptions(array $options)
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
     public function disableUpdown()
     {
         $this->disableUpdown = true;

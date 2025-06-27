@@ -22,6 +22,16 @@ class ModalForm extends WidgetForm
      */
     protected $buttons = [];
 
+    protected $customScripts = [];
+
+    public function addCustomScriptToArray(array $scripts)
+    {
+        foreach ($scripts as $script) {
+            $this->customScripts[] = $script;
+        }
+        return $this;
+    }
+
     /**
      * Get script each fields
      *
@@ -29,10 +39,11 @@ class ModalForm extends WidgetForm
      */
     public function getScript()
     {
-        return collect($this->fields)->map(function ($field) {
-            /* @var Field $field  */
+        $fieldScripts = collect($this->fields)->map(function ($field) {
             return $field->getScript();
         })->filter()->values()->toArray();
+
+        return array_merge($fieldScripts, $this->customScripts);
     }
 
     /**

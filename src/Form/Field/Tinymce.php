@@ -24,6 +24,19 @@ class Tinymce extends Textarea
      */
     protected $postImageUri;
 
+    protected $options = [];
+
+    public function setOptions(array $options)
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
     /**
      * Set config for tinymce.
      *
