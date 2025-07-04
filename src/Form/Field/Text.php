@@ -4,6 +4,19 @@ namespace Exceedone\Exment\Form\Field;
 
 class Text extends \Encore\Admin\Form\Field\Text
 {
+    protected $customOptions = [];
+
+    public function setCustomOptions(array $customOptions)
+    {
+        $this->customOptions = $customOptions;
+        return $this;
+    }
+
+    public function getCustomOptions()
+    {
+        return $this->customOptions;
+    }
+
     public function render()
     {
         $suggest_url = array_get($this->attributes, 'suggest_url');

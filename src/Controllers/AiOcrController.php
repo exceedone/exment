@@ -41,6 +41,14 @@ class AiOcrController extends AdminControllerTableBase
 
         try {
             $result = $this->ocrService->processFile($file, $tableKey, $this->custom_columns);
+            $isMultiPage = is_array($result['results'])
+                && array_is_list($result['results'])
+                && is_array(reset($result['results']));
+            if ($isMultiPage) {
+                return response()->json([
+                    'message' => exmtrans("custom_table.help.ai_ocr_import_multi_alert"),
+                ], 500);
+            }
 
             $local_filename = pathinfo($file, PATHINFO_BASENAME);
             $this->saveFileOptions($local_filename, $result['results']);
@@ -85,9 +93,18 @@ class AiOcrController extends AdminControllerTableBase
                 $this->saveFileOptions($local_filename, $result['results']);
 
                 $modelClass = get_class($this->custom_table->getValueModel());
-                $new_record = new $modelClass();
+                $results = $result['results'];
+                $isMultiPage = is_array($results) && array_is_list($results) && is_array(reset($results));
 
-                $this->createCustomRecord($new_record, $result['results'], $filesPath, $file);
+                if ($isMultiPage) {
+                    foreach ($results as $pageIndex => $pageResult) {
+                        $new_record = new $modelClass();
+                        $this->createCustomRecord($new_record, $pageResult, $filesPath, $file);
+                    }
+                } else {
+                    $new_record = new $modelClass();
+                    $this->createCustomRecord($new_record, $results, $filesPath, $file);
+                }
 
                 $allResults[] = [
                     'file' => $file->getFilename(),
@@ -110,7 +127,7 @@ class AiOcrController extends AdminControllerTableBase
             }
         }
 
-        $this->deleteIfEmptyTempDirectory($filesPath);
+        $this->deleteTempDirectory($filesPath);
 
         return response()->json([
             'message' => 'Multi OCR completed',
@@ -136,15 +153,12 @@ class AiOcrController extends AdminControllerTableBase
                 $valueHash = [];
                 foreach ($aiOcrResult as $column => $field) {
                     $value = $field['value'];
-                    if ($field['value_type'] === 'number') {
-                        $value = preg_replace('/[^\d.-]/', '', $value);
-                    }
                     $valueHash[$column] = $value;
                 }
                 $new_record->value = $valueHash;
                 $new_record->save();
 
-                $this->moveAiOcrFileAndLink($new_record, $tempPath, $file);
+                $this->copyAiOcrFileAndLink($new_record, $tempPath, $file);
 
                 // storeJancode
                 // updateRelation
@@ -157,7 +171,7 @@ class AiOcrController extends AdminControllerTableBase
     }
 
     // Move AI-OCR temporary files into their final folder, update their database records, and link them to the main record
-    private function moveAiOcrFileAndLink($custom_record, $tempPath, $file)
+    private function copyAiOcrFileAndLink($custom_record, $tempPath, $file)
     {
         if (!$custom_record) {
             return;
@@ -183,8 +197,11 @@ class AiOcrController extends AdminControllerTableBase
         if (!File::exists($destinationBase)) {
             File::makeDirectory($destinationBase, 0777, true);
         }
+
         $newPath = $destinationBase . DIRECTORY_SEPARATOR . $tempFilename;
-        rename($file->getPathname(), $newPath);
+        if (!copy($file->getPathname(), $newPath)) {
+            return;
+        }
 
         $fileModel->local_dirname = $subDir;
         $fileModel->save();
@@ -193,12 +210,8 @@ class AiOcrController extends AdminControllerTableBase
         $fileModel->saveDocumentModel($custom_record, $tempFilename);
     }
 
-    private function deleteIfEmptyTempDirectory(string $filesPath): void
+    private function deleteTempDirectory(string $filesPath): void
     {
-        if (!File::exists($filesPath)) {
-            return;
-        }
-
         $files = File::files($filesPath);
         $subdirs = File::directories($filesPath);
 

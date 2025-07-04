@@ -35,7 +35,7 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                     class="btn btn-sm btn-success"
                     style="display:none;"
                     data-files-path="">
-                <i class="fa fa-robot"></i><span class="hidden-xs">{$label}</span>
+                <i class="fa fa-robot"></i><span class="hidden-xs"> {$label}</span>
             </button>
         </div>
         HTML;
@@ -80,7 +80,10 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                 .then(data => {
                     document.body.style.cursor = 'default';
                     if (data.message === "Multi OCR completed") {
-                        alert('AI-OCR processed successfully.');
+                        const success = data.succeedOcrFilesCount || 0;
+                        const failed = data.failedOcrFilesCount || 0;
+                        let message = `AI-OCR completed.\nSuccessful files: \${success}\nFailed files: \${failed}`;
+                        alert(message);
                         $.pjax({
                             url: window.location.href,
                             container: '#pjax-container'

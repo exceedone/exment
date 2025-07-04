@@ -289,7 +289,9 @@ EOT;
 
                 // Get Options AI-OCR
                 // Set Custom Column Options to field
-                $field->setOptions($form_column->custom_column->options);
+                if (method_exists($field, 'setCustomOptions')) {
+                    $field->setCustomOptions($form_column->custom_column->options);
+                }
 
                 // push field to form
                 $form->pushFieldAndOption($field, [
