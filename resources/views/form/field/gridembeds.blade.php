@@ -23,7 +23,9 @@
                         @endif
                         @foreach($fieldColumn['fields'] as $field)
                             <div class="row"><div class="col-md-{{array_get($field, 'field_sm', 12)}} col-md-offset-{{array_get($field, 'field_offset', 0)}}">
-                                @php($options = $field['field']->getOptions())
+                                @php
+                                    $options = method_exists($field['field'], 'getCustomOptions') ? $field['field']->getCustomOptions() : [];
+                                @endphp
                                 @if (!empty($options['ocr_search_keyword']) && !empty($options['ocr_extraction_role']))
                                     <div class="form-group ">
                                         <label class="col-md-2  control-label"></label>
@@ -52,22 +54,3 @@
 @if($footer_hr)
 <hr style="margin-top: 0px;">
 @endif
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        window.addEventListener('ai-ocr-uploaded', function (e) {
-            const path = e.detail.files_path;
-
-            const input = document.querySelector('input[name="value[ai_ocr_temp_path]"]');
-            if (input) {
-                input.value = path;
-                input.dispatchEvent(new Event('change'));
-            }
-
-            const label = document.querySelector('.ai-ocr-uploaded-label');
-            if (label) {
-                label.style.display = 'block';
-            }
-        });
-    });
-</script>

@@ -593,7 +593,7 @@ trait DataImportExportServiceTrait
                     .catch(err => {
                     });
                 });
-            }, 250);
+            }, 300);
             JS
         ]);
 
@@ -709,7 +709,7 @@ trait DataImportExportServiceTrait
                     .catch(err => {
                     });
                 });
-            }, 250);
+            }, 300);
             JS
         ]);
 
