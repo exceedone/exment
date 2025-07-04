@@ -13,7 +13,8 @@ use Illuminate\Http\Request;
 
 class AiOcrService
 {
-    protected string $ocrServerUrl = 'http://Exment-AI-Server.example.com/api/ocr-process';
+    protected string $ocrServerUrl = 'https://exment.org/api/ocr/parse-bbox';
+    protected string $bearerToken  = '4|mMD8liCRxqrwmEh6QnivJvhpjrW712OlMxNRiO8B0cbc0302';
 
     public function processFile($file, string $tableKey, $columns): array
     {
@@ -27,70 +28,38 @@ class AiOcrService
             ];
         }
 
-//        try {
-//            $response = Http::attach(
-//                'document',
-//                file_get_contents($file->getRealPath()),
-//                $file->getClientOriginalName()
-//            )->post($this->ocrServerUrl, [
-//                'table'   => $tableKey,
-//                'columns' => $columnsInfo,
-//            ]);
-//
-//            if ($response->failed()) {
-//                throw new Exception("OCR server error: " . $response->body());
-//            }
-//
-//            return [
-//                'file' => $file->getClientOriginalName(),
-//                'results' => $response->json(),
-//                'message' => 'OK',
-//            ];
-//        } catch (\Throwable $e) {
-//            \Log::error('OCR API Error: ' . $e->getMessage());
-//
-//            return [
-//                'file' => $file->getClientOriginalName(),
-//                'results' => [],
-//                'message' => 'OCR API Error: ' . $e->getMessage(),
-//            ];
-//        }
-
-        // Local Test
-        $uploadedFile = new UploadedFile(
-            $file->getRealPath(),
-            $file->getFilename(),
-            mime_content_type($file->getRealPath()),
-            null,
-            true
-        );
-
-        $request = new Request(
-            [],                         // GET
-            ['fields' => json_encode($columnsInfo)], // POST
-            [], [],                     // attributes, cookies
-            ['file' => $uploadedFile]   // FILES
-        );
-
-        $request->files->set('file', $uploadedFile);
-
         try {
-            $response = App::call('App\Http\Controllers\OcrController@extractFieldsWithBoundingBox', [
-                'request' => $request,
-            ]);
+            // HTTP multipart form-data request
+            $response = Http::withToken($this->bearerToken)
+                ->attach(
+                    'file',
+                    file_get_contents($file->getRealPath()),
+                    $file->getClientOriginalName()
+                )
+                ->post($this->ocrServerUrl, [
+                    'fields' => json_encode($columnsInfo)
+                ]);
 
-            return [
-                'file' => $file->getFilename(),
-                'results' => $response->getData(true),
-                'message' => 'OK',
-            ];
+            if ($response->successful()) {
+                return [
+                    'file' => $file->getFilename(),
+                    'results' => $response->json(),
+                    'message' => 'OK',
+                ];
+            } else {
+                return [
+                    'file' => $file->getFilename(),
+                    'results' => [],
+                    'message' => 'OCR API error: ' . $response->status(),
+                ];
+            }
         } catch (\Throwable $e) {
-            \Log::error('OCR controller Error: ' . $e->getMessage());
+            Log::error('OCR API Error: ' . $e->getMessage());
 
             return [
                 'file' => $file->getFilename(),
                 'results' => [],
-                'message' => 'OCR controller Error: ' . $e->getMessage(),
+                'message' => 'OCR API Exception: ' . $e->getMessage(),
             ];
         }
     }
@@ -140,6 +109,7 @@ class AiOcrService
                 'value_type'  => $column->column_type ?? 'string',
                 'keywords'    => $keywords,
                 'position'    => $column->options['ocr_extraction_role'] ?? null,
+                'default_value' => $column->options['ocr_default_value'] ?? null,
             ];
         })->toArray();
     }
