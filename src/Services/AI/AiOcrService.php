@@ -140,6 +140,7 @@ class AiOcrService
                 'value_type'  => $column->column_type ?? 'string',
                 'keywords'    => $keywords,
                 'position'    => $column->options['ocr_extraction_role'] ?? null,
+                'default_value' => $column->options['ocr_default_value'] ?? null,
             ];
         })->toArray();
     }

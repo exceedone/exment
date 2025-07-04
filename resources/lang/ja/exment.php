@@ -1393,6 +1393,7 @@ return [
             'header' => '詳細オプション',
             'ocr_search_keyword' => 'OCR検索キーワード',
             'ocr_extraction_role' => 'OCR抽出設定',
+            'ocr_default_value' => 'OCRのデフォルト値',
             'index_enabled' => '検索インデックス',
             'freeword_search' => 'フリーワード検索対象',
             'unique' => 'ユニーク(一意)',
@@ -1497,6 +1498,7 @@ return [
             'column_type' => 'この列の種類を選択してください。データ入力時に、列種類に合わせてフォームが変更されます。保存後、変更はできません。',
             'ocr_search_keyword' => 'OCRを使用して添付ファイル内の値を検索するためのキーワードをご入力ください。',
             'ocr_extraction_role' => '添付ファイル内のOCR検索キーワードに対する値の相対位置を選択してください。',
+            'ocr_default_value' => 'OCRを使用すると、結果が見つからない場合があります。必須フィールドの場合は、ここにデフォルト値を入力してください。OCRで結果が見つからない場合に使用されます。',
             'ai_ocr_file_imported' => "AI-OCRファイルがアップロードされました。フィールドを自動入力するには「:button」ボタンをクリックしてください。",
             'ai_ocr_hint' => 'AI-OCR：キーワード「:keyword」、位置「:role」を使って画像やPDFから自動入力されました。手動入力の値が優先されます。',
             'index_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -2340,7 +2342,6 @@ return [
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',
                 'import_error_message' => '取込ファイルに不備があった場合、この項目に、行番号と、エラーメッセージを表示します。',
                 'import_success_multi_ai_ocr_notice' => 'インポートが成功しました。「:btn」ボタンをクリックして、ファイルの情報からデータを自動作成してください。',
-                'import_failed_ai_ocr_notice'  => 'インポートに失敗しました。ファイル形式を確認するか、再試行してください。',
             ],
             'key_options' => [
                 'id' => 'ID',

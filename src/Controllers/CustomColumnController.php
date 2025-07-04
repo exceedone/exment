@@ -32,6 +32,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\OcrExtractionRoleType;
 use Exceedone\Exment\Validator;
 use Illuminate\Validation\Rule;
+use Encore\Admin\Facades\Admin;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -136,23 +137,23 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
             return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
         });
+        if ($this->custom_table->isAiOcrEnabled()) {
+            $grid->column('options->ocr_search_keyword', exmtrans("custom_column.options.ocr_search_keyword"));
+            $grid->column('options->ocr_extraction_role', exmtrans("custom_column.options.ocr_extraction_role"));
+            $grid->column('options->ocr_default_value', exmtrans("custom_column.options.ocr_default_value"));
+        }
         $grid->column('required', exmtrans("common.required"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         })->escape(false);
         $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         })->escape(false);
-        if ($this->custom_table->isAiOcrEnabled()) {
-            $grid->column('options->ocr_search_keyword', exmtrans("custom_column.options.ocr_search_keyword"));
-            $grid->column('options->ocr_extraction_role', exmtrans("custom_column.options.ocr_extraction_role"));
-        } else {
-            $grid->column('options->freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
-                return \Exment::getTrueMark($val);
-            })->escape(false);
-            $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
-                return \Exment::getTrueMark($val);
-            })->escape(false);
-        }
+        $grid->column('options->freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
+            return \Exment::getTrueMark($val);
+        })->escape(false);
+        $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
+            return \Exment::getTrueMark($val);
+        })->escape(false);
         $grid->column('order', exmtrans("custom_column.order"))->sortable()->editable();
 
         if (isset($this->custom_table)) {
@@ -300,6 +301,8 @@ class CustomColumnController extends AdminControllerTableBase
                 $form->select('ocr_extraction_role', exmtrans("custom_column.options.ocr_extraction_role"))
                     ->help(exmtrans("custom_column.help.ocr_extraction_role"))
                     ->options(OcrExtractionRoleType::transArray('custom_column.ocr_extraction_role_options'));
+                $form->text('ocr_default_value', exmtrans("custom_column.options.ocr_default_value"))
+                    ->help(exmtrans("custom_column.help.ocr_default_value"));
             }
             $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
@@ -391,6 +394,43 @@ class CustomColumnController extends AdminControllerTableBase
             /** @phpstan-ignore-next-line add() expects string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->add(new Tools\CustomTableMenuButton('column', $custom_table));
         });
+
+        // AI-OCR Check Support Custom Column Type
+        Admin::script(<<<'JS'
+        $(document).ready(function () {
+            const allowedTypes = ['text', 'textarea', 'editor', 'url', 'email', 'integer', 'decimal', 'currency', 'date', 'time', 'datetime'];
+
+            function toggleOcrFields(columnType) {
+                const allow = allowedTypes.includes(columnType);
+
+                const $keyword = $('.options_ocr_search_keyword');
+                $keyword.prop('disabled', !allow);
+                if (!allow) $keyword.val('');
+
+                const $role = $('select[name="options[ocr_extraction_role]"]');
+                $role.prop('disabled', !allow);
+                if (!allow) {
+                    $role.val(null).trigger('change');
+                }
+
+                const $default = $('.options_ocr_default_value');
+                $default.prop('disabled', !allow);
+                if (!allow) {
+                    $default.val(null).trigger('change');
+                }
+            }
+
+            const $columnType = $('.column_type');
+            const columnTypeValue = $columnType.length > 0 && $columnType.val() ? $columnType.val() : 'text';
+            toggleOcrFields(columnTypeValue);
+
+            $(document).on('change', '.column_type', function () {
+                const columnType = $(this).val();
+                toggleOcrFields(columnType);
+            });
+        });
+        JS);
+
         return $form;
     }
 

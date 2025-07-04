@@ -23,7 +23,9 @@
                         @endif
                         @foreach($fieldColumn['fields'] as $field)
                             <div class="row"><div class="col-md-{{array_get($field, 'field_sm', 12)}} col-md-offset-{{array_get($field, 'field_offset', 0)}}">
-                                @php($options = $field['field']->getOptions())
+                                @php
+                                    $options = method_exists($field['field'], 'getCustomOptions') ? $field['field']->getCustomOptions() : [];
+                                @endphp
                                 @if (!empty($options['ocr_search_keyword']) && !empty($options['ocr_extraction_role']))
                                     <div class="form-group ">
                                         <label class="col-md-2  control-label"></label>

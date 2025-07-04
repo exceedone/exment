@@ -24,17 +24,17 @@ class Tinymce extends Textarea
      */
     protected $postImageUri;
 
-    protected $options = [];
+    protected $customOptions = [];
 
-    public function setOptions(array $options)
+    public function setCustomOptions(array $customOptions)
     {
-        $this->options = $options;
+        $this->customOptions = $customOptions;
         return $this;
     }
 
-    public function getOptions()
+    public function getCustomOptions()
     {
-        return $this->options;
+        return $this->customOptions;
     }
 
     /**
