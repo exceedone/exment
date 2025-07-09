@@ -151,6 +151,9 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 })
         ->all();
 
+        // Apply special menu filters (e.g., hide chatbot menus if not available)
+        $rows = static::filterSpecialMenus($rows);
+
         $results = [];
         foreach ($rows as &$row) {
             $result = true;
@@ -365,5 +368,35 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected static function boot()
     {
         static::treeBoot();
+    }
+
+    /**
+     * Filter special menus based on business logic (e.g., chatbot availability).
+     *
+     * @param array $rows
+     * @return array
+     */
+    public static function filterSpecialMenus(array $rows)
+    {
+        $rows = array_filter($rows, [static::class, 'shouldShowMenu']);
+        $rows = array_values($rows); // Reindex array
+        return $rows;
+    }
+
+    /**
+     * Determine if a menu node should be shown based on business logic.
+     *
+     * @param array $row
+     * @return bool
+     */
+    public static function shouldShowMenu($row)
+    {
+        // if (!\Exceedone\Exment\Model\System::chatbot_available()
+        //     && isset($row['menu_name'])
+        //     && strpos($row['menu_name'], 'system_chatbot_menu') === 0) {
+        //     return false;
+        // }
+        // Add more filter logic here if needed
+        return true;
     }
 }

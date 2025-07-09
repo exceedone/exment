@@ -91,6 +91,10 @@ class MenuController extends AdminControllerBase
             $tree->disableCreate();
 
             $tree->branch(function ($branch) {
+                // Filter menu branch for special business logic (e.g., chatbot availability)
+                if (!$this->filterMenuBranch($branch)) {
+                    return '';
+                }
                 switch ($branch['menu_type']) {
                     case MenuType::PLUGIN:
                         $icon = null;
@@ -132,6 +136,17 @@ class MenuController extends AdminControllerBase
                 return $payload;
             });
         });
+    }
+
+    /**
+     * Filter menu branch for special business logic (e.g., chatbot availability)
+     *
+     * @param array $branch
+     * @return bool
+     */
+    protected function filterMenuBranch($branch)
+    {
+        return \Exceedone\Exment\Model\Menu::shouldShowMenu($branch);
     }
 
     /**

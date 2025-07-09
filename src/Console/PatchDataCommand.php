@@ -240,6 +240,9 @@ class PatchDataCommand extends Command
             case 'patch_editable_userinfo':
                 $this->patchEditableUserInfo();
                 return 0;
+            case 'import_template':
+                $this->import_template();
+                return 0;
         }
 
         $this->error('patch name not found.');
@@ -2193,5 +2196,12 @@ class PatchDataCommand extends Command
                 $custom_column->save();
             }
         });
+    }
+
+    protected function import_template()
+    {
+        $path_template = $this->argument('options1');
+        $importer = new TemplateImporter();
+        $importer->importSystemTemplate(false, $path_template);
     }
 }
