@@ -2339,6 +2339,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'ignore_multiple_refer' => false,
                 'ignore_many_to_many' => false,
                 'only_system_grid_filter' => false,
+                'is_aggregate' => false,
                 'column_type_filter' => null,
             ],
             $selectOptions
@@ -2362,6 +2363,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
         $column_type_filter = $selectOptions['column_type_filter'];
+        $is_aggregate = $selectOptions['is_aggregate'];
 
         $options = [];
 
@@ -2404,7 +2406,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'ignore_attachment' => $ignore_attachment,
                     'ignore_autonumber' => $ignore_autonumber,
                     'ignore_multiple' => $ignore_multiple,
-                    'ignore_many_to_many' => $ignore_many_to_many,
+                    'ignore_many_to_many' => $ignore_many_to_many || $is_aggregate,
                     'only_system_grid_filter' => $only_system_grid_filter,
                     'column_type_filter' => $column_type_filter,
                 ]
