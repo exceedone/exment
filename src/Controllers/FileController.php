@@ -419,7 +419,7 @@ class FileController extends AdminControllerBase
     /**
      *  upload Image as temporary
      */
-    protected function uploadTempImage(Request $request)
+    public function uploadTempImage(Request $request)
     {
         return $this->_uploadTempFile($request, true);
     }
