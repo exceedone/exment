@@ -1,0 +1,659 @@
+{
+    "template_name": "chatbot",
+    "version": "v6.2.5",
+    "template_view_name": "chatbot",
+    "description": null,
+    "custom_tables": [
+        {
+            "table_name": "system_chatbot_faq",
+            "table_view_name": "Chatbot FAQ",
+            "description": null,
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-bullhorn",
+                "search_enabled": "0",
+                "use_label_id_flg": "0",
+                "one_record_flg": "0",
+                "attachment_flg": "0",
+                "comment_flg": "0",
+                "revision_flg": "1",
+                "revision_count": "100",
+                "data_submit_redirect": "inherit",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "1",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "question",
+                    "column_view_name": "Question",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "unique": "0",
+                        "init_only": "0",
+                        "string_length": "500",
+                        "rows": "6",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "answer",
+                    "column_view_name": "Answer",
+                    "column_type": "editor",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "unique": "0",
+                        "init_only": "0",
+                        "rows": "6",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "embedding_vector",
+                    "column_view_name": "embedding_vector",
+                    "column_type": "editor",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "unique": "0",
+                        "init_only": "0",
+                        "rows": "6",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "display_order",
+                    "column_view_name": "Display order",
+                    "column_type": "integer",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "unique": "0",
+                        "init_only": "0",
+                        "number_format": "0",
+                        "force_caculate": "0",
+                        "updown_button": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "is_featured",
+                    "column_view_name": "Is featured",
+                    "column_type": "yesno",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "unique": "0",
+                        "init_only": "0",
+                        "default": "0",
+                        "checkbox_enabled": "0",
+                        "required_yes": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "74a00682171c3478a1aa",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "system_chatbot_faq",
+                        "table_label_column_name": "question"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "system_chatbot_UI_text",
+            "table_view_name": "Chatbot UI text",
+            "description": null,
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-text-width",
+                "search_enabled": "0",
+                "use_label_id_flg": "0",
+                "one_record_flg": "0",
+                "attachment_flg": "0",
+                "comment_flg": "0",
+                "revision_flg": "1",
+                "revision_count": "100",
+                "data_submit_redirect": "inherit",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "1",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "text_key",
+                    "column_view_name": "Text key",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "unique": "1",
+                        "init_only": "0",
+                        "string_length": "256",
+                        "available_characters": [],
+                        "suggest_input": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "text_value",
+                    "column_view_name": "Text value",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "unique": "0",
+                        "init_only": "0",
+                        "string_length": "256",
+                        "available_characters": [],
+                        "suggest_input": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "description",
+                    "column_view_name": "Description",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "unique": "0",
+                        "init_only": "0",
+                        "string_length": "256",
+                        "rows": "6",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": []
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "5d9f9b0631951cb6074d",
+            "form_view_name": "Form",
+            "default_flg": "1",
+            "options": {
+                "form_label_type": "horizontal",
+                "show_grid_type": "grid"
+            },
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": [],
+                    "custom_form_columns": [
+                        {
+                            "suuid": "32889847bd1daad804aa",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "1",
+                            "form_column_target_name": "question"
+                        },
+                        {
+                            "suuid": "f0547a4566ecaea6ec84",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "2",
+                            "form_column_target_name": "answer"
+                        },
+                        {
+                            "suuid": "df71d99c79bd2431dc52",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "3",
+                            "form_column_target_name": "is_featured"
+                        },
+                        {
+                            "suuid": "8a331d6efaada2164cf2",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "4",
+                            "form_column_target_name": "display_order"
+                        }
+                    ],
+                    "form_block_target_table_name": "system_chatbot_faq"
+                }
+            ],
+            "table_name": "system_chatbot_faq"
+        },
+        {
+            "suuid": "830f3e2dfecb98edaee6",
+            "form_view_name": "Form",
+            "default_flg": "1",
+            "options": null,
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "75d90fbd6507aa5596ea",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "68",
+                            "form_column_target_name": "text_key"
+                        },
+                        {
+                            "suuid": "2db890d3edffb71caadd",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "69",
+                            "form_column_target_name": "text_value"
+                        },
+                        {
+                            "suuid": "4495b77df44de6860b81",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "70",
+                            "form_column_target_name": "description"
+                        }
+                    ],
+                    "form_block_target_table_name": "system_chatbot_UI_text"
+                }
+            ],
+            "table_name": "system_chatbot_UI_text"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "138e0ddc338ba9c71cff",
+            "view_type": "0",
+            "view_kind_type": "9",
+            "view_view_name": "All Data View",
+            "default_flg": "1",
+            "order": "0",
+            "options": {
+                "pager_count": "0",
+                "use_view_infobox": "0"
+            },
+            "custom_options": null,
+            "custom_view_columns": [
+                {
+                    "suuid": "1d5f96365c9955f1fa86",
+                    "view_column_type": "1",
+                    "order": "10",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_faq",
+                    "view_column_target_name": "id",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "5bef1864286dc843a408",
+                    "view_column_type": "0",
+                    "order": "20",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_faq",
+                    "view_column_target_name": "question",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "3dfa09359346d6a6786c",
+                    "view_column_type": "0",
+                    "order": "40",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_faq",
+                    "view_column_target_name": "is_featured",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "e74a9ef72beda4907eda",
+                    "view_column_type": "0",
+                    "order": "50",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_faq",
+                    "view_column_target_name": "display_order",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "923b2ce2aeca25fde4b2",
+                    "view_column_type": "1",
+                    "order": "60",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_faq",
+                    "view_column_target_name": "created_at",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "1d8e802ef99caafc0fe3",
+                    "view_column_type": "1",
+                    "order": "70",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_faq",
+                    "view_column_target_name": "updated_at",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "custom_view_grid_filters": [],
+            "table_name": "system_chatbot_faq"
+        },
+        {
+            "suuid": "284c919ce4da3779edfc",
+            "view_type": "0",
+            "view_kind_type": "9",
+            "view_view_name": "All Data View",
+            "default_flg": "1",
+            "order": "0",
+            "options": null,
+            "custom_options": null,
+            "custom_view_columns": [
+                {
+                    "suuid": "59a0210000b9f7120842",
+                    "view_column_type": "1",
+                    "order": "1",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_UI_text",
+                    "view_column_target_name": "id",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "4fd79327538486d4bdd2",
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_UI_text",
+                    "view_column_target_name": "text_key",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "b92630deb8d04a746ad0",
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_UI_text",
+                    "view_column_target_name": "text_value",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "ba7c27b5d808b28829b4",
+                    "view_column_type": "0",
+                    "order": "4",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_UI_text",
+                    "view_column_target_name": "description",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "1c8e6aa35eb7553fb625",
+                    "view_column_type": "1",
+                    "order": "81",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_UI_text",
+                    "view_column_target_name": "created_at",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                },
+                {
+                    "suuid": "1d2522a42d96e6883f08",
+                    "view_column_type": "1",
+                    "order": "82",
+                    "options": [],
+                    "view_column_name": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "sort_order": null,
+                    "sort_type": null,
+                    "view_column_table_name": "system_chatbot_UI_text",
+                    "view_column_target_name": "updated_at",
+                    "view_pivot_table_name": null,
+                    "view_pivot_column_name": null
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "custom_view_grid_filters": [],
+            "table_name": "system_chatbot_UI_text"
+        }
+    ],
+    "admin_menu": [
+        {
+            "order": "12",
+            "menu_type": "parent_node",
+            "menu_name": "system_chatbot_menu",
+            "parent_name": "admin",
+            "title": "Chatbot Setting",
+            "menu_target_name": "system_chatbot_menu",
+            "icon": "fa-solid fa-robot" 
+        },
+        {
+            "order": "1",
+            "menu_type": "table",
+            "menu_name": "system_chatbot_faq",
+            "title": "Chatbot FAQ",
+            "parent_name": "system_chatbot_menu",
+            "menu_target_name": "system_chatbot_faq"
+        },
+        {
+            "order": "2",
+            "menu_type": "table",
+            "menu_name": "system_chatbot_UI_text",
+            "title": "Chatbot UI Text",
+            "parent_name": "system_chatbot_menu",
+            "menu_target_name": "system_chatbot_UI_text"
+        }
+    ]
+}

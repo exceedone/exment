@@ -26,6 +26,9 @@ use Exceedone\Exment\Services\SystemRequire;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
 use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Enums\SystemRequireResult;
+use Exceedone\Exment\Model\WorkflowTable;
+use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
+use Exceedone\Exment\Services\WorkflowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -312,6 +315,31 @@ class SystemController extends AdminControllerBase
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
+        $form->exmheader(exmtrans('system.chatbot_header'))->hr();
+        $form->switchbool('chatbot_available', exmtrans("system.chatbot_available"))
+            ->default(0)
+            ->attribute(['data-filtertrigger' => true])
+            ->help(exmtrans("system.help.chatbot_available"));
+        $form->switchbool('chatbot_faq_wf',  exmtrans("system.chatbot_faq_wf"))
+            ->attribute(['data-filter' => json_encode(['key' => 'chatbot_available', 'value' => '1'])])
+            ->default(0)
+            ->attribute(['data-filtertrigger' => true])
+            ->help(exmtrans("system.help.chatbot_faq_wf"));
+
+        $form->textarea('chatbot_faq_wf_status_filters', exmtrans('system.chatbot_faq_wf_status_filters'))
+            ->attribute(['data-filter' => json_encode([
+                ['key' => 'chatbot_faq_wf', 'value' => '1'],
+                ['key' => 'chatbot_available', 'value' => '1'],
+            ])])
+            ->help(exmtrans("system.help.chatbot_faq_wf_status_filters"))
+            ->required()
+            ->rows(3);
+        $form->number('chatbot_timeidle', exmtrans('system.chatbot_timeidle'))
+            ->attribute(['data-filter' => json_encode(['key' => 'chatbot_available', 'value' => '1'])])
+            ->default(10)
+            ->min(1)
+            ->help(exmtrans("system.help.chatbot_timeidle"));
+
         return $form;
     }
 
@@ -458,6 +486,10 @@ class SystemController extends AdminControllerBase
             return $response;
         }
 
+        $value_system_before = [
+            'chatbot_available' => System::chatbot_available(),
+            'chatbot_faq_wf' => System::chatbot_faq_wf(),
+        ];
         DB::beginTransaction();
         try {
             $result = $this->postInitializeForm($request, ($advanced ? ['advanced', 'notify'] : ['initialize', 'system']), false, !$advanced);
@@ -469,17 +501,57 @@ class SystemController extends AdminControllerBase
             if (!$advanced) {
                 System::system_admin_users($request->get('system_admin_users'));
             }
+            $reload = $this->afterSaveSystemValues($request, $value_system_before);
 
             DB::commit();
 
             admin_toastr(trans('admin.save_succeeded'));
-
-            return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
+            if ($reload) {
+                return response()->make('<script>window.location.href="' . admin_url('system') . ($advanced ? '?advanced=1' : '') . '";</script>');
+            } else {
+                return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
+            }
         } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
             throw $exception;
         }
+    }
+
+    /**
+     * Handle post-save logic for system values
+     *
+     * @param Request $request
+     * @param array $value_system_before
+     * @return bool reload flag
+     */
+    private function afterSaveSystemValues(Request $request, $value_system_before = [])
+    {
+        /// Check if chatbot_faq_wf is changed        
+        $request_chatbot_faq_wf = $request->get('chatbot_faq_wf') == '1';
+        $value_chatbot_faq_wf_before = boolval(array_get($value_system_before, 'chatbot_faq_wf', false));
+        if ($request_chatbot_faq_wf && !$value_chatbot_faq_wf_before) {
+            $this->createWorkflowForChatbotFaq(SystemTableName::CHATBOT_FAQ, 'wf_chatbot_faq');
+            $this->updateActiveFlagByTableName(SystemTableName::CHATBOT_FAQ, 1);
+        }
+        if (!$request_chatbot_faq_wf && $value_chatbot_faq_wf_before) {
+            $this->updateActiveFlagByTableName(SystemTableName::CHATBOT_FAQ, 0);
+        }
+        $request_chatbot_available = $request->get('chatbot_available') == '1';
+        $value_chatbot_available_before = boolval(array_get($value_system_before, 'chatbot_available', false));
+        if ($request_chatbot_available && !$value_chatbot_available_before) {
+            $customTable = CustomTable::where('table_name', SystemTableName::CHATBOT_FAQ)->first();
+            if (!$customTable) {
+                $importer = new TemplateImporter();
+                $importer->importSystemTemplate(false, 'templates/chatbot');
+            }
+            return true;
+        }
+        if (!$request_chatbot_available && $value_chatbot_available_before) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -546,5 +618,116 @@ class SystemController extends AdminControllerBase
             'swal' => exmtrans('system.call_update_success'),
             'swaltext' => exmtrans('system.call_update_success_text'),
         ]);
+    }
+
+    /**
+     * Update the active_flg for a workflow table by table name
+     *
+     * @param string $tableName
+     * @param int|bool $activeFlag
+     * @return int Number of affected rows
+     */
+    private function updateActiveFlagByTableName(string $tableName, $activeFlag = 0): int
+    {
+        $customTable = CustomTable::where('table_name', $tableName)->first();
+
+        if (!$customTable) {
+            return 0;
+        }
+        $query = WorkflowTable::where('custom_table_id', $customTable->id)
+            ->where('active_flg', '!=', $activeFlag);
+
+        if (!$query->exists()) {
+            return 0;
+        }
+
+        return $query->update(['active_flg' => $activeFlag]);
+    }
+
+    /**
+     * Create workflow for the chatbot FAQ table, including statuses and actions.
+     *
+     * @return void
+     */
+    private function createWorkflowForChatbotFaq($table_name, $workflow_view_name)
+    {
+        $locale = \App::getLocale();
+        if ($locale === 'ja') {
+            // Japanese
+            $status_draft = '下書き';
+            $status_review = '審査中';
+            $status_approved = '承認';
+            $status_rejected = '却下';
+
+            $action_send_review = '審査依頼を送信';
+            $action_approve = '採用（FAQに追加）';
+            $action_reject = '却下（不採用）';
+            $action_re_request = '再審査を依頼';
+        } else {
+            // English
+            $status_draft = 'Draft';
+            $status_review = 'In Review';
+            $status_approved = 'Approved';
+            $status_rejected = 'Rejected';
+
+            $action_send_review = 'Send for Review';
+            $action_approve = 'Approve (Add to FAQ)';
+            $action_reject = 'Reject (Not Adopted)';
+            $action_re_request = 'Request Re-Review';
+        }
+
+        $workflow = WorkflowService::createWorkflowForTable(
+            $table_name,
+            $workflow_view_name,
+            $status_draft,
+            [
+                ['status_name' => $status_review],
+                ['status_name' => $status_approved],
+                ['status_name' => $status_rejected],
+            ]
+        );
+        if ($workflow) {
+            WorkflowService::insertActionsAndCompleteSetting(
+                $workflow,
+                [
+                    [
+                        'action_name' => $action_send_review,
+                        'status_from' => 0,
+                        'work_conditions' => '{"enabled_flg_0":"1","status_to_0":"' . $status_review . '","condition_join_0":"and"}',
+                        'user_id' => [1],
+                        'flow_next_type' => 'some',
+                        'flow_next_count' => 1,
+                        'comment_type' => null,
+                    ],
+                    [
+                        'action_name' => $action_approve,
+                        'status_from' => $status_review,
+                        'work_conditions' => '{"enabled_flg_0":"1","status_to_0":"' . $status_approved . '","condition_join_0":"and"}',
+                        'user_id' => [1],
+                        'flow_next_type' => 'some',
+                        'flow_next_count' => 1,
+                        'comment_type' => null,
+                    ],
+                    [
+                        'action_name' => $action_reject,
+                        'status_from' => $status_review,
+                        'work_conditions' => '{"enabled_flg_0":"1","status_to_0":"' . $status_rejected . '","condition_join_0":"and"}',
+                        'user_id' => [1],
+                        'flow_next_type' => 'some',
+                        'flow_next_count' => 1,
+                        'comment_type' => null,
+                    ],
+                    [
+                        'action_name' => $action_re_request,
+                        'status_from' => $status_rejected,
+                        'work_conditions' => '{"enabled_flg_0":"1","status_to_0":"' . $status_review . '","condition_join_0":"and"}',
+                        'user_id' => [1],
+                        'flow_next_type' => 'some',
+                        'flow_next_count' => 1,
+                        'comment_type' => null,
+                    ]
+                ]
+            );
+        }
     }
 }

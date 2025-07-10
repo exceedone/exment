@@ -286,6 +286,8 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'     => $this->namespace,
             'middleware'    => ['adminweb', 'admin_anonymous'],
         ], function (Router $router) {
+            $router->get('api/chatbot/config', 'ChatbotController@config');
+            $router->get('api/chatbot/faq', 'ChatbotController@faq');
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
             $router->put('initialize/filedelete', 'InitializeController@filedelete');

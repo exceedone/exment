@@ -241,10 +241,10 @@ class TemplateImporter
     /**
      * Import System template (from command)
      */
-    public function importSystemTemplate($is_update = false)
+    public function importSystemTemplate($is_update = false, $folder_path = 'system_template')
     {
         // get vendor folder
-        $templates_base_path = exment_package_path('system_template');
+        $templates_base_path = exment_package_path($folder_path);
         $path = "$templates_base_path/config.json";
 
         // If file not exists
