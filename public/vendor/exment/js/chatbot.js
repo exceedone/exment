@@ -126,22 +126,13 @@ async function sendMessage() {
     chatBody.scrollTop = chatBody.scrollHeight;
     // Always reload latest history before pushing
     loadChatHistoryFromLocal();
-    const botReply = await fakeCallAPI(msg);
+    const botReply = await callAPIServer(msg);
     thinkingDiv.className = CLASS_MSG_BOT;
     thinkingDiv.textContent = botReply;
     chatBody.scrollTop = chatBody.scrollHeight;
     // Push to history and save
     chatHistory.push({ question: msg, answer: botReply });
     saveChatHistoryToLocal();
-}
-
-// Simulate API call for bot reply
-function fakeCallAPI(userMessage) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(`8am`);
-        }, 2000);
-    });
 }
 
 // Call API server
@@ -152,7 +143,7 @@ async function callAPIServer(userMessage) {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ question: userMessage }),
+            body: JSON.stringify({ question: userMessage, _token: LA.token }),
         });
         if (!res.ok) throw new Error("Failed to get response from AI server");
         const data = await res.json();
