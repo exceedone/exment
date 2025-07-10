@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\System;
 
 /**
  * Middleware as Bootstrap.
@@ -57,6 +58,9 @@ class Bootstrap
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
         ], true);
+        if (System::chatbot_available()) {
+            Ad::css(asset('vendor/exment/css/chatbot.css'));
+        }
 
         static::setCssJsList([
             'vendor/exment/validation/jquery.validate.js',
@@ -93,6 +97,9 @@ class Bootstrap
             'vendor/exment/js/admin.getbox.js',
             'vendor/exment/js/zxing.js',
         ], false);
+        if (System::chatbot_available()) {
+            Ad::js(asset('vendor/exment/js/chatbot.js'));
+        }
 
         // set scripts
         $pluginPublics = Plugin::getPluginScriptStyles();

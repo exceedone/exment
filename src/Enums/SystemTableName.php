@@ -22,6 +22,8 @@ class SystemTableName extends EnumBase
     public const MAIL_SEND_LOG = 'mail_send_log';
     public const BASEINFO = 'base_info';
     public const DOCUMENT = 'document';
+    public const CHATBOT_FAQ = 'system_chatbot_faq';
+    public const CHATBOT_UI_TEXT = 'system_chatbot_UI_text';
     public const FILE= 'files';
     public const NOTIFY_HISTORY = 'notify_history';
     public const NOTIFY_HISTORY_USER = 'notify_history_user';

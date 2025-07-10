@@ -17,7 +17,10 @@ use Exceedone\Exment\ConditionItems\ConditionItemBase;
 class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
 {
     use Traits\UseRequestSessionTrait;
-
+    
+    public $timestamps = false;
+    public $saving_users = false;
+    
     public function getAuthorityTextAttribute()
     {
         $item = ConditionItemBase::getDetailItemByAuthority(null, $this);

@@ -1,0 +1,95 @@
+{
+    "template_view_name": "chatbot",
+    "description": null,
+    "custom_tables": [
+        {
+            "table_name": "system_chatbot_faq",
+            "table_view_name": "FAQ一覧",
+            "description": null,
+            "custom_columns": [
+                {
+                    "column_name": "question",
+                    "column_view_name": "質問内容"
+                },
+                {
+                    "column_name": "answer",
+                    "column_view_name": "回答内容"
+                },
+                {
+                    "column_name": "display_order",
+                    "column_view_name": "表示順"
+                },
+                {
+                    "column_name": "is_featured",
+                    "column_view_name": "目立つフラグ"
+                }
+            ]
+        },
+        {
+            "table_name": "system_chatbot_UI_text",
+            "table_view_name": "チャットボットの表示文章設定",
+            "custom_columns": [
+                {
+                    "column_name": "text_key",
+                    "column_view_name": "表示文章キー"
+                },
+                {
+                    "column_name": "text_value",
+                    "column_view_name": "表示文章の設定値"
+                },
+                {
+                    "column_name": "description",
+                    "column_view_name": "説明"
+                }
+            ]
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "5d9f9b0631951cb6074d",
+            "form_view_name": "フォーム"
+        },
+        {
+            "suuid": "830f3e2dfecb98edaee6",
+            "form_view_name": "フォーム"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "138e0ddc338ba9c71cff",
+            "view_view_name": "全件ビュー"
+        },
+        {
+            "suuid": "284c919ce4da3779edfc",
+            "view_view_name": "全件ビュー"
+        }
+    ],
+    "admin_menu": [
+        {
+            "order": "92",
+            "menu_type": "parent_node",
+            "menu_name": "system_chatbot_menu",
+            "parent_name": null,
+            "title": "チャットボット設定",
+            "menu_target_name": "system_chatbot_menu",
+            "icon": "fa-solid fa-robot" 
+        },
+        {
+            "order": "1",
+            "menu_type": "table",
+            "menu_name": "system_chatbot_faq",
+            "title": "FAQ一覧",
+            "parent_name": "system_chatbot_menu",
+            "menu_target_name": "system_chatbot_faq"
+        },
+        {
+            "order": "2",
+            "menu_type": "table",
+            "menu_name": "system_chatbot_UI_text",
+            "title": "チャットボットの文章設定",
+            "parent_name": "system_chatbot_menu",
+            "menu_target_name": "system_chatbot_UI_text"
+        }
+    ]
+}
