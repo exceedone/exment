@@ -29,10 +29,13 @@ class ModalForm extends WidgetForm
      */
     public function getScript(): string
     {
-        return collect($this->fields)->map(function ($field) {
+            return collect($this->fields)
+        ->map(function ($field) {
             /* @var Field $field  */
             return $field->getScript();
-        })->filter()->values()->toArray();
+        })
+        ->filter()
+        ->implode("\n");
     }
 
     /**
