@@ -717,6 +717,7 @@ return [
             'button' => 'ボタン',
             'view' => 'ビュー',
             'crud' => 'CRUDページ',
+            'format' => 'フォーマット',
         ],
     ],
 
@@ -1440,6 +1441,7 @@ return [
             'free_input' => '自由に入力可能にする',
             'accept_extensions' => 'アップロード許可する拡張子',
             'required_yes' => 'YES必須',
+            'plugin_format' => '%s(プラグイン)',
         ],
         'align_type_options' => [
             "left" => "左寄せ",

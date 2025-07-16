@@ -24,6 +24,7 @@ use Exceedone\Exment\Services\Plugin\PluginPublicDefault;
  * @method static PluginType EVENT()
  * @method static PluginType VIEW()
  * @method static PluginType CRUD()
+ * @method static PluginType FORMAT()
  */
 class PluginType extends EnumBase
 {
@@ -42,6 +43,7 @@ class PluginType extends EnumBase
     public const EVENT = '12';
     public const VIEW = '13';
     public const CRUD = '14';
+    public const FORMAT = '15';
 
     /**
      * Plugin type. Can call from endpoint.
@@ -266,6 +268,7 @@ class PluginType extends EnumBase
                 case PluginType::EXPORT:
                     return new $classname($plugin, array_get($options, 'custom_table'));
                 case PluginType::VALIDATOR:
+                case PluginType::FORMAT:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, $options);
                 case PluginType::VIEW:

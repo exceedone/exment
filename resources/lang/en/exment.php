@@ -716,7 +716,8 @@ return [
             'event' => 'Event',
             'button' => 'Button',
             'view' => 'View',
-            'crud' => 'CRUDページ',
+            'crud' => 'CRUD Page',
+            'format' => 'Format',
         ],
     ],
 
@@ -1439,6 +1440,7 @@ return [
             'free_input' => 'Make it freely input',
             'accept_extensions' => 'Extensions that allow uploading',
             'required_yes' => 'Required YES',
+            'plugin_format' => '%s(Plugin)',
         ],
         'align_type_options' => [
             "left" => "Left",
