@@ -276,6 +276,7 @@ class SummaryGrid extends GridBase
                 'include_parent' => true,
                 'include_child' => true,
                 'include_workflow' => true,
+                'is_aggregate' => true,
             ]);
 
             $field = $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()

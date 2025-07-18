@@ -941,6 +941,14 @@ HTML;
             ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
 
+        $form->switchbool('include_view_flg', exmtrans("custom_table.include_view_flg"))
+            ->help(exmtrans("custom_table.help.include_view_flg"))
+            ->default("0");
+
+        $form->switchbool('include_form_flg', exmtrans("custom_table.include_form_flg"))
+            ->help(exmtrans("custom_table.help.include_form_flg"))
+            ->default("0");
+
         $form->setWidth(9, 2);
 
         return getAjaxResponse([
@@ -978,8 +986,10 @@ HTML;
 
         $target_table = CustomTable::getEloquent($id);
         $inputs = $request->only(['table_name','table_view_name']);
+        $include_view = boolval($request->get('include_view_flg', 0));
+        $include_form = boolval($request->get('include_form_flg', 0));
         try {
-            $response = $target_table->copyTable($inputs);
+            $response = $target_table->copyTable($inputs, $include_view, $include_form);
         } catch (\Exception $e) {
             $response = [
                 'result' => false,
