@@ -21,6 +21,7 @@ class BatchDelete extends BatchDeleteBase
         return <<<EOT
 
 $('{$this->getElementClass()}').on('click', function() {
+    event.preventDefault(); 
 
     swal({
         title: "{$trans['delete_confirm']}",
