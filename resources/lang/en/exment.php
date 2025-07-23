@@ -1445,6 +1445,9 @@ return [
             'accept_extensions' => 'Extensions that allow uploading',
             'required_yes' => 'Required YES',
             'plugin_format' => '%s(Plugin)',
+            'custom_text_format_type' => 'Type of display format',
+            'custom_text_type_format' => 'Format',
+            'custom_text_format' => 'Format',
         ],
         'align_type_options' => [
             "left" => "Left",
@@ -1479,6 +1482,7 @@ return [
             "file" => "File",
             "user" => "User",
             "organization" => "Organization",
+            "custom_text" => "Custom(display only)",
         ],
         'help' => [
             'column_type' => 'Please select this column type. When entering data, the form changes according to the column type.',
@@ -1517,6 +1521,7 @@ return [
             'suggest_input' => 'If set to YES, you can display a list of input candidates from already registered data. <br/> * If you want to use, please set "Search index" to YES.',
             'regex_validate' => '(For advanced users) Set the contents that can be input as a regular expression. If you set a value to this item, the setting of "Available Characters" above will be disabled. Please refer to &nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp; for details.',
             'auto_number_format' => 'Set the numbering rule to be registered. For details of rules, please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
+            'custom_text_format' => 'Sets the edit format for the displayed text.See <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>for available parameters.',
             'calc_formula' => 'Enter the calculation formula using other fields. *It is currently beta version.',
             'currency_symbol' => 'Please select the format of the currency displayed on the page.',
             'add_custom_form_flg' => 'After creating custom column, you can add it to the default custom form. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "Form" page.',

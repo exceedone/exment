@@ -301,6 +301,7 @@ class Initialize
             'url'        => CustomColumns\Url::class,
             'user'        => CustomColumns\User::class,
             'yesno'        => CustomColumns\Yesno::class,
+            'custom_text'        => CustomColumns\CustomText::class,
         ];
         foreach ($map as $abstract => $class) {
             CustomItem::extend($abstract, $class);

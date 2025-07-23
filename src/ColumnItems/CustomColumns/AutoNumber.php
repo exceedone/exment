@@ -6,6 +6,7 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\FilterOption;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\FormatCalledType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Model\Plugin;
 use Illuminate\Support\Str;
@@ -68,6 +69,7 @@ class AutoNumber extends CustomItem
             $class = $plugin->getClass(PluginType::FORMAT, [
                 'custom_table' => $this->custom_table,
                 'custom_value' => $this->custom_value,
+                'calledType' => FormatCalledType::AUTONUMBER,
             ]);
             return $class->format();
         }

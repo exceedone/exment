@@ -288,33 +288,44 @@ class CustomColumnController extends AdminControllerTableBase
         }
 
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item, $id) {
-            $form->switchbool('required', exmtrans("common.required"));
+            
+            $form->switchbool('required', exmtrans("common.required"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_INPUT()])]);
+
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules([
                     new Validator\CustomColumnIndexCountRule($this->custom_table, $id),
                     new Validator\CustomColumnUsingIndexRule($id),
                 ])
-                ->attribute(['data-filtertrigger' =>true])
+                ->attribute(['data-filtertrigger' =>true,
+                    'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SAVE()])
+                    ])
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
 
             $form->switchbool('freeword_search', exmtrans("custom_column.options.freeword_search"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_index_enabled', 'value' => '1'])])
+                ->attribute(['data-filter' => json_encode([['parent' => 1, 'key' => 'options_index_enabled', 'value' => '1'],
+                    ['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SAVE()]])])
                 ->help(exmtrans("custom_column.help.freeword_search"));
 
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_INPUT()])])
                 ->help(exmtrans("custom_column.help.unique"));
 
             $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_INPUT()])])
                 ->help(exmtrans("custom_column.help.init_only"));
 
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_INPUT()])])
                 ->help(exmtrans("custom_column.help.placeholder"));
 
             $form->text('dropzone_title', exmtrans("custom_column.options.dropzone_title"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['file', 'image']])])
                 ->help(exmtrans("custom_column.help.dropzone_title"));
 
-            $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
+            $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_INPUT()])])
+            ;
 
             $form->numberRange('min_width', 'max_width', exmtrans("custom_column.options.min_max_width"))
                 ->help(exmtrans("custom_column.help.min_max_width"))
@@ -405,7 +416,6 @@ class CustomColumnController extends AdminControllerTableBase
             'modalSize' => 'modal-xl',
         ]);
     }
-
 
     /**
      * add column form and view after saved

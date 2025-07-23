@@ -435,7 +435,10 @@ abstract class CustomItem implements ItemInterface
             $classname = $this->getAdminFieldClass();
         }
 
-        return $this->getCustomField($classname, $column_name_prefix);
+        if (isset($classname)) {
+            return $this->getCustomField($classname, $column_name_prefix);
+        }
+        return null;
     }
 
     protected function getCustomField($classname, $column_name_prefix = null)

@@ -1446,6 +1446,9 @@ return [
             'accept_extensions' => 'アップロード許可する拡張子',
             'required_yes' => 'YES必須',
             'plugin_format' => '%s(プラグイン)',
+            'custom_text_format_type' => '表示テキストの種類',
+            'custom_text_type_format' => 'フォーマット',
+            'custom_text_format' => 'フォーマット',
         ],
         'align_type_options' => [
             "left" => "左寄せ",
@@ -1480,6 +1483,7 @@ return [
             "file" => "ファイル",
             "user" => "ユーザー",
             "organization" => "組織",
+            "custom_text" => "カスタム（表示専用）",
         ],
         'help' => [
             'column_type' => 'この列の種類を選択してください。データ入力時に、列種類に合わせてフォームが変更されます。保存後、変更はできません。',
@@ -1518,6 +1522,7 @@ return [
             'suggest_input' => 'YESにすることで、すでに登録しているデータから、入力候補を一覧表示できます。<br/>※使用する場合、「検索インデックス」をYESにしてください。',
             'regex_validate' => '（上級者向け）入力できる内容を正規表現で設定します。この項目に値を設定した場合、上記の「使用可能文字」の設定は無効になります。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'auto_number_format' => '登録する採番のルールを設定します。詳細のルールは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
+            'custom_text_format' => '表示テキストの編集フォーマットを設定します。使用できるパラメータは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'calc_formula' => '他のフィールドを使用した、計算式を設定することができます。データ入力画面で項目を入力時に、設定した計算式を用いて、自動的に計算されます。',
             'currency_symbol' => '画面に表示する通貨の形式を選択してください。',
             'add_custom_form_flg' => '新規作成後、既定のフォームに列を追加することができます。追加する場合はYESにしてください。<br/>※列の新規作成時のみ設定できます。更新時は「フォーム」画面より設定してください。',

@@ -404,6 +404,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      */
     public function alterColumn($forceDropIndex = false)
     {
+        if (ColumnType::isIgnoreSave($this->column_type)) {
+            return;
+        }
+
         // Create index --------------------------------------------------
         $table = $this->custom_table_cache;
         $column_name = $this->column_name;
