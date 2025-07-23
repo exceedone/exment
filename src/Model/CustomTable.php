@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
@@ -18,15 +19,19 @@ use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
-use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
-use Illuminate\Database\Eloquent\Model;
+use Exception;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Arr;
@@ -2334,6 +2339,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'ignore_multiple_refer' => false,
                 'ignore_many_to_many' => false,
                 'only_system_grid_filter' => false,
+                'is_aggregate' => false,
                 'column_type_filter' => null,
             ],
             $selectOptions
@@ -2357,6 +2363,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
         $column_type_filter = $selectOptions['column_type_filter'];
+        $is_aggregate = $selectOptions['is_aggregate'];
 
         $options = [];
 
@@ -2399,7 +2406,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'ignore_attachment' => $ignore_attachment,
                     'ignore_autonumber' => $ignore_autonumber,
                     'ignore_multiple' => $ignore_multiple,
-                    'ignore_many_to_many' => $ignore_many_to_many,
+                    'ignore_many_to_many' => $ignore_many_to_many || $is_aggregate,
                     'only_system_grid_filter' => $only_system_grid_filter,
                     'column_type_filter' => $column_type_filter,
                 ]
@@ -3343,20 +3350,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * copy this table
      */
-    public function copyTable($inputs = null)
+    public function copyTable($inputs = null, bool $include_view = false, bool $include_form = false)
     {
-        \ExmentDB::transaction(function () use ($inputs) {
+        \ExmentDB::transaction(function ($connect) use ($inputs, $include_view, $include_form) {
             $new_table = $this->replicate(['suuid'])->setRelations([]);
             foreach($inputs as $key => $input) {
                 $new_table->{$key} = $input;
             }
-            $new_table->saveOrFail();
+            $new_table->save();
 
             $replaceColumns = [];
-            foreach ($this->custom_columns_cache as $custom_column) {
+            foreach ($this->custom_columns as $custom_column) {
                 $new_column = $custom_column->replicate(['suuid']);
                 $new_column->custom_table_id = $new_table->id;
-                $new_column->saveOrFail();
+                $new_column->save();
                 // stack old column id => new column id
                 $replaceColumns[$custom_column->id] = $new_column->id;
             }
@@ -3374,7 +3381,98 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         $new_setting->setOption($targetOption, array_get($replaceColumns, $oldval));
                     }
                 }
-                $new_setting->saveOrFail();
+                $new_setting->save();
+            }
+            $custom_view_column_copy = function($custom_view_column, $new_view_id) use($new_table, $replaceColumns) {
+                $new_view_column = $custom_view_column->replicate(['suuid']);
+                $new_view_column->custom_view_id = $new_view_id;
+                if ($custom_view_column->view_column_table_id == $this->id) {
+                    $new_view_column->view_column_table_id = $new_table->id;
+                } else {
+                    $view_pivot_table_id = $custom_view_column->getOption('view_pivot_table_id');
+                    $view_pivot_column_id = $custom_view_column->getOption('view_pivot_column_id');
+                    if ($view_pivot_table_id == $this->id) {
+                        $new_view_column->setOption('view_pivot_table_id', $new_table->id);
+                        $new_view_column->setOption('view_pivot_column_id', array_get($replaceColumns, $view_pivot_column_id));
+                    }
+                }
+                if ($custom_view_column->view_column_type == ConditionType::COLUMN) {
+                    if ($custom_view_column->view_column_table_id == $this->id) {
+                        $new_view_column->view_column_target_id = array_get($replaceColumns, $custom_view_column->view_column_target_id);
+                    }
+                }
+                $new_view_column->save();
+                return $new_view_column;
+            };
+ 
+            if ($include_view) {
+                foreach($this->custom_views as $custom_view) {
+                    if (!$this->isCopyTargetView($custom_view)) {
+                        continue;
+                    }
+                    $new_view = $custom_view->replicate(['suuid']);
+                    $new_view->custom_table_id = $new_table->id;
+                    $new_view->save();
+
+                    // copy custom_view_columns
+                    foreach ($custom_view->custom_view_columns_cache as $custom_view_column) {
+                        $custom_view_column_copy($custom_view_column, $new_view->id);
+                    }
+                    // copy custom_view_summaries
+                    foreach ($custom_view->custom_view_summaries_cache as $custom_view_summary) {
+                        $custom_view_column_copy($custom_view_summary, $new_view->id);
+                    }
+                    // copy custom_view_filters
+                    foreach ($custom_view->custom_view_filters_cache as $custom_view_filter) {
+                        $custom_view_column_copy($custom_view_filter, $new_view->id);
+                    }
+                    // copy custom_view_sorts
+                    foreach ($custom_view->custom_view_sorts_cache as $custom_view_sort) {
+                        $custom_view_column_copy($custom_view_sort, $new_view->id);
+                    }
+                    // copy custom_view_sorts
+                    foreach ($custom_view->custom_view_grid_filters as $custom_view_grid_filter) {
+                        $custom_view_column_copy($custom_view_grid_filter, $new_view->id);
+                    }
+                }
+            }
+ 
+            if ($include_form) {
+                foreach($this->custom_forms as $custom_form) {
+                    $new_form = $custom_form->replicate(['suuid']);
+                    $new_form->custom_table_id = $new_table->id;
+                    $new_form->save();
+
+                    // copy custom_form_blocks
+                    foreach ($custom_form->custom_form_blocks as $custom_form_block) {
+                        if ($custom_form_block->form_block_type != FormBlockType::DEFAULT) {
+                            continue;
+                        }
+                        $new_block = $custom_form_block->replicate();
+                        $new_block->custom_form_id = $new_form->id;
+                        $new_block->form_block_target_table_id = $new_table->id;
+                        $new_block->save();
+                        foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
+                            $new_form_column = $custom_form_column->replicate(['suuid']);
+                            $new_form_column->custom_form_block_id = $new_block->id;
+                            if ($custom_form_column->form_column_type == FormColumnType::COLUMN) {
+                                $new_form_column->form_column_target_id = array_get($replaceColumns, $custom_form_column->form_column_target_id);
+                            }
+                            $new_form_column->save();
+
+                            // copy file data when image tag
+                            if ($custom_form_column->form_column_type == FormColumnType::OTHER) {
+                                $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
+                                if ($column_form_column_name && $column_form_column_name == 'image') {
+                                    $file = ExmentFile::getFileFromFormColumn($custom_form_column->id);
+                                    $new_file = $file->replicate(['uuid']);
+                                    $new_file->custom_form_column_id = $new_form_column->id;
+                                    $new_file->save();
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             return true;
@@ -3385,6 +3483,63 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'toastr' => sprintf(exmtrans('common.message.success_execute')),
             'redirect' => admin_url('table'),
         ];
+    }
+
+    /**
+     * check if copy target view.
+     */
+    protected function isCopyTargetView($custom_view): bool
+    {
+        if ($custom_view->view_type == ViewType::USER) {
+            return false;
+        }
+
+        $custom_view_column_check = function($custom_view_column) {
+            if ($custom_view_column->view_column_type != ConditionType::COLUMN &&
+                $custom_view_column->view_column_type != ConditionType::SYSTEM &&
+                $custom_view_column->view_column_type != ConditionType::COMMENT) {
+                return false;
+            }
+            if ($custom_view_column->view_column_table_id != $this->id) {
+                $view_pivot_table_id = $custom_view_column->getOption('view_pivot_table_id');
+                if ($view_pivot_table_id != $this->id) {
+                    return false;
+                }
+                $view_pivot_column_id = $custom_view_column->getOption('view_pivot_column_id');
+                $view_pivot_column = CustomColumn::getEloquent($view_pivot_column_id);
+                if (!$view_pivot_column || $view_pivot_column->custom_table_id != $this->id) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        foreach ($custom_view->custom_view_columns_cache as $custom_view_column) {
+            if (!$custom_view_column_check($custom_view_column)) {
+                return false;
+            }
+        }
+        foreach ($custom_view->custom_view_summaries_cache as $custom_view_summary) {
+            if (!$custom_view_column_check($custom_view_summary)) {
+                return false;
+            }
+        }
+        foreach ($custom_view->custom_view_filters_cache as $custom_view_filters) {
+            if (!$custom_view_column_check($custom_view_filters)) {
+                return false;
+            }
+        }
+        foreach ($custom_view->custom_view_sorts_cache as $custom_view_sorts) {
+            if (!$custom_view_column_check($custom_view_sorts)) {
+                return false;
+            }
+        }
+        foreach ($custom_view->custom_view_grid_filters as $custom_view_grid_filter) {
+            if (!$custom_view_column_check($custom_view_grid_filter)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
