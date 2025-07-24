@@ -240,7 +240,9 @@ EOT;
             }
             $this->setColumnItemOption($item, $custom_form_columns);
 
-            $form->pushField($item->getAdminField($form_column));
+            if ($field = $item->getAdminField($form_column)) {
+                $form->pushField($field);
+            }
         }
     }
 

@@ -478,6 +478,7 @@ HTML;
             $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
+                    'ignore_display_only' => false,
                 ]));
 
             $form->hidden('priority')->default(1);

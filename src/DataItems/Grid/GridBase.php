@@ -265,6 +265,7 @@ abstract class GridBase
             'append_table' => true,
             'include_parent' => true,
             'include_workflow' => true,
+            'ignore_display_only' => false,
         ], $column_options);
 
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table, $column_options) {
