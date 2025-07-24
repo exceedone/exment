@@ -466,7 +466,7 @@ class SearchService
     {
         $sort_order = array_get($column->options, 'sort_order');
         if (is_nullorempty($sort_order)) {
-            return $this;
+            $sort_order = 1;
         }
 
         $sort_type = isMatchString(array_get($column->options, 'sort_type'), '-1') ? 'desc' : 'asc';
