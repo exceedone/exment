@@ -108,10 +108,14 @@ class Embeds extends AdminField\Embeds
         // sort by option row and column
         $fieldGroups = $this->convertRowColumnGroups($form->getFieldAndOptions());
 
+        // AI-OCR
+        $aiOcrEnabled = $this->form->aiOcrEnabled;
+
         $this->view = 'exment::form.field.gridembeds';
         return parent::render()->with([
             'form' => $form,
             'enableHeader' => $this->enableHeader,
+            'aiOcrEnabled' => $aiOcrEnabled,
             'footer_hr' => $this->footer_hr,
             'fieldGroups' => $fieldGroups,
         ]);

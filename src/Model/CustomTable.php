@@ -1925,6 +1925,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->find($target_ids);
     }
 
+
+    public function isAiOcrEnabled(): bool
+    {
+        return isset($this->options['ai_ocr_flg']) && $this->options['ai_ocr_flg'];
+    }
+
+
     /**
      * Filter all accessible users on this table.
      */
