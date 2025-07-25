@@ -12,7 +12,7 @@
         </li>
     @else
         <li class="treeview menu-item p-0" data-uri="{{ $item['uri'] }}">
-            <a href="#" id="toggle-submenu-{{$item['id']}}" class="has-subs p-3" data-target="#submenu-{{$item['id']}}">
+            <a href="javascript:void(0)" id="toggle-submenu-{{$item['id']}}" class="has-subs p-3" data-target="#submenu-{{$item['id']}}" role="button">
                 <i class="fa {{$item['icon']}}"></i>
                 <span>{{$item['title']}}</span>
             </a>
@@ -28,9 +28,26 @@
 @once
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            let submenuClicking = false;
+
+            document.querySelectorAll('.submenu').forEach(function (submenu) {
+                submenu.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            });
 
             document.querySelectorAll('.has-subs').forEach(function (toggleLink) {
                 toggleLink.addEventListener('click', function (e) {
+                    // Chỉ xử lý sự kiện click thật từ người dùng
+                    if (!e.isTrusted) {
+                        return;
+                    }
+
+
+                    if (e.detail > 1) {
+                        e.preventDefault();
+                        return;
+                    }
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -68,6 +85,30 @@
                 });
             });
 
+            var currentPath = window.location.pathname;
+            document.querySelectorAll('.menu-item[data-uri]').forEach(function (item) {
+                var uri = item.getAttribute('data-uri');
+                if (uri && currentPath.indexOf(uri) !== -1) {
+                    var submenu = item.querySelector('.submenu');
+                    if (submenu) {
+                        submenu.style.display = 'block';
+                        item.classList.add('active');
+                        var toggleLink = item.querySelector('.has-subs');
+                        if (toggleLink) toggleLink.classList.add('active');
+                    }
+                    var parent = item.parentElement;
+                    while (parent && parent.classList) {
+                        if (parent.classList.contains('submenu')) {
+                            parent.style.display = 'block';
+                            var parentItem = parent.closest('.menu-item');
+                            if (parentItem) parentItem.classList.add('active');
+                            var parentToggle = parentItem ? parentItem.querySelector('.has-subs') : null;
+                            if (parentToggle) parentToggle.classList.add('active');
+                        }
+                        parent = parent.parentElement;
+                    }
+                }
+            });
         });
     </script>
 @endonce
