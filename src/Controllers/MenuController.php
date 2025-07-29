@@ -253,42 +253,77 @@ class MenuController extends AdminControllerBase
     ");
     
     // JavaScript to handle show/hide menu_target_view field
-    Admin::script("       
-        function toggleMenuTargetView() {
-            var menuType = $('select[name=\"menu_type\"]').val();
-            var targetViewRow = $('select[name=\"menu_target_view\"]').closest('.form-group');
-            var formContainer = $('form').closest('.box, .card, .content');
-            
-            if (menuType == '{$tableTypeValue}') {
-                // Show field by adding class
-                formContainer.addClass('menu-target-view-visible');
-                $('select[name=\"menu_target_view\"]').prop('disabled', false);
-            } else {
-                // Hide field by removing class
-                formContainer.removeClass('menu-target-view-visible');
-                $('select[name=\"menu_target_view\"]').prop('disabled', true).val('');
-            }
+   Admin::script("
+    function toggleMenuFields() {
+        var menuType = $('select[name=\"menu_type\"]').val();
+        var formContainer = $('form').closest('.box, .card, .content');
+
+        var targetViewField = $('select[name=\"menu_target_view\"]');
+        var uriField = $('input[name=\"uri\"]');
+        var menuTargetField = $('select[name=\"menu_target\"]');
+
+         // If menu_type is not selected yet → do nothing
+        if (!menuType) {
+             // Keep menu_target_view visible as it is
+            formContainer.removeClass('menu-target-view-visible');
+            targetViewField.prop('disabled', false);
+            uriField.prop('disabled', false);
+            menuTargetField.prop('disabled', false);
+            return;
         }
-        
-        // Run when script loads (before DOM ready)
-        toggleMenuTargetView();
-        
-        $(document).ready(function() {
-            // Run again when DOM is ready to ensure
-            toggleMenuTargetView();
-            
-            // Run when menu type changes
-            $('select[name=\"menu_type\"]').on('change', function() {
-                toggleMenuTargetView();
-            });
+
+         // Reset menu_target_view visibility
+        formContainer.removeClass('menu-target-view-visible');
+
+        if (menuType == '{$tableTypeValue}') {
+            // TABLE → show target view, enable all fields
+            formContainer.addClass('menu-target-view-visible');
+            targetViewField.prop('disabled', false);
+            uriField.prop('disabled', false);
+            menuTargetField.prop('disabled', false);
+        } else if (menuType == '" . MenuType::PARENT_NODE . "') {
+            //  // PARENT_NODE → hide target view, disable uri and target
+            targetViewField.prop('disabled', true).val('');
+            uriField.val('').prop('disabled', true);
+            menuTargetField.val('').prop('disabled', true);
+        } else if (menuType == '" . MenuType::CUSTOM . "') {
+             // CUSTOM → hide target view, enable uri, disable target
+            targetViewField.prop('disabled', true).val('');
+            uriField.prop('disabled', false);
+            menuTargetField.val('').prop('disabled', true);
+        } else {
+            // Default fallback
+            targetViewField.prop('disabled', true).val('');
+            uriField.prop('disabled', true);
+            menuTargetField.prop('disabled', true);
+        }
+    }
+
+    toggleMenuFields();
+
+    $(document).ready(function() {
+        toggleMenuFields();
+        $('select[name=\"menu_type\"]').on('change', function() {
+            toggleMenuFields();
         });
-    ");
+    });
+");
+
+
 
     $form->saving(function ($form) {
         
         // Handle menu_target_view before validate and save
         if ($form->menu_type != MenuType::TABLE) {
             $form->menu_target_view = null;
+        }
+
+        if ($form->menu_type !== MenuType::PARENT_NODE) {
+            $form->uri = null;
+        }
+
+        if (in_array($form->menu_type, [MenuType::CUSTOM, MenuType::PARENT_NODE])) {
+            $form->menu_target = null;
         }
         
         // Whether set order
