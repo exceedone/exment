@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\SystemTableName;
+use Carbon\Carbon;
 
 class CustomColumnTest extends UnitTestBase
 {
@@ -1224,6 +1225,63 @@ class CustomColumnTest extends UnitTestBase
         $this->_testBoolean(ValueType::HTML, static::BOOLEAN_TEXT, ['true_value' => 'man', 'true_label' => 'MAN', 'false_value' => 'woman', 'false_label' => 'WOMAN']);
     }
 
+    // Custom Text ----------------------------------------------------
+
+    /**
+     * @param mixed $value_type
+     * @return void
+     */
+    public function _testCustomText($value_type, $format, $matchedValue)
+    {
+        $custom_column = $this->getCustomColumnModel(ColumnType::CUSTOM_TEXT, [
+            'custom_text_format_type' => 'format',
+            'custom_text_format' => $format,
+        ]);
+
+        $classname = getModelName(CustomTable::getEloquent('information'));
+        $custom_value = new $classname([
+            'id' => 1, // dummy
+            'value' => [
+                'title' => 'hogehoge',
+                'order' => 3,
+                'view_flg' => 1,
+                'priority' => 4
+            ],
+            'created_at' => '2025-07-31 10:29:31',
+            'created_user_id' => 1,
+        ]);
+        $column_item = $custom_column->column_item->setCustomValue($custom_value);
+
+        $v = $column_item->{$value_type}();
+        $this->assertMatch($v, $matchedValue);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCustomTextValue()
+    {
+        $this->_testCustomText(ValueType::VALUE, '${value:title}-${created_at}', 'hogehoge-2025-07-31 10:29:31');
+    }
+
+    /**
+     * @return void
+     */
+    public function testCustomTextText()
+    {
+        $today = Carbon::today()->format('Ymd');
+        $this->_testCustomText(ValueType::TEXT, '${value:priority}-${ymd}', '高い-' . $today);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCustomTextHtml()
+    {
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(1);
+
+        $this->_testCustomText(ValueType::HTML, '${created_user}_${value:view_flg}', $user->getValue('user_name') . '_YES');
+    }
 
 
     // AUTO_NUMBER ----------------------------------------------------
