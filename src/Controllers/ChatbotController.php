@@ -8,15 +8,10 @@ use Exceedone\Exment\Model\System;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Services\ChatbotService;
 
 class ChatbotController extends BaseController
 {
-    // Response types
-    public const RESPONSE_TYPE_FAQ_ID = 'faq_id';
-    public const RESPONSE_TYPE_DIRECT_ANSWER = 'direct_answer';
-    public const RESPONSE_TYPE_FAQ_ANSWER = 'faq_answer';
-    public const RESPONSE_TYPE_DIRECT_ANSWER_SAVED = 'direct_answer_saved';
-
     // Error codes
     public const ERROR_CHATBOT_DISABLED = 'CHATBOT_DISABLED';
     public const ERROR_NO_ANSWER_FOUND = 'NO_ANSWER_FOUND';
@@ -35,10 +30,12 @@ class ChatbotController extends BaseController
     public const MAX_MESSAGE_LENGTH = 1000;
     public const MAX_SESSION_ID_LENGTH = 255;
 
-    // AI server endpoints
-    public const AI_SERVER_EMBED_ENDPOINT = '/api/chatbot/embed';
-    public const AI_SERVER_ASK_ENDPOINT = '/api/chatbot/ask-ai';
-    public const AI_SERVER_HOST_CONFIG_KEY = 'exment.ai_server_host';
+    protected $chatbotService;
+
+    public function __construct(ChatbotService $chatbotService)
+    {
+        $this->chatbotService = $chatbotService;
+    }
 
     /**
      * Returns chatbot configuration including UI texts and idle time.
@@ -47,8 +44,7 @@ class ChatbotController extends BaseController
      */
     public function config(): JsonResponse
     {
-        $timeidle = System::chatbot_available();
-        if (!$timeidle) {
+        if (!System::chatbot_available()) {
             return response()->json([]);
         }
         $uiTextTable = CustomTable::getEloquent(SystemTableName::CHATBOT_UI_TEXT);
@@ -59,7 +55,7 @@ class ChatbotController extends BaseController
         })->values();
         return response()->json([
             'ui_texts' => $uiTexts,
-            'timeidle' => $timeidle,
+            'timeidle' => System::chatbot_timeidle(),
         ]);
     }
 
@@ -102,15 +98,15 @@ class ChatbotController extends BaseController
     public function ask(Request $request): JsonResponse
     {
         $request->validate([
-            'question' => 'required|string|max:' . self::MAX_MESSAGE_LENGTH,
-            'session_id' => 'nullable|string|max:' . self::MAX_SESSION_ID_LENGTH,
-            'user_id' => 'nullable|integer',
+            'question' => 'required|string|max:' . self::MAX_MESSAGE_LENGTH
         ]);
 
         $message = $request->input('question');
         $sessionId = $request->input('session_id');
         $userId = $request->input('user_id');
-        $similarityThreshold = 0.85;
+        $history = $request->input('history', []);
+        $similarityThreshold = config('exment.chatbot_similarity_threshold', 0.85);
+        $lowSimilarityThreshold = config('exment.chatbot_low_similarity_threshold', 0.6);
 
         if (!System::chatbot_available()) {
             return response()->json([
@@ -122,7 +118,7 @@ class ChatbotController extends BaseController
 
         try {
             // 1. Get embedding vector from AI server
-            $embedding = $this->getEmbeddingFromAI($message);
+            $embedding = $this->chatbotService->getEmbeddingFromAI($message);
             if (!$embedding || !is_array($embedding)) {
                 return response()->json([
                     'success' => false,
@@ -132,7 +128,7 @@ class ChatbotController extends BaseController
             }
 
             // 2. Search FAQ by vector similarity
-            $faqMatch = $this->findMostSimilarFaq($embedding, $similarityThreshold);
+            $faqMatch = $this->chatbotService->findMostSimilarFaq($embedding, $similarityThreshold);
             if ($faqMatch) {
                 // Found similar FAQ
                 return response()->json([
@@ -144,9 +140,10 @@ class ChatbotController extends BaseController
                     'timestamp' => now()->toISOString(),
                 ], self::HTTP_OK, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
-
+            $answerChoices = $this->chatbotService->getAnswerChoices($embedding, $lowSimilarityThreshold, 3);
+            
             // 3. No match, get answer from AI server
-            $aiAnswer = $this->getAnswerFromAI($message);
+            $aiAnswer = $this->chatbotService->getAnswerFromAI($message, $history, $answerChoices);
             if (!$aiAnswer || !is_string($aiAnswer)) {
                 return response()->json([
                     'success' => false,
@@ -154,9 +151,8 @@ class ChatbotController extends BaseController
                     'error_code' => self::ERROR_PROCESSING_ERROR
                 ], self::HTTP_INTERNAL_SERVER_ERROR);
             }
-
             // 4. Save new FAQ with embedding
-            $savedFaqId = $this->saveToFaqTableWithEmbedding($message, $aiAnswer, $embedding);
+            $savedFaqId = $this->chatbotService->saveToFaqTableWithEmbedding($message, $aiAnswer, $embedding);
 
             return response()->json([
                 'success' => true,
@@ -177,177 +173,6 @@ class ChatbotController extends BaseController
                 'message' => 'An error occurred while processing your request',
                 'error_code' => self::ERROR_PROCESSING_ERROR
             ], self::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
-     * Call AI server to get embedding vector for a message.
-     * @param string $message
-     * @return array|null
-     */
-    private function getEmbeddingFromAI(string $message): ?array
-    {
-        $host = config(self::AI_SERVER_HOST_CONFIG_KEY);
-        if (!$host) {
-            \Log::error('AI server host not configured');
-            return null;
-        }
-        try {
-            $url = rtrim($host, '/') . self::AI_SERVER_EMBED_ENDPOINT;
-            $response = \Http::timeout(15)->post($url, [
-                'text' => [$message]
-            ]);
-            if ($response->successful()) {
-                $data = $response->json();
-                if (!is_array($data) || empty($data)) {
-                    \Log::error('AI embedding: response is not array or empty', ['body' => $response->body()]);
-                    return null;
-                }
-                // Tìm đúng object theo text (phòng trường hợp trả về nhiều kết quả)
-                foreach ($data as $item) {
-                    if (
-                        isset($item['text'], $item['label'], $item['embedding']) &&
-                        $item['text'] === $message &&
-                        $item['label'] === 'question' &&
-                        is_array($item['embedding']) && count($item['embedding']) > 0
-                    ) {
-                        return $item['embedding'];
-                    }
-                }
-                \Log::error('AI embedding: no valid embedding found', ['data' => $data, 'message' => $message]);
-            } else {
-                \Log::error('AI embedding response error', ['body' => $response->body()]);
-            }
-        } catch (\Exception $e) {
-            \Log::error('AI embedding request failed', ['error' => $e->getMessage()]);
-        }
-        return null;
-    }
-
-    /**
-     * Find the most similar FAQ by cosine similarity.
-     * @param array $embedding
-     * @param float $threshold
-     * @return array|null
-     */
-    private function findMostSimilarFaq(array $embedding, float $threshold): ?array
-    {
-        $customTable = CustomTable::getEloquent(SystemTableName::CHATBOT_FAQ);
-        if (!$customTable) return null;
-        $faqs = $customTable->getValueModel()->all();
-        $best = null;
-        $bestSim = -1;
-        foreach ($faqs as $faq) {
-            $value = is_array($faq->value) ? $faq->value : (array) $faq->value;
-            if (empty($value['embedding']) || !is_array($value['embedding'])) continue;
-            $sim = $this->cosineSimilarity($embedding, $value['embedding']);
-            if ($sim > $bestSim) {
-                $bestSim = $sim;
-                $best = [
-                    'id' => $faq->id,
-                    'question' => $value['question'] ?? null,
-                    'answer' => $value['answer'] ?? null,
-                    'similarity' => $sim
-                ];
-            }
-        }
-        if ($best && $best['similarity'] >= $threshold) return $best;
-        return null;
-    }
-
-    /**
-     * Cosine similarity between two vectors.
-     * @param array $a
-     * @param array $b
-     * @return float
-     */
-    private function cosineSimilarity(array $a, array $b): float
-    {
-        $dot = 0.0;
-        $normA = 0.0;
-        $normB = 0.0;
-        $len = min(count($a), count($b));
-        for ($i = 0; $i < $len; $i++) {
-            $dot += $a[$i] * $b[$i];
-            $normA += $a[$i] * $a[$i];
-            $normB += $b[$i] * $b[$i];
-        }
-        if ($normA == 0.0 || $normB == 0.0) return 0.0;
-        return $dot / (sqrt($normA) * sqrt($normB));
-    }
-
-    /**
-     * Call AI server to get answer for a message.
-     * @param string $message
-     * @return string|null
-     */
-    private function getAnswerFromAI(string $message): ?string
-    {
-        $host = config(self::AI_SERVER_HOST_CONFIG_KEY);
-        if (!$host) {
-            \Log::error('AI server host not configured');
-            return null;
-        }
-        try {
-            $url = rtrim($host, '/') . self::AI_SERVER_ASK_ENDPOINT;
-            $response = \Http::timeout(20)->post($url, [
-                'question' => $message
-            ]);
-            if ($response->successful()) {
-                $data = $response->json();
-                // Expecting: { "answer": "..." }
-                if (is_array($data) && isset($data['ai_response'])) {
-                    return $data['ai_response'];
-                }
-            }
-            \Log::error('AI answer response error', ['body' => $response->body()]);
-        } catch (\Exception $e) {
-            \Log::error('AI answer request failed', ['error' => $e->getMessage()]);
-        }
-        return null;
-    }
-
-    /**
-     * Save question, answer, and embedding to FAQ table.
-     * @param string $question
-     * @param string $answer
-     * @param array $embedding
-     * @return int|null
-     */
-    private function saveToFaqTableWithEmbedding(string $question, string $answer, array $embedding): ?int
-    {
-        try {
-            $customTable = CustomTable::getEloquent(SystemTableName::CHATBOT_FAQ);
-            if (!$customTable) {
-                \Log::error('CHATBOT_FAQ table not found');
-                return null;
-            }
-            $maxDisplayOrder = $customTable->getValueModel()->max('value->display_order') ?? 0;
-            $nextDisplayOrder = $maxDisplayOrder + 1;
-            $faqData = [
-                'question' => $question,
-                'answer' => $answer,
-                'embedding' => $embedding,
-                'display_order' => $nextDisplayOrder,
-                'is_featured' => false,
-            ];
-            $newFaq = $customTable->getValueModel()->create([
-                'value' => $faqData,
-                'created_user_id' => auth()->id() ?? null,
-                'updated_user_id' => auth()->id() ?? null,
-            ]);
-            \Log::info('New FAQ saved from AI answer', [
-                'faq_id' => $newFaq->id,
-                'question' => $question,
-                'display_order' => $nextDisplayOrder
-            ]);
-            return $newFaq->id;
-        } catch (\Exception $e) {
-            \Log::error('Error saving FAQ to table', [
-                'question' => $question,
-                'error' => $e->getMessage()
-            ]);
-            return null;
         }
     }
 }

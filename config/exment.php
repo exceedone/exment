@@ -50,6 +50,28 @@ return [
     |
     */
     'ai_server_host' => env('EXMENT_AI_SERVER_HOST', 'http://localhost'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chatbot Similarity Threshold
+    |--------------------------------------------------------------------------
+    |
+    | The threshold for similarity in chatbot responses. Responses with a similarity
+    | score above this value will be considered a match.
+    |
+    */
+    'chatbot_similarity_threshold' => env('EXMENT_CHATBOT_SIMILARITY_THRESHOLD', 0.85),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chatbot Low Similarity Threshold
+    |--------------------------------------------------------------------------
+    |
+    | The threshold for low similarity in chatbot responses. Responses with a similarity
+    | score below this value will be considered a low-confidence match.
+    |
+    */
+    'chatbot_low_similarity_threshold' => env('EXMENT_CHATBOT_LOW_SIMILARITY_THRESHOLD', 0.6),
     
     /*
     |--------------------------------------------------------------------------

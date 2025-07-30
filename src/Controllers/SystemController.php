@@ -333,6 +333,7 @@ class SystemController extends AdminControllerBase
             ])])
             ->help(exmtrans("system.help.chatbot_faq_wf_status_filters"))
             ->required()
+            ->default(exmtrans("system.chatbot_faq_wf_status_filters_default"))
             ->rows(3);
         $form->number('chatbot_timeidle', exmtrans('system.chatbot_timeidle'))
             ->attribute(['data-filter' => json_encode(['key' => 'chatbot_available', 'value' => '1'])])
@@ -544,6 +545,15 @@ class SystemController extends AdminControllerBase
             if (!$customTable) {
                 $importer = new TemplateImporter();
                 $importer->importSystemTemplate(false, 'templates/chatbot');
+                $customTable = CustomTable::where('table_name', SystemTableName::CHATBOT_FAQ)->first();
+                if ($customTable) {
+                    $tableName = 'exm__' . $customTable->suuid;
+                    if (!\Schema::hasColumn($tableName, 'embedding_vector')) {
+                        \Schema::table($tableName, function ($table) {
+                            $table->json('embedding_vector')->nullable()->after('value');
+                        });
+                    }
+                }
             }
             return true;
         }
