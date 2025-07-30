@@ -17,6 +17,10 @@ let inactivityCheckInterval = null;
 let FAQs = [];
 let chatHistory = [];
 
+function base64urlEncode(str) {
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 // Fetch FAQs from API and update the UI
 function fetchFAQs() {
     fetch("/api/chatbot/faq")
@@ -126,9 +130,10 @@ async function sendMessage() {
     chatBody.scrollTop = chatBody.scrollHeight;
     // Always reload latest history before pushing
     loadChatHistoryFromLocal();
-    const botReply = await callAPIServer(msg);
+    const historyToSend = chatHistory.slice(-3);
+    const botReply = await callAPIServer(msg, historyToSend);
     thinkingDiv.className = CLASS_MSG_BOT;
-    thinkingDiv.textContent = botReply;
+    thinkingDiv.innerHTML = botReply;
     chatBody.scrollTop = chatBody.scrollHeight;
     // Push to history and save
     chatHistory.push({ question: msg, answer: botReply });
@@ -136,21 +141,21 @@ async function sendMessage() {
 }
 
 // Call API server
-async function callAPIServer(userMessage) {
+async function callAPIServer(userMessage, history = []) {
     try {
         const res = await fetch("/api/chatbot/ask", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ question: userMessage, _token: LA.token }),
+            body: JSON.stringify({ question: userMessage, history: history, _token: LA.token }),
         });
         if (!res.ok) throw new Error("Failed to get response from AI server");
         const data = await res.json();
         return data.answer || "Sorry, I did not understand that.";
     } catch (err) {
         console.error("callAPIServer error:", err);
-        return "Sorry, there was a problem contacting the server.";
+        return getI18nText("error_message", "Sorry, there was a problem contacting the server.");
     }
 }
 
@@ -301,7 +306,7 @@ function renderChatHistory() {
         chatBody.appendChild(userDiv);
         const botDiv = document.createElement("div");
         botDiv.className = CLASS_MSG_BOT;
-        botDiv.textContent = item.answer;
+        botDiv.innerHTML = item.answer;
         chatBody.appendChild(botDiv);
     });
     // Always track scroll position
@@ -356,6 +361,10 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     }
     if (document.getElementById(ID_CHAT_WINDOW)) {
+        if (typeof LA !== 'undefined' && LA.token) {
+            STORAGE_CHAT_HISTORY = "chat_history_" + base64urlEncode(LA.token);
+            STORAGE_CHAT_HISTORY_UPDATE = "chat_history_update_" + base64urlEncode(LA.token);
+        }
         styleIconToTop();
         fetchFAQs();
         loadChatHistoryFromLocal();
