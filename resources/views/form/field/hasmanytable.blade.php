@@ -54,10 +54,10 @@
                     @endforeach
                     
                     @if($hasRowUpDown)
-                    <a href="javascript:void(0);" class="btn btn-ssm btn-primary" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
+                    <a href="javascript:void(0);" class="btn btn-ssm btn-primary  row-move row-move-down" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
                         <i class="fa fa-arrow-down" style=""></i>
                     </a>
-                    <a href="javascript:void(0);" class="btn btn-ssm btn-success" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
+                    <a href="javascript:void(0);" class="btn btn-ssm btn-success row-move row-move-up" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
                         <i class="fa fa-arrow-up" style=""></i>
                     </a>
                     @endif

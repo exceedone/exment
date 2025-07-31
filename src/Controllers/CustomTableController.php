@@ -76,7 +76,7 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function qrcodeActivate(Request $request, $id)
+    public function qrcodeActivate(Request $request, $id)
     {
         return $this->toggleActivateQr($request, $id, true);
     }
@@ -88,7 +88,7 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function qrcodeDeactivate(Request $request, $id)
+    public function qrcodeDeactivate(Request $request, $id)
     {
         return $this->toggleActivateQr($request, $id, false);
     }
@@ -119,7 +119,7 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function jancodeActivate(Request $request, $id)
+    public function jancodeActivate(Request $request, $id)
     {
         return $this->toggleActivateJancode($request, $id, true);
     }
@@ -131,7 +131,7 @@ class CustomTableController extends AdminControllerBase
      * @param string|int|null $id
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function jancodeDeactivate(Request $request, $id)
+    public function jancodeDeactivate(Request $request, $id)
     {
         return $this->toggleActivateJancode($request, $id, false);
     }
