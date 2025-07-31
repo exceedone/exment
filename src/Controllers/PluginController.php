@@ -123,7 +123,7 @@ class PluginController extends AdminControllerBase
     }
 
     //Function use to upload file and update or add new record
-    protected function store(Request $request)
+    public function store(Request $request)
     {
         //Check file existed in Request
         if ($request->hasfile('fileUpload')) {
@@ -134,7 +134,7 @@ class PluginController extends AdminControllerBase
     }
 
     //Delete record from database (one or multi records)
-    protected function destroy($id)
+    public function destroy($id)
     {
         foreach (stringToArray($id) as $i) {
             if ($this->form($i, true)->destroy($i)) {
@@ -153,7 +153,7 @@ class PluginController extends AdminControllerBase
     }
 
     //Delete one or multi folder corresponds to the plugins
-    protected function deleteFolder($id)
+    public function deleteFolder($id)
     {
         $idlist = explode(",", $id);
         foreach ($idlist as $id) {
@@ -172,7 +172,7 @@ class PluginController extends AdminControllerBase
     }
 
     //Check request when edit record to delete null values in event_triggers
-    protected function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $plugin = Plugin::getEloquent($id);
         if (!$plugin->hasPermission(Permission::PLUGIN_SETTING)) {

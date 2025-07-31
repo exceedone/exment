@@ -5,12 +5,12 @@ namespace Exceedone\Exment\Services\Plugin;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use OpenAdminCore\Admin\Widgets\Grid\Grid;
-use OpenAdminCore\Admin\Widgets\Form;
+// use OpenAdminCore\Admin\Widgets\Form;
 use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
 use OpenAdminCore\Admin\Widgets\Box;
 use OpenAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
-
+use OpenAdminCore\Admin\Form;
 /**
  * Plugin CRUD(and List)
  */
@@ -138,7 +138,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return Form|null
      */
-    public function setForm(Form $form, bool $isCreate, array $options = []): ?Form
+    public function setForm(Form $form, bool $isCreate, array $options = []) : ?Form
     {
         return null;
     }
