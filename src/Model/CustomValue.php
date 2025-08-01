@@ -240,7 +240,7 @@ abstract class CustomValue extends ModelBase
      */
     public function getWorkflowStatusTagAttribute()
     {
-        $icon = ' <i class="fa fa-lock" aria-hidden="true" data-toggle="tooltip" title="' . esc_html(exmtrans('workflow.message.locked')) . '"></i>';
+        $icon = ' <i class="fa fa-lock" aria-hidden="true" data-bs-toggle="tooltip" title="' . esc_html(exmtrans('workflow.message.locked')) . '"></i>';
         return esc_html($this->workflow_status_name) .
             ($this->lockedWorkflow() ? $icon : '');
     }

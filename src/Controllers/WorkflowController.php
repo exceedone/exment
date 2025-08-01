@@ -100,7 +100,7 @@ class WorkflowController extends AdminControllerBase
                         'icon' => 'fa-trash',
                         'modal_title' => trans('admin.delete'),
                         'attributes' => [
-                            'data-toggle' => "tooltip",
+                            'data-bs-toggle' => "tooltip",
                         ],
                     ]
                 ))->render());
@@ -114,7 +114,7 @@ class WorkflowController extends AdminControllerBase
                         'icon' => 'fa-check-square',
                         'modal_title' => exmtrans('workflow.setting_complete'),
                         'attributes' => [
-                            'data-toggle' => "tooltip",
+                            'data-bs-toggle' => "tooltip",
                         ],
                     ]
                 ))->render());
@@ -803,7 +803,7 @@ class WorkflowController extends AdminControllerBase
                     'button_class' => 'btn-danger',
                     'modal_title' => trans('admin.delete'),
                     'attributes' => [
-                        'data-toggle' => "tooltip",
+                        'data-bs-toggle' => "tooltip",
                     ]
                 ]
             ))->render());

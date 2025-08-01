@@ -9,7 +9,7 @@
             //height: 'auto',
             height: 395, // dashboard box height - 5
             eventDidMount: function(info) {
-                info.el.setAttribute('data-toggle', 'tooltip');
+                info.el.setAttribute('data-bs-toggle', 'tooltip');
                 info.el.setAttribute('data-original-title', info.event.title);
             },
             eventDataTransform: function(event) { // call when reading event data

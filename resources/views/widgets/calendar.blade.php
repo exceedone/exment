@@ -26,7 +26,7 @@
             weekNumbers: true,
             navLinks: true,
             eventDidMount: function(info) {
-                info.el.setAttribute('data-toggle', 'tooltip');
+                info.el.setAttribute('data-bs-toggle', 'tooltip');
                 info.el.setAttribute('data-original-title', info.event.title);
             },
             // call when reading event data

@@ -60,16 +60,16 @@
                         {{ $file['created'] }}
                     </td>
                     <td class="column-__actions__">
-                        <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal', $file['file_key'])}}" data-toggle="tooltip" title="{{exmtrans('backup.restore')}}">
+                        <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal', $file['file_key'])}}" data-bs-toggle="tooltip" title="{{exmtrans('backup.restore')}}">
                             <i class="fa fa-undo"></i>
                         </a>
-                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{trans('admin.delete')}}" class="grid-row-delete">
+                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-bs-toggle="tooltip" title="{{trans('admin.delete')}}" class="grid-row-delete">
                             <i class="fa fa-trash"></i>
                         </a>
-                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{exmtrans('backup.message.edit_filename_confirm')}}" class="grid-row-editname">
+                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-bs-toggle="tooltip" title="{{exmtrans('backup.message.edit_filename_confirm')}}" class="grid-row-editname">
                             <i class="fa fa-edit"></i>
                         </a>
-                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" data-toggle="tooltip" title="{{exmtrans('common.download')}}" target="_blank">
+                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" data-bs-toggle="tooltip" title="{{exmtrans('common.download')}}" target="_blank">
                             <i class="fa fa-download"></i>
                         </a>
                     </td>

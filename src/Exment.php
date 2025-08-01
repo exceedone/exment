@@ -388,7 +388,7 @@ class Exment
         }
 
         if (isset($options['tooltipTitle'])) {
-            $attributes['data-toggle'] = 'tooltip';
+            $attributes['data-bs-toggle'] = 'tooltip';
             $attributes['title'] = esc_html($options['tooltipTitle']);
         }
 

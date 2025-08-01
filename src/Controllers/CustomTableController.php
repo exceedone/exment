@@ -219,7 +219,7 @@ class CustomTableController extends AdminControllerBase
                         'icon' => 'fa-copy',
                         'modal_title' => exmtrans('common.copy_item', exmtrans('custom_table.table')),
                         'attributes' => [
-                            'data-toggle' => "tooltip",
+                            'data-bs-toggle' => "tooltip",
                         ],
                     ]
                 ))->render());

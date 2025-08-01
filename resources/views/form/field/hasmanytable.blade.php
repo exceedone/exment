@@ -54,16 +54,16 @@
                     @endforeach
                     
                     @if($hasRowUpDown)
-                    <a href="javascript:void(0);" class="btn btn-ssm btn-primary  row-move row-move-down" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
+                    <a href="javascript:void(0);" class="btn btn-ssm btn-primary  row-move row-move-down" data-bs-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
                         <i class="fa fa-arrow-down" style=""></i>
                     </a>
-                    <a href="javascript:void(0);" class="btn btn-ssm btn-success row-move row-move-up" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
+                    <a href="javascript:void(0);" class="btn btn-ssm btn-success row-move row-move-up" data-bs-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
                         <i class="fa fa-arrow-up" style=""></i>
                     </a>
                     @endif
 
                     @if($options['allowDelete'] && ($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index))
-                    <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
+                    <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-bs-toggle="tooltip" title="{{trans('admin.delete')}}">
                         <i class="fa fa-trash" style=""></i>
                     </a>
                     @endif
@@ -100,15 +100,15 @@
                 {!! $hidden->render() !!}
                 @endforeach
                 @if($hasRowUpDown)
-                <a href="javascript:void(0);" class="btn btn-ssm btn-primary" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
+                <a href="javascript:void(0);" class="btn btn-ssm btn-primary" data-bs-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
                     <i class="fa fa-arrow-down" style=""></i>
                 </a>
-                <a href="javascript:void(0);" class="btn btn-ssm btn-success" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
+                <a href="javascript:void(0);" class="btn btn-ssm btn-success" data-bs-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
                     <i class="fa fa-arrow-up" style=""></i>
                 </a>
                 @endif
 
-                <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
+                <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-bs-toggle="tooltip" title="{{trans('admin.delete')}}">
                     <i class="fa fa-trash" style=""></i>
                 </a>
             </td>

@@ -3,6 +3,6 @@
 </button>
 &nbsp;
 
-<a href="{{$model->getUrl()}}" target="_blank" rel="noopener" class="btn btn-default btn-xs" data-toggle="tooltip" data-placement="left" title="{{ exmtrans('common.open_blank') }}">
+<a href="{{$model->getUrl()}}" target="_blank" rel="noopener" class="btn btn-default btn-xs" data-bs-toggle="tooltip" data-placement="left" title="{{ exmtrans('common.open_blank') }}">
     <i class="fa fa-external-link"></i><span class="d-none d-md-inline">&nbsp;{{ exmtrans('common.open') }}</span>
 </a>

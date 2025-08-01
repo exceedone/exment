@@ -1,5 +1,5 @@
 <div class="btn-group pull-right" style="margin-right: 5px">
-        <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="fa fa-th-list"></i>&nbsp;<span class="d-none d-md-inline">{{exmtrans('custom_view.custom_view_button_label')}}&nbsp;:&nbsp;{{ $current_custom_view->view_view_name }}&nbsp;</span>
             <span class="caret"></span>
         </button>

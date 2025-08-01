@@ -177,7 +177,7 @@ namespace Exment {
             }));
 
             // rename for toggle
-            if(hasValue($elem.find('[data-toggle]'))){
+            if(hasValue($elem.find('[data-bs-toggle]'))){
                 let uuid = getUuid();
                 $elem.find('[data-parent]')
                     .attr('data-parent', '#' + uuid)
@@ -340,9 +340,9 @@ namespace Exment {
 
         private static toggleConfigIcon($elem: JQuery<Element>, isShow:boolean){
             if(isShow){
-                $elem.find('.delete,.options,[data-toggle],.setting').show();
+                $elem.find('.delete,.options,[data-bs-toggle],.setting').show();
             }else{
-                $elem.find('.delete,.options,[data-toggle],.setting').hide();
+                $elem.find('.delete,.options,[data-bs-toggle],.setting').hide();
             }
         }
 
@@ -906,7 +906,7 @@ namespace Exment {
                     },
                 });
                 resizableEl.prop('data-add-resizable', 1);
-                $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
+                $('.ui-resizable-e').attr('data-bs-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
             });
         }
         
