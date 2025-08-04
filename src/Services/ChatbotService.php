@@ -25,9 +25,15 @@ class ChatbotService
         }
         try {
             $url = rtrim($host, '/') . self::AI_SERVER_EMBED_ENDPOINT;
-            $response = \Http::timeout(15)->post($url, [
-                'text' => [$message]
-            ]);
+            $response = \Http::timeout(15)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Authorization' => env('AI_SERVER_API_KEY')
+                ])
+                ->post($url, [
+                    'text' => [$message]
+                ]);
             if ($response->successful()) {
                 $data = $response->json();
                 if (!is_array($data) || empty($data)) {
@@ -131,7 +137,13 @@ class ChatbotService
                 'question' => $message,
                 'answer_choices' => $answerChoices,
             ];
-            $response = \Http::timeout(20)->post($url, $payload);
+            $response = \Http::timeout(20)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Authorization' => env('AI_SERVER_API_KEY')
+                ])
+                ->post($url, $payload);
             if ($response->successful()) {
                 $data = $response->json();
                 if (is_array($data) && isset($data['ai_response'])) {
