@@ -594,7 +594,7 @@ EOT;
             return;
         }
 
-        $aiOcrEnabled = $this->custom_table->isAiOcrEnabled();
+        $aiOcrEnabled = $this->custom_table?->isAiOcrEnabled();
 
         $form = new WidgetForm();
         $form->disableReset();

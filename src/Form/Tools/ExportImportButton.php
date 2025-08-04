@@ -241,7 +241,7 @@ class ExportImportButton extends ModalTileMenuButton
             }
         }
 
-        if ($this->import_flg && $this->custom_table->isAiOcrEnabled()) {
+        if ($this->import_flg && $this->custom_table?->isAiOcrEnabled()) {
             $groups[] = [
                 'header' => exmtrans('common.import'),
                 'items' => [

@@ -4,12 +4,6 @@ namespace Exceedone\Exment\Services\AI;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
-use Exception;
-
-// Local Test
-use Illuminate\Support\Facades\App;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Http\Request;
 
 class AiOcrService
 {
@@ -22,7 +16,7 @@ class AiOcrService
 
         if (empty($columnsInfo)) {
             return [
-                'file' => $file->getClientOriginalName(),
+                'file' => $file->getFilename(),
                 'results' => [],
                 'message' => 'No columns to process.',
             ];
@@ -33,8 +27,8 @@ class AiOcrService
             $response = Http::withToken($this->bearerToken)
                 ->attach(
                     'file',
-                    file_get_contents($file->getRealPath()),
-                    $file->getClientOriginalName()
+                    fopen($file->getRealPath(), 'r'),
+                    $file->getFilename()
                 )
                 ->post($this->ocrServerUrl, [
                     'fields' => json_encode($columnsInfo)
@@ -54,8 +48,6 @@ class AiOcrService
                 ];
             }
         } catch (\Throwable $e) {
-            Log::error('OCR API Error: ' . $e->getMessage());
-
             return [
                 'file' => $file->getFilename(),
                 'results' => [],
@@ -104,6 +96,10 @@ class AiOcrService
                 ->values()
                 ->toArray();
 
+            if (empty($keywords)) {
+                return null;
+            }
+
             return [
                 'column_name' => $column->column_name,
                 'value_type'  => $column->column_type ?? 'string',
@@ -111,6 +107,9 @@ class AiOcrService
                 'position'    => $column->options['ocr_extraction_role'] ?? null,
                 'default_value' => $column->options['ocr_default_value'] ?? null,
             ];
-        })->toArray();
+        })
+        ->filter()
+        ->values()
+        ->toArray();
     }
 }
