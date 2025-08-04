@@ -4,12 +4,6 @@ namespace Exceedone\Exment\Services\AI;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
-use Exception;
-
-// Local Test
-use Illuminate\Support\Facades\App;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Http\Request;
 
 class AiOcrService
 {
@@ -33,8 +27,8 @@ class AiOcrService
             $response = Http::withToken($this->bearerToken)
                 ->attach(
                     'file',
-                    file_get_contents($file->getRealPath()),
-                    $file->getClientOriginalName()
+                    fopen($file->getRealPath(), 'r'),
+                    $file->getFilename()
                 )
                 ->post($this->ocrServerUrl, [
                     'fields' => json_encode($columnsInfo)
