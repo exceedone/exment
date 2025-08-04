@@ -98,6 +98,10 @@ class AiOcrService
                 ->values()
                 ->toArray();
 
+            if (empty($keywords)) {
+                return null;
+            }
+
             return [
                 'column_name' => $column->column_name,
                 'value_type'  => $column->column_type ?? 'string',
@@ -105,6 +109,9 @@ class AiOcrService
                 'position'    => $column->options['ocr_extraction_role'] ?? null,
                 'default_value' => $column->options['ocr_default_value'] ?? null,
             ];
-        })->toArray();
+        })
+        ->filter()
+        ->values()
+        ->toArray();
     }
 }
