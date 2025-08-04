@@ -48,8 +48,6 @@ class AiOcrService
                 ];
             }
         } catch (\Throwable $e) {
-            Log::error('OCR API Error: ' . $e->getMessage());
-
             return [
                 'file' => $file->getFilename(),
                 'results' => [],
