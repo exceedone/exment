@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\System;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Services\ChatbotService;
+use Exceedone\Exment\Services\AI\ChatbotService;
 
 class ChatbotController extends BaseController
 {

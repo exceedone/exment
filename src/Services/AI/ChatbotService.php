@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Services;
+namespace Exceedone\Exment\Services\AI;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
