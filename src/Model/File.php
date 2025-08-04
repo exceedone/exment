@@ -217,7 +217,7 @@ class File extends ModelBase
      * @param string $dirname directory name
      * @return File
      */
-    public static function saveFileInfo(?string $file_type, string $dirname, array $options = []): File
+    public static function saveFileInfo(?string $file_type, string $dirname, array $options = [], ?string $parent_type = null): File
     {
         $options = array_merge([
             'filename' => null, // saves file name
@@ -251,6 +251,7 @@ class File extends ModelBase
             'local_dirname' => $dirname,
             'local_filename' => $unique_filename,
             'filename' => $filename,
+            'parent_type' => $parent_type,
             'options' => $options,
         ]);
         return $file;
@@ -393,12 +394,12 @@ class File extends ModelBase
      * @param array $options
      * @return File
      */
-    public static function storeAs(?string $file_type, $content, string $dirname, string $name, array $options = []): File
+    public static function storeAs(?string $file_type, $content, string $dirname, string $name, array $options = [], ?string $parent_type = null): File
     {
         $options = array_merge([
             'filename' => $name, // saves file name
         ], $options);
-        $file = static::saveFileInfo($file_type, $dirname, $options);
+        $file = static::saveFileInfo($file_type, $dirname, $options, $parent_type);
 
         if ($content instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
             $content = \Illuminate\Http\UploadedFile::createFromBase($content);
