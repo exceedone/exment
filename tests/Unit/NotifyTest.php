@@ -46,7 +46,6 @@ class NotifyTest extends UnitTestBase
         $subject = 'テスト';
         $body = '本文です';
         $to = 'foobar@test.com';
-        // $to = 'foobar@test.com';
 
         $this->_testNotifyMail([
             'subject' => $subject,
