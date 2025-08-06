@@ -198,7 +198,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment Web page. custom verify
         'adminweb' => [
-            \App\Http\Middleware\EncryptCookies::class,
+            \Exceedone\Exment\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
