@@ -30,9 +30,12 @@
         document.addEventListener('DOMContentLoaded', function () {
             let submenuClicking = false;
 
-            document.querySelectorAll('.submenu').forEach(function (submenu) {
-                submenu.addEventListener('click', function (e) {
-                    e.stopPropagation();
+            document.querySelectorAll('.submenu').forEach(function(submenu) {
+                submenu.addEventListener('click', function(e) {
+                    // Chỉ chặn nếu không phải click vào thẻ <a>
+                    if (!e.target.closest('a')) {
+                        e.stopPropagation();
+                    }
                 });
             });
 
