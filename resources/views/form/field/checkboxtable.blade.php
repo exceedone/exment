@@ -122,19 +122,24 @@
             height: 20px;
         }
     </style>
-    <script>
-            $(window).off("exment:loaded", changeText).on("exment:loaded", changeText);
-            function changeText() {
-                $(function(){
-                    $(".wrapper-scroll-top").scroll(function(){
-                        $(".wrapper-scroll-bottom")
-                            .scrollLeft($(".wrapper-scroll-top").scrollLeft());
-                    });
-                    $(".wrapper-scroll-bottom").scroll(function(){
-                        $(".wrapper-scroll-top")
-                            .scrollLeft($(".wrapper-scroll-bottom").scrollLeft());
-                    });
-                });
-            }
+     <script>
+        function changeText() {
+            $(".wrapper-scroll-top").scroll(function() {
+                $(".wrapper-scroll-bottom")
+                    .scrollLeft($(".wrapper-scroll-top").scrollLeft());
+            });
+            $(".wrapper-scroll-bottom").scroll(function() {
+                $(".wrapper-scroll-top")
+                    .scrollLeft($(".wrapper-scroll-bottom").scrollLeft());
+            });
+        }
+
+        $(function() {
+            changeText();
+        });
+
+        $(window).off("exment:loaded.changeText").on("exment:loaded.changeText", function() {
+            changeText();
+        });
     </script>
 @endif
