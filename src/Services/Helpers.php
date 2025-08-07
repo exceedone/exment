@@ -1865,3 +1865,15 @@ if (!function_exists('admin_exclusion_path')) {
         }
     }
 }
+
+if (!function_exists('html_image')) {
+    function html_image($path, $alt = '', $attributes = [])
+    {
+        $src = asset($path);
+        $attrString = '';
+        foreach ($attributes as $key => $value) {
+            $attrString .= " {$key}=\"{$value}\"";
+        }
+        return "<img src=\"{$src}\" alt=\"{$alt}\"{$attrString}>";
+    }
+}

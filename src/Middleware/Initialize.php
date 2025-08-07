@@ -331,7 +331,7 @@ class Initialize
             // Logo
             $val = System::site_logo();
             if (!is_nullorempty($val)) {
-                Config::set('admin.logo', Html::image($val, 'header logo'));
+                Config::set('admin.logo', html_image($val, 'header logo'));
             } else {
                 $val = System::site_name();
                 if (!is_nullorempty($val)) {
@@ -342,7 +342,7 @@ class Initialize
             // Logo(Short)
             $val = System::site_logo_mini();
             if (!is_nullorempty($val)) {
-                Config::set('admin.logo-mini', Html::image($val, 'header logo mini'));
+                Config::set('admin.logo-mini', html_image($val, 'header logo mini'));
             } else {
                 $val = System::site_name_short();
                 if (!is_nullorempty($val)) {
