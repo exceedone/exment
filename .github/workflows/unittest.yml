@@ -10,7 +10,7 @@ on:
       - 'tests/**'
 
 env:
-  DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
+  DOCKER_EXMENT_REPOSITORY: Quang270904/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: ["mysql", "mariadb"]
+        db: ["mysql", "mariadb", "sqlserver"]
         test: ["feature", "unit", "browser"]
     steps:
       - uses: actions/checkout@v4
