@@ -22,6 +22,8 @@ trait DatabaseTransactions
             $connection->setEventDispatcher($dispatcher);
         }
 
+        // Ensure that the transactions are rolled back after the application is destroyed.
+
         $this->beforeApplicationDestroyed(function () use ($database) {
             foreach ($this->connectionsToTransact() as $name) {
                 $connection = $database->connection($name);
