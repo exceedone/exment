@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 class AiOcrService
 {
     protected string $ocrServerUrl = 'https://exment.org/api/ocr/parse-bbox';
-    protected string $bearerToken  = '4|mMD8liCRxqrwmEh6QnivJvhpjrW712OlMxNRiO8B0cbc0302';
+    protected string $bearerToken  = '1|alBBL8vpczVdvUGB44TxoHL0NSV97BrDYV3LBig3fb5e70d2';
 
     public function processFile($file, string $tableKey, $columns): array
     {
