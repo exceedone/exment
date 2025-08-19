@@ -8,7 +8,7 @@
                 {{$check->getLabel()}}
             </h4>
 
-            <div class="collapse {{$check->checkResult() != 'ok' ? 'in' : ''}}" id="collapse{{$loop->index}}">
+           <div class="collapse {{$check->checkResult() != 'ok' ? 'show' : ''}}" id="collapse{{$loop->index}}">
                 <p>
                     {{$check->getExplain()}}
                 </p>
