@@ -50,6 +50,12 @@ class AiOcrController extends AdminControllerTableBase
                 ], 500);
             }
 
+            if (!$this->checkOcrResult($result['results'])) {
+                return response()->json([
+                    'message' => 'No results found. Please check the file and rerun the OCR process',
+                ], 500);
+            }
+
             $local_filename = pathinfo($file, PATHINFO_BASENAME);
             $this->saveFileOptions($local_filename, $result['results']);
 
@@ -77,7 +83,6 @@ class AiOcrController extends AdminControllerTableBase
         $files = File::files($filesPath);
         $customColumns = $this->custom_columns;
 
-        $allResults = [];
         $succeedOcrFilesCount = 0;
         $failedOcrFilesCount = 0;
         $failedOcrFileNameList = [];
@@ -94,6 +99,11 @@ class AiOcrController extends AdminControllerTableBase
 
                 $modelClass = get_class($this->custom_table->getValueModel());
                 $results = $result['results'];
+
+                if (!$this->checkOcrResult($results)) {
+                    throw new \Exception('No results found. Please check the file and rerun the OCR process');
+                }
+
                 $isMultiPage = is_array($results) && array_is_list($results) && is_array(reset($results));
 
                 if ($isMultiPage) {
@@ -106,24 +116,13 @@ class AiOcrController extends AdminControllerTableBase
                     $this->createCustomRecord($new_record, $results, $filesPath, $file);
                 }
 
-                $allResults[] = [
-                    'file' => $file->getFilename(),
-                    'status' => 'success',
-                    'results' => $result['results'],
-                ];
-
                 $succeedOcrFilesCount++;
             } catch (\Exception $ex) {
                 \Log::error("OCR failed for file {$file->getFilename()}: " . $ex->getMessage());
-
-                $allResults[] = [
-                    'file' => $file->getFilename(),
-                    'status' => 'error',
-                    'error' => $ex->getMessage(),
-                ];
-
                 $failedOcrFilesCount++;
-                $failedOcrFileNameList[] = $file->getFilename();
+                $originalFilename = ExmentFile::where('local_filename', $file->getFilename())
+                        ->first()?->filename ?? $file->getFilename();
+                $failedOcrFileNameList[] = $originalFilename;
             }
         }
 
@@ -133,7 +132,7 @@ class AiOcrController extends AdminControllerTableBase
             'message' => 'Multi OCR completed',
             'succeedOcrFilesCount' => $succeedOcrFilesCount,
             'failedOcrFilesCount' => $failedOcrFilesCount,
-            'failedOcrFileNameList' => $failedOcrFileNameList,
+            'failedOcrFileNameList' => implode("\n", $failedOcrFileNameList),
         ]);
     }
 
@@ -218,5 +217,22 @@ class AiOcrController extends AdminControllerTableBase
         if (empty($files) && empty($subdirs)) {
             File::deleteDirectory($filesPath);
         }
+    }
+
+    private function checkOcrResult($results)
+    {
+        if (!isset($results) || !is_array($results)) {
+            return false;
+        }
+
+        foreach ($results as $key => $data) {
+            if (isset($data['value'])) {
+                if ($data['value'] !== '') {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

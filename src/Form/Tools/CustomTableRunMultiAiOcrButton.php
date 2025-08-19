@@ -82,7 +82,12 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                     if (data.message === "Multi OCR completed") {
                         const success = data.succeedOcrFilesCount || 0;
                         const failed = data.failedOcrFilesCount || 0;
+                        const failedFileList = data.failedOcrFileNameList || '';
+
                         let message = `AI-OCR completed.\nSuccessful files: \${success}\nFailed files: \${failed}`;
+                        if (failed > 0) {
+                            message += `\nFailed file list:\n\${failedFileList}`;
+                        }
                         alert(message);
                         $.pjax({
                             url: window.location.href,

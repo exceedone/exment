@@ -16,7 +16,7 @@ class AiOcrService
 
         if (empty($columnsInfo)) {
             return [
-                'file' => $file->getClientOriginalName(),
+                'file' => $file->getFilename(),
                 'results' => [],
                 'message' => 'No columns to process.',
             ];
