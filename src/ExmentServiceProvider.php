@@ -32,6 +32,7 @@ use Illuminate\Contracts\Http\Kernel;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
+use Exceedone\Exment\Services\TenantService;
 
 class ExmentServiceProvider extends ServiceProvider
 {
@@ -91,6 +92,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\DocumentImportCommand::class,
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
+        \Exceedone\Exment\Console\ProcessTenantsCommand::class,
     ];
 
 
@@ -138,6 +140,7 @@ class ExmentServiceProvider extends ServiceProvider
         'publicform.bootstrap'       => \Exceedone\Exment\Middleware\BootstrapPublicForm::class,
         'publicformapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicFormApi::class,
         'publicform.session'    => \Exceedone\Exment\Middleware\PublicFormSession::class,
+        'api.check_token'    => \Exceedone\Exment\Middleware\CheckBearerToken::class,
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
     ];
@@ -218,6 +221,7 @@ class ExmentServiceProvider extends ServiceProvider
         // Exment Plugin API
         'pluginapi' => [
             'pluginapi.auth',
+            //'admin.bootstrap',
         ],
         // Exment API not login page. (Ex. get token)
         'adminapi_anonymous' => [
@@ -346,6 +350,11 @@ class ExmentServiceProvider extends ServiceProvider
                 \Exceedone\Exment\Exceptions\Handler::class
             );
         }
+
+        // Bind TenantService as singleton so queued jobs share the same lightweight instance per worker
+        $this->app->singleton(TenantService::class, function ($app) {
+            return new TenantService();
+        });
 
         Passport::ignoreMigrations();
     }

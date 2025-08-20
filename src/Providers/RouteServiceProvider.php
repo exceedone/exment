@@ -149,6 +149,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('workflow/{id}/deactivate', 'WorkflowController@deactivate');
             $router->get('workflow/{id}/deactivateModal', 'WorkflowController@deactivateModal');
 
+            // Tenant Settings routes
+            // $router->get('tenant/settings', 'TenantSettingsController@index')->name('tenant.settings.index');
+            // $router->post('tenant/settings', 'TenantSettingsController@post')->name('tenant.settings.post');
+
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
@@ -501,6 +505,15 @@ class RouteServiceProvider extends ServiceProvider
             ], function (Router $router) {
                 $router->post('template/search', 'TemplateController@searchTemplate');
                 $router->delete('template/delete', 'TemplateController@delete');
+            });
+            Route::group([
+                'prefix' => array_get($route, 'prefix'),
+                'namespace'     => $this->namespace,
+                'middleware'    => ["api.check_token"],
+            ], function (Router $router) {
+                $router->post('v1/tenants', 'TenantProvisionController@provision');
+                $router->put('v1/tenants/{suuid}', 'TenantProvisionController@update');
+                $router->delete('v1/tenants/{suuid}', 'TenantProvisionController@delete');
             });
         }
     }

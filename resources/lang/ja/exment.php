@@ -2746,4 +2746,26 @@ return [
             '1' => '条件を反転する',
         ],
     ],
+
+    'tenant' => [
+        'header' => 'テナント設定',
+        'settings_header' => 'テナント設定',
+        'settings_description' => 'テナントの設定を管理します',
+        
+        'plan_information' => 'プラン情報',
+        'subdomain' => 'サブドメイン',
+        'plan_name' => 'プラン名',
+        'expiration_date' => '有効期限',
+        'plan_user_limit' => 'ユーザー数',
+        'plan_db_size_gb' => 'データ使用量',
+        
+        'environment_settings' => '環境設定',
+        'language' => '言語',
+        'timezone' => 'タイムゾーン',
+        
+        'help' => [
+            'language' => 'システムの表示言語を選択してください',
+            'timezone' => 'システムのタイムゾーンを選択してください',
+        ],
+    ],
 ];

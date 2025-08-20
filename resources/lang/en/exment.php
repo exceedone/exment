@@ -2747,4 +2747,26 @@ return [
             '1' => 'Reverse condition',
         ],
     ],
+
+    'tenant' => [
+        'header' => 'Tenant Settings',
+        'settings_header' => 'Tenant Settings',
+        'settings_description' => 'Manage tenant settings',
+        
+        'plan_information' => 'Plan Information',
+        'subdomain' => 'Subdomain',
+        'plan_name' => 'Plan Name',
+        'expiration_date' => 'Expiration Date',
+        'plan_user_limit' => 'User Limit',
+        'plan_db_size_gb' => 'Data Size Limit',
+        
+        'environment_settings' => 'Environment Settings',
+        'language' => 'Language',
+        'timezone' => 'Time Zone',
+        
+        'help' => [
+            'language' => 'Select the display language for the system',
+            'timezone' => 'Select the timezone for the system',
+        ],
+    ],
 ];

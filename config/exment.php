@@ -1243,4 +1243,84 @@ return [
     |
     */
     'api_max_rate_limit' => env('EXMENT_API_MAX_RATE_LIMIT', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tenant Management Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for tenant provisioning and AWS integration
+    |
+    */
+    'tenant' => [
+        /*
+        |--------------------------------------------------------------------------
+        | Base domain for tenant subdomains
+        |--------------------------------------------------------------------------
+        |
+        | The base domain where tenant subdomains will be created
+        | Example: 'example.com' will create 'tenant1.example.com'
+        |
+        */
+        'base_domain' => env('EXMENT_TENANT_BASE_DOMAIN', 'exment.org'),
+
+        /*
+        |--------------------------------------------------------------------------
+        | Route53 Configuration
+        |--------------------------------------------------------------------------
+        |
+        | AWS Route53 settings for DNS management
+        |
+        */
+        'route53' => [
+            'hosted_zone_id' => env('EXMENT_TENANT_ROUTE53_HOSTED_ZONE_ID', ''),
+            'region' => env('EXMENT_TENANT_ROUTE53_REGION', 'ap-northeast-1'),
+            'target_ip' => env('EXMENT_TENANT_ROUTE53_TARGET_IP', ''),
+            'target_alias' => env('EXMENT_TENANT_ROUTE53_TARGET_ALIAS', ''),
+            'ttl' => env('EXMENT_TENANT_ROUTE53_TTL', 300),
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | AWS Configuration
+        |--------------------------------------------------------------------------
+        |
+        | AWS credentials and settings
+        |
+        */
+        'aws' => [
+            'region' => env('EXMENT_TENANT_AWS_REGION', 'ap-northeast-1'),
+            'use_iam_role' => env('EXMENT_TENANT_AWS_USE_IAM_ROLE', true),
+            'access_key_id' => env('EXMENT_TENANT_AWS_ACCESS_KEY_ID', ''),
+            'secret_access_key' => env('EXMENT_TENANT_AWS_SECRET_ACCESS_KEY', ''),
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tenant Provisioning Limits
+        |--------------------------------------------------------------------------
+        |
+        | Rate limiting and restrictions for tenant creation
+        |
+        */
+        'provisioning' => [
+            'max_attempts' => env('EXMENT_TENANT_PROVISION_MAX_ATTEMPTS', 5),
+            'decay_seconds' => env('EXMENT_TENANT_PROVISION_DECAY_SECONDS', 60),
+            'daily_cap' => env('EXMENT_TENANT_PROVISION_DAILY_CAP', 1000),
+            'allowed_prefixes' => env('EXMENT_TENANT_PROVISION_ALLOWED_PREFIXES', 'demo,test'),
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Status callback
+        |--------------------------------------------------------------------------
+        |
+        | Endpoint to notify tenant status updates after async jobs.
+        | Use {tenant_suuid} placeholder in URL.
+        */
+        'status_callback' => [
+            'url' => env('EXMENT_TENANT_STATUS_CALLBACK_URL', 'https://exment.org/api/tenants/status/{tenant_suuid}'),
+            'timeout' => env('EXMENT_TENANT_STATUS_CALLBACK_TIMEOUT', 10),
+        ],
+    ],
 ];
