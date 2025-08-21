@@ -64,7 +64,7 @@
 
                     @if($options['allowDelete'] && ($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index))
                     <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-bs-toggle="tooltip" title="{{trans('admin.delete')}}">
-                        <i class="fa fa-trash" style=""></i>
+                        <i class="fa fa-trash" style="color:#fff"></i>
                     </a>
                     @endif
                 </td>
