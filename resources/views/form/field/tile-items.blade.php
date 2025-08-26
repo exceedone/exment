@@ -1,5 +1,5 @@
 @foreach($options as $option)
-<div class="col-xs-12 col-sm-6 tile-group-item">
+<div class="col-xs-12 col-sm-6 tile-group-item" style="margin-bottom: 10px">
     <div id="tile-{{$column}}-{{$loop->index}}" class="tile" data-id="{{array_get($option, 'id')}}">
         @if(!is_null(array_get($option, 'thumbnail')))
         <div class="tile-thumbnail">
@@ -10,7 +10,7 @@
             <div class="clearfix">
                 <p class="pull-left tile-title">{{ array_get($option, 'title') }}</p>
                 @if(!is_null(array_get($option, 'delete_url')))
-                <p class="pull-right" style="margin:0;">
+                <p class="pull-right" style="margin:0;position: relative;float: right;bottom: 41px;">
                     <button type="button" class="btn btn-box-tool" data-exment-delete="{{array_get($option, 'delete_url')}}" style="color:#333;"><i class="fa fa-trash"></i></button>
                 </p>
                 @endif

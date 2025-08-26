@@ -4015,7 +4015,7 @@ fieldset[disabled] .btn.btn-purple.active {
   width: calc(100% + 30px);
 }
 #tile-template .row-eq-height > [class^=col-] {
-  margin-bottom: 10px;
+  margin-bottom: 10px !important;
 }
 
 tr.header-left th {
