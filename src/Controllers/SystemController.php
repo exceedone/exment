@@ -531,12 +531,13 @@ class SystemController extends AdminControllerBase
         /// Check if chatbot_faq_wf is changed        
         $request_chatbot_faq_wf = $request->get('chatbot_faq_wf') == '1';
         $value_chatbot_faq_wf_before = boolval(array_get($value_system_before, 'chatbot_faq_wf', false));
+        $id_chatbot_wf = 'wf_chatbot_faq';
         if ($request_chatbot_faq_wf && !$value_chatbot_faq_wf_before) {
-            $this->createWorkflowForChatbotFaq(SystemTableName::CHATBOT_FAQ, 'wf_chatbot_faq');
-            $this->updateActiveFlagByTableName(SystemTableName::CHATBOT_FAQ, 1);
+            $this->createWorkflowForChatbotFaq(SystemTableName::CHATBOT_FAQ, $id_chatbot_wf);
+            $this->updateActiveFlagByTableName(SystemTableName::CHATBOT_FAQ, 1, $id_chatbot_wf);
         }
         if (!$request_chatbot_faq_wf && $value_chatbot_faq_wf_before) {
-            $this->updateActiveFlagByTableName(SystemTableName::CHATBOT_FAQ, 0);
+            $this->updateActiveFlagByTableName(SystemTableName::CHATBOT_FAQ, 0, $id_chatbot_wf);
         }
         $request_chatbot_available = $request->get('chatbot_available') == '1';
         $value_chatbot_available_before = boolval(array_get($value_system_before, 'chatbot_available', false));
@@ -635,17 +636,26 @@ class SystemController extends AdminControllerBase
      *
      * @param string $tableName
      * @param int|bool $activeFlag
+     * @param string|null $workflowSuuid Optional workflow suuid to filter by
      * @return int Number of affected rows
      */
-    private function updateActiveFlagByTableName(string $tableName, $activeFlag = 0): int
+    private function updateActiveFlagByTableName(string $tableName, $activeFlag = 0, ?string $workflowSuuid = null): int
     {
         $customTable = CustomTable::where('table_name', $tableName)->first();
 
         if (!$customTable) {
             return 0;
         }
+        
         $query = WorkflowTable::where('custom_table_id', $customTable->id)
             ->where('active_flg', '!=', $activeFlag);
+
+        // If workflowSuuid is provided, filter by workflows with matching suuid
+        if ($workflowSuuid) {
+            $query->whereHas('workflow', function ($workflowQuery) use ($workflowSuuid) {
+                $workflowQuery->where('suuid', $workflowSuuid);
+            });
+        }
 
         if (!$query->exists()) {
             return 0;
