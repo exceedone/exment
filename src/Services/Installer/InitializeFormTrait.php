@@ -79,6 +79,7 @@ trait InitializeFormTrait
         $form->select('site_skin', exmtrans("system.site_skin"))
             ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
             ->disableClear()
+            ->required()
             ->help(exmtrans("system.help.site_skin"));
         $form->select('site_layout', exmtrans("system.site_layout"))
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
