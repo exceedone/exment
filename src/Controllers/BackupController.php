@@ -256,7 +256,7 @@ class BackupController extends AdminControllerBase
      * @param $file_key
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function importModal($file_key = null)
+    public function importModal($file_key = null)
     {
         $import_path = admin_url(url_join('backup', 'import'));
         // create form fields
@@ -311,7 +311,7 @@ class BackupController extends AdminControllerBase
     /**
      * Upload zip file
      */
-    protected function import(Request $request)
+    public function import(Request $request)
     {
         \Exment::setTimeLimitLong();
 

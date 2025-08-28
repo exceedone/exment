@@ -18,7 +18,7 @@ use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 
 class WorkflowNotifyController extends Controller
 {
