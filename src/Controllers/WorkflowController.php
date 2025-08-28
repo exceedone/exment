@@ -585,7 +585,7 @@ class WorkflowController extends AdminControllerBase
      *
      * @return Content
      */
-    protected function beginningForm()
+    public function beginningForm()
     {
         $content = new Content();
         $this->AdminContent($content);
@@ -692,7 +692,7 @@ class WorkflowController extends AdminControllerBase
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    protected function beginningPost(Request $request)
+    public function beginningPost(Request $request)
     {
         $workflow_tables = $request->get('workflow_tables');
 
