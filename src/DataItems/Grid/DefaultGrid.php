@@ -479,7 +479,7 @@ class DefaultGrid extends GridBase
             }
 
             // AI-OCR
-            if ($this->custom_table->isAiOcrEnabled()) {
+            if ($this->custom_table?->isAiOcrEnabled()) {
                 /** @phpstan-ignore-next-line append() expects Encore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableRunMultiAiOcrButton given */
                 $tools->append(new Tools\CustomTableRunMultiAiOcrButton(admin_urls('data', $this->custom_table->table_name, 'runMultiAiOcr'), $this->custom_table, $this->custom_view));
             }
@@ -582,7 +582,7 @@ class DefaultGrid extends GridBase
                     $actions->disableView();
                     $actions->disableDelete();
 
-                    // if parent data does not exist or has not been deleted 
+                    // if parent data does not exist or has not been deleted
                     if (!$parent_value || !$parent_value->trashed()) {
                         // add restore link
                         $restoreUrl = $actions->row->getUrl() . '/restoreClick';

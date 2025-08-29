@@ -66,7 +66,7 @@ class DefaultForm extends FormBase
         $form->hidden('updated_at');
 
         // AI-OCR
-        $form->aiOcrEnabled = $this->custom_table->isAiOcrEnabled();
+        $form->aiOcrEnabled = $this->custom_table?->isAiOcrEnabled();
 
         // get select_parent
         $select_parent = $request->has('select_parent') ? intval($request->get('select_parent')) : null;
@@ -568,7 +568,7 @@ EOT;
             if (!$disableToolsButton && $custom_table->enableTableMenuButton()) {
                 $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
                 // AI-OCR: Add Import Button When Create, Edit Table
-                if ($custom_table->isAiOcrEnabled()) {
+                if ($custom_table?->isAiOcrEnabled()) {
                     $tools->add((new Tools\CustomTableRunAiOcrButton(admin_urls('data', $custom_table->table_name, 'runAiOcr'), $custom_table->table_name, $custom_table)));
                     $tools->add((new Tools\CustomTableAiOcrImportButton(admin_urls('data', $custom_table->table_name), $custom_table)));
                 }
