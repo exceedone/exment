@@ -140,30 +140,16 @@ class CustomTableRunAiOcrButton extends ModalTileMenuButton
             return '';
         }
 
-        window.addEventListener('ai-ocr-uploaded', function(event) {
-            const btn = document.getElementById('run-ai-ocr-btn');
-            if (!btn) return;
-            btn.setAttribute('data-file-path', event.detail.files_path);
-            btn.style.display = 'inline-block';
+        if (!window.__aiOcrListenerRegistered) {
+            window.__aiOcrListenerRegistered = true;
 
-            const input = document.querySelector('input[name="value[ai_ocr_temp_path]"]');
-            if (input) {
-                input.value = event.detail.files_path;
-            }
-
-            const label = document.querySelector('.ai-ocr-uploaded-label');
-            if (label) {
-                label.style.display = 'block';
-            }
-        });
-
-        $(document).off('click', '#run-ai-ocr-btn').on('click', '#run-ai-ocr-btn', function () {
-            const filePath = this.getAttribute('data-file-path');
+            window.addEventListener('ai-ocr-uploaded', function(event) {
+            const filePath = event.detail.file_path;
             if (!filePath) {
-                alert("Upload File not found.");
                 return;
             }
 
+            // Run OCR
             document.body.style.cursor = 'wait';
             fetch('{$this->run_ai_ocr_endpoint}', {
                 method: 'POST',
@@ -250,9 +236,11 @@ class CustomTableRunAiOcrButton extends ModalTileMenuButton
                 }
             })
             .catch(err => {
+                document.body.style.cursor = 'default';
                 alert('AI-OCR request error.');
             });
         });
+        }
         JS;
     }
 }

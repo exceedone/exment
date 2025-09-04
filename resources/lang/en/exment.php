@@ -1499,7 +1499,6 @@ return [
             'ocr_search_keyword' => 'Please enter the keyword used to search the value in the attached file via OCR.',
             'ocr_extraction_role' => 'Please select relative location of the value to the ocr search keyword in the attached file.',
             'ocr_default_value' => 'When using OCR, it may not find any results. So if it is a required field, please enter the default value here. Used when OCR does not have any results.',
-            'ai_ocr_file_imported' => "AI-OCR Files Uploaded. Please click the ':button' button to process the file and auto-fill the fields.",
             'ai_ocr_hint' => 'AI-OCR: Automatically filled from image/PDF using keyword ":keyword" at position ":role". Manually entered values will take priority.',
             'index_enabled' => 'If set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>',
             'freeword_search' => 'If set to YES, it will be the target column when performing a free word search.',
@@ -2342,7 +2341,6 @@ return [
                 'import_plugin' => 'If you want to process the import file independently, select it after uploading the plug-in in advance.',
                 'error_flow' => 'If an error occurs due to incomplete data , select whether to capture normal data.',
                 'import_error_message' => 'If incomplete files are incomplete, line numbers and error messages are displayed in this item.',
-                'import_success_multi_ai_ocr_notice' => 'Import successful. Please click the ":btn" button to automatically create data from your files.',
                 'import_fail_ai_ocr_notice' => 'Import failed. Please check the file format or try again.',
             ],
             'key_options' => [
