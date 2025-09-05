@@ -1384,6 +1384,7 @@ if (!function_exists('hasTable')) {
                     'user'     => $config['username'],
                     'password' => $config['password'],
                     'host'     => $config['host'],
+                    'port'     => $config['port'],
                     'driver'   => 'pdo_mysql',
                     'charset'  => $config['charset'] ?? 'utf8mb4',
                 ]);
