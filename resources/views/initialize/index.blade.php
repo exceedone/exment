@@ -6,7 +6,7 @@
     <title>{{ Admin::title() }}</title>
 
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="{{ admin_asset("/vendor/open-admin/AdminLTE/boostrap/css/bootstrap.min.css") }}" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/font-awesome.min.css") }}">
 
@@ -23,9 +23,9 @@
     <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/google-fonts/fonts.css") }}">
 
     <!-- REQUIRED JS SCRIPTS -->
-    <script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js") }}"></script>
+    <script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-3.7.1.min.js") }}"></script>
     <!-- Bootstrap 5 JS (No jQuery dependency) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="{{ admin_asset ("/vendor/open-admin/open-admin/js/bootstrap.bundle.min.js") }}" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/plugins/slimScroll/jquery.slimscroll.min.js") }}"></script>
     <script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/dist/js/adminlte.min.js") }}"></script>
     <script src="{{ admin_asset ("/vendor/open-admin/jquery-pjax/jquery.pjax.js") }}"></script>
