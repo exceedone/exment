@@ -3529,6 +3529,7 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 
 .input-group .input-group-addon {
   min-width: 45px;
+  background-color:#fff;
 }
 
 .embed-value-form .gridembeds-row {
