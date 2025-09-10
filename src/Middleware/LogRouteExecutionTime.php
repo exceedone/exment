@@ -22,7 +22,7 @@ class LogRouteExecutionTime
             $start = microtime(true);
         }
         $response = $next($request);
-        if (!$log_enabled) {
+        if ($log_enabled) {
             $end = microtime(true);
             $duration = $end - $start;
             \Log::info("実行時間: {$duration} s");
