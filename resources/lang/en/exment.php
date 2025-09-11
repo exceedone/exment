@@ -1150,7 +1150,6 @@ return [
             'get_by_userinfo_and_action_select' => 'In the same pre-execution status, "Get from execution user information" and "Select by execution user of previous action" cannot be set at the same time.',
             'action_execute' => 'Perform the following actions:',
             'nextuser_not_found' => 'The following working user does not exist. Please contact the administrator.',
-            'status_changed' => 'This action cannot be performed. Another user may have executed the workflow.',
         ],
         
         'comment_options' => [

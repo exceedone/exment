@@ -717,16 +717,7 @@ class CustomValueController extends AdminControllerTableBase
 
         $custom_value = $this->custom_table->getValueModel($id);
 
-        //validation
-        $workflow_actions = $custom_value->getWorkflowActions(true);
-        if (!$workflow_actions->contains(function($workflow_action) use($action){
-            return $workflow_action->id == $action->id;
-        })) {
-            return ([
-                'result'  => false,
-                'toastr' => sprintf(exmtrans('workflow.message.status_changed')),
-            ]);
-        }
+        //TODO:validation
 
         $action->executeAction($custom_value, [
             'comment' => $request->get('comment'),
