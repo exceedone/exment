@@ -13,7 +13,8 @@ class LogRouteExecutionTime
 {
     protected static $queries = [];
 
-     public static function addQuery($sql) {
+    public static function addQuery($sql)
+    {
         $index = count(self::$queries) + 1;
         self::$queries[] = "{$index}. {$sql}";
     }
