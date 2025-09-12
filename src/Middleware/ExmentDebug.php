@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Middleware;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\EnumBase;
 use Illuminate\Console\Scheduling\Schedule;
+use Exceedone\Exment\Model\CustomTable;
 
 class ExmentDebug
 {
@@ -27,6 +28,7 @@ class ExmentDebug
         }
     }
 
+    protected static $queryLogs = [];
 
     /**
      * Output log database
@@ -46,7 +48,8 @@ class ExmentDebug
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
             }
 
-            $log_string = "TIME:{$query->time}ms;    SQL: $sql";
+            $log_string = "TIME:{$query->time}ms SQL: $sql";
+            LogRouteExecutionTime::addQuery($log_string);
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
                 $log_string .= ";    function: $function";
