@@ -44,20 +44,27 @@ class LogRouteExecutionTime
         }
         $response = $next($request);
         if ($log_enabled) {
-            $user = \Exment::user()->base_user;
-            $email = $user->getValue('email');
-            $url = $request->fullUrl();
-            $log_date_time = Carbon::now()->toDateTimeString();
-            $execution_logs = CustomTable::getEloquent('execution_logs')->getValueModel();
-            $execution_logs->parent_id = null;
-            $execution_logs->parent_type = null;
-            $execution_logs->setValue('email', $email);
-            $execution_logs->setValue('log_date_time', $log_date_time);
-            $execution_logs->setValue('url', $url);
-            $allSql = implode("\n", self::getQueries());
-            $execution_logs->setValue('sql', $allSql);
-            $execution_logs->save();
-            self::clearQueries();
+            $table = CustomTable::getEloquent('execution_logs');
+
+            if ($table) {
+                $user = \Exment::user()->base_user;
+                $email = $user->getValue('email');
+                $url = $request->fullUrl();
+                $log_date_time = Carbon::now()->toDateTimeString();
+
+                $execution_logs = $table->getValueModel();
+                $execution_logs->parent_id = null;
+                $execution_logs->parent_type = null;
+                $execution_logs->setValue('email', $email);
+                $execution_logs->setValue('log_date_time', $log_date_time);
+                $execution_logs->setValue('url', $url);
+
+                $allSql = implode("\n", self::getQueries());
+                $execution_logs->setValue('sql', $allSql);
+                $execution_logs->save();
+
+                self::clearQueries();
+            }
         }
 
         return $response;
