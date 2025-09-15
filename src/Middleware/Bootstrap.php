@@ -77,7 +77,6 @@ class Bootstrap
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
             'vendor/exment/js/common.js',
-            'vendor/exment/js/data.js',
             'vendor/exment/js/search.js',
             'vendor/exment/js/calc.js',
             'vendor/exment/js/notify_navbar.js',

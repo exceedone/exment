@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\EnumBase;
 use Illuminate\Console\Scheduling\Schedule;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\QueryLogger;
 
 class ExmentDebug
 {
@@ -19,7 +21,7 @@ class ExmentDebug
 
     public static function handleLog(?Request $request = null)
     {
-        if (boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false))) {
+        if (boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false)) || System::logging_toggle_available()) {
             static::logDatabase();
         }
 
@@ -49,7 +51,7 @@ class ExmentDebug
             }
 
             $log_string = "TIME:{$query->time}ms SQL: $sql";
-            LogRouteExecutionTime::addQuery($log_string);
+            QueryLogger::add($log_string);
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
                 $log_string .= ";    function: $function";
