@@ -142,4 +142,18 @@ class LogController extends AdminControllerBase
                 ]
             ));
     }
+    public function callAction($method, $parameters)
+    {
+        $t = app(\App\Services\TraceCollector::class);
+        $name = static::class . '@' . $method;
+
+        $start = microtime(true);
+        $result = parent::callAction($method, $parameters);
+        $durationMs = (microtime(true) - $start) * 1000;
+
+        // only add exit with duration (not enter)
+        $t->add($name . ':exit', 'controller', ['duration_ms' => $durationMs]);
+
+        return $result;
+    }
 }

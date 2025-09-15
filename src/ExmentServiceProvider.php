@@ -105,6 +105,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Middleware\TrustProxies::class,
         // \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
         // \Exceedone\Exment\Middleware\ExmentDebug::class,
+        \Exceedone\Exment\Middleware\RequestTraceMiddleware::class,
+
     ];
 
 

@@ -1849,3 +1849,55 @@ if (!function_exists('admin_exclusion_path')) {
         }
     }
 }
+if (!function_exists('trace_call')) {
+    /**
+     * Gọi 1 hàm và log thời gian chạy vào laravel.log
+     *
+     * @param  string   $label   Tên mô tả (ví dụ "Service@fetchData")
+     * @param  callable $fn      Hàm bạn muốn đo thời gian
+     * @param  array    $meta    Thông tin thêm (tùy chọn)
+     * @return mixed
+     */
+    function trace_call(string $label, callable $fn, array $meta = [])
+    {
+        $start = microtime(true);
+        try {
+            $result = $fn();
+            $ok = true;
+        } catch (\Throwable $e) {
+            $ok = false;
+            Log::error('trace_call.error', [
+                'label' => $label,
+                'error' => $e->getMessage(),
+                'meta' => $meta,
+            ]);
+            throw $e;
+        } finally {
+            $duration = round((microtime(true) - $start) * 1000, 3);
+            Log::info('trace_call', [
+                'label' => $label,
+                'duration_ms' => $duration,
+                'ok' => $ok ?? null,
+                'meta' => $meta,
+                'memory' => memory_get_usage(),
+            ]);
+        }
+        return $result;
+    }
+}
+
+if (!function_exists('tracePoint')) {
+    function tracePoint(string $label = '', array $context = []): void
+    {
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5);
+        // lấy stack gần nhất
+        $stack = collect($trace)->map(function ($t) {
+            return ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? '');
+        })->implode(' <- ');
+
+        Log::info('tracePoint', array_merge([
+            'label' => $label,
+            'stack' => $stack,
+        ], $context));
+    }
+}
