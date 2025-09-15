@@ -2759,6 +2759,12 @@ return [
         'expiration_date' => 'Expiration Date',
         'plan_user_limit' => 'User Limit',
         'plan_db_size_gb' => 'Data Size Limit',
+        'plan_s3_size_gb' => 'S3 Storage Usage',
+        's3_usage_breakdown' => 'S3 Usage Breakdown',
+        's3_refresh_button' => 'S3 Usage Refresh',
+        'refresh_s3_usage' => 'Refresh S3 Usage',
+        'refresh_ajax' => 'AJAX Refresh',
+        'plan_limit_exceeded'=> 'You have exceeded your plan limit.',
         
         'environment_settings' => 'Environment Settings',
         'language' => 'Language',

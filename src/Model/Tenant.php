@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Exceedone\Exment\Enums\TenantType;
+use Exceedone\Exment\Casts\SecretKeyEncrypted;
 
 class Tenant extends Model
 {
@@ -27,6 +28,7 @@ class Tenant extends Model
     protected $casts = [
         'plan_info' => 'array',
         'environment_settings' => 'array',
+        'token' => SecretKeyEncrypted::class,
     ];
 
     /**
@@ -85,5 +87,3 @@ class Tenant extends Model
         return $this;
     }
 }
-
-

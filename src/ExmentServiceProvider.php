@@ -143,6 +143,7 @@ class ExmentServiceProvider extends ServiceProvider
         'api.check_token'    => \Exceedone\Exment\Middleware\CheckBearerToken::class,
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
+        'admin.usage_limit'    => \Exceedone\Exment\Middleware\UsageLimit::class,
     ];
 
     /**
@@ -166,6 +167,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'admin.permission',
             'admin.session',
+            'admin.usage_limit'
         ],
         // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [

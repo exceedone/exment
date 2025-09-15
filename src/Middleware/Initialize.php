@@ -21,6 +21,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
+use Exceedone\Exment\Services\TenantUsageService;
 use Html;
 use PDO;
 
@@ -50,9 +51,20 @@ class Initialize
                 $tenantService = app(TenantService::class);
                 $check = $tenantService->checkSubdomainExists($subdomain);
                 if (is_array($check) && ($check['success'] ?? false) && (($check['data']['exists'] ?? false) === true)) {
-                    return response('This is subdomain '.$request->getHost(), 200);
+                    echo '<div style="
+                            position:fixed;
+                            left:16px;
+                            bottom:16px;
+                            z-index:9999;
+                            background:rgba(0,0,0,0.8);
+                            color:#fff;
+                            padding:8px 12px;
+                            border-radius:6px;
+                            font-size:14px;
+                            font-family:sans-serif;">This is subdomain '.$request->getHost().'</div>';
+                } else {
+                    return response('Subdomain not found', 404);
                 }
-                return response('Subdomain not found', 404);
             }
         }
 
@@ -110,13 +122,22 @@ class Initialize
 
     public static function initializeConfig($setDatabase = true)
     {
-        //// set from env
-        if (!is_null($env = config('exment.locale', env('APP_LOCALE')))) {
-            \App::setLocale($env);
+        $tenant = TenantUsageService::getCurrentTenant();
+        if($tenant) {
+            $environment_settings = (array)($tenant ? $tenant->environment_settings : []);
+            $locale = \data_get($environment_settings, 'language', config('exment.default_locale', 'ja'));
+            $tz = str_replace('_', '/', \data_get($environment_settings, 'timezone', config('exment.default_timezone', 'Asia_Tokyo')));
+        } else {
+            $locale = config('exment.locale', env('APP_LOCALE'));
+            $tz = config('exment.timezone', env('APP_TIMEZONE'));
         }
-        if (!is_null($env = config('exment.timezone', env('APP_TIMEZONE')))) {
-            Config::set('app.timezone', $env);
-            date_default_timezone_set($env);
+        // set from env
+        if (!is_null($locale)) {
+            \App::setLocale($locale);
+        }
+        if (!is_null($tz )) {
+            Config::set('app.timezone', $tz);
+            date_default_timezone_set($tz);
         }
 
 

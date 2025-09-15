@@ -2758,6 +2758,12 @@ return [
         'expiration_date' => '有効期限',
         'plan_user_limit' => 'ユーザー数',
         'plan_db_size_gb' => 'データ使用量',
+        'plan_s3_size_gb' => 'S3ストレージ使用量',
+        's3_usage_breakdown' => 'S3使用量詳細',
+        's3_refresh_button' => 'S3使用量更新',
+        'refresh_s3_usage' => 'S3使用量を更新',
+        'refresh_ajax' => 'AJAX更新',
+        'plan_limit_exceeded'=> 'ご利用中のプランの上限を超えました。',
         
         'environment_settings' => '環境設定',
         'language' => '言語',
