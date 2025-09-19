@@ -6,8 +6,9 @@
         <div class="float-start image">
             <img src="{{ Admin::user()->display_avatar }}" class="rounded-circle" alt="User Image">
         </div>
-        <div class="float-start info ms-2">
+        <div class="float-start info ms-2" style="line-height: 1;padding: 5px 5px 5px 5px;">
             <p>{{ Admin::user()->name }}</p>
+            <p class="small gray">&#064;{{ Admin::user()->user_code }}</p>
             {{ trans('admin.online') }}</a>
         </div>
     </div>
