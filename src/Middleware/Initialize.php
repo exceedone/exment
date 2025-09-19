@@ -47,21 +47,19 @@ class Initialize
                 // fall through to the existing logic
             } else {
                 // Otherwise, check subdomain against cached tenant subdomains
-                /** @var TenantService $tenantService */
-                $tenantService = app(TenantService::class);
-                $check = $tenantService->checkSubdomainExists($subdomain);
-                if (is_array($check) && ($check['success'] ?? false) && (($check['data']['exists'] ?? false) === true)) {
-                    echo '<div style="
-                            position:fixed;
-                            left:16px;
-                            bottom:16px;
-                            z-index:9999;
-                            background:rgba(0,0,0,0.8);
-                            color:#fff;
-                            padding:8px 12px;
-                            border-radius:6px;
-                            font-size:14px;
-                            font-family:sans-serif;">This is subdomain '.$request->getHost().'</div>';
+                // $check = $tenantService->checkSubdomainExists($subdomain);
+                if (true) {
+                    // echo '<div style="
+                    //         position:fixed;
+                    //         left:16px;
+                    //         bottom:16px;
+                    //         z-index:9999;
+                    //         background:rgba(0,0,0,0.8);
+                    //         color:#fff;
+                    //         padding:8px 12px;
+                    //         border-radius:6px;
+                    //         font-size:14px;
+                    //         font-family:sans-serif;">This is subdomain '.$request->getHost().'</div>';
                 } else {
                     return response('Subdomain not found', 404);
                 }

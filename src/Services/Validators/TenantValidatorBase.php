@@ -47,7 +47,6 @@ abstract class TenantValidatorBase
     {
         $validator = Validator::make($input, [
             'plan_info' => 'required|array',
-            'plan_info.name' => 'required|string|max:100',
             'plan_info.user_limit' => 'required|integer|min:1',
             'plan_info.db_size_gb' => 'required|integer|min:1',
             'plan_info.expired_at' => 'required|string|max:20',
@@ -56,7 +55,6 @@ abstract class TenantValidatorBase
             'plan_info.array' => 'Plan info must be an array',
             'plan_info.name.required' => 'Plan name is required',
             'plan_info.name.string' => 'Plan name must be a string',
-            'plan_info.name.max' => 'Plan name must not exceed 100 characters',
             'plan_info.user_limit.required' => 'User limit is required',
             'plan_info.user_limit.integer' => 'User limit must be an integer',
             'plan_info.user_limit.min' => 'User limit must be at least 1',

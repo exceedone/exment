@@ -65,7 +65,7 @@ class TenantSettingsController extends AdminControllerBase
                 $limit = (int)$limit;
                 $used = (int)$usedUsers;
                 $percent = $limit > 0 ? min(100, (int)round($used * 100 / $limit)) : 0;
-                $label = "{$used} / {$limit} ユーザー";
+                $label = "{$used} / {$limit} ". exmtrans('user.default_table_name');
                 return "<div class=\"progress progress-aqua progress-input\" style=\"position: relative;margin-bottom: 0;\"><div class=\"progress-bar progress-bar-aqua\" style=\"width: {$percent}%\"></div><div style=\"position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; color: #333; font-weight: bold;\">{$label}</div></div>";
             })
             ->escape(false)
@@ -81,92 +81,6 @@ class TenantSettingsController extends AdminControllerBase
             })
             ->escape(false)
             ->default(\data_get($planInfo, 'db_size_gb'));
-
-        // S3 Storage usage display
-        // $s3Limit = 1;
-        // $form->display('plan_s3_size_gb', exmtrans('tenant.plan_s3_size_gb'))
-        //     ->displayText(function () use ($s3Limit, $usedS3SizeGb) {
-        //         $limit = (float)$s3Limit;
-        //         $used = (float)$usedS3SizeGb;
-        //         $percent = $limit > 0 ? min(100, (int)round($used * 100 / $limit)) : 0;
-        //         $label = "{$used} / {$limit} GB";
-        //         $barColor = $percent > 80 ? 'progress-bar-danger' : ($percent > 60 ? 'progress-bar-warning' : 'progress-bar-success');
-        //         return "<div class=\"progress progress-aqua progress-input\" style=\"position: relative;margin-bottom: 0;\"><div class=\"progress-bar {$barColor}\" style=\"width: {$percent}%\"></div><div style=\"position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; color: #333; font-weight: bold;\">{$label}</div></div>";
-        //     })
-        //     ->escape(false)
-        //     ->default(\data_get($planInfo, 's3_size_gb', 0));
-
-        // // S3 Usage refresh button
-        // $form->display('s3_refresh_button', exmtrans('tenant.s3_refresh_button'))
-        //     ->displayText(function () {
-        //         $refreshUrl = \admin_url('tenant/settings/refresh-s3-usage');
-        //         $ajaxUrl = \admin_url('tenant/settings/s3-usage');
-        //         return '<div class="s3-refresh-section" style="margin: 10px 0;">
-        //             <a href="' . $refreshUrl . '" class="btn btn-primary btn-sm">
-        //                 <i class="fa fa-refresh"></i> ' . exmtrans('tenant.refresh_s3_usage') . '
-        //             </a>
-        //             <button type="button" class="btn btn-info btn-sm" onclick="refreshS3UsageAjax()" style="margin-left: 10px;">
-        //                 <i class="fa fa-refresh"></i> ' . exmtrans('tenant.refresh_ajax') . '
-        //             </button>
-        //             <span id="s3-refresh-status" style="margin-left: 10px;"></span>
-        //         </div>
-        //         <script>
-        //         function refreshS3UsageAjax() {
-        //             var statusEl = document.getElementById("s3-refresh-status");
-        //             statusEl.innerHTML = "<i class=\"fa fa-spinner fa-spin\"></i> Refreshing...";
-
-        //             fetch("' . $ajaxUrl . '?refresh=1")
-        //                 .then(response => response.json())
-        //                 .then(data => {
-        //                     if (data.success) {
-        //                         statusEl.innerHTML = "<span style=\"color: green;\"><i class=\"fa fa-check\"></i> Refreshed successfully</span>";
-        //                         setTimeout(() => {
-        //                             location.reload();
-        //                         }, 1000);
-        //                     } else {
-        //                         statusEl.innerHTML = "<span style=\"color: red;\"><i class=\"fa fa-times\"></i> Error: " + data.message + "</span>";
-        //                     }
-        //                 })
-        //                 .catch(error => {
-        //                     statusEl.innerHTML = "<span style=\"color: red;\"><i class=\"fa fa-times\"></i> Error: " + error.message + "</span>";
-        //                 });
-        //         }
-        //         </script>';
-        //     })
-        //     ->escape(false);
-
-        // // Detailed S3 usage breakdown
-        // if ($s3UsageResult['success']) {
-        //     $s3Data = $s3UsageResult['data']['s3_usage'];
-        //     $form->display('s3_usage_breakdown', exmtrans('tenant.s3_usage_breakdown'))
-        //         ->displayText(function () use ($s3Data) {
-        //             $html = '<div class="s3-usage-breakdown" style="margin-top: 10px;">';
-        //             $html .= '<table class="table table-striped table-condensed" style="margin-bottom: 0;">';
-        //             $html .= '<thead><tr><th>Bucket</th><th>Size (MB)</th><th>Objects</th></tr></thead>';
-        //             $html .= '<tbody>';
-
-        //             foreach (['exment', 'backup', 'template', 'plugin'] as $type) {
-        //                 if (isset($s3Data[$type]) && $s3Data[$type]['bucket']) {
-        //                     $bucketData = $s3Data[$type];
-        //                     $html .= '<tr>';
-        //                     $html .= '<td>' . ucfirst($type) . ' (' . $bucketData['bucket'] . ')</td>';
-        //                     $html .= '<td>' . $bucketData['total_size_mb'] . '</td>';
-        //                     $html .= '<td>' . $bucketData['object_count'] . '</td>';
-        //                     $html .= '</tr>';
-        //                 }
-        //             }
-
-        //             $html .= '<tr style="font-weight: bold; background-color: #f5f5f5;">';
-        //             $html .= '<td>Total</td>';
-        //             $html .= '<td>' . $s3Data['total']['total_size_mb'] . '</td>';
-        //             $html .= '<td>-</td>';
-        //             $html .= '</tr>';
-        //             $html .= '</tbody></table>';
-        //             $html .= '</div>';
-        //             return $html;
-        //         })
-        //         ->escape(false);
-        // }
 
         // Environment settings (editable)
         $form->exmheader(exmtrans('tenant.environment_settings'))->hr();
@@ -212,48 +126,5 @@ class TenantSettingsController extends AdminControllerBase
             throw $e;
         }
     }
-
-    // /**
-    //  * Refresh S3 usage cache
-    //  * GET /tenant/settings/refresh-s3-usage
-    //  */
-    // public function refreshS3Usage(Request $request)
-    // {
-    //     try {
-    //         $result = TenantUsageService::setS3Usage();
-
-    //         if ($result['success']) {
-    //             \admin_toastr('S3 usage refreshed successfully', 'success');
-    //         } else {
-    //             \admin_toastr('Failed to refresh S3 usage: ' . $result['message'], 'error');
-    //         }
-
-    //         return \redirect(\admin_url('tenant/settings'));
-    //     } catch (\Exception $e) {
-    //         \admin_toastr('Error refreshing S3 usage: ' . $e->getMessage(), 'error');
-    //         return \redirect(\admin_url('tenant/settings'));
-    //     }
-    // }
-
-    // /**
-    //  * Get S3 usage data via AJAX
-    //  * GET /tenant/settings/s3-usage
-    //  */
-    // public function getS3Usage(Request $request)
-    // {
-    //     try {
-    //         $forceRefresh = $request->get('refresh', false);
-    //         $result = TenantUsageService::getS3Usage($forceRefresh);
-
-    //         return response()->json($result);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'error' => 'GET_S3_USAGE_FAILED',
-    //             'message' => 'Failed to get S3 usage: ' . $e->getMessage(),
-    //             'status' => 500
-    //         ], 500);
-    //     }
-    // }
 
 }

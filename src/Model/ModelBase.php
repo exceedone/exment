@@ -2,9 +2,11 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\Traits\SerializeDateTrait;
 use Illuminate\Database\Eloquent\Model;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\TenantInfoService;
 
 /**
  * @property mixed $id
@@ -112,6 +114,18 @@ class ModelBase extends Model
 
         ///// add created_user_id, updated_user_id
         static::creating(function ($model) {
+            if ($model->custom_table && $model->custom_table->table_name === SystemTableName::USER) {
+                
+                $tenantInfo = TenantInfoService::getCurrentTenantInfo();
+                $max_count = (int) \data_get($tenantInfo, 'data.user_limit', 0);
+                $current_count = $model->custom_table->getValueModel()
+                    ->withoutGlobalScopes()
+                    ->count();
+                    
+                if ($max_count > 0 && $current_count != $max_count) {
+                    throw new \Exception(exmtrans('tenant.cannot_create_more_users', ['max_count' => $max_count]), ErrorCode::ERROR_CODE_CREATE_USER);
+                }
+            }
             static::setUser($model, ['created_user_id', 'updated_user_id']);
         });
         static::updating(function ($model) {

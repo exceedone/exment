@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Middleware;
 
 use Closure;
+use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -11,36 +13,42 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Exceedone\Exment\Services\TenantUsageService;
 use Exceedone\Exment\Model\Tenant;
+use Exceedone\Exment\Services\TenantInfoService;
 
 class UsageLimit
 {
     public function handle($request, Closure $next)
     {
         try {
+            if (!$this->shouldCheckUsage($request)) {
+                return $next($request);
+            }
+            $tenantInfo = TenantInfoService::getCurrentTenantInfo();
+            if (!($tenantInfo['success'] ?? false)) {
+                return $this->planLimitNotSetResponse($request);
+            }
+            // todo add check subdomain exist db cache
             $context = TenantUsageService::getCurrentSubdomainWithUsage();
             if (!$context['success']) {
                 return $next($request);
             }
-
-            if (!$this->shouldCheckUsage($request)) {
-                return $next($request);
-            }
-
             $subdomain = $context['data']['subdomain'];
-            $tenantRow = TenantUsageService::getCurrentTenant($subdomain);
-            if (!$tenantRow) {
-                return $this->tenantNotFoundResponse($request);
-            }
 
-            $planLimitGb = $this->extractPlanLimitGb($tenantRow);
-            if ($planLimitGb <= 0) {
-                return $this->planLimitNotSetResponse($request);
+            if (isMatchRequest(TenantUsageService::LINK_CREATE_USER)) {
+                $limit = (int) \data_get($tenantInfo, 'data.user_limit', 0);
+                if($limit > 0) {
+                    $usedUsers = getModelName(SystemTableName::USER)::query()->count();
+                    if ($usedUsers >= $limit) {
+                        return $this->limitExceededResponse($request);
+                    }
+                }
             }
-
+            $planLimitGb = (int) \data_get($tenantInfo, 'data.db_size_gb', 0);
             $currentBytes = (int) $context['data']['total_usage_bytes'];
             $incomingBytes = $this->estimateIncomingBytes($request);
             $projectedBytes = $currentBytes + $incomingBytes;
             $limitBytes = (int) round($planLimitGb * 1024 * 1024 * 1024);
+            //dd($currentBytes);
 
             if ($projectedBytes > $limitBytes) {
                 return $this->limitExceededResponse($request);
@@ -49,9 +57,7 @@ class UsageLimit
             $this->cacheProjectedUsage($subdomain, $projectedBytes);
             return $next($request);
         } catch (\Throwable $e) {
-            Log::error('UsageLimit middleware failed', [
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('UsageLimit middleware failed '. $e->getTraceAsString());
             if ($request->pjax()) {
                 admin_toastr('Usage limit check failed', 'error');
                 return redirect($request->header('referer', '/'))->withInput();
@@ -116,13 +122,21 @@ class UsageLimit
 
     protected function shouldCheckUsage($request): bool
     {
+        if (isMatchRequest(TenantUsageService::LINK_TENANT_SETTING)) {
+            return false;
+        }
+        if (isMatchRequest(TenantUsageService::LINK_CREATE_USER)) {
+            return true;
+        }
         $files = (array) ($request->allFiles() ?? []);
         $contentType = strtolower((string) ($request->header('Content-Type') ?? ''));
         $hasFiles = !empty($files);
         $isUpload = $hasFiles
             || (strpos($contentType, 'multipart/form-data') !== false)
             || (strpos($contentType, 'application/octet-stream') !== false);
-
+        if ($isUpload) {
+            return true;
+        }
         $method = strtoupper((string) $request->method());
         // check isLargeWritePayload
         $contentLength = (int) ($request->header('Content-Length') ?? 0);
@@ -132,15 +146,23 @@ class UsageLimit
         return $isUpload || $isLargeWritePayload;
     }
 
-    protected function extractPlanLimitGb($tenantRow): float
+    protected function extractPlanInfo($tenantRow)
     {
         $planInfo = [];
         if (isset($tenantRow->plan_info)) {
-            $decoded = json_decode($tenantRow->plan_info, true);
-            if (is_array($decoded)) {
-                $planInfo = $decoded;
+            if(!is_array($tenantRow->plan_info)) {
+                $decoded = json_decode($tenantRow->plan_info, true);
+                if (is_array($decoded)) {
+                    $planInfo = $decoded;
+                }
+            } else {
+                $planInfo = $tenantRow->plan_info;
             }
         }
+        return $planInfo;
+    }
+    protected function extractPlanLimitGb($planInfo): float
+    {
         return (float) ($planInfo['db_size_gb'] ?? 0);
     }
 
@@ -166,13 +188,13 @@ class UsageLimit
     protected function planLimitNotSetResponse($request)
     {
         if ($request->pjax()) {
-            admin_toastr('Plan limit (db_size_gb) is not set', 'error');
+            admin_toastr('Plan limit is not set', 'error');
             return redirect($request->header('referer', '/'))->withInput();
         }
         return new JsonResponse([
             'success' => false,
             'error' => 'PLAN_LIMIT_NOT_SET',
-            'message' => 'Plan limit (db_size_gb) is not set'
+            'message' => 'Plan limit is not set'
         ], 403);
     }
 

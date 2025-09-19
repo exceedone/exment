@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\TenantUsageService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -82,8 +83,8 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('system/call_update', 'SystemController@callUpdate');
             // Tenant settings
-            $router->get('tenant/settings', 'TenantSettingsController@index');
-            $router->post('tenant/settings', 'TenantSettingsController@post');
+            $router->get(TenantUsageService::LINK_TENANT_SETTING, 'TenantSettingsController@index');
+            $router->post(TenantUsageService::LINK_TENANT_SETTING, 'TenantSettingsController@post');
 
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');

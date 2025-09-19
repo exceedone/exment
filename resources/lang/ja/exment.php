@@ -2764,6 +2764,7 @@ return [
         'refresh_s3_usage' => 'S3使用量を更新',
         'refresh_ajax' => 'AJAX更新',
         'plan_limit_exceeded'=> 'ご利用中のプランの上限を超えました。',
+        'cannot_create_more_users' => 'これ以上ユーザーを作成できません。最大 :max_count ユーザーに達しています。',
         
         'environment_settings' => '環境設定',
         'language' => '言語',

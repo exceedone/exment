@@ -2765,6 +2765,7 @@ return [
         'refresh_s3_usage' => 'Refresh S3 Usage',
         'refresh_ajax' => 'AJAX Refresh',
         'plan_limit_exceeded'=> 'You have exceeded your plan limit.',
+        'cannot_create_more_users' => 'Cannot create additional users. The maximum of :max_count users has been reached.',
         
         'environment_settings' => 'Environment Settings',
         'language' => 'Language',

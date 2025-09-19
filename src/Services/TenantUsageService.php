@@ -13,6 +13,8 @@ use Aws\Exception\AwsException;
 class TenantUsageService
 {
     public const CACHE_TIME_SECONDS = 30;
+    public const LINK_CREATE_USER = 'data/user/create';
+    public const LINK_TENANT_SETTING = 'tenant/settings';
     /**
      * Get usage cache key for tenant total usage
      *
