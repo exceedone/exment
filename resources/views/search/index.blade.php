@@ -6,9 +6,9 @@
 
     <div class="box-body p-3">
         @foreach($tables as $table)
-        <div class="box box-search card p-3 mb-4 border-start-0 border-end-0" style="{{ $table['box_sytle'] }}" data-box_key="{{ $table['box_key'] }}">
+        <div class="box box-search card mb-4 border-start-0 border-end-0" style="{{ $table['box_sytle'] }}" data-box_key="{{ $table['box_key'] }}">
             <div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>
-            <div class="box-header with-border d-flex justify-content-between">
+            <div class="box-header with-border d-flex ">
                 <h3 class="box-title">
                     @if(isset($table['icon']))
                     <i class="fa {{ $table['icon'] }}"></i>

@@ -3892,9 +3892,9 @@ table img.image_html:hover {
   .navbar .search-form {
     width: 100%;
     margin-left: -42px;
-    padding-left: 47px;
+    padding-left: 47px !important;
     margin-right: -55px;
-    padding-right: 60px;
+    padding-right: 60px !important;
     max-width: 100000px;
     padding: 10px 0;
   }

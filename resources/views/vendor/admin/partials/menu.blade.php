@@ -1,24 +1,25 @@
 @if(Admin::user()->visible($item))
     @if(!isset($item['children']))
-        <li class="menu-item p-0" data-uri="{{ $item['uri'] }}">
+        <li>
             @if(url()->isValidUrl($item['uri']))
-                <a href="{{ $item['uri'] }}" target="_blank" class="ps-3 py-2">
+                <a href="{{ $item['uri'] }}" target="_blank">
             @else
-                <a href="{{ admin_url($item['uri']) }}" class="ps-3 py-2">
+                 <a href="{{ admin_url($item['uri']) }}">
             @endif
                 <i class="fa {{$item['icon']}}"></i>
                 <span>{{$item['title']}}</span>
             </a>
         </li>
     @else
-        <li class="treeview menu-item p-0" data-uri="{{ $item['uri'] }}">
-            <a href="javascript:void(0)" id="toggle-submenu-{{$item['id']}}" class="has-subs p-3" data-target="#submenu-{{$item['id']}}" role="button">
+        <li class="treeview">
+            <a href="#">
                 <i class="fa {{$item['icon']}}"></i>
                 <span>{{$item['title']}}</span>
+                <i class="fa fa-angle-left pull-right"></i>
             </a>
-            <ul id="submenu-{{$item['id']}}" class="submenu list-unstyled fw-normal pb-1 mt-0 ms-2" style="display: none;">
-                @foreach($item['children'] as $child)
-                    @include('admin::partials.menu', ['item' => $child])
+            <ul class="treeview-menu">
+                @foreach($item['children'] as $item)
+                    @include('admin::partials.menu', $item)
                 @endforeach
             </ul>
         </li>

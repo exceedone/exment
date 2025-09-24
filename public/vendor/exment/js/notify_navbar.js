@@ -51,8 +51,8 @@ var Exment;
                             let d = data.items[i];
                             const isNew = $.inArray(d.id, this.notify_navbar_ids) === -1;
                             let li = $('<li/>', {
-                                class: 'p-3 truncate',
-                                style: 'border-bottom: 1px solid #dee2e6;',
+                                class: '',
+                                style: ';',
                                 html: $('<a/>', {
                                     href: hasValue(d.href) ? d.href : 'javascript:void(0);',
                                     html: [
