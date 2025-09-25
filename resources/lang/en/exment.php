@@ -2247,6 +2247,7 @@ return [
         'menu_target_view' => 'Target View',
         'menu_name' => 'Menu Name',
         'title' => 'Menu View Name',
+        'title_en' => 'Menu View Name (English)',
         'menu_type_options' => [
             'system' => 'System Menu',
             'plugin' => 'Plugin',

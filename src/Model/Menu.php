@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
  * @property mixed $menu_type
  * @property mixed $parent_id
  * @property mixed $title
+ * @property mixed $title_en
  * @property mixed $uri
  *
  * @method where($parent_id, $id)
@@ -46,7 +47,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         'uniqueKeys' => ['menu_type', 'menu_name'],
         'langs' => [
             'keys' => ['menu_type', 'menu_name'],
-            'values' => ['title'],
+            'values' => ['title', 'title_en'],
         ],
         'uniqueKeyReplaces' => [
             [
@@ -89,6 +90,48 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public function getMenuTargetViewAttribute()
     {
         return $this->getOption('menu_target_view', false);
+    }
+
+    /**
+     * Get title based on current locale
+     * If locale is 'en' and title_en is not empty, return title_en
+     * Otherwise return title
+     *
+     * @return string
+     */
+    public function getLocalizedTitleAttribute()
+    {
+        $currentLocale = app()->getLocale();
+        
+        if ($currentLocale === 'en' && !empty($this->title_en)) {
+            return $this->title_en;
+        }
+        
+        return $this->title;
+    }
+
+    /**
+     * Get localized title for a row in allNodes method
+     * 
+     * @param array $row
+     * @return string
+     */
+    protected function getLocalizedTitleForRow($row)
+    {
+        $currentLocale = app()->getLocale();
+        
+        // If locale is 'en' and title_en is not empty, return title_en
+        if ($currentLocale === 'en' && !empty($row['title_en'])) {
+            return $row['title_en'];
+        }
+        
+        // For SYSTEM menu type, we might need to get translated title
+        if ($row['menu_type'] === MenuType::SYSTEM) {
+            return exmtrans("menu.system_definitions." . $row['menu_name']);
+        }
+        
+        // Return original title
+        return $row['title'];
     }
 
     public function setMenuTargetViewAttribute($value)
@@ -205,6 +248,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             if (!$result) {
                 continue;
             }
+
+            // Apply localized title based on current locale
+            $row['title'] = $this->getLocalizedTitleForRow($row);
+            
             $results[] = $row;
         }
 

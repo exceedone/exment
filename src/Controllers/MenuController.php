@@ -114,8 +114,9 @@ class MenuController extends AdminControllerBase
                         break;
                 }
 
-                // escape html
-                $branch['title'] = esc_html($branch['title']);
+                // escape html and use localized title
+                $localizedTitle = $this->getLocalizedTitleForBranch($branch);
+                $branch['title'] = esc_html($localizedTitle);
                 $payload = "<i class='fa {$icon}'></i>&nbsp;<strong>{$branch['title']}</strong>";
 
                 if (!isset($branch['children'])) {
@@ -226,6 +227,7 @@ class MenuController extends AdminControllerBase
             $form->display('menu_name', exmtrans("menu.menu_name"));
         }
         $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
+        $form->text('title_en', exmtrans("menu.title_en"))->rules("max:40");
         $form->icon('icon', trans('admin.icon'))->required()->default('');
         $form->hidden('order');
 
@@ -357,6 +359,7 @@ class MenuController extends AdminControllerBase
                 $result = [
                     'menu_name' => $value,
                     'title' => exmtrans("menu.system_definitions.".$value),
+                    'title_en' => exmtrans("menu.system_definitions.".$value, [], 'en'),
                     'icon' => array_get($item, 'icon'),
                     'uri' => array_get($item, 'uri'),
                 ];
@@ -366,6 +369,7 @@ class MenuController extends AdminControllerBase
                 $result = [
                     'menu_name' => array_get($item, 'plugin_name'),
                     'title' => array_get($item, 'plugin_view_name'),
+                    'title_en' => array_get($item, 'plugin_view_name'), // Plugin names are usually in English
                     'icon' => array_get($item, 'options.icon'),
                     'uri' => $item->getRouteUri(),
                 ];
@@ -375,6 +379,7 @@ class MenuController extends AdminControllerBase
                 $result = [
                     'menu_name' => array_get($item, 'table_name'),
                     'title' => array_get($item, 'table_view_name'),
+                    'title_en' => array_get($item, 'table_view_name'), // Use same as title for custom tables
                     'icon' => array_get($item, 'options.icon'),
                     'uri' => array_get($item, 'table_name'),
                 ];
@@ -383,6 +388,7 @@ class MenuController extends AdminControllerBase
                 $result = [
                     'menu_name' => '',
                     'title' => '',
+                    'title_en' => '',
                     'icon' => '',
                     'uri' => '',
                 ];
@@ -391,6 +397,7 @@ class MenuController extends AdminControllerBase
                 $result = [
                     'menu_name' => '',
                     'title' => '',
+                    'title_en' => '',
                     'icon' => '',
                     'uri' => '#',
                 ];
@@ -457,5 +464,29 @@ class MenuController extends AdminControllerBase
         }
 
         return $menu_type;
+    }
+
+    /**
+     * Get localized title for a branch in treeView method
+     * 
+     * @param array $branch
+     * @return string
+     */
+    protected function getLocalizedTitleForBranch($branch)
+    {
+        $currentLocale = app()->getLocale();
+        
+        // If locale is 'en' and title_en is not empty, return title_en
+        if ($currentLocale === 'en' && !empty($branch['title_en'])) {
+            return $branch['title_en'];
+        }
+        
+        // For SYSTEM menu type, we might need to get translated title
+        if ($branch['menu_type'] === MenuType::SYSTEM) {
+            return exmtrans("menu.system_definitions." . $branch['menu_name']);
+        }
+        
+        // Return original title
+        return $branch['title'];
     }
 }

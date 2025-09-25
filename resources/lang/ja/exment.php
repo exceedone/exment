@@ -2248,6 +2248,7 @@ return [
         'menu_target_view' => '表示ビュー',
         'menu_name' => 'メニュー名(英数字)',
         'title' => 'メニュー表示名',
+        'title_en' => 'メニュー表示名(英語)',
         'menu_type_options' => [
             'system' => 'システムメニュー',
             'plugin' => 'プラグイン',
