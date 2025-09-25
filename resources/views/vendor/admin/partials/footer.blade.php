@@ -1,5 +1,5 @@
 <!-- Main Footer -->
-<footer class="app-footer d-flex justify-content-between align-items-center">
+<footer class="main-footer  d-flex justify-content-between align-items-center">
     
 
     <!-- To the left -->
