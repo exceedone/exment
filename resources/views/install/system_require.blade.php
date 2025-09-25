@@ -31,7 +31,7 @@
                 <form action="{{ admin_url('install') }}" method="post" id="form_next" class="check_has_warning">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <input type="hidden" id="has_warning" value="{{$checkResult->hasResultWarning()}}">
-                <button type="submit" class="btn btn-primary btn-block w-100" {{$checkResult->hasResultNg() ? 'disabled' : ''}}>
+                <button style="background-color: #3c8dbc;border-color: #367fa9;" type="submit" class="btn btn-primary btn-block w-100" {{$checkResult->hasResultNg() ? 'disabled' : ''}}>
                     {{ trans('admin.next') }}
                 </button>
                 </form>

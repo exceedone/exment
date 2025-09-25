@@ -36,7 +36,7 @@
                 
                 <div class="col-xs-12 col-sm-8">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary btn-block w-100">{{ exmtrans('install.installing.installing') }}</button>
+                    <button style="background-color: #3c8dbc;border-color: #367fa9;" type="submit" class="btn btn-primary btn-block w-100">{{ exmtrans('install.installing.installing') }}</button>
                 </div>
                 <!-- /.col -->
             </div>

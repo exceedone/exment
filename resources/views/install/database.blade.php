@@ -79,7 +79,7 @@
                 
                 <div class="col-xs-12 col-sm-8">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary w-100">{{ trans('admin.next') }}</button>
+                    <button style="background-color: #3c8dbc;border-color: #367fa9;" type="submit" class="btn btn-primary w-100">{{ trans('admin.next') }}</button>
                 </div>
                 <!-- /.col -->
             </div>

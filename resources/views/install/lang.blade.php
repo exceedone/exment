@@ -50,7 +50,7 @@
         <div class="row">
             <div class="col-12 col-sm-8 offset-sm-2 d-flex justify-content-start">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-primary w-100 btn-install-next">{{ trans('admin.next') }}</button>
+                <button style="background-color: #3c8dbc;border-color: #367fa9;" type="submit" class="btn btn-primary w-100 btn-install-next">{{ trans('admin.next') }}</button>
             </div>
         </div>
     </form>
