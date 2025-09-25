@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Middleware;
 
+use Exceedone\Exment\Services\TenantInfoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Services\TenantService;
@@ -120,9 +121,9 @@ class Initialize
 
     public static function initializeConfig($setDatabase = true)
     {
-        $tenant = TenantUsageService::getCurrentTenant();
+        $tenant = TenantInfoService::getTenantBySubdomain();
         if($tenant) {
-            $environment_settings = (array)($tenant ? $tenant->environment_settings : []);
+            $environment_settings = (array)($tenant ? $tenant['environment_settings'] : []);
             $locale = \data_get($environment_settings, 'language', config('exment.default_locale', 'ja'));
             $tz = str_replace('_', '/', \data_get($environment_settings, 'timezone', config('exment.default_timezone', 'Asia_Tokyo')));
         } else {

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\Tenant;
+use Exceedone\Exment\Services\TenantInfoService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -18,13 +19,13 @@ class TenantUsageService
     /**
      * Get usage cache key for tenant total usage
      *
-     * @param string|null $subdomain
+     * @param $subdomain
      * @return string
      */
-    public static function getUsageCacheKey(?string $subdomain = null): string
+    public static function getUsageCacheKey($subdomain = null): string
     {
         if (!$subdomain) {
-            $subdomain = self::getCurrentSubdomain();
+            $subdomain = TenantInfoService::getCurrentSubdomain();
         }
 
         return "tenant_total_usage_bytes_{$subdomain}";
@@ -36,18 +37,9 @@ class TenantUsageService
      *
      * @return array
      */
-    public static function getCurrentSubdomainWithUsage(): array
+    public static function getCurrentSubdomainWithUsage($subdomain): array
     {
         try {
-            $subdomain = self::getCurrentSubdomain();
-            if (!$subdomain) {
-                return [
-                    'success' => false,
-                    'error' => 'SUBDOMAIN_NOT_FOUND',
-                    'message' => 'Current subdomain not found',
-                    'status' => 404
-                ];
-            }
 
             $usageCacheKey = self::getUsageCacheKey($subdomain);
             $cachedUsage = Cache::get($usageCacheKey);
@@ -101,48 +93,6 @@ class TenantUsageService
     }
 
     /**
-     * Get current subdomain from request or config
-     *
-     * @return string|null
-     */
-    public static function getCurrentSubdomain(): ?string
-    {
-        try {
-            $host = request()->getHost();
-            $baseDomain = Config::get('exment.tenant.base_domain');
-
-            if ($baseDomain && substr($host, -strlen('.' . $baseDomain)) === '.' . $baseDomain) {
-                return str_replace('.' . $baseDomain, '', $host);
-            }
-            return null;
-            // return 'tenant2';
-        } catch (\Exception $e) {
-            Log::error('Failed to get current subdomain', [
-                'error' => $e->getMessage()
-            ]);
-            return null;
-        }
-    }
-    public static function getCurrentTenant($subdomain = null)
-    {
-        try {
-            if (!$subdomain) {
-                $subdomain = self::getCurrentSubdomain();
-            }
-            if ($subdomain) {
-                return Tenant::where('subdomain', $subdomain)->first();
-            }
-
-            return null;
-        } catch (\Exception $e) {
-            Log::error('Failed to get current subdomain', [
-                'error' => $e->getMessage()
-            ]);
-            return null;
-        }
-    }
-
-    /**
      * Get database usage from cache for current subdomain
      * If not cached, calculate and set it
      *
@@ -153,7 +103,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = self::getCurrentSubdomain();
+                $subdomain = TenantInfoService::getCurrentSubdomain();
             }
             if (!$subdomain) {
                 return [
@@ -204,7 +154,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = self::getCurrentSubdomain();
+                $subdomain = TenantInfoService::getCurrentSubdomain();
             }
 
             if (!$subdomain) {
@@ -294,13 +244,13 @@ class TenantUsageService
     protected static function getDatabaseNameForSubdomain(string $subdomain): ?string
     {
         try {
-            $tenant = Tenant::where('subdomain', $subdomain)->first();
-            if (!$tenant) {
+            $tenantArray = TenantInfoService::getTenantBySubdomain();
+            if (!$tenantArray) {
                 return null;
             }
 
-            if (isset($tenant->plan_info['database_name'])) {
-                return $tenant->plan_info['database_name'];
+            if (isset($tenantArray['plan_info']['database_name'])) {
+                return $tenantArray['plan_info']['database_name'];
             }
 
             $defaultDbName = Config::get('database.connections.' . Config::get('database.default') . '.database');
@@ -397,7 +347,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = self::getCurrentSubdomain();
+                $subdomain = TenantInfoService::getCurrentSubdomain();
             }
 
             if (!$subdomain) {
@@ -450,7 +400,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = self::getCurrentSubdomain();
+                $subdomain = TenantInfoService::getCurrentSubdomain();
             }
             if (!$subdomain) {
                 return [
@@ -496,7 +446,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = self::getCurrentSubdomain();
+                $subdomain = TenantInfoService::getCurrentSubdomain();
             }
 
             if (!$subdomain) {
@@ -712,7 +662,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = self::getCurrentSubdomain();
+                $subdomain = TenantInfoService::getCurrentSubdomain();
             }
 
             if (!$subdomain) {
@@ -756,11 +706,11 @@ class TenantUsageService
     /**
      * Get combined usage (database + S3) for current subdomain
      *
-     * @param string|null $subdomain
+     * @param $subdomain
      * @param bool $forceRefreshS3 Force refresh S3 cache
      * @return array
      */
-    public static function getCombinedUsage(?string $subdomain = null, bool $forceRefreshS3 = false): array
+    public static function getCombinedUsage($subdomain = null, bool $forceRefreshS3 = false): array
     {
         try {
             $dbUsage = self::getDbUsage($subdomain);

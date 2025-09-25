@@ -2770,6 +2770,7 @@ return [
         'environment_settings' => '環境設定',
         'language' => '言語',
         'timezone' => 'タイムゾーン',
+        '404' => 'サブドメインが見つかりません',
         
         'help' => [
             'language' => 'システムの表示言語を選択してください',

@@ -23,19 +23,19 @@ class UsageLimit
             if (!$this->shouldCheckUsage($request)) {
                 return $next($request);
             }
-            $tenantInfo = TenantInfoService::getCurrentTenantInfo();
-            if (!($tenantInfo['success'] ?? false)) {
-                return $this->planLimitNotSetResponse($request);
-            }
-            // todo add check subdomain exist db cache
-            $context = TenantUsageService::getCurrentSubdomainWithUsage();
-            if (!$context['success']) {
+            $tenantInfo = TenantInfoService::getTenantBySubdomain();
+            if (!$tenantInfo) {
                 return $next($request);
             }
-            $subdomain = $context['data']['subdomain'];
+            
+            $subdomain = $tenantInfo['subdomain'];            
+            $context = TenantUsageService::getCurrentSubdomainWithUsage($subdomain);
+            if (!($context['success'] ?? false)) {
+                return $next($request);
+            }
 
             if (isMatchRequest(TenantUsageService::LINK_CREATE_USER)) {
-                $limit = (int) \data_get($tenantInfo, 'data.user_limit', 0);
+                $limit = (int) \data_get($tenantInfo, 'plan_info.user_limit', 0);
                 if($limit > 0) {
                     $usedUsers = getModelName(SystemTableName::USER)::query()->count();
                     if ($usedUsers >= $limit) {
@@ -43,7 +43,7 @@ class UsageLimit
                     }
                 }
             }
-            $planLimitGb = (int) \data_get($tenantInfo, 'data.db_size_gb', 0);
+            $planLimitGb = (int) \data_get($tenantInfo, 'plan_info.db_size_gb', 0);
             $currentBytes = (int) $context['data']['total_usage_bytes'];
             $incomingBytes = $this->estimateIncomingBytes($request);
             $projectedBytes = $currentBytes + $incomingBytes;
@@ -79,10 +79,10 @@ class UsageLimit
         $bytes = 0;
 
         // Raw content length if available
-        $contentLength = (int) ($request->header('Content-Length') ?? 0);
-        if ($contentLength > 0) {
-            $bytes = max($bytes, $contentLength);
-        }
+        // $contentLength = (int) ($request->header('Content-Length') ?? 0);
+        // if ($contentLength > 0) {
+        //     $bytes = max($bytes, $contentLength);
+        // }
 
         // Sum uploaded file sizes
         try {

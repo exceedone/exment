@@ -2771,6 +2771,7 @@ return [
         'environment_settings' => 'Environment Settings',
         'language' => 'Language',
         'timezone' => 'Time Zone',
+        '404' => 'Subdomain not found',
         
         'help' => [
             'language' => 'Select the display language for the system',

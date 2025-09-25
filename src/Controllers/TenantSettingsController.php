@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\SystemLocale;
 use Exceedone\Exment\Enums\Timezone;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Tenant;
+use Exceedone\Exment\Services\TenantInfoService;
 use Exceedone\Exment\Services\TenantUsageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,9 +26,9 @@ class TenantSettingsController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
-        $tenant = TenantUsageService::getCurrentTenant();
+        $tenant = TenantInfoService::getTenantBySubdomain();
         if (!$tenant) {
-            return "";
+            return response(exmtrans('tenant.404'), 404);
         }
         $this->AdminContent($content);
 
@@ -41,13 +42,13 @@ class TenantSettingsController extends AdminControllerBase
     protected function formBasic(Request $request, $tenant): WidgetForm
     {
 
-        $planInfo = (array)($tenant ? $tenant->plan_info : []);
-        $env = (array)($tenant ? $tenant->environment_settings : []);
+        $planInfo = (array)($tenant ? $tenant['plan_info'] : []);
+        $env = (array)($tenant ? $tenant['environment_settings'] : []);
 
         // Calculate current user count for progress display
         $usedUsers = getModelName(SystemTableName::USER)::query()->count();
 
-        $usageResult = TenantUsageService::getCombinedUsage($tenant->subdomain);
+        $usageResult = TenantUsageService::getCombinedUsage($tenant['subdomain']);
         $usedSizeGb = $usageResult['success'] ? $usageResult['data']['total']['total_size_gb'] : 0;;
 
         $form = new WidgetForm();
@@ -56,7 +57,7 @@ class TenantSettingsController extends AdminControllerBase
 
         // Plan information (display only)
         $form->exmheader(exmtrans('tenant.plan_information'))->hr();
-        $form->display('subdomain', exmtrans('tenant.subdomain'))->default($tenant ? $tenant->subdomain : '');
+        $form->display('subdomain', exmtrans('tenant.subdomain'))->default($tenant ? $tenant['subdomain'] : '');
         $form->display('plan_name', exmtrans('tenant.plan_name'))->default(\data_get($planInfo, 'name'));
         $form->display('expiration_date', exmtrans('tenant.expiration_date'))->default((new \Carbon\Carbon(\data_get($planInfo, 'expired_at')))->format(config('admin.date_format')));
         $limit = \data_get($planInfo, 'user_limit');
@@ -104,13 +105,14 @@ class TenantSettingsController extends AdminControllerBase
      */
     public function post(Request $request)
     {
-        $tenant = TenantUsageService::getCurrentTenant();
-        if (!$tenant) {
-            \abort(404);
+        $tenantInfo = TenantInfoService::getTenantBySubdomain();
+        if (!$tenantInfo) {
+            return response(exmtrans('tenant.404'), 404);
         }
 
         DB::beginTransaction();
         try {
+            $tenant = Tenant::find($tenantInfo['id']);
             $settings = [
                 'language' => $request->get('language'),
                 'timezone' => $request->get('timezone'),
@@ -119,8 +121,9 @@ class TenantSettingsController extends AdminControllerBase
             $tenant->save();
 
             DB::commit();
+            TenantInfoService::updateCacheTenant($tenant);
             \admin_toastr(\trans('admin.save_succeeded'));
-            return \redirect(\admin_url('tenant/settings'));
+            return response()->make('<script>window.location.href="' . \admin_url('tenant/settings'). '";</script>');
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;

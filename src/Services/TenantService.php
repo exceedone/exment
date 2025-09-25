@@ -286,6 +286,7 @@ class TenantService
             }
 
             $tenant->delete();
+            TenantInfoService::deleteCacheTenant($tenant);
 
             return [
                 'success' => true,
@@ -445,6 +446,7 @@ class TenantService
                 'plan_info' => $input['plan_info'],
                 'token' => $input['token'],
             ]);
+            TenantInfoService::addCacheTenant($tenant);
 
             Log::info('Pending tenant created successfully', [
                 'tenant_id' => $tenant->id,
@@ -470,91 +472,6 @@ class TenantService
                 'success' => false,
                 'error' => 'TENANT_CREATION_FAILED',
                 'message' => 'Failed to create pending tenant: ' . $e->getMessage(),
-                'status' => 500
-            ];
-        }
-    }
-
-    /**
-     * Create tenant from pending record
-     *
-     * @param Tenant $tenant
-     * @return array
-     */
-    public function createTenantFromPending(Tenant $tenant): array
-    {
-        try {
-            Log::info('Creating tenant from pending record', [
-                'tenant_id' => $tenant->id,
-                'tenant_suuid' => $tenant->tenant_suuid,
-                'subdomain' => $tenant->subdomain
-            ]);
-
-            DB::beginTransaction();
-            try {
-                // Provision AWS resources (Route53 record)
-                $provisionResult = $this->provisionAwsResources($tenant->subdomain);
-                if (!$provisionResult['success']) {
-                    throw new \RuntimeException($provisionResult['message'] ?? 'Failed to provision AWS resources');
-                }
-
-                // If we have a change id from Route53, optionally wait for INSYNC
-                $changeId = $provisionResult['data']['route53']['change_id'] ?? null;
-                if (!empty($changeId)) {
-                    $waitResult = $this->route53Service->waitForChange($changeId, 180);
-                    if (!$waitResult['success']) {
-                        Log::warning('Route53 change not INSYNC within wait window; continuing to verify by record lookup', [
-                            'tenant_id' => $tenant->id,
-                            'change_id' => $changeId,
-                            'wait_error' => $waitResult['error'] ?? null,
-                            'wait_message' => $waitResult['message'] ?? null,
-                        ]);
-                    }
-                }
-
-                // Verify the record exists; if not, rollback by throwing
-                $baseDomain = Config::get('exment.tenant.base_domain');
-                $fqdn = $tenant->subdomain . '.' . $baseDomain;
-                $recordStatus = $this->route53Service->checkRecordStatus($fqdn);
-                if (!$recordStatus['success'] || empty($recordStatus['data']['exists'])) {
-                    throw new \RuntimeException('Route53 record not found after provisioning: ' . $fqdn);
-                }
-
-                // Mark tenant active after successful verification
-                $tenant->update(['status' => TenantStatus::ACTIVE]);
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
-            }
-
-            Log::info('Tenant created successfully from pending record', [
-                'tenant_id' => $tenant->id,
-                'tenant_suuid' => $tenant->tenant_suuid,
-                'subdomain' => $tenant->subdomain
-            ]);
-
-            return [
-                'success' => true,
-                'data' => [
-                    'tenant_suuid' => $tenant->tenant_suuid,
-                    'subdomain' => $tenant->subdomain,
-                    'message' => 'Tenant created successfully from pending record'
-                ]
-            ];
-
-        } catch (\Exception $e) {
-            Log::error('Failed to create tenant from pending record', [
-                'tenant_id' => $tenant->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return [
-                'success' => false,
-                'error' => 'TENANT_CREATION_FAILED',
-                'message' => 'Failed to create tenant from pending record: ' . $e->getMessage(),
                 'status' => 500
             ];
         }
@@ -628,6 +545,7 @@ class TenantService
             'subdomain' => $newSubdomain,
             'plan_info' => $input['plan_info']
         ]);
+        TenantInfoService::updateCacheTenant($tenant, $oldSubdomain);
 
         // Log the changes
         Log::info('Tenant updated with subdomain change request', [
@@ -671,6 +589,7 @@ class TenantService
         $tenant->update([
             'plan_info' => $input['plan_info']
         ]);
+        TenantInfoService::updateCacheTenant($tenant);
 
         // Log the changes
         Log::info('Tenant updated successfully', [
