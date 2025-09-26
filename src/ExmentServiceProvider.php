@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment;
 
+use Exceedone\Exment\Auth\ExmentPasswordBroker;
+use Exceedone\Exment\Auth\PasswordBrokerManager;
 use Storage;
 use OpenAdminCore\Admin\Admin;
 use OpenAdminCore\Admin\Middleware as AdminMiddleware;
@@ -29,6 +31,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Support\Timebox;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -214,7 +217,8 @@ class ExmentServiceProvider extends ServiceProvider
             // 'throttle:60,1',
             //'bindings',
             //　↓
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,        ],
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
         // Exment Plugin API
         'pluginapi' => [
             'pluginapi.auth',
@@ -288,10 +292,10 @@ class ExmentServiceProvider extends ServiceProvider
     public function register()
     {
         parent::register();
-        require_once(__DIR__.'/Services/Helpers.php');
+        require_once(__DIR__ . '/Services/Helpers.php');
 
         $this->mergeConfigFrom(
-            __DIR__.'/../config/exment.php',
+            __DIR__ . '/../config/exment.php',
             'exment'
         );
 
@@ -330,6 +334,31 @@ class ExmentServiceProvider extends ServiceProvider
             return CustomTable::findByEndpoint();
         });
 
+        // Override Laravel's default PasswordBroker to use ExmentPasswordBroker
+        $this->app->extend('auth.password', function ($service, $app) {
+            return new class($app) extends PasswordBrokerManager {
+                protected function resolve($name)
+                {
+                    $config = $this->getConfig($name);
+
+                    if (is_null($config)) {
+                        throw new \InvalidArgumentException("Password resetter [{$name}] is not defined.");
+                    }
+
+                    $provider = $this->app['auth']->createUserProvider($config['provider']);
+
+                    $tokenRepository = $this->createTokenRepository($config);
+
+                    return new ExmentPasswordBroker(
+                        $tokenRepository,
+                        $provider,
+                        $this->app['events'],
+                        $this->app->make(Timebox::class)
+                    );
+                }
+            };
+        });
+
         // guard provider
         Auth::extend('publicformtoken', function ($app, $name, array $config) {
             return tap($this->makeGuard($config), function ($guard) {
@@ -344,24 +373,23 @@ class ExmentServiceProvider extends ServiceProvider
                 \Exceedone\Exment\Exceptions\Handler::class
             );
         }
-
     }
 
     protected function publish()
     {
-        $this->publishes([__DIR__.'/../config' => config_path()]);
-        $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
-        $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
+        $this->publishes([__DIR__ . '/../config' => config_path()]);
+        $this->publishes([__DIR__ . '/../public' => public_path('')], 'public');
+        $this->publishes([__DIR__ . '/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
         $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/assets') => public_path('vendor/open-admin')], 'open-admin-assets-exment');
         $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/lang') => resource_path('lang')], 'open-admin-lang-exment');
-        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
+        $this->publishes([__DIR__ . '/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
     }
 
     protected function load()
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
-        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'exment');
+        $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'exment');
 
         // load plugins
         if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {

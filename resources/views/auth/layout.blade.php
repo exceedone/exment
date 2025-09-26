@@ -87,6 +87,8 @@
       <!-- /.login-box -->
 <!-- jQuery 2.1.4 -->
 <!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script> -->
+<!-- jQuery 3.7.1 -->
+<script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-3.7.1.min.js") }}"></script>
 <!-- Bootstrap 3.3.5 -->
 <!-- <script src="{{ admin_asset("/vendor/open-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script> -->
 <!-- jQuery 2.1.4 -->

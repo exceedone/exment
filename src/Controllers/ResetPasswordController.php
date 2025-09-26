@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -17,6 +18,7 @@ use Password;
 class ResetPasswordController extends Controller
 {
     use ResetsPasswords;
+    use ValidatesRequests;
     use \Exceedone\Exment\Controllers\AuthTrait;
 
     protected $login_user;
@@ -93,7 +95,10 @@ class ResetPasswordController extends Controller
         // get user for password history validation
         $this->login_user = $broker->getUser($array);
 
-        $this->validate($request, $this->rules(), $this->validationErrorMessages());
+        $request->validate(
+            $this->rules(),
+            $this->validationErrorMessages()
+        );
 
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
@@ -124,8 +129,8 @@ class ResetPasswordController extends Controller
         // the application's home authenticated view. If there is an error we can
         // redirect them back to where they came from with their error message.
         return $response == Password::PASSWORD_RESET
-                    ? $this->sendResetResponse($request, $response)
-                    : $this->sendResetFailedResponse($request, $response);
+            ? $this->sendResetResponse($request, $response)
+            : $this->sendResetFailedResponse($request, $response);
     }
 
     /**
