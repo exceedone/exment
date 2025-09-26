@@ -44,7 +44,7 @@
 
         @if($show_default_login_provider)
             <div style="margin-top:10px; text-align:center;">
-                <p class="m-0"><a href="{{admin_url('auth/forget')}}" class="text-decoration-none">{{ exmtrans('login.forget_password') }}</a></p>
+                <p class="m-0"><a style="color: #3c8dbc;" href="{{admin_url('auth/forget')}}" class="text-decoration-none">{{ exmtrans('login.forget_password') }}</a></p>
             </div>
         @endif
     @endif
