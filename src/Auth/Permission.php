@@ -226,6 +226,7 @@ class Permission
             case "install":
             case "oauth":
             case "files":
+            case "ai_assistant":
             case "qr-code":
                 return true;
             case "jan-code":

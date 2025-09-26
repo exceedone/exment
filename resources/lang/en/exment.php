@@ -2745,4 +2745,29 @@ return [
             '1' => 'Reverse condition',
         ],
     ],
+
+    'ai_assistant' => [
+        'header' => 'AI Assistant',
+        'description' => 'AI-based exment construction and support',
+        'help' => 'We are currently supporting you to use AI to create basic features. Please choose the feature, and send me your request.',
+        'notify' => 'Please click the button to select a feature you want me to support.',
+        'welcome_message' => 'I would be happy to assist you in creating a new data table. Please send me a request.',
+        'edit_message' => 'Please send me the information you want to edit.',
+        'chat_box_placeholder' => 'Happy to assist you! This is your AI chat window — previous messages will be cleared when you start a new conversation.',
+        'input_placeholder' => 'Please enter your request',
+        'send_button' => 'Send',
+        'edit_button' => 'Edit',
+        'create_button' => 'Create',
+        'cancel_button' => 'Cancel',
+        'feature' => [
+            'custom_table' => 'Custom Table',
+            'workflow' => 'WorkFlow',
+            'schedule_notifications' => 'Schedule&Notifications',
+        ],
+        'ai_response' => [
+            'suggested' => 'Here is the data table I suggest for you. Please check it, and request modifications if you want. Please select the action buttons.',
+            'confirming' => 'Here is the data table I edit for you. Please check it, and request modifications if you want. Please select the action buttons.',
+            'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
+        ],
+    ],
 ];

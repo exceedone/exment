@@ -148,7 +148,7 @@
                 },
                 {
                     "column_name": "fax01",
-                    "column_view_name": "FAX1", 
+                    "column_view_name": "FAX1",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -727,7 +727,7 @@
                 }
             ],
             "table_name": "mail_template"
-        }, 
+        },
         {
 			"suuid": "c38977fc14800c624894",
             "form_view_name": "Form",
@@ -1386,7 +1386,7 @@
             "parent_name": null,
             "title": "Admin Setting",
             "menu_target_name": "admin",
-            "icon": "fa-user-circle-o" 
+            "icon": "fa-user-circle-o"
         },
         {
             "order": "1",
@@ -1467,6 +1467,16 @@
             "title": "Mail Template",
             "parent_name": "admin",
             "menu_target_name": "mail_template"
+        },
+        {
+            "order": "99",
+            "icon": "fa-robot",
+            "uri": "ai_assistant",
+            "menu_type": "system",
+            "menu_name": "ai_assistant",
+            "title": "AI Assistant",
+            "parent_name": null,
+            "menu_target_name": "ai_assistant"
         }
     ],
     "thumbnail": "thumbnail.png"
