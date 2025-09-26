@@ -63,7 +63,7 @@
                     @endif
 
                     @if($options['allowDelete'] && ($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index))
-                    <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-bs-toggle="tooltip" title="{{trans('admin.delete')}}">
+                    <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
                         <i class="fa fa-trash" style=""></i>
                     </a>
                     @endif
@@ -108,7 +108,7 @@
                 </a>
                 @endif
 
-                <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-bs-toggle="tooltip" title="{{trans('admin.delete')}}">
+                <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-ssm' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
                     <i class="fa fa-trash" style=""></i>
                 </a>
             </td>
@@ -116,6 +116,7 @@
     </template>
 
     <style type="text/css">
+    
     .has-many-table .form-group{
         margin-bottom: 0;
     }
