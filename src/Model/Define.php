@@ -283,6 +283,10 @@ class Define
             'uri' => 'login_setting',
             'icon' => 'fa-sign-in',
         ],
+        'ai_assistant' => [
+            'uri' => 'ai_assistant',
+            'icon' => 'fa-robot',
+        ],
     ];
 
     public const CUSTOM_COLUMN_AVAILABLE_CHARACTERS = [

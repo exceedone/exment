@@ -43,30 +43,17 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
 
     protected function script()
     {
-        $btnLabel = exmtrans('change_page_menu.ai_ocr_run');
-        $successNotice = str_replace(':btn', $btnLabel, exmtrans('custom_value.import.help.import_success_multi_ai_ocr_notice'));
-        $successNoticeEscaped = addslashes($successNotice);
         return <<<JS
         if (!window.__multiAiOcrListenerRegistered) {
             window.__multiAiOcrListenerRegistered = true;
+
             window.addEventListener('ai-ocr-multi-uploaded', function(event) {
-                const btn = document.getElementById('run-multi-ai-ocr-btn');
-                if (!btn) return;
-                btn.setAttribute('data-files-path', event.detail.files_path);
-                btn.style.display = 'inline-block';
-
-                setTimeout(function() {
-                    alert("{$successNoticeEscaped}");
-                }, 500);
-            });
-
-            $(document).off('click', '#run-multi-ai-ocr-btn').on('click', '#run-multi-ai-ocr-btn', function () {
-                const filesPath = this.getAttribute('data-files-path');
+                const filesPath = event.detail.files_path;
                 if (!filesPath) {
-                    alert("Upload Files not found.");
                     return;
                 }
 
+                // Run OCR
                 document.body.style.cursor = 'wait';
                 fetch('{$this->run_multi_ai_ocr_endpoint}', {
                     method: 'POST',
@@ -84,11 +71,12 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                         const failed = data.failedOcrFilesCount || 0;
                         const failedFileList = data.failedOcrFileNameList || '';
 
-                        let message = `AI-OCR completed.\nSuccessful files: \${success}\nFailed files: \${failed}`;
+                        let message = `AI-OCR completed.\\nSuccessful files: \${success}\\nFailed files: \${failed}`;
                         if (failed > 0) {
-                            message += `\nFailed file list:\n\${failedFileList}`;
+                            message += `\\nFailed file list:\\n\${failedFileList}`;
                         }
                         alert(message);
+
                         $.pjax({
                             url: window.location.href,
                             container: '#pjax-container'
@@ -98,10 +86,11 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                     }
                 })
                 .catch(err => {
+                    document.body.style.cursor = 'default';
                     alert('OCR request error.');
                 });
             });
         }
-    JS;
+        JS;
     }
 }

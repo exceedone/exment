@@ -333,7 +333,7 @@
         {
 			"suuid": "e6b833089cee9ad107e6",
             "form_view_name": "フォーム"
-        }, 
+        },
         {
 			"suuid": "c38977fc14800c624894",
             "form_view_name": "フォーム"
@@ -513,6 +513,11 @@
             "menu_type": "table",
             "menu_name": "mail_template",
             "title": "通知テンプレート"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "ai_assistant",
+            "title": "AI Assistant"
         },
         {
             "menu_type": "table",

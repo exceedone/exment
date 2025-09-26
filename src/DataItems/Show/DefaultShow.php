@@ -272,7 +272,7 @@ class DefaultShow extends ShowBase
                                 'redirectUrl' => admin_urls("data", $this->custom_table->table_name),
                             ]));
 
-                            // if parent data does not exist or has not been deleted 
+                            // if parent data does not exist or has not been deleted
                             if (!$parent_value || !$parent_value->trashed()) {
                                 // add restore button
                                 $tools->prepend(new Tools\SwalInputButton([
@@ -600,7 +600,7 @@ EOT;
             return;
         }
 
-        $aiOcrEnabled = $this->custom_table->isAiOcrEnabled();
+        $aiOcrEnabled = $this->custom_table?->isAiOcrEnabled();
 
         $form = new WidgetForm();
         $form->disableReset();

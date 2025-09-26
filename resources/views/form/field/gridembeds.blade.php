@@ -7,11 +7,6 @@
 @endif
 
 <div id="embed-{{$column}}" class="embed-{{$column}}">
-    <label class="ai-ocr-uploaded-label" style="display: none;">
-        {{ exmtrans('custom_column.help.ai_ocr_file_imported', [
-            'button' => exmtrans('change_page_menu.ai_ocr_run')
-        ]) }}
-    </label>
     <div class="embed-{{$column}}-forms">
         <div class="embed-{{$column}}-form fields-group">
             @foreach($fieldGroups as $fieldRow)

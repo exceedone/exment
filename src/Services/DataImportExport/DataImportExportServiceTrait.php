@@ -567,31 +567,47 @@ trait DataImportExportServiceTrait
                 const submitBtn = document.querySelector('#modal-showmodal .modal-submit');
                 if (!form || !submitBtn) return;
 
-                submitBtn.addEventListener('click', function (e) {
+                const CTRL_KEY = '__ocrModalSubmitCtrl';
+                if (window[CTRL_KEY]) {
+                    try { window[CTRL_KEY].abort(); } catch (_) {}
+                }
+                const controller = new AbortController();
+                window[CTRL_KEY] = controller;
+
+                const onClick = async (e) => {
                     e.preventDefault();
 
                     const formData = new FormData(form);
                     const action = form.getAttribute('action');
 
-                    fetch(action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
+                    try {
+                        const res = await fetch(action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            },
+                        });
+                        const data = await res.json();
+
                         if (data.result && data.files_path) {
+                            // Dispatch SINGLE only
                             window.dispatchEvent(new CustomEvent('ai-ocr-uploaded', {
-                                detail: { files_path: data.files_path }
+                                detail: { file_path: data.files_path }
                             }));
                             $('#modal-showmodal').modal('hide');
                         }
-                    })
-                    .catch(err => {
-                    });
+                    } catch (err) {
+                        // optional: handle error
+                    }
+                };
+
+                submitBtn.addEventListener('click', onClick, { signal: controller.signal });
+
+                // Cancel handler
+                $('#modal-showmodal').one('hidden.bs.modal', () => {
+                    try { controller.abort(); } catch (_) {}
                 });
             }, 300);
             JS
@@ -683,31 +699,47 @@ trait DataImportExportServiceTrait
                 const submitBtn = document.querySelector('#modal-showmodal .modal-submit');
                 if (!form || !submitBtn) return;
 
-                submitBtn.addEventListener('click', function (e) {
+                const CTRL_KEY = '__ocrModalSubmitCtrl';
+                if (window[CTRL_KEY]) {
+                    try { window[CTRL_KEY].abort(); } catch (_) {}
+                }
+                const controller = new AbortController();
+                window[CTRL_KEY] = controller;
+
+                const onClick = async (e) => {
                     e.preventDefault();
 
                     const formData = new FormData(form);
                     const action = form.getAttribute('action');
 
-                    fetch(action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
+                    try {
+                        const res = await fetch(action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            },
+                        });
+                        const data = await res.json();
+
                         if (data.result && data.files_path) {
+                            // Dispatch MULTI only
                             window.dispatchEvent(new CustomEvent('ai-ocr-multi-uploaded', {
                                 detail: { files_path: data.files_path }
                             }));
                             $('#modal-showmodal').modal('hide');
                         }
-                    })
-                    .catch(err => {
-                    });
+                    } catch (err) {
+                        // optional: handle error
+                    }
+                };
+
+                submitBtn.addEventListener('click', onClick, { signal: controller.signal });
+
+                // Cancel handler
+                $('#modal-showmodal').one('hidden.bs.modal', () => {
+                    try { controller.abort(); } catch (_) {}
                 });
             }, 300);
             JS

@@ -137,7 +137,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
             return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
         });
-        if ($this->custom_table->isAiOcrEnabled()) {
+        if ($this->custom_table?->isAiOcrEnabled()) {
             $grid->column('options->ocr_search_keyword', exmtrans("custom_column.options.ocr_search_keyword"));
             $grid->column('options->ocr_extraction_role', exmtrans("custom_column.options.ocr_extraction_role"));
             $grid->column('options->ocr_default_value', exmtrans("custom_column.options.ocr_default_value"));
@@ -295,7 +295,7 @@ class CustomColumnController extends AdminControllerTableBase
         }
 
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item, $id) {
-            if ($this->custom_table->isAiOcrEnabled()) {
+            if ($this->custom_table?->isAiOcrEnabled()) {
                 $form->text('ocr_search_keyword', exmtrans("custom_column.options.ocr_search_keyword"))
                     ->help(exmtrans("custom_column.help.ocr_search_keyword"));
                 $form->select('ocr_extraction_role', exmtrans("custom_column.options.ocr_extraction_role"))
