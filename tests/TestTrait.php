@@ -15,7 +15,7 @@ use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 
 trait TestTrait
 {
-    use ArraySubsetAsserts;
+    // use ArraySubsetAsserts;
 
     /**
      * Assert that the response is a superset of the given JSON.
@@ -25,18 +25,19 @@ trait TestTrait
      * @param  bool  $strict
      * @return $this
      */
-    public function assertJsonExment(array $data1, $data2, $strict = false)
+    public function assertArraySubset(array $subset, array $array, string $message = '', bool $strict = false): void
     {
-        self::assertArraySubset($data1, $data2, $strict);
-        // cannot call PHPUnit\Framework\Constraint\ArraySubset.
-        // if(function_exists($this, 'assertArraySubset')){
-        //     self::assertArraySubset($data1, $data2, $strict);
-        // }
-        // else{
-        //     self::assertArraySubsetExm($data1, $data2, $strict);
-        // }
+        foreach ($subset as $key => $value) {
+            $this->assertArrayHasKey($key, $array, $message ?: "Failed asserting that array has key '$key'");
 
-        return $this;
+            if (is_array($value) && is_array($array[$key])) {
+                $this->assertArraySubset($value, $array[$key], $message, $strict);
+            } else {
+                $strict
+                    ? $this->assertSame($value, $array[$key], $message ?: "Failed asserting that values for key '$key' are identical")
+                    : $this->assertEquals($value, $array[$key], $message ?: "Failed asserting that values for key '$key' are equal");
+            }
+        }
     }
 
     /**
