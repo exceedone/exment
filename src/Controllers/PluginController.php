@@ -19,6 +19,14 @@ use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Services\Plugin\PluginRepository;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use ZipArchive;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 
 class PluginController extends AdminControllerBase
 {
@@ -99,10 +107,40 @@ class PluginController extends AdminControllerBase
             })->toArray());
         })->sortable();
         $grid->column('author', exmtrans("plugin.author"));
-        $grid->column('version', exmtrans("plugin.version"));
-        $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
-            return \Exment::getTrueMark($active_flg);
+        // $grid->column('version', exmtrans("plugin.version"));
+
+
+        $repoVersions = collect(PluginRepository::fetchVersions())->keyBy('uuid');
+
+        $grid->column('version')->display(function ($version) use ($repoVersions) {
+            $latest = $repoVersions[$this->uuid]['latest_version'] ?? null;
+            $downloadUrl = $repoVersions[$this->uuid]['download_url'] ?? null;
+
+            if ($latest && version_compare($latest, $version, '>') && $downloadUrl) {
+                // URL POST đúng route
+                $url = admin_url("plugin/{$this->id}/update-remote");
+                return $version .
+                    " <button type='button' 
+              class='btn btn-xs btn-warning plugin-update' 
+              data-plugin='{$this->id}' 
+              data-url='{$downloadUrl}'>Update</button>";
+            }
+
+            return $version;
         })->escape(false);
+
+
+
+
+        // $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
+        //     return \Exment::getTrueMark($active_flg);
+        // })->escape(false);
+
+        $states = [
+            1 => ['value' => 1, 'text' => 'YES', 'color' => 'primary'],
+            0 => ['value' => 0, 'text' => 'NO', 'color' => 'default'],
+        ];
+        $grid->column('active_flg', exmtrans("plugin.active_flg"))->switch($states);
 
         $grid->disableCreateButton();
         $grid->disableExport();
@@ -179,6 +217,10 @@ class PluginController extends AdminControllerBase
             Checker::error();
             return false;
         }
+
+        $request->merge([
+            'active_flg' => $request->boolean('active_flg') ? 1 : 0,
+        ]);
 
         if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
@@ -384,6 +426,23 @@ class PluginController extends AdminControllerBase
                     'btn_class' => 'btn-purple',
                 ]));
             }
+
+            $repoVersions = collect(PluginRepository::fetchVersions())->keyBy('uuid');
+            $latest = $repoVersions[$plugin->uuid]['latest_version'] ?? null;
+            $downloadUrl = $repoVersions[$plugin->uuid]['download_url'] ?? null;
+
+            if ($latest && version_compare($latest, $plugin->version, '>')) {
+                $tools->append('
+                    <a href="javascript:void(0);" 
+                        class="btn btn-sm btn-warning plugin-update"
+                        style="margin-right: 5px;"
+                        data-plugin="' . $plugin->id . '"
+                        data-url="' . $downloadUrl . '">
+                            <i class="fa fa-refresh"></i> Update ' . $plugin->version . ' → ' . $latest . '
+                    </a>
+                ');
+
+            }
         });
 
         $form->disableReset();
@@ -433,5 +492,39 @@ class PluginController extends AdminControllerBase
         }
 
         return $pluginClass;
+    }
+
+    public function updateFromRepo($pluginId)
+    {
+        try {
+            $plugin = Plugin::find($pluginId);
+            if (!$plugin) {
+                return response()->json(['error' => 'Plugin không tồn tại'], 404);
+            }
+
+            $downloadUrl = request()->input('download_url');
+
+            $response = Http::timeout(30)->get($downloadUrl);
+            if ($response->failed()) {
+                return response()->json(['error' => 'Tải file thất bại'], 500);
+            }
+
+            $tmpDisk = Storage::disk('local');
+            $tmpPath = 'tmp/' . Str::random(10) . '.zip';
+            $tmpDisk->put($tmpPath, $response->body());
+            $fullPath = $tmpDisk->path($tmpPath);
+
+            PluginInstaller::uploadPlugin(new \Illuminate\Http\File($fullPath));
+
+            $tmpDisk->delete($tmpPath);
+
+            return response()->json(['success' => true, 'message' => 'Cập nhật plugin thành công!']);
+
+        } catch (\Throwable $e) {
+            Log::error("[PluginUpdater] Lỗi khi update plugin: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Có lỗi xảy ra khi update plugin'], 500);
+        }
     }
 }
