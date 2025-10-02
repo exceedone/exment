@@ -50,3 +50,59 @@ $(function () {
     Exment.CustomScriptEvent.AddEvent();
     Exment.CustomScriptEvent.AddEventOnce();
 });
+(function (Exment) {
+    class PluginUpdater {
+        static init() {
+            if (this._bound) return;
+            this._bound = true;
+
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.plugin-update');
+                if (!btn) return;
+
+
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                const $btn = $(btn);
+                const downloadUrl = $btn.data('url');
+                const pluginId = $btn.data('plugin');
+
+
+                if (!downloadUrl) {
+                    return;
+                }
+
+                $btn.prop('disabled', true).text('更新中...');
+
+                $.ajax({
+                    url: `/admin/plugin/${pluginId}/update-remote`,
+                    type: 'POST',
+                    data: {
+                        _token: LA.token,
+                        download_url: downloadUrl
+                    }
+                })
+                    .done(resp => {
+                        location.reload();
+                    })
+                    .fail(xhr => {
+                        alert('Lỗi server: ' + xhr.status);
+                    })
+                    .always(() => {
+                        $btn.prop('disabled', false).text('Update');
+                    });
+
+            }, true);
+        }
+    }
+
+    $(function () {
+        console.log('[PluginUpdater] Init');
+        PluginUpdater.init();
+    });
+
+    Exment.PluginUpdater = PluginUpdater;
+})(Exment || (Exment = {}));
+

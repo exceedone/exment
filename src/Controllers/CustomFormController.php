@@ -31,6 +31,9 @@ use Exceedone\Exment\Services\FormSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Str;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\Plugin\PluginRepository;
 
 /**
  * Custom Form Controller
