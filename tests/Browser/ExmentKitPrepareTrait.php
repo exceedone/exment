@@ -25,7 +25,7 @@ trait ExmentKitPrepareTrait
         // Create custom relation
         $this->visit(admin_url("relation/$parent_table/create"))
                 ->submitForm('admin-submit', $data)
-                ->seePageIs('/admin/relation/' . $parent_table)
+                ->seePageIs(admin_url('relation/' . $parent_table))
                 ->seeInElement('td', array_get($row, 'table_view_name'));
     }
 
@@ -246,7 +246,7 @@ trait ExmentKitPrepareTrait
                 // Create custom column
                 $this->post(admin_url("column/$table_name"), $data);
                 $this->visit(admin_url("column/$table_name"))
-                        ->seePageIs("/admin/column/$table_name")
+                        ->seePageIs(admin_url("column/$table_name"))
                         ->seeInElement('td', array_get($data, 'column_view_name'));
             }
         }
