@@ -1,6 +1,6 @@
 {
     "template_name": "system_logs",
-    "version": "dev-feature\/logging-toggle-button",
+    "version": "6.2.6",
     "template_view_name": "System Logs",
     "description": null,
     "custom_tables": [
