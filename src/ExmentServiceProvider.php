@@ -103,7 +103,6 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
-        // \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
     ];
 

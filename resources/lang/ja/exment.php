@@ -448,7 +448,7 @@ return [
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESにした場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESにした場合、ユーザーが所属する組織や部署を作成します。',
-            'logging_toggle_available' => 'YESに設定すると、操作ログ機能が有効になり、すべてのユーザーの操作が記録されます。',
+            'logging_toggle_available' => 'YESに設定すると、操作ログ機能が有効になり、ユーザーのすべての操作が記録されます。',
             'system_admin_users' => 'システム管理者となるユーザーを設定してください。',
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
