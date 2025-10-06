@@ -10,6 +10,7 @@ namespace Exceedone\Exment\Enums;
 class SystemTableName extends EnumBase
 {
     public const SYSTEM = 'systems';
+    public const SYSTEM_LOGS = 'system_logs';
     public const LOGIN_USER = 'login_users';
     public const PLUGIN = 'plugins';
     public const USER = 'user';

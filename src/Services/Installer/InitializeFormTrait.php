@@ -99,6 +99,9 @@ trait InitializeFormTrait
         $form->switchbool('organization_available', exmtrans("system.organization_available"))
             ->help(exmtrans("system.help.organization_available"));
 
+        $form->switchbool('logging_toggle_available', exmtrans("system.logging_toggle_available"))
+            ->help(exmtrans("system.help.logging_toggle_available"));
+
         // template list
         if ($isInitialize) {
             $this->addTemplateTile($form);

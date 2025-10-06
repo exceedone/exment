@@ -103,6 +103,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
+        // \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
     ];
 
@@ -114,6 +115,8 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
+        'log.exec.time' => \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
+        'check.logging.enabled' => \Exceedone\Exment\Middleware\CheckLoggingEnabled::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
         'admin.password-limit'       => \Exceedone\Exment\Middleware\AuthenticatePasswordLimit::class,
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
@@ -154,6 +157,8 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.web-ipfilter',
             'admin.initialize',
             'admin.auth',
+            'log.exec.time',
+            'check.logging.enabled',
             'admin.auth-2factor',
             'admin.password-limit',
             'admin.morph',
