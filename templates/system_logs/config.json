@@ -1,12 +1,12 @@
 {
     "template_name": "system_logs",
-    "version": "dev-feature\/add-log-url-debugmode",
+    "version": "dev-feature\/logging-toggle-button",
     "template_view_name": "System Logs",
     "description": null,
     "custom_tables": [
         {
             "table_name": "system_logs",
-            "table_view_name": "システムログ",
+            "table_view_name": "システムパフォーマンスログ",
             "description": null,
             "system_flg": "0",
             "showlist_flg": "1",
@@ -312,7 +312,7 @@
     "admin_menu": [
         {
             "order": "4",
-            "title": "システムログ",
+            "title": "システムパフォーマンスログ",
             "icon": "fa-brands fa-blogger",
             "uri": "system_logs",
             "options": [],

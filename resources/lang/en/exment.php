@@ -448,7 +448,7 @@ return [
             'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
             'permission_available' => 'If Select YES, management role using user or organozation.',
             'organization_available' => 'If Select YES, create organizations to which the user belongs.',
-            'logging_toggle_available' => 'If set to YES, the operation log feature will be enabled and all user actions will be recorded.',
+            'logging_toggle_available' => 'If set to YES, the activity log feature will be enabled and all user operations will be recorded.',
             'system_admin_users' => 'Set the user who will be the system administrator.',
             'system_mail' => 'Configure settings when sending mail from the system.',
             'system_mail_from' => 'the mail address from this system. Using this mail address as "from", this system sends users.',
