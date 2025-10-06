@@ -12,7 +12,7 @@
             <button class="btn btn-primary flex-fill" data-feature="workflow">
                 <i class="fa fa-project-diagram me-2"></i>{!! exmtrans('ai_assistant.feature.workflow') !!}
             </button>
-            <button class="btn btn-primary flex-fill" data-feature="schedule&notifications">
+            <button class="btn btn-primary flex-fill" data-feature="calendar">
                 <i class="fa fa-bell me-2"></i>{!! exmtrans('ai_assistant.feature.schedule_notifications') !!}
             </button>
         </div>
@@ -91,6 +91,7 @@
 <script>
     (function(){
         let currentConversationUuid = null;
+        let featureType = null;
         const chatMessages = document.getElementById('chat-messages');
         const textarea = document.getElementById('chat-input');
         const sendBtn = document.getElementById('send-btn');
@@ -190,7 +191,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     appendMessage('There was an error connecting to the server. Please try again.', 'assistant');
                     toggleActionButtons(false);
                 })
@@ -204,8 +204,7 @@
             if (!currentConversationUuid) {
                 appendMessage(text, 'user');
 
-                const notificationMessage = notifyText;
-                appendMessage(notificationMessage, 'assistant');
+                appendMessage(notifyText, 'assistant');
 
                 textarea.value = '';
                 autoResize(textarea);
@@ -225,7 +224,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 },
-                body: JSON.stringify({ uuid: currentConversationUuid, message: text }),
+                body: JSON.stringify({ uuid: currentConversationUuid, message: text, feature_type: featureType }),
             })
                 .then(response => response.json())
                 .then(data => {
@@ -243,7 +242,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     appendMessage('There was an error sending the message. Please try again.', 'assistant');
                     toggleActionButtons(false);
                 })
@@ -263,19 +261,25 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 },
-                body: JSON.stringify({ uuid: currentConversationUuid, action: action }),
+                body: JSON.stringify({ uuid: currentConversationUuid, action: action, feature_type: featureType }),
             })
                 .then(response => response.json())
                 .then(data => {
                     appendMessage(data.message, 'assistant');
                     if (action === 'cancel') {
                         clearChat();
+                        featureType = null;
+                    }
+                    else if (action === 'create') {
+                        featureType = null;
+                        currentConversationUuid = null;
+                        toggleActionButtons(data.showActionButtons);
+                        appendMessage(notifyText, 'assistant');
                     } else {
                         toggleActionButtons(data.showActionButtons);
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     appendMessage('An error occurred while performing the action. Please try again.', 'assistant');
                     toggleActionButtons(false);
                 })
@@ -289,7 +293,8 @@
 
             quickButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    handleStartConversation(button.dataset.feature);
+                    featureType = button.dataset.feature;
+                    handleStartConversation(featureType);
                 });
             });
 

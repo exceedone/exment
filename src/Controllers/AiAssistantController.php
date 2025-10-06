@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Model\AssistantTable;
+use Exceedone\Exment\Model\AssistantCalendar;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -16,7 +17,7 @@ use Encore\Admin\Layout\Content;
 
 class AiAssistantController extends AdminControllerBase
 {
-    protected string $aiAssistantServerUrl = 'https://exment.org/api/ai_assistant/assistant-tables/';
+    protected string $aiAssistantServerUrl = 'https://exment.org/api/ai_assistant/';
     protected string $bearerToken  = '1|alBBL8vpczVdvUGB44TxoHL0NSV97BrDYV3LBig3fb5e70d2';
 
     public function aiAssistant(Content $content)
@@ -46,7 +47,7 @@ class AiAssistantController extends AdminControllerBase
     public function startConversation(Request $request)
     {
         $validated = $request->validate([
-            'feature_type' => 'required|in:custom_table,workflow,schedule_notifications',
+            'feature_type' => 'required|in:custom_table,workflow,calendar',
         ]);
 
         $model = null;
@@ -55,10 +56,14 @@ class AiAssistantController extends AdminControllerBase
         switch ($validated['feature_type']) {
             case 'custom_table':
                 $model = AssistantTable::create(['status' => 'init']);
-                $welcomeMessage = exmtrans('ai_assistant.welcome_message');
+                $welcomeMessage = exmtrans('ai_assistant.welcome_message', ['type' => exmtrans('ai_assistant.feature.custom_table')]);
                 break;
             case 'workflow':
-            case 'schedule':
+            case 'calendar':
+                $usersAndOrgs = $this->getOrganizationUsers();
+                $model = AssistantCalendar::create(['status' => 'init']);
+                $welcomeMessage = exmtrans('ai_assistant.ai_response.calendar.welcome', ['type' => exmtrans('ai_assistant.feature.schedule_notifications')]);
+                $welcomeMessage .= "\r\n" . $this->formatOrganizationUsersAsString($usersAndOrgs);
                 break;
         }
 
@@ -83,10 +88,14 @@ class AiAssistantController extends AdminControllerBase
         $validated = $request->validate([
             'uuid' => 'required|uuid',
             'message' => 'required|string',
+            'feature_type' => 'required|in:custom_table,workflow,calendar',
         ]);
 
+        $featureType = $validated['feature_type'];
+
         try {
-            $conversable = $this->findConversable($validated['uuid']);
+            $responseMessage = '';
+            $conversable = $this->findConversable($validated['uuid'], $featureType);
             if (!$conversable) {
                 throw new ModelNotFoundException();
             }
@@ -96,44 +105,26 @@ class AiAssistantController extends AdminControllerBase
                 'role' => 'user',
             ]);
 
-            $endpoints = [
-                'init' => 'store',
-                'confirming' => 'edit',
-            ];
-            $ai_messages = [
-                'init' => exmtrans('ai_assistant.ai_response.suggested'),
-                'confirming' => exmtrans('ai_assistant.ai_response.confirming'),
-            ];
-            $endpoint = $endpoints[$conversable->status] ?? 'store';
-            $ai_message = $ai_messages[$conversable->status];
-            $aiApiUrl = $this->aiAssistantServerUrl . $endpoint;
-
-            $response = Http::withToken($this->bearerToken)->post($aiApiUrl, [
-                'uuid' => $validated['uuid'],
-                'message' => $validated['message'],
-            ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $conversable->update([
-                    'status' => $data['status'] ?? $conversable->status,
-                    'table_draft_json' => $data['table_draft_json'] ?? null,
-                    'column_draft_json' => $data['column_draft_json'] ?? null,
-                ]);
-
-                $conversable->messages()->create([
-                    'message_text' => $ai_message . $data['message'],
-                    'role' => 'assistant',
-                ]);
-
-                return response()->json([
-                    'message' => $ai_message . $data['message'],
-                    'showActionButtons' => !empty($conversable->table_draft_json),
-                    'uuid' => $conversable->id,
-                ]);
+            if ($featureType == 'custom_table') {
+                $responseMessage = $this->handleSendMessageCustomTable($validated['uuid'], $validated['message'], $conversable);
+            } elseif ($featureType == 'workflow') {
+                $responseMessage = 'An error occurred while connecting to AI.';
+            } elseif ($featureType == 'calendar') {
+                $responseMessage = $this->handleSendMessageCalendar($validated['uuid'], $validated['message'], $conversable);
             }
 
-            return response()->json(['message' => 'An error occurred while connecting to AI.'], 500);
+            $conversable->messages()->create([
+                'message_text' => $responseMessage,
+                'role' => 'assistant',
+            ]);
+
+            $isError = $responseMessage === 'An error occurred while connecting to AI.';
+            return response()->json([
+                'message' => $responseMessage,
+                'showActionButtons' => !$isError,
+                'uuid' => $conversable->id,
+            ]);
+
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Conversation not found.'], 404);
         }
@@ -144,10 +135,12 @@ class AiAssistantController extends AdminControllerBase
         $validated = $request->validate([
             'uuid' => 'required|uuid',
             'action' => 'required|in:edit,create,cancel',
+            'feature_type' => 'required|in:custom_table,workflow,calendar',
         ]);
+        $featureType = $validated['feature_type'];
 
         try {
-            $conversable = $this->findConversable($validated['uuid']);
+            $conversable = $this->findConversable($validated['uuid'], $featureType);
             if (!$conversable) {
                 throw new ModelNotFoundException();
             }
@@ -161,20 +154,12 @@ class AiAssistantController extends AdminControllerBase
                     $responseMessage = exmtrans('ai_assistant.edit_message');
                     break;
                 case 'create':
-                    $response = Http::withToken($this->bearerToken)->post($this->aiAssistantServerUrl . 'confirm', [
-                        'uuid' => $validated['uuid'],
-                    ]);
-
-                    if ($response->successful()) {
-                        $data = $response->json();
-                        $conversable->update([
-                            'status' => $data['status'] ?? $conversable->status,
-                            'table_draft_json' => $data['table_draft_json'] ?? null,
-                            'column_draft_json' => $data['column_draft_json'] ?? null,
-                        ]);
-                        $ai_message = exmtrans('ai_assistant.ai_response.confirmed');
-                        $responseMessage = $ai_message;
-                        $this->createCustomTableFromDraft($data['table_draft_json'], $data['column_draft_json']);
+                    if ($featureType == 'custom_table') {
+                        $responseMessage = $this->handleActionCreateCustomTable($validated['uuid'], $conversable);
+                    } elseif ($featureType == 'workflow') {
+                        $responseMessage = null;
+                    } elseif ($featureType == 'calendar') {
+                        $responseMessage = $this->handleActionCreateCalendar($validated['uuid'], $conversable);
                     }
                     break;
                 case 'cancel':
@@ -200,6 +185,124 @@ class AiAssistantController extends AdminControllerBase
         }
     }
 
+    protected  function handleSendMessageCustomTable(string $uuid, string $message, AssistantTable $assistant_table): ?string {
+        $endpoints = [
+            'init' => 'store',
+            'confirming' => 'edit',
+        ];
+        $ai_messages = [
+            'init' => exmtrans('ai_assistant.ai_response.custom_table.suggested'),
+            'confirming' => exmtrans('ai_assistant.ai_response.custom_table.confirming'),
+        ];
+        $endpoint = $endpoints[$assistant_table->status] ?? 'store';
+        $ai_message = $ai_messages[$assistant_table->status];
+        $aiApiUrl = $this->aiAssistantServerUrl . 'assistant-tables/' . $endpoint;
+
+        $response = Http::withToken($this->bearerToken)->post($aiApiUrl, [
+            'uuid' => $uuid,
+            'message' => $message,
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            $assistant_table->update([
+                'status' => $data['status'] ?? $assistant_table->status,
+                'table_draft_json' => $data['table_draft_json'] ?? null,
+                'column_draft_json' => $data['column_draft_json'] ?? null,
+            ]);
+
+            return $ai_message . $data['message'];
+        }
+
+        return 'An error occurred while connecting to AI.';
+    }
+
+    protected  function handleSendMessageCalendar(string $uuid, string $message, AssistantCalendar $assistant_calendar): ?string {
+        $endpoints = [
+            'init' => 'store',
+            'confirming_request_calendar' => 'store',
+            'confirming_request_notify' => 'store',
+            'confirming_user_calendar' => 'edit',
+            'confirming_user_notify' => 'edit',
+        ];
+        $ai_messages = [
+            'init' => exmtrans('ai_assistant.ai_response.calendar.suggested', ['type' => exmtrans('ai_assistant.feature.schedule_notifications')]),
+            'confirming_request_calendar' => exmtrans('ai_assistant.ai_response.calendar.suggested', ['type' => exmtrans('ai_assistant.feature.calendar')]),
+            'confirming_request_notify' => exmtrans('ai_assistant.ai_response.calendar.suggested', ['type' => exmtrans('ai_assistant.feature.notify')]),
+            'confirming_user_calendar' => exmtrans('ai_assistant.ai_response.calendar.confirming', ['type' => exmtrans('ai_assistant.feature.calendar')]),
+            'confirming_user_notify' => exmtrans('ai_assistant.ai_response.calendar.confirming', ['type' => exmtrans('ai_assistant.feature.notify')]),
+        ];
+        $endpoint = $endpoints[$assistant_calendar->status] ?? 'store';
+        $ai_message = $ai_messages[$assistant_calendar->status];
+        $aiApiUrl = $this->aiAssistantServerUrl . 'assistant-calendar/' . $endpoint;
+
+
+        $payload = [
+            'uuid' => $uuid,
+            'message' => $message,
+        ];
+
+        if ($assistant_calendar->status === 'init') {
+            $usersAndOrgs = $this->getOrganizationUsers();
+            $payload['organization_users'] = json_encode($usersAndOrgs, JSON_THROW_ON_ERROR);
+        }
+
+        $response = Http::withToken($this->bearerToken)->post($aiApiUrl, $payload);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            $assistant_calendar->update([
+                'status' => $data['status'] ?? $assistant_calendar->status,
+            ]);
+
+            return $ai_message . $data['message'];
+        }
+
+        return 'An error occurred while connecting to AI.';
+    }
+
+    protected function handleActionCreateCustomTable(string $uuid, AssistantTable $assistant_table): ?string {
+        $response = Http::withToken($this->bearerToken)->post($this->aiAssistantServerUrl . 'assistant-tables/' . 'confirm', [
+            'uuid' => $uuid,
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            $assistant_table->update([
+                'status' => $data['status'] ?? $assistant_table->status,
+                'table_draft_json' => $data['table_draft_json'] ?? null,
+                'column_draft_json' => $data['column_draft_json'] ?? null,
+            ]);
+
+            $this->createCustomTableFromDraft($data['table_draft_json'], $data['column_draft_json']);
+
+            return exmtrans('ai_assistant.ai_response.custom_table.confirmed');
+        }
+
+        return 'An error occurred while connecting to AI.';
+    }
+
+    protected function handleActionCreateCalendar(string $uuid, AssistantCalendar $assistant_calendar): ?string {
+        $response = Http::withToken($this->bearerToken)->post($this->aiAssistantServerUrl . 'assistant-calendar/' . 'confirm', [
+            'uuid' => $uuid,
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            $assistant_calendar->update([
+                'status' => $data['status'] ?? $assistant_calendar->status,
+            ]);
+
+            return exmtrans('ai_assistant.ai_response.calendar.confirmed');
+        }
+
+        return 'An error occurred while connecting to AI.';
+    }
+
     protected function createCustomTableFromDraft(array $tableDraftJson, array $columnDraftJson)
     {
         return DB::transaction(function () use ($tableDraftJson, $columnDraftJson) {
@@ -221,8 +324,87 @@ class AiAssistantController extends AdminControllerBase
         });
     }
 
-    private function findConversable(string $uuid)
+    private function findConversable(string $uuid, string $type)
     {
-        return AssistantTable::find($uuid);
+        if ($type == 'custom_table') {
+            return AssistantTable::find($uuid);
+        } elseif ($type == 'workflow') {
+            return null;
+        } elseif ($type == 'calendar') {
+            return AssistantCalendar::find($uuid);
+        }
+    }
+
+    private function getOrganizationUsers()
+    {
+        $organizationUsers = [];
+        $users = \Exment::user()->base_user::all();
+
+        foreach ($users as $user) {
+            $userName = $user->value['user_name'] ?? null;
+            $email = $user->value['email'] ?? null;
+
+            if ($user->belong_organizations->isNotEmpty()) {
+                foreach ($user->belong_organizations as $org) {
+                    $orgName = $org->value['organization_name'] ?? 'unknown';
+
+                    if (!isset($organizationUsers[$orgName])) {
+                        $organizationUsers[$orgName] = [
+                            'organization' => $orgName,
+                            'users' => []
+                        ];
+                    }
+
+                    $organizationUsers[$orgName]['users'][] = [
+                        'user_name' => $userName,
+                        'email' => $email
+                    ];
+                }
+            } else {
+                $orgName = 'unknown';
+
+                if (!isset($organizationUsers[$orgName])) {
+                    $organizationUsers[$orgName] = [
+                        'organization' => $orgName,
+                        'users' => []
+                    ];
+                }
+                $organizationUsers[$orgName]['users'][] = [
+                    'user_name' => $userName,
+                    'email' => $email
+                ];
+            }
+        }
+
+        $login_user = \Exment::user();
+        $organizationUsers['requester'] = [
+            'organization' => 'requester',
+            'users' => [
+                'user_name' => $login_user->name,
+                'email' => $login_user->email
+            ]
+        ];
+
+        return array_values($organizationUsers);
+    }
+
+    private function formatOrganizationUsersAsString(array $usersAndOrgs): string
+    {
+        $lines = [];
+        foreach ($usersAndOrgs as $group) {
+            if (isset($group['organization']) && $group['organization'] === 'requester') {
+                continue;
+            }
+
+            $orgName = $group['organization'];
+            $userNames = array_map(function ($user) {
+                return $user['user_name'];
+            }, $group['users']);
+
+            $line = '+ ' . $orgName . ': ' . implode(', ', $userNames);
+            $lines[] = $line;
+        }
+
+        return implode("\n", $lines);
     }
 }
