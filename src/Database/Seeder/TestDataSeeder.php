@@ -241,6 +241,7 @@ class TestDataSeeder extends Seeder
             $childOptions = [
                 'users' => $users,
                 'menuParentId' => $menu->id,
+                'createSummaryView' => true,
                 'createColumnFirstCallback' => function ($custom_table, &$custom_columns) use ($parent_table, $relationItem) {
                     // set relation if select_table
                     if (!is_null($relationItem['relation_type'])) {
@@ -889,6 +890,7 @@ class TestDataSeeder extends Seeder
             $custom_table = $this->createTable($permission, [
                 'users' => $users,
                 'menuParentId' => $menu->id,
+                'createSummaryView' => true
             ]);
             $tables[$permission] = $custom_table;
         }
@@ -1094,9 +1096,9 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
                 $custom_value->setValue("index_text", 'index_'.sprintf('%03d', $user_id).'_'.sprintf('%03d', $i));
-                $custom_value->setValue("odd_even", (($i == 1 || rand(0, 1) == 0) ? 'even' : 'odd'));
+                $custom_value->setValue("odd_even", ($count % 2 == 0? 'even' : 'odd'));
                 $custom_value->setValue("multiples_of_3", (($i == 1 || $count % 3 == 0) ? 1 : 0));
-                $custom_value->setValue("date", \Carbon\Carbon::now()->addDays($count % 3));
+                $custom_value->setValue("date", \Carbon\Carbon::now()->addDays(rand(0, 100)));
                 $custom_value->setValue("init_text", 'init_text');
                 $custom_value->setValue("integer", $new_id * pow(10, ($new_id % 3) + 1));
                 $custom_value->setValue("decimal", $new_id * pow(10, ($new_id % 5) + 1) * ($new_id % 2 + 1) / 10000);
@@ -1584,7 +1586,7 @@ class TestDataSeeder extends Seeder
                 ]);
             });
             collect($custom_columns)->filter(function ($custom_column) {
-                return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::INTEGER;
+                return $custom_column->column_type == ColumnType::INTEGER;
                 /** @phpstan-ignore-next-line Parameter #1 $callback of method
                  * Illuminate\Support\Collection<(int|string),mixed>::first() expects
                  * (callable(mixed, int|string): bool)|null, Closure(mixed, mixed): void
