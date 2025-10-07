@@ -150,7 +150,6 @@ class AiAssistantController extends AdminControllerBase
 
             switch ($validated['action']) {
                 case 'edit':
-                    $conversable->update(['status' => 'confirming']);
                     $responseMessage = exmtrans('ai_assistant.edit_message');
                     break;
                 case 'create':
@@ -286,8 +285,12 @@ class AiAssistantController extends AdminControllerBase
     }
 
     protected function handleActionCreateCalendar(string $uuid, AssistantCalendar $assistant_calendar): ?string {
+        $login_user = \Exment::user();
+
         $response = Http::withToken($this->bearerToken)->post($this->aiAssistantServerUrl . 'assistant-calendar/' . 'confirm', [
             'uuid' => $uuid,
+            'requester_name' => $login_user->name,
+            'requester_email' => $login_user->email,
         ]);
 
         if ($response->successful()) {
