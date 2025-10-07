@@ -542,7 +542,7 @@ class Exment
     public static function getSelectOptionHtml(?string $font_awesome, ?string $text)
     {
         // decode escapeMarkup, so call esc_html twice.
-        return '<i class="text-center fa ' . esc_html(esc_html($font_awesome)) . '" aria-hidden="true" style="width:16px;"></i>&nbsp;&nbsp;<span>' . esc_html(esc_html($text)) . '</span>';
+        return '<i class="text-center fa ' . esc_attr($font_awesome) . '" aria-hidden="true" style="width:16px;"></i>&nbsp;&nbsp;<span>' . esc_html($text) . '</span>';
     }
 
     /**
