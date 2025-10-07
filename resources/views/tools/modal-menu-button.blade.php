@@ -12,6 +12,10 @@
         >
         <i class="fa {{$icon}} p-1"></i>
         <span class="d-none d-lg-block">&nbsp;{{$label}}</span>
+
+        @if(!is_nullorempty($menulist))
+        <span style="margin-left: 2px;" class="caret"></span>
+        @endif
     </a>
     @endif
 
