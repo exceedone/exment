@@ -227,9 +227,6 @@ class TenantService
             'status' => 'provisioning',
         ]);
 
-        // Cache tenant info for rollback purposes
-        Cache::put("tenant_provisioning_{$tenant->id}", $tenant, 300);
-
         return $tenant;
     }
 
@@ -286,7 +283,6 @@ class TenantService
             }
 
             $tenant->delete();
-            TenantInfoService::deleteCacheTenant($tenant);
 
             return [
                 'success' => true,
@@ -446,7 +442,6 @@ class TenantService
                 'plan_info' => $input['plan_info'],
                 'token' => $input['token'],
             ]);
-            TenantInfoService::addCacheTenant($tenant);
 
             Log::info('Pending tenant created successfully', [
                 'tenant_id' => $tenant->id,
@@ -545,7 +540,6 @@ class TenantService
             'subdomain' => $newSubdomain,
             'plan_info' => $input['plan_info']
         ]);
-        TenantInfoService::updateCacheTenant($tenant, $oldSubdomain);
 
         // Log the changes
         Log::info('Tenant updated with subdomain change request', [
@@ -589,7 +583,6 @@ class TenantService
         $tenant->update([
             'plan_info' => $input['plan_info']
         ]);
-        TenantInfoService::updateCacheTenant($tenant);
 
         // Log the changes
         Log::info('Tenant updated successfully', [
@@ -678,10 +671,6 @@ class TenantService
                 ->unique()
                 ->values()
                 ->toArray();
-            
-            // Cache subdomains for 1 hour (3600 seconds)
-            // Cache::put('tenant_subdomains', $subdomains, 3600);
-            
             Log::info('Tenant subdomains cached successfully', [
                 'count' => count($subdomains),
                 'subdomains' => $subdomains

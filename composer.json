@@ -42,7 +42,9 @@
         "laravel/socialite": "^5.2",
         "psr/simple-cache": "^2.0",
         "simplesoftwareio/simple-qrcode": "2.0",
-        "elibyy/tcpdf-laravel": "^11.1"
+        "elibyy/tcpdf-laravel": "^11.1",
+        "stancl/tenancy": "^3.9"
+        
     },
     "require-dev": {
         "symfony/css-selector": "~5.2",

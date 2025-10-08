@@ -5,9 +5,11 @@ namespace Exceedone\Exment\Model;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Exceedone\Exment\Enums\TenantType;
+use Exceedone\Exment\Casts\EnvironmentSettingsCast;
 use Exceedone\Exment\Casts\SecretKeyEncrypted;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
-class Tenant extends Model
+class Tenant extends BaseTenant
 {
     use SoftDeletes;
 
@@ -27,7 +29,7 @@ class Tenant extends Model
 
     protected $casts = [
         'plan_info' => 'array',
-        'environment_settings' => 'array',
+        'environment_settings' => EnvironmentSettingsCast::class,
         'token' => SecretKeyEncrypted::class,
     ];
 
@@ -44,7 +46,24 @@ class Tenant extends Model
      * @property string $token
      * @property array|null $environment_settings
      */
-
+    public static function getCustomColumns(): array
+    {
+        return [
+            'id',
+            'tenant_suuid',
+            'subdomain',
+            'new_subdomain',
+            'tenant_path',
+            'type',
+            'plan_info',
+            'status',
+            'token',
+            'environment_settings',
+            'created_at',
+            'updated_at',
+            'deleted_at',
+        ];
+    }
     /**
      * Determine if tenant uses subdomain type
      */

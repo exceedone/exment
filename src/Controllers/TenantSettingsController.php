@@ -9,9 +9,9 @@ use Exceedone\Exment\Enums\SystemLocale;
 use Exceedone\Exment\Enums\Timezone;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Tenant;
-use Exceedone\Exment\Services\TenantInfoService;
 use Exceedone\Exment\Services\TenantUsageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
 class TenantSettingsController extends AdminControllerBase
@@ -26,7 +26,7 @@ class TenantSettingsController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
-        $tenant = TenantInfoService::getTenantBySubdomain();
+        $tenant = tenant();
         if (!$tenant) {
             return response(exmtrans('tenant.404'), 404);
         }
@@ -105,23 +105,22 @@ class TenantSettingsController extends AdminControllerBase
      */
     public function post(Request $request)
     {
-        $tenantInfo = TenantInfoService::getTenantBySubdomain();
+        $tenantInfo = tenant();
         if (!$tenantInfo) {
             return response(exmtrans('tenant.404'), 404);
         }
-
+        Config::set('database.default', config('database.central'));
         DB::beginTransaction();
         try {
             $tenant = Tenant::find($tenantInfo['id']);
-            $settings = [
-                'language' => $request->get('language'),
-                'timezone' => $request->get('timezone'),
-            ];
+            $settings = $tenant->environment_settings ?? [];
+            data_set($settings, 'language', $request->get('language'));
+            data_set($settings, 'timezone', $request->get('timezone'));
+
             $tenant->environment_settings = $settings;
             $tenant->save();
 
             DB::commit();
-            TenantInfoService::updateCacheTenant($tenant);
             \admin_toastr(\trans('admin.save_succeeded'));
             return response()->make('<script>window.location.href="' . \admin_url('tenant/settings'). '";</script>');
         } catch (\Exception $e) {

@@ -25,7 +25,7 @@ class TenantUsageService
     public static function getUsageCacheKey($subdomain = null): string
     {
         if (!$subdomain) {
-            $subdomain = TenantInfoService::getCurrentSubdomain();
+            $subdomain = tenant('subdomain');
         }
 
         return "tenant_total_usage_bytes_{$subdomain}";
@@ -103,7 +103,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = TenantInfoService::getCurrentSubdomain();
+                $subdomain = tenant('subdomain');
             }
             if (!$subdomain) {
                 return [
@@ -154,7 +154,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = TenantInfoService::getCurrentSubdomain();
+                $subdomain = tenant('subdomain');
             }
 
             if (!$subdomain) {
@@ -203,7 +203,7 @@ class TenantUsageService
     protected static function calculateDatabaseSize(string $subdomain): int
     {
         try {
-            $databaseName = self::getDatabaseNameForSubdomain($subdomain);
+            $databaseName = tenant('environment_settings')['db_name'];
             if (!$databaseName) {
                 return 0;
             }
@@ -232,35 +232,6 @@ class TenantUsageService
                 'error' => $e->getMessage()
             ]);
             return 0;
-        }
-    }
-
-    /**
-     * Get database name for subdomain
-     *
-     * @param string $subdomain
-     * @return string|null
-     */
-    protected static function getDatabaseNameForSubdomain(string $subdomain): ?string
-    {
-        try {
-            $tenantArray = TenantInfoService::getTenantBySubdomain();
-            if (!$tenantArray) {
-                return null;
-            }
-
-            if (isset($tenantArray['plan_info']['database_name'])) {
-                return $tenantArray['plan_info']['database_name'];
-            }
-
-            $defaultDbName = Config::get('database.connections.' . Config::get('database.default') . '.database');
-            return $defaultDbName;
-        } catch (\Exception $e) {
-            Log::error('Failed to get database name for subdomain', [
-                'subdomain' => $subdomain,
-                'error' => $e->getMessage()
-            ]);
-            return null;
         }
     }
 
@@ -347,7 +318,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = TenantInfoService::getCurrentSubdomain();
+                $subdomain = tenant('subdomain');
             }
 
             if (!$subdomain) {
@@ -400,7 +371,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = TenantInfoService::getCurrentSubdomain();
+                $subdomain = tenant('subdomain');
             }
             if (!$subdomain) {
                 return [
@@ -446,7 +417,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = TenantInfoService::getCurrentSubdomain();
+                $subdomain = tenant('subdomain');
             }
 
             if (!$subdomain) {
@@ -662,7 +633,7 @@ class TenantUsageService
     {
         try {
             if (!$subdomain) {
-                $subdomain = TenantInfoService::getCurrentSubdomain();
+                $subdomain = tenant('subdomain');
             }
 
             if (!$subdomain) {

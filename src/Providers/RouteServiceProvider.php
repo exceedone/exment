@@ -30,7 +30,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         $rate_limit = config('exment.api_max_rate_limit', 60);
         RateLimiter::for('api', function (Request $request) use ($rate_limit) {
-            $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
+            $login_user = \Exment::user() ?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
             return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
         });
     }
@@ -122,13 +122,16 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
             $router->get("login_setting/loginOptionHtml", 'LoginSettingController@loginOptionHtml');
 
-            $router->get('plugin/edit_code/{id}/getTree', 'PluginCodeController@getTreeData');
-            $router->get('plugin/edit_code/{id}/selectFile', 'PluginCodeController@getFileEditForm');
-            $router->post('plugin/edit_code/{id}/fileupload', 'PluginCodeController@fileupload');
-            $router->get('plugin/edit_code/{id}', 'PluginCodeController@edit');
-            $router->post('plugin/edit_code/{id}', 'PluginCodeController@store');
-            $router->delete('plugin/edit_code/{id}', 'PluginCodeController@delete');
-            $router->get('plugin/{id}/executeBatch', 'PluginController@executeBatch');
+            if ($this->isCentralDomain(request()->getHost())) {
+                $router->get('plugin/edit_code/{id}/getTree', 'PluginCodeController@getTreeData');
+                $router->get('plugin/edit_code/{id}/selectFile', 'PluginCodeController@getFileEditForm');
+                $router->post('plugin/edit_code/{id}/fileupload', 'PluginCodeController@fileupload');
+                $router->get('plugin/edit_code/{id}', 'PluginCodeController@edit');
+                $router->post('plugin/edit_code/{id}', 'PluginCodeController@store');
+                $router->delete('plugin/edit_code/{id}', 'PluginCodeController@delete');
+                $router->get('plugin/{id}/executeBatch', 'PluginController@executeBatch');
+                $this->setResouce($router, 'plugin', 'PluginController');
+            }
 
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             $router->get('table/{id}/copyModal', 'CustomTableController@copyModal');
@@ -140,7 +143,6 @@ class RouteServiceProvider extends ServiceProvider
 
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');
-            $this->setResouce($router, 'plugin', 'PluginController');
             $this->setResouce($router, 'table', 'CustomTableController');
             $this->setResouce($router, 'workflow', 'WorkflowController');
 
@@ -153,13 +155,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('workflow/{id}/deactivate', 'WorkflowController@deactivate');
             $router->get('workflow/{id}/deactivateModal', 'WorkflowController@deactivateModal');
 
-            // Tenant Settings routes
-            // $router->get('tenant/settings', 'TenantSettingsController@index')->name('tenant.settings.index');
-            // $router->post('tenant/settings', 'TenantSettingsController@post')->name('tenant.settings.post');
-
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
-            $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
+            $router->resource('loginuser', 'LoginUserController', ['except' => ['create']]);
 
             $router->get("role_group/importModal", 'RoleGroupController@importModal');
             $router->post("role_group/import", 'RoleGroupController@import');
@@ -515,15 +513,17 @@ class RouteServiceProvider extends ServiceProvider
                 $router->post('template/search', 'TemplateController@searchTemplate');
                 $router->delete('template/delete', 'TemplateController@delete');
             });
-            Route::group([
-                'prefix' => array_get($route, 'prefix'),
-                'namespace'     => $this->namespace,
-                'middleware'    => ["api.check_token"],
-            ], function (Router $router) {
-                $router->post('v1/tenants', 'TenantProvisionController@provision');
-                $router->put('v1/tenants/{suuid}', 'TenantProvisionController@update');
-                $router->delete('v1/tenants/{suuid}', 'TenantProvisionController@delete');
-            });
+            if ($this->isCentralDomain(request()->getHost())) {
+                Route::group([
+                    'prefix' => array_get($route, 'prefix'),
+                    'namespace'     => $this->namespace,
+                    'middleware'    => ["api.check_token"],
+                ], function (Router $router) {
+                    $router->post('v1/tenants', 'TenantProvisionController@provision');
+                    $router->put('v1/tenants/{suuid}', 'TenantProvisionController@update');
+                    $router->delete('v1/tenants/{suuid}', 'TenantProvisionController@delete');
+                });
+            }
         }
     }
 
@@ -567,5 +567,19 @@ class RouteServiceProvider extends ServiceProvider
         $router->patch("{$endpointName}/{id}", "$controllerName@update");
         $router->delete("{$endpointName}/{id}", "$controllerName@destroy")->name("exment.$endpointName.delete");
         $router->get("{$endpointName}/{id}", "$controllerName@show")->name("exment.$endpointName.show");
+    }
+
+    /**
+     * Check if hostname is central domain
+     */
+    protected function isCentralDomain(string $hostname): bool
+    {
+        $parts = explode('.', $hostname);
+        $isLocalhost = count($parts) === 1;
+        $isIpAddress = count(array_filter($parts, 'is_numeric')) === count($parts);
+        $isCentralDomain = in_array($hostname, config('tenancy.central_domains', []), true);
+        $thirdPartyDomain = !\Illuminate\Support\Str::endsWith($hostname, config('tenancy.central_domains', []));
+
+        return $isLocalhost || $isIpAddress || $isCentralDomain || $thirdPartyDomain;
     }
 }

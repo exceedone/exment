@@ -23,6 +23,9 @@ use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
+use Exceedone\Exment\Model\Tenant;
+use Exceedone\Exment\Observers\TenantObserver;
+use Exceedone\Exment\Resolvers\OptimizedCachedTenantResolver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
@@ -33,6 +36,8 @@ use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
 use Exceedone\Exment\Services\TenantService;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class ExmentServiceProvider extends ServiceProvider
 {
@@ -103,6 +108,8 @@ class ExmentServiceProvider extends ServiceProvider
      * @var array
      */
     protected $middleware = [
+        // \Exceedone\Exment\Middleware\InitializeTenancyBySubdomainCustom::class,
+        // \Exceedone\Exment\Middleware\SetDynamicDatabaseConnection::class,
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
     ];
@@ -218,7 +225,8 @@ class ExmentServiceProvider extends ServiceProvider
             // 'throttle:60,1',
             //'bindings',
             //　↓
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,        ],
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
         // Exment Plugin API
         'pluginapi' => [
             'pluginapi.auth',
@@ -268,20 +276,134 @@ class ExmentServiceProvider extends ServiceProvider
     public function boot()
     {
         parent::boot();
+        Tenant::observe(TenantObserver::class);
 
         $this->bootApp();
         $this->bootSetting();
         $this->bootDatabase();
-        $this->bootSchedule();
 
         $this->publish();
         $this->load();
-
+        $tenancyResponse = $this->bootTenancy();
+        if ($tenancyResponse) {
+            echo $tenancyResponse;
+            exit;
+        }
+        $this->bootSchedule();
+        $this->loadPlugins();
         $this->registerPolicies();
 
         $this->bootPassport();
     }
 
+    /**
+     * Boot tenancy and database connection
+     */
+    protected function bootTenancy()
+    {
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+
+        try {
+            $request = $this->app['request'];
+            $hostname = $request->getHost();
+
+            if ($this->isCentralDomain($hostname)) {
+                return;
+            }
+            // Extract subdomain
+            $subdomain = $this->extractSubdomain($hostname);
+
+            if (!$subdomain) {
+                return exmtrans('tenant.404');
+            }
+
+            // Resolve tenant
+            $tenant = OptimizedCachedTenantResolver::resolve($subdomain);
+
+            if (!$tenant) {
+                return exmtrans('tenant.404');
+            }
+
+            // Initialize tenancy
+            $tenancy = $this->app->make(\Stancl\Tenancy\Tenancy::class);
+            $tenancy->initialize($tenant);
+
+            // Set dynamic database connection
+            $this->setDynamicDatabaseConnection($tenant);
+        } catch (\Exception $e) {
+            \Log::error('Failed to initialize tenancy: ' . $e->getTraceAsString());
+            return $e->getMessage();
+        }
+    }
+
+    /**
+     * Check if hostname is central domain
+     */
+    protected function isCentralDomain(string $hostname): bool
+    {
+        $parts = explode('.', $hostname);
+        $isLocalhost = count($parts) === 1;
+        $isIpAddress = count(array_filter($parts, 'is_numeric')) === count($parts);
+        $isCentralDomain = in_array($hostname, config('tenancy.central_domains', []), true);
+        $thirdPartyDomain = !\Illuminate\Support\Str::endsWith($hostname, config('tenancy.central_domains', []));
+
+        return $isLocalhost || $isIpAddress || $isCentralDomain || $thirdPartyDomain;
+    }
+
+    /**
+     * Extract subdomain from hostname
+     */
+    protected function extractSubdomain(string $hostname): ?string
+    {
+        $parts = explode('.', $hostname);
+        return $parts[0] ?? null;
+    }
+
+    /**
+     * Set dynamic database connection for tenant
+     */
+    protected function setDynamicDatabaseConnection($tenant)
+    {
+        try {
+            $settings = $tenant->getEnvironmentSettings();
+            if (!$settings || empty($settings['db_name'])) {
+                \Log::warning('Database settings not configured for tenant: ' . $tenant->id);
+                return;
+            }
+
+            $tenantKey = 'tenant_' . $tenant->id;
+
+            // Set database connection config
+            Config::set("database.connections.$tenantKey", [
+                'driver'    => 'mysql',
+                'host' => $settings['db_host'] ?? '127.0.0.1',
+                'port' => $settings['db_port'] ?? '3306',
+                'database' => $settings['db_name'],
+                'username' => $settings['db_username'] ?? '',
+                'password'  => $settings['db_password'] ?? '',
+                'charset'   => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+                'prefix'    => '',
+                'prefix_indexes' => true,
+                'strict'    => true,
+                'engine'    => null,
+            ]);
+
+            // Test connection
+            DB::purge($tenantKey);
+            DB::connection($tenantKey)->getPdo();
+
+            // Set as default connection
+            Config::set('database.central', config('database.default'));
+            Config::set('database.default', $tenantKey);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to set dynamic database connection: ' . $e->getMessage());
+            throw $e;
+        }
+    }
     /**
      * Register the application services.
      *
@@ -290,10 +412,10 @@ class ExmentServiceProvider extends ServiceProvider
     public function register()
     {
         parent::register();
-        require_once(__DIR__.'/Services/Helpers.php');
+        require_once(__DIR__ . '/Services/Helpers.php');
 
         $this->mergeConfigFrom(
-            __DIR__.'/../config/exment.php',
+            __DIR__ . '/../config/exment.php',
             'exment'
         );
 
@@ -362,20 +484,22 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function publish()
     {
-        $this->publishes([__DIR__.'/../config' => config_path()]);
-        $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
-        $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
+        $this->publishes([__DIR__ . '/../config' => config_path()]);
+        $this->publishes([__DIR__ . '/../public' => public_path('')], 'public');
+        $this->publishes([__DIR__ . '/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
         $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/assets') => public_path('vendor/laravel-admin')], 'laravel-admin-assets-exment');
         $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/lang') => resource_path('lang')], 'laravel-admin-lang-exment');
-        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
+        $this->publishes([__DIR__ . '/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
     }
 
     protected function load()
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
-        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
-
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'exment');
+        $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'exment');
+    }
+    protected function loadPlugins()
+    {
         // load plugins
         if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
             return;

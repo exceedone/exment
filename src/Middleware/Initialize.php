@@ -2,10 +2,8 @@
 
 namespace Exceedone\Exment\Middleware;
 
-use Exceedone\Exment\Services\TenantInfoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
-use Exceedone\Exment\Services\TenantService;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model;
@@ -22,7 +20,6 @@ use Encore\Admin\Form;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
-use Exceedone\Exment\Services\TenantUsageService;
 use Html;
 use PDO;
 
@@ -34,39 +31,6 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        $host = (string) $request->getHost();
-        $hostParts = array_values(array_filter(explode('.', $host)));
-        if (count($hostParts) >= 4) {
-            $subdomain = strtolower(trim($hostParts[0]));
-            $systemSubdomainsEnv = (string) env('EXMENT_SYSTEM_SUBDOMAINS', '');
-            $systemSubdomains = array_values(array_filter(array_map(function ($v) {
-                return strtolower(trim($v));
-            }, explode(',', $systemSubdomainsEnv))));
-
-            // If subdomain is a system-configured subdomain, continue normal flow
-            if (!empty($systemSubdomains) && in_array($subdomain, $systemSubdomains, true)) {
-                // fall through to the existing logic
-            } else {
-                // Otherwise, check subdomain against cached tenant subdomains
-                // $check = $tenantService->checkSubdomainExists($subdomain);
-                if (true) {
-                    // echo '<div style="
-                    //         position:fixed;
-                    //         left:16px;
-                    //         bottom:16px;
-                    //         z-index:9999;
-                    //         background:rgba(0,0,0,0.8);
-                    //         color:#fff;
-                    //         padding:8px 12px;
-                    //         border-radius:6px;
-                    //         font-size:14px;
-                    //         font-family:sans-serif;">This is subdomain '.$request->getHost().'</div>';
-                } else {
-                    return response('Subdomain not found', 404);
-                }
-            }
-        }
-
         if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
             // Check install directory
             if (!$this->isInstallPath($request)) {
@@ -121,7 +85,7 @@ class Initialize
 
     public static function initializeConfig($setDatabase = true)
     {
-        $tenant = TenantInfoService::getTenantBySubdomain();
+        $tenant = tenant();
         if($tenant) {
             $environment_settings = (array)($tenant ? $tenant['environment_settings'] : []);
             $locale = \data_get($environment_settings, 'language', config('exment.default_locale', 'ja'));

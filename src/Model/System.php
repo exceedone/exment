@@ -8,6 +8,9 @@ use Exceedone\Exment\Model\File as ExmentFile;
 use Carbon\Carbon;
 use Storage;
 use Cache;
+use Illuminate\Cache\RedisStore;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * System definition.
@@ -191,16 +194,27 @@ class System extends ModelBase
      */
     public static function cache($key, $value = null, $onlySetTrue = false)
     {
+        $subdomain = tenant('id');
+        if(!$subdomain) {
+            $subdomain = 'system';
+        }
         if (is_null($value)) {
             // first, check request session
             if (!is_null($val = static::requestSession($key))) {
                 return $val;
             }
 
-            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
-                $val = Cache::get($key);
-                static::setRequestSession($key, $val);
-                return $val;
+            if (boolval(config('exment.use_cache', false))) {
+                if ($subdomain && Cache::getStore() instanceof RedisStore) {
+                    $val = Cache::tags([$subdomain])->get($key);
+                } else {
+                    $val = Cache::get($key);
+                }
+                
+                if ($val !== null) {
+                    static::setRequestSession($key, $val);
+                    return $val;
+                }
             }
 
             return null;
@@ -209,10 +223,17 @@ class System extends ModelBase
                 return $val;
             }
 
-            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
-                $val = Cache::get($key);
-                static::setRequestSession($key, $val);
-                return $val;
+            if (boolval(config('exment.use_cache', false))) {
+                if ($subdomain && Cache::getStore() instanceof RedisStore) {
+                    $val = Cache::tags([$subdomain])->get($key);
+                } else {
+                    $val = Cache::get($key);
+                }
+                
+                if ($val !== null) {
+                    static::setRequestSession($key, $val);
+                    return $val;
+                }
             }
 
             // get value
@@ -227,13 +248,34 @@ class System extends ModelBase
 
             // set cache
             if (boolval(config('exment.use_cache', false))) {
-                Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
+                if ($val instanceof Model) {
+                    $data = ['__type' => 'model', 'class' => get_class($val), 'attributes' => $val->getAttributes()];
+                } elseif ($val instanceof Collection && $val->first() instanceof Model) {
+                    $data = [
+                        '__type' => 'collection',
+                        'class' => get_class($val->first()),
+                        'items' => $val->map(fn($m) => $m->getAttributes())->all(),
+                    ];
+                } else {
+                    $data = $val;
+                }
+
+                if ($subdomain && Cache::getStore() instanceof RedisStore) {
+                    Cache::tags([$subdomain])->put($key, $data, Define::CACHE_CLEAR_MINUTE);
+                } else {
+                    Cache::put($key, $data, Define::CACHE_CLEAR_MINUTE);
+                }
             }
             return $val;
         }
 
         static::setRequestSession($key, $value);
-        Cache::put($key, $value, Define::CACHE_CLEAR_MINUTE);
+        
+        if ($subdomain && Cache::getStore() instanceof RedisStore) {
+            Cache::tags([$subdomain])->put($key, $value, Define::CACHE_CLEAR_MINUTE);
+        } else {
+            Cache::put($key, $value, Define::CACHE_CLEAR_MINUTE);
+        }
     }
 
     /**
@@ -247,10 +289,23 @@ class System extends ModelBase
             return;
         }
 
+        $subdomain = tenant('id');
+        if(!$subdomain) {
+            $subdomain = 'system';
+        }
+
         if (!isset($key)) {
-            Cache::flush();
+            if ($subdomain && Cache::getStore() instanceof RedisStore) {
+                Cache::tags([$subdomain])->flush();
+            } else {
+                Cache::flush();
+            }
         } else {
-            Cache::forget($key);
+            if ($subdomain && Cache::getStore() instanceof RedisStore) {
+                Cache::tags([$subdomain])->forget($key);
+            } else {
+                Cache::forget($key);
+            }
         }
     }
 

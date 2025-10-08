@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Exceedone\Exment\Services\TenantUsageService;
-use Exceedone\Exment\Model\Tenant;
-use Exceedone\Exment\Services\TenantInfoService;
 
 class UsageLimit
 {
@@ -23,10 +21,7 @@ class UsageLimit
             if (!$this->shouldCheckUsage($request)) {
                 return $next($request);
             }
-            $tenantInfo = TenantInfoService::getTenantBySubdomain();
-            if (!$tenantInfo) {
-                return $next($request);
-            }
+            $tenantInfo = tenant();
             
             $subdomain = $tenantInfo['subdomain'];            
             $context = TenantUsageService::getCurrentSubdomainWithUsage($subdomain);
@@ -48,7 +43,6 @@ class UsageLimit
             $incomingBytes = $this->estimateIncomingBytes($request);
             $projectedBytes = $currentBytes + $incomingBytes;
             $limitBytes = (int) round($planLimitGb * 1024 * 1024 * 1024);
-            //dd($currentBytes);
 
             if ($projectedBytes > $limitBytes) {
                 return $this->limitExceededResponse($request);

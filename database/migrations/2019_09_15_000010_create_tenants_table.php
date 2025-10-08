@@ -19,7 +19,7 @@ class CreateTenantsTable extends Migration
             $table->id();
             
             // Tenant SUUID for unique identification
-            $table->string('tenant_suuid', 255)->unique();
+            $table->string('tenant_suuid', 255);
             
             // Subdomain for tenant identification (e.g., mycompany.exment.org)
             $table->string('subdomain', 63)->nullable();
@@ -46,6 +46,8 @@ class CreateTenantsTable extends Migration
             
             // Timestamps
             $table->timestamps();
+            
+            $table->json('data')->nullable();
             
             // Soft deletes
             $table->softDeletes();
