@@ -183,6 +183,13 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('backup/importModal/{file_key}', 'BackupController@importModal');
             $router->get('backup/download/{ymdhms}', 'BackupController@download');
 
+            $router->get("data/{tableKey}/importAiOcrModal", 'CustomValueController@importAiOcrModal');
+            $router->post("data/{tableKey}/importAiOcr", 'CustomValueController@importAiOcr');
+            $router->get("data/{tableKey}/importMultiAiOcrModal", 'CustomValueController@importMultiAiOcrModal');
+            $router->post("data/{tableKey}/importMultiAiOcr", 'CustomValueController@importMultiAiOcr');
+            $router->post("data/{tableKey}/runAiOcr", 'AiOcrController@runAiOcr');
+            $router->post("data/{tableKey}/runMultiAiOcr", 'AiOcrController@runMultiAiOcr');
+
             $router->get("data/{tableKey}/importModal", 'CustomValueController@importModal');
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');

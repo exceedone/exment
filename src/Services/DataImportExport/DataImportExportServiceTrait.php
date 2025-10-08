@@ -495,6 +495,267 @@ trait DataImportExportServiceTrait
     }
 
     /**
+     * AI-OCR Import Modal
+     *
+     * @param array $pluginlist
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function getImportAiOcrModal($pluginlist = null)
+    {
+        // create form fields
+        $form = new ModalForm();
+
+        $fileOption = array_merge(
+            Define::FILE_OPTION(),
+            [
+                'showPreview' => false,
+                'dropZoneEnabled' => false,
+            ]
+        );
+
+        // import formats
+        $formats = [
+            'jpg'  => 'jpg',
+            'jpeg' => 'jpeg',
+            'png'  => 'png',
+            'bmp'  => 'bmp',
+            'gif'  => 'gif',
+            'tiff' => 'tiff',
+            'pdf'  => 'pdf',
+        ];
+
+        /** @phpstan-ignore-next-line */
+        $form->descriptionHtml('<span class="red">' . exmtrans('common.help.import_ai_ocr', [
+                'count' => config('exment.import_max_row_count', 1000),
+                'manual' => \getManualUrl('data_bulk_insert')
+            ]) . '</span>')
+            ->setWidth(8, 3);
+
+        /** @phpstan-ignore-next-line */
+        $form->action(admin_urls($this->importAction->getImportEndpoint(), 'importAiOcr'))
+            ->file('custom_table_file', exmtrans('custom_value.import.import_ai_ocr'))
+            ->rules('mimes:' . implode(',', array_keys($formats)))->setWidth(8, 3)->addElementClass('custom_table_file')
+            ->options($fileOption)
+            ->required()
+            ->removable()
+            ->attribute(['accept' => collect(array_values($formats))->map(function ($format) {
+                return '.' . $format;
+            })->implode(',')])
+            ->help(exmtrans('custom_value.import.help.custom_table_ai_ocr_file'));
+
+        if (!empty($pluginlist)) {
+            $form->select('import_plugin', exmtrans('custom_value.import.import_plugin'))
+                ->options($pluginlist)
+                ->setWidth(8, 3)
+                ->help(exmtrans('custom_value.import.help.import_plugin'));
+        }
+
+        $form->hidden('select_action')->default('stop');
+
+        $form->textarea('import_error_message', exmtrans('custom_value.import.import_error_message'))
+            ->attribute(['readonly' => true])
+            ->setWidth(8, 3)
+            ->rows(4)
+            ->addElementClass('import_error_message')
+            ->help(exmtrans('custom_value.import.help.import_error_message'));
+
+        $form->attribute(['id' => 'form-import-ai-ocr']);
+        $form->addCustomScriptToArray([
+            <<<'JS'
+            setTimeout(() => {
+                const form = document.querySelector('#form-import-ai-ocr');
+                const submitBtn = document.querySelector('#modal-showmodal .modal-submit');
+                if (!form || !submitBtn) return;
+
+                const CTRL_KEY = '__ocrModalSubmitCtrl';
+                if (window[CTRL_KEY]) {
+                    try { window[CTRL_KEY].abort(); } catch (_) {}
+                }
+                const controller = new AbortController();
+                window[CTRL_KEY] = controller;
+
+                const onClick = async (e) => {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+                    const action = form.getAttribute('action');
+
+                    try {
+                        const res = await fetch(action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            },
+                        });
+                        const data = await res.json();
+
+                        if (data.result && data.files_path) {
+                            // Dispatch SINGLE only
+                            window.dispatchEvent(new CustomEvent('ai-ocr-uploaded', {
+                                detail: { file_path: data.files_path }
+                            }));
+                            $('#modal-showmodal').modal('hide');
+                        }
+                    } catch (err) {
+                        // optional: handle error
+                    }
+                };
+
+                submitBtn.addEventListener('click', onClick, { signal: controller.signal });
+
+                // Cancel handler
+                $('#modal-showmodal').one('hidden.bs.modal', () => {
+                    try { controller.abort(); } catch (_) {}
+                });
+            }, 300);
+            JS
+        ]);
+
+        $this->importAction->setImportModalItems($form);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'preventSubmit' => true,    // prevent parent modal reload
+            'title' => exmtrans('common.import_ai_ocr') . ' - ' . $this->importAction->getImportHeaderViewName()
+        ]);
+    }
+
+    /**
+     * AI-OCR Import Modal
+     *
+     * @param array $pluginlist
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function getImportMultiAiOcrModal($pluginlist = null)
+    {
+        // create form fields
+        $form = new ModalForm();
+
+        $fileOption = array_merge(
+            Define::FILE_OPTION(),
+            [
+                'showPreview' => false,
+                'dropZoneEnabled' => false,
+                'multiple' => true,
+            ]
+        );
+
+        $formats = [
+            'jpg'  => 'jpg',
+            'jpeg' => 'jpeg',
+            'png'  => 'png',
+            'bmp'  => 'bmp',
+            'gif'  => 'gif',
+            'tiff' => 'tiff',
+            'pdf'  => 'pdf',
+        ];
+
+        $form->descriptionHtml('<span class="red">' . exmtrans('common.help.import_multi_ai_ocr', [
+                'count' => config('exment.import_max_row_count', 1000),
+                'manual' => \getManualUrl('data_bulk_insert')
+            ]) . '</span>')
+            ->setWidth(8, 3);
+
+        $form->action(admin_urls($this->importAction->getImportEndpoint(), 'importMultiAiOcr'))
+        ->file('custom_table_files[]', exmtrans('custom_value.import.import_multi_files'))
+        ->rules('mimes:' . implode(',', array_keys($formats))) // MIME rules
+        ->setWidth(8, 3)
+            ->addElementClass('custom_table_files')
+            ->options($fileOption)
+            ->required()
+            ->removable()
+            ->attribute([
+                'accept' => collect(array_values($formats))->map(function ($format) {
+                    return '.' . $format;
+                })->implode(','),
+                'multiple' => 'multiple', // HTML attribute
+            ])
+            ->help(exmtrans('custom_value.import.help.custom_table_ai_ocr_multi_file'));
+
+        if (!empty($pluginlist)) {
+            $form->select('import_plugin', exmtrans('custom_value.import.import_plugin'))
+                ->options($pluginlist)
+                ->setWidth(8, 3)
+                ->help(exmtrans('custom_value.import.help.import_plugin'));
+        }
+
+        $form->hidden('select_action')->default('stop');
+
+        $form->textarea('import_error_message', exmtrans('custom_value.import.import_error_message'))
+            ->attribute(['readonly' => true])
+            ->setWidth(8, 3)
+            ->rows(4)
+            ->addElementClass('import_error_message')
+            ->help(exmtrans('custom_value.import.help.import_error_message'));
+
+        $form->attribute(['id' => 'form-import-multi-ai-ocr']);
+        $form->addCustomScriptToArray([
+            <<<'JS'
+            setTimeout(() => {
+                const form = document.querySelector('#form-import-multi-ai-ocr');
+                const submitBtn = document.querySelector('#modal-showmodal .modal-submit');
+                if (!form || !submitBtn) return;
+
+                const CTRL_KEY = '__ocrModalSubmitCtrl';
+                if (window[CTRL_KEY]) {
+                    try { window[CTRL_KEY].abort(); } catch (_) {}
+                }
+                const controller = new AbortController();
+                window[CTRL_KEY] = controller;
+
+                const onClick = async (e) => {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+                    const action = form.getAttribute('action');
+
+                    try {
+                        const res = await fetch(action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            },
+                        });
+                        const data = await res.json();
+
+                        if (data.result && data.files_path) {
+                            // Dispatch MULTI only
+                            window.dispatchEvent(new CustomEvent('ai-ocr-multi-uploaded', {
+                                detail: { files_path: data.files_path }
+                            }));
+                            $('#modal-showmodal').modal('hide');
+                        }
+                    } catch (err) {
+                        // optional: handle error
+                    }
+                };
+
+                submitBtn.addEventListener('click', onClick, { signal: controller.signal });
+
+                // Cancel handler
+                $('#modal-showmodal').one('hidden.bs.modal', () => {
+                    try { controller.abort(); } catch (_) {}
+                });
+            }, 300);
+            JS
+        ]);
+
+        $this->importAction->setImportModalItems($form);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'preventSubmit' => true,    // prevent parent modal reload
+            'title' => exmtrans('common.import_multi') . ' - ' . $this->importAction->getImportHeaderViewName()
+        ]);
+    }
+
+    /**
      * get primary key list.
      *
      * @param CustomTable $custom_table

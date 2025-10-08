@@ -1296,7 +1296,8 @@ abstract class CustomValue extends ModelBase
         // if this table is document, create target blank link
         if ($this->custom_table->table_name == SystemTableName::DOCUMENT) {
             $url = admin_urls(($options['asApi'] ? 'api' : null), 'files', $this->getValue('file_uuid', true));
-            $document_name = $this->getValue('document_name');
+            $file = File::where('uuid', $this->getValue('file_uuid', true))->first();
+            $document_name = $file ? $file->filename : $this->getValue('document_name');
 
             if (!$tag) {
                 return $url;

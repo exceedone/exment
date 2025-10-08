@@ -241,7 +241,7 @@ class ExportImportButton extends ModalTileMenuButton
             }
         }
 
-        if ($this->import_flg) {
+        if ($this->import_flg && $this->custom_table?->isAiOcrEnabled()) {
             $groups[] = [
                 'header' => exmtrans('common.import'),
                 'items' => [
@@ -264,6 +264,21 @@ class ExportImportButton extends ModalTileMenuButton
                                 'url' => '#',
                                 'attributes' => \Exment::formatAttributes([
                                     'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
+                                ]),
+                            ]
+                        ],
+                    ],
+                    [
+                        'icon' => 'fa-layer-group',
+                        'header' => exmtrans('custom_value.import_multi_ai_ocr'),
+                        'description' => exmtrans('custom_value.help.import_multi_ai_ocr'),
+                        'buttons' => [
+                            [
+                                'label' => exmtrans('common.import_multi'),
+                                'icon' => 'fa-layer-group',
+                                'url' => '#',
+                                'attributes' => \Exment::formatAttributes([
+                                    'data-widgetmodal_url' => url_join($this->endpoint, 'importMultiAiOcrModal')
                                 ]),
                             ]
                         ],

@@ -600,6 +600,8 @@ EOT;
             return;
         }
 
+        $aiOcrEnabled = $this->custom_table?->isAiOcrEnabled();
+
         $form = new WidgetForm();
         $form->disableReset();
         $form->disableSubmit();
@@ -610,9 +612,9 @@ EOT;
             $allow_delete = config('exment.allow_delete_attachment', false);
             foreach ($documents as $index => $d) {
                 $html[] = "<p>" . view('exment::form.field.documentlink', [
-                    'document' => $d,
-                    'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
-                ])->render() . "</p>";
+                        'document' => $d,
+                        'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
+                    ])->render() . "</p>";
             }
             // loop and add as link
             $form->html(implode("", $html))
@@ -620,8 +622,8 @@ EOT;
                 ->setWidth(8, 3);
         }
 
-        // add file uploader
-        if ($useFileUpload) {
+        // If AI OCR is enabled → Uploaded File View Only
+        if ($useFileUpload && !$aiOcrEnabled) {
             $max_count = config('exment.document_upload_max_count', 5);
             $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
@@ -661,8 +663,9 @@ EOT;
 
             Admin::script($script);
         }
-        /** @phpstan-ignore-next-line Encore\Admin\Widgets\Box constructor expects string, Encore\Admin\Widgets\Form given */
-        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
+
+        $title_text = $aiOcrEnabled ? exmtrans('common.import_ai_ocr') : exmtrans("common.attachment");
+        $row->column(['xs' => 12, 'sm' => 6], (new Box($title_text, $form->render()))->style('info'));
     }
 
     protected function getComments()
@@ -818,6 +821,39 @@ EOT;
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+
+    public function fileuploadTemp($httpfiles)
+    {
+        if (is_nullorempty($httpfiles)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
+        $tempId = (string) \Str::uuid();
+        $tableKey = $this->custom_table->table_name;
+        $disk = config('admin.upload.disk');
+        $files_path = $path = implode(DIRECTORY_SEPARATOR, [
+            storage_path('app'),
+            $disk,
+            'ai_ocr_temp',
+            $tableKey,
+            $tempId,
+        ]);
+
+        $files_array = is_array($httpfiles) ? $httpfiles : [$httpfiles];
+        foreach (toArray($files_array) as $httpfile) {
+            $filename = $httpfile->getClientOriginalName();
+            ExmentFile::storeAs(FileType::AI_OCR, $httpfile, "ai_ocr_temp/{$tableKey}/{$tempId}", $filename, [], $tableKey);
+        }
+
+        return getAjaxResponse([
+            'result'            => true,
+            'message'           => trans('admin.upload_succeeded'),
+            'files_path'        => $files_path,
         ]);
     }
 

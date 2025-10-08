@@ -271,6 +271,8 @@ class CustomTableController extends AdminControllerBase
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($has_parent) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
+            $form->switchbool('ai_ocr_flg', exmtrans("custom_table.ai_ocr_flg"))->help(exmtrans("custom_table.help.ai_ocr_flg"))->default("0")
+            ;
             $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1")
             ;
             $form->switchbool('use_label_id_flg', exmtrans("custom_table.use_label_id_flg"))
@@ -395,6 +397,28 @@ class CustomTableController extends AdminControllerBase
                 return redirect($custom_column_url);
             }
         });
+
+        // Lock 'attachment_flg' when 'ai_ocr_flg' is ON, allow edit when OFF
+        Admin::script(<<<'JS'
+        $(function () {
+            const $aiOcr = $('input.options_ai_ocr_flg[type="checkbox"]');
+            const $attachment = $('input.options_attachment_flg[type="checkbox"]');
+
+            function syncAttachmentFlag() {
+                const aiOcrChecked = $aiOcr.prop('checked');
+
+                if (aiOcrChecked) {
+                    $attachment.bootstrapSwitch('state', true, true); // state ON, skip event
+                    $attachment.bootstrapSwitch('disabled', true);    // disable switch
+                } else {
+                    $attachment.bootstrapSwitch('disabled', false);   // enable switch
+                }
+            }
+            $aiOcr.on('switchChange.bootstrapSwitch', syncAttachmentFlag);
+
+            syncAttachmentFlag();
+        });
+        JS);
 
         return $form;
     }
@@ -649,7 +673,7 @@ HTML;
                 ->options(DataScanSubmitRedirect::transKeyArray("custom_table.data_qr_redirect_options"))
                 ->default(DataScanSubmitRedirect::TOP);
         })->disableHeader();
-        
+
 
         $form->hidden('qrcodesetting')->default(1);
         $form->ignore('qrcodesetting');
