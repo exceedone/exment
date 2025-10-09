@@ -125,7 +125,7 @@ class ExportImportButton extends ModalTileMenuButton
         $export = trans('admin.export');
         $all = trans('admin.all');
         $currentPage = trans('admin.current_page');
-        $base_key= $this->base_key;
+        $base_key = $this->base_key;
 
         $groups = [];
 
@@ -161,7 +161,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'header' => $all,
                         'description' => exmtrans("$base_key.help.export_all"),
                         'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=export&format=$key"], $format);
+                            return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&format=$key")], $format);
                         })->toArray(),
                     ],
                     [
@@ -169,7 +169,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'header' => $currentPage,
                         'description' => exmtrans("$base_key.help.export_page"),
                         'buttons' => collect($formats)->map(function ($format, $key) use ($page) {
-                            return array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=export&format=$key"], $format);
+                            return array_merge(['href' => url($this->grid->getExportUrl('page', $page) . "&action=export&format=$key")], $format);
                         })->toArray(),
                     ],
                 ]
@@ -186,7 +186,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'header' => $all,
                         'description' => exmtrans('custom_value.help.view_export_all'),
                         'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=view_export&format=$key"], $format);
+                            return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=view_export&format=$key")], $format);
                         })->toArray(),
                     ],
                     [
@@ -194,7 +194,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'header' => $currentPage,
                         'description' => exmtrans('custom_value.help.view_export_page'),
                         'buttons' => collect($formats)->map(function ($format, $key) use ($page) {
-                            return array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=view_export&format=$key"], $format);
+                            return array_merge(['href' => url($this->grid->getExportUrl('page', $page) . "&action=view_export&format=$key")], $format);
                         })->toArray(),
                     ],
                 ]
@@ -222,7 +222,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
                         'header' => $all,
                         'description' => $plugin->getOption('export_description'),
-                        'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=plugin_export&plugin_uuid={$plugin->uuid}"], $button)],
+                        'buttons' => [array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=plugin_export&plugin_uuid={$plugin->uuid}")], $button)],
                     ];
                 }
                 if (in_array('current_page', $export_types)) {
@@ -230,7 +230,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
                         'header' => $currentPage,
                         'description' => $plugin->getOption('export_description'),
-                        'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=plugin_export&plugin_uuid={$plugin->uuid}"], $button)],
+                        'buttons' => [array_merge(['href' => url($this->grid->getExportUrl('page', $page) . "&action=plugin_export&plugin_uuid={$plugin->uuid}")], $button)],
                     ];
                 }
 
@@ -250,7 +250,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'header' => exmtrans('custom_value.template'),
                         'description' => exmtrans('custom_value.help.template'),
                         'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href'=> $this->endpoint."?_export_=all&temp=1&format=$key"], $format);
+                            return array_merge(['href' => $this->endpoint . "?_export_=all&temp=1&format=$key"], $format);
                         })->toArray(),
                     ],
                     [
