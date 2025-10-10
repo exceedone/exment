@@ -10,7 +10,7 @@
             <div class="clearfix">
                 <p class="pull-left tile-title">{{ array_get($option, 'title') }}</p>
                 @if(!is_null(array_get($option, 'delete_url')))
-                <p class="pull-right" style="margin:0;position: relative;float: right;bottom: 41px;">
+                <p class="pull-right" style="margin:0;position: relative;float: right;">
                     <button type="button" class="btn btn-box-tool" data-exment-delete="{{array_get($option, 'delete_url')}}" style="color:#333;"><i class="fa fa-trash"></i></button>
                 </p>
                 @endif
