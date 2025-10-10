@@ -2277,6 +2277,7 @@ return [
             'operation_log' => '操作ログ',
             'api_setting' => 'APIアプリ設定',
             'login_setting' => 'ログイン設定',
+            'ai_assistant' => 'AIアシスタント',
         ],
     ],
 

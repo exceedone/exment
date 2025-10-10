@@ -33,7 +33,9 @@ class TenantProcessPendingJob
 
             Log::info('TenantProcessPendingJob: Found ' . $pendingTenants->count() . ' pending tenants');
 
+            Config::set('database.central', config('database.default'));
             foreach ($pendingTenants as $tenant) {
+                Config::set('database.default', config('database.central'));
                 $this->processTenant($tenant);
             }
 

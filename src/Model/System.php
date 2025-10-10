@@ -208,6 +208,7 @@ class System extends ModelBase
                 if ($subdomain && Cache::getStore() instanceof RedisStore) {
                     $val = Cache::tags([$subdomain])->get($key);
                 } else {
+                    $key = $key. '_'.$subdomain; 
                     $val = Cache::get($key);
                 }
                 
@@ -227,6 +228,7 @@ class System extends ModelBase
                 if ($subdomain && Cache::getStore() instanceof RedisStore) {
                     $val = Cache::tags([$subdomain])->get($key);
                 } else {
+                    $key = $key. '_'.$subdomain;
                     $val = Cache::get($key);
                 }
                 
@@ -263,6 +265,7 @@ class System extends ModelBase
                 if ($subdomain && Cache::getStore() instanceof RedisStore) {
                     Cache::tags([$subdomain])->put($key, $data, Define::CACHE_CLEAR_MINUTE);
                 } else {
+                    $key = $key. '_'.$subdomain;
                     Cache::put($key, $data, Define::CACHE_CLEAR_MINUTE);
                 }
             }
@@ -274,6 +277,7 @@ class System extends ModelBase
         if ($subdomain && Cache::getStore() instanceof RedisStore) {
             Cache::tags([$subdomain])->put($key, $value, Define::CACHE_CLEAR_MINUTE);
         } else {
+            $key = $key. '_'.$subdomain;
             Cache::put($key, $value, Define::CACHE_CLEAR_MINUTE);
         }
     }

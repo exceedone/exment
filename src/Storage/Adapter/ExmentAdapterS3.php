@@ -45,7 +45,12 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
         }
 
         $client = new S3Client($clientConfig);
-        return new self($client, array_get($mergeConfig, 'bucket'));
+        $tenantInfo = tenant();
+        $tenantSuuid = $tenantInfo['tenant_suuid'] ?? null;
+        $tenantId = $tenantInfo['id'] ?? null;
+        $prefix = $tenantSuuid ? "tenant_{$tenantId}_{$tenantSuuid}/" : "";
+        
+        return new self($client, array_get($mergeConfig, 'bucket'), $prefix);
     }
 
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array

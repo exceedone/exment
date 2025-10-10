@@ -24,12 +24,32 @@ class ExmentAdapterLocal extends LocalFilesystemAdapter implements ExmentAdapter
     ];
 
     /**
+     * Get tenant prefix for storage paths
+     *
+     * @return string
+     */
+    protected static function getTenantPrefix(): string
+    {
+        $tenantInfo = tenant();
+        $tenantSuuid = $tenantInfo['tenant_suuid'] ?? null;
+        $tenantId = $tenantInfo['id'] ?? null;
+        $prefix = $tenantSuuid ? "tenant_{$tenantId}_{$tenantSuuid}/" : "";
+        
+        return $prefix;
+    }
+
+    /**
      * get adapter class
      */
     public static function getAdapter($app, $config, $driverKey)
     {
         $mergeConfig = static::getConfig($config);
-        return new self(array_get($mergeConfig, 'root'));
+        
+        $prefix = static::getTenantPrefix();
+        $rootPath = array_get($mergeConfig, 'root');
+        $fullPath = $prefix ? $rootPath . '/' . trim($prefix, '/') : $rootPath;
+        
+        return new self($fullPath);
     }
 
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array

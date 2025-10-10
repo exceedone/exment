@@ -2276,6 +2276,7 @@ return [
             'operation_log' => 'Operation log',
             'api_setting' => 'API Setting',
             'login_setting' => 'Login Setting',
+            'ai_assistant' => 'AI Assistant',
         ],
     ],
 

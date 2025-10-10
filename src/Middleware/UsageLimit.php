@@ -22,8 +22,10 @@ class UsageLimit
                 return $next($request);
             }
             $tenantInfo = tenant();
-            
-            $subdomain = $tenantInfo['subdomain'];            
+            if(!$tenantInfo) {
+                return $next($request);
+            }
+            $subdomain = $tenantInfo['subdomain'];
             $context = TenantUsageService::getCurrentSubdomainWithUsage($subdomain);
             if (!($context['success'] ?? false)) {
                 return $next($request);

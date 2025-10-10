@@ -43,7 +43,8 @@
         "psr/simple-cache": "^2.0",
         "simplesoftwareio/simple-qrcode": "2.0",
         "elibyy/tcpdf-laravel": "^11.1",
-        "stancl/tenancy": "^3.9"
+        "stancl/tenancy": "^3.9",
+        "predis/predis": "^3.2"
         
     },
     "require-dev": {

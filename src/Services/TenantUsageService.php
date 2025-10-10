@@ -166,6 +166,7 @@ class TenantUsageService
                 ];
             }
 
+            \Config::set('database.default', config('database.central'));
             $dbSize = self::calculateDatabaseSize($subdomain);
 
             $usageData = [
@@ -174,7 +175,7 @@ class TenantUsageService
                 'database_size_mb' => round($dbSize / 1024 / 1024, 2),
                 'database_size_gb' => round($dbSize / 1024 / 1024 / 1024, 2),
             ];
-
+            \Config::set('database.default', 'tenant_' . tenant('id'));
             return [
                 'success' => true,
                 'data' => $usageData
@@ -488,9 +489,13 @@ class TenantUsageService
             $results = [];
             $totalSize = 0;
 
+            $tenantInfo = tenant();
+            $tenantSuuid = $tenantInfo['tenant_suuid'] ?? null;
+            $tenantId = $tenantInfo['id'] ?? null;
+            $prefix = $tenantSuuid ? "tenant_{$tenantId}_{$tenantSuuid}/" : "";
             foreach ($buckets as $type => $bucketName) {
                 if ($bucketName) {
-                    $result = self::calculateBucketSize($s3Client, $bucketName, $subdomain);
+                    $result = self::calculateBucketSize($s3Client, $bucketName, $prefix);
                     $results[$type] = $result;
                     $totalSize += $result['total_size_bytes'];
                 } else {
@@ -532,16 +537,15 @@ class TenantUsageService
      *
      * @param S3Client $s3Client
      * @param string $bucketName
-     * @param string $subdomain
+     * @param string $prefix
      * @return array
      */
-    protected static function calculateBucketSize(S3Client $s3Client, string $bucketName, string $subdomain): array
+    protected static function calculateBucketSize(S3Client $s3Client, string $bucketName, string $prefix): array
     {
         try {
             $totalSize = 0;
             $objectCount = 0;
             $continuationToken = null;
-            $prefix = "tenant-{$subdomain}/";
 
             do {
                 $params = [
@@ -573,16 +577,16 @@ class TenantUsageService
                 'total_size_gb' => round($totalSize / 1024 / 1024 / 1024, 2),
                 'object_count' => $objectCount
             ];
-        } catch (AwsException $e) {
+        } catch (\Exception $e) {
             Log::error('Failed to calculate bucket size', [
                 'bucket' => $bucketName,
-                'subdomain' => $subdomain,
+                'prefix' => $prefix,
                 'error' => $e->getMessage()
             ]);
 
             return [
                 'bucket' => $bucketName,
-                'prefix' => "tenant-{$subdomain}/",
+                'prefix' => $prefix,
                 'total_size_bytes' => 0,
                 'total_size_mb' => 0,
                 'total_size_gb' => 0,
