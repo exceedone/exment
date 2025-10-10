@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment;
 
+use Exception;
 use Storage;
 use Encore\Admin\Admin;
 use Encore\Admin\Middleware as AdminMiddleware;
@@ -97,6 +98,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\DocumentImportCommand::class,
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
+        \Exceedone\Exment\Console\TenantProcessPendingCommand::class,
     ];
 
 
@@ -368,10 +370,6 @@ class ExmentServiceProvider extends ServiceProvider
     {
         try {
             $settings = $tenant->getEnvironmentSettings();
-            if (!$settings || empty($settings['db_name'])) {
-                \Log::warning('Database settings not configured for tenant: ' . $tenant->id);
-                return;
-            }
 
             $tenantKey = 'tenant_' . $tenant->id;
 
@@ -398,10 +396,13 @@ class ExmentServiceProvider extends ServiceProvider
             // Set as default connection
             Config::set('database.central', config('database.default'));
             Config::set('database.default', $tenantKey);
-            
+            if (!hasTable(SystemTableName::SYSTEM)) {
+                throw new Exception('System table not exist');
+            }
         } catch (\Exception $e) {
             \Log::error('Failed to set dynamic database connection: ' . $e->getMessage());
-            throw $e;
+            echo exmtrans('tenant.error_init');
+            exit;
         }
     }
     /**

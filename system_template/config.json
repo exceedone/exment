@@ -1477,6 +1477,17 @@
             "title": "AI Assistant",
             "parent_name": null,
             "menu_target_name": "ai_assistant"
+        },
+        {
+            "order": "12",
+            "title": "Tenant Settings",
+            "title_en": "Tenant Settings",
+            "icon": "fa-building",
+            "uri": "tenant\/settings",
+            "menu_type": "custom",
+            "menu_name": "tenant-settings",
+            "parent_name": "admin",
+            "menu_target_name": null
         }
     ],
     "thumbnail": "thumbnail.png"

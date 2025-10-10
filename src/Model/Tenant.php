@@ -7,9 +7,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Exceedone\Exment\Enums\TenantType;
 use Exceedone\Exment\Casts\EnvironmentSettingsCast;
 use Exceedone\Exment\Casts\SecretKeyEncrypted;
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
-class Tenant extends BaseTenant
+class Tenant extends Model
 {
     use SoftDeletes;
 

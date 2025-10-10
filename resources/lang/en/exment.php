@@ -2770,6 +2770,7 @@ return [
         'language' => 'Language',
         'timezone' => 'Time Zone',
         '404' => 'Subdomain not found',
+        'error_init' => 'The tenant is not yet initialized or there is a problem connecting to the tenant. Please contact your system administrator.',
         
         'help' => [
             'language' => 'Select the display language for the system',

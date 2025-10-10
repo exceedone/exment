@@ -1374,6 +1374,7 @@ if (!function_exists('hasTable')) {
      */
     function hasTable($table_name)
     {
+        // Optimize in next release
         $tables = System::cache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
             // get all table names
             return DB::connection()->getDoctrineSchemaManager()->listTableNames();

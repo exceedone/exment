@@ -520,6 +520,11 @@
             "title": "AI Assistant"
         },
         {
+            "menu_type": "custom",
+            "menu_name": "tenant-settings",
+            "title": "テナント設定"
+        },
+        {
             "menu_type": "table",
             "menu_name": "mail_send_log",
             "title": "メール送信履歴"

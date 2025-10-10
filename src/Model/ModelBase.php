@@ -116,14 +116,14 @@ class ModelBase extends Model
         static::creating(function ($model) {
             if ($model->custom_table && $model->custom_table->table_name === SystemTableName::USER) {
                 
-                $tenantInfo = TenantInfoService::getTenantBySubdomain();
+                $tenantInfo = tenant();
                 if ($tenantInfo) {
                     $max_count = (int) \data_get($tenantInfo, 'plan_info.user_limit', 0);
                     $current_count = $model->custom_table->getValueModel()
                         ->withoutGlobalScopes()
                         ->count();
                         
-                    if ($max_count > 0 && $current_count != $max_count) {
+                    if ($max_count > 0 && $current_count > $max_count) {
                         throw new \Exception(exmtrans('tenant.cannot_create_more_users', ['max_count' => $max_count]), ErrorCode::ERROR_CODE_CREATE_USER);
                     }
                 }
