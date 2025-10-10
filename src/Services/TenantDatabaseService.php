@@ -32,7 +32,7 @@ class TenantDatabaseService
     public static function createTenantDatabase(Tenant $tenant): void
     {
         $settings = $tenant->getEnvironmentSettings();
-        $dbName = $settings['db_name'] ?? 'tenant_' . $tenant->id;
+        $dbName = 'tenant_' . $tenant->id . '_' . date('Ymd') . '_' . strtolower(\Str::random(8));
         
         $connection = DB::connection();
         Log::info('Creating tenant database', [
@@ -49,8 +49,9 @@ class TenantDatabaseService
         
         // Update environment_settings with database information
         $settings['db_name'] = $dbName;
-        // $tenant->update(['environment_settings' => $settings]);
-        
+        $settings['db_username'] = 'user_tenant_' . $tenant->id . '_' . strtolower(\Str::random(8));
+        $tenant->update(['environment_settings' => $settings]);
+        $tenant->setEnvironmentSettings($settings);
         Log::info('Tenant database created successfully', [
             'tenant_id' => $tenant->id,
             'database_name' => $dbName

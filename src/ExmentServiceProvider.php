@@ -373,21 +373,16 @@ class ExmentServiceProvider extends ServiceProvider
 
             $tenantKey = 'tenant_' . $tenant->id;
 
+            $defaultConnection = config('database.connections.' . config('database.default'));
+        
             // Set database connection config
-            Config::set("database.connections.$tenantKey", [
-                'driver'    => 'mysql',
+            Config::set("database.connections.$tenantKey", array_merge($defaultConnection, [
                 'host' => $settings['db_host'] ?? '127.0.0.1',
                 'port' => $settings['db_port'] ?? '3306',
                 'database' => $settings['db_name'],
-                'username' => $settings['db_username'] ?? '',
-                'password'  => $settings['db_password'] ?? '',
-                'charset'   => 'utf8mb4',
-                'collation' => 'utf8mb4_unicode_ci',
-                'prefix'    => '',
-                'prefix_indexes' => true,
-                'strict'    => true,
-                'engine'    => null,
-            ]);
+                'username' => $settings['db_username'],
+                'password' => $settings['db_password'],
+            ]));
 
             // Test connection
             DB::purge($tenantKey);

@@ -73,7 +73,7 @@ class TenantProcessPendingJob
 
             $this->setupTenantDatabase($tenant, $settings);
 
-            $this->runExmentInstall($tenant, $settings);
+            $this->runExmentInstall($tenant);
 
             $tenant->update(['status' => TenantStatus::ACTIVE]);
 
@@ -130,16 +130,15 @@ class TenantProcessPendingJob
      * @param array $settings
      * @return void
      */
-    protected function runExmentInstall(Tenant $tenant, array $settings)
+    protected function runExmentInstall(Tenant $tenant)
     {
-        Log::info('TenantProcessPendingJob: Running exment:install for tenant', [
-            'tenant_id' => $tenant->id,
-            'db_name' => $settings['db_name'],
-            'db_username' => $settings['db_username']
-        ]);
-
         try {
-            // Chuẩn bị settings cho command
+            $settings = $tenant->getEnvironmentSettings();
+            Log::info('TenantProcessPendingJob: Running exment:install for tenant', [
+                'tenant_id' => $tenant->id,
+                'db_name' => $settings['db_name'],
+                'db_username' => $settings['db_username']
+            ]);
             $installSettings = [
                 'db_host' => $settings['db_host'] ?? '127.0.0.1',
                 'db_port' => $settings['db_port'] ?? '3306',

@@ -436,15 +436,15 @@ class TenantService
             // Create tenant record with status 'pending'
             $settings = [];
             
-            $settings['db_name'] = 'tenant_' . $input['subdomain'] . '_' . date('Ymd') . '_' . \Str::random(5);
-            $settings['db_username'] = 'tenant_' . $input['subdomain'] . '_' . \Str::random(8);
+            $settings['db_name'] = '';
+            $settings['db_username'] = '';
             $settings['db_password'] = \Str::random(12);
             $settings['db_host'] = env('DB_HOST') ?? '127.0.0.1';
             $settings['db_port'] = env('DB_PORT') ?? '3306';
             
             $tenant = Tenant::create([
                 'tenant_suuid' => $input['tenant_suuid'],
-                'subdomain' => $input['subdomain'],
+                'subdomain' => strtolower($input['subdomain']),
                 'type' => TenantType::SUBDOMAIN,
                 'status' => TenantStatus::PENDING,
                 'plan_info' => $input['plan_info'],
