@@ -140,6 +140,11 @@ class RouteServiceProvider extends ServiceProvider
             $this->setResouce($router, 'table', 'CustomTableController');
             $this->setResouce($router, 'workflow', 'WorkflowController');
 
+            $router->get('plugin-market', 'PluginMarketController@index')->name('plugin.market.index');
+            $router->get('plugin-market/{id}', 'PluginMarketController@show')->name('plugin.market.show');
+            $router->post('plugin-market/{id}/install', 'PluginMarketController@install')->name('plugin.market.install');
+            $router->post('plugin-market/{id}/update', 'PluginMarketController@update')->name('plugin.market.update');
+
 
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
             $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
