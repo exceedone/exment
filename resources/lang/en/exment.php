@@ -332,7 +332,7 @@ return [
         'recaptcha_secret_key' => 'Google reCAPTCHA secret key',
 
         'release_note' => 'Release Note',
-        'call_update_header' => 'Execute Update(β)',
+        'call_update_header' => 'Execute Update',
         'call_update' => 'Execute Update',
         'call_update_howto' => 'How To Update',
         'call_update_description' => 'We will update the system to version %s. The update will take a very long time. It also switches to maintenance mode during the update. Do not close or update the page during the update.',
