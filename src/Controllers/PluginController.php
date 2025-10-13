@@ -18,14 +18,9 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
+use Exceedone\Exment\Services\Plugin\PluginLicenseSyncService;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Services\Plugin\PluginRepository;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\File;
-use ZipArchive;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 
 class PluginController extends AdminControllerBase
@@ -42,13 +37,18 @@ class PluginController extends AdminControllerBase
      *
      * @return Content
      */
-    /**
-     * Index interface.
-     *
-     * @return Content
-     */
     public function index(Request $request, Content $content)
     {
+        // Always trigger a license sync on the /plugins screen.
+        // This provides immediate auto-inactive updates, regardless of global throttling.
+        try {
+            if (\Exment::user()) {
+                (new PluginLicenseSyncService())->syncForced(1440);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[PluginController] License sync failed: ' . $e->getMessage());
+        }
+
         $this->AdminContent($content);
 
         if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
@@ -109,25 +109,7 @@ class PluginController extends AdminControllerBase
         $grid->column('author', exmtrans("plugin.author"));
         // $grid->column('version', exmtrans("plugin.version"));
 
-
-        $repoVersions = collect(PluginRepository::fetchVersions())->keyBy('uuid');
-
-        $grid->column('version')->display(function ($version) use ($repoVersions) {
-            $latest = $repoVersions[$this->uuid]['latest_version'] ?? null;
-            $downloadUrl = $repoVersions[$this->uuid]['download_url'] ?? null;
-
-            if ($latest && version_compare($latest, $version, '>') && $downloadUrl) {
-                // URL POST đúng route
-                $url = admin_url("plugin/{$this->id}/update-remote");
-                return $version .
-                    " <button type='button' 
-              class='btn btn-xs btn-warning plugin-update' 
-              data-plugin='{$this->id}' 
-              data-url='{$downloadUrl}'>Update</button>";
-            }
-
-            return $version;
-        })->escape(false);
+        $grid->column('version', exmtrans("plugin.version"));
 
 
 
@@ -218,6 +200,27 @@ class PluginController extends AdminControllerBase
             return false;
         }
 
+        // Block manual activation if paid plugin has no license or is expired beyond grace week.
+        $requestedActive = $request->boolean('active_flg');
+        if ($requestedActive && !boolval($plugin->active_flg)) {
+            $shouldBlock = (new PluginLicenseSyncService())->shouldBlockActivation((string) $plugin->plugin_name);
+            if ($shouldBlock) {
+                // Ensure it stays disabled and marked as license-driven.
+                $options = is_array($plugin->options) ? $plugin->options : [];
+                $options['disabled_by_license'] = true;
+                $plugin->active_flg = 0;
+                $plugin->options = $options;
+                $plugin->save();
+                Plugin::clearCacheTrait();
+
+                $msg = exmtrans('plugin.message.activation_blocked');
+                if ($request->ajax() || $request->expectsJson()) {
+                    admin_toastr($msg, 'error');
+                }
+                return back();
+            }
+        }
+
         $request->merge([
             'active_flg' => $request->boolean('active_flg') ? 1 : 0,
         ]);
@@ -286,8 +289,8 @@ class PluginController extends AdminControllerBase
 
                 if (isset($enumClass)) {
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))
-                    ->options($enumClass::transArray("plugin.options.event_trigger_options"))
-                    ->help(exmtrans("plugin.help.event_triggers"));
+                        ->options($enumClass::transArray("plugin.options.event_trigger_options"))
+                        ->help(exmtrans("plugin.help.event_triggers"));
                 }
             }
 
@@ -330,11 +333,11 @@ class PluginController extends AdminControllerBase
                 }
             } elseif ($plugin->matchPluginType(PluginType::BATCH) && !$command_only) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
-                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
+                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id=' . exmtrans('common.help.task_schedule_id'))))
                     ->default(3);
 
                 $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
-                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
+                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id=' . exmtrans('common.help.task_schedule_id'))))
                     ->rules('max:100');
             }
 
@@ -358,8 +361,8 @@ class PluginController extends AdminControllerBase
                         $form->text('crud_auth_id', $pluginClass->getAuthSettingLabel())
                             ->help($pluginClass->getAuthSettingHelp());
                         $form->encpassword('crud_auth_password', $pluginClass->getAuthSettingPasswordLabel())
-                        ->updateIfEmpty()
-                        ->help($pluginClass->getAuthSettingPasswordHelp());
+                            ->updateIfEmpty()
+                            ->help($pluginClass->getAuthSettingPasswordHelp());
                     } elseif ($crudAuthType == PluginCrudAuthType::OAUTH) {
                         $form->select('crud_auth_oauth')
                             ->options(function () {
@@ -385,8 +388,8 @@ class PluginController extends AdminControllerBase
                     'all' => trans('admin.all'),
                     'current_page' => trans('admin.current_page'),
                 ])->required()
-                ->default(['all', 'current_page'])
-                ->help(exmtrans("plugin.help.export_types"));
+                    ->default(['all', 'current_page'])
+                    ->help(exmtrans("plugin.help.export_types"));
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->textarea('export_description', exmtrans("plugin.options.export_description"))->help(exmtrans("plugin.help.export_description"))->rows(3);
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
@@ -408,7 +411,6 @@ class PluginController extends AdminControllerBase
                 'icon' => 'fa-edit',
                 'btn_class' => 'btn-warning',
             ]));
-
             if ($plugin->matchPluginType(PluginType::PAGE)) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_url($plugin->getRouteUri()),
@@ -427,22 +429,7 @@ class PluginController extends AdminControllerBase
                 ]));
             }
 
-            $repoVersions = collect(PluginRepository::fetchVersions())->keyBy('uuid');
-            $latest = $repoVersions[$plugin->uuid]['latest_version'] ?? null;
-            $downloadUrl = $repoVersions[$plugin->uuid]['download_url'] ?? null;
-
-            if ($latest && version_compare($latest, $plugin->version, '>')) {
-                $tools->append('
-                    <a href="javascript:void(0);" 
-                        class="btn btn-sm btn-warning plugin-update"
-                        style="margin-right: 5px;"
-                        data-plugin="' . $plugin->id . '"
-                        data-url="' . $downloadUrl . '">
-                            <i class="fa fa-refresh"></i> Update ' . $plugin->version . ' → ' . $latest . '
-                    </a>
-                ');
-
-            }
+            // Update button has been removed from form tools
         });
 
         $form->disableReset();
@@ -492,39 +479,5 @@ class PluginController extends AdminControllerBase
         }
 
         return $pluginClass;
-    }
-
-    public function updateFromRepo($pluginId)
-    {
-        try {
-            $plugin = Plugin::find($pluginId);
-            if (!$plugin) {
-                return response()->json(['error' => 'Plugin không tồn tại'], 404);
-            }
-
-            $downloadUrl = request()->input('download_url');
-
-            $response = Http::timeout(30)->get($downloadUrl);
-            if ($response->failed()) {
-                return response()->json(['error' => 'Tải file thất bại'], 500);
-            }
-
-            $tmpDisk = Storage::disk('local');
-            $tmpPath = 'tmp/' . Str::random(10) . '.zip';
-            $tmpDisk->put($tmpPath, $response->body());
-            $fullPath = $tmpDisk->path($tmpPath);
-
-            PluginInstaller::uploadPlugin(new \Illuminate\Http\File($fullPath));
-
-            $tmpDisk->delete($tmpPath);
-
-            return response()->json(['success' => true, 'message' => 'Cập nhật plugin thành công!']);
-
-        } catch (\Throwable $e) {
-            Log::error("[PluginUpdater] Lỗi khi update plugin: " . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json(['error' => 'Có lỗi xảy ra khi update plugin'], 500);
-        }
     }
 }
