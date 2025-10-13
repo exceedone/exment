@@ -336,7 +336,7 @@ return [
         'call_update' => 'Execute Update',
         'call_update_howto' => 'How To Update',
         'call_update_description' => 'We will update the system to version %s. The update will take a very long time. It also switches to maintenance mode during the update. Do not close or update the page during the update.',
-        'call_update_modal_confirm' => 'We will update the system to version %s.',
+        'call_update_modal_confirm' => 'We will update the system to version %s. If you want to do it, enter yes.',
         'call_update_success' => 'The update is complete!',
         'call_update_success_text' => 'The update is complete. After 5 seconds, you will be automatically logged out.',
         'call_update_cannot' => 'Cannot be updated',
