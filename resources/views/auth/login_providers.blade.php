@@ -7,7 +7,7 @@
 @endif
 
 @foreach($form_providers as $login_provider_name => $login_provider)
-<button type="submit" class="btn w-100 btn-primary btn-block btn-flat submit_disabled {{ $login_provider['btn_name'] ?? '' }}" name="login_setting_{{$login_provider_name}}" value="1" style="background-color: #0d6efd;">
+<button type="submit" class="btn w-100 btn-primary btn-block btn-flat submit_disabled {{ $login_provider['btn_name'] ?? '' }}" name="login_setting_{{$login_provider_name}}" value="1" style="background-color: #3c8dbc;">
     {{ $login_provider['display_name'] }}
 </button>
 @endforeach

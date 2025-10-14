@@ -150,7 +150,7 @@ class LoginSetting extends ModelBase
             'login_url' => $this->exment_login_url,
             'font_owesome' => $this->getOption('login_button_icon') ?? (!$hasDefault ? 'fa-sign-in' : "fa-$provider_name"),
             'display_name' => $display_name,
-            'background_color' => $this->getOption('login_button_background_color') ?? (!$hasDefault ? '#0d6efd' : null),
+            'background_color' => $this->getOption('login_button_background_color') ?? (!$hasDefault ? '#3c8dbc' : null),
             'font_color' => $this->getOption('login_button_font_color') ?? (!$hasDefault ? '#ffffff' : null),
             'background_color_hover' => $this->getOption('login_button_background_color_hover') ?? (!$hasDefault ? '#367fa9' : null),
             'font_color_hover' => $this->getOption('login_button_font_color_hover') ?? (!$hasDefault ? '#ffffff' : null),
