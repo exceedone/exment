@@ -12,7 +12,7 @@
     <!-- Header Navbar -->
     <nav class="navbar navbar-static-top" role="navigation">
         <!-- Sidebar toggle button-->
-        <a href="#" class="sidebar-toggle" data-bs-toggle="offcanvas" role="button">
+        <a href="#" class="sidebar-toggle" id="sidebar-toggle" role="button">
             <span class="sr-only">Toggle navigation</span>
         </a>
 
@@ -63,3 +63,15 @@
         </div>
     </nav>
 </header>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const toggle = document.getElementById('sidebar-toggle');
+    if (toggle) {
+        toggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.body.classList.toggle('sidebar-collapse');
+        });
+    }
+});
+</script>
