@@ -3896,7 +3896,7 @@ table img.image_html:hover {
     margin-right: -55px !important;
     padding-right: 60px !important;
     max-width: 100000px;
-    padding: 10px 0;
+    /* padding: 10px 0; */
   }
   .navbar .dropdown-toggle {
     width: 55px;
