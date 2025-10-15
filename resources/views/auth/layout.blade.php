@@ -48,6 +48,14 @@
     @endif
   }
 
+.btn[disabled], fieldset[disabled] .btn {
+    cursor: not-allowed !important;
+    filter: alpha(opacity=65) !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    opacity: .65 !important;
+}
+
   .form-check {
     display: flex;
     align-items: center;
