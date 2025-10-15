@@ -25,6 +25,7 @@ use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
 use Exceedone\Exment\Model\Tenant;
+use Exceedone\Exment\Observers\ChatbotFaqObserver;
 use Exceedone\Exment\Observers\TenantObserver;
 use Exceedone\Exment\Resolvers\OptimizedCachedTenantResolver;
 use Illuminate\Support\Facades\Auth;
@@ -296,6 +297,14 @@ class ExmentServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         $this->bootPassport();
+        try {
+            $faqModelClass = getModelName(SystemTableName::CHATBOT_FAQ);
+            if ($faqModelClass && class_exists($faqModelClass)) {
+                $faqModelClass::observe(ChatbotFaqObserver::class);
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Failed to register ChatbotFaqObserver: ' . $e->getMessage());
+        }
     }
 
     /**

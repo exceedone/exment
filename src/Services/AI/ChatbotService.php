@@ -29,7 +29,7 @@ class ChatbotService
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                    'Authorization' => env('AI_SERVER_API_KEY')
+                    'Authorization' => 'Bearer ' . tenant('token')
                 ])
                 ->post($url, [
                     'text' => [$message]
@@ -141,7 +141,7 @@ class ChatbotService
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                    'Authorization' => env('AI_SERVER_API_KEY')
+                    'Authorization' => 'Bearer ' . tenant('token')
                 ])
                 ->post($url, $payload);
             if ($response->successful()) {
