@@ -11,12 +11,12 @@
         </div>
         @endif
         <div class="btn-group float-end" style="margin-right: 5px">
-            <a href="{{$show_url}}" class="btn btn-sm btn-default p-2" title="{{ trans('admin.show') }}">
+            <a href="{{$show_url}}" class="btn btn-sm btn-default" title="{{ trans('admin.show') }}">
                 <i class="fa fa-eye"></i><span class="d-none d-md-inline"> {{ trans('admin.show') }}</span>
             </a>
         </div>
         <div class="btn-group float-end" style="margin-right: 5px">
-            <a href="{{$custom_value->getUrl(['list' => true])}}" class="btn btn-sm btn-default p-2" title="{{ trans('admin.list') }}">
+            <a href="{{$custom_value->getUrl(['list' => true])}}" class="btn btn-sm btn-default" title="{{ trans('admin.list') }}">
                 <i class="fa fa-list"></i><span class="d-none d-md-inline"> {{ trans('admin.list') }}</span>
             </a>
         </div>

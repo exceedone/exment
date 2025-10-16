@@ -131,7 +131,7 @@ class DashboardBoxController extends AdminControllerBase
             $tools->disableList();
 
             // addhome button
-            $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default p-2"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
+            $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
         // add form saving and saved event
         $this->manageFormSaving($form);
