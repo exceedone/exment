@@ -110,13 +110,13 @@
 <script src="{{ admin_asset("/vendor/exment/js/common_all.js")}}"></script>
 
 <script>
-  $(function () {
-    $('input').iCheck({
-      checkboxClass: 'icheckbox_square-blue',
-      radioClass: 'iradio_square-blue',
-      increaseArea: '20%' // optional
-    });
-  });
+  // $(function () {
+  //   $('input').iCheck({
+  //     checkboxClass: 'icheckbox_square-blue',
+  //     radioClass: 'iradio_square-blue',
+  //     increaseArea: '20%' // optional
+  //   });
+  // });
 </script>
 
 @if (session('status'))
