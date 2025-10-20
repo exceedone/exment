@@ -2757,7 +2757,7 @@ return [
         'input_placeholder' => 'Please enter your request',
         'send_button' => 'Send',
         'edit_button' => 'Edit',
-        'create_button' => 'Create',
+        'create_button' => 'Next',
         'cancel_button' => 'Cancel',
         'feature' => [
             'custom_table' => 'Custom Table',
@@ -2773,10 +2773,15 @@ return [
                 'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
             ],
             'calendar' => [
-                'welcome' => 'I would be happy to assist you in creating a new :type. Please send me a request.This is a list of users in your organization.',
-                'start' => 'Here is the list of existing users: \r\n',
+                'welcome' => 'I would be happy to assist you in creating a new :type. Please send me a request. This is a list of users in your organization.',
                 'suggested' => 'Here is the :type I suggest for you. Please check it, and request modifications if you want. Please select the action buttons.',
                 'confirming' => 'Here is the :type I edit for you. Please check it, and request modifications if you want. Please select the action buttons.',
+                'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
+            ],
+            'workflow' => [
+                'welcome' => 'I would be happy to assist you in creating a new workflow. Please send me a request. This is a list of custom tables you have created (if you want to create a workflow for a new table, use AI Custom Table to create the table first).',
+                'suggested' => 'Here is the :type I suggest for you. Please check it, and request modifications if you want. Please select the action buttons.',
+                'confirming' => 'Please check everything again, and request modifications if you want. Please select the action buttons.',
                 'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
             ],
         ],
