@@ -172,13 +172,14 @@ class AiAssistantController extends AdminControllerBase
                     if ($featureType == 'custom_table') {
                         $responseMessage = $this->handleActionCreateCustomTable($validated['uuid'], $conversable);
                     } elseif ($featureType == 'workflow') {
-                        if ($conversable->status === 'confirming_workflow') {
+                        if ($conversable->status === 'suggested_workflow' || $conversable->status === 'confirming_workflow') {
                             $conversable->update(['status' => 'request_actions']);
                             $responseMessage = $this->handleSendMessageWorkflow($validated['uuid'], "", $conversable);
+                            $showActionButtons = true;
                         } elseif ($conversable->status === 'confirming_actions') {
                             $conversable->update(['status' => 'confirming']);
                             $responseMessage = exmtrans('ai_assistant.edit_message');
-                        } elseif ($conversable->status === 'confirming') {
+                        } elseif ($conversable->status === 'suggested_actions' || $conversable->status === 'confirming') {
                             $conversable->update(['status' => 'confirmed']);
                             $responseMessage = $this->handleActionCreateWorkFlow($validated['uuid'], $conversable);
                         }
@@ -325,6 +326,10 @@ class AiAssistantController extends AdminControllerBase
 
             $assistant_workflow->update([
                 'status' => $data['status'] ?? $assistant_workflow->status,
+                'workflow_table_name_draft' => $data['table_name_draft'] ?? $assistant_workflow->workflow_table_name_draft,
+                'workflow_draft_json' => $data['workflow_draft'] ?? $assistant_workflow->workflow_draft_json,
+                'workflow_statuses_draft_json' => $data['workflow_statuses_draft'] ?? $assistant_workflow->workflow_statuses_draft_json,
+                'workflow_actions_draft_json' => $data['workflow_actions_draft'] ?? $assistant_workflow->workflow_actions_draft_json,
             ]);
 
             return $ai_message . $data['message'];
@@ -408,13 +413,13 @@ class AiAssistantController extends AdminControllerBase
 
             $assistant_workflow->update([
                 'status' => $data['status'] ?? $assistant_workflow->status,
-                'workflow_table_name_draft' => $data['workflow_table_name_draft'] ?? null,
-                'workflow_draft_json' => $data['workflow_draft_json'] ?? null,
-                'workflow_statuses_draft_json' => $data['workflow_statuses_draft_json'] ?? null,
-                'workflow_actions_draft_json' => $data['workflow_actions_draft_json'] ?? null,
+                'workflow_table_name_draft' => $data['table_name_draft'] ?? $assistant_workflow->workflow_table_name_draft,
+                'workflow_draft_json' => $data['workflow_draft'] ?? $assistant_workflow->workflow_draft_json,
+                'workflow_statuses_draft_json' => $data['workflow_statuses_draft'] ?? $assistant_workflow->workflow_statuses_draft_json,
+                'workflow_actions_draft_json' => $data['workflow_actions_draft'] ?? $assistant_workflow->workflow_actions_draft_json,
             ]);
 
-            $this->createWorkFlowFromDraft($data['workflow_table_name_draft'], $data['workflow_draft_json'], $data['workflow_statuses_draft_json'], $data['workflow_actions_draft_json']);
+            $this->createWorkFlowFromDraft($assistant_workflow);
 
             return exmtrans('ai_assistant.ai_response.workflow.confirmed');
         }
@@ -422,8 +427,13 @@ class AiAssistantController extends AdminControllerBase
         return 'An error occurred while connecting to AI.';
     }
 
-    protected function createWorkFlowFromDraft(string $workflow_table_name_draft, array $workflow_draft, array $workflow_statuses_draft, array $workflow_actions_draft)
+    protected function createWorkFlowFromDraft(AssistantWorkflow $assistant_workflow)
     {
+        $workflow_table_name_draft = $assistant_workflow->workflow_table_name_draft;
+        $workflow_draft = $assistant_workflow->workflow_draft_json;
+        $workflow_statuses_draft = $assistant_workflow->workflow_statuses_draft_json;
+        $workflow_actions_draft = $assistant_workflow->workflow_actions_draft_json;
+
         return DB::transaction(function () use ($workflow_table_name_draft, $workflow_draft, $workflow_statuses_draft, $workflow_actions_draft) {
             $workflow = WorkflowService::createWorkflowForTable(
                 $workflow_table_name_draft,

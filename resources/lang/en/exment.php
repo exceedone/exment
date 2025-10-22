@@ -2776,7 +2776,7 @@ return [
                 'welcome' => 'I would be happy to assist you in creating a new :type. Please send me a request. This is a list of users in your organization.',
                 'suggested' => 'Here is the :type I suggest for you. Please check it, and request modifications if you want. Please select the action buttons.',
                 'confirming' => 'Here is the :type I edit for you. Please check it, and request modifications if you want. Please select the action buttons.',
-                'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
+                'confirmed' => 'The email has been created, you can access the Email to check and edit.',
             ],
             'workflow' => [
                 'welcome' => 'I would be happy to assist you in creating a new workflow. Please send me a request. This is a list of custom tables you have created (if you want to create a workflow for a new table, use AI Custom Table to create the table first).',

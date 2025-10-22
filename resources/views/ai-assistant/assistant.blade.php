@@ -271,10 +271,13 @@
                         featureType = null;
                     }
                     else if (action === 'create') {
-                        featureType = null;
-                        currentConversationUuid = null;
                         toggleActionButtons(data.showActionButtons);
-                        appendMessage(notifyText, 'assistant');
+                        // Workflow request_actions
+                        if (!data.showActionButtons) {
+                            featureType = null;
+                            currentConversationUuid = null;
+                            appendMessage(notifyText, 'assistant');
+                        }
                     } else {
                         toggleActionButtons(data.showActionButtons);
                     }

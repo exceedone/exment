@@ -13,7 +13,7 @@ class AssistantWorkflow extends ModelBase
     protected $keyType = 'string';
 
     protected $fillable = [
-        'status', 'workflow_draft_json', 'workflow_statuses_draft_json', 'workflow_actions_draft_json'
+        'status', 'workflow_table_name_draft', 'workflow_draft_json', 'workflow_statuses_draft_json', 'workflow_actions_draft_json'
     ];
 
     public function messages()
