@@ -27,7 +27,7 @@ class AccessibleUserTest extends UnitTestBase
 
     /**
      * @return void
-     */
+     */ 
     public function testFuncInformationTable()
     {
         $custom_table = CustomTable::getEloquent('information');
