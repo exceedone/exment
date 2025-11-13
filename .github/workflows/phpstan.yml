@@ -10,8 +10,8 @@ on:
       - 'tests/**'
 
 env:
-  DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
-  EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  DOCKER_EXMENT_REPOSITORY: Quang270904/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: Quang270904/exment-boilerplate
 
 jobs:
   phpstan:
