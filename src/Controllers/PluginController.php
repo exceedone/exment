@@ -110,20 +110,31 @@ class PluginController extends AdminControllerBase
         // $grid->column('version', exmtrans("plugin.version"));
 
 
-        $repoVersions = collect(PluginRepository::fetchVersions())->keyBy('uuid');
+        $repoVersions = collect(PluginRepository::fetchVersions());
 
         $grid->column('version')->display(function ($version) use ($repoVersions) {
-            $latest = $repoVersions[$this->uuid]['latest_version'] ?? null;
-            $downloadUrl = $repoVersions[$this->uuid]['download_url'] ?? null;
+            // Find matching plugin in marketplace by plugin_name or uuid
+            $marketplacePlugin = $repoVersions->first(function ($item) {
+                return ($item['uuid'] ?? null) === $this->uuid || 
+                       ($item['plugin_name'] ?? null) === $this->plugin_name;
+            });
+
+            if (!$marketplacePlugin) {
+                return $version; // No matching plugin in marketplace
+            }
+
+            $latest = $marketplacePlugin['latest_version'] ?? null;
+            $downloadUrl = $marketplacePlugin['download_url'] ?? null;
 
             if ($latest && version_compare($latest, $version, '>') && $downloadUrl) {
-                // URL POST đúng route
-                $url = admin_url("plugin/{$this->id}/update-remote");
+                $pluginId = $this->id;
                 return $version .
                     " <button type='button' 
-              class='btn btn-xs btn-warning plugin-update' 
-              data-plugin='{$this->id}' 
-              data-url='{$downloadUrl}'>Update</button>";
+                      class='btn btn-xs btn-warning plugin-update' 
+                      data-plugin='{$pluginId}' 
+                      data-url='" . e($downloadUrl) . "'>
+                        <i class='fa fa-arrow-up'></i> Update to {$latest}
+                      </button>";
             }
 
             return $version;
@@ -499,14 +510,14 @@ class PluginController extends AdminControllerBase
         try {
             $plugin = Plugin::find($pluginId);
             if (!$plugin) {
-                return response()->json(['error' => 'Plugin không tồn tại'], 404);
+                return response()->json(['error' => 'Plugin not found'], 404);
             }
 
             $downloadUrl = request()->input('download_url');
 
             $response = Http::timeout(30)->get($downloadUrl);
             if ($response->failed()) {
-                return response()->json(['error' => 'Tải file thất bại'], 500);
+                return response()->json(['error' => 'Failed to download file'], 500);
             }
 
             $tmpDisk = Storage::disk('local');
@@ -518,13 +529,13 @@ class PluginController extends AdminControllerBase
 
             $tmpDisk->delete($tmpPath);
 
-            return response()->json(['success' => true, 'message' => 'Cập nhật plugin thành công!']);
+            return response()->json(['success' => true, 'message' => 'Plugin updated successfully!']);
 
         } catch (\Throwable $e) {
-            Log::error("[PluginUpdater] Lỗi khi update plugin: " . $e->getMessage(), [
+            Log::error("[PluginUpdater] Error updating plugin: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            return response()->json(['error' => 'Có lỗi xảy ra khi update plugin'], 500);
+            return response()->json(['error' => 'Error occurred while updating plugin'], 500);
         }
     }
 }
