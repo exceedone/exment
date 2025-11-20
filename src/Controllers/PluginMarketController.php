@@ -138,6 +138,13 @@ class PluginMarketController extends AdminController
     {
         try {
             $license = $request->input('license_key');
+            $versionId = $request->input('version'); // Version ID được chọn
+
+            Log::info("[PluginMarket] Install request", [
+                'plugin_id' => $id,
+                'version_id' => $versionId,
+                'has_license' => !empty($license),
+            ]);
 
             // Get plugin info from marketplace
             $pluginResponse = Http::withoutVerifying()->get("{$this->repoUrl}/{$id}");
@@ -149,36 +156,67 @@ class PluginMarketController extends AdminController
             $pluginData = $pluginResponse->json();
             $price = $pluginData['price'] ?? 0;
 
-            // If plugin is paid, validate license
+            // Validate version ID
+            if (empty($versionId)) {
+                return response()->json(['error' => 'Please select a version to install'], 400);
+            }
+
+            // Get download URL based on plugin type (paid/free)
             if ($price > 0) {
+                // Paid plugin: validate license first
                 if (empty($license)) {
                     return response()->json(['error' => 'License key is required for paid plugins'], 400);
                 }
 
                 // Validate license with marketplace server
-                $response = Http::timeout(30)->post("http://marketplace.local/api/plugin/validate-license", [
+                $licenseResponse = Http::timeout(30)->post("http://marketplace.local/api/plugin/validate-license", [
                     'plugin_id' => $id,
                     'license_key' => $license,
+                    'version_id' => $versionId,
                     'user_id' => auth()->id(),
                 ]);
 
-                if ($response->failed()) {
+                if ($licenseResponse->failed()) {
                     return response()->json(['error' => 'License validation failed'], 400);
                 }
 
-                $data = $response->json();
-                if (empty($data['download_url'])) {
+                $licenseData = $licenseResponse->json();
+                if (empty($licenseData['download_url'])) {
                     return response()->json(['error' => 'No plugin download link available'], 400);
                 }
 
-                $downloadUrl = $data['download_url'];
+                $downloadUrl = $licenseData['download_url'];
             } else {
-                // Free plugin: use download_url from plugin data
-                if (empty($pluginData['download_url'])) {
-                    return response()->json(['error' => 'No plugin download link available'], 400);
+                // Free plugin: get download URL from version endpoint
+                $versionResponse = Http::withoutVerifying()->get("{$this->repoUrl}/{$id}/versions");
+                
+                if ($versionResponse->failed()) {
+                    return response()->json(['error' => 'Failed to fetch versions'], 400);
                 }
-                $downloadUrl = $pluginData['download_url'];
+                
+                $versionsData = $versionResponse->json();
+                $selectedVersion = collect($versionsData['versions'] ?? [])->firstWhere('id', (int)$versionId);
+                
+                Log::info("[PluginMarket] Selected version details", [
+                    'version_id' => $versionId,
+                    'found_version' => $selectedVersion ? $selectedVersion['version'] : 'NOT FOUND',
+                    'download_url' => $selectedVersion['download_url'] ?? 'NO URL',
+                ]);
+                
+                if (!$selectedVersion) {
+                    return response()->json(['error' => 'Selected version not found'], 404);
+                }
+                
+                if (empty($selectedVersion['download_url'])) {
+                    return response()->json(['error' => 'No download URL available for this version'], 400);
+                }
+                
+                $downloadUrl = $selectedVersion['download_url'];
             }
+
+            Log::info("[PluginMarket] Downloading plugin", [
+                'download_url' => $downloadUrl,
+            ]);
 
             // Download plugin file
             $zipResp = Http::withoutVerifying()->timeout(60)->get($downloadUrl);
