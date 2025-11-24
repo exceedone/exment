@@ -94,8 +94,8 @@ class PluginMarketController extends AdminController
             }
 
             // Render giao diện
-            return $content->title(__('exment::plugin.market.title'))
-                ->description(__('exment::plugin.market.description'))
+            return $content->title(exmtrans('plugin.market.title'))
+                ->description(exmtrans('plugin.market.description'))
                 ->body(view('exment::plugin.market.index', compact('plugins')));
 
         } catch (\Throwable $e) {
@@ -107,12 +107,22 @@ class PluginMarketController extends AdminController
     }
 
 
+    /**
+     * Override show method to set proper title/description
+     */
+    public function show($id, Content $content)
+    {
+        return $content->title(exmtrans('plugin.market.detail.title'))
+            ->description(exmtrans('plugin.market.description'))
+            ->body($this->detail($id));
+    }
+
     public function detail($id)
     {
-        $response = Http::get("http://marketplace.local/api/plugins/{$id}");
+        $response = Http::withoutVerifying()->get("http://marketplace.local/api/plugins/{$id}");
 
         if ($response->failed()) {
-            abort(404, 'Plugin not found in marketplace');
+            abort(404, exmtrans('plugin.market.plugin_not_found'));
         }
 
         $plugin = $response->json();
@@ -302,8 +312,9 @@ class PluginMarketController extends AdminController
             $installedPlugin->delete();
 
             return response()->json([
-                'success' => true, 
-                'message' => 'Plugin uninstalled successfully'
+                 'result' => true,
+                 'status' => true,
+                 'swal' => exmtrans('plugin.market.message.uninstall_success', ['name' => $pluginName])
             ]);
 
         } catch (\Throwable $e) {

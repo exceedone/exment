@@ -3,10 +3,10 @@
         <div class="col-12">
             <div class="panel panel-default panel-plugin-detail">
                 <div class="panel-heading" style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 class="panel-title mb-0">Plugin Detail</h3>
+                    <h3 class="panel-title mb-0">{{ exmtrans('plugin.market.detail.title') }}</h3>
                     <div class="btn-group pull-right" style="margin-right: 5px">
-                        <a href="{{ route('plugin.market.index') }}" class="btn btn-sm btn-default" title="List">
-                            <i class="fa fa-list"></i><span class="hidden-xs">&nbsp;List</span>
+                        <a href="{{ route('plugin.market.index') }}" class="btn btn-sm btn-default" title="{{ exmtrans('plugin.market.detail.list') }}">
+                            <i class="fa fa-list"></i><span class="hidden-xs">&nbsp;{{ exmtrans('plugin.market.detail.list') }}</span>
                         </a>
                     </div>
                 </div>
@@ -14,40 +14,40 @@
                     <section class="setting-section">
                         <div class="setting-content">
                             <div class="row-setting">
-                                <div class="label">Plugin ID</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.plugin_id') }}</div>
                                 <div class="value"><span>{{ $plugin['id'] ?? '—' }}</span></div>
                             </div>
                             <div class="row-setting">
-                                <div class="label">Plugin Name</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.plugin_name') }}</div>
                                 <div class="value">{{ $plugin['plugin_name'] ?? '—' }}</div>
                             </div>
                             <div class="row-setting">
-                                <div class="label">Plugin View Name</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.plugin_view_name') }}</div>
                                 <div class="value">{{ $plugin['plugin_view_name'] ?? '—' }}</div>
                             </div>
                             <div class="row-setting">
-                                <div class="label">Plugin Type</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.plugin_type') }}</div>
                                 <div class="value"><span
                                         class="badge bg-info">{{ $plugin['plugin_types'] ?? '—' }}</span></div>
                             </div>
                             <div class="row-setting">
-                                <div class="label">Author</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.author') }}</div>
                                 <div class="value">{{ $plugin['user']['name'] ?? '—' }}</div>
                             </div>
                             <div class="row-setting">
-                                <div class="label">Version</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.version') }}</div>
                                 <div class="value">{{ $plugin['version'] ?? '—' }}</div>
                             </div>
                             <div class="row-setting">
-                                <div class="label">Description</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.description') }}</div>
                                 <div class="value">{{ $plugin['description'] ?? '—' }}</div>
                             </div>
 
                             <div class="row-setting">
-                                <div class="label">Active Flg</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.active_flg') }}</div>
                                 <div class="value">
                                     <span
-                                        class="ms-2 fw-bold text-muted">{{ $plugin['check_status'] == 'active' ? 'Available' : 'Unavailable' }}</span>
+                                        class="ms-2 fw-bold text-muted">{{ $plugin['check_status'] == 'active' ? exmtrans('plugin.market.available') : exmtrans('plugin.market.unavailable') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -56,7 +56,7 @@
 
                     <!-- Footer: detail-only, no actions -->
                     <div class="panel-footer px-3 py-2 bg-light text-end">
-                        <small class="text-muted">Read-only view</small>
+                        <small class="text-muted">{{ exmtrans('plugin.market.detail.read_only') }}</small>
                     </div>
                 </div>
             </div>
