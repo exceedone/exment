@@ -21,15 +21,30 @@ use Encore\Admin\Grid\ArrayDataSource;
 
 class PluginMarketController extends AdminController
 {
-    protected $repoUrl = 'http://marketplace.local/api/plugins';
-
-
     protected $title = 'Plugin Market';
+
+    protected function getMarketplaceUrl()
+    {
+        static $url = null;
+        if ($url === null) {
+            $url = rtrim(env('MARKETPLACE_URL', 'http://marketplace.local'), '/');
+        }
+        return $url;
+    }
+
+    protected function getRepoUrl()
+    {
+        return $this->getMarketplaceUrl() . '/api/plugins';
+    }
 
     protected function grid()
     {
         // Call API repo  plugin list
-        $response = \Http::get($this->repoUrl);
+        $response = Http::withoutVerifying()
+            ->timeout(30)
+            ->connectTimeout(10)
+            ->retry(2, 100)
+            ->get($this->getRepoUrl());
         $data = $response->json() ?? [];
 
         // Grid with data from API
@@ -45,9 +60,13 @@ class PluginMarketController extends AdminController
     public function index(Content $content)
     {
         try {
-            // URL API Marketplace, ví dụ: http://marketplace.local/api/plugins
-            $marketplaceApi = $this->repoUrl;
-            $response = Http::withoutVerifying()->get($marketplaceApi);
+            // URL API Marketplace
+            $marketplaceApi = $this->getRepoUrl();
+            $response = Http::withoutVerifying()
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->retry(2, 100)
+                ->get($marketplaceApi);
 
             $plugins = [];
             if ($response->ok()) {
@@ -60,7 +79,9 @@ class PluginMarketController extends AdminController
                     $plugins = [];
                 }
             } else {
-                Log::warning("[PluginMarket] API request failed: {$marketplaceApi}");
+                Log::warning("[PluginMarket] API request failed: {$marketplaceApi}", [
+                    'status' => $response->status(),
+                ]);
             }
 
             // Enrich marketplace data with local install info so the view can
@@ -119,15 +140,23 @@ class PluginMarketController extends AdminController
 
     public function detail($id)
     {
-        $response = Http::withoutVerifying()->get("http://marketplace.local/api/plugins/{$id}");
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->get("{$this->getRepoUrl()}/{$id}");
 
-        if ($response->failed()) {
-            abort(404, exmtrans('plugin.market.plugin_not_found'));
+            if ($response->failed()) {
+                abort(404, exmtrans('plugin.market.plugin_not_found'));
+            }
+
+            $plugin = $response->json();
+
+            return view('exment::plugin.market.detail', compact('plugin'));
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error("[PluginMarket] Connection error: " . $e->getMessage());
+            abort(500, 'Cannot connect to marketplace server. Please check MARKETPLACE_URL in .env');
         }
-
-        $plugin = $response->json();
-
-        return view('exment::plugin.market.detail', compact('plugin'));
     }
 
 
@@ -154,10 +183,14 @@ class PluginMarketController extends AdminController
                 'plugin_id' => $id,
                 'version_id' => $versionId,
                 'has_license' => !empty($license),
+                'marketplace_url' => $this->getMarketplaceUrl(),
             ]);
 
             // Get plugin info from marketplace
-            $pluginResponse = Http::withoutVerifying()->get("{$this->repoUrl}/{$id}");
+            $pluginResponse = Http::withoutVerifying()
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->get("{$this->getRepoUrl()}/{$id}");
             
             if ($pluginResponse->failed()) {
                 return response()->json(['error' => 'Plugin not found in marketplace'], 404);
@@ -178,13 +211,15 @@ class PluginMarketController extends AdminController
                     return response()->json(['error' => 'License key is required for paid plugins'], 400);
                 }
 
-                // Validate license with marketplace server
-                $licenseResponse = Http::timeout(30)->post("http://marketplace.local/api/plugin/validate-license", [
-                    'plugin_id' => $id,
-                    'license_key' => $license,
-                    'version_id' => $versionId,
-                    'user_id' => auth()->id(),
-                ]);
+                // Validate license with marketplace server - sử dụng biến môi trường
+                $licenseResponse = Http::withoutVerifying()
+                    ->timeout(30)
+                    ->post("{$this->getMarketplaceUrl()}/api/plugin/validate-license", [
+                        'plugin_id' => $id,
+                        'license_key' => $license,
+                        'version_id' => $versionId,
+                        'user_id' => auth()->id(),
+                    ]);
 
                 if ($licenseResponse->failed()) {
                     return response()->json(['error' => 'License validation failed'], 400);
@@ -198,7 +233,10 @@ class PluginMarketController extends AdminController
                 $downloadUrl = $licenseData['download_url'];
             } else {
                 // Free plugin: get download URL from version endpoint
-                $versionResponse = Http::withoutVerifying()->get("{$this->repoUrl}/{$id}/versions");
+                $versionResponse = Http::withoutVerifying()
+                    ->timeout(30)
+                    ->connectTimeout(10)
+                    ->get("{$this->getRepoUrl()}/{$id}/versions");
                 
                 if ($versionResponse->failed()) {
                     return response()->json(['error' => 'Failed to fetch versions'], 400);
@@ -279,7 +317,10 @@ class PluginMarketController extends AdminController
     {
         try {
             // Get plugin info from marketplace
-            $pluginResponse = Http::withoutVerifying()->get("{$this->repoUrl}/{$id}");
+            $pluginResponse = Http::withoutVerifying()
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->get("{$this->getRepoUrl()}/{$id}");
             
             if ($pluginResponse->failed()) {
                 return response()->json(['error' => 'Plugin not found in marketplace'], 404);

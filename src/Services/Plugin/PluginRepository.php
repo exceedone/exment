@@ -10,10 +10,18 @@ class PluginRepository
     {
         cache()->forget('plugin_repo_versions'); 
         return cache()->remember('plugin_repo_versions', 300, function () {
-            $resp = Http::get('http://marketplace.local/api/plugins');
+            $marketplaceUrl = rtrim(env('MARKETPLACE_URL', 'http://marketplace.local'), '/');
+            $apiUrl = $marketplaceUrl . '/api/plugins';
+            
+            $resp = Http::withoutVerifying()
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->retry(2, 100)
+                ->get($apiUrl);
             
             Log::info('[PluginRepository] API Response', [
-                'url' => 'http://marketplace.local/api/plugins',
+                'url' => $apiUrl,
+                'marketplace_url' => $marketplaceUrl,
                 'status' => $resp->status(),
                 'body' => $resp->body()
             ]);
@@ -22,9 +30,13 @@ class PluginRepository
                 $plugins = $resp->json();
                 
                 // Transform data: map plugin data to include uuid and download_url
-                return collect($plugins)->map(function ($plugin) {
+                return collect($plugins)->map(function ($plugin) use ($marketplaceUrl) {
                     // Get detailed info for each plugin to get download_url
-                    $detailResp = Http::get('http://marketplace.local/api/plugins/' . $plugin['id']);
+                    $detailUrl = $marketplaceUrl . '/api/plugins/' . $plugin['id'];
+                    $detailResp = Http::withoutVerifying()
+                        ->timeout(30)
+                        ->connectTimeout(10)
+                        ->get($detailUrl);
                     $detail = $detailResp->successful() ? $detailResp->json() : [];
                     
                     return [

@@ -419,8 +419,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Loading versions for plugin:', pluginId);
         
-        // Load versions from API
-        fetch(`http://marketplace.local/api/plugins/${pluginId}/versions`)
+        // Load versions from API - use Laravel config
+        const marketplaceUrl = '{{ rtrim(config("app.marketplace_url", env("MARKETPLACE_URL", "http://marketplace.local")), "/") }}';
+        fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions`)
             .then(response => response.json())
             .then(data => {
                 console.log('Versions data:', data);
