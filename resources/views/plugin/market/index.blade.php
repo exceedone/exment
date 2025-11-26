@@ -1,3 +1,83 @@
+<!-- Search Form -->
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ exmtrans('plugin.market.search.title') }}</h3>
+    </div>
+    <div class="box-body">
+        <form action="{{ admin_url('plugin-market') }}" method="GET" id="plugin-search-form">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>{{ exmtrans('plugin.market.search.keyword') }}</label>
+                        <input type="text" name="keyword" class="form-control" 
+                            placeholder="{{ exmtrans('plugin.market.search.keyword_placeholder') }}"
+                            value="{{ request('keyword') }}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>{{ exmtrans('plugin.market.search.type') }}</label>
+                        <select name="type" class="form-control">
+                            <option value="">{{ exmtrans('plugin.market.search.all_types') }}</option>
+                            <option value="page" {{ request('type') == 'page' ? 'selected' : '' }}>Page</option>
+                            <option value="dashboard" {{ request('type') == 'dashboard' ? 'selected' : '' }}>Dashboard</option>
+                            <option value="trigger" {{ request('type') == 'trigger' ? 'selected' : '' }}>Trigger</option>
+                            <option value="button" {{ request('type') == 'button' ? 'selected' : '' }}>Button</option>
+                            <option value="api" {{ request('type') == 'api' ? 'selected' : '' }}>API</option>
+                            <option value="view" {{ request('type') == 'view' ? 'selected' : '' }}>View</option>
+                            <option value="batch" {{ request('type') == 'batch' ? 'selected' : '' }}>Batch</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>{{ exmtrans('plugin.market.search.price') }}</label>
+                        <select name="price" class="form-control">
+                            <option value="">{{ exmtrans('plugin.market.search.all_prices') }}</option>
+                            <option value="free" {{ request('price') == 'free' ? 'selected' : '' }}>{{ exmtrans('plugin.market.free') }}</option>
+                            <option value="paid" {{ request('price') == 'paid' ? 'selected' : '' }}>{{ exmtrans('plugin.market.search.paid') }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>{{ exmtrans('plugin.market.search.status') }}</label>
+                        <select name="status" class="form-control">
+                            <option value="">{{ exmtrans('plugin.market.search.all_status') }}</option>
+                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>{{ exmtrans('plugin.market.search.active') }}</option>
+                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>{{ exmtrans('plugin.market.search.inactive') }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-search"></i> {{ exmtrans('plugin.market.search.search') }}
+                            </button>
+                            <a href="{{ admin_url('plugin-market') }}" class="btn btn-default">
+                                <i class="fa fa-refresh"></i> {{ exmtrans('plugin.market.search.reset') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Summary -->
+@if(request()->hasAny(['keyword', 'type', 'price', 'status']))
+<div class="alert alert-info">
+    <i class="fa fa-info-circle"></i> 
+    {{ exmtrans('plugin.market.search.results_found', ['count' => count($plugins)]) }}
+    @if(request('keyword'))
+        - {{ exmtrans('plugin.market.search.keyword') }}: <strong>{{ request('keyword') }}</strong>
+    @endif
+</div>
+@endif
+
 <div class="box plugin-market-box">
     <div class="box-body p-0">
         <table class="table table-hover mb-0 plugin-market-table">

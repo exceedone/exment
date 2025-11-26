@@ -648,6 +648,24 @@ return [
             'available' => 'Available',
             'unavailable' => 'Unavailable',
             
+            'search' => [
+                'title' => 'Plugin Search',
+                'keyword' => 'Keyword',
+                'keyword_placeholder' => 'Search by name, description, author...',
+                'type' => 'Type',
+                'all_types' => 'All Types',
+                'price' => 'Price',
+                'all_prices' => 'All',
+                'paid' => 'Paid',
+                'status' => 'Status',
+                'all_status' => 'All',
+                'active' => 'Active',
+                'inactive' => 'Inactive',
+                'search' => 'Search',
+                'reset' => 'Reset',
+                'results_found' => ':count plugin(s) found',
+            ],
+            
             'license_modal' => [
                 'title' => 'Enter License Key',
                 'plugin' => 'Plugin',

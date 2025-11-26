@@ -649,6 +649,24 @@ return [
             'available' => '有効',
             'unavailable' => '無効',
             
+            'search' => [
+                'title' => 'プラグイン検索',
+                'keyword' => 'キーワード',
+                'keyword_placeholder' => 'プラグイン名、説明、作者で検索...',
+                'type' => '種類',
+                'all_types' => 'すべての種類',
+                'price' => '価格',
+                'all_prices' => 'すべて',
+                'paid' => '有料',
+                'status' => 'ステータス',
+                'all_status' => 'すべて',
+                'active' => '有効',
+                'inactive' => '無効',
+                'search' => '検索',
+                'reset' => 'リセット',
+                'results_found' => ':count 件のプラグインが見つかりました',
+            ],
+            
             'license_modal' => [
                 'title' => 'ライセンスキーを入力',
                 'plugin' => 'プラグイン',
