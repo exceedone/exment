@@ -345,13 +345,34 @@ class PluginMarketController extends AdminController
                             'license_key' => $license,
                             'version_id' => $versionId,
                             'user_id' => auth()->id(),
+                            'user_email' => auth()->user()->email ?? '',
+                            'domain' => request()->getHost(), // Domain của Exment instance
+                            'server_ip' => request()->server('SERVER_ADDR'),
+                            'is_update' => $isUpdate, // Cho biết đây là update hay install mới
                         ]);
 
                     if ($licenseResponse->failed()) {
-                        return response()->json(['error' => 'License validation failed'], 400);
+                        $errorMsg = 'License validation failed';
+                        
+                        // Try to get detailed error from response
+                        try {
+                            $errorData = $licenseResponse->json();
+                            $errorMsg = $errorData['error'] ?? $errorData['message'] ?? $errorMsg;
+                        } catch (\Exception $e) {
+                            // Use default error message
+                        }
+                        
+                        return response()->json(['error' => $errorMsg], 400);
                     }
 
                     $licenseData = $licenseResponse->json();
+                    
+                    // Check if license is valid
+                    if (!isset($licenseData['valid']) || !$licenseData['valid']) {
+                        $errorMsg = $licenseData['error'] ?? $licenseData['message'] ?? 'Invalid license key';
+                        return response()->json(['error' => $errorMsg], 400);
+                    }
+                    
                     if (empty($licenseData['download_url'])) {
                         return response()->json(['error' => 'No plugin download link available'], 400);
                     }
