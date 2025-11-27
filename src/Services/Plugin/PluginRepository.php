@@ -29,22 +29,41 @@ class PluginRepository
             if ($resp->successful()) {
                 $plugins = $resp->json();
                 
+                Log::info('[PluginRepository] Raw plugins data', [
+                    'count' => count($plugins),
+                    'plugins' => $plugins
+                ]);
+                
                 // Transform data: map plugin data to include uuid and download_url
                 return collect($plugins)->map(function ($plugin) use ($marketplaceUrl) {
-                    // Get detailed info for each plugin to get download_url
-                    $detailUrl = $marketplaceUrl . '/api/plugins/' . $plugin['id'];
-                    $detailResp = Http::withoutVerifying()
-                        ->timeout(30)
-                        ->connectTimeout(10)
-                        ->get($detailUrl);
-                    $detail = $detailResp->successful() ? $detailResp->json() : [];
+                    $pluginId = $plugin['id'] ?? $plugin['uuid'] ?? '';
                     
-                    return [
-                        'uuid' => $plugin['uuid'] ?? $plugin['id'], // Use uuid if available, otherwise id
+                    // Get latest version info from versions array
+                    $latestVersion = collect($plugin['versions'] ?? [])->firstWhere('is_latest', true);
+                    
+                    // Build download URL from latest version
+                    $downloadUrl = null;
+                    if ($latestVersion && isset($latestVersion['id'])) {
+                        $downloadUrl = $marketplaceUrl . '/api/plugins/' . $pluginId . '/versions/' . $latestVersion['id'] . '/download';
+                    }
+                    
+                    Log::info('[PluginRepository] Mapping plugin', [
+                        'plugin_id' => $pluginId,
+                        'plugin_name' => $plugin['plugin_name'] ?? '',
+                        'version' => $plugin['version'] ?? '',
+                        'latest_version_id' => $latestVersion['id'] ?? null,
+                        'download_url' => $downloadUrl
+                    ]);
+                    
+                    $result = [
+                        'uuid' => $plugin['uuid'] ?? $pluginId,
                         'plugin_name' => $plugin['plugin_name'] ?? '',
                         'latest_version' => $plugin['version'] ?? '',
-                        'download_url' => $detail['download_url'] ?? null,
+                        'download_url' => $downloadUrl,
+                        'marketplace_id' => $pluginId, // Add marketplace plugin ID for update
                     ];
+                    
+                    return $result;
                 })->keyBy('uuid')->toArray();
             }
             return [];

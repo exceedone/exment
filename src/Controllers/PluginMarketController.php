@@ -57,6 +57,7 @@ class PluginMarketController extends AdminController
 
         return $grid;
     }
+    
     public function index(Content $content)
     {
         try {
@@ -264,6 +265,8 @@ class PluginMarketController extends AdminController
 
             $pluginData = $pluginResponse->json();
             $price = $pluginData['price'] ?? 0;
+            $isUpdate = false;
+            $installedPlugin = null;
 
             // Validate version ID
             if (empty($versionId)) {
@@ -272,31 +275,89 @@ class PluginMarketController extends AdminController
 
             // Get download URL based on plugin type (paid/free)
             if ($price > 0) {
-                // Paid plugin: validate license first
+                // Paid plugin: check if license key is provided
                 if (empty($license)) {
-                    return response()->json(['error' => 'License key is required for paid plugins'], 400);
-                }
-
-                // Validate license with marketplace server - sử dụng biến môi trường
-                $licenseResponse = Http::withoutVerifying()
-                    ->timeout(30)
-                    ->post("{$this->getMarketplaceUrl()}/api/plugin/validate-license", [
-                        'plugin_id' => $id,
-                        'license_key' => $license,
-                        'version_id' => $versionId,
-                        'user_id' => auth()->id(),
+                    // Redirect to payment page
+                    $callbackUrl = admin_url("plugin-market/{$id}/payment-callback");
+                    
+                    // Check if using mock payment (for testing)
+                    // Set PLUGIN_MARKET_USE_MOCK=true in .env for testing
+                    // Set PLUGIN_MARKET_USE_MOCK=false in .env for production
+                    $useMockPayment = env('PLUGIN_MARKET_USE_MOCK', true);
+                    
+                    if ($useMockPayment) {
+                        // Testing: Use mock payment page
+                        $paymentUrl = url("/mock-payment-page.php") . "?" . http_build_query([
+                            'plugin_id' => $id,
+                            'version_id' => $versionId,
+                            'callback_url' => $callbackUrl,
+                            'user_id' => auth()->id(),
+                            'user_email' => auth()->user()->email ?? '',
+                        ]);
+                    } else {
+                        // Production: Use marketplace payment page
+                        $paymentUrl = "{$this->getMarketplaceUrl()}/payment/plugin/{$id}?" . http_build_query([
+                            'version_id' => $versionId,
+                            'callback_url' => $callbackUrl,
+                            'user_id' => auth()->id(),
+                            'user_email' => auth()->user()->email ?? '',
+                        ]);
+                    }
+                    
+                    return response()->json([
+                        'redirect' => $paymentUrl
                     ]);
-
-                if ($licenseResponse->failed()) {
-                    return response()->json(['error' => 'License validation failed'], 400);
                 }
 
-                $licenseData = $licenseResponse->json();
-                if (empty($licenseData['download_url'])) {
-                    return response()->json(['error' => 'No plugin download link available'], 400);
-                }
+                // Check if this is a mock license key (for testing)
+                $isMockLicense = strpos($license, 'MOCK-LICENSE-') === 0;
+                
+                if ($isMockLicense) {
+                    // For mock license, skip validation and get download URL directly
+                    Log::info("[PluginMarket] Using mock license key, skipping validation", [
+                        'license_key' => $license,
+                    ]);
+                    
+                    // Get download URL from versions endpoint
+                    $versionResponse = Http::withoutVerifying()
+                        ->timeout(30)
+                        ->connectTimeout(10)
+                        ->get("{$this->getRepoUrl()}/{$id}/versions");
+                    
+                    if ($versionResponse->failed()) {
+                        return response()->json(['error' => 'Failed to fetch versions'], 400);
+                    }
+                    
+                    $versionsData = $versionResponse->json();
+                    $selectedVersion = collect($versionsData['versions'] ?? [])->firstWhere('id', (int)$versionId);
+                    
+                    if (!$selectedVersion || empty($selectedVersion['download_url'])) {
+                        return response()->json(['error' => 'No download URL available for this version'], 400);
+                    }
+                    
+                    $downloadUrl = $selectedVersion['download_url'];
+                } else {
+                    // Real license: validate with marketplace server
+                    $licenseResponse = Http::withoutVerifying()
+                        ->timeout(30)
+                        ->post("{$this->getMarketplaceUrl()}/api/plugin/validate-license", [
+                            'plugin_id' => $id,
+                            'license_key' => $license,
+                            'version_id' => $versionId,
+                            'user_id' => auth()->id(),
+                        ]);
 
-                $downloadUrl = $licenseData['download_url'];
+                    if ($licenseResponse->failed()) {
+                        return response()->json(['error' => 'License validation failed'], 400);
+                    }
+
+                    $licenseData = $licenseResponse->json();
+                    if (empty($licenseData['download_url'])) {
+                        return response()->json(['error' => 'No plugin download link available'], 400);
+                    }
+
+                    $downloadUrl = $licenseData['download_url'];
+                }
             } else {
                 // Free plugin: get download URL from version endpoint
                 $versionResponse = Http::withoutVerifying()
@@ -346,14 +407,34 @@ class PluginMarketController extends AdminController
 
             // Install plugin using PluginInstaller
             try {
+                // If this is an update, remove old version first
+                if ($isUpdate && $installedPlugin) {
+                    Log::info("[PluginMarket] Removing old version before update", [
+                        'old_version' => $installedPlugin->version,
+                    ]);
+                    
+                    // Delete plugin folder
+                    $disk = Storage::disk(Define::DISKNAME_ADMIN);
+                    $folder = $installedPlugin->getPath();
+                    if ($disk->exists($folder)) {
+                        $disk->deleteDirectory($folder);
+                    }
+                    
+                    // Delete from database
+                    $installedPlugin->delete();
+                }
+                
+                // Install new version
                 PluginInstaller::uploadPlugin(new \Illuminate\Http\File($fullPath));
                 
                 // Clean up temporary file
                 Storage::disk('local')->delete($tmpPath);
                 
+                $message = $isUpdate ? 'Plugin updated successfully' : 'Plugin installed successfully';
+                
                 return response()->json([
                     'success' => true, 
-                    'message' => 'Plugin installed successfully'
+                    'message' => $message
                 ]);
             } catch (\Throwable $installError) {
                 // Clean up temporary file
@@ -430,6 +511,88 @@ class PluginMarketController extends AdminController
             ]);
             return response()->json(['error' => 'An error occurred while uninstalling the plugin: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Handle payment callback from marketplace
+     * Marketplace will redirect back here with license_key after successful payment
+     */
+    public function paymentCallback(Request $request, $id)
+    {
+        try {
+            $licenseKey = $request->input('license_key');
+            $versionId = $request->input('version_id');
+            $status = $request->input('status'); // success, failed, cancelled
+            
+            Log::info("[PluginMarket] Payment callback received", [
+                'plugin_id' => $id,
+                'version_id' => $versionId,
+                'status' => $status,
+                'has_license' => !empty($licenseKey),
+            ]);
+
+            // Check payment status
+            if ($status !== 'success') {
+                $message = $status === 'cancelled' 
+                    ? 'Payment cancelled by user' 
+                    : 'Payment failed';
+                
+                return redirect(admin_url('plugin-market'))
+                    ->with('errorMess', $message);
+            }
+
+            // Validate license key
+            if (empty($licenseKey)) {
+                return redirect(admin_url('plugin-market'))
+                    ->with('errorMess', 'No license key received from payment gateway');
+            }
+
+            // Get plugin info
+            $pluginResponse = Http::withoutVerifying()
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->get("{$this->getRepoUrl()}/{$id}");
+            
+            if ($pluginResponse->failed()) {
+                return redirect(admin_url('plugin-market'))
+                    ->with('errorMess', 'Plugin not found');
+            }
+
+            $pluginData = $pluginResponse->json();
+            $pluginName = $pluginData['plugin_name'] ?? 'Unknown Plugin';
+
+            // Store license key and version in session to auto-install
+            session([
+                'plugin_auto_install' => [
+                    'plugin_id' => $id,
+                    'version_id' => $versionId,
+                    'license_key' => $licenseKey,
+                    'plugin_name' => $pluginName,
+                ]
+            ]);
+
+            // Redirect back to plugin market with success message
+            // The frontend will detect the session and trigger auto-install
+            return redirect(admin_url('plugin-market'))
+                ->with('successMess', 'Payment successful! Installing plugin...');
+
+        } catch (\Throwable $e) {
+            Log::error("[PluginMarket] Error in payment callback for plugin $id: " . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return redirect(admin_url('plugin-market'))
+                ->with('errorMess', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Clear auto-install session data
+     */
+    public function clearAutoInstall(Request $request)
+    {
+        session()->forget('plugin_auto_install');
+        return response()->json(['success' => true]);
     }
     
 }

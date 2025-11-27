@@ -1,4 +1,18 @@
 <!-- Search Form -->
+@if(session('successMess'))
+<div class="alert alert-success alert-dismissible">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+    <i class="icon fa fa-check"></i> {{ session('successMess') }}
+</div>
+@endif
+
+@if(session('errorMess'))
+<div class="alert alert-danger alert-dismissible">
+    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+    <i class="icon fa fa-ban"></i> {{ session('errorMess') }}
+</div>
+@endif
+
 <div class="box">
     <div class="box-header with-border">
         <h3 class="box-title">{{ exmtrans('plugin.market.search.title') }}</h3>
@@ -271,13 +285,13 @@
                             <p>{{ exmtrans('plugin.market.license_modal.plugin') }}: <strong>{{ $plugin['plugin_name'] ?? 'Unknown' }}</strong></p>
                             <p>{{ exmtrans('plugin.market.license_modal.price') }}: <span class="text-danger">${{ number_format($plugin['price'], 2) }}</span></p>
                             <div class="form-group">
-                                <label for="license_key{{ $plugin['id'] }}">{{ exmtrans('plugin.market.license_modal.license_key') }} <span class="text-danger">*</span></label>
+                                <label for="license_key{{ $plugin['id'] }}">{{ exmtrans('plugin.market.license_modal.license_key') }}</label>
                                 <input type="text" 
                                     class="form-control" 
                                     id="license_key{{ $plugin['id'] }}" 
                                     name="license_key" 
-                                    placeholder="{{ exmtrans('plugin.market.license_modal.license_key_placeholder') }}" 
-                                    required>
+                                    placeholder="{{ exmtrans('plugin.market.license_modal.license_key_placeholder') }}">
+                                <small class="form-text text-muted">{{ exmtrans('plugin.market.license_modal.license_key_help') }}</small>
                             </div>
                             <div class="form-group">
                                 <label for="version_paid{{ $plugin['id'] }}">{{ exmtrans('plugin.market.license_modal.version') }} <span class="text-danger">*</span></label>
@@ -399,11 +413,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const licenseKey = form.querySelector('[name="license_key"]').value;
             const versionId = form.querySelector('[name="version"]').value;
             
-            if (!licenseKey.trim()) {
-                alert("{{ exmtrans('plugin.market.message.please_enter_license') }}");
-                return;
-            }
-            
             if (!versionId) {
                 alert("{{ exmtrans('plugin.market.message.please_select_version') }}");
                 return;
@@ -422,6 +431,12 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
+                // Check if server wants to redirect to payment page
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                
                 if (data.success) {
                     // Close modal
                     const modal = form.closest('.modal');
@@ -608,5 +623,68 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Auto-install plugin after payment callback
+    @if(session('plugin_auto_install'))
+    (function() {
+        const autoInstallData = {!! json_encode(session('plugin_auto_install')) !!};
+        console.log('[PluginMarket] Auto-installing plugin after payment:', autoInstallData);
+        
+        // Clear session data
+        fetch('{{ admin_url("plugin-market/clear-auto-install") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        // Show loading message
+        swal({
+            title: "{{ exmtrans('plugin.market.message.installing') }}",
+            text: autoInstallData.plugin_name,
+            type: "info",
+            showConfirmButton: false,
+            allowOutsideClick: false
+        });
+        
+        // Trigger install with license key
+        const formData = new FormData();
+        formData.append('_token', '{{ csrf_token() }}');
+        formData.append('version', autoInstallData.version_id);
+        formData.append('license_key', autoInstallData.license_key);
+        
+        fetch('{{ admin_url("plugin-market") }}/' + autoInstallData.plugin_id + '/install', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                swal({
+                    title: "{{ exmtrans('common.success') }}",
+                    text: data.message || "{{ exmtrans('plugin.market.message.install_success', ['name' => '']) }}",
+                    type: "success",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                throw new Error(data.error || 'Installation failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            swal({
+                title: "{{ exmtrans('common.error') }}",
+                text: error.message || "{{ exmtrans('plugin.market.message.install_failed') }}",
+                type: "error"
+            });
+        });
+    })();
+    @endif
 });
 </script>
