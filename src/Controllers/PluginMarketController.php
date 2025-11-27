@@ -181,7 +181,7 @@ class PluginMarketController extends AdminController
                 Log::warning('[PluginMarket] Failed to enrich plugin data with local install info: ' . $e->getMessage());
             }
 
-            // Render giao diện
+            // Render interface
             return $content->title(exmtrans('plugin.market.title'))
                 ->description(exmtrans('plugin.market.description'))
                 ->body(view('exment::plugin.market.index', compact('plugins')));
@@ -238,13 +238,13 @@ class PluginMarketController extends AdminController
         return $form;
     }
     /**
-     * Cài đặt plugin từ repo
+     * Install plugin from repository
      */
     public function install(Request $request, $id)
     {
         try {
             $license = $request->input('license_key');
-            $versionId = $request->input('version'); // Version ID được chọn
+            $versionId = $request->input('version'); // Selected version ID
 
             Log::info("[PluginMarket] Install request", [
                 'plugin_id' => $id,
@@ -346,9 +346,9 @@ class PluginMarketController extends AdminController
                             'version_id' => $versionId,
                             'user_id' => auth()->id(),
                             'user_email' => auth()->user()->email ?? '',
-                            'domain' => request()->getHost(), // Domain của Exment instance
+                            'domain' => request()->getHost(), // Domain of Exment instance
                             'server_ip' => request()->server('SERVER_ADDR'),
-                            'is_update' => $isUpdate, // Cho biết đây là update hay install mới
+                            'is_update' => $isUpdate, // Indicates whether this is an update or new install
                         ]);
 
                     if ($licenseResponse->failed()) {
