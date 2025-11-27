@@ -265,8 +265,20 @@ class PluginMarketController extends AdminController
 
             $pluginData = $pluginResponse->json();
             $price = $pluginData['price'] ?? 0;
+            $pluginName = $pluginData['plugin_name'] ?? null;
+
+            // Check if plugin is already installed (for update case)
             $isUpdate = false;
             $installedPlugin = null;
+            if ($pluginName) {
+                $installedPlugin = Plugin::where('plugin_name', $pluginName)->first();
+                if ($installedPlugin) {
+                    $isUpdate = true;
+                    Log::info("[PluginMarket] This is an update", [
+                        'current_version' => $installedPlugin->version,
+                    ]);
+                }
+            }
 
             // Validate version ID
             if (empty($versionId)) {
