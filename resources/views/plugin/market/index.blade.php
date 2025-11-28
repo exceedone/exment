@@ -434,6 +434,9 @@ function initPluginMarket() {
             .then(data => {
                 // Check if server wants to redirect to payment page
                 if (data.redirect) {
+                    // Before leaving the page, restore button state
+                    btn.disabled = false;
+                    btn.innerHTML = "{{ exmtrans('plugin.market.license_modal.install') }}";
                     window.location.href = data.redirect;
                     return;
                 }
@@ -527,15 +530,27 @@ function initPluginMarket() {
                 
                 if (data.versions && data.versions.length > 0) {
                     data.versions.forEach(function(version) {
-                        console.log('Version:', version.version, 'ID:', version.id, 'Download URL:', version.download_url);
-                        
-                        const label = version.is_latest ? 
-                            `${version.version} ({{ exmtrans('plugin.market.version_modal.latest') }})` : 
-                            version.version;
+                        console.log('Version:', version.version, 'ID:', version.id, 'Price:', version.price, 'Download URL:', version.download_url);
+
+                        // Build label including latest flag and price (Free / amount)
+                        let label = version.version;
+                        const isLatest = !!version.is_latest;
+                        const price = Number(version.price || 0);
+
+                        if (isLatest) {
+                            label += ` ({{ exmtrans('plugin.market.version_modal.latest') }})`;
+                        }
+
+                        if (price > 0) {
+                            label += ` - $${price.toFixed(2)}`;
+                        } else {
+                            label += ` - {{ exmtrans('plugin.market.free') }}`;
+                        }
                         const option = $('<option></option>')
                             .attr('value', version.id)
                             .attr('data-changelog', version.changelog || '')
                             .attr('data-download-url', version.download_url || '')
+                            .attr('data-price', price)
                             .text(label);
                         versionSelect.append(option);
                     });

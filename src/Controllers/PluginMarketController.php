@@ -264,7 +264,6 @@ class PluginMarketController extends AdminController
             }
 
             $pluginData = $pluginResponse->json();
-            $price = $pluginData['price'] ?? 0;
             $pluginName = $pluginData['plugin_name'] ?? null;
 
             // Check if plugin is already installed (for update case)
@@ -285,8 +284,27 @@ class PluginMarketController extends AdminController
                 return response()->json(['error' => 'Please select a version to install'], 400);
             }
 
-            // Get download URL based on plugin type (paid/free)
-            if ($price > 0) {
+            // Get version information to determine if selected version is free or paid
+            $versionResponse = Http::withoutVerifying()
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->get("{$this->getRepoUrl()}/{$id}/versions");
+
+            if ($versionResponse->failed()) {
+                return response()->json(['error' => 'Failed to fetch versions'], 400);
+            }
+
+            $versionsData = $versionResponse->json();
+            $selectedVersion = collect($versionsData['versions'] ?? [])->firstWhere('id', (int)$versionId);
+
+            if (!$selectedVersion) {
+                return response()->json(['error' => 'Selected version not found'], 404);
+            }
+
+            $versionPrice = $selectedVersion['price'] ?? 0;
+
+            // Get download URL based on version price (paid/free)
+            if ($versionPrice > 0) {
                 // Paid plugin: check if license key is provided
                 if (empty($license)) {
                     // Redirect to payment page
@@ -330,20 +348,7 @@ class PluginMarketController extends AdminController
                         'license_key' => $license,
                     ]);
                     
-                    // Get download URL from versions endpoint
-                    $versionResponse = Http::withoutVerifying()
-                        ->timeout(30)
-                        ->connectTimeout(10)
-                        ->get("{$this->getRepoUrl()}/{$id}/versions");
-                    
-                    if ($versionResponse->failed()) {
-                        return response()->json(['error' => 'Failed to fetch versions'], 400);
-                    }
-                    
-                    $versionsData = $versionResponse->json();
-                    $selectedVersion = collect($versionsData['versions'] ?? [])->firstWhere('id', (int)$versionId);
-                    
-                    if (!$selectedVersion || empty($selectedVersion['download_url'])) {
+                    if (empty($selectedVersion['download_url'])) {
                         return response()->json(['error' => 'No download URL available for this version'], 400);
                     }
                     
@@ -392,19 +397,7 @@ class PluginMarketController extends AdminController
                     $downloadUrl = $licenseData['download_url'];
                 }
             } else {
-                // Free plugin: get download URL from version endpoint
-                $versionResponse = Http::withoutVerifying()
-                    ->timeout(30)
-                    ->connectTimeout(10)
-                    ->get("{$this->getRepoUrl()}/{$id}/versions");
-                
-                if ($versionResponse->failed()) {
-                    return response()->json(['error' => 'Failed to fetch versions'], 400);
-                }
-                
-                $versionsData = $versionResponse->json();
-                $selectedVersion = collect($versionsData['versions'] ?? [])->firstWhere('id', (int)$versionId);
-                
+                // Free plugin: use already-fetched selected version info
                 Log::info("[PluginMarket] Selected version details", [
                     'version_id' => $versionId,
                     'found_version' => $selectedVersion ? $selectedVersion['version'] : 'NOT FOUND',

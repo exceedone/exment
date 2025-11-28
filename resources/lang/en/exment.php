@@ -672,6 +672,7 @@ return [
                 'price' => 'Price',
                 'license_key' => 'License Key',
                 'license_key_placeholder' => 'Enter your license key',
+                'license_key_help' => 'After purchasing the plugin, enter the license key you received from the marketplace email or account page. One license key is normally tied to a specific domain.',
                 'version' => 'Version',
                 'cancel' => 'Cancel',
                 'install' => 'Install Plugin',
