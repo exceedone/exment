@@ -344,7 +344,8 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+// Wrap all initialization logic in a function
+function initPluginMarket() {
     // Handle free plugin installation
     document.querySelectorAll('.install-form').forEach(function(form) {
         form.addEventListener('submit', function(e) {
@@ -686,5 +687,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     })();
     @endif
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initPluginMarket);
+
+// Re-initialize after PJAX navigation (for Exment/Laravel-Admin)
+$(document).on('pjax:end', function() {
+    console.log('[PluginMarket] PJAX navigation detected, reinitializing...');
+    // Wait a bit for DOM to be ready
+    setTimeout(initPluginMarket, 100);
 });
+
 </script>
