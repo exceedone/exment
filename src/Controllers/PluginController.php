@@ -147,18 +147,7 @@ class PluginController extends AdminControllerBase
                 'has_marketplace_id' => !empty($marketplaceId)
             ]);
 
-            if ($latest && version_compare($latest, $version, '>') && $marketplaceId) {
-                $pluginId = $this->id;
-                return $version .
-                    " <button type='button' 
-                      class='btn btn-xs btn-warning plugin-update' 
-                      data-plugin='{$pluginId}' 
-                      data-marketplace-id='{$marketplaceId}' 
-                      data-latest-version='{$latest}'>
-                        <i class='fa fa-arrow-up'></i> Update to {$latest}
-                      </button>";
-            }
-
+            // Update button has been removed
             return $version;
         })->escape(false);
 
@@ -459,22 +448,7 @@ class PluginController extends AdminControllerBase
                 ]));
             }
 
-            $repoVersions = collect(PluginRepository::fetchVersions())->keyBy('uuid');
-            $latest = $repoVersions[$plugin->uuid]['latest_version'] ?? null;
-            $downloadUrl = $repoVersions[$plugin->uuid]['download_url'] ?? null;
-
-            if ($latest && version_compare($latest, $plugin->version, '>')) {
-                $tools->append('
-                    <a href="javascript:void(0);" 
-                        class="btn btn-sm btn-warning plugin-update"
-                        style="margin-right: 5px;"
-                        data-plugin="' . $plugin->id . '"
-                        data-url="' . $downloadUrl . '">
-                            <i class="fa fa-refresh"></i> Update ' . $plugin->version . ' → ' . $latest . '
-                    </a>
-                ');
-
-            }
+            // Update button has been removed from form tools
         });
 
         $form->disableReset();
