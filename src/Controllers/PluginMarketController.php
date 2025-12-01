@@ -222,7 +222,7 @@ class PluginMarketController extends AdminController
             return view('exment::plugin.market.detail', compact('plugin'));
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             Log::error("[PluginMarket] Connection error: " . $e->getMessage());
-            abort(500, 'Cannot connect to marketplace server. Please check MARKETPLACE_URL in .env');
+            abort(500, exmtrans('plugin.market.message.connection_error'));
         }
     }
 
@@ -260,7 +260,7 @@ class PluginMarketController extends AdminController
                 ->get("{$this->getRepoUrl()}/{$id}");
             
             if ($pluginResponse->failed()) {
-                return response()->json(['error' => 'Plugin not found in marketplace'], 404);
+                return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
             }
 
             $pluginData = $pluginResponse->json();
@@ -281,7 +281,7 @@ class PluginMarketController extends AdminController
 
             // Validate version ID
             if (empty($versionId)) {
-                return response()->json(['error' => 'Please select a version to install'], 400);
+                return response()->json(['error' => exmtrans('plugin.market.message.please_select_version')], 400);
             }
 
             // Get version information to determine if selected version is free or paid
@@ -291,14 +291,14 @@ class PluginMarketController extends AdminController
                 ->get("{$this->getRepoUrl()}/{$id}/versions");
 
             if ($versionResponse->failed()) {
-                return response()->json(['error' => 'Failed to fetch versions'], 400);
+                return response()->json(['error' => exmtrans('plugin.market.message.version_load_failed')], 400);
             }
 
             $versionsData = $versionResponse->json();
             $selectedVersion = collect($versionsData['versions'] ?? [])->firstWhere('id', (int)$versionId);
 
             if (!$selectedVersion) {
-                return response()->json(['error' => 'Selected version not found'], 404);
+                return response()->json(['error' => exmtrans('plugin.market.message.version_not_found')], 404);
             }
 
             $versionPrice = $selectedVersion['price'] ?? 0;
@@ -349,7 +349,7 @@ class PluginMarketController extends AdminController
                     ]);
                     
                     if (empty($selectedVersion['download_url'])) {
-                        return response()->json(['error' => 'No download URL available for this version'], 400);
+                        return response()->json(['error' => exmtrans('plugin.market.message.no_download_url')], 400);
                     }
                     
                     $downloadUrl = $selectedVersion['download_url'];
@@ -369,7 +369,7 @@ class PluginMarketController extends AdminController
                         ]);
 
                     if ($licenseResponse->failed()) {
-                        $errorMsg = 'License validation failed';
+                        $errorMsg = exmtrans('plugin.market.message.license_validation_failed');
                         
                         // Try to get detailed error from response
                         try {
@@ -386,12 +386,12 @@ class PluginMarketController extends AdminController
                     
                     // Check if license is valid
                     if (!isset($licenseData['valid']) || !$licenseData['valid']) {
-                        $errorMsg = $licenseData['error'] ?? $licenseData['message'] ?? 'Invalid license key';
+                        $errorMsg = $licenseData['error'] ?? $licenseData['message'] ?? exmtrans('plugin.market.message.invalid_license');
                         return response()->json(['error' => $errorMsg], 400);
                     }
                     
                     if (empty($licenseData['download_url'])) {
-                        return response()->json(['error' => 'No plugin download link available'], 400);
+                        return response()->json(['error' => exmtrans('plugin.market.message.no_download_url')], 400);
                     }
 
                     $downloadUrl = $licenseData['download_url'];
@@ -405,11 +405,11 @@ class PluginMarketController extends AdminController
                 ]);
                 
                 if (!$selectedVersion) {
-                    return response()->json(['error' => 'Selected version not found'], 404);
+                    return response()->json(['error' => exmtrans('plugin.market.message.version_not_found')], 404);
                 }
                 
                 if (empty($selectedVersion['download_url'])) {
-                    return response()->json(['error' => 'No download URL available for this version'], 400);
+                    return response()->json(['error' => exmtrans('plugin.market.message.no_download_url')], 400);
                 }
                 
                 $downloadUrl = $selectedVersion['download_url'];
@@ -422,7 +422,7 @@ class PluginMarketController extends AdminController
             // Download plugin file
             $zipResp = Http::withoutVerifying()->timeout(60)->get($downloadUrl);
             if ($zipResp->failed()) {
-                return response()->json(['error' => 'Failed to download plugin file'], 500);
+                return response()->json(['error' => exmtrans('plugin.market.message.download_failed')], 500);
             }
 
             // Save to temporary location
@@ -456,7 +456,7 @@ class PluginMarketController extends AdminController
                 // Clean up temporary file
                 Storage::disk('local')->delete($tmpPath);
                 
-                $message = $isUpdate ? 'Plugin updated successfully' : 'Plugin installed successfully';
+                $message = $isUpdate ? exmtrans('plugin.market.message.update_success') : exmtrans('plugin.market.message.install_success', ['name' => $pluginName ?? '']);
                 
                 return response()->json([
                     'success' => true, 
@@ -471,7 +471,7 @@ class PluginMarketController extends AdminController
                 ]);
                 
                 return response()->json([
-                    'error' => 'Installation failed: ' . $installError->getMessage()
+                    'error' => exmtrans('plugin.market.message.install_failed') . ': ' . $installError->getMessage()
                 ], 500);
             }
 
@@ -479,7 +479,7 @@ class PluginMarketController extends AdminController
             Log::error("[PluginMarket] Error installing plugin $id: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return response()->json(['error' => 'An error occurred while installing the plugin: ' . $e->getMessage()], 500);
+            return response()->json(['error' => exmtrans('plugin.market.message.install_error') . ': ' . $e->getMessage()], 500);
         }
     }
 
@@ -496,21 +496,21 @@ class PluginMarketController extends AdminController
                 ->get("{$this->getRepoUrl()}/{$id}");
             
             if ($pluginResponse->failed()) {
-                return response()->json(['error' => 'Plugin not found in marketplace'], 404);
+                return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
             }
 
             $pluginData = $pluginResponse->json();
             $pluginName = $pluginData['plugin_name'] ?? null;
 
             if (!$pluginName) {
-                return response()->json(['error' => 'Invalid plugin data'], 400);
+                return response()->json(['error' => exmtrans('plugin.market.message.invalid_plugin_data')], 400);
             }
 
             // Find installed plugin by plugin_name
             $installedPlugin = Plugin::where('plugin_name', $pluginName)->first();
 
             if (!$installedPlugin) {
-                return response()->json(['error' => 'Plugin is not installed'], 404);
+                return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_installed')], 404);
             }
 
             $pluginId = $installedPlugin->id;
@@ -535,7 +535,7 @@ class PluginMarketController extends AdminController
             Log::error("[PluginMarket] Error uninstalling plugin $id: " . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return response()->json(['error' => 'An error occurred while uninstalling the plugin: ' . $e->getMessage()], 500);
+            return response()->json(['error' => exmtrans('plugin.market.message.uninstall_error') . ': ' . $e->getMessage()], 500);
         }
     }
 
@@ -560,8 +560,8 @@ class PluginMarketController extends AdminController
             // Check payment status
             if ($status !== 'success') {
                 $message = $status === 'cancelled' 
-                    ? 'Payment cancelled by user' 
-                    : 'Payment failed';
+                    ? exmtrans('plugin.market.message.payment_cancelled') 
+                    : exmtrans('plugin.market.message.payment_failed');
                 
                 return redirect(admin_url('plugin-market'))
                     ->with('errorMess', $message);
@@ -570,7 +570,7 @@ class PluginMarketController extends AdminController
             // Validate license key
             if (empty($licenseKey)) {
                 return redirect(admin_url('plugin-market'))
-                    ->with('errorMess', 'No license key received from payment gateway');
+                    ->with('errorMess', exmtrans('plugin.market.message.no_license_received'));
             }
 
             // Get plugin info
@@ -581,7 +581,7 @@ class PluginMarketController extends AdminController
             
             if ($pluginResponse->failed()) {
                 return redirect(admin_url('plugin-market'))
-                    ->with('errorMess', 'Plugin not found');
+                    ->with('errorMess', exmtrans('plugin.market.message.plugin_not_found'));
             }
 
             $pluginData = $pluginResponse->json();
@@ -600,7 +600,7 @@ class PluginMarketController extends AdminController
             // Redirect back to plugin market with success message
             // The frontend will detect the session and trigger auto-install
             return redirect(admin_url('plugin-market'))
-                ->with('successMess', 'Payment successful! Installing plugin...');
+                ->with('successMess', exmtrans('plugin.market.message.payment_success_installing'));
 
         } catch (\Throwable $e) {
             Log::error("[PluginMarket] Error in payment callback for plugin $id: " . $e->getMessage(), [
@@ -608,7 +608,7 @@ class PluginMarketController extends AdminController
             ]);
             
             return redirect(admin_url('plugin-market'))
-                ->with('errorMess', 'An error occurred: ' . $e->getMessage());
+                ->with('errorMess', exmtrans('plugin.market.message.payment_error') . ': ' . $e->getMessage());
         }
     }
 

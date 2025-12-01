@@ -622,7 +622,7 @@ function initPluginMarket() {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    throw new Error(data.error || 'Installation failed');
+                    throw new Error(data.error || "{{ exmtrans('plugin.market.message.install_failed') }}");
                 }
             })
             .catch(error => {
@@ -689,7 +689,7 @@ function initPluginMarket() {
                     window.location.reload();
                 }, 2000);
             } else {
-                throw new Error(data.error || 'Installation failed');
+                throw new Error(data.error || "{{ exmtrans('plugin.market.message.install_failed') }}");
             }
         })
         .catch(error => {
