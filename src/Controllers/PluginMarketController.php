@@ -27,7 +27,8 @@ class PluginMarketController extends AdminController
     {
         static $url = null;
         if ($url === null) {
-            $url = rtrim(env('MARKETPLACE_URL', 'http://marketplace.local'), '/');
+            // Use configured marketplace URL from exment config (no .env dependency)
+            $url = rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/');
         }
         return $url;
     }
@@ -65,7 +66,6 @@ class PluginMarketController extends AdminController
             $request = request();
             $keyword = $request->input('keyword');
             $type = $request->input('type');
-            $price = $request->input('price');
             $status = $request->input('status');
 
             // URL API Marketplace with search parameters
@@ -77,9 +77,6 @@ class PluginMarketController extends AdminController
             }
             if ($type) {
                 $queryParams['type'] = $type;
-            }
-            if ($price) {
-                $queryParams['price'] = $price;
             }
             if ($status) {
                 $queryParams['status'] = $status;
@@ -126,17 +123,6 @@ class PluginMarketController extends AdminController
                     $plugins = $plugins->filter(function ($plugin) use ($type) {
                         $pluginTypes = $plugin['plugin_types'] ?? '';
                         return str_contains(strtolower($pluginTypes), strtolower($type));
-                    });
-                }
-                
-                // Filter by price
-                if ($price === 'free') {
-                    $plugins = $plugins->filter(function ($plugin) {
-                        return empty($plugin['price']) || $plugin['price'] == 0;
-                    });
-                } elseif ($price === 'paid') {
-                    $plugins = $plugins->filter(function ($plugin) {
-                        return !empty($plugin['price']) && $plugin['price'] > 0;
                     });
                 }
                 
@@ -243,13 +229,11 @@ class PluginMarketController extends AdminController
     public function install(Request $request, $id)
     {
         try {
-            $license = $request->input('license_key');
             $versionId = $request->input('version'); // Selected version ID
 
             Log::info("[PluginMarket] Install request", [
                 'plugin_id' => $id,
                 'version_id' => $versionId,
-                'has_license' => !empty($license),
                 'marketplace_url' => $this->getMarketplaceUrl(),
             ]);
 
@@ -284,7 +268,7 @@ class PluginMarketController extends AdminController
                 return response()->json(['error' => exmtrans('plugin.market.message.please_select_version')], 400);
             }
 
-            // Get version information to determine if selected version is free or paid
+            // Get version information
             $versionResponse = Http::withoutVerifying()
                 ->timeout(30)
                 ->connectTimeout(10)
@@ -301,119 +285,17 @@ class PluginMarketController extends AdminController
                 return response()->json(['error' => exmtrans('plugin.market.message.version_not_found')], 404);
             }
 
-            $versionPrice = $selectedVersion['price'] ?? 0;
-
-            // Get download URL based on version price (paid/free)
-            if ($versionPrice > 0) {
-                // Paid plugin: check if license key is provided
-                if (empty($license)) {
-                    // Redirect to payment page
-                    $callbackUrl = admin_url("plugin-market/{$id}/payment-callback");
-                    
-                    // Check if using mock payment (for testing)
-                    // Set PLUGIN_MARKET_USE_MOCK=true in .env for testing
-                    // Set PLUGIN_MARKET_USE_MOCK=false in .env for production
-                    $useMockPayment = env('PLUGIN_MARKET_USE_MOCK', true);
-                    
-                    if ($useMockPayment) {
-                        // Testing: Use mock payment page
-                        $paymentUrl = url("/mock-payment-page.php") . "?" . http_build_query([
-                            'plugin_id' => $id,
-                            'version_id' => $versionId,
-                            'callback_url' => $callbackUrl,
-                            'user_id' => auth()->id(),
-                            'user_email' => auth()->user()->email ?? '',
-                        ]);
-                    } else {
-                        // Production: Use marketplace payment page
-                        $paymentUrl = "{$this->getMarketplaceUrl()}/payment/plugin/{$id}?" . http_build_query([
-                            'version_id' => $versionId,
-                            'callback_url' => $callbackUrl,
-                            'user_id' => auth()->id(),
-                            'user_email' => auth()->user()->email ?? '',
-                        ]);
-                    }
-                    
-                    return response()->json([
-                        'redirect' => $paymentUrl
-                    ]);
-                }
-
-                // Check if this is a mock license key (for testing)
-                $isMockLicense = strpos($license, 'MOCK-LICENSE-') === 0;
-                
-                if ($isMockLicense) {
-                    // For mock license, skip validation and get download URL directly
-                    Log::info("[PluginMarket] Using mock license key, skipping validation", [
-                        'license_key' => $license,
-                    ]);
-                    
-                    if (empty($selectedVersion['download_url'])) {
-                        return response()->json(['error' => exmtrans('plugin.market.message.no_download_url')], 400);
-                    }
-                    
-                    $downloadUrl = $selectedVersion['download_url'];
-                } else {
-                    // Real license: validate with marketplace server
-                    $licenseResponse = Http::withoutVerifying()
-                        ->timeout(30)
-                        ->post("{$this->getMarketplaceUrl()}/api/plugin/validate-license", [
-                            'plugin_id' => $id,
-                            'license_key' => $license,
-                            'version_id' => $versionId,
-                            'user_id' => auth()->id(),
-                            'user_email' => auth()->user()->email ?? '',
-                            'domain' => request()->getHost(), // Domain of Exment instance
-                            'server_ip' => request()->server('SERVER_ADDR'),
-                            'is_update' => $isUpdate, // Indicates whether this is an update or new install
-                        ]);
-
-                    if ($licenseResponse->failed()) {
-                        $errorMsg = exmtrans('plugin.market.message.license_validation_failed');
-                        
-                        // Try to get detailed error from response
-                        try {
-                            $errorData = $licenseResponse->json();
-                            $errorMsg = $errorData['error'] ?? $errorData['message'] ?? $errorMsg;
-                        } catch (\Exception $e) {
-                            // Use default error message
-                        }
-                        
-                        return response()->json(['error' => $errorMsg], 400);
-                    }
-
-                    $licenseData = $licenseResponse->json();
-                    
-                    // Check if license is valid
-                    if (!isset($licenseData['valid']) || !$licenseData['valid']) {
-                        $errorMsg = $licenseData['error'] ?? $licenseData['message'] ?? exmtrans('plugin.market.message.invalid_license');
-                        return response()->json(['error' => $errorMsg], 400);
-                    }
-                    
-                    if (empty($licenseData['download_url'])) {
-                        return response()->json(['error' => exmtrans('plugin.market.message.no_download_url')], 400);
-                    }
-
-                    $downloadUrl = $licenseData['download_url'];
-                }
-            } else {
-                // Free plugin: use already-fetched selected version info
-                Log::info("[PluginMarket] Selected version details", [
-                    'version_id' => $versionId,
-                    'found_version' => $selectedVersion ? $selectedVersion['version'] : 'NOT FOUND',
-                    'download_url' => $selectedVersion['download_url'] ?? 'NO URL',
-                ]);
-                
-                if (!$selectedVersion) {
-                    return response()->json(['error' => exmtrans('plugin.market.message.version_not_found')], 404);
-                }
-                
-                if (empty($selectedVersion['download_url'])) {
-                    return response()->json(['error' => exmtrans('plugin.market.message.no_download_url')], 400);
-                }
-                
-                $downloadUrl = $selectedVersion['download_url'];
+            // Get download URL
+            Log::info("[PluginMarket] Installing plugin version", [
+                'version_id' => $versionId,
+                'version' => $selectedVersion['version'] ?? 'UNKNOWN',
+            ]);
+            
+            if (empty($selectedVersion['download_url'])) {
+                return response()->json(['error' => exmtrans('plugin.market.message.no_download_url')], 400);
             }
+            
+            $downloadUrl = $selectedVersion['download_url'];
 
             Log::info("[PluginMarket] Downloading plugin", [
                 'download_url' => $downloadUrl,
@@ -536,79 +418,6 @@ class PluginMarketController extends AdminController
                 'trace' => $e->getTraceAsString(),
             ]);
             return response()->json(['error' => exmtrans('plugin.market.message.uninstall_error') . ': ' . $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Handle payment callback from marketplace
-     * Marketplace will redirect back here with license_key after successful payment
-     */
-    public function paymentCallback(Request $request, $id)
-    {
-        try {
-            $licenseKey = $request->input('license_key');
-            $versionId = $request->input('version_id');
-            $status = $request->input('status'); // success, failed, cancelled
-            
-            Log::info("[PluginMarket] Payment callback received", [
-                'plugin_id' => $id,
-                'version_id' => $versionId,
-                'status' => $status,
-                'has_license' => !empty($licenseKey),
-            ]);
-
-            // Check payment status
-            if ($status !== 'success') {
-                $message = $status === 'cancelled' 
-                    ? exmtrans('plugin.market.message.payment_cancelled') 
-                    : exmtrans('plugin.market.message.payment_failed');
-                
-                return redirect(admin_url('plugin-market'))
-                    ->with('errorMess', $message);
-            }
-
-            // Validate license key
-            if (empty($licenseKey)) {
-                return redirect(admin_url('plugin-market'))
-                    ->with('errorMess', exmtrans('plugin.market.message.no_license_received'));
-            }
-
-            // Get plugin info
-            $pluginResponse = Http::withoutVerifying()
-                ->timeout(30)
-                ->connectTimeout(10)
-                ->get("{$this->getRepoUrl()}/{$id}");
-            
-            if ($pluginResponse->failed()) {
-                return redirect(admin_url('plugin-market'))
-                    ->with('errorMess', exmtrans('plugin.market.message.plugin_not_found'));
-            }
-
-            $pluginData = $pluginResponse->json();
-            $pluginName = $pluginData['plugin_name'] ?? 'Unknown Plugin';
-
-            // Store license key and version in session to auto-install
-            session([
-                'plugin_auto_install' => [
-                    'plugin_id' => $id,
-                    'version_id' => $versionId,
-                    'license_key' => $licenseKey,
-                    'plugin_name' => $pluginName,
-                ]
-            ]);
-
-            // Redirect back to plugin market with success message
-            // The frontend will detect the session and trigger auto-install
-            return redirect(admin_url('plugin-market'))
-                ->with('successMess', exmtrans('plugin.market.message.payment_success_installing'));
-
-        } catch (\Throwable $e) {
-            Log::error("[PluginMarket] Error in payment callback for plugin $id: " . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
-            return redirect(admin_url('plugin-market'))
-                ->with('errorMess', exmtrans('plugin.market.message.payment_error') . ': ' . $e->getMessage());
         }
     }
 

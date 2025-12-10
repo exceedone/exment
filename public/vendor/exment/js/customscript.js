@@ -66,33 +66,118 @@ $(function () {
                 e.stopImmediatePropagation();
 
                 const $btn = $(btn);
-                const downloadUrl = $btn.data('url');
+                const marketplaceId = $btn.data('marketplace-id');
                 const pluginId = $btn.data('plugin');
+                const latestVersion = $btn.data('latest-version');
 
 
-                if (!downloadUrl) {
+                if (!marketplaceId) {
+                    console.error('[PluginUpdater] No marketplace ID found');
                     return;
                 }
 
-                $btn.prop('disabled', true).text('更新中...');
-
-                $.ajax({
-                    url: `/admin/plugin/${pluginId}/update-remote`,
-                    type: 'POST',
-                    data: {
-                        _token: LA.token,
-                        download_url: downloadUrl
+                // Show confirmation dialog with SweetAlert
+                swal({
+                    title: 'Update Plugin',
+                    text: `Do you want to update this plugin to version ${latestVersion}?`,
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, update it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (!result.value) {
+                        return;
                     }
-                })
-                    .done(resp => {
-                        location.reload();
-                    })
-                    .fail(xhr => {
-                        alert('Lỗi server: ' + xhr.status);
-                    })
-                    .always(() => {
-                        $btn.prop('disabled', false).text('Update');
+
+                    // Show loading state
+                    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+                    
+                    swal({
+                        title: 'Updating...',
+                        text: 'Please wait while the plugin is being updated',
+                        type: 'info',
+                        showConfirmButton: false,
+                        allowOutsideClick: false
                     });
+
+                    // Fetch versions from marketplace
+                    const marketplaceUrl = $('meta[name="marketplace-url"]').attr('content') || 'http://marketplace.local';
+                    
+                    $.ajax({
+                        url: `${marketplaceUrl}/api/plugins/${marketplaceId}/versions`,
+                        type: 'GET',
+                    })
+                        .done(data => {
+                            // Get latest version ID
+                            const versions = data.versions || [];
+                            const latestVersionData = versions.find(v => v.is_latest);
+                            
+                            if (!latestVersionData || !latestVersionData.id) {
+                                swal({
+                                    title: 'Error',
+                                    text: 'Cannot find latest version',
+                                    type: 'error'
+                                });
+                                $btn.prop('disabled', false).html('<i class="fa fa-arrow-up"></i> Update');
+                                return;
+                            }
+
+                            // Call install API (it will handle update automatically)
+                            $.ajax({
+                                url: `/admin/plugin-market/${marketplaceId}/install`,
+                                type: 'POST',
+                                data: {
+                                    _token: LA.token,
+                                    version: latestVersionData.id
+                                }
+                            })
+                                .done(resp => {
+                                    console.log('[PluginUpdater] Install response:', resp);
+                                    if (resp.success) {
+                                        swal({
+                                            title: 'Success!',
+                                            text: resp.message || 'Plugin updated successfully!',
+                                            type: 'success',
+                                            timer: 2000,
+                                            showConfirmButton: false
+                                        }).then(() => {
+                                            location.reload();
+                                        });
+                                    } else {
+                                        console.error('[PluginUpdater] Install failed payload:', resp);
+                                        swal({
+                                            title: 'Update Failed',
+                                            text: resp.error || 'Unknown error',
+                                            type: 'error'
+                                        });
+                                        $btn.prop('disabled', false).html('<i class="fa fa-arrow-up"></i> Update');
+                                    }
+                                })
+                                .fail(xhr => {
+                                        console.error('[PluginUpdater] Install AJAX failed:', xhr.status, xhr.responseText);
+                                        let error = `Server error: ${xhr.status}`;
+                                        if (xhr.responseJSON && xhr.responseJSON.error) {
+                                            error = xhr.responseJSON.error;
+                                        }
+                                    swal({
+                                        title: 'Update Failed',
+                                        text: error,
+                                        type: 'error'
+                                    });
+                                    $btn.prop('disabled', false).html('<i class="fa fa-arrow-up"></i> Update');
+                                });
+                        })
+                        .fail(xhr => {
+                            swal({
+                                title: 'Error',
+                                text: `Failed to fetch versions: ${xhr.status}`,
+                                type: 'error'
+                            });
+                            $btn.prop('disabled', false).html('<i class="fa fa-arrow-up"></i> Update');
+                        });
+                });
 
             }, true);
         }

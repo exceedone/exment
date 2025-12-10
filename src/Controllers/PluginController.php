@@ -19,13 +19,7 @@ use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Services\Plugin\PluginRepository;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\File;
-use ZipArchive;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 
 class PluginController extends AdminControllerBase
@@ -109,47 +103,7 @@ class PluginController extends AdminControllerBase
         $grid->column('author', exmtrans("plugin.author"));
         // $grid->column('version', exmtrans("plugin.version"));
 
-
-        $repoVersions = collect(PluginRepository::fetchVersions());
-        
-        Log::info('[PluginController] Repository versions fetched', [
-            'count' => $repoVersions->count(),
-            'versions' => $repoVersions->toArray()
-        ]);
-
-        $grid->column('version')->display(function ($version) use ($repoVersions) {
-            // Find matching plugin in marketplace by plugin_name or uuid
-            $marketplacePlugin = $repoVersions->first(function ($item) {
-                return ($item['uuid'] ?? null) === $this->uuid || 
-                       ($item['plugin_name'] ?? null) === $this->plugin_name;
-            });
-            
-            Log::info('[PluginController] Matching plugin search', [
-                'local_uuid' => $this->uuid,
-                'local_plugin_name' => $this->plugin_name,
-                'local_version' => $version,
-                'marketplace_plugin' => $marketplacePlugin
-            ]);
-
-            if (!$marketplacePlugin) {
-                return $version; // No matching plugin in marketplace
-            }
-
-            $latest = $marketplacePlugin['latest_version'] ?? null;
-            $marketplaceId = $marketplacePlugin['marketplace_id'] ?? null;
-            
-            Log::info('[PluginController] Update check', [
-                'plugin_name' => $this->plugin_name,
-                'current_version' => $version,
-                'latest_version' => $latest,
-                'marketplace_id' => $marketplaceId,
-                'has_update' => $latest && version_compare($latest, $version, '>'),
-                'has_marketplace_id' => !empty($marketplaceId)
-            ]);
-
-            // Update button has been removed
-            return $version;
-        })->escape(false);
+        $grid->column('version', exmtrans("plugin.version"));
 
 
 
@@ -498,73 +452,5 @@ class PluginController extends AdminControllerBase
         }
 
         return $pluginClass;
-    }
-
-    public function updateFromRepo($pluginId)
-    {
-        try {
-            $plugin = Plugin::find($pluginId);
-            if (!$plugin) {
-                Log::error("[PluginUpdater] Plugin not found", ['plugin_id' => $pluginId]);
-                return response()->json(['error' => 'Plugin not found'], 404);
-            }
-
-            $downloadUrl = request()->input('download_url');
-            
-            Log::info("[PluginUpdater] Starting download", [
-                'plugin_id' => $pluginId,
-                'plugin_name' => $plugin->plugin_name,
-                'download_url' => $downloadUrl
-            ]);
-
-            $response = Http::timeout(30)
-                ->connectTimeout(10)
-                ->retry(2, 100)
-                ->withoutVerifying()
-                ->get($downloadUrl);
-                
-            Log::info("[PluginUpdater] Download response", [
-                'status' => $response->status(),
-                'successful' => $response->successful(),
-                'size' => strlen($response->body()),
-                'headers' => $response->headers()
-            ]);
-            
-            if ($response->failed()) {
-                Log::error("[PluginUpdater] Download failed", [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
-                return response()->json(['error' => 'Failed to download file'], 500);
-            }
-
-            $tmpDisk = Storage::disk('local');
-            $tmpPath = 'tmp/' . Str::random(10) . '.zip';
-            $tmpDisk->put($tmpPath, $response->body());
-            $fullPath = $tmpDisk->path($tmpPath);
-            
-            Log::info("[PluginUpdater] File saved to temp", [
-                'tmp_path' => $tmpPath,
-                'full_path' => $fullPath
-            ]);
-
-            PluginInstaller::uploadPlugin(new \Illuminate\Http\File($fullPath));
-
-            $tmpDisk->delete($tmpPath);
-            
-            Log::info("[PluginUpdater] Plugin updated successfully", [
-                'plugin_id' => $pluginId,
-                'plugin_name' => $plugin->plugin_name
-            ]);
-
-            return response()->json(['success' => true, 'message' => 'Plugin updated successfully!']);
-
-        } catch (\Throwable $e) {
-            Log::error("[PluginUpdater] Error updating plugin: " . $e->getMessage(), [
-                'plugin_id' => $pluginId,
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json(['error' => 'Error occurred while updating plugin'], 500);
-        }
     }
 }

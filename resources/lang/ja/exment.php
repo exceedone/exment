@@ -720,7 +720,7 @@ return [
                 'error_occurred' => 'プラグインの処理中にエラーが発生しました',
                 'no_versions' => '利用可能なバージョンがありません',
                 'version_load_failed' => 'バージョンの読み込みに失敗しました',
-                'connection_error' => 'マーケットプレイスサーバーに接続できません。.envファイルのMARKETPLACE_URLを確認してください',
+                'connection_error' => 'マーケットプレイスサーバーに接続できません。config/exment.php の market_plugin_url を確認してください',
                 'plugin_not_found' => 'プラグインが見つかりません',
                 'version_not_found' => '選択されたバージョンが見つかりません',
                 'no_download_url' => 'このバージョンのダウンロードURLがありません',

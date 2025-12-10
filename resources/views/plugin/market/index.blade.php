@@ -45,16 +45,6 @@
                 </div>
                 <div class="col-md-2">
                     <div class="form-group">
-                        <label>{{ exmtrans('plugin.market.search.price') }}</label>
-                        <select name="price" class="form-control">
-                            <option value="">{{ exmtrans('plugin.market.search.all_prices') }}</option>
-                            <option value="free" {{ request('price') == 'free' ? 'selected' : '' }}>{{ exmtrans('plugin.market.free') }}</option>
-                            <option value="paid" {{ request('price') == 'paid' ? 'selected' : '' }}>{{ exmtrans('plugin.market.search.paid') }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
                         <label>{{ exmtrans('plugin.market.search.status') }}</label>
                         <select name="status" class="form-control">
                             <option value="">{{ exmtrans('plugin.market.search.all_status') }}</option>
@@ -82,7 +72,7 @@
 </div>
 
 <!-- Results Summary -->
-@if(request()->hasAny(['keyword', 'type', 'price', 'status']))
+@if(request()->hasAny(['keyword', 'type', 'status']))
 <div class="alert alert-info">
     <i class="fa fa-info-circle"></i> 
     {{ exmtrans('plugin.market.search.results_found', ['count' => count($plugins)]) }}
@@ -104,7 +94,6 @@
                     <th>{{ exmtrans('plugin.market.author') }}</th>
                     <th>{{ exmtrans('plugin.market.latest_version') }}</th>
                     <th>{{ exmtrans('plugin.market.description_col') }}</th>
-                    <th>{{ exmtrans('plugin.market.price') }}</th>
                     <th>{{ exmtrans('plugin.market.actions') }}</th>
                 </tr>
             </thead>
@@ -119,13 +108,6 @@
                         <td><span class="badge bg-info">{{ $plugin['version'] ?? '—' }}</span></td>
                         <td><small>{{ $plugin['description'] ?? '—' }}</small></td>
                         <td>
-                            @if(isset($plugin['price']) && $plugin['price'] > 0)
-                                <span class="text-danger">${{ number_format($plugin['price'], 2) }}</span>
-                            @else
-                                <span class="text-success">{{ exmtrans('plugin.market.free') }}</span>
-                            @endif
-                        </td>
-                        <td>
                             @php
                                 $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
                             @endphp
@@ -133,23 +115,13 @@
                             @if($plugin['is_installed'] ?? false)
                                 @if($plugin['has_update'] ?? false)
                                     <!-- Plugin installed but update available -->
-                                    @if(isset($plugin['price']) && $plugin['price'] > 0)
-                                        <!-- Paid plugin update -->
-                                        <button type="button" class="btn btn-warning btn-sm" 
-                                            data-toggle="modal" 
-                                            data-target="#licenseModal{{ $plugin['id'] }}"
-                                            {{ !$isActive ? 'disabled' : '' }}>
-                                            <i class="fa fa-arrow-up"></i> {{ exmtrans('plugin.market.update') }}
-                                        </button>
-                                    @else
-                                        <!-- Free plugin update: show version selector modal -->
-                                        <button type="button" class="btn btn-warning btn-sm" 
-                                            data-toggle="modal" 
-                                            data-target="#versionModal{{ $plugin['id'] }}"
-                                            {{ !$isActive ? 'disabled' : '' }}>
-                                            <i class="fa fa-arrow-up"></i> {{ exmtrans('plugin.market.update') }}
-                                        </button>
-                                    @endif
+                                    <!-- Show version selector modal -->
+                                    <button type="button" class="btn btn-warning btn-sm" 
+                                        data-toggle="modal" 
+                                        data-target="#versionModal{{ $plugin['id'] }}"
+                                        {{ !$isActive ? 'disabled' : '' }}>
+                                        <i class="fa fa-arrow-up"></i> {{ exmtrans('plugin.market.update') }}
+                                    </button>
                                     <!-- Uninstall button for installed plugin with update -->
                                     <form action="{{ route('plugin.market.uninstall', $plugin['id']) }}" method="POST"
                                         style="display:inline;" 
@@ -166,23 +138,13 @@
                                     <span class="badge badge-success mr-1">
                                         <i class="fa fa-check"></i> {{ exmtrans('plugin.market.installed', ['version' => $plugin['current_version']]) }}
                                     </span>
-                                    @if(isset($plugin['price']) && $plugin['price'] > 0)
-                                        <!-- Paid plugin: allow reinstall/downgrade -->
-                                        <button type="button" class="btn btn-info btn-sm" 
-                                            data-toggle="modal" 
-                                            data-target="#licenseModal{{ $plugin['id'] }}"
-                                            {{ !$isActive ? 'disabled' : '' }}>
-                                            <i class="fa fa-refresh"></i> {{ exmtrans('plugin.market.install') }}
-                                        </button>
-                                    @else
-                                        <!-- Free plugin: allow reinstall/downgrade -->
-                                        <button type="button" class="btn btn-info btn-sm" 
-                                            data-toggle="modal" 
-                                            data-target="#versionModal{{ $plugin['id'] }}"
-                                            {{ !$isActive ? 'disabled' : '' }}>
-                                            <i class="fa fa-refresh"></i> {{ exmtrans('plugin.market.install') }}
-                                        </button>
-                                    @endif
+                                    <!-- Allow reinstall/downgrade -->
+                                    <button type="button" class="btn btn-info btn-sm" 
+                                        data-toggle="modal" 
+                                        data-target="#versionModal{{ $plugin['id'] }}"
+                                        {{ !$isActive ? 'disabled' : '' }}>
+                                        <i class="fa fa-refresh"></i> {{ exmtrans('plugin.market.install') }}
+                                    </button>
                                     <!-- Uninstall button for installed plugin -->
                                     <form action="{{ route('plugin.market.uninstall', $plugin['id']) }}" method="POST"
                                         style="display:inline;" 
@@ -197,23 +159,13 @@
                                 @endif
                             @else
                                 <!-- Plugin not installed -->
-                                @if(isset($plugin['price']) && $plugin['price'] > 0)
-                                    <!-- Paid plugin: show modal for license key -->
-                                    <button type="button" class="btn btn-success btn-sm" 
-                                        data-toggle="modal" 
-                                        data-target="#licenseModal{{ $plugin['id'] }}"
-                                        {{ !$isActive ? 'disabled' : '' }}>
-                                        {{ exmtrans('plugin.market.install') }}
-                                    </button>
-                                @else
-                                    <!-- Free plugin: show version selector modal -->
-                                    <button type="button" class="btn btn-success btn-sm" 
-                                        data-toggle="modal" 
-                                        data-target="#versionModal{{ $plugin['id'] }}"
-                                        {{ !$isActive ? 'disabled' : '' }}>
-                                        {{ exmtrans('plugin.market.install') }}
-                                    </button>
-                                @endif
+                                <!-- Show version selector modal -->
+                                <button type="button" class="btn btn-success btn-sm" 
+                                    data-toggle="modal" 
+                                    data-target="#versionModal{{ $plugin['id'] }}"
+                                    {{ !$isActive ? 'disabled' : '' }}>
+                                    {{ exmtrans('plugin.market.install') }}
+                                </button>
                             @endif
                             <a href="{{ route('plugin.market.show', $plugin['id']) }}" class="btn btn-primary btn-sm">{{ exmtrans('plugin.market.details') }}</a>
                         </td>
@@ -228,9 +180,8 @@
     </div>
 </div>
 
-<!-- Version Selection Modals for free plugins -->
+<!-- Version Selection Modals -->
 @foreach($plugins as $plugin)
-    @if(!isset($plugin['price']) || $plugin['price'] == 0)
         <div class="modal fade" id="versionModal{{ $plugin['id'] }}" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -264,56 +215,6 @@
                 </div>
             </div>
         </div>
-    @endif
-@endforeach
-
-<!-- License Key Modals for paid plugins -->
-@foreach($plugins as $plugin)
-    @if(isset($plugin['price']) && $plugin['price'] > 0)
-        <div class="modal fade" id="licenseModal{{ $plugin['id'] }}" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{{ exmtrans('plugin.market.license_modal.title') }}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <form action="{{ route('plugin.market.install', $plugin['id']) }}" method="POST" class="install-form-paid">
-                        @csrf
-                        <div class="modal-body">
-                            <p>{{ exmtrans('plugin.market.license_modal.plugin') }}: <strong>{{ $plugin['plugin_name'] ?? 'Unknown' }}</strong></p>
-                            <p>{{ exmtrans('plugin.market.license_modal.price') }}: <span class="text-danger">${{ number_format($plugin['price'], 2) }}</span></p>
-                            <div class="form-group">
-                                <label for="license_key{{ $plugin['id'] }}">{{ exmtrans('plugin.market.license_modal.license_key') }}</label>
-                                <input type="text" 
-                                    class="form-control" 
-                                    id="license_key{{ $plugin['id'] }}" 
-                                    name="license_key" 
-                                    placeholder="{{ exmtrans('plugin.market.license_modal.license_key_placeholder') }}">
-                                <small class="form-text text-muted">{{ exmtrans('plugin.market.license_modal.license_key_help') }}</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="version_paid{{ $plugin['id'] }}">{{ exmtrans('plugin.market.license_modal.version') }} <span class="text-danger">*</span></label>
-                                <select class="form-control version-select" 
-                                    id="version_paid{{ $plugin['id'] }}" 
-                                    name="version"
-                                    data-plugin-id="{{ $plugin['id'] }}"
-                                    required>
-                                    <option value="">{{ exmtrans('plugin.market.license_modal.version') }}</option>
-                                </select>
-                                <small class="form-text text-muted" id="changelog_paid{{ $plugin['id'] }}"></small>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ exmtrans('plugin.market.license_modal.cancel') }}</button>
-                            <button type="submit" class="btn btn-success install-paid-btn">{{ exmtrans('plugin.market.license_modal.install') }}</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endif
 @endforeach
 
 <style>
@@ -331,7 +232,7 @@
     background-color: white;
 }
 
-.install-btn:disabled, .install-paid-btn:disabled {
+.install-btn:disabled {
     cursor: not-allowed;
     opacity: 0.6;
 }
@@ -404,83 +305,6 @@ function initPluginMarket() {
         });
     });
     
-    // Handle paid plugin installation
-    document.querySelectorAll('.install-form-paid').forEach(function(form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const btn = form.querySelector('.install-paid-btn');
-            const formData = new FormData(form);
-            const licenseKey = form.querySelector('[name="license_key"]').value;
-            const versionId = form.querySelector('[name="version"]').value;
-            
-            if (!versionId) {
-                alert("{{ exmtrans('plugin.market.message.please_select_version') }}");
-                return;
-            }
-            
-            // Disable button and show loading
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2"></span>{{ exmtrans('plugin.market.message.installing') }}';
-            
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': formData.get('_token')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Check if server wants to redirect to payment page
-                if (data.redirect) {
-                    // Before leaving the page, restore button state
-                    btn.disabled = false;
-                    btn.innerHTML = "{{ exmtrans('plugin.market.license_modal.install') }}";
-                    window.location.href = data.redirect;
-                    return;
-                }
-                
-                if (data.success) {
-                    // Close modal
-                    const modal = form.closest('.modal');
-                    if (modal) {
-                        $(modal).modal('hide');
-                    }
-                    
-                    // Show success message
-                    swal({
-                        title: "{{ exmtrans('common.success') }}",
-                        text: data.message || "{{ exmtrans('plugin.market.message.install_success', ['name' => '']) }}",
-                        type: "success",
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    
-                    // Reload page after 2 seconds
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 2000);
-                } else {
-                    throw new Error(data.error || 'Installation failed');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                btn.disabled = false;
-                btn.innerHTML = "{{ exmtrans('plugin.market.license_modal.install') }}";
-                
-                // Show error message
-                const errorMsg = error.message || "{{ exmtrans('plugin.market.message.install_failed') }}";
-                swal({
-                    title: "{{ exmtrans('common.error') }}",
-                    text: errorMsg,
-                    type: "error"
-                });
-            });
-        });
-    });
-    
     // Handle plugin uninstallation using Exment.CommonEvent.ShowSwal
     // Same pattern as backup/index.blade.php - let Exment handle success/redirect automatically
     document.querySelectorAll('.uninstall-btn').forEach(function(btn) {
@@ -511,7 +335,7 @@ function initPluginMarket() {
     });
 
     // Load versions when modal is opened
-    $('.modal[id^="versionModal"], .modal[id^="licenseModal"]').on('show.bs.modal', function(e) {
+    $('.modal[id^="versionModal"]').on('show.bs.modal', function(e) {
         const modal = $(this);
         const pluginId = modal.attr('id').match(/\d+/)[0];
         const versionSelect = modal.find('.version-select');
@@ -519,7 +343,7 @@ function initPluginMarket() {
         console.log('Loading versions for plugin:', pluginId);
         
         // Load versions from API - use Laravel config
-        const marketplaceUrl = '{{ rtrim(config("app.marketplace_url", env("MARKETPLACE_URL", "http://marketplace.local")), "/") }}';
+        const marketplaceUrl = '{{ rtrim(config("exment.market_plugin_url", "https://exment.org"), "/") }}';
         fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions`)
             .then(response => response.json())
             .then(data => {
@@ -530,27 +354,18 @@ function initPluginMarket() {
                 
                 if (data.versions && data.versions.length > 0) {
                     data.versions.forEach(function(version) {
-                        console.log('Version:', version.version, 'ID:', version.id, 'Price:', version.price, 'Download URL:', version.download_url);
-
-                        // Build label including latest flag and price (Free / amount)
+                        // Build label including latest flag
                         let label = version.version;
                         const isLatest = !!version.is_latest;
-                        const price = Number(version.price || 0);
 
                         if (isLatest) {
                             label += ` ({{ exmtrans('plugin.market.version_modal.latest') }})`;
                         }
-
-                        if (price > 0) {
-                            label += ` - $${price.toFixed(2)}`;
-                        } else {
-                            label += ` - {{ exmtrans('plugin.market.free') }}`;
-                        }
+                        
                         const option = $('<option></option>')
                             .attr('value', version.id)
                             .attr('data-changelog', version.changelog || '')
                             .attr('data-download-url', version.download_url || '')
-                            .attr('data-price', price)
                             .text(label);
                         versionSelect.append(option);
                     });
@@ -576,7 +391,7 @@ function initPluginMarket() {
         const selected = $(this).find('option:selected');
         const changelog = selected.attr('data-changelog');
         const pluginId = $(this).data('plugin-id');
-        const changelogElement = $('#changelog' + pluginId + ', #changelog_paid' + pluginId);
+        const changelogElement = $('#changelog' + pluginId);
         
         if (changelog) {
             changelogElement.text("{{ exmtrans('plugin.market.version_modal.changelog') }}: " + changelog);
@@ -639,69 +454,6 @@ function initPluginMarket() {
             });
         });
     });
-
-    // Auto-install plugin after payment callback
-    @if(session('plugin_auto_install'))
-    (function() {
-        const autoInstallData = {!! json_encode(session('plugin_auto_install')) !!};
-        console.log('[PluginMarket] Auto-installing plugin after payment:', autoInstallData);
-        
-        // Clear session data
-        fetch('{{ admin_url("plugin-market/clear-auto-install") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        // Show loading message
-        swal({
-            title: "{{ exmtrans('plugin.market.message.installing') }}",
-            text: autoInstallData.plugin_name,
-            type: "info",
-            showConfirmButton: false,
-            allowOutsideClick: false
-        });
-        
-        // Trigger install with license key
-        const formData = new FormData();
-        formData.append('_token', '{{ csrf_token() }}');
-        formData.append('version', autoInstallData.version_id);
-        formData.append('license_key', autoInstallData.license_key);
-        
-        fetch('{{ admin_url("plugin-market") }}/' + autoInstallData.plugin_id + '/install', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                swal({
-                    title: "{{ exmtrans('common.success') }}",
-                    text: data.message || "{{ exmtrans('plugin.market.message.install_success', ['name' => '']) }}",
-                    type: "success",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
-                setTimeout(function() {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                throw new Error(data.error || "{{ exmtrans('plugin.market.message.install_failed') }}");
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            swal({
-                title: "{{ exmtrans('common.error') }}",
-                text: error.message || "{{ exmtrans('plugin.market.message.install_failed') }}",
-                type: "error"
-            });
-        });
-    })();
-    @endif
 }
 
 // Initialize on page load
