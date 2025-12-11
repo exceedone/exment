@@ -10,7 +10,8 @@ class PluginRepository
     {
         cache()->forget('plugin_repo_versions'); 
         return cache()->remember('plugin_repo_versions', 300, function () {
-            $marketplaceUrl = rtrim(env('MARKETPLACE_URL', 'http://marketplace.local'), '/');
+            // Use configured marketplace URL (no .env dependency)
+            $marketplaceUrl = rtrim(config('exment.market_plugin_url', config('app.marketplace_url', 'https://exment.org')), '/');
             $apiUrl = $marketplaceUrl . '/api/plugins';
             
             $resp = Http::withoutVerifying()
