@@ -104,38 +104,42 @@ class PluginMarketController extends AdminController
                 ]);
             }
 
-            // If API doesn't support search, perform client-side filtering
-            if (!empty($queryParams) && $response->ok()) {
-                $plugins = collect($plugins);
-                
-                // Filter by keyword (search in plugin_name, description, author)
-                if ($keyword) {
-                    $plugins = $plugins->filter(function ($plugin) use ($keyword) {
-                        $searchText = strtolower($keyword);
-                        return str_contains(strtolower($plugin['plugin_name'] ?? ''), $searchText)
-                            || str_contains(strtolower($plugin['description'] ?? ''), $searchText)
-                            || str_contains(strtolower($plugin['user']['name'] ?? ''), $searchText);
-                    });
-                }
-                
-                // Filter by type
-                if ($type) {
-                    $plugins = $plugins->filter(function ($plugin) use ($type) {
-                        $pluginTypes = $plugin['plugin_types'] ?? '';
-                        return str_contains(strtolower($pluginTypes), strtolower($type));
-                    });
-                }
-                
-                // Filter by status
-                if ($status) {
-                    $plugins = $plugins->filter(function ($plugin) use ($status) {
-                        $checkStatus = strtolower($plugin['check_status'] ?? '');
-                        return $checkStatus === strtolower($status);
-                    });
-                }
-                
-                $plugins = $plugins->values()->all();
+            // Filter to show only free plugins and perform client-side filtering
+            $plugins = collect($plugins);
+            
+            // Filter free plugins only (price = 0)
+            $plugins = $plugins->filter(function ($plugin) {
+                $price = floatval($plugin['price'] ?? 0);
+                return $price === 0.0;
+            });
+            
+            // Filter by keyword (search in plugin_name, description, author)
+            if ($keyword) {
+                $plugins = $plugins->filter(function ($plugin) use ($keyword) {
+                    $searchText = strtolower($keyword);
+                    return str_contains(strtolower($plugin['plugin_name'] ?? ''), $searchText)
+                        || str_contains(strtolower($plugin['description'] ?? ''), $searchText)
+                        || str_contains(strtolower($plugin['user']['name'] ?? ''), $searchText);
+                });
             }
+            
+            // Filter by type
+            if ($type) {
+                $plugins = $plugins->filter(function ($plugin) use ($type) {
+                    $pluginTypes = $plugin['plugin_types'] ?? '';
+                    return str_contains(strtolower($pluginTypes), strtolower($type));
+                });
+            }
+            
+            // Filter by status
+            if ($status) {
+                $plugins = $plugins->filter(function ($plugin) use ($status) {
+                    $checkStatus = strtolower($plugin['check_status'] ?? '');
+                    return $checkStatus === strtolower($status);
+                });
+            }
+            
+            $plugins = $plugins->values()->all();
 
             // Enrich marketplace data with local install info so the view can
             // show install/update states. We match by plugin_name (case-insensitive).
