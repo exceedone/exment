@@ -833,6 +833,24 @@ return [
             'view' => 'ビュー',
             'crud' => 'CRUDページ',
         ],
+
+        'type' => [
+            'page' => 'ページ',
+            'dashboard' => 'ダッシュボード',
+            'trigger' => 'トリガー',
+            'button' => 'ボタン',
+            'api' => 'API',
+            'view' => 'ビュー',
+            'batch' => 'バッチ',
+            'document' => 'ドキュメント',
+            'export' => 'エクスポート',
+            'import' => 'インポート',
+            'script' => 'スクリプト',
+            'style' => 'スタイル',
+            'validator' => 'バリデーション',
+            'event' => 'イベント',
+            'crud' => 'CRUDページ',
+        ],
     ],
 
     'plugincode' => [

@@ -33,13 +33,13 @@
                         <label>{{ exmtrans('plugin.market.search.type') }}</label>
                         <select name="type" class="form-control">
                             <option value="">{{ exmtrans('plugin.market.search.all_types') }}</option>
-                            <option value="page" {{ request('type') == 'page' ? 'selected' : '' }}>Page</option>
-                            <option value="dashboard" {{ request('type') == 'dashboard' ? 'selected' : '' }}>Dashboard</option>
-                            <option value="trigger" {{ request('type') == 'trigger' ? 'selected' : '' }}>Trigger</option>
-                            <option value="button" {{ request('type') == 'button' ? 'selected' : '' }}>Button</option>
-                            <option value="api" {{ request('type') == 'api' ? 'selected' : '' }}>API</option>
-                            <option value="view" {{ request('type') == 'view' ? 'selected' : '' }}>View</option>
-                            <option value="batch" {{ request('type') == 'batch' ? 'selected' : '' }}>Batch</option>
+                            <option value="page" {{ request('type') == 'page' ? 'selected' : '' }}>{{ exmtrans('plugin.type.page') }}</option>
+                            <option value="dashboard" {{ request('type') == 'dashboard' ? 'selected' : '' }}>{{ exmtrans('plugin.type.dashboard') }}</option>
+                            <option value="trigger" {{ request('type') == 'trigger' ? 'selected' : '' }}>{{ exmtrans('plugin.type.trigger') }}</option>
+                            <option value="button" {{ request('type') == 'button' ? 'selected' : '' }}>{{ exmtrans('plugin.type.button') }}</option>
+                            <option value="api" {{ request('type') == 'api' ? 'selected' : '' }}>{{ exmtrans('plugin.type.api') }}</option>
+                            <option value="view" {{ request('type') == 'view' ? 'selected' : '' }}>{{ exmtrans('plugin.type.view') }}</option>
+                            <option value="batch" {{ request('type') == 'batch' ? 'selected' : '' }}>{{ exmtrans('plugin.type.batch') }}</option>
                         </select>
                     </div>
                 </div>

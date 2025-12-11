@@ -239,7 +239,7 @@ return [
     'manual_url' => env('EXMENT_MANUAL_URL', 'https://exment.net/docs/#/'),
 
     // Marketplace base URL for plugin listing and downloads (no .env override)
-    'market_plugin_url' => 'https://exment.org',
+    'market_plugin_url' => env('MARKETPLACE_URL', 'https://exment.org'),
 
     /*
     |--------------------------------------------------------------------------
