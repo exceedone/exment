@@ -10,8 +10,8 @@ on:
       - 'tests/**'
 
 env:
-  DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
-  EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  DOCKER_EXMENT_REPOSITORY: manhhh1108/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: manhhh1108/exment-boilerplate
 
 jobs:
   exment-testing:
