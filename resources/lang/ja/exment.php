@@ -2645,6 +2645,10 @@ return [
         'redirect' => 'リダイレクトURL',
     ],
 
+    'tenant' => [
+        'plan_limit_exceeded' => 'ご利用中のプランの上限を超えました。',
+    ],
+
     'command' => [
         'import' => [
             'file_count' => '該当ファイル数：',

@@ -2645,6 +2645,10 @@ return [
         'redirect' => 'Redirect URL',
     ],
 
+    'tenant' => [
+        'plan_limit_exceeded' => 'You have exceeded your plan limit.',
+    ],
+
     'command' => [
         'import' => [
             'file_count' => 'Number of applicable files:',
