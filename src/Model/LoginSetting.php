@@ -377,6 +377,7 @@ class LoginSetting extends ModelBase
                 'authnRequestsSigned' => boolval($provider->getOption('saml_option_authn_request_signed')),
                 'logoutRequestSigned' => boolval($provider->getOption('saml_option_logout_request_signed')),
                 'logoutResponseSigned' => boolval($provider->getOption('saml_option_logout_response_signed')),
+                'requestedAuthnContext' => false,
             ],
         ];
 
