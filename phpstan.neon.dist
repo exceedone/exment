@@ -3,6 +3,8 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
+    excludePaths:                       
+        - vendor/exceedone/exment/tests/*
     level: 5
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
