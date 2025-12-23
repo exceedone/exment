@@ -56,6 +56,7 @@ class Define
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
+        'logging_toggle_available' => ['type' => 'boolean', 'default' => '0', 'group' => 'initialize'],
 
         // Advanced ----------------------------------
         'filter_search_type' => ['default' => 'forward', 'group' => 'advanced'],
@@ -67,7 +68,7 @@ class Define
         'header_user_info' => ['type' => 'array', 'default' => SystemColumn::CREATED_AT, 'group' => 'advanced'],
 
         // name is "flg", but array is OK.
-        'grid_filter_disable_flg' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
+        'grid_filter_disable_flg' => ['type' => 'array', 'default' => 'comment', 'group' => 'advanced'] ,
 
         'system_values_pos' => ['default' => 'top', 'group' => 'advanced'],
 
