@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Auth;
 
 use Illuminate\Auth\Passwords\PasswordBrokerManager;
-use Exceedone\Exment\Support\Timebox;
+use Illuminate\Support\Timebox;
 
 class ExmentPasswordBrokerManager extends PasswordBrokerManager
 {
