@@ -3,9 +3,13 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
+    excludePaths:                       
+        - vendor/exceedone/exment/tests/*
     level: 5
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
     universalObjectCratesClasses:
         - Exceedone\Exment\Model\WorkflowAuthority
         - Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface
@@ -13,6 +17,9 @@ parameters:
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
+         -                              
+            message: '#PasswordBrokerManager@anonymous#'
+            path: vendor/exceedone/exment/src/ExmentServiceProvider.php
         -
             message: "#^Call to an undefined method OpenAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*

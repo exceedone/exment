@@ -3,7 +3,6 @@
 namespace Exceedone\Exment;
 
 use Exceedone\Exment\Auth\ExmentPasswordBroker;
-use Exceedone\Exment\Auth\ExmentPasswordBrokerManager;
 use Exceedone\Exment\Auth\PasswordBrokerManager;
 use Storage;
 use OpenAdminCore\Admin\Admin;
@@ -341,7 +340,27 @@ class ExmentServiceProvider extends ServiceProvider
 
         // Override Laravel's default PasswordBroker to use ExmentPasswordBroker
         $this->app->extend('auth.password', function ($service, $app) {
-           return new ExmentPasswordBrokerManager($app);
+            return new class($app) extends PasswordBrokerManager {
+                protected function resolve($name)
+                {
+                    $config = $this->getConfig($name);
+
+                    if (is_null($config)) {
+                        throw new \InvalidArgumentException("Password resetter [{$name}] is not defined.");
+                    }
+
+                    $provider = $this->app['auth']->createUserProvider($config['provider']);
+
+                    $tokenRepository = $this->createTokenRepository($config);
+
+                    return new ExmentPasswordBroker(
+                        $tokenRepository,
+                        $provider,
+                        $this->app['events'],
+                        $this->app->make(Timebox::class)
+                    );
+                }
+            };
         });
 
         // guard provider
