@@ -3,6 +3,8 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment/src
+    excludePaths:
+        - vendor/exceedone/exment/src/ExmentServiceProvider.php
     level: 5
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
@@ -13,35 +15,7 @@ parameters:
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
-        - message: "#PasswordBrokerManager@anonymous#"
-        - message: "#Class.*@anonymous.*was not found#"
-        - message: "#was not found while trying to analyse#"
-        - message: "#Call to static method .* on an unknown class#"
-             
-        - message: "#If condition is always true#"
-        
-        - message: "#Result of static method .* \\(void\\) is used#"
-        
-        - message: "#has invalid return type Symfony\\\\Component\\\\Translation\\\\TranslatorInterface#"
-        - message: "#has invalid return type Tightenco\\\\Collect\\\\Support\\\\Collection#"
-        
-        - message: "#PHPDoc tag @throws with type .* is not subtype of Throwable#"
-        
-        - message: "#Method .* invoked with \\d+ parameters?, \\d+ required#"
-        
-        - message: "#Offset .* always exists and is not nullable#"
-        - message: "#Offset .* in isset\\(\\) always exists and is not nullable#"
-        
-        - message: "#PHPDoc type .* is not covariant with PHPDoc type#"
-        
-        - message: "#Parameter \\#1 \\$value of function collect expects#"
-        
-        - message: "#No error to ignore is reported on line#"
-        
-        - message: "#Access to an undefined property object::#"
-        
-        - message: "#Call to an undefined method.*withTrashed\\(\\)#"
-        
+        - '#Internal error#'
         -
             message: "#^Call to an undefined method OpenAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*
