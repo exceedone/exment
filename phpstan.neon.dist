@@ -3,8 +3,6 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment
-    excludePaths:                       
-        - vendor/exceedone/exment/tests/*
     level: 5
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
@@ -17,7 +15,7 @@ parameters:
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
-         -                              
+        -                              
             message: '#PasswordBrokerManager@anonymous#'
             path: vendor/exceedone/exment/src/ExmentServiceProvider.php
         -
