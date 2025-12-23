@@ -10,8 +10,8 @@ on:
       - 'tests/**'
 
 env:
-  DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
-  EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  DOCKER_EXMENT_REPOSITORY: manhhh1108/docker-exment
+  EXMENT_BOILERPLATE_REPOSITORY: manhhh1108/exment-boilerplate
 
 jobs:
   phpstan:
@@ -31,6 +31,12 @@ jobs:
         with:
           path: ./docker-exment/exment-boilerplate/exment
           ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: manhhh1108/open-admin-core
+          ref: feature/bs5-11-core-update
+          path: ./docker-exment/exment-boilerplate/open-admin-core
 
       - name: Docker Compose Version
         run: docker compose --version
