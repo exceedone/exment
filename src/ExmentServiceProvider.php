@@ -336,6 +336,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         // Override Laravel's default PasswordBroker to use ExmentPasswordBroker
         $this->app->extend('auth.password', function ($service, $app) {
+            /** @phpstan-ignore-next-line */
             return new class($app) extends PasswordBrokerManager {
                 protected function resolve($name)
                 {
