@@ -2,11 +2,10 @@ includes:
     - ./vendor/nunomaduro/larastan/extension.neon
 parameters:
     paths:
-        - vendor/exceedone/exment
+        - vendor/exceedone/exment/src
     level: 5
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
-    treatPhpDocTypesAsCertain: false
     universalObjectCratesClasses:
         - Exceedone\Exment\Model\WorkflowAuthority
         - Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface
@@ -14,6 +13,7 @@ parameters:
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
+        - '#Internal error#'
         -
             message: "#^Call to an undefined method OpenAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*
