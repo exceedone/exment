@@ -3,8 +3,6 @@ includes:
 parameters:
     paths:
         - vendor/exceedone/exment/src
-    excludePaths:
-        - vendor/exceedone/exment/src/ExmentServiceProvider.php
     level: 5
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
@@ -15,7 +13,6 @@ parameters:
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
-        - '#Internal error#'
         -
             message: "#^Call to an undefined method OpenAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*
