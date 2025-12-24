@@ -76,8 +76,10 @@
 
     .chat-input textarea {
         resize: none;
-        overflow: hidden;
+        overflow-y: auto;
         width: 100%;
+        max-height: 120px;
+        line-height: 1.5;
     }
 
     .chat-loading {
@@ -108,11 +110,20 @@
         }
 
         function autoResize(el) {
+            const maxHeight = 120;
+
             el.style.height = 'auto';
-            el.style.height = (el.scrollHeight) + 'px';
+
+            if (el.scrollHeight <= maxHeight) {
+                el.style.height = el.scrollHeight + 'px';
+                el.style.overflowY = 'hidden';
+            } else {
+                el.style.height = maxHeight + 'px';
+                el.style.overflowY = 'auto';
+            }
         }
 
-        function appendMessage(text, role) {
+        function appendMessage(text, role, confirmUrl = null) {
             const wrapper = document.createElement('div');
             wrapper.className = `message d-flex mb-2 ${role === 'user' ? 'justify-content-end' : 'justify-content-start'}`;
             const bubble = document.createElement('div');
@@ -120,6 +131,21 @@
             bubble.style.cssText = `max-width:75%;white-space:pre-wrap; background:${role === 'user' ? '#0d6efd' : '#f0f2f5'}; color:${role === 'user' ? '#fff' : '#000'}`;
             bubble.innerText = text;
             wrapper.appendChild(bubble);
+
+            if (confirmUrl) {
+                const actionsWrapper = document.createElement('div');
+                actionsWrapper.className = 'mt-1';
+
+                const link = document.createElement('a');
+                link.href = confirmUrl;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.className = 'text-primary text-decoration-underline';
+                link.innerText = confirmUrl;
+
+                actionsWrapper.appendChild(link);
+                wrapper.appendChild(actionsWrapper);
+            }
 
             const existingPlaceholder = document.getElementById('chat-placeholder');
             if (existingPlaceholder) existingPlaceholder.remove();
@@ -186,12 +212,12 @@
                             toggleActionButtons(false);
                         }
                     } else {
-                        appendMessage('An error occurred while starting the conversation.', 'assistant');
+                        appendMessage('会話の開始中にエラーが発生しました。', 'assistant');
                         toggleActionButtons(false);
                     }
                 })
                 .catch(error => {
-                    appendMessage('There was an error connecting to the server. Please try again.', 'assistant');
+                    appendMessage('サーバーへの接続中にエラーが発生しました。もう一度お試しください。', 'assistant');
                     toggleActionButtons(false);
                 })
                 .finally(() => {
@@ -237,12 +263,12 @@
                             toggleActionButtons(false);
                         }
                     } else {
-                        appendMessage(data.message || 'Unable to send message.', 'assistant');
+                        appendMessage(data.message || 'メッセージを送信できません。', 'assistant');
                         toggleActionButtons(false);
                     }
                 })
                 .catch(error => {
-                    appendMessage('There was an error sending the message. Please try again.', 'assistant');
+                    appendMessage('メッセージの送信中にエラーが発生しました。もう一度お試しください。', 'assistant');
                     toggleActionButtons(false);
                 })
                 .finally(() => {
@@ -265,7 +291,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    appendMessage(data.message, 'assistant');
+                    appendMessage(data.message, 'assistant', data.confirmEditUrl);
                     if (action === 'cancel') {
                         clearChat();
                         featureType = null;
@@ -283,7 +309,7 @@
                     }
                 })
                 .catch(error => {
-                    appendMessage('An error occurred while performing the action. Please try again.', 'assistant');
+                    appendMessage('アクションの実行中にエラーが発生しました。もう一度お試しください。', 'assistant');
                     toggleActionButtons(false);
                 })
                 .finally(() => {

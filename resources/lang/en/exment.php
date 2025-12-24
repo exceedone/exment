@@ -2766,8 +2766,11 @@ return [
             'calendar' => 'Calendar',
             'notify'   => 'Notify',
         ],
+        'error_message' => 'An error occurred while connecting to AI.',
         'ai_response' => [
             'custom_table' => [
+                'table_exists' => 'The table you requested already exists. Please check CustomTable again.',
+                'explained' => 'Do you want to create the table with this structure? Please select the action buttons.',
                 'suggested' => 'Here is the data table I suggest for you. Please check it, and request modifications if you want. Please select the action buttons.',
                 'confirming' => 'Here is the data table I edit for you. Please check it, and request modifications if you want. Please select the action buttons.',
                 'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
@@ -2780,6 +2783,8 @@ return [
             ],
             'workflow' => [
                 'welcome' => 'I would be happy to assist you in creating a new workflow. Please send me a request. This is a list of custom tables you have created (if you want to create a workflow for a new table, use AI Custom Table to create the table first).',
+                'workflow_exists' => 'The workflow you requested already exists. Please check WorkFlow again.',
+                'request_table' => 'The data table required to create the workflow cannot be found. Please use the Custom Table feature to create the data table first.',
                 'suggested' => 'Here is the :type I suggest for you. Please check it, and request modifications if you want. Please select the action buttons.',
                 'confirming' => 'Please check everything again, and request modifications if you want. Please select the action buttons.',
                 'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
