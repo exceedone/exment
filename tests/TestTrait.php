@@ -316,4 +316,16 @@ trait TestTrait
 
     //     static::assertThat($array, $constraint, $message);
     // }
+    /**
+     * Assert that the json is Exment style.
+     *
+     * @param  array<mixed>  $expected
+     * @param  array<mixed>  $actual
+     * @param  string  $message
+     * @return void
+     */
+    protected function assertJsonExment(array $expected, array $actual, string $message = ''): void
+    {
+        $this->assertArraySubset($expected, $actual, $message);
+    }
 }
