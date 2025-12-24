@@ -31,10 +31,12 @@ abstract class ExmentKitTestCase extends BaseTestCase
     {
         // cannot call method "config", so call env function
         $this->baseUrl = env('APP_URL');
+        putenv('APP_LOCALE=ja');
         parent::setUp();
         System::clearCache();
+        config(['app.locale' => 'ja']);
         config(['exment.locale' => 'ja']);
-        \App::setLocale('ja');
+        \App::setLocale('ja');;
     }
 
     /**
