@@ -6,6 +6,8 @@ parameters:
     level: 5
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub
+    treatPhpDocTypesAsCertain: false
+    checkGenericClassInNonGenericObjectType: false
     universalObjectCratesClasses:
         - Exceedone\Exment\Model\WorkflowAuthority
         - Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface
@@ -13,6 +15,12 @@ parameters:
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
+        - '#@anonymous#'
+        - '#OneLogin\\\\Saml2\\\\Error#'
+        - '#Tightenco\\\\Collect\\\\Support\\\\Collection#'
+        - '#League\\\\Flysystem#'
+        - '#Adldap#'
+        - '#MicrosoftAzure#'
         -
             message: "#^Call to an undefined method OpenAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*
