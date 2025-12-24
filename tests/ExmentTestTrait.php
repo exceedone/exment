@@ -83,4 +83,9 @@ trait ExmentTestTrait
             \Schema::dropIfExists($tableName);
         }
     }
+
+    protected function assertJsonExment($actual, $expected)
+    {
+        $this->assertJsonStringEqualsJsonString(json_encode($expected), json_encode($actual));
+    }
 }

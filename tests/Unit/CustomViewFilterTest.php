@@ -171,7 +171,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             return $date >= $base_date;
         });
     }
@@ -198,7 +198,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             return $date <= $base_date;
         });
     }
@@ -384,7 +384,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $today = \Carbon\Carbon::today();
             return $today->format('Y-m') == $date->format('Y-m');
         });
@@ -409,7 +409,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $today = \Carbon\Carbon::today();
             return $today->firstOfMonth()->subMonthNoOverflow()->format('Y-m') == $date->format('Y-m');
         });
@@ -434,7 +434,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $today = \Carbon\Carbon::today();
             return $today->addMonthsNoOverflow(1)->format('Y-m') == $date->format('Y-m');
         });
@@ -459,7 +459,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $today = \Carbon\Carbon::today();
             return $today->format('Y') == $date->format('Y');
         });
@@ -484,7 +484,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $today = \Carbon\Carbon::today();
             return $today->subYearNoOverflow()->format('Y') == $date->format('Y');
         });
@@ -509,7 +509,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $today = \Carbon\Carbon::today();
             return $today->addYearNoOverflow()->format('Y') == $date->format('Y');
         });
@@ -535,7 +535,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
             return $diff >= -3;
         });
@@ -561,7 +561,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
             return $diff <= -3;
         });
@@ -587,7 +587,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
             return $diff >= 3;
         });
@@ -613,7 +613,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
             return $diff <= 3;
         });
@@ -687,7 +687,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             return $date->format('Y-m-d') == $filter_settings[0]['filter_value_text'];
         });
     }
@@ -712,7 +712,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $date = \Carbon\Carbon::create($date->year, $date->month, $date->day);
 
             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
@@ -740,7 +740,7 @@ class CustomViewFilterTest extends UnitTestBase
             if (is_null($date)) {
                 return false;
             }
-            $date = \Carbon\Carbon::parse($date);
+            $date = \Carbon\Carbon::parse($date)->endOfDay();
             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
             return $diff <= 0;
         });
