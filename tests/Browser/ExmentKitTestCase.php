@@ -33,7 +33,6 @@ abstract class ExmentKitTestCase extends BaseTestCase
         $this->baseUrl = env('APP_URL');
         parent::setUp();
         System::clearCache();
-        config(['exment.locale' => 'ja']);
     }
 
     /**

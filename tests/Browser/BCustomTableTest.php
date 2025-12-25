@@ -51,7 +51,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->seeInElement('label', 'テーブル名(英数字)')
                 ->seeInElement('label', 'テーブル表示名')
                 ->seeInElement('label', '説明')
-                ->seeInElement('h4[class=field-header]', '詳細設定')
+                ->seeInElement('.field-header', exmtrans('common.detail_setting'))
                 ->seeInElement('label', '色')
                 ->seeInElement('label', 'アイコン')
                 ->seeInElement('label', '検索可能')
