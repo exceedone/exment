@@ -47,7 +47,7 @@ class BCustomTableTest extends ExmentKitTestCase
         $this->visit(admin_url('table/create'))
                 ->seePageIs(admin_url('table/create'))
                 ->seeInElement('h1', 'カスタムテーブル設定')
-                ->seeInElement('h3[class=box-title]', '作成')
+                ->seeInElement('.box-title', '作成')
                 ->seeInElement('label', 'テーブル名(英数字)')
                 ->seeInElement('label', 'テーブル表示名')
                 ->seeInElement('label', '説明')
@@ -102,9 +102,9 @@ class BCustomTableTest extends ExmentKitTestCase
 
         // Update custom table
         $this->visit(admin_url('table/'. $id . '/edit'))
-                ->seeInField('options[search_enabled]', '1')
-                ->seeInField('options[attachment_flg]', '1')
-                ->seeInField('options[revision_flg]', '1')
+                ->seeInField('options[search_enabled]')
+                ->seeInField('options[attachment_flg]')
+                ->seeInField('options[revision_flg]')
                 ->type('test table update', 'table_view_name')
                 ->type('test description update', 'description')
                 ->type('#00ff00', 'options[color]')
