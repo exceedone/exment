@@ -38,7 +38,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('th', '列種類')
                 ->visit(admin_url('column/test/create'))
                 ->matchStatusCode(200)
-                ->seeInElement('.box-title', '作成')
+                ->seeInElement('.box-title', exmtrans('common.created'))
                 ->seeInElement('label', '列名(英数字)')
                 ->seeInElement('label', '列表示名')
                 ->seeInElement('label', '列種類')
@@ -1377,7 +1377,7 @@ class CCustomColumnTest extends ExmentKitTestCase
     {
         $this->visit(admin_url('column/test/create'))
                 ->seePageIs(admin_url('column/test/create'))
-                ->seeInElement('h3[class=box-title]', '作成')
+                ->seeInElement('.box-title', exmtrans('common.created'))
                 ->press('admin-submit')
                 ->seePageIs(admin_url('column/test/create'))
         ;
@@ -1391,7 +1391,7 @@ class CCustomColumnTest extends ExmentKitTestCase
     {
         $this->visit(admin_url('column/test/create'))
                 ->seePageIs(admin_url('column/test/create'))
-                ->seeInElement('h3[class=box-title]', '作成')
+                ->seeInElement('.box-title', exmtrans('common.created'))
                 ->type('onelinetext', 'column_name')
                 ->type('One Line Text Duplicate', 'column_view_name')
                 ->select('text', 'column_type')

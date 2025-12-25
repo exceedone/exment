@@ -54,7 +54,7 @@ class CPublicFormTest extends ExmentKitTestCase
                 ->seeInElement('th', '公開有効期限')
                 ->seeInElement('th', '操作')
                 ->visit(admin_url('formpublic/custom_value_edit_all/create'))
-                ->seeInElement('h3[class=box-title]', '作成')
+                ->seeInElement('.box-title', exmtrans('common.created'))
                 ->seeInElement('h1', '公開フォーム設定')
                 ->seeInElement('a', '基本設定')
                 ->seeInElement('a', 'デザイン設定')
@@ -406,7 +406,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         // Check Public Form default save value
         $this->visit(admin_url('formpublic/custom_value_edit_all/'. $id . '/edit'))
-            ->seeInElement('h3[class=box-title]', '編集')
+            ->seeInElement('.box-title', '編集')
             ->seeInElement('span', $target_form->form_view_name)
             ->seeInField('public_form_view_name', 'Public Form Unit Test')
             ->seeInField('header_background_color', '#3c8dbc')
@@ -595,7 +595,7 @@ class CPublicFormTest extends ExmentKitTestCase
     {
         $this->visit(admin_url('formpublic/custom_value_edit_all/create'))
                 ->seePageIs(admin_url('formpublic/custom_value_edit_all/create'))
-                ->seeInElement('h3[class=box-title]', '作成')
+                ->seeInElement('.box-title', exmtrans('common.created'))
                 ->press('admin-submit')
                 ->seePageIs(admin_url('formpublic/custom_value_edit_all/create'))
         ;

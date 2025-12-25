@@ -410,7 +410,7 @@ class DCustomDataTest extends ExmentKitTestCase
 
         // Check custom view data
         $this->visit(admin_url("data/all_columns_table_fortest?$group_str"))
-            ->seeInElement('td.column-date', '')
+            ->seeInElement('td.column-date', '-')
             ->seeInElement('div.box-footer.table-footer', "全 <b>$count</b>")
         ;
     }

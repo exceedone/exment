@@ -51,7 +51,7 @@ class CCustomCopyTest extends ExmentKitTestCase
             ->seeInElement('label', 'ボタンのラベル')
             ->seeInElement('label', 'ボタンのアイコン')
             ->seeInElement('label', 'ボタンのHTML class')
-            ->seeInElement('コピー列設定')
+            ->seeInElement('.field-header', exmtrans('custom_copy.custom_copy_columns'))
             ->seeInElement('th', 'コピー元テーブル列')
             ->seeInElement('th', 'コピー先テーブル列')
             ->seeInElement('th', '操作')
