@@ -29,7 +29,7 @@ class ChatbotService
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                    'Authorization' => env('AI_SERVER_API_KEY')
+                    'Authorization' => 'Bearer ' . env('AI_SERVER_API_KEY')
                 ])
                 ->post($url, [
                     'text' => [$message]
@@ -141,7 +141,7 @@ class ChatbotService
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                    'Authorization' => env('AI_SERVER_API_KEY')
+                    'Authorization' => 'Bearer ' . env('AI_SERVER_API_KEY')
                 ])
                 ->post($url, $payload);
             if ($response->successful()) {
@@ -227,9 +227,11 @@ class ChatbotService
                 ];
             }
         }
-        usort($similarFaqs, function($a, $b) {
+        usort($similarFaqs, function ($a, $b) {
             return $b['similarity'] <=> $a['similarity'];
         });
-        return array_values(array_filter(array_map(function($item) { return $item['answer']; }, array_slice($similarFaqs, 0, $limit))));
+        return array_values(array_filter(array_map(function ($item) {
+            return $item['answer'];
+        }, array_slice($similarFaqs, 0, $limit))));
     }
-} 
+}
