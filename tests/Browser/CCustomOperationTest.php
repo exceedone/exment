@@ -502,7 +502,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation update multiples_of_3 turn off');
         $this->assertEquals($custom_value->getValue('multiples_of_3'), '0');
-        $this->assertEquals($custom_value->getValue('date'), \Carbon\Carbon::today()->format("Y-m-d"));
+        $this->assertEquals(\Carbon\Carbon::today()->format('Y-m-d'),$custom_value->getValue('date'));
         $this->assertEquals($custom_value->getValue('email'), 'test123@mail.co.jp');
     }
 

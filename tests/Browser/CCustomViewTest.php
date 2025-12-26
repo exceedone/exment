@@ -67,7 +67,7 @@ class CCustomViewTest extends ExmentKitTestCase
             ->seeInElement('label', 'テーブル表示名')
             ->seeInElement('label', 'ビュー種類')
             ->seeInElement('.field-header', exmtrans('custom_view.custom_view_columns'))
-            ->seeInElement('h4[class=field-header]', 'データ表示条件')
+            ->seeInElement('.field-header', 'データ表示条件')
             ->seeInElement('h4[class=field-header]', 'データ並べ替え')
             ->seeInElement('button[id=admin-submit]', '保存')
         ;
