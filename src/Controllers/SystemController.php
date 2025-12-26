@@ -315,31 +315,33 @@ class SystemController extends AdminControllerBase
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
-        $form->exmheader(exmtrans('system.chatbot_header'))->hr();
-        $form->switchbool('chatbot_available', exmtrans("system.chatbot_available"))
-            ->default(0)
-            ->attribute(['data-filtertrigger' => true])
-            ->help(exmtrans("system.help.chatbot_available"));
-        $form->switchbool('chatbot_faq_wf',  exmtrans("system.chatbot_faq_wf"))
-            ->attribute(['data-filter' => json_encode(['key' => 'chatbot_available', 'value' => '1'])])
-            ->default(0)
-            ->attribute(['data-filtertrigger' => true])
-            ->help(exmtrans("system.help.chatbot_faq_wf"));
+        if(config('exment.ai_enable', false)) {
+            $form->exmheader(exmtrans('system.chatbot_header'))->hr();
+            $form->switchbool('chatbot_available', exmtrans("system.chatbot_available"))
+                ->default(0)
+                ->attribute(['data-filtertrigger' => true])
+                ->help(exmtrans("system.help.chatbot_available"));
+            $form->switchbool('chatbot_faq_wf',  exmtrans("system.chatbot_faq_wf"))
+                ->attribute(['data-filter' => json_encode(['key' => 'chatbot_available', 'value' => '1'])])
+                ->default(0)
+                ->attribute(['data-filtertrigger' => true])
+                ->help(exmtrans("system.help.chatbot_faq_wf"));
 
-        $form->textarea('chatbot_faq_wf_status_filters', exmtrans('system.chatbot_faq_wf_status_filters'))
-            ->attribute(['data-filter' => json_encode([
-                ['key' => 'chatbot_faq_wf', 'value' => '1'],
-                ['key' => 'chatbot_available', 'value' => '1'],
-            ])])
-            ->help(exmtrans("system.help.chatbot_faq_wf_status_filters"))
-            ->required()
-            ->default(exmtrans("system.chatbot_faq_wf_status_filters_default"))
-            ->rows(3);
-        $form->number('chatbot_timeidle', exmtrans('system.chatbot_timeidle'))
-            ->attribute(['data-filter' => json_encode(['key' => 'chatbot_available', 'value' => '1'])])
-            ->default(10)
-            ->min(1)
-            ->help(exmtrans("system.help.chatbot_timeidle"));
+            $form->textarea('chatbot_faq_wf_status_filters', exmtrans('system.chatbot_faq_wf_status_filters'))
+                ->attribute(['data-filter' => json_encode([
+                    ['key' => 'chatbot_faq_wf', 'value' => '1'],
+                    ['key' => 'chatbot_available', 'value' => '1'],
+                ])])
+                ->help(exmtrans("system.help.chatbot_faq_wf_status_filters"))
+                ->required()
+                ->default(exmtrans("system.chatbot_faq_wf_status_filters_default"))
+                ->rows(3);
+            $form->number('chatbot_timeidle', exmtrans('system.chatbot_timeidle'))
+                ->attribute(['data-filter' => json_encode(['key' => 'chatbot_available', 'value' => '1'])])
+                ->default(10)
+                ->min(1)
+                ->help(exmtrans("system.help.chatbot_timeidle"));
+        }
 
         return $form;
     }

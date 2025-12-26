@@ -23,6 +23,7 @@ use Exceedone\Exment\Auth\PublicFormGuard;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
+use Exceedone\Exment\Observers\ChatbotFaqObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
@@ -126,6 +127,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.web-ipfilter'  => \Exceedone\Exment\Middleware\WebIPFilter::class,
         'admin.api-ipfilter'  => \Exceedone\Exment\Middleware\ApiIPFilter::class,
         'admin.log'        => \Exceedone\Exment\Middleware\LogOperation::class,
+        'admin.quota-exceeded'        => \Exceedone\Exment\Middleware\QuotaExceeded::class,
 
         'admin.pjax'       => AdminMiddleware\Pjax::class,
         'admin.permission' => AdminMiddleware\Permission::class,
@@ -163,6 +165,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'admin.permission',
             'admin.session',
+            'admin.quota-exceeded',
         ],
         // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [
@@ -275,6 +278,14 @@ class ExmentServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         $this->bootPassport();
+        try {
+            $faqModelClass = getModelName(SystemTableName::CHATBOT_FAQ);
+            if ($faqModelClass && class_exists($faqModelClass)) {
+                $faqModelClass::observe(ChatbotFaqObserver::class);
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Failed to register ChatbotFaqObserver: ' . $e->getMessage());
+        }
     }
 
     /**
