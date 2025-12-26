@@ -7,13 +7,13 @@
         </div>
         <div class="d-flex justify-content-between gap-2" id="quick-buttons-container">
             <button class="btn btn-primary flex-fill" data-feature="custom_table">
-                <i class="fa fa-table me-2"></i>{!! exmtrans('ai_assistant.feature.custom_table') !!}
+                <i class="fa fa-table me-2"></i> {!! exmtrans('ai_assistant.feature.custom_table') !!}
             </button>
             <button class="btn btn-primary flex-fill" data-feature="workflow">
-                <i class="fa fa-project-diagram me-2"></i>{!! exmtrans('ai_assistant.feature.workflow') !!}
+                <i class="fa fa-project-diagram me-2"></i> {!! exmtrans('ai_assistant.feature.workflow') !!}
             </button>
             <button class="btn btn-primary flex-fill" data-feature="calendar">
-                <i class="fa fa-bell me-2"></i>{!! exmtrans('ai_assistant.feature.schedule_notifications') !!}
+                <i class="fa fa-bell me-2"></i> {!! exmtrans('ai_assistant.feature.schedule_notifications') !!}
             </button>
         </div>
 
@@ -92,6 +92,16 @@
 
 <script>
     (function(){
+        const trans = {
+            placeholder: @json(exmtrans('ai_assistant.chat_box_placeholder')),
+            notify: @json(exmtrans('ai_assistant.notify')),
+            errorStart: @json(exmtrans('ai_assistant.error_start')),
+            errorConnection: @json(exmtrans('ai_assistant.error_connection')),
+            errorSendFail: @json(exmtrans('ai_assistant.error_send_fail')),
+            errorSendException: @json(exmtrans('ai_assistant.error_send_exception')),
+            errorAction: @json(exmtrans('ai_assistant.error_action')),
+        };
+
         let currentConversationUuid = null;
         let featureType = null;
         const chatMessages = document.getElementById('chat-messages');
@@ -99,12 +109,10 @@
         const sendBtn = document.getElementById('send-btn');
         const actionButtonsContainer = document.getElementById('action-buttons-container');
         const quickButtons = document.querySelectorAll('.btn[data-feature]');
-        const placeholderText = '{{ exmtrans('ai_assistant.chat_box_placeholder') }}';
-        const notifyText = '{{ exmtrans('ai_assistant.notify') }}';
         const body = document.body;
 
         function clearChat() {
-            chatMessages.innerHTML = `<div id="chat-placeholder" class="text-muted">${placeholderText}</div>`;
+            chatMessages.innerHTML = `<div id="chat-placeholder" class="text-muted">${trans.placeholder}</div>`;
             toggleActionButtons(false);
             currentConversationUuid = null;
         }
@@ -212,12 +220,12 @@
                             toggleActionButtons(false);
                         }
                     } else {
-                        appendMessage('会話の開始中にエラーが発生しました。', 'assistant');
+                        appendMessage(trans.errorStart, 'assistant');
                         toggleActionButtons(false);
                     }
                 })
                 .catch(error => {
-                    appendMessage('サーバーへの接続中にエラーが発生しました。もう一度お試しください。', 'assistant');
+                    appendMessage(trans.errorConnection, 'assistant');
                     toggleActionButtons(false);
                 })
                 .finally(() => {
@@ -230,7 +238,7 @@
             if (!currentConversationUuid) {
                 appendMessage(text, 'user');
 
-                appendMessage(notifyText, 'assistant');
+                appendMessage(trans.notify, 'assistant');
 
                 textarea.value = '';
                 autoResize(textarea);
@@ -263,12 +271,12 @@
                             toggleActionButtons(false);
                         }
                     } else {
-                        appendMessage(data.message || 'メッセージを送信できません。', 'assistant');
+                        appendMessage(data.message || trans.errorSendFail, 'assistant');
                         toggleActionButtons(false);
                     }
                 })
                 .catch(error => {
-                    appendMessage('メッセージの送信中にエラーが発生しました。もう一度お試しください。', 'assistant');
+                    appendMessage(trans.errorSendException, 'assistant');
                     toggleActionButtons(false);
                 })
                 .finally(() => {
@@ -302,14 +310,14 @@
                         if (!data.showActionButtons) {
                             featureType = null;
                             currentConversationUuid = null;
-                            appendMessage(notifyText, 'assistant');
+                            appendMessage(trans.notify, 'assistant');
                         }
                     } else {
                         toggleActionButtons(data.showActionButtons);
                     }
                 })
                 .catch(error => {
-                    appendMessage('アクションの実行中にエラーが発生しました。もう一度お試しください。', 'assistant');
+                    appendMessage(trans.errorAction, 'assistant');
                     toggleActionButtons(false);
                 })
                 .finally(() => {

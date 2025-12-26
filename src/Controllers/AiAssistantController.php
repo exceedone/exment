@@ -6,6 +6,8 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\AssistantWorkflow;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\WorkflowTable;
+use Exceedone\Exment\Model\Workflow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -52,21 +54,25 @@ class AiAssistantController extends AdminControllerBase
             'feature_type' => 'required|in:custom_table,workflow,calendar',
         ]);
 
+        $loginUserID = \Exment::user()->id;
         $model = null;
         $welcomeMessage = '';
 
         switch ($validated['feature_type']) {
             case 'custom_table':
+                AssistantTable::where('created_user_id', $loginUserID)->delete();
                 $model = AssistantTable::create(['status' => 'init']);
                 $welcomeMessage = exmtrans('ai_assistant.welcome_message', ['type' => exmtrans('ai_assistant.feature.custom_table')]);
                 break;
             case 'workflow':
+                AssistantWorkflow::where('created_user_id', $loginUserID)->delete();
                 $model = AssistantWorkflow::create(['status' => 'init']);
                 $userCustomTables = $this->getUserCustomTablesAvaiable();
                 $welcomeMessage = exmtrans('ai_assistant.ai_response.workflow.welcome');
                 $welcomeMessage .= "\r\n" . implode("\n", $userCustomTables);
                 break;
             case 'calendar':
+                AssistantCalendar::where('created_user_id', $loginUserID)->delete();
                 $usersAndOrgs = $this->getOrganizationUsers();
                 $model = AssistantCalendar::create(['status' => 'init']);
                 $welcomeMessage = exmtrans('ai_assistant.ai_response.calendar.welcome', ['type' => exmtrans('ai_assistant.feature.schedule_notifications')]);
@@ -125,8 +131,12 @@ class AiAssistantController extends AdminControllerBase
                 'role' => 'assistant',
             ]);
 
-            $isError = $responseMessage === exmtrans('ai_assistant.error_message') ||
-                $responseMessage === exmtrans('ai_assistant.ai_response.workflow.request_table');
+            $isError = in_array($responseMessage, [
+                exmtrans('ai_assistant.error_message'),
+                exmtrans('ai_assistant.ai_response.workflow.request_table'),
+                exmtrans('ai_assistant.ai_response.custom_table.table_exists'),
+                exmtrans('ai_assistant.ai_response.workflow.workflow_exists'),
+            ], true);
             return response()->json([
                 'message' => $responseMessage,
                 'showActionButtons' => !$isError,
@@ -160,7 +170,11 @@ class AiAssistantController extends AdminControllerBase
             switch ($validated['action']) {
                 case 'edit':
                     if ($featureType == 'custom_table') {
-                        $conversable->update(['status' => 'confirming']);
+                        if ($conversable->status === 'explained') {
+                            $conversable->update(['status' => 'init']);
+                        } else {
+                            $conversable->update(['status' => 'confirming']);
+                        }
                     } elseif ($featureType == 'workflow') {
                         if ($conversable->status === 'suggested_workflow') {
                             $conversable->update(['status' => 'confirming_workflow']);
@@ -173,25 +187,28 @@ class AiAssistantController extends AdminControllerBase
                 case 'create':
                     if ($featureType == 'custom_table') {
                         if ($conversable->status === 'explained') {
-                            $conversable->update(['status' => 'store']);
                             $responseMessage = $this->handleSendMessageCustomTable($validated['uuid'], "", $conversable);
-                            $showActionButtons = true;
+                            if ($responseMessage !== exmtrans('ai_assistant.ai_response.custom_table.table_exists')) {
+                                $showActionButtons = true;
+                            }
                         } else {
                             $result = $this->handleActionCreateCustomTable(
                                 $validated['uuid'],
                                 $conversable
                             );
                             $responseMessage = $result['message'];
-                            $customTable = $result['table'] ?? null;
-                            $editUrl = $customTable
-                                ? route('table.edit', $customTable->id)
+                            $customTableID = $result['tableID'] ?? null;
+                            $editUrl = $customTableID
+                                ? route('exment.table.edit', $customTableID)
                                 : null;
                         }
                     } elseif ($featureType == 'workflow') {
                         if ($conversable->status === 'suggested_workflow' || $conversable->status === 'confirming_workflow') {
                             $conversable->update(['status' => 'request_actions']);
                             $responseMessage = $this->handleSendMessageWorkflow($validated['uuid'], "", $conversable);
-                            $showActionButtons = true;
+                            if ($responseMessage !== exmtrans('ai_assistant.ai_response.workflow.workflow_exists')) {
+                                $showActionButtons = true;
+                            }
                         } elseif ($conversable->status === 'confirming_actions') {
                             $conversable->update(['status' => 'confirming']);
                             $responseMessage = exmtrans('ai_assistant.edit_message');
@@ -202,9 +219,9 @@ class AiAssistantController extends AdminControllerBase
                                 $conversable
                             );
                             $responseMessage = $result['message'];
-                            $workflow = $result['workflow'] ?? null;
-                            $editUrl = $workflow
-                                ? route('workflow.edit', $workflow->id)
+                            $workflowID = $result['workflowID'] ?? null;
+                            $editUrl = $workflowID
+                                ? route('exment.workflow.edit', $workflowID)
                                 : null;
                         }
                     } elseif ($featureType == 'calendar') {
@@ -242,8 +259,8 @@ class AiAssistantController extends AdminControllerBase
             'confirming' => 'edit',
         ];
         $ai_messages = [
-            'init' => exmtrans('ai_assistant.ai_response.custom_table.suggested'),
-            'explained' => exmtrans('ai_assistant.ai_response.custom_table.explained'),
+            'init' => exmtrans('ai_assistant.ai_response.custom_table.explained'),
+            'explained' => exmtrans('ai_assistant.ai_response.custom_table.suggested'),
             'confirming' => exmtrans('ai_assistant.ai_response.custom_table.confirming'),
         ];
         $endpoint = $endpoints[$assistant_table->status] ?? 'store';
@@ -260,7 +277,9 @@ class AiAssistantController extends AdminControllerBase
 
             // Check Table Name
             $allCustomTables = $this->getAllCustomTables();
-            if (in_array($data['table_draft_json']['table_name'], $allCustomTables, true)) {
+            $tableName = data_get($data, 'table_draft_json.table_name')
+                ?? data_get($data, 'table_name');
+            if ($tableName && in_array($tableName, $allCustomTables, true)) {
                 return exmtrans('ai_assistant.ai_response.custom_table.table_exists');
             }
 
@@ -270,7 +289,7 @@ class AiAssistantController extends AdminControllerBase
                 'column_draft_json' => $data['column_draft_json'] ?? null,
             ]);
 
-            return $ai_message . $data['message'];
+            return $ai_message . "\n" . $data['message'];
         }
 
         return exmtrans('ai_assistant.error_message');
@@ -315,7 +334,7 @@ class AiAssistantController extends AdminControllerBase
                 'status' => $data['status'] ?? $assistant_calendar->status,
             ]);
 
-            return $ai_message . $data['message'];
+            return $ai_message . "\n" . $data['message'];
         }
 
         return exmtrans('ai_assistant.error_message');
@@ -364,7 +383,9 @@ class AiAssistantController extends AdminControllerBase
 
             // Check WorkFlow View Name
             $allWorkFlowViewName = $this->getAllWorkFlows();
-            if (in_array($data['workflow_draft_json']['workflow_view_name'], $allWorkFlowViewName, true)) {
+            if (isset($data['workflow_draft']['workflow_view_name']) &&
+                in_array($data['workflow_draft']['workflow_view_name'], $allWorkFlowViewName, true))
+            {
                 return exmtrans('ai_assistant.ai_response.workflow.workflow_exists');
             }
 
@@ -376,13 +397,13 @@ class AiAssistantController extends AdminControllerBase
                 'workflow_actions_draft_json' => $data['workflow_actions_draft'] ?? $assistant_workflow->workflow_actions_draft_json,
             ]);
 
-            return $ai_message;
+            return $ai_message . "\n" . $data['message'];
         }
 
         return exmtrans('ai_assistant.error_message');
     }
 
-    protected function handleActionCreateCustomTable(string $uuid, AssistantTable $assistant_table): ?string {
+    protected function handleActionCreateCustomTable(string $uuid, AssistantTable $assistant_table) {
         $response = Http::withToken($this->bearerToken)->post($this->aiAssistantServerUrl . 'assistant-tables/' . 'confirm', [
             'uuid' => $uuid,
         ]);
@@ -398,14 +419,16 @@ class AiAssistantController extends AdminControllerBase
 
             $table = $this->createCustomTableFromDraft($data['table_draft_json'], $data['column_draft_json']);
 
-            return exmtrans('ai_assistant.ai_response.custom_table.confirmed');
             return [
-                'message' => exmtrans('ai_assistant.ai_response.workflow.confirmed'),
-                'table' => $table,
+                'message' => exmtrans('ai_assistant.ai_response.custom_table.confirmed'),
+                'tableID' => $table->id,
             ];
         }
 
-        return exmtrans('ai_assistant.error_message');
+        return [
+            'message' => exmtrans('ai_assistant.error_message'),
+            'tableID' => null,
+        ];
     }
 
     protected function handleActionCreateCalendar(string $uuid, AssistantCalendar $assistant_calendar): ?string {
@@ -453,7 +476,7 @@ class AiAssistantController extends AdminControllerBase
         });
     }
 
-    protected function handleActionCreateWorkFlow(string $uuid, AssistantWorkflow $assistant_workflow): ?string {
+    protected function handleActionCreateWorkFlow(string $uuid, AssistantWorkflow $assistant_workflow) {
         $response = Http::withToken($this->bearerToken)->post($this->aiAssistantServerUrl . 'assistant-workflow/' . 'confirm', [
             'uuid' => $uuid,
         ]);
@@ -473,11 +496,14 @@ class AiAssistantController extends AdminControllerBase
 
             return [
                 'message' => exmtrans('ai_assistant.ai_response.workflow.confirmed'),
-                'workflow' => $workflow,
+                'workflowID' => $workflow->id,
             ];
         }
 
-        return exmtrans('ai_assistant.error_message');
+        return [
+            'message' => exmtrans('ai_assistant.error_message'),
+            'workflowID' => null,
+        ];
     }
 
     protected function createWorkFlowFromDraft(AssistantWorkflow $assistant_workflow)

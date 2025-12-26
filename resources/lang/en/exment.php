@@ -2767,6 +2767,11 @@ return [
             'notify'   => 'Notify',
         ],
         'error_message' => 'An error occurred while connecting to AI.',
+        'error_start' => 'An error occurred while starting the conversation.',
+        'error_connection' => 'An error occurred while connecting to the server. Please try again.',
+        'error_send_fail' => 'Unable to send the message.',
+        'error_send_exception' => 'An error occurred while sending the message. Please try again.',
+        'error_action' => 'An error occurred while executing the action. Please try again.',
         'ai_response' => [
             'custom_table' => [
                 'table_exists' => 'The table you requested already exists. Please check CustomTable again.',
@@ -2787,7 +2792,7 @@ return [
                 'request_table' => 'The data table required to create the workflow cannot be found. Please use the Custom Table feature to create the data table first.',
                 'suggested' => 'Here is the :type I suggest for you. Please check it, and request modifications if you want. Please select the action buttons.',
                 'confirming' => 'Please check everything again, and request modifications if you want. Please select the action buttons.',
-                'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
+                'confirmed' => 'The Workflow has been created, you can access the Custom Table to check and edit.',
             ],
         ],
     ],
