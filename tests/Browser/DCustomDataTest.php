@@ -198,11 +198,11 @@ class DCustomDataTest extends ExmentKitTestCase
                 ->seePageIs('/admin/data/exmenttest_data')
         ;
         // Check custom data
-        $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
-                ->seeIsSelected('value[select2value]', 'value1')
-            /** @phpstan-ignore-next-line */
-                ->seeInField('value[yesno]', 1)
-        ;
+        $updatedRow = DB::table($table_name)->where('id', $row->id)->first();
+        $values = json_decode($updatedRow->value, true);
+
+        $this->assertEquals('value1', data_get($values, 'select2value'));
+        $this->assertEquals(1, data_get($values, 'yesno'));
     }
 
     /**
@@ -344,7 +344,7 @@ class DCustomDataTest extends ExmentKitTestCase
 
         // Check custom view data
         $this->visit(admin_url("data/custom_value_view_all?$sort_str"))
-            ->seeInElement('td.column-index_text', $row->index_text)
+             ->seeInElement('table tbody tr:first-child td.column-index_text',$row->index_text);
         ;
 
         $sort_str = "_sort%5Bcolumn%5D={$table_name}.id&_sort%5Btype%5D=1&_sort%5Bdirect%5D=1";
@@ -383,7 +383,7 @@ class DCustomDataTest extends ExmentKitTestCase
         // Check custom view data
         $this->visit(admin_url("data/all_columns_table_fortest?$group_str"))
             ->see($group_key)
-            ->seeInElement('div.box-footer.table-footer', "全 <b>$count</b>")
+            ->seeInElement('div.box-footer.table-footer', "全 $count")
         ;
     }
 

@@ -206,21 +206,28 @@ class IMenuTest extends ExmentKitTestCase
         $model = $this->getMenuTestModel($menu_name);
 
         $persistKeys = [
-        'parent_id',
-        'menu_type',
-        'menu_name',
-        'title',
-        'icon',
+            'parent_id',
+            'menu_type',
+            'menu_name',
+            'title',
+            'icon',
         ];
-
-        if (($data['menu_type'] ?? null) === 'custom') {
-            $persistKeys[] = 'uri';
-        }
 
         foreach ($persistKeys as $key) {
             if (array_key_exists($key, $data)) {
                 $this->assertMatch($model->{$key}, $data[$key]);
             }
+        }
+
+        if (($data['menu_type'] ?? null) === 'custom' && array_key_exists('uri', $data)) {
+            $this->assertEquals(
+                $data['uri'],
+                array_get($model->options, 'uri')
+            );
+        }
+
+        if ($checkFunc instanceof \Closure) {
+            $checkFunc($model);
         }
     }
 
@@ -253,16 +260,25 @@ class IMenuTest extends ExmentKitTestCase
         $this->assertPostResponse($this->response, admin_url('auth/menu'));
 
         $model = Menu::find($menu->id);
-        $persistKeys = ['parent_id','menu_type','menu_name','title','icon'];
-
-        if ($model->menu_type === 'custom') {
-            $persistKeys[] = 'uri';
-        }
+        $persistKeys = [
+            'parent_id',
+            'menu_type',
+            'menu_name',
+            'title',
+            'icon',
+        ];
 
         foreach ($persistKeys as $key) {
             if (array_key_exists($key, $data)) {
                 $this->assertMatch($model->{$key}, $data[$key]);
             }
+        }
+
+        if ($model->menu_type === 'custom' && array_key_exists('uri', $editData)) {
+            $this->assertEquals(
+                $editData['uri'],
+                array_get($model->options, 'uri')
+            );
         }
     }
 

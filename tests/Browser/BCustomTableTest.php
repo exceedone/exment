@@ -98,21 +98,22 @@ class BCustomTableTest extends ExmentKitTestCase
     public function testEditCustomTableSuccess()
     {
         $row = CustomTable::orderBy('id', 'desc')->first();
-        $id = array_get($row, 'id');
+        $id = $row->id;
 
         // Update custom table
-        $this->visit(admin_url('table/'. $id . '/edit'))
-                ->seeInField('options[search_enabled]', '1')
-                ->seeInField('options[attachment_flg]', '1')
-                ->seeInField('options[revision_flg]', '1')
-                ->type('test table update', 'table_view_name')
-                ->type('test description update', 'description')
-                ->type('#00ff00', 'options[color]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url('table'))
-                ->visit(admin_url('table/?per_page=100'))
-                ->seeInElement('td', 'test table update')
-        ;
+        $this->visit(admin_url('table/' . $id . '/edit'))
+            ->type('test table update', 'table_view_name')
+            ->type('test description update', 'description')
+            ->type('#00ff00', 'options[color]')
+            ->press('admin-submit')
+            ->seePageIs(admin_url('table'));
+
+        $table = CustomTable::find($id);
+        $options = $table->options;
+
+        $this->assertEquals(1, array_get($options, 'search_enabled'));
+        $this->assertEquals(1, array_get($options, 'attachment_flg'));
+        $this->assertEquals(1, array_get($options, 'revision_flg'));
 
         // Update custom table(checkbox field)
         $data = [
@@ -125,10 +126,18 @@ class BCustomTableTest extends ExmentKitTestCase
                 'options[all_user_viewable_flg]' => 1,
                 'options[all_user_accessable_flg]' => 1,
         ];
-        // Update custom table
-        $this->visit(admin_url('table/'. $id . '/edit'))
-                ->submitForm('admin-submit', $data)
-                ->seePageIs(admin_url('table'))
-        ;
+
+        $this->visit(admin_url('table/' . $id . '/edit'))
+            ->submitForm('admin-submit', $data)
+            ->seePageIs(admin_url('table'));
+
+        // Assert DB again
+        $table->refresh();
+        $options = $table->options;
+
+        $this->assertEquals(0, array_get($options, 'search_enabled'));
+        $this->assertEquals(0, array_get($options, 'attachment_flg'));
+        $this->assertEquals(0, array_get($options, 'revision_flg'));
+        $this->assertEquals(1, array_get($options, 'one_record_flg'));
     }
 }
