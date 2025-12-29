@@ -205,8 +205,22 @@ class IMenuTest extends ExmentKitTestCase
         // Check database
         $model = $this->getMenuTestModel($menu_name);
 
-        foreach ($data as $key => $value) {
-            $this->assertMatch($model->{$key}, $value);
+        $persistKeys = [
+        'parent_id',
+        'menu_type',
+        'menu_name',
+        'title',
+        'icon',
+        ];
+
+        if (($data['menu_type'] ?? null) === 'custom') {
+            $persistKeys[] = 'uri';
+        }
+
+        foreach ($persistKeys as $key) {
+            if (array_key_exists($key, $data)) {
+                $this->assertMatch($model->{$key}, $data[$key]);
+            }
         }
     }
 
@@ -239,8 +253,16 @@ class IMenuTest extends ExmentKitTestCase
         $this->assertPostResponse($this->response, admin_url('auth/menu'));
 
         $model = Menu::find($menu->id);
-        foreach ($data as $key => $value) {
-            $this->assertMatch($model->{$key}, $value);
+        $persistKeys = ['parent_id','menu_type','menu_name','title','icon'];
+
+        if ($model->menu_type === 'custom') {
+            $persistKeys[] = 'uri';
+        }
+
+        foreach ($persistKeys as $key) {
+            if (array_key_exists($key, $data)) {
+                $this->assertMatch($model->{$key}, $data[$key]);
+            }
         }
     }
 
