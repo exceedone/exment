@@ -105,6 +105,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 // ->seeInField('options[search_enabled]', '1')
                 // ->seeInField('options[attachment_flg]', '1')
                 // ->seeInField('options[revision_flg]', '1')
+                ->dump();
                 ->type('test table update', 'table_view_name')
                 ->type('test description update', 'description')
                 ->type('#00ff00', 'options[color]')
