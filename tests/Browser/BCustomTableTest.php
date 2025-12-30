@@ -105,11 +105,15 @@ class BCustomTableTest extends ExmentKitTestCase
                 // ->seeInField('options[search_enabled]', '1')
                 // ->seeInField('options[attachment_flg]', '1')
                 // ->seeInField('options[revision_flg]', '1')
-                ->seeElement('input[name=table_view_name]')
-                ->type('test table update', 'table_view_name')
-                ->type('test description update', 'description')
-                ->type('#00ff00', 'options[color]')
-                ->press('admin-submit')
+                // ->type('test table update', 'table_view_name')
+                // ->type('test description update', 'description')
+                // ->type('#00ff00', 'options[color]')
+                // ->press('admin-submit')
+                ->submitForm('admin-submit', [
+                    'table_view_name' => 'test table update',
+                    'description' => 'test description update',
+                    'options[color]' => '#00ff00',
+                ])
                 ->seePageIs(admin_url('table'))
                 ->visit(admin_url('table/?per_page=100'))
                 ->seeInElement('td', 'test table update')
