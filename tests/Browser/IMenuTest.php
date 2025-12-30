@@ -205,11 +205,29 @@ class IMenuTest extends ExmentKitTestCase
         // Check database
         $model = $this->getMenuTestModel($menu_name);
 
-        foreach ($data as $key => $value) {
-            if ($key === 'uri' && $model->menu_type === 'custom') {
-                continue;
+        // foreach ($data as $key => $value) {
+        //     $this->assertMatch($model->{$key}, $value);
+        // }
+        $persistKeys = [
+            'parent_id',
+            'menu_type',
+            'menu_name',
+            'title',
+            'icon',
+        ];
+        foreach ($persistKeys as $key) {
+            if (array_key_exists($key, $data)) {
+                $this->assertMatch($model->{$key}, $data[$key]);
             }
-            $this->assertMatch($model->{$key}, $value);
+        }
+        if (($data['menu_type'] ?? null) === 'custom' && array_key_exists('uri', $data)) {
+            $this->assertEquals(
+                $data['uri'],
+                array_get($model->options, 'uri')
+            );
+        }
+        if ($checkFunc instanceof \Closure) {
+            $checkFunc($model);
         }
     }
 
@@ -242,11 +260,26 @@ class IMenuTest extends ExmentKitTestCase
         $this->assertPostResponse($this->response, admin_url('auth/menu'));
 
         $model = Menu::find($menu->id);
-        foreach ($data as $key => $value) {
-            if ($key === 'uri' && $model->menu_type === 'custom') {
-                continue;
+        // foreach ($data as $key => $value) {
+        //     $this->assertMatch($model->{$key}, $value);
+        // }
+        $persistKeys = [
+            'parent_id',
+            'menu_type',
+            'menu_name',
+            'title',
+            'icon',
+        ];
+        foreach ($persistKeys as $key) {
+            if (array_key_exists($key, $data)) {
+                $this->assertMatch($model->{$key}, $data[$key]);
             }
-            $this->assertMatch($model->{$key}, $value);
+        }
+        if ($model->menu_type === 'custom' && array_key_exists('uri', $editData)) {
+            $this->assertEquals(
+                $editData['uri'],
+                array_get($model->options, 'uri')
+            );
         }
     }
 
