@@ -100,6 +100,11 @@ class BCustomTableTest extends ExmentKitTestCase
         $row = CustomTable::orderBy('id', 'desc')->first();
         $id = array_get($row, 'id');
 
+        $data = [
+            'table_view_name' => 'test table update',
+            'description' => 'test description update',
+            'options[color]' => '#00ff00',
+        ];
         // Update custom table
         $this->visit(admin_url('table/'. $id . '/edit'))
                 // ->seeInField('options[search_enabled]', '1')
@@ -109,11 +114,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 // ->type('test description update', 'description')
                 // ->type('#00ff00', 'options[color]')
                 // ->press('admin-submit')
-                ->submitForm('admin-submit', [
-                    'table_view_name' => 'test table update',
-                    'description' => 'test description update',
-                    'options[color]' => '#00ff00',
-                ])
+                ->submitForm('admin-submit', $data)
                 ->seePageIs(admin_url('table'))
                 ->visit(admin_url('table/?per_page=100'))
                 ->seeInElement('td', 'test table update')
