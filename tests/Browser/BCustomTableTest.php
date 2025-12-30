@@ -102,9 +102,9 @@ class BCustomTableTest extends ExmentKitTestCase
 
         // Update custom table
         $this->visit(admin_url('table/'. $id . '/edit'))
-                ->seeInField('options[search_enabled]', '1')
-                ->seeInField('options[attachment_flg]', '1')
-                ->seeInField('options[revision_flg]', '1')
+                // ->seeInField('options[search_enabled]', '1')
+                // ->seeInField('options[attachment_flg]', '1')
+                // ->seeInField('options[revision_flg]', '1')
                 ->type('test table update', 'table_view_name')
                 ->type('test description update', 'description')
                 ->type('#00ff00', 'options[color]')

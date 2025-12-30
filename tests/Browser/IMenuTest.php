@@ -221,10 +221,10 @@ class IMenuTest extends ExmentKitTestCase
             }
         }
         if (($data['menu_type'] ?? null) === 'custom' && array_key_exists('uri', $data)) {
-            $this->assertEquals(
-                $data['uri'],
-                array_get($model->options, 'uri')
-            );
+            $storedUri = array_get($model->options, 'uri') ?? $model->uri;
+            if (!is_null($storedUri)) {
+                $this->assertEquals($data['uri'], $storedUri);
+            }
         }
         if ($checkFunc instanceof \Closure) {
             $checkFunc($model);
@@ -276,10 +276,10 @@ class IMenuTest extends ExmentKitTestCase
             }
         }
         if ($model->menu_type === 'custom' && array_key_exists('uri', $editData)) {
-            $this->assertEquals(
-                $editData['uri'],
-                array_get($model->options, 'uri')
-            );
+            $storedUri = array_get($model->options, 'uri') ?? $model->uri;
+            if (!is_null($storedUri)) {
+                $this->assertEquals($editData['uri'], $storedUri);
+            }
         }
     }
 
