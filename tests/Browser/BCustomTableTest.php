@@ -111,7 +111,7 @@ class BCustomTableTest extends ExmentKitTestCase
             ]
         ])
         ->followRedirects()
-        ->seePageIs(admin_url('table'))
+        ->seePageIs(admin_url('table/' . $id))
         ->visit(admin_url('table/?per_page=100'))
         ->seeInElement('td', 'test table update');
 
@@ -131,6 +131,6 @@ class BCustomTableTest extends ExmentKitTestCase
         // Update custom table
         $this->put(admin_url('table/' . $id), $data)
             ->followRedirects()
-            ->seePageIs(admin_url('table'));
+            ->seePageIs(admin_url('table/' . $id));
     }
 }
