@@ -110,6 +110,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 'color' => '#00ff00',
             ]
         ])
+        ->followRedirects()
         ->seePageIs(admin_url('table'))
         ->visit(admin_url('table/?per_page=100'))
         ->seeInElement('td', 'test table update');
@@ -129,7 +130,7 @@ class BCustomTableTest extends ExmentKitTestCase
         ];
         // Update custom table
         $this->put(admin_url('table/' . $id), $data)
-            ->submitForm('admin-submit', $data)
+            ->followRedirects()
             ->seePageIs(admin_url('table'));
     }
 }
