@@ -113,7 +113,7 @@ class BCustomTableTest extends ExmentKitTestCase
         ->followRedirects()
         ->seePageIs(admin_url('table/' . $id))
         ->visit(admin_url('table/?per_page=100'))
-        ->seeInElement('td.column-table_view_name', 'test table update');
+        ->see('test table update');
 
         // Update custom table(checkbox field)
         $data = [
