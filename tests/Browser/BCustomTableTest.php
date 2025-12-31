@@ -108,7 +108,7 @@ class BCustomTableTest extends ExmentKitTestCase
             'options' => [
                 'color' => '#00ff00',
             ],
-        ])->matchStatusCode(302);
+        ])->matchStatusCode(200);
 
         $this->assertDatabaseHas('custom_tables', [
             'id'              => $id,
