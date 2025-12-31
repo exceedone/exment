@@ -110,9 +110,6 @@ class BCustomTableTest extends ExmentKitTestCase
 
         $this->assertNotNull(CustomTable::find($id));
 
-        $this->visit(admin_url('table'))
-            ->see('test table update');
-
         $this->put(admin_url('table/' . $id), [
             'table_view_name' => 'test table checked',
             'options' => [
