@@ -569,8 +569,7 @@ class CPublicFormTest extends ExmentKitTestCase
         // Check public form view
         $this->visit($share_url)
             ->seePageIs($share_url)
-            // ->type('unit test text', 'value[text]')
-            ->type('unit test text', '[name="value[text]"]')
+            ->type('unit test text', 'text')
             ->press('admin-submit')
             ->seePageIs($share_url . '/create')
             ->seeOuterElement('h2', 'テスト完了タイトル')

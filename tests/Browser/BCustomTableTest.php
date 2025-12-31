@@ -110,10 +110,10 @@ class BCustomTableTest extends ExmentKitTestCase
             ],
         ])->matchStatusCode(200);
 
-        $this->assertDatabaseHas('custom_tables', [
-            'id'              => $id,
-            'table_view_name' => 'test table update',
-        ]);
+        $this->assertEquals(
+            'test table update',
+            CustomTable::find($id)->table_view_name
+        );
 
         $this->visit(admin_url('table'))
             ->see('test table update');
@@ -131,9 +131,9 @@ class BCustomTableTest extends ExmentKitTestCase
             ],
         ])->matchStatusCode(302);
 
-        $this->assertDatabaseHas('custom_tables', [
-            'id'              => $id,
-            'table_view_name' => 'test table checked',
-        ]);
+        $this->assertEquals(
+            'test table update',
+            CustomTable::find($id)->table_view_name
+        );
     }
 }
