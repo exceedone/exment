@@ -102,15 +102,13 @@ class BCustomTableTest extends ExmentKitTestCase
 
         $id = $row->id;
 
-        $response = $this->put(admin_url('table/' . $id), [
+        $this->put(admin_url('table/' . $id), [
             'table_view_name' => 'test table update',
             'description'     => 'test description update',
             'options' => [
                 'color' => '#00ff00',
             ],
-        ]);
-
-        $response->assertStatus(302);
+        ])->matchStatusCode(302);
 
         $this->assertDatabaseHas('custom_tables', [
             'id'              => $id,
@@ -123,15 +121,15 @@ class BCustomTableTest extends ExmentKitTestCase
         $this->put(admin_url('table/' . $id), [
             'table_view_name' => 'test table checked',
             'options' => [
-                'search_enabled'        => 0,
-                'one_record_flg'        => 1,
-                'attachment_flg'        => 0,
-                'revision_flg'          => 0,
-                'all_user_editable_flg' => 1,
-                'all_user_viewable_flg' => 1,
+                'search_enabled'         => 0,
+                'one_record_flg'         => 1,
+                'attachment_flg'         => 0,
+                'revision_flg'           => 0,
+                'all_user_editable_flg'  => 1,
+                'all_user_viewable_flg'  => 1,
                 'all_user_accessable_flg'=> 1,
             ],
-        ])->assertStatus(302);
+        ])->matchStatusCode(302);
 
         $this->assertDatabaseHas('custom_tables', [
             'id'              => $id,
