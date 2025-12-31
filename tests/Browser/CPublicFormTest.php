@@ -476,8 +476,6 @@ class CPublicFormTest extends ExmentKitTestCase
 
         // Update Public Form Direct
         $this->put(admin_url('formpublic/custom_value_edit_all/'. $id), [
-            'custom_form_id' => $target_form->id,
-            'public_form_view_name' => 'Public Form Unit Test Update',
             'confirm_complete_setting2' => [
                 'use_notify_complete_admin' => '1',
             ],
