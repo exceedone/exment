@@ -309,18 +309,19 @@ class CPublicFormTest extends ExmentKitTestCase
         $this->visit($share_url)
             ->seePageIs($share_url)
             ->seeOuterElement('header.main-header', 'ユニットテストのヘッダ')
-            ->type('unit test text', 'value[text]')
-            ->select('3', 'value[user]')
-            ->type('unit test index text', 'value[index_text]')
-            ->type('odd', 'value[odd_even]')
-            ->type('1', 'value[multiples_of_3]')
-            ->type('2020-07-12', 'value[date]')
-            ->type('12345', 'value[integer]')
-            ->type('987.65', 'value[decimal]')
-            ->type('11111.2', 'value[currency]')
-            ->type('unit test init text', 'value[init_text]')
-            ->type('unittest@foobar.co.jp.test', 'value[email]')
-            ->press('admin-submit')
+            ->submitForm('admin-submit', [
+                'value[text]' => 'unit test text',
+                'value[user]' => '3',
+                'value[index_text]' => 'unit test index text',
+                'value[odd_even]' => 'odd',
+                'value[multiples_of_3]' => '1',
+                'value[date]' => '2020-07-12',
+                'value[integer]' => '12345',
+                'value[decimal]' => '987.65',
+                'value[currency]' => '11111.2',
+                'value[init_text]' => 'unit test init text',
+                'value[email]' => 'unittest@foobar.co.jp.test',
+            ])
             ->seePageIs($share_url . '/confirm')
             ->seeOuterElement('div.box-body', 'unit test text')
             ->seeOuterElement('div.box-body', 'user2')
@@ -333,7 +334,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeOuterElement('div.box-body', '¥11111.2')
             ->seeOuterElement('div.box-body', 'unit test init text')
             ->seeOuterElement('div.box-body', 'unittest@foobar.co.jp.test')
-            ->press('admin-submit')
+            ->submitForm('admin-submit', [])
             ->seePageIs($share_url . '/create')
             ->seeOuterElement('h2', 'テスト完了タイトル')
             ->seeOuterElement('div.complete_text', 'テストが完了しました。ユニットテストです。')
@@ -570,7 +571,10 @@ class CPublicFormTest extends ExmentKitTestCase
         $this->visit($share_url)
             ->seePageIs($share_url)
             // ->type('unit test text', 'value[text]')
-            ->press('admin-submit')
+            // ->press('admin-submit')
+            ->submitForm('admin-submit', [
+                'value[text]' => 'unit test text',
+            ])
             ->seePageIs($share_url . '/create')
             ->seeOuterElement('h2', 'テスト完了タイトル')
             ->seeOuterElement('div.complete_text', 'テストが完了しました。ユニットテストです。')
