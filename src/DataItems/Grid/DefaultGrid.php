@@ -336,11 +336,28 @@ class DefaultGrid extends GridBase
         // filter workflow
         if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
             foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
+                if (!SystemColumn::isWorkflow($filterKey)) {
+                    continue;
+                }
                 if ($this->custom_table->gridFilterDisable($filterKey)) {
                     continue;
                 }
 
                 $filterItems[] = ColumnItems\WorkflowItem::getItem($this->custom_table, $filterKey);
+            }
+        }
+
+        // filter comment
+        if (boolval($this->custom_table->getOption('comment_flg')?? true)) {
+            foreach (SystemColumn::getOptions(['grid_filter' => true, 'grid_filter_system' => false]) as $filterKey => $filterType) {
+                if (!SystemColumn::isComment($filterKey)) {
+                    continue;
+                }
+                if ($this->custom_table->gridFilterDisable($filterKey)) {
+                    continue;
+                }
+
+                $filterItems[] = ColumnItems\CommentItem::getItem($this->custom_table);
             }
         }
 
@@ -541,10 +558,18 @@ class DefaultGrid extends GridBase
                     $enableCreate = false;
                 }
 
-                if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
-                    $enableCreate = false;
-                    $enableEdit = false;
-                    $enableDelete = false;
+                if (!is_null($parent_value = $actions->row->getParentValue(null, true))) {
+                    if (boolval($custom_table->getOption('editable_with_parent')??1)) {
+                        if ($parent_value->enableEdit(true) !== true) {
+                            $enableCreate = false;
+                            $enableEdit = false;
+                            $enableDelete = false;
+                        }
+                    } elseif ($parent_value->enableAccess() !== true)  {
+                        $enableCreate = false;
+                        $enableEdit = false;
+                        $enableDelete = false;
+                    }
                 }
 
                 if (!$enableEdit) {
@@ -559,21 +584,24 @@ class DefaultGrid extends GridBase
                     $actions->disableView();
                     $actions->disableDelete();
 
-                    // add restore link
-                    $restoreUrl = $actions->row->getUrl() . '/restoreClick';
-                    $linker = (new Linker())
-                        ->icon('fa-undo')
-                        ->script(true)
-                        ->linkattributes([
-                            'data-add-swal' => $restoreUrl,
-                            'data-add-swal-title' => exmtrans('custom_value.restore'),
-                            'data-add-swal-text' => exmtrans('custom_value.message.restore'),
-                            'data-add-swal-method' => 'get',
-                            'data-add-swal-confirm' => trans('admin.confirm'),
-                            'data-add-swal-cancel' => trans('admin.cancel'),
-                        ])
-                        ->tooltip(exmtrans('custom_value.restore'));
-                    $actions->append($linker);
+                    // if parent data does not exist or has not been deleted 
+                    if (!$parent_value || !$parent_value->trashed()) {
+                        // add restore link
+                        $restoreUrl = $actions->row->getUrl() . '/restoreClick';
+                        $linker = (new Linker())
+                            ->icon('fa-undo')
+                            ->script(true)
+                            ->linkattributes([
+                                'data-add-swal' => $restoreUrl,
+                                'data-add-swal-title' => exmtrans('custom_value.restore'),
+                                'data-add-swal-text' => exmtrans('custom_value.message.restore'),
+                                'data-add-swal-method' => 'get',
+                                'data-add-swal-confirm' => trans('admin.confirm'),
+                                'data-add-swal-cancel' => trans('admin.cancel'),
+                            ])
+                            ->tooltip(exmtrans('custom_value.restore'));
+                        $actions->append($linker);
+                    }
 
                     // append show url
                     $showUrl = $actions->row->getUrl() . '?trashed=1';
@@ -598,6 +626,18 @@ class DefaultGrid extends GridBase
                             'data-add-swal-cancel' => trans('admin.cancel'),
                         ])
                         ->tooltip(exmtrans('custom_value.hard_delete'));
+                    $actions->append($linker);
+
+                } elseif ($actions->row->trashed()) {
+                    $actions->disableView();
+                    $actions->disableDelete();
+                    // append show url
+                    $showUrl = $actions->row->getUrl() . '?trashed=1';
+                    // add new edit link
+                    $linker = (new Linker())
+                        ->url($showUrl)
+                        ->icon('fa-eye')
+                        ->tooltip(trans('admin.show'));
                     $actions->append($linker);
                 }
 
@@ -784,6 +824,7 @@ class DefaultGrid extends GridBase
             'append_table' => true,
             'include_parent' => true,
             'include_workflow' => true,
+            'include_comment' => true,
             'index_enabled_only' => true,
             'only_system_grid_filter' => true,
             'ignore_many_to_many' => true,

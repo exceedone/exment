@@ -67,7 +67,7 @@ class Define
         'header_user_info' => ['type' => 'array', 'default' => SystemColumn::CREATED_AT, 'group' => 'advanced'],
 
         // name is "flg", but array is OK.
-        'grid_filter_disable_flg' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
+        'grid_filter_disable_flg' => ['type' => 'array', 'default' => 'comment', 'group' => 'advanced'] ,
 
         'system_values_pos' => ['default' => 'top', 'group' => 'advanced'],
 
