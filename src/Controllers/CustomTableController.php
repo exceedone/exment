@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
@@ -22,6 +23,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
@@ -40,6 +42,8 @@ use Exceedone\Exment\Enums\DataSubmitRedirectEx;
 use Exceedone\Exment\Enums\DataScanSubmitRedirect;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\TableService;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 
 class CustomTableController extends AdminControllerBase
 {
