@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\Traits\SerializeDateTrait;
 use Illuminate\Database\Eloquent\Model;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -112,6 +113,28 @@ class ModelBase extends Model
 
         ///// add created_user_id, updated_user_id
         static::creating(function ($model) {
+            if ($model instanceof CustomValue && $model->custom_table && $model->custom_table->table_name === SystemTableName::USER) {
+                
+                $basePath = base_path();
+                if (preg_match('/tenant(\d+)/', $basePath, $matches)) {
+                    $tenantId = (int) $matches[1];
+                } else {
+                    throw new \Exception('Error tenant id from base_path');
+                }
+                \DB::statement('CALL api_demo_tenant.tenant_try_inc_user(?, @ok, @cnt)', [$tenantId]);
+
+                $res = \DB::selectOne('SELECT @ok AS ok, @cnt AS cnt');
+
+                if (!$res->ok) {
+                    throw new \Exception(
+                        exmtrans(
+                            'tenant.cannot_create_more_users',
+                            ['max_count' => $res->cnt]
+                        ),
+                        ErrorCode::ERROR_CODE_CREATE_USER
+                    );
+                }
+            }
             static::setUser($model, ['created_user_id', 'updated_user_id']);
         });
         static::updating(function ($model) {

@@ -50,6 +50,7 @@ class ErrorCode extends EnumBase
     public const WORKFLOW_NOT_HAS_NEXT_USER = '205';
     public const DISAPPROVAL_IP = '301';
     public const NOT_CONTAINS_CUSTOM_FORM = '401';
+    public const ERROR_CODE_CREATE_USER = '1000';
 
     public function getMessage()
     {

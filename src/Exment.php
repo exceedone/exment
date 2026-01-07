@@ -27,6 +27,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Encore\Admin\Admin;
 use Encore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\ErrorCode;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Finder\Finder;
 use League\Flysystem\PathPrefixer;
@@ -126,9 +127,26 @@ class Exment
                         'result'  => false,
                         'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
                     ]);
+                }                
+                if ($exception->getCode() == ErrorCode::ERROR_CODE_CREATE_USER) {
+                    return getAjaxResponse([
+                        'result' => false,
+                        'toastr' => $exception->getMessage(),
+                        'errors' => [
+                            'import_error_message' => [
+                                'type' => 'input',
+                                'message' => $exception->getMessage(),
+                            ],
+                        ],
+                    ]);
                 }
 
                 return $callback($request, $exception);
+            }
+            
+            if ($exception->getCode() == ErrorCode::ERROR_CODE_CREATE_USER) {           
+                admin_toastr($exception->getMessage(), 'error');
+                return redirect($request->header('referer', '/'))->withInput();
             }
 
             // whether has User

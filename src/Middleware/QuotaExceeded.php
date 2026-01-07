@@ -33,7 +33,6 @@ class QuotaExceeded
      */
     protected function quotaExceededExists(): bool
     {
-        // Kiểm tra trong storage/app
         $storagePath = storage_path('app/.quota_exceeded');
         if (File::exists($storagePath)) {
             return true;
