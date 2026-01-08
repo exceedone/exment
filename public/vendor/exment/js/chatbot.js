@@ -1,6 +1,7 @@
 var STORAGE_CHAT_SCROLL = "chat_scroll";
 var STORAGE_CHAT_HISTORY = "chat_history";
 var STORAGE_CHAT_HISTORY_UPDATE = "chat_history_update";
+var STORAGE_CHAT_MODE = "chat_mode";
 var CLASS_MSG_USER = "message msg-user";
 var CLASS_MSG_BOT = "message msg-bot";
 var CLASS_MSG_BOT_THINKING = "message msg-bot thinking";
@@ -10,12 +11,33 @@ var ID_CHAT_WINDOW = "chatWindow";
 var ID_CHAT_BODY = "chatBody";
 var ID_USER_INPUT = "userInput";
 var ID_TOTOP = "totop";
+var ID_CHAT_MODE_TOGGLE = "chatModeToggle";
+var ID_CHAT_MODE_LABEL = "chatModeLabel";
 
 let chatbotConfig = {};
 let lastInteractionTime = Date.now();
 let inactivityCheckInterval = null;
 let FAQs = [];
 let chatHistory = [];
+let chatMode = "faq";
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function renderBotReply(reply) {
+    const value = String(reply ?? "");
+    // If the server already returns HTML (<p>, <br>, etc.), keep it.
+    const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(value);
+    if (looksLikeHtml) return value;
+    // Otherwise treat it as plain text: escape then convert newlines.
+    return escapeHtml(value).replace(/(?:\r\n|\r|\n)/g, "<br>");
+}
 
 function base64urlEncode(str) {
     return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -23,6 +45,11 @@ function base64urlEncode(str) {
 
 // Fetch FAQs from API and update the UI
 function fetchFAQs() {
+    if (isExtendedMode()) {
+        FAQs = [];
+        updateFAQListUI();
+        return;
+    }
     fetch("/api/chatbot/faq")
         .then((res) => res.json())
         .then((json) => {
@@ -95,6 +122,10 @@ function renderFAQList(chatBody) {
         "Welcome! How can I assist you today?"
     );
     chatBody.appendChild(welcome);
+
+    if (isExtendedMode()) {
+        return;
+    }
     const faqContainer = document.createElement("div");
     faqContainer.className = CLASS_FAQ_BLOCK;
     const faqList = document.createElement("ul");
@@ -133,7 +164,8 @@ async function sendMessage() {
     const historyToSend = chatHistory.slice(-3);
     const botReply = await callAPIServer(msg, historyToSend);
     thinkingDiv.className = CLASS_MSG_BOT;
-    thinkingDiv.innerHTML = botReply;
+    // thinkingDiv.innerHTML = botReply;
+    thinkingDiv.innerHTML = renderBotReply(botReply);
     chatBody.scrollTop = chatBody.scrollHeight;
     // Push to history and save
     chatHistory.push({ question: msg, answer: botReply });
@@ -148,7 +180,7 @@ async function callAPIServer(userMessage, history = []) {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ question: userMessage, history: history, _token: LA.token }),
+            body: JSON.stringify({ question: userMessage, history: history, mode: chatMode, _token: LA.token }),
         });
         if (!res.ok) throw new Error("Failed to get response from AI server");
         const data = await res.json();
@@ -156,6 +188,34 @@ async function callAPIServer(userMessage, history = []) {
     } catch (err) {
         console.error("callAPIServer error:", err);
         return getI18nText("error_message", "Sorry, there was a problem contacting the server.");
+    }
+}
+
+function isExtendedMode() {
+    return chatMode === "extended";
+}
+
+function saveChatModeToLocal() {
+    localStorage.setItem(STORAGE_CHAT_MODE, chatMode);
+}
+
+function loadChatModeFromLocal() {
+    const saved = localStorage.getItem(STORAGE_CHAT_MODE);
+    if (saved === "extended" || saved === "faq") {
+        chatMode = saved;
+    } else {
+        chatMode = "faq";
+    }
+}
+
+function updateChatModeToggleUI() {
+    const toggle = document.getElementById(ID_CHAT_MODE_TOGGLE);
+    if (!toggle) return;
+    toggle.checked = isExtendedMode();
+
+    const label = document.getElementById(ID_CHAT_MODE_LABEL) || document.querySelector(".chat-mode-label");
+    if (label) {
+        label.textContent = isExtendedMode() ? "Extended" : "FAQ";
     }
 }
 
@@ -306,7 +366,8 @@ function renderChatHistory() {
         chatBody.appendChild(userDiv);
         const botDiv = document.createElement("div");
         botDiv.className = CLASS_MSG_BOT;
-        botDiv.innerHTML = item.answer;
+        // botDiv.innerHTML = item.answer;
+        botDiv.innerHTML = renderBotReply(item.answer);
         chatBody.appendChild(botDiv);
     });
     // Always track scroll position
@@ -344,7 +405,16 @@ window.addEventListener("DOMContentLoaded", () => {
 <div class="chat-icon toggleChat">💬</div>
 <div class="chat-window" id="chatWindow">
     <div class="chat-header">
-        <div data-i18n="header">Chatbot Assistant</div>
+        <div class="chat-header-left">
+            <div data-i18n="header">Chatbot Assistant</div>
+            <div class="chat-mode" title="Switch mode">
+                <label class="chat-mode-switch">
+                    <input type="checkbox" id="chatModeToggle" />
+                    <span class="chat-mode-slider"></span>
+                </label>
+                <span class="chat-mode-label" id="chatModeLabel">FAQ</span>
+            </div>
+        </div>
         <div class="icons">
             <span class="expandChat">↗️</span>
             <span class="toggleChat">❌</span>
@@ -364,12 +434,26 @@ window.addEventListener("DOMContentLoaded", () => {
         if (typeof LA !== 'undefined' && LA.token) {
             STORAGE_CHAT_HISTORY = "chat_history_" + base64urlEncode(LA.token);
             STORAGE_CHAT_HISTORY_UPDATE = "chat_history_update_" + base64urlEncode(LA.token);
+            STORAGE_CHAT_MODE = "chat_mode_" + base64urlEncode(LA.token);
         }
         styleIconToTop();
+        loadChatModeFromLocal();
+        updateChatModeToggleUI();
         fetchFAQs();
         loadChatHistoryFromLocal();
         renderChatHistory();
         setLanguage("ja");
+    }
+
+    const modeToggle = document.getElementById(ID_CHAT_MODE_TOGGLE);
+    if (modeToggle) {
+        modeToggle.onchange = () => {
+            chatMode = modeToggle.checked ? "extended" : "faq";
+            saveChatModeToLocal();
+            updateChatModeToggleUI();
+            fetchFAQs();
+            renderChatHistory();
+        };
     }
 
     document.querySelectorAll(".toggleChat").forEach((el) => {
