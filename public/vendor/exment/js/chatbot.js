@@ -215,7 +215,7 @@ function updateChatModeToggleUI() {
 
     const label = document.getElementById(ID_CHAT_MODE_LABEL) || document.querySelector(".chat-mode-label");
     if (label) {
-        label.textContent = isExtendedMode() ? "Extended" : "FAQ";
+        label.textContent = isExtendedMode() ? "AI" : "FAQ";
     }
 }
 
