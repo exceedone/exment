@@ -20,6 +20,10 @@ class ChatbotController extends BaseController
     public const ERROR_FAQ_TABLE_NOT_FOUND = 'FAQ_TABLE_NOT_FOUND';
     public const ERROR_FAQ_SAVE_FAILED = 'FAQ_SAVE_FAILED';
 
+    // Chat modes
+    public const MODE_FAQ = 'faq';
+    public const MODE_EXTENDED = 'extended';
+
     // HTTP status codes
     public const HTTP_OK = 200;
     public const HTTP_NOT_FOUND = 404;
@@ -105,6 +109,10 @@ class ChatbotController extends BaseController
         $sessionId = $request->input('session_id');
         $userId = $request->input('user_id');
         $history = $request->input('history', []);
+        $mode = $request->input('mode', self::MODE_FAQ);
+        if (!in_array($mode, [self::MODE_FAQ, self::MODE_EXTENDED], true)) {
+            $mode = self::MODE_FAQ;
+        }
         $similarityThreshold = config('exment.chatbot_similarity_threshold', 0.85);
         $lowSimilarityThreshold = config('exment.chatbot_low_similarity_threshold', 0.6);
 
@@ -117,6 +125,27 @@ class ChatbotController extends BaseController
         }
 
         try {
+            // Extended mode (non-FAQ-based)
+            if ($mode === self::MODE_EXTENDED) {
+                $aiAnswer = $this->chatbotService->getAnswerFromAI($message, $history, []);
+                if (!$aiAnswer || !is_string($aiAnswer)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to get answer from AI server',
+                        'error_code' => self::ERROR_PROCESSING_ERROR
+                    ], self::HTTP_INTERNAL_SERVER_ERROR);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'answer' => $aiAnswer,
+                    'question' => $message,
+                    'mode' => self::MODE_EXTENDED,
+                    'message_id' => uniqid('msg_'),
+                    'timestamp' => now()->toISOString(),
+                ], self::HTTP_OK, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+
             // 1. Get embedding vector from AI server
             $embedding = $this->chatbotService->getEmbeddingFromAI($message);
             if (!$embedding || !is_array($embedding)) {
@@ -158,6 +187,7 @@ class ChatbotController extends BaseController
                 'success' => true,
                 'answer' => $aiAnswer,
                 'question' => $message,
+                'mode' => self::MODE_FAQ,
                 'message_id' => uniqid('msg_'),
                 'timestamp' => now()->toISOString(),
             ], self::HTTP_OK, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
