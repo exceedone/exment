@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
@@ -18,6 +19,7 @@ use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ShowPositionType;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
@@ -26,7 +28,8 @@ use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use OpenAdminCore\Admin\Facades\Admin;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
-use Illuminate\Database\Eloquent\Model;
+use Exception;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Arr;
@@ -458,9 +461,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if (is_nullorempty($value)) {
                     continue;
                 }
-                $custom_column = CustomColumn::getEloquent($value);
-                if (boolval(array_get($custom_column->options, 'multiple_enabled'))) {
-                    return;
+                $custom_column = $value;
+                if ($value != SystemColumn::PARENT_ID) {
+                    $custom_column = CustomColumn::getEloquent($value);
+                    if (boolval(array_get($custom_column->options, 'multiple_enabled'))) {
+                        return;
+                    }
                 }
                 $i["unique{$key}"] = $custom_column;
             }
@@ -847,20 +853,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
                             continue;
                         }
-                        $column = CustomColumn::getEloquent($column_id);
-                        if (is_null($column)) {
-                            continue;
+                        $column = null;
+                        if ($column_id == SystemColumn::PARENT_ID) {
+                            $column_name = SystemColumn::PARENT_ID;
+                        } else {
+                            $column = CustomColumn::getEloquent($column_id);
+                            if (is_null($column)) {
+                                continue;
+                            }
+                            $column_name = $prefix . $column->column_name;
                         }
                         // get input value
-                        $value = array_get($input, $prefix . $column->column_name);
-                        $other = array_get($row, $prefix . $column->column_name);
+                        $value = array_get($input, $column_name);
+                        $other = array_get($row, $column_name);
                         if (is_null($value) && is_null($other)) {
                             continue;
                         }
                         if ($value != $other) {
                             return false;
                         }
-                        $column_keys[] = $column;
+                        $column_keys[] = $column ?? $column_name;
                     }
                     return !empty($column_keys);
                 });
@@ -873,25 +885,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         continue;
                     }
 
-                    $column = CustomColumn::getEloquent($column_id);
-                    if (is_null($column)) {
-                        continue;
-                    }
+                    if ($column_id == SystemColumn::PARENT_ID) {
+                        // get parent_id
+                        $value = null;
+                        if (array_has($input, SystemColumn::PARENT_ID)) {
+                            $value = array_get($input, SystemColumn::PARENT_ID);
+                        } elseif (isset($custom_value)) {
+                            $value = $custom_value->{SystemColumn::PARENT_ID};
+                        }
+                        $query->where(SystemColumn::PARENT_ID, $value);
 
-                    // get value
-                    $value = null;
-                    if (array_has($input, $prefix . $column->column_name)) {
-                        $value = array_get($input, $prefix . $column->column_name);
-                    } elseif (isset($custom_value)) {
-                        $value = $custom_value->getValue($column->column_name, ValueType::PURE_VALUE);
-                    }
-                    if (is_array($value)) {
-                        $value = json_encode(array_filter($value));
-                    }
+                        $column_keys[] = SystemColumn::PARENT_ID;
 
-                    $query->where($column->getQueryKey(), $value);
+                    } else {
 
-                    $column_keys[] = $column;
+                        $column = CustomColumn::getEloquent($column_id);
+                        if (is_null($column)) {
+                            continue;
+                        }
+    
+                        // get value
+                        $value = null;
+                        if (array_has($input, $prefix . $column->column_name)) {
+                            $value = array_get($input, $prefix . $column->column_name);
+                        } elseif (isset($custom_value)) {
+                            $value = $custom_value->getValue($column->column_name, ValueType::PURE_VALUE);
+                        }
+                        if (is_array($value)) {
+                            $value = json_encode(array_filter($value));
+                        }
+    
+                        $query->where($column->getQueryKey(), $value);
+    
+                        $column_keys[] = $column;
+                    }
                 }
 
                 if (empty($column_keys)) {
@@ -900,7 +927,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
                 // if all column's value is empty, continue.
                 if (collect($column_keys)->filter(function ($column) use ($input, $prefix) {
-                    return !is_nullorempty(array_get($input, $prefix . $column->column_name));
+                    if ($column == SystemColumn::PARENT_ID) {
+                        $value = array_get($input, $column);
+                    } else {
+                        $value = array_get($input, $prefix . $column->column_name);
+                    }
+                    return !is_nullorempty($value);
                 })->count() == 0) {
                     continue;
                 }
@@ -920,13 +952,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             if ($is_duplicate) {
                 $errorTexts = collect($column_keys)->map(function ($column_key) {
-                    return $column_key->column_view_name;
+                    if ($column_key == SystemColumn::PARENT_ID) {
+                        return exmtrans("custom_relation.parent_custom_table");
+                    } else {
+                        return $column_key->column_view_name;
+                    }
                 });
                 $errorText = implode(exmtrans('common.separate_word'), $errorTexts->toArray());
 
                 // append error message
                 foreach ($column_keys as $column_key) {
-                    $errors[$options['column_name_prefix'] . $column_key->column_name] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
+                    $errMsg = exmtrans('custom_value.help.multiple_uniques', $errorText);
+                    if ($column_key == SystemColumn::PARENT_ID) {
+                        $errors[$column_key] = [$errMsg];
+                    } else {
+                        $errors[$options['column_name_prefix'] . $column_key->column_name] = [$errMsg];
+                    }
                     if (!$options['appendErrorAllColumn']) {
                         break;
                     }
@@ -2286,14 +2327,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_system' => true,
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
+                'include_comment' => false,
                 'include_condition' => false,
                 'include_form_type' => false,
+                'include_parent_id' => false,
                 'ignore_attachment' => false,
                 'ignore_autonumber' => false,
                 'ignore_multiple' => false,
                 'ignore_multiple_refer' => false,
                 'ignore_many_to_many' => false,
                 'only_system_grid_filter' => false,
+                'is_aggregate' => false,
                 'column_type_filter' => null,
             ],
             $selectOptions
@@ -2306,8 +2350,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_system = $selectOptions['include_system'];
         $include_workflow = $selectOptions['include_workflow'];
         $include_workflow_work_users = $selectOptions['include_workflow_work_users'];
+        $include_comment = $selectOptions['include_comment'];
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
+        $include_parent_id = $selectOptions['include_parent_id'];
         $ignore_attachment = $selectOptions['ignore_attachment'];
         $ignore_autonumber = $selectOptions['ignore_autonumber'];
         $ignore_multiple = $selectOptions['ignore_multiple'];
@@ -2315,6 +2361,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $ignore_many_to_many = $selectOptions['ignore_many_to_many'];
         $only_system_grid_filter = $selectOptions['only_system_grid_filter'];
         $column_type_filter = $selectOptions['column_type_filter'];
+        $is_aggregate = $selectOptions['is_aggregate'];
 
         $options = [];
 
@@ -2349,14 +2396,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 [
                     'append_table' => $append_table,
                     'index_enabled_only' => $index_enabled_only,
-                    'include_parent' => $include_parent,
+                    'include_parent' => $include_parent || $include_parent_id,
                     'include_system' => $include_system,
                     'include_workflow' => $include_workflow,
                     'include_workflow_work_users' => $include_workflow_work_users,
+                    'include_comment' => $include_comment,
                     'ignore_attachment' => $ignore_attachment,
                     'ignore_autonumber' => $ignore_autonumber,
                     'ignore_multiple' => $ignore_multiple,
-                    'ignore_many_to_many' => $ignore_many_to_many,
+                    'ignore_many_to_many' => $ignore_many_to_many || $is_aggregate,
                     'only_system_grid_filter' => $only_system_grid_filter,
                     'column_type_filter' => $column_type_filter,
                 ]
@@ -2496,6 +2544,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_system' => true,
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
+                'include_comment' => false,
                 'include_condition' => false,
                 'include_form_type' => false,
                 'table_view_name' => null,
@@ -2517,6 +2566,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $include_system = $selectOptions['include_system'];
         $include_workflow = $selectOptions['include_workflow'];
         $include_workflow_work_users = $selectOptions['include_workflow_work_users'];
+        $include_comment = $selectOptions['include_comment'];
         $include_condition = $selectOptions['include_condition'];
         $include_form_type = $selectOptions['include_form_type'];
         $table_view_name = $selectOptions['table_view_name'];
@@ -2615,6 +2665,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($include_workflow_work_users && !is_null(Workflow::getWorkflowByTable($this))) {
             // check contains workflow in table
             $setSystemColumn(['name' => 'workflow_work_users']);
+        }
+
+        if ($include_comment && boolval($this->getOption('comment_flg')?? true)) {
+            // check contains comment in table
+            $setSystemColumn(['name' => 'comment']);
         }
     }
 
@@ -2921,7 +2976,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        $result = $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+
+        // check parent data permission
+        if ($result !== true && isset($id) && boolval($this->getOption('inherit_parent_permission'))) {
+            $relation = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
+            if (!empty($relation)) {
+                $parent_table = $relation->parent_custom_table;
+                if (isset($parent_table)) {
+                    if (is_numeric($id)) {
+                        $model = $this->getValueModel($id);
+                    } else {
+                        $model = $id;
+                    }
+                    if ($model instanceof CustomValue && $parent_value = $model->getParentValue(null, true)) {
+                        $result = $parent_table->hasPermissionData($parent_value);
+                    }
+                }
+            }
+        }
+        return $result;
     }
 
     /**
@@ -3274,20 +3348,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * copy this table
      */
-    public function copyTable($inputs = null)
+    public function copyTable($inputs = null, bool $include_view = false, bool $include_form = false)
     {
-        \ExmentDB::transaction(function () use ($inputs) {
+        \ExmentDB::transaction(function ($connect) use ($inputs, $include_view, $include_form) {
             $new_table = $this->replicate(['suuid'])->setRelations([]);
             foreach($inputs as $key => $input) {
                 $new_table->{$key} = $input;
             }
-            $new_table->saveOrFail();
+            $new_table->save();
 
             $replaceColumns = [];
-            foreach ($this->custom_columns_cache as $custom_column) {
+            foreach ($this->custom_columns as $custom_column) {
                 $new_column = $custom_column->replicate(['suuid']);
                 $new_column->custom_table_id = $new_table->id;
-                $new_column->saveOrFail();
+                $new_column->save();
                 // stack old column id => new column id
                 $replaceColumns[$custom_column->id] = $new_column->id;
             }
@@ -3305,7 +3379,98 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         $new_setting->setOption($targetOption, array_get($replaceColumns, $oldval));
                     }
                 }
-                $new_setting->saveOrFail();
+                $new_setting->save();
+            }
+            $custom_view_column_copy = function($custom_view_column, $new_view_id) use($new_table, $replaceColumns) {
+                $new_view_column = $custom_view_column->replicate(['suuid']);
+                $new_view_column->custom_view_id = $new_view_id;
+                if ($custom_view_column->view_column_table_id == $this->id) {
+                    $new_view_column->view_column_table_id = $new_table->id;
+                } else {
+                    $view_pivot_table_id = $custom_view_column->getOption('view_pivot_table_id');
+                    $view_pivot_column_id = $custom_view_column->getOption('view_pivot_column_id');
+                    if ($view_pivot_table_id == $this->id) {
+                        $new_view_column->setOption('view_pivot_table_id', $new_table->id);
+                        $new_view_column->setOption('view_pivot_column_id', array_get($replaceColumns, $view_pivot_column_id));
+                    }
+                }
+                if ($custom_view_column->view_column_type == ConditionType::COLUMN) {
+                    if ($custom_view_column->view_column_table_id == $this->id) {
+                        $new_view_column->view_column_target_id = array_get($replaceColumns, $custom_view_column->view_column_target_id);
+                    }
+                }
+                $new_view_column->save();
+                return $new_view_column;
+            };
+ 
+            if ($include_view) {
+                foreach($this->custom_views as $custom_view) {
+                    if (!$this->isCopyTargetView($custom_view)) {
+                        continue;
+                    }
+                    $new_view = $custom_view->replicate(['suuid']);
+                    $new_view->custom_table_id = $new_table->id;
+                    $new_view->save();
+
+                    // copy custom_view_columns
+                    foreach ($custom_view->custom_view_columns_cache as $custom_view_column) {
+                        $custom_view_column_copy($custom_view_column, $new_view->id);
+                    }
+                    // copy custom_view_summaries
+                    foreach ($custom_view->custom_view_summaries_cache as $custom_view_summary) {
+                        $custom_view_column_copy($custom_view_summary, $new_view->id);
+                    }
+                    // copy custom_view_filters
+                    foreach ($custom_view->custom_view_filters_cache as $custom_view_filter) {
+                        $custom_view_column_copy($custom_view_filter, $new_view->id);
+                    }
+                    // copy custom_view_sorts
+                    foreach ($custom_view->custom_view_sorts_cache as $custom_view_sort) {
+                        $custom_view_column_copy($custom_view_sort, $new_view->id);
+                    }
+                    // copy custom_view_sorts
+                    foreach ($custom_view->custom_view_grid_filters as $custom_view_grid_filter) {
+                        $custom_view_column_copy($custom_view_grid_filter, $new_view->id);
+                    }
+                }
+            }
+ 
+            if ($include_form) {
+                foreach($this->custom_forms as $custom_form) {
+                    $new_form = $custom_form->replicate(['suuid']);
+                    $new_form->custom_table_id = $new_table->id;
+                    $new_form->save();
+
+                    // copy custom_form_blocks
+                    foreach ($custom_form->custom_form_blocks as $custom_form_block) {
+                        if ($custom_form_block->form_block_type != FormBlockType::DEFAULT) {
+                            continue;
+                        }
+                        $new_block = $custom_form_block->replicate();
+                        $new_block->custom_form_id = $new_form->id;
+                        $new_block->form_block_target_table_id = $new_table->id;
+                        $new_block->save();
+                        foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
+                            $new_form_column = $custom_form_column->replicate(['suuid']);
+                            $new_form_column->custom_form_block_id = $new_block->id;
+                            if ($custom_form_column->form_column_type == FormColumnType::COLUMN) {
+                                $new_form_column->form_column_target_id = array_get($replaceColumns, $custom_form_column->form_column_target_id);
+                            }
+                            $new_form_column->save();
+
+                            // copy file data when image tag
+                            if ($custom_form_column->form_column_type == FormColumnType::OTHER) {
+                                $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
+                                if ($column_form_column_name && $column_form_column_name == 'image') {
+                                    $file = ExmentFile::getFileFromFormColumn($custom_form_column->id);
+                                    $new_file = $file->replicate(['uuid']);
+                                    $new_file->custom_form_column_id = $new_form_column->id;
+                                    $new_file->save();
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             return true;
@@ -3316,6 +3481,63 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'toastr' => sprintf(exmtrans('common.message.success_execute')),
             'redirect' => admin_url('table'),
         ];
+    }
+
+    /**
+     * check if copy target view.
+     */
+    protected function isCopyTargetView($custom_view): bool
+    {
+        if ($custom_view->view_type == ViewType::USER) {
+            return false;
+        }
+
+        $custom_view_column_check = function($custom_view_column) {
+            if ($custom_view_column->view_column_type != ConditionType::COLUMN &&
+                $custom_view_column->view_column_type != ConditionType::SYSTEM &&
+                $custom_view_column->view_column_type != ConditionType::COMMENT) {
+                return false;
+            }
+            if ($custom_view_column->view_column_table_id != $this->id) {
+                $view_pivot_table_id = $custom_view_column->getOption('view_pivot_table_id');
+                if ($view_pivot_table_id != $this->id) {
+                    return false;
+                }
+                $view_pivot_column_id = $custom_view_column->getOption('view_pivot_column_id');
+                $view_pivot_column = CustomColumn::getEloquent($view_pivot_column_id);
+                if (!$view_pivot_column || $view_pivot_column->custom_table_id != $this->id) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        foreach ($custom_view->custom_view_columns_cache as $custom_view_column) {
+            if (!$custom_view_column_check($custom_view_column)) {
+                return false;
+            }
+        }
+        foreach ($custom_view->custom_view_summaries_cache as $custom_view_summary) {
+            if (!$custom_view_column_check($custom_view_summary)) {
+                return false;
+            }
+        }
+        foreach ($custom_view->custom_view_filters_cache as $custom_view_filters) {
+            if (!$custom_view_column_check($custom_view_filters)) {
+                return false;
+            }
+        }
+        foreach ($custom_view->custom_view_sorts_cache as $custom_view_sorts) {
+            if (!$custom_view_column_check($custom_view_sorts)) {
+                return false;
+            }
+        }
+        foreach ($custom_view->custom_view_grid_filters as $custom_view_grid_filter) {
+            if (!$custom_view_column_check($custom_view_grid_filter)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
