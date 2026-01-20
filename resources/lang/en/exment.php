@@ -226,6 +226,10 @@ return [
     ],
 
     'validation' => [
+        'hasmany_hidden_required_title' => 'Validation Error',
+        'hasmany_hidden_required_plain_prefix' => 'The following required fields are hidden:',
+        'hasmany_hidden_required_html_prefix' => 'The following required fields are hidden and must be shown:',
+        'hasmany_hidden_required_ok' => 'OK',
         'current_password' => 'The current password is incorrect.',
         'password_history' => 'The password is the same as the password registered in the past. Please enter another password.',
         'complex_password' => 'The password must be at least 12 characters long and must contain three types of characters (uppercase letters, lowercase letters, numbers, symbols).',

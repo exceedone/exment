@@ -452,8 +452,8 @@ abstract class CustomItem implements ItemInterface
         if (!$this->hidden()) {
             if ($this->initonly()) {
                 $field->displayText($this->html())->escape(false)->default($this->value)->prepareDefault();
-            } elseif ($this->viewonly() && !isset($this->value)) {
-                // if view only and create, set default value
+            } elseif ($this->viewonly() && is_null($this->id) && !isset($this->value)) {
+                // if view only and create (no id), set default value
                 $this->value = $this->getDefaultValue();
                 $field->displayText($this->html())->escape(false);
                 $this->value = null;

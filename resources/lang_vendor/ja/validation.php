@@ -90,6 +90,7 @@ return [
     'string'               => ':attributeには文字列を指定してください。',
     'timezone'             => ':attributeには正しい形式のタイムゾーンを指定してください。',
     'unique'               => 'その:attributeはすでに使われています。',
+    'unique_in_table'       => 'その:attributeがすでに存在しています。',
     'uploaded'             => ':attributeのアップロードに失敗しました。',
     'url'                  => ':attributeには正しい形式のURLを指定してください。',
     'summary_condition'    => 'この集計タイプは数値項目以外では指定できません。',

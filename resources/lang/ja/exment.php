@@ -226,6 +226,10 @@ return [
     ],
 
     'validation' => [
+        'hasmany_hidden_required_title' => 'バリデーションエラー',
+        'hasmany_hidden_required_plain_prefix' => '以下の必須項目が非表示になっています：',
+        'hasmany_hidden_required_html_prefix' => '以下の必須項目が非表示になっており、表示する必要があります：',
+        'hasmany_hidden_required_ok' => 'OK',
         'current_password' => '現在のパスワードが正しくありません。',
         'password_history' => '過去に登録したパスワードと同一のパスワードとなっています。他のパスワードを入力してください。',
         'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
