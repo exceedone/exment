@@ -642,6 +642,8 @@ return [
             'install' => '取込',
             'update' => '更新',
             'uninstall' => '解除',
+            'payment' => '支払い',
+            'renew' => '更新',
             'installed' => '取込済み(:version)',
             'installed_short' => '取込済み',
             'free' => '無料',

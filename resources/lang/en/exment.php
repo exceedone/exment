@@ -641,6 +641,8 @@ return [
             'install' => 'Install',
             'update' => 'Update',
             'uninstall' => 'Uninstall',
+            'payment' => 'Pay',
+            'renew' => 'Renew',
             'installed' => 'Installed (:version)',
             'installed_short' => 'Installed',
             'free' => 'Free',

@@ -23,6 +23,31 @@ class PluginMarketController extends AdminController
 {
     protected $title = 'Plugin Market';
 
+    protected function appendTenantUuidToUrl(string $url, ?string $tenantUuid): string
+    {
+        if (empty($tenantUuid)) {
+            return $url;
+        }
+
+        // Already has tenant_uuid
+        if (str_contains($url, 'tenant_uuid=')) {
+            return $url;
+        }
+
+        $separator = str_contains($url, '?') ? '&' : '?';
+        return $url . $separator . 'tenant_uuid=' . urlencode($tenantUuid);
+    }
+
+    protected function getTenantUuid(): ?string
+    {
+        $tenantUuid = env('EXMENT_MARKET_TENANT_UUID');
+        if (is_string($tenantUuid) && strlen(trim($tenantUuid)) > 0) {
+            return trim($tenantUuid);
+        }
+
+        return null;
+    }
+
     protected function getMarketplaceUrl()
     {
         static $url = null;
@@ -40,12 +65,18 @@ class PluginMarketController extends AdminController
 
     protected function grid()
     {
+        $tenantUuid = $this->getTenantUuid();
+        $queryParams = [];
+        if (!empty($tenantUuid)) {
+            $queryParams['tenant_uuid'] = $tenantUuid;
+        }
+
         // Call API repo  plugin list
         $response = Http::withoutVerifying()
             ->timeout(30)
             ->connectTimeout(10)
             ->retry(2, 100)
-            ->get($this->getRepoUrl());
+            ->get($this->getRepoUrl(), $queryParams);
         $data = $response->json() ?? [];
 
         // Grid with data from API
@@ -68,12 +99,20 @@ class PluginMarketController extends AdminController
             $type = $request->input('type');
             $status = $request->input('status');
 
+            $tenantUuid = $this->getTenantUuid();
+
             // URL API Marketplace with search parameters
             $marketplaceApi = $this->getRepoUrl();
             $queryParams = [];
+
+            if (!empty($tenantUuid)) {
+                $queryParams['tenant_uuid'] = $tenantUuid;
+            }
             
             if ($keyword) {
                 $queryParams['keyword'] = $keyword;
+                // New Market API uses `search`
+                $queryParams['search'] = $keyword;
             }
             if ($type) {
                 $queryParams['type'] = $type;
@@ -87,6 +126,11 @@ class PluginMarketController extends AdminController
                 ->connectTimeout(10)
                 ->retry(2, 100)
                 ->get($marketplaceApi, $queryParams);
+
+            // If tenant_uuid is provided but invalid, marketplace returns 404
+            if (!empty($tenantUuid) && $response->status() === 404) {
+                abort(404, exmtrans('plugin.market.plugin_not_found'));
+            }
 
             $plugins = [];
             if ($response->ok()) {
@@ -107,11 +151,17 @@ class PluginMarketController extends AdminController
             // Filter to show only free plugins and perform client-side filtering
             $plugins = collect($plugins);
             
-            // Filter free plugins only (price = 0)
-            $plugins = $plugins->filter(function ($plugin) {
-                $price = floatval($plugin['price'] ?? 0);
-                return $price === 0.0;
-            });
+            // OSS (no tenant_uuid): show free plugins only
+            if (empty($tenantUuid)) {
+                $plugins = $plugins->filter(function ($plugin) {
+                    $isFree = $plugin['is_free'] ?? null;
+                    if ($isFree !== null) {
+                        return (bool)$isFree;
+                    }
+                    $price = floatval($plugin['price'] ?? 0);
+                    return $price === 0.0;
+                });
+            }
             
             // Filter by keyword (search in plugin_name, description, author)
             if ($keyword) {
@@ -174,7 +224,7 @@ class PluginMarketController extends AdminController
             // Render interface
             return $content->title(exmtrans('plugin.market.title'))
                 ->description(exmtrans('plugin.market.description'))
-                ->body(view('exment::plugin.market.index', compact('plugins')));
+                ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
 
         } catch (\Throwable $e) {
             Log::error('[PluginMarket] Exception: ' . $e->getMessage(), [
@@ -198,10 +248,16 @@ class PluginMarketController extends AdminController
     public function detail($id)
     {
         try {
+            $tenantUuid = $this->getTenantUuid();
+            $queryParams = [];
+            if (!empty($tenantUuid)) {
+                $queryParams['tenant_uuid'] = $tenantUuid;
+            }
+
             $response = Http::withoutVerifying()
                 ->timeout(30)
                 ->connectTimeout(10)
-                ->get("{$this->getRepoUrl()}/{$id}");
+                ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
 
             if ($response->failed()) {
                 abort(404, exmtrans('plugin.market.plugin_not_found'));
@@ -235,6 +291,12 @@ class PluginMarketController extends AdminController
         try {
             $versionId = $request->input('version'); // Selected version ID
 
+            $tenantUuid = $this->getTenantUuid();
+            $queryParams = [];
+            if (!empty($tenantUuid)) {
+                $queryParams['tenant_uuid'] = $tenantUuid;
+            }
+
             Log::info("[PluginMarket] Install request", [
                 'plugin_id' => $id,
                 'version_id' => $versionId,
@@ -245,7 +307,7 @@ class PluginMarketController extends AdminController
             $pluginResponse = Http::withoutVerifying()
                 ->timeout(30)
                 ->connectTimeout(10)
-                ->get("{$this->getRepoUrl()}/{$id}");
+                ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
             
             if ($pluginResponse->failed()) {
                 return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
@@ -276,9 +338,12 @@ class PluginMarketController extends AdminController
             $versionResponse = Http::withoutVerifying()
                 ->timeout(30)
                 ->connectTimeout(10)
-                ->get("{$this->getRepoUrl()}/{$id}/versions");
+                ->get("{$this->getRepoUrl()}/{$id}/versions", $queryParams);
 
             if ($versionResponse->failed()) {
+                if (!empty($tenantUuid) && $versionResponse->status() === 404) {
+                    return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
+                }
                 return response()->json(['error' => exmtrans('plugin.market.message.version_load_failed')], 400);
             }
 
@@ -300,6 +365,7 @@ class PluginMarketController extends AdminController
             }
             
             $downloadUrl = $selectedVersion['download_url'];
+            $downloadUrl = $this->appendTenantUuidToUrl($downloadUrl, $tenantUuid);
 
             Log::info("[PluginMarket] Downloading plugin", [
                 'download_url' => $downloadUrl,
@@ -375,11 +441,17 @@ class PluginMarketController extends AdminController
     public function uninstall(Request $request, $id)
     {
         try {
+            $tenantUuid = $this->getTenantUuid();
+            $queryParams = [];
+            if (!empty($tenantUuid)) {
+                $queryParams['tenant_uuid'] = $tenantUuid;
+            }
+
             // Get plugin info from marketplace
             $pluginResponse = Http::withoutVerifying()
                 ->timeout(30)
                 ->connectTimeout(10)
-                ->get("{$this->getRepoUrl()}/{$id}");
+                ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
             
             if ($pluginResponse->failed()) {
                 return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
