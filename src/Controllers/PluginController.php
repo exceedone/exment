@@ -19,12 +19,16 @@ use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 
 class PluginController extends AdminControllerBase
 {
     use HasResourceActions;
+
+    /** @var \Illuminate\Support\Collection<string, array>|null */
+    protected $marketPluginsByName = null;
 
     public function __construct()
     {
@@ -36,14 +40,19 @@ class PluginController extends AdminControllerBase
      *
      * @return Content
      */
-    /**
-     * Index interface.
-     *
-     * @return Content
-     */
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
+
+        // Auto-disable expired/unlicensed paid plugins (SaaS only).
+        // This keeps plugin-market unchanged; enforcement happens in installed-plugin management.
+        try {
+            if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
+                $this->syncPluginActivationByMarketplace();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[Plugin] syncPluginActivationByMarketplace failed: ' . $e->getMessage());
+        }
 
         if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
             $content->row(view('exment::plugin.upload'));
@@ -51,6 +60,134 @@ class PluginController extends AdminControllerBase
 
         $content->body($this->grid());
         return $content;
+    }
+
+    protected function getTenantUuidForMarket(): ?string
+    {
+        $tenantUuid = env('EXMENT_MARKET_TENANT_UUID');
+        if (is_string($tenantUuid) && strlen(trim($tenantUuid)) > 0) {
+            return trim($tenantUuid);
+        }
+
+        return null;
+    }
+
+    protected function getMarketplaceUrlForMarket(): string
+    {
+        return rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/');
+    }
+
+    /**
+     * Auto-disable installed plugins when license is expired (or missing).
+     * Only applies when tenant_uuid is configured (SaaS).
+     */
+    protected function shouldUseMockForMarket(): bool
+    {
+        return filter_var(env('PLUGIN_MARKET_USE_MOCK', false), FILTER_VALIDATE_BOOL);
+    }
+
+    protected function fetchMarketplacePluginsByName(): ?\Illuminate\Support\Collection
+    {
+        if ($this->marketPluginsByName !== null) {
+            return $this->marketPluginsByName;
+        }
+
+        $tenantUuid = $this->getTenantUuidForMarket();
+        if (empty($tenantUuid)) {
+            // OSS: marketplace doesn't return paid items; no enforcement.
+            $this->marketPluginsByName = null;
+            return null;
+        }
+
+        $marketplaceUrl = $this->getMarketplaceUrlForMarket();
+        $apiUrl = $marketplaceUrl . '/api/plugins';
+
+        $params = ['tenant_uuid' => $tenantUuid];
+        if ($this->shouldUseMockForMarket()) {
+            $params['mock'] = '1';
+        }
+
+        $resp = Http::withoutVerifying()
+            ->timeout(15)
+            ->connectTimeout(5)
+            ->retry(1, 100)
+            ->get($apiUrl, $params);
+
+        if (!$resp->ok()) {
+            Log::info('[Plugin] Marketplace license check skipped (API not ok)', [
+                'status' => $resp->status(),
+                'url' => $apiUrl,
+            ]);
+            $this->marketPluginsByName = null;
+            return null;
+        }
+
+        $marketPlugins = $resp->json();
+        if (!is_array($marketPlugins)) {
+            Log::warning('[Plugin] Marketplace license check returned invalid data');
+            $this->marketPluginsByName = null;
+            return null;
+        }
+
+        $this->marketPluginsByName = collect($marketPlugins)->keyBy(function ($p) {
+            return strtolower($p['plugin_name'] ?? '');
+        });
+        return $this->marketPluginsByName;
+    }
+
+    protected function syncPluginActivationByMarketplace(): void
+    {
+        $marketByName = $this->fetchMarketplacePluginsByName();
+        if ($marketByName === null) {
+            return;
+        }
+
+        $changedCount = 0;
+        foreach (Plugin::all() as $installedPlugin) {
+            $nameKey = strtolower($installedPlugin->plugin_name ?? '');
+            if (empty($nameKey) || !$marketByName->has($nameKey)) {
+                continue;
+            }
+
+            $market = $marketByName->get($nameKey);
+
+            $isFree = (bool) ($market['is_free'] ?? ((float) ($market['price'] ?? 0) <= 0));
+            if ($isFree) {
+                continue;
+            }
+
+            $hasLicense = (bool) ($market['has_license'] ?? false);
+            $isExpired = (bool) ($market['is_expired'] ?? false);
+            $isValid = $hasLicense && !$isExpired;
+
+            $options = is_array($installedPlugin->options) ? $installedPlugin->options : [];
+            $disabledByLicense = (bool) array_get($options, 'disabled_by_license', false);
+
+            // If invalid, force disable and remember it was license-driven.
+            if (!$isValid) {
+                if (boolval($installedPlugin->active_flg) || !$disabledByLicense) {
+                    $installedPlugin->active_flg = 0;
+                    $options['disabled_by_license'] = true;
+                    $installedPlugin->options = $options;
+                    $installedPlugin->save();
+                    $changedCount++;
+                }
+                continue;
+            }
+
+            // If valid again, auto-enable only if it was previously disabled by license.
+            if ($disabledByLicense && !boolval($installedPlugin->active_flg)) {
+                $installedPlugin->active_flg = 1;
+                unset($options['disabled_by_license']);
+                $installedPlugin->options = $options;
+                $installedPlugin->save();
+                $changedCount++;
+            }
+        }
+
+        if ($changedCount > 0) {
+            Plugin::clearCacheTrait();
+        }
     }
 
     /**
@@ -194,6 +331,38 @@ class PluginController extends AdminControllerBase
             return false;
         }
 
+        // Block manual activation if marketplace says license is missing/expired.
+        $requestedActive = $request->boolean('active_flg');
+        if ($requestedActive) {
+            $marketByName = $this->fetchMarketplacePluginsByName();
+            if ($marketByName !== null) {
+                $nameKey = strtolower($plugin->plugin_name ?? '');
+                if (!empty($nameKey) && $marketByName->has($nameKey)) {
+                    $market = $marketByName->get($nameKey);
+                    $isFree = (bool) ($market['is_free'] ?? ((float) ($market['price'] ?? 0) <= 0));
+                    if (!$isFree) {
+                        $hasLicense = (bool) ($market['has_license'] ?? false);
+                        $isExpired = (bool) ($market['is_expired'] ?? false);
+                        if (!$hasLicense || $isExpired) {
+                            // Ensure it stays disabled and marked as license-driven.
+                            $options = is_array($plugin->options) ? $plugin->options : [];
+                            $options['disabled_by_license'] = true;
+                            $plugin->active_flg = 0;
+                            $plugin->options = $options;
+                            $plugin->save();
+                            Plugin::clearCacheTrait();
+
+                            $msg = exmtrans('plugin.message.activation_blocked');
+                            if ($request->ajax() || $request->expectsJson()) {
+                                admin_toastr($msg, 'error');
+                            }
+                            return back();
+                        }
+                    }
+                }
+            }
+        }
+
         $request->merge([
             'active_flg' => $request->boolean('active_flg') ? 1 : 0,
         ]);
@@ -262,8 +431,8 @@ class PluginController extends AdminControllerBase
 
                 if (isset($enumClass)) {
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))
-                    ->options($enumClass::transArray("plugin.options.event_trigger_options"))
-                    ->help(exmtrans("plugin.help.event_triggers"));
+                        ->options($enumClass::transArray("plugin.options.event_trigger_options"))
+                        ->help(exmtrans("plugin.help.event_triggers"));
                 }
             }
 
@@ -306,11 +475,11 @@ class PluginController extends AdminControllerBase
                 }
             } elseif ($plugin->matchPluginType(PluginType::BATCH) && !$command_only) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
-                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
+                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id=' . exmtrans('common.help.task_schedule_id'))))
                     ->default(3);
 
                 $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
-                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
+                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id=' . exmtrans('common.help.task_schedule_id'))))
                     ->rules('max:100');
             }
 
@@ -334,8 +503,8 @@ class PluginController extends AdminControllerBase
                         $form->text('crud_auth_id', $pluginClass->getAuthSettingLabel())
                             ->help($pluginClass->getAuthSettingHelp());
                         $form->encpassword('crud_auth_password', $pluginClass->getAuthSettingPasswordLabel())
-                        ->updateIfEmpty()
-                        ->help($pluginClass->getAuthSettingPasswordHelp());
+                            ->updateIfEmpty()
+                            ->help($pluginClass->getAuthSettingPasswordHelp());
                     } elseif ($crudAuthType == PluginCrudAuthType::OAUTH) {
                         $form->select('crud_auth_oauth')
                             ->options(function () {
@@ -361,8 +530,8 @@ class PluginController extends AdminControllerBase
                     'all' => trans('admin.all'),
                     'current_page' => trans('admin.current_page'),
                 ])->required()
-                ->default(['all', 'current_page'])
-                ->help(exmtrans("plugin.help.export_types"));
+                    ->default(['all', 'current_page'])
+                    ->help(exmtrans("plugin.help.export_types"));
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->textarea('export_description', exmtrans("plugin.options.export_description"))->help(exmtrans("plugin.help.export_description"))->rows(3);
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));

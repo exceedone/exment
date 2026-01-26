@@ -23,8 +23,18 @@ class PluginMarketController extends AdminController
 {
     protected $title = 'Plugin Market';
 
+    protected function isMockRequest(Request $request): bool
+    {
+        return ($request->query('mock') === '1') || ($request->input('mock') === '1');
+    }
+
     protected function appendTenantUuidToUrl(string $url, ?string $tenantUuid): string
     {
+        // Do not mutate local file URLs.
+        if (Str::startsWith($url, 'file://')) {
+            return $url;
+        }
+
         if (empty($tenantUuid)) {
             return $url;
         }
@@ -101,12 +111,18 @@ class PluginMarketController extends AdminController
 
             $tenantUuid = $this->getTenantUuid();
 
+            $isMock = $this->isMockRequest($request);
+
             // URL API Marketplace with search parameters
             $marketplaceApi = $this->getRepoUrl();
             $queryParams = [];
 
             if (!empty($tenantUuid)) {
                 $queryParams['tenant_uuid'] = $tenantUuid;
+            }
+
+            if ($isMock) {
+                $queryParams['mock'] = '1';
             }
             
             if ($keyword) {
@@ -248,10 +264,15 @@ class PluginMarketController extends AdminController
     public function detail($id)
     {
         try {
+            $request = request();
             $tenantUuid = $this->getTenantUuid();
             $queryParams = [];
             if (!empty($tenantUuid)) {
                 $queryParams['tenant_uuid'] = $tenantUuid;
+            }
+
+            if ($this->isMockRequest($request)) {
+                $queryParams['mock'] = '1';
             }
 
             $response = Http::withoutVerifying()
@@ -291,10 +312,16 @@ class PluginMarketController extends AdminController
         try {
             $versionId = $request->input('version'); // Selected version ID
 
+            $isMock = $this->isMockRequest($request);
+
             $tenantUuid = $this->getTenantUuid();
             $queryParams = [];
             if (!empty($tenantUuid)) {
                 $queryParams['tenant_uuid'] = $tenantUuid;
+            }
+
+            if ($isMock) {
+                $queryParams['mock'] = '1';
             }
 
             Log::info("[PluginMarket] Install request", [
@@ -372,14 +399,34 @@ class PluginMarketController extends AdminController
             ]);
 
             // Download plugin file
-            $zipResp = Http::withoutVerifying()->timeout(60)->get($downloadUrl);
-            if ($zipResp->failed()) {
-                return response()->json(['error' => exmtrans('plugin.market.message.download_failed')], 500);
+            $zipBytes = null;
+            if ($isMock && Str::startsWith($downloadUrl, 'file://')) {
+                $path = parse_url($downloadUrl, PHP_URL_PATH) ?? '';
+                $path = urldecode((string)$path);
+
+                // Windows file URL: file:///C:/... -> /C:/...
+                if (preg_match('#^/[A-Za-z]:/#', $path) === 1) {
+                    $path = ltrim($path, '/');
+                }
+
+                $path = str_replace('/', DIRECTORY_SEPARATOR, $path);
+
+                if (!File::exists($path)) {
+                    return response()->json(['error' => 'Mock file not found: ' . $path], 500);
+                }
+
+                $zipBytes = File::get($path);
+            } else {
+                $zipResp = Http::withoutVerifying()->timeout(60)->get($downloadUrl);
+                if ($zipResp->failed()) {
+                    return response()->json(['error' => exmtrans('plugin.market.message.download_failed')], 500);
+                }
+                $zipBytes = $zipResp->body();
             }
 
             // Save to temporary location
             $tmpPath = 'tmp/' . Str::random(10) . '.zip';
-            Storage::disk('local')->put($tmpPath, $zipResp->body());
+            Storage::disk('local')->put($tmpPath, $zipBytes);
 
             $fullPath = Storage::disk('local')->path($tmpPath);
 

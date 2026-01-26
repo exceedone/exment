@@ -215,6 +215,9 @@
                     </div>
                     <form action="{{ route('plugin.market.install', $plugin['id']) }}" method="POST" class="install-form-free">
                         @csrf
+                        @if(request()->query('mock') === '1')
+                            <input type="hidden" name="mock" value="1">
+                        @endif
                         <div class="modal-body">
                             <p>{{ exmtrans('plugin.market.version_modal.plugin') }}: <strong>{{ $plugin['plugin_name'] ?? 'Unknown' }}</strong></p>
                             <div class="form-group">
@@ -291,6 +294,7 @@ function initPluginMarket() {
     const adminPluginMarketUrl = {!! json_encode(admin_url('plugin-market')) !!};
     const marketplaceUrl = {!! json_encode(rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/')) !!};
     const tenantUuid = {!! json_encode($tenantUuid ?? null) !!};
+    const isMock = (new URLSearchParams(window.location.search)).get('mock') === '1';
 
     // Handle free plugin installation
     document.querySelectorAll('.install-form').forEach(function(form) {
@@ -387,8 +391,15 @@ function initPluginMarket() {
         console.log('Loading versions for plugin:', pluginId);
         
         // Load versions from API
-        const tenantQuery = tenantUuid ? `?tenant_uuid=${encodeURIComponent(tenantUuid)}` : '';
-        fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions${tenantQuery}`)
+        const params = new URLSearchParams();
+        if (tenantUuid) {
+            params.set('tenant_uuid', tenantUuid);
+        }
+        if (isMock) {
+            params.set('mock', '1');
+        }
+        const query = params.toString() ? `?${params.toString()}` : '';
+        fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions${query}`)
             .then(response => response.json())
             .then(data => {
                 console.log('Versions data:', data);

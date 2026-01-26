@@ -625,6 +625,9 @@ return [
         'show_plugin_page' => 'プラグインページを表示',
         'edit_plugin' => 'プラグイン編集',
         'execute_plugin_batch' => 'バッチ実行',
+        'message' => [
+            'activation_blocked' => 'ライセンスが未登録、または期限切れのため、このプラグインを有効化できません。更新してください。',
+        ],
         
         'market' => [
             'title' => 'プラグインマーケット',

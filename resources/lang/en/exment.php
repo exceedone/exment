@@ -625,6 +625,9 @@ return [
         'show_plugin_page' => 'Show Plugin Page',
         'edit_plugin' => 'Edit Plugin',
         'execute_plugin_batch' => 'Execute',
+        'message' => [
+            'activation_blocked' => 'This plugin cannot be activated because the license is missing or expired. Please renew your license.',
+        ],
         'market' => [
             'title' => 'Plugin Market',
             'description' => 'Browse and install available plugins.',

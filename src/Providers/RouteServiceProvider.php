@@ -144,6 +144,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('plugin-market/{id}', 'PluginMarketController@show')->name('plugin.market.show');
             $router->post('plugin-market/{id}/install', 'PluginMarketController@install')->name('plugin.market.install');
             $router->post('plugin-market/{id}/update', 'PluginMarketController@update')->name('plugin.market.update');
+            $router->post('plugin-market/{id}/uninstall', 'PluginMarketController@uninstall')->name('plugin.market.uninstall');
 
 
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
