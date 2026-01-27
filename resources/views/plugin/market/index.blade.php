@@ -114,7 +114,27 @@
                                 $hasLicense = (bool)($plugin['has_license'] ?? $isFree);
                                 $isExpired = (bool)($plugin['is_expired'] ?? false);
                                 $canInstall = $isFree || ($hasLicense && !$isExpired);
+                                $shouldShowPayment = (!$hasLicense) || $isExpired;
+                                $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
                             @endphp
+
+                            @if($isExpired)
+                                <div class="text-warning" style="margin-bottom:4px;">
+                                    <i class="fa fa-exclamation-triangle"></i> {{ exmtrans('plugin.market.message.expired_warning') }}
+                                </div>
+                            @endif
+
+                            @if($shouldShowPayment)
+                                <button type="button"
+                                    class="btn btn-primary btn-sm purchase-btn"
+                                    data-plugin-uuid="{{ $pluginUuid }}"
+                                    data-plugin-id="{{ $plugin['id'] ?? '' }}"
+                                    data-plugin-name="{{ $plugin['plugin_name'] ?? 'Plugin' }}"
+                                    data-action="{{ $isExpired ? 'renew' : 'purchase' }}"
+                                    {{ (empty($tenantUuid) || empty($pluginUuid) || !$isActive) ? 'disabled' : '' }}>
+                                    {{ $isExpired ? exmtrans('plugin.market.renew') : exmtrans('plugin.market.payment') }}
+                                </button>
+                            @endif
 
                             @if($plugin['is_installed'] ?? false)
                                 @if($plugin['has_update'] ?? false)
@@ -128,11 +148,7 @@
                                             <i class="fa fa-arrow-up"></i> {{ exmtrans('plugin.market.update') }}
                                         </button>
                                     @else
-                                        @if($hasLicense && $isExpired)
-                                            <button type="button" class="btn btn-warning btn-sm" disabled>{{ exmtrans('plugin.market.renew') }}</button>
-                                        @else
-                                            <button type="button" class="btn btn-primary btn-sm" disabled>{{ exmtrans('plugin.market.payment') }}</button>
-                                        @endif
+                                        <!-- Payment/Renew handled by purchase button above -->
                                     @endif
                                     <!-- Uninstall button for installed plugin with update -->
                                     <form action="{{ route('plugin.market.uninstall', $plugin['id']) }}" method="POST"
@@ -146,10 +162,6 @@
                                         </button>
                                     </form>
                                 @else
-                                    <!-- Plugin installed and up to date - still allow version selection -->
-                                    <span class="badge badge-success mr-1">
-                                        <i class="fa fa-check"></i> {{ exmtrans('plugin.market.installed', ['version' => $plugin['current_version']]) }}
-                                    </span>
                                     @if($canInstall)
                                         <!-- Allow reinstall/downgrade -->
                                         <button type="button" class="btn btn-info btn-sm" 
@@ -182,11 +194,7 @@
                                         {{ exmtrans('plugin.market.install') }}
                                     </button>
                                 @else
-                                    @if($hasLicense && $isExpired)
-                                        <button type="button" class="btn btn-warning btn-sm" disabled>{{ exmtrans('plugin.market.renew') }}</button>
-                                    @else
-                                        <button type="button" class="btn btn-primary btn-sm" disabled>{{ exmtrans('plugin.market.payment') }}</button>
-                                    @endif
+                                    <!-- Payment/Renew handled by purchase button above -->
                                 @endif
                             @endif
                             <a href="{{ route('plugin.market.show', $plugin['id']) }}" class="btn btn-primary btn-sm">{{ exmtrans('plugin.market.details') }}</a>
@@ -289,12 +297,135 @@ function initPluginMarket() {
         changelog: {!! json_encode(exmtrans("plugin.market.version_modal.changelog")) !!},
         pleaseSelectVersion: {!! json_encode(exmtrans("plugin.market.message.please_select_version")) !!},
         installVersion: {!! json_encode(exmtrans("plugin.market.version_modal.install")) !!},
+        paymentProcessing: {!! json_encode(exmtrans("plugin.market.message.payment_processing")) !!},
+        renewProcessing: {!! json_encode(exmtrans("plugin.market.message.renew_processing")) !!},
+        paymentFailed: {!! json_encode(exmtrans("plugin.market.message.payment_failed")) !!},
     };
 
     const adminPluginMarketUrl = {!! json_encode(admin_url('plugin-market')) !!};
     const marketplaceUrl = {!! json_encode(rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/')) !!};
     const tenantUuid = {!! json_encode($tenantUuid ?? null) !!};
     const isMock = (new URLSearchParams(window.location.search)).get('mock') === '1';
+    const stripePublishableKey = {!! json_encode(config('services.stripe.key') ?? null) !!};
+
+    function showToast(type, message) {
+        if (typeof toastr !== 'undefined') {
+            toastr[type](message);
+        } else {
+            alert(message);
+        }
+    }
+
+    function ensureStripeLoaded() {
+        return new Promise(function(resolve, reject) {
+            if (window.Stripe) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://js.stripe.com/v3/';
+            script.onload = resolve;
+            script.onerror = function() { reject(new Error('Failed to load Stripe.js')); };
+            document.head.appendChild(script);
+        });
+    }
+
+    async function handlePurchase(button) {
+        const pluginUuid = button.dataset.pluginUuid;
+        const pluginName = button.dataset.pluginName || 'Plugin';
+        const action = button.dataset.action || 'purchase';
+
+        if (!tenantUuid) {
+            showToast('error', 'Missing tenant_uuid.');
+            return;
+        }
+        if (!pluginUuid) {
+            showToast('error', 'Missing plugin_uuid.');
+            return;
+        }
+
+        const originalHtml = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm mr-2"></span>' + (action === 'renew' ? t.renewProcessing : t.paymentProcessing);
+
+        try {
+            const purchaseQuery = isMock ? '?mock=1' : '';
+            const response = await fetch(`${marketplaceUrl}/api/plugins/checkout/purchase${purchaseQuery}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    tenant_uuid: tenantUuid,
+                    plugin_uuid: pluginUuid
+                })
+            });
+
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (e) {
+                data = {};
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || data.message || t.paymentFailed);
+            }
+
+            if (data.status === 'succeeded') {
+                showToast('success', data.message || `${pluginName}: success`);
+                setTimeout(function() { window.location.reload(); }, 1200);
+                return;
+            }
+
+            if (data.status === 'requires_action') {
+                if (!data.client_secret) {
+                    throw new Error(data.message || 'Missing client_secret for 3DS.');
+                }
+                if (!stripePublishableKey) {
+                    throw new Error('Stripe publishable key is not configured (services.stripe.key).');
+                }
+
+                await ensureStripeLoaded();
+                const stripe = window.Stripe(stripePublishableKey);
+                const result = await stripe.confirmCardPayment(data.client_secret);
+
+                if (result.error) {
+                    throw new Error(result.error.message || t.paymentFailed);
+                }
+
+                const paymentIntent = result.paymentIntent;
+                if (paymentIntent && paymentIntent.status === 'succeeded') {
+                    showToast('success', data.message || 'Payment succeeded.');
+                    setTimeout(function() { window.location.reload(); }, 1200);
+                    return;
+                }
+
+                showToast('info', `Payment status: ${paymentIntent ? paymentIntent.status : 'unknown'}`);
+                setTimeout(function() { window.location.reload(); }, 1200);
+                return;
+            }
+
+            if (data.status === 'failed') {
+                throw new Error(data.error || data.message || t.paymentFailed);
+            }
+
+            throw new Error(data.message || t.paymentFailed);
+        } catch (error) {
+            console.error('Purchase error:', error);
+            showToast('error', error.message || t.paymentFailed);
+            button.disabled = false;
+            button.innerHTML = originalHtml;
+        }
+    }
+
+    document.querySelectorAll('.purchase-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            handlePurchase(btn);
+        });
+    });
 
     // Handle free plugin installation
     document.querySelectorAll('.install-form').forEach(function(form) {
@@ -414,7 +545,10 @@ function initPluginMarket() {
                         const isLatest = !!version.is_latest;
 
                         let downloadUrl = version.download_url || '';
-                        if (downloadUrl && tenantUuid && !downloadUrl.includes('tenant_uuid=')) {
+                        const hasTenantUuid = downloadUrl.includes('tenant_uuid=');
+                        const isFileUrl = downloadUrl.startsWith('file://');
+                        const looksSigned = downloadUrl.includes('signature=') || downloadUrl.includes('X-Amz-Signature=') || downloadUrl.includes('X-Amz-Credential=');
+                        if (downloadUrl && tenantUuid && !hasTenantUuid && !isFileUrl && !looksSigned) {
                             downloadUrl += (downloadUrl.includes('?') ? '&' : '?') + 'tenant_uuid=' + encodeURIComponent(tenantUuid);
                         }
 
