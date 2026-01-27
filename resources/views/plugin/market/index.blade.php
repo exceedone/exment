@@ -111,10 +111,12 @@
                             @php
                                 $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
                                 $isFree = (bool)($plugin['is_free'] ?? ((float)($plugin['price'] ?? 0) <= 0));
-                                $hasLicense = (bool)($plugin['has_license'] ?? $isFree);
+                                // Marketplace may return has_license=false even for free plugins.
+                                // For UI purposes, free plugins are always installable without payment.
+                                $hasLicense = $isFree ? true : (bool)($plugin['has_license'] ?? false);
                                 $isExpired = (bool)($plugin['is_expired'] ?? false);
                                 $canInstall = $isFree || ($hasLicense && !$isExpired);
-                                $shouldShowPayment = (!$hasLicense) || $isExpired;
+                                $shouldShowPayment = (!$isFree) && ((!$hasLicense) || $isExpired);
                                 $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
                             @endphp
 
@@ -223,9 +225,6 @@
                     </div>
                     <form action="{{ route('plugin.market.install', $plugin['id']) }}" method="POST" class="install-form-free">
                         @csrf
-                        @if(request()->query('mock') === '1')
-                            <input type="hidden" name="mock" value="1">
-                        @endif
                         <div class="modal-body">
                             <p>{{ exmtrans('plugin.market.version_modal.plugin') }}: <strong>{{ $plugin['plugin_name'] ?? 'Unknown' }}</strong></p>
                             <div class="form-group">
@@ -305,8 +304,8 @@ function initPluginMarket() {
     const adminPluginMarketUrl = {!! json_encode(admin_url('plugin-market')) !!};
     const marketplaceUrl = {!! json_encode(rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/')) !!};
     const tenantUuid = {!! json_encode($tenantUuid ?? null) !!};
-    const isMock = (new URLSearchParams(window.location.search)).get('mock') === '1';
     const stripePublishableKey = {!! json_encode(config('services.stripe.key') ?? null) !!};
+    const csrfToken = {!! json_encode(csrf_token()) !!};
 
     function showToast(type, message) {
         if (typeof toastr !== 'undefined') {
@@ -349,12 +348,13 @@ function initPluginMarket() {
         button.innerHTML = '<span class="spinner-border spinner-border-sm mr-2"></span>' + (action === 'renew' ? t.renewProcessing : t.paymentProcessing);
 
         try {
-            const purchaseQuery = isMock ? '?mock=1' : '';
-            const response = await fetch(`${marketplaceUrl}/api/plugins/checkout/purchase${purchaseQuery}`, {
+            // Call same-origin proxy endpoint to avoid browser CORS restrictions.
+            const response = await fetch(`${adminPluginMarketUrl}/checkout/purchase`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify({
                     tenant_uuid: tenantUuid,
@@ -363,14 +363,18 @@ function initPluginMarket() {
             });
 
             let data = {};
+            let rawText = '';
             try {
-                data = await response.json();
+                rawText = await response.text();
+                data = rawText ? JSON.parse(rawText) : {};
             } catch (e) {
                 data = {};
             }
 
             if (!response.ok) {
-                throw new Error(data.error || data.message || t.paymentFailed);
+                const msg = (data && (data.error || data.message)) ? (data.error || data.message)
+                    : (rawText && rawText.length < 500 ? rawText : null);
+                throw new Error(msg || t.paymentFailed);
             }
 
             if (data.status === 'succeeded') {
@@ -525,9 +529,6 @@ function initPluginMarket() {
         const params = new URLSearchParams();
         if (tenantUuid) {
             params.set('tenant_uuid', tenantUuid);
-        }
-        if (isMock) {
-            params.set('mock', '1');
         }
         const query = params.toString() ? `?${params.toString()}` : '';
         fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions${query}`)

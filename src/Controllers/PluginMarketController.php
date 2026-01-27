@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Encore\Admin\Controllers\AdminController;
 use Exceedone\Exment\Model\Plugin;
@@ -23,15 +22,100 @@ class PluginMarketController extends AdminController
 {
     protected $title = 'Plugin Market';
 
-    protected function isMockRequest(Request $request): bool
+    public function checkoutPurchase(Request $request)
     {
-        return ($request->query('mock') === '1') || ($request->input('mock') === '1');
+        $tenantUuid = $this->getTenantUuid();
+        if (empty($tenantUuid)) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Missing tenant_uuid.',
+            ], 400);
+        }
+
+        $pluginUuid = $request->input('plugin_uuid');
+        if (!is_string($pluginUuid) || strlen(trim($pluginUuid)) === 0) {
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Missing plugin_uuid.',
+            ], 422);
+        }
+        $pluginUuid = trim($pluginUuid);
+
+        // Optional: if client sends tenant_uuid, ensure it matches server config.
+        $clientTenantUuid = $request->input('tenant_uuid');
+        if (is_string($clientTenantUuid) && strlen(trim($clientTenantUuid)) > 0) {
+            if (trim($clientTenantUuid) !== $tenantUuid) {
+                return response()->json([
+                    'status' => 'failed',
+                    'message' => 'Invalid tenant_uuid.',
+                ], 422);
+            }
+        }
+
+        $url = $this->getMarketplaceUrl() . '/api/plugins/checkout/purchase';
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(30)
+                ->connectTimeout(10)
+                ->retry(1, 200)
+                ->acceptJson()
+                ->asJson()
+                ->post($url, [
+                    'tenant_uuid' => $tenantUuid,
+                    'plugin_uuid' => $pluginUuid,
+                ]);
+
+            $json = null;
+            try {
+                $json = $response->json();
+            } catch (\Throwable $e) {
+                $json = null;
+            }
+
+            if ($response->ok()) {
+                return response()->json(is_array($json) ? $json : [], 200);
+            }
+
+            Log::warning('[PluginMarket] Checkout purchase request failed', [
+                'status' => $response->status(),
+                'url' => $url,
+                'body' => $response->body(),
+            ]);
+
+            if (is_array($json)) {
+                return response()->json($json, $response->status());
+            }
+
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Marketplace request failed.',
+            ], $response->status());
+        } catch (\Throwable $e) {
+            Log::error('[PluginMarket] Checkout purchase exception: ' . $e->getMessage(), [
+                'url' => $url,
+            ]);
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Checkout request failed: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     protected function appendTenantUuidToUrl(string $url, ?string $tenantUuid): string
     {
         // Do not mutate local file URLs.
         if (Str::startsWith($url, 'file://')) {
+            return $url;
+        }
+
+        // Do not mutate signed URLs (adding query params after signature invalidates the signature).
+        // Marketplace download URLs are often generated via temporary signed routes.
+        $looksSigned = str_contains($url, 'signature=')
+            || str_contains($url, 'expires=')
+            || str_contains($url, 'X-Amz-Signature=')
+            || str_contains($url, 'X-Amz-Credential=');
+        if ($looksSigned) {
             return $url;
         }
 
@@ -111,18 +195,12 @@ class PluginMarketController extends AdminController
 
             $tenantUuid = $this->getTenantUuid();
 
-            $isMock = $this->isMockRequest($request);
-
             // URL API Marketplace with search parameters
             $marketplaceApi = $this->getRepoUrl();
             $queryParams = [];
 
             if (!empty($tenantUuid)) {
                 $queryParams['tenant_uuid'] = $tenantUuid;
-            }
-
-            if ($isMock) {
-                $queryParams['mock'] = '1';
             }
             
             if ($keyword) {
@@ -271,10 +349,6 @@ class PluginMarketController extends AdminController
                 $queryParams['tenant_uuid'] = $tenantUuid;
             }
 
-            if ($this->isMockRequest($request)) {
-                $queryParams['mock'] = '1';
-            }
-
             $response = Http::withoutVerifying()
                 ->timeout(30)
                 ->connectTimeout(10)
@@ -312,16 +386,10 @@ class PluginMarketController extends AdminController
         try {
             $versionId = $request->input('version'); // Selected version ID
 
-            $isMock = $this->isMockRequest($request);
-
             $tenantUuid = $this->getTenantUuid();
             $queryParams = [];
             if (!empty($tenantUuid)) {
                 $queryParams['tenant_uuid'] = $tenantUuid;
-            }
-
-            if ($isMock) {
-                $queryParams['mock'] = '1';
             }
 
             Log::info("[PluginMarket] Install request", [
@@ -399,30 +467,15 @@ class PluginMarketController extends AdminController
             ]);
 
             // Download plugin file
-            $zipBytes = null;
-            if ($isMock && Str::startsWith($downloadUrl, 'file://')) {
-                $path = parse_url($downloadUrl, PHP_URL_PATH) ?? '';
-                $path = urldecode((string)$path);
-
-                // Windows file URL: file:///C:/... -> /C:/...
-                if (preg_match('#^/[A-Za-z]:/#', $path) === 1) {
-                    $path = ltrim($path, '/');
-                }
-
-                $path = str_replace('/', DIRECTORY_SEPARATOR, $path);
-
-                if (!File::exists($path)) {
-                    return response()->json(['error' => 'Mock file not found: ' . $path], 500);
-                }
-
-                $zipBytes = File::get($path);
-            } else {
-                $zipResp = Http::withoutVerifying()->timeout(60)->get($downloadUrl);
-                if ($zipResp->failed()) {
-                    return response()->json(['error' => exmtrans('plugin.market.message.download_failed')], 500);
-                }
-                $zipBytes = $zipResp->body();
+            $zipResp = Http::withoutVerifying()->timeout(60)->get($downloadUrl);
+            if ($zipResp->failed()) {
+                Log::warning('[PluginMarket] Download failed', [
+                    'status' => $zipResp->status(),
+                    'download_url' => $downloadUrl,
+                ]);
+                return response()->json(['error' => exmtrans('plugin.market.message.download_failed')], 500);
             }
+            $zipBytes = $zipResp->body();
 
             // Save to temporary location
             $tmpPath = 'tmp/' . Str::random(10) . '.zip';
