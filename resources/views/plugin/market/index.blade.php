@@ -109,15 +109,15 @@
                         <td><small>{{ $plugin['description'] ?? '—' }}</small></td>
                         <td>
                             @php
-                                $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
-                                $isFree = (bool)($plugin['is_free'] ?? ((float)($plugin['price'] ?? 0) <= 0));
-                                // Marketplace may return has_license=false even for free plugins.
-                                // For UI purposes, free plugins are always installable without payment.
-                                $hasLicense = $isFree ? true : (bool)($plugin['has_license'] ?? false);
-                                $isExpired = (bool)($plugin['is_expired'] ?? false);
-                                $canInstall = $isFree || ($hasLicense && !$isExpired);
-                                $shouldShowPayment = (!$isFree) && ((!$hasLicense) || $isExpired);
-                                $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
+    $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
+    $isFree = (bool) ($plugin['is_free'] ?? ((float) ($plugin['price'] ?? 0) <= 0));
+    // Marketplace may return has_license=false even for free plugins.
+    // For UI purposes, free plugins are always installable without payment.
+    $hasLicense = $isFree ? true : (bool) ($plugin['has_license'] ?? false);
+    $isExpired = (bool) ($plugin['is_expired'] ?? false);
+    $canInstall = $isFree || ($hasLicense && !$isExpired);
+    $shouldShowPayment = (!$isFree) && ((!$hasLicense) || $isExpired);
+    $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
                             @endphp
 
                             @if($isExpired)
@@ -282,7 +282,7 @@ function initPluginMarket() {
     const t = {
         installing: {!! json_encode(exmtrans("plugin.market.message.installing")) !!},
         installedShort: {!! json_encode(exmtrans("plugin.market.installed_short")) !!},
-        installSuccessTpl: {!! json_encode(exmtrans("plugin.market.message.install_success", ['name' => ''])) !!},
+        installSuccessTpl: {!! json_encode(exmtrans("plugin.market.message.install_success")) !!},
         installFailed: {!! json_encode(exmtrans("plugin.market.message.install_failed")) !!},
         install: {!! json_encode(exmtrans("plugin.market.install")) !!},
         uninstallConfirmTpl: {!! json_encode(exmtrans("plugin.market.message.uninstall_confirm")) !!},
@@ -299,6 +299,17 @@ function initPluginMarket() {
         paymentProcessing: {!! json_encode(exmtrans("plugin.market.message.payment_processing")) !!},
         renewProcessing: {!! json_encode(exmtrans("plugin.market.message.renew_processing")) !!},
         paymentFailed: {!! json_encode(exmtrans("plugin.market.message.payment_failed")) !!},
+        noticeTitle: {!! json_encode(exmtrans("plugin.market.message.notice_title")) !!},
+        ok: {!! json_encode(exmtrans("plugin.market.message.ok")) !!},
+        manualPaymentRequired: {!! json_encode(exmtrans("plugin.market.message.manual_payment_required")) !!},
+        missingTenantUuid: {!! json_encode(exmtrans("plugin.market.message.missing_tenant_uuid")) !!},
+        missingPluginUuid: {!! json_encode(exmtrans("plugin.market.message.missing_plugin_uuid")) !!},
+        stripeLoadFailed: {!! json_encode(exmtrans("plugin.market.message.stripe_load_failed")) !!},
+        stripePublishableKeyMissing: {!! json_encode(exmtrans("plugin.market.message.stripe_publishable_key_missing")) !!},
+        missingClientSecret: {!! json_encode(exmtrans("plugin.market.message.missing_client_secret")) !!},
+        paymentSucceeded: {!! json_encode(exmtrans("plugin.market.message.payment_succeeded")) !!},
+        paymentStatusTpl: {!! json_encode(exmtrans("plugin.market.message.payment_status")) !!},
+        errorPrefixTpl: {!! json_encode(exmtrans("plugin.market.message.error_prefix")) !!},
     };
 
     const adminPluginMarketUrl = {!! json_encode(admin_url('plugin-market')) !!};
@@ -315,6 +326,38 @@ function initPluginMarket() {
         }
     }
 
+    function showPopupAndRedirect(message, url, onCancel) {
+        // Prefer SweetAlert2 if available (laravel-admin ships it).
+        if (window.Swal && typeof window.Swal.fire === 'function') {
+            window.Swal.fire({
+                icon: 'info',
+                title: t.noticeTitle,
+                text: message,
+                confirmButtonText: t.ok,
+                showCancelButton: true,
+                cancelButtonText: t.cancel,
+                allowOutsideClick: false,
+            }).then(function(result) {
+                // SweetAlert2 versions differ:
+                // - newer: result.isConfirmed === true
+                // - some setups: result.value === true
+                if (result && (result.isConfirmed === true || result.value === true)) {
+                    window.location.href = url;
+                } else if (typeof onCancel === 'function') {
+                    onCancel();
+                }
+            });
+            return;
+        }
+
+        // Fallback: use native confirm() to support OK/Cancel.
+        if (window.confirm(message)) {
+            window.location.href = url;
+        } else if (typeof onCancel === 'function') {
+            onCancel();
+        }
+    }
+
     function ensureStripeLoaded() {
         return new Promise(function(resolve, reject) {
             if (window.Stripe) {
@@ -324,7 +367,7 @@ function initPluginMarket() {
             const script = document.createElement('script');
             script.src = 'https://js.stripe.com/v3/';
             script.onload = resolve;
-            script.onerror = function() { reject(new Error('Failed to load Stripe.js')); };
+            script.onerror = function() { reject(new Error(t.stripeLoadFailed)); };
             document.head.appendChild(script);
         });
     }
@@ -335,11 +378,11 @@ function initPluginMarket() {
         const action = button.dataset.action || 'purchase';
 
         if (!tenantUuid) {
-            showToast('error', 'Missing tenant_uuid.');
+            showToast('error', t.missingTenantUuid);
             return;
         }
         if (!pluginUuid) {
-            showToast('error', 'Missing plugin_uuid.');
+            showToast('error', t.missingPluginUuid);
             return;
         }
 
@@ -371,24 +414,45 @@ function initPluginMarket() {
                 data = {};
             }
 
-            if (!response.ok) {
+            // Special case: treat HTTP 402 as a "requires_action" (3DS) flow.
+            // Some backends use 402 to indicate additional authentication is required.
+            if (!response.ok && response.status !== 402) {
                 const msg = (data && (data.error || data.message)) ? (data.error || data.message)
                     : (rawText && rawText.length < 500 ? rawText : null);
                 throw new Error(msg || t.paymentFailed);
             }
 
-            if (data.status === 'succeeded') {
-                showToast('success', data.message || `${pluginName}: success`);
+            // If 402 is returned but there's no client_secret, this is NOT a 3DS flow.
+            // In our marketplace integration, it typically means the account hasn't registered a paid plan/card.
+            if (response.status === 402 && !data.client_secret) {
+                const manualMessage = t.manualPaymentRequired;
+                const manualUrl = 'https://exment.org/plugins';
+
+                showPopupAndRedirect(manualMessage, manualUrl, function() {
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
+                });
+                return;
+            }
+
+            const effectiveStatus = (response.status === 402)
+                ? 'requires_action'
+                : (data && data.status ? data.status : null);
+
+            
+            if (effectiveStatus === 'succeeded') {
+                showToast('success', data.message || t.paymentSucceeded);
                 setTimeout(function() { window.location.reload(); }, 1200);
                 return;
             }
 
-            if (data.status === 'requires_action') {
+            if (effectiveStatus === 'requires_action') {
                 if (!data.client_secret) {
-                    throw new Error(data.message || 'Missing client_secret for 3DS.');
+                    // Keep message from API if present; otherwise show a clear fallback.
+                    throw new Error(data.message || data.error || t.missingClientSecret);
                 }
                 if (!stripePublishableKey) {
-                    throw new Error('Stripe publishable key is not configured (services.stripe.key).');
+                    throw new Error(t.stripePublishableKeyMissing);
                 }
 
                 await ensureStripeLoaded();
@@ -401,24 +465,25 @@ function initPluginMarket() {
 
                 const paymentIntent = result.paymentIntent;
                 if (paymentIntent && paymentIntent.status === 'succeeded') {
-                    showToast('success', data.message || 'Payment succeeded.');
+                    showToast('success', data.message || t.paymentSucceeded);
                     setTimeout(function() { window.location.reload(); }, 1200);
                     return;
                 }
 
-                showToast('info', `Payment status: ${paymentIntent ? paymentIntent.status : 'unknown'}`);
+                const statusLabel = paymentIntent ? paymentIntent.status : 'unknown';
+                showToast('info', t.paymentStatusTpl.replace(':status', statusLabel));
                 setTimeout(function() { window.location.reload(); }, 1200);
                 return;
             }
 
-            if (data.status === 'failed') {
+            if (effectiveStatus === 'failed') {
                 throw new Error(data.error || data.message || t.paymentFailed);
             }
 
             throw new Error(data.message || t.paymentFailed);
         } catch (error) {
             console.error('Purchase error:', error);
-            showToast('error', error.message || t.paymentFailed);
+            showToast('error', (error && error.message) ? error.message : t.paymentFailed);
             button.disabled = false;
             button.innerHTML = originalHtml;
         }
@@ -483,7 +548,7 @@ function initPluginMarket() {
                 if (typeof toastr !== 'undefined') {
                     toastr.error(errorMsg);
                 } else {
-                    alert('Error: ' + errorMsg);
+                    alert(t.errorPrefixTpl.replace(':message', errorMsg));
                 }
             });
         });
@@ -644,7 +709,7 @@ function initPluginMarket() {
                 if (typeof toastr !== 'undefined') {
                     toastr.error(errorMsg);
                 } else {
-                    alert('Error: ' + errorMsg);
+                    alert(t.errorPrefixTpl.replace(':message', errorMsg));
                 }
             });
         });
