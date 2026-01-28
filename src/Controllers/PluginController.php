@@ -77,15 +77,6 @@ class PluginController extends AdminControllerBase
         return rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/');
     }
 
-    /**
-     * Auto-disable installed plugins when license is expired (or missing).
-     * Only applies when tenant_uuid is configured (SaaS).
-     */
-    protected function shouldUseMockForMarket(): bool
-    {
-        return filter_var(env('PLUGIN_MARKET_USE_MOCK', false), FILTER_VALIDATE_BOOL);
-    }
-
     protected function fetchMarketplacePluginsByName(): ?\Illuminate\Support\Collection
     {
         if ($this->marketPluginsByName !== null) {
@@ -103,9 +94,6 @@ class PluginController extends AdminControllerBase
         $apiUrl = $marketplaceUrl . '/api/plugins';
 
         $params = ['tenant_uuid' => $tenantUuid];
-        if ($this->shouldUseMockForMarket()) {
-            $params['mock'] = '1';
-        }
 
         $resp = Http::withoutVerifying()
             ->timeout(15)
