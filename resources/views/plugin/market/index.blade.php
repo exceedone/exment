@@ -326,7 +326,7 @@ function initPluginMarket() {
         }
     }
 
-    function showPopupAndRedirect(message, url, onCancel) {
+    function showPopupAndRedirect(message, url, onCancel, onConfirm) {
         // Prefer SweetAlert2 if available (laravel-admin ships it).
         if (window.Swal && typeof window.Swal.fire === 'function') {
             window.Swal.fire({
@@ -342,7 +342,10 @@ function initPluginMarket() {
                 // - newer: result.isConfirmed === true
                 // - some setups: result.value === true
                 if (result && (result.isConfirmed === true || result.value === true)) {
-                    window.location.href = url;
+                    window.open(url, '_blank', 'noopener');
+                    if (typeof onConfirm === 'function') {
+                        onConfirm();
+                    }
                 } else if (typeof onCancel === 'function') {
                     onCancel();
                 }
@@ -352,7 +355,10 @@ function initPluginMarket() {
 
         // Fallback: use native confirm() to support OK/Cancel.
         if (window.confirm(message)) {
-            window.location.href = url;
+            window.open(url, '_blank', 'noopener');
+            if (typeof onConfirm === 'function') {
+                onConfirm();
+            }
         } else if (typeof onCancel === 'function') {
             onCancel();
         }
@@ -428,10 +434,12 @@ function initPluginMarket() {
                 const manualMessage = t.manualPaymentRequired;
                 const manualUrl = 'https://exment.org/plugins';
 
-                showPopupAndRedirect(manualMessage, manualUrl, function() {
+                const restoreButton = function() {
                     button.disabled = false;
                     button.innerHTML = originalHtml;
-                });
+                };
+
+                showPopupAndRedirect(manualMessage, manualUrl, restoreButton, restoreButton);
                 return;
             }
 
