@@ -2687,6 +2687,7 @@ return [
     'tenant' => [
         'plan_limit_exceeded' => 'ご利用中のプランの上限を超えました。',
         'cannot_create_more_users' => 'これ以上ユーザーを作成できません。最大 :max_count ユーザーに達しています。',
+        'faq_validate' => 'FAQは明確で検索価値のある質問である必要があります。',
     ],
 
     'command' => [

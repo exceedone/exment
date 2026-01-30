@@ -2688,6 +2688,7 @@ return [
     'tenant' => [
         'plan_limit_exceeded' => 'You have exceeded your plan limit.',
         'cannot_create_more_users' => 'Cannot create additional users. The maximum of :max_count users has been reached.',
+        'faq_validate' => 'FAQ must be a clear question with search value.',
     ],
 
     'command' => [

@@ -128,7 +128,7 @@ class Exment
                         'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
                     ]);
                 }                
-                if ($exception->getCode() == ErrorCode::ERROR_CODE_CREATE_USER) {
+                if ($exception->getCode() == ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
                     return getAjaxResponse([
                         'result' => false,
                         'toastr' => $exception->getMessage(),
@@ -144,7 +144,7 @@ class Exment
                 return $callback($request, $exception);
             }
             
-            if ($exception->getCode() == ErrorCode::ERROR_CODE_CREATE_USER) {           
+            if ($exception->getCode() == ErrorCode::ERROR_CODE_VALIDATION_FAILED) {           
                 admin_toastr($exception->getMessage(), 'error');
                 return redirect($request->header('referer', '/'))->withInput();
             }

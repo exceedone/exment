@@ -131,7 +131,7 @@ class ModelBase extends Model
                             'tenant.cannot_create_more_users',
                             ['max_count' => $res->cnt]
                         ),
-                        ErrorCode::ERROR_CODE_CREATE_USER
+                        ErrorCode::ERROR_CODE_VALIDATION_FAILED
                     );
                 }
             }

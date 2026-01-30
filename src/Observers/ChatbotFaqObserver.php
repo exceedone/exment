@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Observers;
 
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\AI\ChatbotService;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomValue;
@@ -14,7 +15,13 @@ class ChatbotFaqObserver
         if (!$customTable || $customTable->table_name !== SystemTableName::CHATBOT_FAQ) {
             return;
         }
-        $this->setEmbeddingIfNeeded($model, true);
+
+        if (! $this->updateEmbeddingIfNecessary($model, true)) {
+            throw new \Exception(
+                exmtrans('tenant.faq_validate'),
+                ErrorCode::ERROR_CODE_VALIDATION_FAILED 
+            );
+        }
     }
 
     public function updating(CustomValue $model): void
@@ -38,26 +45,27 @@ class ChatbotFaqObserver
         $questionOld = $oldValue['question'] ?? null;
         $questionNew = $newValue['question'] ?? null;
         if ($questionNew !== $questionOld) {
-            $this->setEmbeddingIfNeeded($model, false);
+            $this->updateEmbeddingIfNecessary($model, false);
         }
     }
 
-    private function setEmbeddingIfNeeded(CustomValue $model, bool $isCreate): void
+    private function updateEmbeddingIfNecessary(CustomValue $model, bool $isCreate): bool
     {
 
         $value = is_array($model->value) ? $model->value : (array) $model->value;
         $question = $value['question'] ?? null;
         if (!is_string($question) || $question === '') {
-            return;
+            return false;
         }
 
         /** @var ChatbotService $chatbotService */
         $chatbotService = app(ChatbotService::class);
         $embedding = $chatbotService->getEmbeddingFromAI($question);
         if (!$embedding || !is_array($embedding)) {
-            return;
+            return false;
         }
 
         $model->embedding_vector = json_encode($embedding);
+        return true;
     }
 }
