@@ -97,33 +97,30 @@ class BCustomTableTest extends ExmentKitTestCase
      */
     public function testEditCustomTableSuccess()
     {
-        $this->login(); // Đảm bảo đã đăng nhập trước khi test
-
         $row = CustomTable::orderBy('id', 'desc')->first();
         $id = $row->id;
 
-        $this->put(admin_url('table/' . $id), [
-            'table_view_name' => 'test table update',
-            'description'     => 'test description update',
-            'options' => [
-                'color' => '#00ff00',
-            ],
-        ])->matchStatusCode(200);
+        // Use visit and form submit instead of direct PUT to handle CSRF and redirects
+        $this->visit(admin_url('table/' . $id . '/edit'))
+            ->type('test table update', 'table_view_name')
+            ->type('test description update', 'description')
+            ->type('#00ff00', 'options[color]')
+            ->press('admin-submit')
+            ->seePageIs(admin_url('table'));
 
         $this->assertNotNull(CustomTable::find($id));
 
-        $this->put(admin_url('table/' . $id), [
-            'table_view_name' => 'test table checked',
-            'options' => [
-                'search_enabled'         => 0,
-                'one_record_flg'         => 1,
-                'attachment_flg'         => 0,
-                'revision_flg'           => 0,
-                'all_user_editable_flg'  => 1,
-                'all_user_viewable_flg'  => 1,
-                'all_user_accessable_flg'=> 1,
-            ],
-        ])->matchStatusCode(200);
+        $this->visit(admin_url('table/' . $id . '/edit'))
+            ->type('test table checked', 'table_view_name')
+            ->uncheck('options[search_enabled]')
+            ->check('options[one_record_flg]')
+            ->uncheck('options[attachment_flg]')
+            ->uncheck('options[revision_flg]')
+            ->check('options[all_user_editable_flg]')
+            ->check('options[all_user_viewable_flg]')
+            ->check('options[all_user_accessable_flg]')
+            ->press('admin-submit')
+            ->seePageIs(admin_url('table'));
 
         $this->assertNotNull(CustomTable::find($id));
     }
