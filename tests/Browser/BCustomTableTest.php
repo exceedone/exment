@@ -97,6 +97,8 @@ class BCustomTableTest extends ExmentKitTestCase
      */
     public function testEditCustomTableSuccess()
     {
+        $this->login(); // Đảm bảo đã đăng nhập trước khi test
+
         $row = CustomTable::orderBy('id', 'desc')->first();
         $id = $row->id;
 
