@@ -28,13 +28,13 @@ class MailSendJob extends Notification implements ShouldQueue
      * @var MailHistory
      */
     protected $mailHistory;
-    protected $user;
+    protected $userId;
     protected $finalUser;
 
 
-    public function __construct($user = null, $finalUser = false)
+    public function __construct($userId = null, $finalUser = false)
     {
-        $this->user = $user;
+        $this->userId = $userId;
         $this->finalUser = $finalUser;
     }
 
@@ -104,7 +104,7 @@ class MailSendJob extends Notification implements ShouldQueue
                 $mail_template->getValue('mail_subject'),
                 $mail_template->getValue('mail_body'),
                 $this->notify_id ?? -1,
-                $this->user->id,
+                $this->userId,
                 \Exment::getUserId() ?? null,
                 $this->mailHistory->getParentId(),
                 $this->mailHistory->getParentType()

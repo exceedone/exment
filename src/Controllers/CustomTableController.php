@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
@@ -318,6 +319,9 @@ class CustomTableController extends AdminControllerBase
             if ($has_parent) {
                 $form->switchbool('inherit_parent_permission', exmtrans("custom_table.inherit_parent_permission"))->help(exmtrans("custom_table.help.inherit_parent_permission"))
                     ->default("0");
+
+                $form->switchbool('editable_with_parent', exmtrans("custom_table.editable_with_parent"))->help(exmtrans("custom_table.help.editable_with_parent"))
+                    ->default("1");
             }
         })->disableHeader();
 

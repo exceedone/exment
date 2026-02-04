@@ -170,9 +170,16 @@ class DefaultShow extends ShowBase
                     $tools->disableList();
                 }
 
-                if (!is_null($parent_value = $this->custom_value->getParentValue(null, true)) && $parent_value->enableEdit(true) !== true) {
-                    $tools->disableEdit();
-                    $tools->disableDelete();
+                if (!is_null($parent_value = $this->custom_value->getParentValue(null, true))) {
+                    if (boolval($this->custom_table->getOption('editable_with_parent')??1)) {
+                        if ($parent_value->enableEdit(true) !== true) {
+                            $tools->disableEdit();
+                            $tools->disableDelete();
+                        }
+                    } elseif ($parent_value->enableAccess() !== true)  {
+                        $tools->disableEdit();
+                        $tools->disableDelete();
+                    }
                 }
 
                 if ($this->modal) {
