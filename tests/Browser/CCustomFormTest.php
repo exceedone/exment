@@ -38,9 +38,17 @@ class CCustomFormTest extends ExmentKitTestCase
 
     protected function tearDown(): void
     {
+        // Cleanup error/exception handlers to avoid risky tests
+        if (function_exists('restore_error_handler')) {
+            @restore_error_handler();
+        }
+        if (function_exists('restore_exception_handler')) {
+            @restore_exception_handler();
+        }
         if (($custom_table = CustomTable::getEloquent('exmenttest_form')) != null) {
             $custom_table->delete();
         }
+        parent::tearDown();
     }
 
     /**
