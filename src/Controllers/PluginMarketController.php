@@ -74,6 +74,21 @@ class PluginMarketController extends AdminController
             }
 
             if ($response->ok()) {
+                if (is_array($json)) {
+                    $status = $json['status'] ?? null;
+                    if (is_string($status)) {
+                        $statusLower = strtolower(trim($status));
+                        if (in_array($statusLower, ['success', 'paid', 'completed', 'ok'], true)) {
+                            $json['status'] = 'succeeded';
+                        }
+                    }
+
+                    // Some APIs return boolean flags instead of a string status.
+                    if (($json['success'] ?? null) === true) {
+                        $json['status'] = 'succeeded';
+                    }
+                }
+
                 return response()->json(is_array($json) ? $json : [], 200);
             }
 

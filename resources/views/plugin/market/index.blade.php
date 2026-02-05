@@ -93,6 +93,7 @@
                     <th>{{ exmtrans('plugin.market.type') }}</th>
                     <th>{{ exmtrans('plugin.market.author') }}</th>
                     <th>{{ exmtrans('plugin.market.latest_version') }}</th>
+                    <th>{{ exmtrans('plugin.market.price') }}</th>
                     <th>{{ exmtrans('plugin.market.description_col') }}</th>
                     <th>{{ exmtrans('plugin.market.actions') }}</th>
                 </tr>
@@ -100,26 +101,49 @@
             <tbody>
                 @forelse($plugins as $plugin)
                     <tr>
+                        @php
+                            $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
+                            $rawPrice = $plugin['price'] ?? null;
+                            $isFree = (bool) ($plugin['is_free'] ?? ((float) ($rawPrice ?? 0) <= 0));
+                            // Marketplace may return has_license=false even for free plugins.
+                            // For UI purposes, free plugins are always installable without payment.
+                            $hasLicense = $isFree ? true : (bool) ($plugin['has_license'] ?? false);
+                            $isExpired = (bool) ($plugin['is_expired'] ?? false);
+                            $canInstall = $isFree || ($hasLicense && !$isExpired);
+                            $shouldShowPayment = (!$isFree) && ((!$hasLicense) || $isExpired);
+                            $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
+                        @endphp
                         <td>{{ $plugin['id'] ?? '—' }}</td>
                         <td><strong>{{ $plugin['plugin_view_name'] ?? $plugin['plugin_name'] ?? '—' }}</strong></td>
                         <td><code>{{ $plugin['plugin_name'] ?? '—' }}</code></td>
                         <td><span class="badge bg-secondary">{{ $plugin['plugin_types'] ?? '—' }}</span></td>
                         <td>{{ $plugin['user']['name'] ?? '—' }}</td>
                         <td><span class="badge bg-info">{{ $plugin['version'] ?? '—' }}</span></td>
+                        <td>
+                            @if($isFree)
+                                <span class="badge bg-success">{{ exmtrans('plugin.market.free') }}</span>
+                            @elseif($rawPrice !== null && $rawPrice !== '')
+                                @php
+                                    $currencyLabel = $plugin['currency'] ?? null;
+                                    $currencyNormalized = is_string($currencyLabel) ? strtoupper(trim($currencyLabel)) : null;
+                                    $isYen = empty($currencyNormalized) || in_array($currencyNormalized, ['JPY', 'YEN', '円', '¥'], true);
+                                    $priceLabel = is_numeric($rawPrice)
+                                        ? ($isYen ? number_format((float) $rawPrice, 0) : number_format((float) $rawPrice, 2))
+                                        : $rawPrice;
+                                    $currencySuffix = is_numeric($rawPrice)
+                                        ? ($isYen ? '円' : ($currencyLabel ?? null))
+                                        : null;
+                                @endphp
+                                <span>{{ $priceLabel }}</span>
+                                @if(!empty($currencySuffix))
+                                    <small class="text-muted">{{ $currencySuffix }}</small>
+                                @endif
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td><small>{{ $plugin['description'] ?? '—' }}</small></td>
                         <td>
-                            @php
-    $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
-    $isFree = (bool) ($plugin['is_free'] ?? ((float) ($plugin['price'] ?? 0) <= 0));
-    // Marketplace may return has_license=false even for free plugins.
-    // For UI purposes, free plugins are always installable without payment.
-    $hasLicense = $isFree ? true : (bool) ($plugin['has_license'] ?? false);
-    $isExpired = (bool) ($plugin['is_expired'] ?? false);
-    $canInstall = $isFree || ($hasLicense && !$isExpired);
-    $shouldShowPayment = (!$isFree) && ((!$hasLicense) || $isExpired);
-    $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
-                            @endphp
-
                             @if($isExpired)
                                 <div class="text-warning" style="margin-bottom:4px;">
                                     <i class="fa fa-exclamation-triangle"></i> {{ exmtrans('plugin.market.message.expired_warning') }}
@@ -443,18 +467,29 @@ function initPluginMarket() {
                 return;
             }
 
-            const effectiveStatus = (response.status === 402)
+            let effectiveStatus = (response.status === 402)
                 ? 'requires_action'
-                : (data && data.status ? data.status : null);
+                : (data && (data.status !== undefined && data.status !== null) ? data.status : null);
 
-            
-            if (effectiveStatus === 'succeeded') {
+            // Normalize status values from the marketplace.
+            // Some APIs return "success" (or boolean success flags) instead of Stripe-like "succeeded".
+            const normalizedStatus = (typeof effectiveStatus === 'string')
+                ? effectiveStatus.toLowerCase()
+                : effectiveStatus;
+            const isSuccess = normalizedStatus === 'succeeded'
+                || normalizedStatus === 'success'
+                || normalizedStatus === 'paid'
+                || normalizedStatus === 'completed'
+                || normalizedStatus === 'ok'
+                || (data && data.success === true);
+
+            if (isSuccess) {
                 showToast('success', data.message || t.paymentSucceeded);
                 setTimeout(function() { window.location.reload(); }, 1200);
                 return;
             }
 
-            if (effectiveStatus === 'requires_action') {
+            if (normalizedStatus === 'requires_action') {
                 if (!data.client_secret) {
                     // Keep message from API if present; otherwise show a clear fallback.
                     throw new Error(data.message || data.error || t.missingClientSecret);
@@ -484,7 +519,7 @@ function initPluginMarket() {
                 return;
             }
 
-            if (effectiveStatus === 'failed') {
+            if (normalizedStatus === 'failed' || normalizedStatus === 'error') {
                 throw new Error(data.error || data.message || t.paymentFailed);
             }
 
