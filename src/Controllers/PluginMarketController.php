@@ -124,15 +124,14 @@ class PluginMarketController extends AdminController
             return $url;
         }
 
-        // Do not mutate signed URLs (adding query params after signature invalidates the signature).
-        // Marketplace download URLs are often generated via temporary signed routes.
+        // Signed URLs: by default we do NOT mutate them (adding query params after signing invalidates the signature).
+        // If you need tenant_uuid to be present in the download request URL anyway (for custom verifiers),
+        // enable EXMENT_MARKET_FORCE_APPEND_TENANT_UUID_TO_SIGNED_URL=true.
         $looksSigned = str_contains($url, 'signature=')
             || str_contains($url, 'expires=')
             || str_contains($url, 'X-Amz-Signature=')
             || str_contains($url, 'X-Amz-Credential=');
-        if ($looksSigned) {
-            return $url;
-        }
+        $forceAppendOnSigned = (bool) config('exment.market_force_append_tenant_uuid_to_signed_url', false);
 
         if (empty($tenantUuid)) {
             return $url;
@@ -143,13 +142,98 @@ class PluginMarketController extends AdminController
             return $url;
         }
 
+        if ($looksSigned && $forceAppendOnSigned) {
+            // Try to insert tenant_uuid before signature for maximum compatibility with non-standard verifiers.
+            $signatureKeys = ['signature=', 'X-Amz-Signature='];
+            $signaturePos = null;
+            foreach ($signatureKeys as $key) {
+                $pos = strpos($url, $key);
+                if ($pos !== false && ($signaturePos === null || $pos < $signaturePos)) {
+                    $signaturePos = $pos;
+                }
+            }
+
+            if ($signaturePos !== null) {
+                $insert = 'tenant_uuid=' . urlencode((string) $tenantUuid) . '&';
+                return substr($url, 0, $signaturePos) . $insert . substr($url, $signaturePos);
+            }
+            // Fallback: append at end.
+        } elseif ($looksSigned) {
+            return $url;
+        }
+
         $separator = str_contains($url, '?') ? '&' : '?';
         return $url . $separator . 'tenant_uuid=' . urlencode($tenantUuid);
     }
 
+    protected function resignMarketplaceSignedUrl(string $url, ?string $tenantUuid, int $minutes = 10): string
+    {
+        if (empty($tenantUuid)) {
+            return $url;
+        }
+
+        $key = config('exment.marketplace_app_key');
+        if (!is_string($key) || trim($key) === '') {
+            return $url;
+        }
+        // IMPORTANT: Laravel UrlGenerator signs using the raw app.key string (including "base64:" prefix if present).
+        $key = trim($key);
+
+        $parts = parse_url($url);
+        if (!is_array($parts) || empty($parts['path'])) {
+            return $url;
+        }
+
+        $path = $parts['path'];
+
+        $absoluteBase = '';
+        if (!empty($parts['scheme']) && !empty($parts['host'])) {
+            $absoluteBase = $parts['scheme'] . '://' . $parts['host'];
+            if (!empty($parts['port'])) {
+                $absoluteBase .= ':' . $parts['port'];
+            }
+            $absoluteBase .= $path;
+        }
+
+        // Build a query string that matches what Laravel will verify against.
+        // Verification uses the raw QUERY_STRING order (minus signature), so we must sign the same order we output.
+        $existingPairs = [];
+        if (!empty($parts['query'])) {
+            $existingPairs = array_values(array_filter(explode('&', (string) $parts['query']), function ($p) {
+                return is_string($p) && $p !== '';
+            }));
+        }
+
+        $keptPairs = [];
+        foreach ($existingPairs as $pair) {
+            $name = Str::before($pair, '=');
+            if (in_array($name, ['signature', 'expires', 'tenant_uuid'], true)) {
+                continue;
+            }
+            $keptPairs[] = $pair;
+        }
+
+        $expires = now()->addMinutes($minutes)->getTimestamp();
+        $unsignedPairs = [
+            'expires=' . $expires,
+            'tenant_uuid=' . rawurlencode((string) $tenantUuid),
+        ];
+        $unsignedPairs = array_merge($unsignedPairs, $keptPairs);
+        $unsignedQuery = implode('&', $unsignedPairs);
+
+        $relative = (bool) config('exment.marketplace_resign_relative', false);
+        $signingUrl = $relative ? $path : ($absoluteBase !== '' ? $absoluteBase : $path);
+
+        $original = rtrim($signingUrl . '?' . $unsignedQuery, '?');
+        $signature = hash_hmac('sha256', $original, $key);
+
+        $finalBase = $absoluteBase !== '' ? $absoluteBase : $path;
+        return $finalBase . '?' . $unsignedQuery . '&signature=' . $signature;
+    }
+
     protected function getTenantUuid(): ?string
     {
-        $tenantUuid = env('EXMENT_MARKET_TENANT_UUID');
+        $tenantUuid = config('exment.market_tenant_uuid');
         if (is_string($tenantUuid) && strlen(trim($tenantUuid)) > 0) {
             return trim($tenantUuid);
         }
@@ -410,6 +494,7 @@ class PluginMarketController extends AdminController
             Log::info("[PluginMarket] Install request", [
                 'plugin_id' => $id,
                 'version_id' => $versionId,
+                'tenant_uuid' => $tenantUuid,
                 'marketplace_url' => $this->getMarketplaceUrl(),
             ]);
 
@@ -445,6 +530,15 @@ class PluginMarketController extends AdminController
             }
 
             // Get version information
+            Log::info('[PluginMarket] Loading versions', [
+                'url' => "{$this->getRepoUrl()}/{$id}/versions",
+                'query' => $queryParams,
+            ]);
+            // Evidence log: proves tenant_uuid is included in the upstream request.
+            Log::info('[PluginMarket] EVIDENCE_QUERY', [
+                'endpoint' => "{$this->getRepoUrl()}/{$id}/versions",
+                'tenant_uuid_sent' => $queryParams['tenant_uuid'] ?? null,
+            ]);
             $versionResponse = Http::withoutVerifying()
                 ->timeout(30)
                 ->connectTimeout(10)
@@ -475,18 +569,66 @@ class PluginMarketController extends AdminController
             }
             
             $downloadUrl = $selectedVersion['download_url'];
-            $downloadUrl = $this->appendTenantUuidToUrl($downloadUrl, $tenantUuid);
+
+            // Evidence log: captures the exact download_url returned by the marketplace.
+            Log::info('[PluginMarket] EVIDENCE_URL', [
+                'download_url' => $downloadUrl,
+            ]);
+
+            Log::info('[PluginMarket] Marketplace download_url received', [
+                'download_url' => $downloadUrl,
+                'has_tenant_uuid' => str_contains($downloadUrl, 'tenant_uuid='),
+                'looks_signed' => str_contains($downloadUrl, 'signature=') || str_contains($downloadUrl, 'X-Amz-Signature='),
+            ]);
+
+            if ((bool) config('exment.market_resign_signed_download_url', false)) {
+                $downloadUrl = $this->resignMarketplaceSignedUrl($downloadUrl, $tenantUuid, 10);
+            } else {
+                $downloadUrl = $this->appendTenantUuidToUrl($downloadUrl, $tenantUuid);
+            }
 
             Log::info("[PluginMarket] Downloading plugin", [
                 'download_url' => $downloadUrl,
             ]);
 
             // Download plugin file
-            $zipResp = Http::withoutVerifying()->timeout(60)->get($downloadUrl);
+            try {
+                $zipResp = Http::withoutVerifying()
+                    ->timeout(60)
+                    ->connectTimeout(10)
+                    ->retry(1, 200)
+                    ->get($downloadUrl);
+            } catch (\Throwable $downloadError) {
+                Log::warning('[PluginMarket] Download exception', [
+                    'download_url' => $downloadUrl,
+                    'message' => $downloadError->getMessage(),
+                ]);
+
+                return response()->json(['error' => exmtrans('plugin.market.message.download_failed')], 500);
+            }
             if ($zipResp->failed()) {
+                $contentType = $zipResp->header('Content-Type');
+                $bodyPreview = null;
+                try {
+                    if (is_string($contentType) && str_contains(strtolower($contentType), 'application/json')) {
+                        $bodyPreview = $zipResp->json();
+                    } else {
+                        $body = $zipResp->body();
+                        if (!is_string($body)) {
+                            $body = '';
+                        }
+                        $bodyPreview = substr($body, 0, 2000);
+                        $bodyPreview = preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '.', $bodyPreview);
+                        $bodyPreview = Str::limit($bodyPreview, 2000);
+                    }
+                } catch (\Throwable $previewError) {
+                    $bodyPreview = '<<unable to read response body: ' . $previewError->getMessage() . '>>';
+                }
                 Log::warning('[PluginMarket] Download failed', [
                     'status' => $zipResp->status(),
                     'download_url' => $downloadUrl,
+                    'content_type' => $contentType,
+                    'body_preview' => $bodyPreview,
                 ]);
                 return response()->json(['error' => exmtrans('plugin.market.message.download_failed')], 500);
             }

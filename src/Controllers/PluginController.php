@@ -21,6 +21,7 @@ use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 
 class PluginController extends AdminControllerBase
@@ -64,12 +65,43 @@ class PluginController extends AdminControllerBase
 
     protected function getTenantUuidForMarket(): ?string
     {
-        $tenantUuid = env('EXMENT_MARKET_TENANT_UUID');
+        // Use config() (works with `php artisan config:cache`).
+        $tenantUuid = config('exment.market_tenant_uuid');
         if (is_string($tenantUuid) && strlen(trim($tenantUuid)) > 0) {
             return trim($tenantUuid);
         }
 
         return null;
+    }
+
+    protected function isMarketplaceExpired(array $market): bool
+    {
+        if ((bool) ($market['is_expired'] ?? false)) {
+            return true;
+        }
+
+        $candidate = $market['expires_at']
+            ?? $market['license_expires_at']
+            ?? ($market['license_info']['expires_at'] ?? null)
+            ?? ($market['license']['expires_at'] ?? null);
+
+        if (is_string($candidate) && trim($candidate) !== '') {
+            try {
+                return Carbon::parse($candidate)->isPast();
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+
+        if (is_int($candidate) || (is_string($candidate) && ctype_digit($candidate))) {
+            try {
+                return Carbon::createFromTimestamp((int) $candidate)->isPast();
+            } catch (\Throwable $e) {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     protected function getMarketplaceUrlForMarket(): string
@@ -145,7 +177,7 @@ class PluginController extends AdminControllerBase
             }
 
             $hasLicense = (bool) ($market['has_license'] ?? false);
-            $isExpired = (bool) ($market['is_expired'] ?? false);
+            $isExpired = $this->isMarketplaceExpired($market);
             $isValid = $hasLicense && !$isExpired;
 
             $options = is_array($installedPlugin->options) ? $installedPlugin->options : [];
