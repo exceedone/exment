@@ -9,6 +9,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Services\AI\ChatbotService;
+use Exceedone\Exment\ColumnItems\CustomColumns\Editor;
 
 class ChatbotController extends BaseController
 {
@@ -138,7 +139,7 @@ class ChatbotController extends BaseController
 
                 return response()->json([
                     'success' => true,
-                    'answer' => $aiAnswer,
+                    'answer' => Editor::replaceImgUrl($aiAnswer),
                     'question' => $message,
                     'mode' => self::MODE_EXTENDED,
                     'message_id' => uniqid('msg_'),
@@ -162,7 +163,7 @@ class ChatbotController extends BaseController
                 // Found similar FAQ
                 return response()->json([
                     'success' => true,
-                    'answer' => $faqMatch['answer'],
+                    'answer' => Editor::replaceImgUrl($faqMatch['answer']),
                     'question' => $faqMatch['question'],
                     'similarity' => $faqMatch['similarity'],
                     'message_id' => uniqid('msg_'),
@@ -185,7 +186,7 @@ class ChatbotController extends BaseController
 
             return response()->json([
                 'success' => true,
-                'answer' => $aiAnswer,
+                'answer' => Editor::replaceImgUrl($aiAnswer),
                 'question' => $message,
                 'mode' => self::MODE_FAQ,
                 'message_id' => uniqid('msg_'),

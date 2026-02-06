@@ -247,6 +247,28 @@
     color: #888;
 }
 
+.message img,
+.message iframe,
+.message svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+
+.message iframe {
+    border: none;
+    max-height: 300px;
+}
+
+.message video {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
 @media (max-width: 420px) {
     .chat-window {
         left: 10px;
