@@ -257,5 +257,8 @@ tinymce.addI18n('ja',{
 "Table": "\u8868",
 "Tools": "\u30c4\u30fc\u30eb",
 "Powered by {0}": "Powered by {0}",
-"Rich Text Area. Press ALT-F9 for menu. Press ALT-F10 for toolbar. Press ALT-0 for help": "\u66f8\u5f0f\u4ed8\u304d\u30c6\u30ad\u30b9\u30c8\u306e\u7de8\u96c6\u753b\u9762\u3002ALT-F9\u3067\u30e1\u30cb\u30e5\u30fc\u3001ALT-F10\u3067\u30c4\u30fc\u30eb\u30d0\u30fc\u3001ALT-0\u3067\u30d8\u30eb\u30d7\u304c\u8868\u793a\u3055\u308c\u307e\u3059\u3002"
+"Rich Text Area. Press ALT-F9 for menu. Press ALT-F10 for toolbar. Press ALT-0 for help": "\u66f8\u5f0f\u4ed8\u304d\u30c6\u30ad\u30b9\u30c8\u306e\u7de8\u96c6\u753b\u9762\u3002ALT-F9\u3067\u30e1\u30cb\u30e5\u30fc\u3001ALT-F10\u3067\u30c4\u30fc\u30eb\u30d0\u30fc\u3001ALT-0\u3067\u30d8\u30eb\u30d7\u304c\u8868\u793a\u3055\u308c\u307e\u3059\u3002",
+"Current window": "\u73fe\u5728\u306e\u30a6\u30a3\u30f3\u30c9\u30a6",
+"Open link in...": "\u30ea\u30f3\u30af\u3092\u958b\u304f...",
+"Alternative description": "\u4ee3\u66ff\u8aac\u660e"
 });

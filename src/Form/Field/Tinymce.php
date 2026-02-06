@@ -230,6 +230,69 @@ class Tinymce extends Textarea
             };
         }
 
+        // Exment: Notification enhancements for TinyMCE
+        config.setup = (function(existingSetup) {
+            return function(editor) {
+                if (typeof existingSetup === 'function') {
+                    try { existingSetup(editor); } catch(e) {}
+                }
+                
+                editor.on('init', function() {
+                    // Auto-close notification after 3 seconds
+                    var originalOpen = editor.notificationManager.open;
+                    editor.notificationManager.open = function(spec, fireEvent) {
+                        var notification = originalOpen.call(this, spec, fireEvent);
+                        if (notification && typeof notification.close === 'function') {
+                            setTimeout(function() {
+                                try { notification.close(); } catch(e) {}
+                            }, 3000);
+                        }
+                        return notification;
+                    };
+                    
+                    // Responsive notification positioning
+                    function fix() {
+                        try {
+                            var containers = document.querySelectorAll('.tox-notifications-container');
+                            if (!containers.length) return;
+                            
+                            var editorRect = editor.getContainer().getBoundingClientRect();
+                            
+                            containers.forEach(function(c) {
+                                var pRect = c.offsetParent ? c.offsetParent.getBoundingClientRect() : {left:0};
+                                var centerLeft = editorRect.left - pRect.left + (editorRect.width / 2);
+                                c.style.cssText = 'position:absolute!important;left:' + centerLeft + 
+                                    'px!important;transform:translateX(-50%)!important;top:' + (c.style.top || '0') + 
+                                    ';max-width:' + editorRect.width + 'px!important;padding:0 8px!important;' +
+                                    'box-sizing:border-box!important;pointer-events:none!important;';
+                                
+                                c.querySelectorAll('.tox-notification').forEach(function(n) {
+                                    n.style.cssText += ';max-width:100%!important;white-space:normal!important;' +
+                                        'word-break:break-word!important;overflow-wrap:anywhere!important;pointer-events:auto!important;';
+                                });
+                            });
+                        } catch(e) {}
+                    }
+                    
+                    setTimeout(fix, 100);
+                    setTimeout(fix, 500);
+                    
+                    new MutationObserver(function(mutations) {
+                        if (mutations.some(function(m) {
+                            return Array.from(m.addedNodes).some(function(n) {
+                                return n.nodeType === 1 && (n.classList.contains('tox-notification') || 
+                                    n.querySelector && n.querySelector('.tox-notification'));
+                            });
+                        })) setTimeout(fix, 10);
+                    }).observe(document.body, {childList: true, subtree: true});
+                    
+                    var t;
+                    window.addEventListener('resize', function() { clearTimeout(t); t = setTimeout(fix, 100); });
+                    editor.on('ResizeEditor', function() { setTimeout(fix, 50); });
+                });
+            };
+        })(config.setup);
+
         tinymce.init(config);
 EOT;
         return parent::render();
