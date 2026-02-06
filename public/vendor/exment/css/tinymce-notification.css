@@ -1,0 +1,117 @@
+/* Base notification container styles */
+.tox-notifications-container {
+    position: absolute !important;
+    transform: translateX(-50%) !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    pointer-events: none !important;
+    z-index: 1300;
+}
+
+/* Individual notification styles */
+.tox-notification {
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    pointer-events: auto !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+}
+
+/* Notification types */
+.tox-notification--success {
+    background-color: #e4f7ed;
+    border-color: #68d391;
+}
+
+.tox-notification--warning {
+    background-color: #fef5e7;
+    border-color: #f6ad55;
+}
+
+.tox-notification--error {
+    background-color: #fee;
+    border-color: #a681fc;
+}
+
+.tox-notification--info {
+    background-color: #e6f7ff;
+    border-color: #63b3ed;
+}
+
+/* Notification text */
+.tox-notification__body {
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Close button */
+.tox-notification__dismiss {
+    cursor: pointer;
+    padding: 4px 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.tox-notification__dismiss:hover {
+    opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tox-notifications-container {
+        padding: 0 4px !important;
+        max-width: calc(100vw - 16px) !important;
+    }
+    
+    .tox-notification__body {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tox-notifications-container {
+        padding: 0 2px !important;
+        max-width: calc(100vw - 8px) !important;
+    }
+    
+    .tox-notification__body {
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+}
+
+/* Animation for notification appearance */
+@keyframes tox-notification-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tox-notification {
+    animation: tox-notification-fade-in 0.3s ease-out;
+}
+
+/* Hide notification when closing */
+@keyframes tox-notification-fade-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.tox-notification--closing {
+    animation: tox-notification-fade-out 0.2s ease-in forwards;
+}
