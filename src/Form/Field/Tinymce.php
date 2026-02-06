@@ -13,6 +13,10 @@ class Tinymce extends Textarea
         '/vendor/exment/tinymce/tinymce.min.js',
     ];
 
+    protected static $css = [
+        '/vendor/exment/css/tinymce-notification.css',
+    ];
+
     protected $config = [];
 
     protected $disableImage = false;
@@ -258,18 +262,11 @@ class Tinymce extends Textarea
                             
                             var editorRect = editor.getContainer().getBoundingClientRect();
                             
-                            containers.forEach(function(c) {
-                                var pRect = c.offsetParent ? c.offsetParent.getBoundingClientRect() : {left:0};
-                                var centerLeft = editorRect.left - pRect.left + (editorRect.width / 2);
-                                c.style.cssText = 'position:absolute!important;left:' + centerLeft + 
-                                    'px!important;transform:translateX(-50%)!important;top:' + (c.style.top || '0') + 
-                                    ';max-width:' + editorRect.width + 'px!important;padding:0 8px!important;' +
-                                    'box-sizing:border-box!important;pointer-events:none!important;';
-                                
-                                c.querySelectorAll('.tox-notification').forEach(function(n) {
-                                    n.style.cssText += ';max-width:100%!important;white-space:normal!important;' +
-                                        'word-break:break-word!important;overflow-wrap:anywhere!important;pointer-events:auto!important;';
-                                });
+                            containers.forEach(function(container) {
+                                var parentRect = container.offsetParent ? container.offsetParent.getBoundingClientRect() : {left: 0};
+                                container.style.left = (editorRect.left - parentRect.left + editorRect.width / 2) + 'px';
+                                container.style.maxWidth = editorRect.width + 'px';
+                                container.style.top = container.style.top || '0';
                             });
                         } catch(e) {}
                     }
