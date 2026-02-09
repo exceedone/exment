@@ -18,18 +18,13 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
+use Exceedone\Exment\Services\Plugin\PluginLicenseSyncService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 
 class PluginController extends AdminControllerBase
 {
     use HasResourceActions;
-
-    /** @var \Illuminate\Support\Collection<string, array>|null */
-    protected $marketPluginsByName = null;
 
     public function __construct()
     {
@@ -45,169 +40,12 @@ class PluginController extends AdminControllerBase
     {
         $this->AdminContent($content);
 
-        // Auto-disable expired/unlicensed paid plugins (SaaS only).
-        // This keeps plugin-market unchanged; enforcement happens in installed-plugin management.
-        try {
-            if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
-                $this->syncPluginActivationByMarketplace();
-            }
-        } catch (\Throwable $e) {
-            Log::warning('[Plugin] syncPluginActivationByMarketplace failed: ' . $e->getMessage());
-        }
-
         if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
             $content->row(view('exment::plugin.upload'));
         }
 
         $content->body($this->grid());
         return $content;
-    }
-
-    protected function getTenantUuidForMarket(): ?string
-    {
-        // Use config() (works with `php artisan config:cache`).
-        $tenantUuid = config('exment.market_tenant_uuid');
-        if (is_string($tenantUuid) && strlen(trim($tenantUuid)) > 0) {
-            return trim($tenantUuid);
-        }
-
-        return null;
-    }
-
-    protected function isMarketplaceExpired(array $market): bool
-    {
-        if ((bool) ($market['is_expired'] ?? false)) {
-            return true;
-        }
-
-        $candidate = $market['expires_at']
-            ?? $market['license_expires_at']
-            ?? ($market['license_info']['expires_at'] ?? null)
-            ?? ($market['license']['expires_at'] ?? null);
-
-        if (is_string($candidate) && trim($candidate) !== '') {
-            try {
-                return Carbon::parse($candidate)->isPast();
-            } catch (\Throwable $e) {
-                return false;
-            }
-        }
-
-        if (is_int($candidate) || (is_string($candidate) && ctype_digit($candidate))) {
-            try {
-                return Carbon::createFromTimestamp((int) $candidate)->isPast();
-            } catch (\Throwable $e) {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    protected function getMarketplaceUrlForMarket(): string
-    {
-        return rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/');
-    }
-
-    protected function fetchMarketplacePluginsByName(): ?\Illuminate\Support\Collection
-    {
-        if ($this->marketPluginsByName !== null) {
-            return $this->marketPluginsByName;
-        }
-
-        $tenantUuid = $this->getTenantUuidForMarket();
-        if (empty($tenantUuid)) {
-            // OSS: marketplace doesn't return paid items; no enforcement.
-            $this->marketPluginsByName = null;
-            return null;
-        }
-
-        $marketplaceUrl = $this->getMarketplaceUrlForMarket();
-        $apiUrl = $marketplaceUrl . '/api/plugins';
-
-        $params = ['tenant_uuid' => $tenantUuid];
-
-        $resp = Http::withoutVerifying()
-            ->timeout(15)
-            ->connectTimeout(5)
-            ->retry(1, 100)
-            ->get($apiUrl, $params);
-
-        if (!$resp->ok()) {
-            Log::info('[Plugin] Marketplace license check skipped (API not ok)', [
-                'status' => $resp->status(),
-                'url' => $apiUrl,
-            ]);
-            $this->marketPluginsByName = null;
-            return null;
-        }
-
-        $marketPlugins = $resp->json();
-        if (!is_array($marketPlugins)) {
-            Log::warning('[Plugin] Marketplace license check returned invalid data');
-            $this->marketPluginsByName = null;
-            return null;
-        }
-
-        $this->marketPluginsByName = collect($marketPlugins)->keyBy(function ($p) {
-            return strtolower($p['plugin_name'] ?? '');
-        });
-        return $this->marketPluginsByName;
-    }
-
-    protected function syncPluginActivationByMarketplace(): void
-    {
-        $marketByName = $this->fetchMarketplacePluginsByName();
-        if ($marketByName === null) {
-            return;
-        }
-
-        $changedCount = 0;
-        foreach (Plugin::all() as $installedPlugin) {
-            $nameKey = strtolower($installedPlugin->plugin_name ?? '');
-            if (empty($nameKey) || !$marketByName->has($nameKey)) {
-                continue;
-            }
-
-            $market = $marketByName->get($nameKey);
-
-            $isFree = (bool) ($market['is_free'] ?? ((float) ($market['price'] ?? 0) <= 0));
-            if ($isFree) {
-                continue;
-            }
-
-            $hasLicense = (bool) ($market['has_license'] ?? false);
-            $isExpired = $this->isMarketplaceExpired($market);
-            $isValid = $hasLicense && !$isExpired;
-
-            $options = is_array($installedPlugin->options) ? $installedPlugin->options : [];
-            $disabledByLicense = (bool) array_get($options, 'disabled_by_license', false);
-
-            // If invalid, force disable and remember it was license-driven.
-            if (!$isValid) {
-                if (boolval($installedPlugin->active_flg) || !$disabledByLicense) {
-                    $installedPlugin->active_flg = 0;
-                    $options['disabled_by_license'] = true;
-                    $installedPlugin->options = $options;
-                    $installedPlugin->save();
-                    $changedCount++;
-                }
-                continue;
-            }
-
-            // If valid again, auto-enable only if it was previously disabled by license.
-            if ($disabledByLicense && !boolval($installedPlugin->active_flg)) {
-                $installedPlugin->active_flg = 1;
-                unset($options['disabled_by_license']);
-                $installedPlugin->options = $options;
-                $installedPlugin->save();
-                $changedCount++;
-            }
-        }
-
-        if ($changedCount > 0) {
-            Plugin::clearCacheTrait();
-        }
     }
 
     /**
@@ -351,35 +189,24 @@ class PluginController extends AdminControllerBase
             return false;
         }
 
-        // Block manual activation if marketplace says license is missing/expired.
+        // Block manual activation if paid plugin has no license or is expired beyond grace week.
         $requestedActive = $request->boolean('active_flg');
-        if ($requestedActive) {
-            $marketByName = $this->fetchMarketplacePluginsByName();
-            if ($marketByName !== null) {
-                $nameKey = strtolower($plugin->plugin_name ?? '');
-                if (!empty($nameKey) && $marketByName->has($nameKey)) {
-                    $market = $marketByName->get($nameKey);
-                    $isFree = (bool) ($market['is_free'] ?? ((float) ($market['price'] ?? 0) <= 0));
-                    if (!$isFree) {
-                        $hasLicense = (bool) ($market['has_license'] ?? false);
-                        $isExpired = (bool) ($market['is_expired'] ?? false);
-                        if (!$hasLicense || $isExpired) {
-                            // Ensure it stays disabled and marked as license-driven.
-                            $options = is_array($plugin->options) ? $plugin->options : [];
-                            $options['disabled_by_license'] = true;
-                            $plugin->active_flg = 0;
-                            $plugin->options = $options;
-                            $plugin->save();
-                            Plugin::clearCacheTrait();
+        if ($requestedActive && !boolval($plugin->active_flg)) {
+            $shouldBlock = (new PluginLicenseSyncService())->shouldBlockActivation((string) $plugin->plugin_name);
+            if ($shouldBlock) {
+                // Ensure it stays disabled and marked as license-driven.
+                $options = is_array($plugin->options) ? $plugin->options : [];
+                $options['disabled_by_license'] = true;
+                $plugin->active_flg = 0;
+                $plugin->options = $options;
+                $plugin->save();
+                Plugin::clearCacheTrait();
 
-                            $msg = exmtrans('plugin.message.activation_blocked');
-                            if ($request->ajax() || $request->expectsJson()) {
-                                admin_toastr($msg, 'error');
-                            }
-                            return back();
-                        }
-                    }
+                $msg = exmtrans('plugin.message.activation_blocked');
+                if ($request->ajax() || $request->expectsJson()) {
+                    admin_toastr($msg, 'error');
                 }
+                return back();
             }
         }
 
