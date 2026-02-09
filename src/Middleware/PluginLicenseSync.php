@@ -21,7 +21,7 @@ class PluginLicenseSync
         try {
             // Run after authentication on all admin requests.
             if (\Exment::user()) {
-                (new PluginLicenseSyncService())->syncThrottled(1);
+                (new PluginLicenseSyncService())->syncThrottled(1440);
             }
         } catch (\Throwable $e) {
             Log::warning('[PluginLicenseSync] Failed: ' . $e->getMessage());

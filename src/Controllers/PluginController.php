@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Exceedone\Exment\Services\Plugin\PluginLicenseSyncService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 
 class PluginController extends AdminControllerBase
@@ -38,6 +39,16 @@ class PluginController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        // Always trigger a license sync on the /plugins screen.
+        // This provides immediate auto-inactive updates, regardless of global throttling.
+        try {
+            if (\Exment::user()) {
+                (new PluginLicenseSyncService())->syncForced(1440);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[PluginController] License sync failed: ' . $e->getMessage());
+        }
+
         $this->AdminContent($content);
 
         if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {

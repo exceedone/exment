@@ -14,6 +14,11 @@ class PluginLicenseSyncService
     /** @var \Illuminate\Support\Collection<string, array>|null */
     protected $marketPluginsByName = null;
 
+    protected function getThrottleCacheKey(): string
+    {
+        return 'exment_plugin_license_sync_last_run';
+    }
+
     protected function getTenantUuid(): ?string
     {
         $tenantUuid = config('exment.market_tenant_uuid');
@@ -40,9 +45,9 @@ class PluginLicenseSyncService
      * @param int $minutes Cache interval
      * @return void
      */
-    public function syncThrottled(int $minutes = 1): void
+    public function syncThrottled(int $minutes = 1440): void
     {
-        $cacheKey = 'exment_plugin_license_sync_last_run';
+        $cacheKey = $this->getThrottleCacheKey();
         if (Cache::has($cacheKey)) {
             return;
         }
@@ -50,6 +55,18 @@ class PluginLicenseSyncService
         // Set cache early to prevent stampede on concurrent requests.
         Cache::put($cacheKey, now(), now()->addMinutes(max(1, $minutes)));
 
+        $this->sync();
+    }
+
+    /**
+     * Force a sync now (ignore throttle), and then mark as throttled
+     * so other pages won't re-sync for the given interval.
+     */
+    public function syncForced(int $minutesToThrottle = 1440): void
+    {
+        $cacheKey = $this->getThrottleCacheKey();
+        // Mark early to prevent stampede on concurrent requests.
+        Cache::put($cacheKey, now(), now()->addMinutes(max(1, $minutesToThrottle)));
         $this->sync();
     }
 

@@ -102,16 +102,16 @@
                 @forelse($plugins as $plugin)
                     <tr>
                         @php
-                            $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
-                            $rawPrice = $plugin['price'] ?? null;
-                            $isFree = (bool) ($plugin['is_free'] ?? ((float) ($rawPrice ?? 0) <= 0));
-                            // Marketplace may return has_license=false even for free plugins.
-                            // For UI purposes, free plugins are always installable without payment.
-                            $hasLicense = $isFree ? true : (bool) ($plugin['has_license'] ?? false);
-                            $isExpired = (bool) ($plugin['is_expired'] ?? false);
-                            $canInstall = $isFree || ($hasLicense && !$isExpired);
-                            $shouldShowPayment = (!$isFree) && ((!$hasLicense) || $isExpired);
-                            $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
+    $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
+    $rawPrice = $plugin['price'] ?? null;
+    $isFree = (bool) ($plugin['is_free'] ?? ((float) ($rawPrice ?? 0) <= 0));
+    // Marketplace may return has_license=false even for free plugins.
+    // For UI purposes, free plugins are always installable without payment.
+    $hasLicense = $isFree ? true : (bool) ($plugin['has_license'] ?? false);
+    $isExpired = (bool) ($plugin['is_expired'] ?? false);
+    $canInstall = $isFree || ($hasLicense && !$isExpired);
+    $shouldShowPayment = (!$isFree) && ((!$hasLicense) || $isExpired);
+    $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
                         @endphp
                         <td>{{ $plugin['id'] ?? '—' }}</td>
                         <td><strong>{{ $plugin['plugin_view_name'] ?? $plugin['plugin_name'] ?? '—' }}</strong></td>
@@ -124,15 +124,15 @@
                                 <span class="badge bg-success">{{ exmtrans('plugin.market.free') }}</span>
                             @elseif($rawPrice !== null && $rawPrice !== '')
                                 @php
-                                    $currencyLabel = $plugin['currency'] ?? null;
-                                    $currencyNormalized = is_string($currencyLabel) ? strtoupper(trim($currencyLabel)) : null;
-                                    $isYen = empty($currencyNormalized) || in_array($currencyNormalized, ['JPY', 'YEN', '円', '¥'], true);
-                                    $priceLabel = is_numeric($rawPrice)
-                                        ? ($isYen ? number_format((float) $rawPrice, 0) : number_format((float) $rawPrice, 2))
-                                        : $rawPrice;
-                                    $currencySuffix = is_numeric($rawPrice)
-                                        ? ($isYen ? '円' : ($currencyLabel ?? null))
-                                        : null;
+        $currencyLabel = $plugin['currency'] ?? null;
+        $currencyNormalized = is_string($currencyLabel) ? strtoupper(trim($currencyLabel)) : null;
+        $isYen = empty($currencyNormalized) || in_array($currencyNormalized, ['JPY', 'YEN', '円', '¥'], true);
+        $priceLabel = is_numeric($rawPrice)
+            ? ($isYen ? number_format((float) $rawPrice, 0) : number_format((float) $rawPrice, 2))
+            : $rawPrice;
+        $currencySuffix = is_numeric($rawPrice)
+            ? ($isYen ? '円' : ($currencyLabel ?? null))
+            : null;
                                 @endphp
                                 <span>{{ $priceLabel }}</span>
                                 @if(!empty($currencySuffix))
@@ -342,6 +342,37 @@ function initPluginMarket() {
     const stripePublishableKey = {!! json_encode(config('services.stripe.key') ?? null) !!};
     const csrfToken = {!! json_encode(csrf_token()) !!};
 
+    // Catch any unhandled JS errors on this page and show a red toast.
+    // Guard to avoid registering multiple times (PJAX re-init).
+    if (!window.__exmentPluginMarketErrorHandlersInstalled) {
+        window.__exmentPluginMarketErrorHandlersInstalled = true;
+
+        window.addEventListener('error', function (event) {
+            try {
+                const msg = (event && event.error && event.error.message)
+                    ? event.error.message
+                    : (event && event.message ? event.message : null);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(msg || t.paymentFailed);
+                }
+            } catch (e) {
+                // ignore
+            }
+        });
+
+        window.addEventListener('unhandledrejection', function (event) {
+            try {
+                const reason = event ? event.reason : null;
+                const msg = reason && reason.message ? reason.message : (typeof reason === 'string' ? reason : null);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(msg || t.paymentFailed);
+                }
+            } catch (e) {
+                // ignore
+            }
+        });
+    }
+
     function showToast(type, message) {
         if (typeof toastr !== 'undefined') {
             toastr[type](message);
@@ -452,11 +483,11 @@ function initPluginMarket() {
                 throw new Error(msg || t.paymentFailed);
             }
 
-            // If 402 is returned but there's no client_secret, this is NOT a 3DS flow.
-            // In our marketplace integration, it typically means the account hasn't registered a paid plan/card.
-            if (response.status === 402 && !data.client_secret) {
-                const manualMessage = t.manualPaymentRequired;
-                const manualUrl = 'https://exment.org/plugins';
+            // Treat HTTP 402 as a manual payment required flow.
+            // Even if a client_secret is provided, we intentionally do NOT run 3DS from this UI.
+            if (response.status === 402) {
+                const manualMessage = (data && (data.message || data.error)) ? (data.message || data.error) : t.manualPaymentRequired;
+                const manualUrl = 'https://exment.org/payment-methods';
 
                 const restoreButton = function() {
                     button.disabled = false;
@@ -490,32 +521,15 @@ function initPluginMarket() {
             }
 
             if (normalizedStatus === 'requires_action') {
-                if (!data.client_secret) {
-                    // Keep message from API if present; otherwise show a clear fallback.
-                    throw new Error(data.message || data.error || t.missingClientSecret);
-                }
-                if (!stripePublishableKey) {
-                    throw new Error(t.stripePublishableKeyMissing);
-                }
+                const manualMessage = (data && (data.message || data.error)) ? (data.message || data.error) : t.manualPaymentRequired;
+                const manualUrl = 'https://exment.org/payment-methods';
 
-                await ensureStripeLoaded();
-                const stripe = window.Stripe(stripePublishableKey);
-                const result = await stripe.confirmCardPayment(data.client_secret);
+                const restoreButton = function() {
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
+                };
 
-                if (result.error) {
-                    throw new Error(result.error.message || t.paymentFailed);
-                }
-
-                const paymentIntent = result.paymentIntent;
-                if (paymentIntent && paymentIntent.status === 'succeeded') {
-                    showToast('success', data.message || t.paymentSucceeded);
-                    setTimeout(function() { window.location.reload(); }, 1200);
-                    return;
-                }
-
-                const statusLabel = paymentIntent ? paymentIntent.status : 'unknown';
-                showToast('info', t.paymentStatusTpl.replace(':status', statusLabel));
-                setTimeout(function() { window.location.reload(); }, 1200);
+                showPopupAndRedirect(manualMessage, manualUrl, restoreButton, restoreButton);
                 return;
             }
 

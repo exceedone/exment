@@ -322,7 +322,11 @@ class PluginMarketController extends AdminController
 
             // If tenant_uuid is provided but invalid, marketplace returns 404
             if (!empty($tenantUuid) && $response->status() === 404) {
-                abort(404, exmtrans('plugin.market.plugin_not_found'));
+                admin_toastr(exmtrans('plugin.market.plugin_not_found'), 'error');
+                $plugins = [];
+                return $content->title(exmtrans('plugin.market.title'))
+                    ->description(exmtrans('plugin.market.description'))
+                    ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
             }
 
             $plugins = [];
@@ -339,6 +343,8 @@ class PluginMarketController extends AdminController
                 Log::warning("[PluginMarket] API request failed: {$marketplaceApi}", [
                     'status' => $response->status(),
                 ]);
+                // Don't abort to an error page; show toast and render empty list.
+                admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
             }
 
             // Filter to show only free plugins and perform client-side filtering
@@ -423,7 +429,13 @@ class PluginMarketController extends AdminController
             Log::error('[PluginMarket] Exception: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
             ]);
-            abort(500, 'Plugin Market error: ' . $e->getMessage());
+            // Avoid rendering a full error page; keep the UI and show a toast.
+            admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
+            $plugins = [];
+            $tenantUuid = $this->getTenantUuid();
+            return $content->title(exmtrans('plugin.market.title'))
+                ->description(exmtrans('plugin.market.description'))
+                ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
         }
     }
 
@@ -433,9 +445,14 @@ class PluginMarketController extends AdminController
      */
     public function show($id, Content $content)
     {
+        $detail = $this->detail($id);
+        if ($detail instanceof \Illuminate\Http\RedirectResponse) {
+            return $detail;
+        }
+
         return $content->title(exmtrans('plugin.market.detail.title'))
             ->description(exmtrans('plugin.market.description'))
-            ->body($this->detail($id));
+            ->body($detail);
     }
 
     public function detail($id)
@@ -454,7 +471,8 @@ class PluginMarketController extends AdminController
                 ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
 
             if ($response->failed()) {
-                abort(404, exmtrans('plugin.market.plugin_not_found'));
+                admin_toastr(exmtrans('plugin.market.plugin_not_found'), 'error');
+                return redirect(admin_url('plugin-market'));
             }
 
             $plugin = $response->json();
@@ -462,7 +480,14 @@ class PluginMarketController extends AdminController
             return view('exment::plugin.market.detail', compact('plugin'));
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             Log::error("[PluginMarket] Connection error: " . $e->getMessage());
-            abort(500, exmtrans('plugin.market.message.connection_error'));
+            admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
+            return redirect(admin_url('plugin-market'));
+        } catch (\Throwable $e) {
+            Log::error('[PluginMarket] Detail exception: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
+            return redirect(admin_url('plugin-market'));
         }
     }
 
