@@ -3,11 +3,17 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class PluginLicenseSyncService
 {
@@ -17,6 +23,90 @@ class PluginLicenseSyncService
     protected function getThrottleCacheKey(): string
     {
         return 'exment_plugin_license_sync_last_run';
+    }
+
+    protected function getWarningSentCacheKey(string $pluginName): string
+    {
+        $date = now()->toDateString();
+        return 'exment_plugin_license_warning_sent:' . sha1(strtolower($pluginName) . '|' . $date);
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function getWarningRecipients(): array
+    {
+        try {
+            $adminIds = System::system_admin_users() ?? [];
+            if (!is_array($adminIds) || empty($adminIds)) {
+                return [];
+            }
+
+            $userTable = CustomTable::getEloquent(SystemTableName::USER);
+            $users = collect($adminIds)
+                ->map(function ($id) use ($userTable) {
+                    return $userTable ? $userTable->getValueModel($id) : null;
+                })
+                ->filter();
+
+            return array_values(array_filter(NotifyService::getAddresses($users->all())));
+        } catch (\Throwable $e) {
+            Log::warning('[PluginLicenseSync] Failed to resolve warning recipients: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    protected function sendExpiryWarningEmail(Plugin $installedPlugin, array $market, Carbon $expiresAt): void
+    {
+        $pluginName = (string) ($installedPlugin->plugin_name ?? '');
+        if ($pluginName === '') {
+            return;
+        }
+
+        $cacheKey = $this->getWarningSentCacheKey($pluginName);
+        if (Cache::has($cacheKey)) {
+            return;
+        }
+
+        $disableAt = $expiresAt->copy()->addDays(7);
+        $daysLeft = now()->diffInDays($disableAt, false);
+        if ($daysLeft < 0) {
+            return;
+        }
+
+        $recipients = $this->getWarningRecipients();
+        if (empty($recipients)) {
+            return;
+        }
+
+        $pluginLabel = (string) ($installedPlugin->plugin_view_name ?? $installedPlugin->plugin_name ?? 'Plugin');
+        $marketUrl = $this->getMarketplaceBaseUrl() . '/plugins';
+
+        $subject = exmtrans('plugin.message.license_expired_warning_subject', [
+            'plugin' => $pluginLabel,
+        ]);
+
+        $body = exmtrans('plugin.message.license_expired_warning_body', [
+            'plugin' => $pluginLabel,
+            'expires_at' => $expiresAt->toDateString(),
+            'disable_at' => $disableAt->toDateString(),
+            'days_left' => (string) $daysLeft,
+            'market_url' => $marketUrl,
+        ]);
+
+        try {
+            Mail::raw((string) $body, function ($message) use ($recipients, $subject) {
+                $message->to($recipients)
+                    ->subject((string) $subject);
+            });
+
+            // Mark as sent for today (until end of day) to avoid spamming on repeated syncs.
+            Cache::put($cacheKey, now()->toISOString(), now()->endOfDay());
+        } catch (TransportExceptionInterface $e) {
+            Log::warning('[PluginLicenseSync] Warning email transport failed: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::warning('[PluginLicenseSync] Warning email failed: ' . $e->getMessage());
+        }
     }
 
     protected function getTenantUuid(): ?string
@@ -96,6 +186,14 @@ class PluginLicenseSyncService
             $hasLicense = (bool) ($market['has_license'] ?? false);
             $isExpiredOverGrace = $this->isExpiredOverGraceWeek($market);
             $isValid = $hasLicense && !$isExpiredOverGrace;
+
+            // Daily warning email while expired but still within the grace period.
+            if ($hasLicense && !$isExpiredOverGrace) {
+                $expiresAt = $this->getExpiresAt($market);
+                if ($expiresAt instanceof Carbon && $expiresAt->isPast()) {
+                    $this->sendExpiryWarningEmail($installedPlugin, $market, $expiresAt);
+                }
+            }
 
             $options = is_array($installedPlugin->options) ? $installedPlugin->options : [];
             $disabledByLicense = (bool) array_get($options, 'disabled_by_license', false);

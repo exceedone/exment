@@ -627,6 +627,8 @@ return [
         'execute_plugin_batch' => 'バッチ実行',
         'message' => [
             'activation_blocked' => 'ライセンスが未登録、または期限切れのため、このプラグインを有効化できません。更新してください。',
+            'license_expired_warning_subject' => 'プラグインのライセンス期限切れ: :plugin',
+            'license_expired_warning_body' => ":plugin のライセンスは :expires_at に期限切れとなりました。\n更新されない場合、:disable_at（あと :days_left 日）に自動的に無効化されます。\n\nマーケットプレイスで更新してください: :market_url\n",
         ],
         
         'market' => [

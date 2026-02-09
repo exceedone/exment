@@ -627,6 +627,8 @@ return [
         'execute_plugin_batch' => 'Execute',
         'message' => [
             'activation_blocked' => 'This plugin cannot be activated because the license is missing or expired. Please renew your license.',
+            'license_expired_warning_subject' => 'Plugin license expired: :plugin',
+            'license_expired_warning_body' => "The license for plugin \" :plugin \" expired on :expires_at.\nIt will be automatically disabled on :disable_at (in :days_left day(s)) if not renewed.\n\nPlease renew your license in the marketplace: :market_url\n",
         ],
         'market' => [
             'title' => 'Plugin Market',
