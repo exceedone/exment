@@ -366,9 +366,10 @@ class PluginMarketController extends AdminController
             if ($keyword) {
                 $plugins = $plugins->filter(function ($plugin) use ($keyword) {
                     $searchText = strtolower($keyword);
+                    $author = $plugin['author'] ?? ($plugin['user']['name'] ?? '');
                     return str_contains(strtolower($plugin['plugin_name'] ?? ''), $searchText)
                         || str_contains(strtolower($plugin['description'] ?? ''), $searchText)
-                        || str_contains(strtolower($plugin['user']['name'] ?? ''), $searchText);
+                        || str_contains(strtolower($author), $searchText);
                 });
             }
             

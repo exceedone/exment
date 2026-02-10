@@ -13,7 +13,7 @@ class PluginRepository
             $marketplaceUrl = rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/');
             $apiUrl = $marketplaceUrl . '/api/plugins';
 
-            $tenantUuid = env('EXMENT_MARKET_TENANT_UUID');
+            $tenantUuid = config('exment.market_tenant_uuid');
             $queryParams = [];
             if (is_string($tenantUuid) && strlen(trim($tenantUuid)) > 0) {
                 $tenantUuid = trim($tenantUuid);

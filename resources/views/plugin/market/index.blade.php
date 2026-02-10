@@ -117,7 +117,7 @@
                         <td><strong>{{ $plugin['plugin_view_name'] ?? $plugin['plugin_name'] ?? '—' }}</strong></td>
                         <td><code>{{ $plugin['plugin_name'] ?? '—' }}</code></td>
                         <td><span class="badge bg-secondary">{{ $plugin['plugin_types'] ?? '—' }}</span></td>
-                        <td>{{ $plugin['user']['name'] ?? '—' }}</td>
+                        <td>{{ $plugin['author'] ?? ($plugin['user']['name'] ?? '—') }}</td>
                         <td><span class="badge bg-info">{{ $plugin['version'] ?? '—' }}</span></td>
                         <td>
                             @if($isFree)
