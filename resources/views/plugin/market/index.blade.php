@@ -84,7 +84,8 @@
 
 <div class="box plugin-market-box">
     <div class="box-body p-0">
-        <table class="table table-hover mb-0 plugin-market-table">
+        <div class="plugin-market-table-scroll">
+            <table class="table table-hover mb-0 plugin-market-table">
             <thead class="table-dark">
                 <tr>
                     <th>{{ exmtrans('plugin.market.id') }}</th>
@@ -232,7 +233,8 @@
                     </tr>
                 @endforelse
             </tbody>
-        </table>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -282,6 +284,25 @@
     margin-bottom: 20px;
     width: 100%;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile usability: allow scrolling in both directions while keeping table layout */
+.plugin-market-table-scroll {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+/* Prevent columns from collapsing too aggressively; rely on horizontal scroll */
+.plugin-market-table {
+    min-width: 900px;
+}
+
+/* On smaller screens, constrain height so vertical scroll is possible */
+@media (max-width: 767px) {
+    .plugin-market-table-scroll {
+        max-height: 70vh;
+    }
 }
 
 .plugin-market-table {
