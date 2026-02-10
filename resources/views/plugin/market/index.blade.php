@@ -243,7 +243,22 @@
                 $currentPerPage = (int) request('per_page', $plugins->perPage());
                 if ($currentPerPage <= 0) { $currentPerPage = (int) $plugins->perPage(); }
                 $perPageOptions = [10, 20, 50, 100, 200];
+
+                $rangeFirst = $plugins->firstItem() ?? 0;
+                $rangeLast = $plugins->lastItem() ?? 0;
+                $rangeTotal = $plugins->total() ?? 0;
+                $rangeParams = collect([
+                    'first' => $rangeFirst,
+                    'last'  => $rangeLast,
+                    'total' => $rangeTotal,
+                ])->flatMap(function ($val, $key) {
+                    return [$key => "<b>$val</b>"];
+                })->all();
             @endphp
+
+            <div class="pull-left" style="padding-top: 4px;">
+                {!! trans('admin.pagination.range', $rangeParams) !!}
+            </div>
 
             <div class="pull-right" style="text-align: right;">
                 <span style="display:inline-block; vertical-align: middle; margin-right: 10px;">
