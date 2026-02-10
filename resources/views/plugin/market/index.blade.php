@@ -298,6 +298,9 @@
     height: 1rem;
     border-width: 0.15em;
 }
+.modal-header .close {
+    margin-top: -20px;
+}
 </style>
 
 <script>
