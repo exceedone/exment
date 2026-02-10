@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -420,6 +421,26 @@ class PluginMarketController extends AdminController
                 // If anything goes wrong during enrichment, log and continue with raw data
                 Log::warning('[PluginMarket] Failed to enrich plugin data with local install info: ' . $e->getMessage());
             }
+
+                // Paginate the (potentially large) marketplace list for better UX, especially on mobile.
+                $perPage = (int) $request->input('per_page', 20);
+                if ($perPage <= 0) {
+                    $perPage = 20;
+                }
+                $perPage = min($perPage, 200);
+
+                $page = (int) $request->input('page', 1);
+                if ($page <= 0) {
+                    $page = 1;
+                }
+
+                $total = count($plugins);
+                $items = array_slice($plugins, ($page - 1) * $perPage, $perPage);
+                $plugins = new LengthAwarePaginator($items, $total, $perPage, $page, [
+                    'path' => $request->url(),
+                    'pageName' => 'page',
+                ]);
+                $plugins->appends($request->except('page'));
 
             // Render interface
             return $content->title(exmtrans('plugin.market.title'))

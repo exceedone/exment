@@ -75,7 +75,7 @@
 @if(request()->hasAny(['keyword', 'type', 'status']))
 <div class="alert alert-info">
     <i class="fa fa-info-circle"></i> 
-    {{ exmtrans('plugin.market.search.results_found', ['count' => count($plugins)]) }}
+    {{ exmtrans('plugin.market.search.results_found', ['count' => ($plugins instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $plugins->total() : count($plugins)]) }}
     @if(request('keyword'))
         - {{ exmtrans('plugin.market.search.keyword') }}: <strong>{{ request('keyword') }}</strong>
     @endif
@@ -236,6 +236,37 @@
             </table>
         </div>
     </div>
+
+    @if($plugins instanceof \Illuminate\Pagination\LengthAwarePaginator)
+        <div class="box-footer clearfix">
+            @php
+                $currentPerPage = (int) request('per_page', $plugins->perPage());
+                if ($currentPerPage <= 0) { $currentPerPage = (int) $plugins->perPage(); }
+                $perPageOptions = [10, 20, 50, 100, 200];
+            @endphp
+
+            <div class="pull-right" style="text-align: right;">
+                <span style="display:inline-block; vertical-align: middle; margin-right: 10px;">
+                    <label class="control-label" style="margin: 0; font-weight: 100;">
+                        <small>{{ trans('admin.show') }}</small>&nbsp;
+                        <select class="input-sm" name="per-page" onchange="window.location.href=this.value;">
+                            @foreach($perPageOptions as $opt)
+                                @php
+                                    $url = request()->fullUrlWithQuery(['per_page' => $opt, 'page' => 1]);
+                                @endphp
+                                <option value="{{ $url }}" {{ $currentPerPage == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                            @endforeach
+                        </select>
+                        &nbsp;<small>{{ trans('admin.entries') }}</small>
+                    </label>
+                </span>
+
+                <span style="display:inline-block; vertical-align: middle;">
+                    {!! $plugins->render('admin::pagination') !!}
+                </span>
+            </div>
+        </div>
+    @endif
 </div>
 
 <!-- Version Selection Modals -->
