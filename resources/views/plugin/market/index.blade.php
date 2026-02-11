@@ -295,7 +295,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form action="{{ route('plugin.market.install', $plugin['id']) }}" method="POST" class="install-form-free">
+                    <form action="{{ route('plugin.market.install', $plugin['id']) }}" method="POST" class="install-form-free" data-plugin-name="{{ $plugin['plugin_name'] ?? 'Plugin' }}">
                         @csrf
                         <div class="modal-body">
                             <p>{{ exmtrans('plugin.market.version_modal.plugin') }}: <strong>{{ $plugin['plugin_name'] ?? 'Unknown' }}</strong></p>
@@ -813,6 +813,7 @@ function initPluginMarket() {
             e.preventDefault();
             
             const btn = form.querySelector('.install-free-btn');
+            const pluginName = form.dataset.pluginName || 'Plugin';
             const formData = new FormData(form);
             const versionId = form.querySelector('[name="version"]').value;
             
@@ -859,25 +860,20 @@ function initPluginMarket() {
             })
             .then(data => {
                 if (data && data.__nonJsonOk) {
-                    const modal = form.closest('.modal');
-                    if (modal) {
-                        $(modal).modal('hide');
-                    }
+                    // Response was OK but not JSON (possibly HTML). Reload to reflect final install state.
+                    // Keep the modal open; it will disappear when the page reloads.
                     setTimeout(function() {
                         window.location.reload();
-                    }, 500);
+                    }, 100);
                     return;
                 }
 
                 if (data.success) {
-                    const modal = form.closest('.modal');
-                    if (modal) {
-                        $(modal).modal('hide');
-                    }
-                    
+                    // Keep the modal open and reload. The page flash message (e.g. "実行完了しました！")
+                    // will be shown after reload.
                     setTimeout(function() {
                         window.location.reload();
-                    }, 2000);
+                    }, 100);
                 } else {
                     throw new Error(data.error || t.installFailed);
                 }
