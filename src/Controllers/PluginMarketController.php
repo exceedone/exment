@@ -55,6 +55,10 @@ class PluginMarketController extends AdminController
 
         $url = $this->getMarketplaceUrl() . '/api/plugins/checkout/purchase';
 
+        Log::info('[PluginMarket] Checkout purchase requested', [
+            'plugin_uuid' => $pluginUuid,
+        ]);
+
         try {
             $response = Http::withoutVerifying()
                 ->timeout(30)
@@ -96,7 +100,9 @@ class PluginMarketController extends AdminController
             Log::warning('[PluginMarket] Checkout purchase request failed', [
                 'status' => $response->status(),
                 'url' => $url,
-                'body' => $response->body(),
+                'plugin_uuid' => $pluginUuid,
+                // Do not log full response body (may contain sensitive data / be large).
+                'message' => is_array($json) ? ($json['message'] ?? null) : null,
             ]);
 
             if (is_array($json)) {
@@ -110,6 +116,7 @@ class PluginMarketController extends AdminController
         } catch (\Throwable $e) {
             Log::error('[PluginMarket] Checkout purchase exception: ' . $e->getMessage(), [
                 'url' => $url,
+                'plugin_uuid' => $pluginUuid,
             ]);
             return response()->json([
                 'status' => 'failed',
@@ -336,7 +343,7 @@ class PluginMarketController extends AdminController
 
                 if (!is_array($plugins)) {
                     Log::warning("[PluginMarket] API returned invalid data", [
-                        'response' => $response->body(),
+                        'status' => $response->status(),
                     ]);
                     $plugins = [];
                 }
@@ -448,9 +455,7 @@ class PluginMarketController extends AdminController
                 ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
 
         } catch (\Throwable $e) {
-            Log::error('[PluginMarket] Exception: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('[PluginMarket] Exception: ' . $e->getMessage());
             // Avoid rendering a full error page; keep the UI and show a toast.
             admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
             $plugins = [];
@@ -505,9 +510,7 @@ class PluginMarketController extends AdminController
             admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
             return redirect(admin_url('plugin-market'));
         } catch (\Throwable $e) {
-            Log::error('[PluginMarket] Detail exception: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('[PluginMarket] Detail exception: ' . $e->getMessage());
             admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
             return redirect(admin_url('plugin-market'));
         }
@@ -577,15 +580,6 @@ class PluginMarketController extends AdminController
             }
 
             // Get version information
-            Log::info('[PluginMarket] Loading versions', [
-                'url' => "{$this->getRepoUrl()}/{$id}/versions",
-                'query' => $queryParams,
-            ]);
-            // Evidence log: proves tenant_uuid is included in the upstream request.
-            Log::info('[PluginMarket] EVIDENCE_QUERY', [
-                'endpoint' => "{$this->getRepoUrl()}/{$id}/versions",
-                'tenant_uuid_sent' => $queryParams['tenant_uuid'] ?? null,
-            ]);
             $versionResponse = Http::withoutVerifying()
                 ->timeout(30)
                 ->connectTimeout(10)
@@ -617,17 +611,6 @@ class PluginMarketController extends AdminController
             
             $downloadUrl = $selectedVersion['download_url'];
 
-            // Evidence log: captures the exact download_url returned by the marketplace.
-            Log::info('[PluginMarket] EVIDENCE_URL', [
-                'download_url' => $downloadUrl,
-            ]);
-
-            Log::info('[PluginMarket] Marketplace download_url received', [
-                'download_url' => $downloadUrl,
-                'has_tenant_uuid' => str_contains($downloadUrl, 'tenant_uuid='),
-                'looks_signed' => str_contains($downloadUrl, 'signature=') || str_contains($downloadUrl, 'X-Amz-Signature='),
-            ]);
-
             if ((bool) config('exment.market_resign_signed_download_url', false)) {
                 $downloadUrl = $this->resignMarketplaceSignedUrl($downloadUrl, $tenantUuid, 10);
             } else {
@@ -647,7 +630,8 @@ class PluginMarketController extends AdminController
                     ->get($downloadUrl);
             } catch (\Throwable $downloadError) {
                 Log::warning('[PluginMarket] Download exception', [
-                    'download_url' => $downloadUrl,
+                    'plugin_id' => $id,
+                    'version_id' => $versionId,
                     'message' => $downloadError->getMessage(),
                 ]);
 
@@ -672,8 +656,9 @@ class PluginMarketController extends AdminController
                     $bodyPreview = '<<unable to read response body: ' . $previewError->getMessage() . '>>';
                 }
                 Log::warning('[PluginMarket] Download failed', [
+                    'plugin_id' => $id,
+                    'version_id' => $versionId,
                     'status' => $zipResp->status(),
-                    'download_url' => $downloadUrl,
                     'content_type' => $contentType,
                     'body_preview' => $bodyPreview,
                 ]);
@@ -723,7 +708,8 @@ class PluginMarketController extends AdminController
                 Storage::disk('local')->delete($tmpPath);
                 
                 Log::error("[PluginMarket] Installation failed: " . $installError->getMessage(), [
-                    'trace' => $installError->getTraceAsString(),
+                    'plugin_id' => $id,
+                    'version_id' => $versionId,
                 ]);
                 
                 return response()->json([
@@ -732,9 +718,7 @@ class PluginMarketController extends AdminController
             }
 
         } catch (\Throwable $e) {
-            Log::error("[PluginMarket] Error installing plugin $id: " . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error("[PluginMarket] Error installing plugin $id: " . $e->getMessage());
             return response()->json(['error' => exmtrans('plugin.market.message.install_error') . ': ' . $e->getMessage()], 500);
         }
     }
@@ -794,9 +778,7 @@ class PluginMarketController extends AdminController
             ]);
 
         } catch (\Throwable $e) {
-            Log::error("[PluginMarket] Error uninstalling plugin $id: " . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error("[PluginMarket] Error uninstalling plugin $id: " . $e->getMessage());
             return response()->json(['error' => exmtrans('plugin.market.message.uninstall_error') . ': ' . $e->getMessage()], 500);
         }
     }

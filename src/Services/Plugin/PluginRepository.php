@@ -27,24 +27,19 @@ class PluginRepository
                 ->connectTimeout(10)
                 ->retry(2, 100)
                 ->get($apiUrl, $queryParams);
-            
-            Log::info('[PluginRepository] API Response', [
-                'url' => $apiUrl,
-                'marketplace_url' => $marketplaceUrl,
-                'status' => $resp->status(),
-                'body' => $resp->body()
-            ]);
-            
-            if ($resp->successful()) {
-                $plugins = $resp->json();
-                
-                Log::info('[PluginRepository] Raw plugins data', [
-                    'count' => count($plugins),
-                    'plugins' => $plugins
+
+            if (!$resp->successful()) {
+                Log::warning('[PluginRepository] API request failed', [
+                    'url' => $apiUrl,
+                    'status' => $resp->status(),
                 ]);
-                
-                // Transform data: map plugin data to include uuid and download_url
-                return collect($plugins)->map(function ($plugin) use ($marketplaceUrl, $tenantUuid) {
+                return [];
+            }
+            
+            $plugins = $resp->json();
+
+            // Transform data: map plugin data to include uuid and download_url
+            return collect($plugins)->map(function ($plugin) use ($marketplaceUrl, $tenantUuid) {
                     $pluginId = $plugin['id'] ?? $plugin['uuid'] ?? '';
                     
                     // Get latest version info from versions array
@@ -69,14 +64,6 @@ class PluginRepository
                         }
                     }
                     
-                    Log::info('[PluginRepository] Mapping plugin', [
-                        'plugin_id' => $pluginId,
-                        'plugin_name' => $plugin['plugin_name'] ?? '',
-                        'version' => $latestVersionName,
-                        'latest_version_id' => $latestVersion['id'] ?? null,
-                        'download_url' => $downloadUrl
-                    ]);
-                    
                     $result = [
                         'uuid' => $plugin['uuid'] ?? $pluginId,
                         'plugin_name' => $plugin['plugin_name'] ?? '',
@@ -87,8 +74,6 @@ class PluginRepository
                     
                     return $result;
                 })->keyBy('uuid')->toArray();
-            }
-            return [];
         });
     }
 
