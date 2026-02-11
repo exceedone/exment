@@ -2,15 +2,17 @@
 .tox-notifications-container {
     position: absolute !important;
     transform: translateX(-50%) !important;
-    padding: 0 8px !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
     pointer-events: none !important;
     z-index: 1300;
+    width: 100% !important;
 }
 
 /* Individual notification styles */
 .tox-notification {
     max-width: 100% !important;
+    width: 100% !important;
     white-space: normal !important;
     word-break: break-word !important;
     overflow-wrap: anywhere !important;
@@ -62,8 +64,9 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .tox-notifications-container {
-        padding: 0 4px !important;
-        max-width: calc(100vw - 16px) !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
     
     .tox-notification__body {
@@ -74,8 +77,9 @@
 
 @media (max-width: 480px) {
     .tox-notifications-container {
-        padding: 0 2px !important;
-        max-width: calc(100vw - 8px) !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
     
     .tox-notification__body {

@@ -235,6 +235,15 @@ class Tinymce extends Textarea
         }
 
         // Exment: Notification enhancements for TinyMCE
+        (function() {
+            try {
+                tinymce.remove(config.selector);
+            } catch(e) {}
+            document.querySelectorAll('.tox-notifications-container').forEach(function(el) {
+                try { el.remove(); } catch(e) {}
+            });
+        })();
+
         config.setup = (function(existingSetup) {
             return function(editor) {
                 if (typeof existingSetup === 'function') {
@@ -242,25 +251,55 @@ class Tinymce extends Textarea
                 }
                 
                 editor.on('init', function() {
+                    if (editor.notificationManager._exmentPatched) return;
+                    editor.notificationManager._exmentPatched = true;
+
+                    var activeNotifications = [];
+
                     // Auto-close notification after 3 seconds
                     var originalOpen = editor.notificationManager.open;
                     editor.notificationManager.open = function(spec, fireEvent) {
                         var notification = originalOpen.call(this, spec, fireEvent);
                         if (notification && typeof notification.close === 'function') {
+                            activeNotifications.push(notification);
                             setTimeout(function() {
                                 try { notification.close(); } catch(e) {}
+                                activeNotifications = activeNotifications.filter(function(n) { return n !== notification; });
                             }, 3000);
                         }
                         return notification;
                     };
+
+                    // Close all notifications immediately and remove DOM elements
+                    function closeAllNotifications() {
+                        activeNotifications.forEach(function(n) {
+                            try { n.close(); } catch(e) {}
+                        });
+                        activeNotifications = [];
+                        document.querySelectorAll('.tox-notifications-container').forEach(function(el) {
+                            try { el.remove(); } catch(e) {}
+                        });
+                    }
+
+                    // Use namespaced pjax event to avoid duplicate bindings
+                    if (typeof $ !== 'undefined') {
+                        $(document).off('pjax:start.exment-tinymce').on('pjax:start.exment-tinymce', function() {
+                            closeAllNotifications();
+                            // Also destroy all TinyMCE editors on pjax navigation
+                            try { tinymce.remove(); } catch(e) {}
+                        });
+                    }
+                    window.addEventListener('beforeunload', closeAllNotifications);
                     
                     // Responsive notification positioning
                     function fix() {
                         try {
                             var containers = document.querySelectorAll('.tox-notifications-container');
                             if (!containers.length) return;
-                            
-                            var editorRect = editor.getContainer().getBoundingClientRect();
+
+                            var editorContainer = editor.getContainer();
+                            if (!editorContainer || !editorContainer.getBoundingClientRect) return;
+                            var editorRect = editorContainer.getBoundingClientRect();
                             
                             containers.forEach(function(container) {
                                 var parentRect = container.offsetParent ? container.offsetParent.getBoundingClientRect() : {left: 0};
