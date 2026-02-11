@@ -325,6 +325,7 @@ class PluginLicenseSyncService
     protected function getExpiresAt(array $market): ?Carbon
     {
         $candidate = $market['expires_at']
+            ?? $market['expired_at']
             ?? $market['license_expires_at']
             ?? ($market['license_info']['expires_at'] ?? null)
             ?? ($market['license']['expires_at'] ?? null);

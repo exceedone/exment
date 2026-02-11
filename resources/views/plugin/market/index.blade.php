@@ -723,8 +723,28 @@ function initPluginMarket() {
             params.set('tenant_uuid', tenantUuid);
         }
         const query = params.toString() ? `?${params.toString()}` : '';
-        fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions${query}`)
-            .then(response => response.json())
+        fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions${query}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(async (response) => {
+                const rawText = await response.text();
+                let data = {};
+                try {
+                    data = rawText ? JSON.parse(rawText) : {};
+                } catch (e) {
+                    // Marketplace sometimes returns an HTML error page (starts with '<'),
+                    // which would break response.json(). Normalize to a handled error.
+                    throw new Error(t.versionLoadFailed);
+                }
+
+                if (!response.ok) {
+                    throw new Error((data && (data.error || data.message)) ? (data.error || data.message) : t.versionLoadFailed);
+                }
+
+                return data;
+            })
             .then(data => {
                 console.log('Versions data:', data);
                 
@@ -809,11 +829,46 @@ function initPluginMarket() {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRF-TOKEN': formData.get('_token')
+                    'X-CSRF-TOKEN': formData.get('_token'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(async (response) => {
+                const rawText = await response.text();
+                let data = null;
+                try {
+                    data = rawText ? JSON.parse(rawText) : null;
+                } catch (e) {
+                    data = null;
+                }
+
+                // If the install succeeded but the response is non-JSON (e.g. HTML due to redirect/error page),
+                // avoid surfacing a JSON parse error. Reload to reflect the final install state.
+                if (response.ok && !data) {
+                    return { __nonJsonOk: true };
+                }
+
+                if (!response.ok) {
+                    const msg = (data && (data.error || data.message)) ? (data.error || data.message)
+                        : (rawText && rawText.length < 500 ? rawText : null);
+                    throw new Error(msg || t.installFailed);
+                }
+
+                return data || {};
+            })
             .then(data => {
+                if (data && data.__nonJsonOk) {
+                    const modal = form.closest('.modal');
+                    if (modal) {
+                        $(modal).modal('hide');
+                    }
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 500);
+                    return;
+                }
+
                 if (data.success) {
                     const modal = form.closest('.modal');
                     if (modal) {
