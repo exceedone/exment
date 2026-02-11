@@ -617,6 +617,14 @@ function initPluginMarket() {
     }
 
     document.querySelectorAll('.purchase-btn').forEach(function(btn) {
+        // Prevent duplicate bindings when initPluginMarket() runs multiple times (PJAX).
+        if (btn.dataset && btn.dataset.exmentPluginMarketBoundPurchase === '1') {
+            return;
+        }
+        if (btn.dataset) {
+            btn.dataset.exmentPluginMarketBoundPurchase = '1';
+        }
+
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             handlePurchase(btn);
@@ -625,6 +633,13 @@ function initPluginMarket() {
 
     // Handle free plugin installation
     document.querySelectorAll('.install-form').forEach(function(form) {
+        if (form.dataset && form.dataset.exmentPluginMarketBoundInstall === '1') {
+            return;
+        }
+        if (form.dataset) {
+            form.dataset.exmentPluginMarketBoundInstall = '1';
+        }
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -684,6 +699,13 @@ function initPluginMarket() {
     // Handle plugin uninstallation using Exment.CommonEvent.ShowSwal
     // Same pattern as backup/index.blade.php - let Exment handle success/redirect automatically
     document.querySelectorAll('.uninstall-btn').forEach(function(btn) {
+        if (btn.dataset && btn.dataset.exmentPluginMarketBoundUninstall === '1') {
+            return;
+        }
+        if (btn.dataset) {
+            btn.dataset.exmentPluginMarketBoundUninstall = '1';
+        }
+
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             
@@ -710,7 +732,10 @@ function initPluginMarket() {
     });
 
     // Load versions when modal is opened
-    $('.modal[id^="versionModal"]').on('show.bs.modal', function(e) {
+    // Use delegated, namespaced handlers to avoid duplicate bindings across PJAX re-inits.
+    $(document)
+        .off('show.bs.modal.exmentPluginMarket', '.modal[id^="versionModal"]')
+        .on('show.bs.modal.exmentPluginMarket', '.modal[id^="versionModal"]', function(e) {
         const modal = $(this);
         const pluginId = modal.attr('id').match(/\d+/)[0];
         const versionSelect = modal.find('.version-select');
@@ -794,7 +819,9 @@ function initPluginMarket() {
     });
     
     // Show changelog when version is selected
-    $('.version-select').on('change', function() {
+    $(document)
+        .off('change.exmentPluginMarket', '.version-select')
+        .on('change.exmentPluginMarket', '.version-select', function() {
         const selected = $(this).find('option:selected');
         const changelog = selected.attr('data-changelog');
         const pluginId = $(this).data('plugin-id');
@@ -809,6 +836,13 @@ function initPluginMarket() {
 
     // Handle free plugin installation with version
     document.querySelectorAll('.install-form-free').forEach(function(form) {
+        if (form.dataset && form.dataset.exmentPluginMarketBoundInstallFree === '1') {
+            return;
+        }
+        if (form.dataset) {
+            form.dataset.exmentPluginMarketBoundInstallFree = '1';
+        }
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -894,14 +928,24 @@ function initPluginMarket() {
     });
 }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', initPluginMarket);
+// Bootstrap only once to avoid duplicated init triggers if this script is evaluated multiple times.
+if (!window.__exmentPluginMarketBootstrapped) {
+    window.__exmentPluginMarketBootstrapped = true;
 
-// Re-initialize after PJAX navigation (for Exment/Laravel-Admin)
-$(document).on('pjax:end', function() {
-    console.log('[PluginMarket] PJAX navigation detected, reinitializing...');
-    // Wait a bit for DOM to be ready
-    setTimeout(initPluginMarket, 100);
-});
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', initPluginMarket);
+
+    // Re-initialize after PJAX navigation (for Exment/Laravel-Admin)
+    $(document)
+        .off('pjax:end.exmentPluginMarket')
+        .on('pjax:end.exmentPluginMarket', function() {
+            console.log('[PluginMarket] PJAX navigation detected, reinitializing...');
+            // Wait a bit for DOM to be ready
+            setTimeout(initPluginMarket, 100);
+        });
+} else {
+    // If the script gets evaluated again (PJAX), init for the current fragment.
+    setTimeout(initPluginMarket, 0);
+}
 
 </script>
