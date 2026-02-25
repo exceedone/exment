@@ -285,7 +285,8 @@ class Tinymce extends Textarea
                     if (typeof $ !== 'undefined') {
                         $(document).off('pjax:start.exment-tinymce').on('pjax:start.exment-tinymce', function() {
                             closeAllNotifications();
-                            // Also destroy all TinyMCE editors on pjax navigation
+                        });
+                        $(document).off('pjax:beforeReplace.exment-tinymce').on('pjax:beforeReplace.exment-tinymce', function() {
                             try { tinymce.remove(); } catch(e) {}
                         });
                     }
