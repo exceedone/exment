@@ -19,8 +19,13 @@ class ChatbotService
     public function getEmbeddingFromAI(string $message): ?array
     {
         $host = config('exment.ai_server_host');
+        $apiKey = config('exment.ai_server_api_key');
         if (!$host) {
             \Log::error('AI server host not configured');
+            return null;
+        }
+        if (!$apiKey) {
+            \Log::error('AI server api key not configured');
             return null;
         }
         try {
@@ -29,7 +34,7 @@ class ChatbotService
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . env('AI_SERVER_API_KEY')
+                    'Authorization' => 'Bearer ' . $apiKey
                 ])
                 ->post($url, [
                     'text' => [$message]
@@ -126,8 +131,13 @@ class ChatbotService
     public function getAnswerFromAI(string $message, array $history = [], array $answerChoices = []): ?string
     {
         $host = config('exment.ai_server_host');
+        $apiKey = config('exment.ai_server_api_key');
         if (!$host) {
             \Log::error('AI server host not configured');
+            return null;
+        }
+        if (!$apiKey) {
+            \Log::error('AI server api key not configured');
             return null;
         }
         try {
@@ -141,7 +151,7 @@ class ChatbotService
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . env('AI_SERVER_API_KEY')
+                    'Authorization' => 'Bearer ' . $apiKey
                 ])
                 ->post($url, $payload);
             if ($response->successful()) {
