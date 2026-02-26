@@ -302,6 +302,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Plugin marketplace (Plugin Market)
+    |--------------------------------------------------------------------------
+    |
+    | These values are consumed at runtime (controllers/services). They must be
+    | available via config() so they continue to work with `php artisan config:cache`.
+    |
+    */
+    'market_plugin_url' => env('MARKETPLACE_URL', 'https://exment.org'),
+    'market_tenant_uuid' => env('EXMENT_MARKET_TENANT_UUID'),
+    'market_force_append_tenant_uuid_to_signed_url' => env('EXMENT_MARKET_FORCE_APPEND_TENANT_UUID_TO_SIGNED_URL', false),
+
+    // TEST/escape hatch: allow Exment to re-sign marketplace signed download URLs locally.
+    // Requires the marketplace APP_KEY (do NOT use in production unless you fully accept the security implications).
+    'market_resign_signed_download_url' => env('EXMENT_MARKET_RESIGN_SIGNED_DOWNLOAD_URL', false),
+    'marketplace_app_key' => env('EXMENT_MARKETPLACE_APP_KEY'),
+    // If the marketplace verifies signed URLs using relative mode (ValidateSignature::relative),
+    // enable this so the signature is computed against "/path" instead of the absolute URL.
+    'marketplace_resign_relative' => env('EXMENT_MARKETPLACE_RESIGN_RELATIVE', false),
+
+
+    /*
+    |--------------------------------------------------------------------------
     | Template Search Url[WIP]
     |--------------------------------------------------------------------------
     |

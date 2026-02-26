@@ -18,7 +18,10 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
+use Exceedone\Exment\Services\Plugin\PluginLicenseSyncService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
 
 class PluginController extends AdminControllerBase
 {
@@ -34,13 +37,18 @@ class PluginController extends AdminControllerBase
      *
      * @return Content
      */
-    /**
-     * Index interface.
-     *
-     * @return Content
-     */
     public function index(Request $request, Content $content)
     {
+        // Always trigger a license sync on the /plugins screen.
+        // This provides immediate auto-inactive updates, regardless of global throttling.
+        try {
+            if (\Exment::user()) {
+                (new PluginLicenseSyncService())->syncForced(1440);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[PluginController] License sync failed: ' . $e->getMessage());
+        }
+
         $this->AdminContent($content);
 
         if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
@@ -99,10 +107,22 @@ class PluginController extends AdminControllerBase
             })->toArray());
         })->sortable();
         $grid->column('author', exmtrans("plugin.author"));
+        // $grid->column('version', exmtrans("plugin.version"));
+
         $grid->column('version', exmtrans("plugin.version"));
-        $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
-            return \Exment::getTrueMark($active_flg);
-        })->escape(false);
+
+
+
+
+        // $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
+        //     return \Exment::getTrueMark($active_flg);
+        // })->escape(false);
+
+        $states = [
+            1 => ['value' => 1, 'text' => 'YES', 'color' => 'primary'],
+            0 => ['value' => 0, 'text' => 'NO', 'color' => 'default'],
+        ];
+        $grid->column('active_flg', exmtrans("plugin.active_flg"))->switch($states);
 
         $grid->disableCreateButton();
         $grid->disableExport();
@@ -180,6 +200,31 @@ class PluginController extends AdminControllerBase
             return false;
         }
 
+        // Block manual activation if paid plugin has no license or is expired beyond grace week.
+        $requestedActive = $request->boolean('active_flg');
+        if ($requestedActive && !boolval($plugin->active_flg)) {
+            $shouldBlock = (new PluginLicenseSyncService())->shouldBlockActivation((string) $plugin->plugin_name);
+            if ($shouldBlock) {
+                // Ensure it stays disabled and marked as license-driven.
+                $options = is_array($plugin->options) ? $plugin->options : [];
+                $options['disabled_by_license'] = true;
+                $plugin->active_flg = 0;
+                $plugin->options = $options;
+                $plugin->save();
+                Plugin::clearCacheTrait();
+
+                $msg = exmtrans('plugin.message.activation_blocked');
+                if ($request->ajax() || $request->expectsJson()) {
+                    admin_toastr($msg, 'error');
+                }
+                return back();
+            }
+        }
+
+        $request->merge([
+            'active_flg' => $request->boolean('active_flg') ? 1 : 0,
+        ]);
+
         if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
             $options = $request->get('options');
@@ -244,8 +289,8 @@ class PluginController extends AdminControllerBase
 
                 if (isset($enumClass)) {
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))
-                    ->options($enumClass::transArray("plugin.options.event_trigger_options"))
-                    ->help(exmtrans("plugin.help.event_triggers"));
+                        ->options($enumClass::transArray("plugin.options.event_trigger_options"))
+                        ->help(exmtrans("plugin.help.event_triggers"));
                 }
             }
 
@@ -288,11 +333,11 @@ class PluginController extends AdminControllerBase
                 }
             } elseif ($plugin->matchPluginType(PluginType::BATCH) && !$command_only) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
-                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
+                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id=' . exmtrans('common.help.task_schedule_id'))))
                     ->default(3);
 
                 $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
-                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id='.exmtrans('common.help.task_schedule_id'))))
+                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more?id=' . exmtrans('common.help.task_schedule_id'))))
                     ->rules('max:100');
             }
 
@@ -316,8 +361,8 @@ class PluginController extends AdminControllerBase
                         $form->text('crud_auth_id', $pluginClass->getAuthSettingLabel())
                             ->help($pluginClass->getAuthSettingHelp());
                         $form->encpassword('crud_auth_password', $pluginClass->getAuthSettingPasswordLabel())
-                        ->updateIfEmpty()
-                        ->help($pluginClass->getAuthSettingPasswordHelp());
+                            ->updateIfEmpty()
+                            ->help($pluginClass->getAuthSettingPasswordHelp());
                     } elseif ($crudAuthType == PluginCrudAuthType::OAUTH) {
                         $form->select('crud_auth_oauth')
                             ->options(function () {
@@ -343,8 +388,8 @@ class PluginController extends AdminControllerBase
                     'all' => trans('admin.all'),
                     'current_page' => trans('admin.current_page'),
                 ])->required()
-                ->default(['all', 'current_page'])
-                ->help(exmtrans("plugin.help.export_types"));
+                    ->default(['all', 'current_page'])
+                    ->help(exmtrans("plugin.help.export_types"));
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->textarea('export_description', exmtrans("plugin.options.export_description"))->help(exmtrans("plugin.help.export_description"))->rows(3);
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
@@ -366,7 +411,6 @@ class PluginController extends AdminControllerBase
                 'icon' => 'fa-edit',
                 'btn_class' => 'btn-warning',
             ]));
-
             if ($plugin->matchPluginType(PluginType::PAGE)) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_url($plugin->getRouteUri()),
@@ -384,6 +428,8 @@ class PluginController extends AdminControllerBase
                     'btn_class' => 'btn-purple',
                 ]));
             }
+
+            // Update button has been removed from form tools
         });
 
         $form->disableReset();
