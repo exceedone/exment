@@ -21,8 +21,14 @@ use Encore\Admin\Layout\Content;
 
 class AiAssistantController extends AdminControllerBase
 {
-    protected string $aiAssistantServerUrl = 'https://exment.org/api/ai_assistant/';
-    protected string $bearerToken  = '1|alBBL8vpczVdvUGB44TxoHL0NSV97BrDYV3LBig3fb5e70d2';
+    protected string $aiAssistantServerUrl;
+    protected string $bearerToken;
+
+    public function __construct()
+    {
+        $this->aiAssistantServerUrl = config('exment.ai_server_host') . '/api/ai_assistant/';
+        $this->bearerToken          = config('exment.ai_server_api_key');
+    }
 
     public function aiAssistant(Content $content)
     {

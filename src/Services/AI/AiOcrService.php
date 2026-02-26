@@ -7,8 +7,15 @@ use Illuminate\Support\Collection;
 
 class AiOcrService
 {
-    protected string $ocrServerUrl = 'https://exment.org/api/ocr/parse-bbox';
-    protected string $bearerToken  = '1|alBBL8vpczVdvUGB44TxoHL0NSV97BrDYV3LBig3fb5e70d2';
+    protected string $ocrServerUrl;
+    protected string $bearerToken;
+
+    public function __construct()
+    {
+        $this->ocrServerUrl = config('exment.ai_server_host') . '/api/ocr/parse-bbox';
+        $this->bearerToken  = config('exment.ai_server_api_key');
+    }
+
 
     public function processFile($file, string $tableKey, $columns): array
     {
