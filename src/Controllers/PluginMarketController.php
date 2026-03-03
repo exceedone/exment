@@ -290,7 +290,7 @@ class PluginMarketController extends AdminController
 
         return $grid;
     }
-    
+
     public function index(Content $content)
     {
         try {
@@ -309,7 +309,7 @@ class PluginMarketController extends AdminController
             if (!empty($tenantUuid)) {
                 $queryParams['tenant_uuid'] = $tenantUuid;
             }
-            
+
             if ($keyword) {
                 $queryParams['keyword'] = $keyword;
                 // New Market API uses `search`
@@ -357,7 +357,7 @@ class PluginMarketController extends AdminController
 
             // Filter to show only free plugins and perform client-side filtering
             $plugins = collect($plugins);
-            
+
             // OSS (no tenant_uuid): show free plugins only
             if (empty($tenantUuid)) {
                 $plugins = $plugins->filter(function ($plugin) {
@@ -369,7 +369,7 @@ class PluginMarketController extends AdminController
                     return $price === 0.0;
                 });
             }
-            
+
             // Filter by keyword (search in plugin_name, description, author)
             if ($keyword) {
                 $plugins = $plugins->filter(function ($plugin) use ($keyword) {
@@ -380,7 +380,7 @@ class PluginMarketController extends AdminController
                         || str_contains(strtolower($author), $searchText);
                 });
             }
-            
+
             // Filter by type
             if ($type) {
                 $plugins = $plugins->filter(function ($plugin) use ($type) {
@@ -388,7 +388,7 @@ class PluginMarketController extends AdminController
                     return str_contains(strtolower($pluginTypes), strtolower($type));
                 });
             }
-            
+
             // Filter by status
             if ($status) {
                 $plugins = $plugins->filter(function ($plugin) use ($status) {
@@ -396,7 +396,7 @@ class PluginMarketController extends AdminController
                     return $checkStatus === strtolower($status);
                 });
             }
-            
+
             $plugins = $plugins->values()->all();
 
             // Enrich marketplace data with local install info so the view can
@@ -429,31 +429,30 @@ class PluginMarketController extends AdminController
                 Log::warning('[PluginMarket] Failed to enrich plugin data with local install info: ' . $e->getMessage());
             }
 
-                // Paginate the (potentially large) marketplace list for better UX, especially on mobile.
-                $perPage = (int) $request->input('per_page', 20);
-                if ($perPage <= 0) {
-                    $perPage = 20;
-                }
-                $perPage = min($perPage, 200);
+            // Paginate the (potentially large) marketplace list for better UX, especially on mobile.
+            $perPage = (int) $request->input('per_page', 20);
+            if ($perPage <= 0) {
+                $perPage = 20;
+            }
+            $perPage = min($perPage, 200);
 
-                $page = (int) $request->input('page', 1);
-                if ($page <= 0) {
-                    $page = 1;
-                }
+            $page = (int) $request->input('page', 1);
+            if ($page <= 0) {
+                $page = 1;
+            }
 
-                $total = count($plugins);
-                $items = array_slice($plugins, ($page - 1) * $perPage, $perPage);
-                $plugins = new LengthAwarePaginator($items, $total, $perPage, $page, [
-                    'path' => $request->url(),
-                    'pageName' => 'page',
-                ]);
-                $plugins->appends($request->except('page'));
+            $total = count($plugins);
+            $items = array_slice($plugins, ($page - 1) * $perPage, $perPage);
+            $plugins = new LengthAwarePaginator($items, $total, $perPage, $page, [
+                'path' => $request->url(),
+                'pageName' => 'page',
+            ]);
+            $plugins->appends($request->except('page'));
 
             // Render interface
             return $content->title(exmtrans('plugin.market.title'))
                 ->description(exmtrans('plugin.market.description'))
                 ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
-
         } catch (\Throwable $e) {
             Log::error('[PluginMarket] Exception: ' . $e->getMessage());
             // Avoid rendering a full error page; keep the UI and show a toast.
@@ -553,7 +552,7 @@ class PluginMarketController extends AdminController
                 ->timeout(30)
                 ->connectTimeout(10)
                 ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
-            
+
             if ($pluginResponse->failed()) {
                 return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
             }
@@ -604,18 +603,12 @@ class PluginMarketController extends AdminController
                 'version_id' => $versionId,
                 'version' => $selectedVersion['version'] ?? 'UNKNOWN',
             ]);
-            
+
             if (empty($selectedVersion['download_url'])) {
                 return response()->json(['error' => exmtrans('plugin.market.message.no_download_url')], 400);
             }
-            
-            $downloadUrl = $selectedVersion['download_url'];
 
-            if ((bool) config('exment.market_resign_signed_download_url', false)) {
-                $downloadUrl = $this->resignMarketplaceSignedUrl($downloadUrl, $tenantUuid, 10);
-            } else {
-                $downloadUrl = $this->appendTenantUuidToUrl($downloadUrl, $tenantUuid);
-            }
+            $downloadUrl = $selectedVersion['download_url'];
 
             Log::info("[PluginMarket] Downloading plugin", [
                 'download_url' => $downloadUrl,
@@ -679,44 +672,43 @@ class PluginMarketController extends AdminController
                     Log::info("[PluginMarket] Removing old version before update", [
                         'old_version' => $installedPlugin->version,
                     ]);
-                    
+
                     // Delete plugin folder
                     $disk = Storage::disk(Define::DISKNAME_ADMIN);
                     $folder = $installedPlugin->getPath();
                     if ($disk->exists($folder)) {
                         $disk->deleteDirectory($folder);
                     }
-                    
+
                     // Delete from database
                     $installedPlugin->delete();
                 }
-                
+
                 // Install new version
                 PluginInstaller::uploadPlugin(new \Illuminate\Http\File($fullPath));
-                
+
                 // Clean up temporary file
                 Storage::disk('local')->delete($tmpPath);
-                
+
                 $message = $isUpdate ? exmtrans('plugin.market.message.update_success') : exmtrans('plugin.market.message.install_success', ['name' => $pluginName ?? '']);
-                
+
                 return response()->json([
-                    'success' => true, 
+                    'success' => true,
                     'message' => $message
                 ]);
             } catch (\Throwable $installError) {
                 // Clean up temporary file
                 Storage::disk('local')->delete($tmpPath);
-                
+
                 Log::error("[PluginMarket] Installation failed: " . $installError->getMessage(), [
                     'plugin_id' => $id,
                     'version_id' => $versionId,
                 ]);
-                
+
                 return response()->json([
                     'error' => exmtrans('plugin.market.message.install_failed') . ': ' . $installError->getMessage()
                 ], 500);
             }
-
         } catch (\Throwable $e) {
             Log::error("[PluginMarket] Error installing plugin $id: " . $e->getMessage());
             return response()->json(['error' => exmtrans('plugin.market.message.install_error') . ': ' . $e->getMessage()], 500);
@@ -740,7 +732,7 @@ class PluginMarketController extends AdminController
                 ->timeout(30)
                 ->connectTimeout(10)
                 ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
-            
+
             if ($pluginResponse->failed()) {
                 return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
             }
@@ -772,11 +764,10 @@ class PluginMarketController extends AdminController
             $installedPlugin->delete();
 
             return response()->json([
-                 'result' => true,
-                 'status' => true,
-                 'swal' => exmtrans('plugin.market.message.uninstall_success', ['name' => $pluginName])
+                'result' => true,
+                'status' => true,
+                'swal' => exmtrans('plugin.market.message.uninstall_success', ['name' => $pluginName])
             ]);
-
         } catch (\Throwable $e) {
             Log::error("[PluginMarket] Error uninstalling plugin $id: " . $e->getMessage());
             return response()->json(['error' => exmtrans('plugin.market.message.uninstall_error') . ': ' . $e->getMessage()], 500);
@@ -791,5 +782,4 @@ class PluginMarketController extends AdminController
         session()->forget('plugin_auto_install');
         return response()->json(['success' => true]);
     }
-    
 }
