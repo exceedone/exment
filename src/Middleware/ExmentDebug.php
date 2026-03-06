@@ -21,7 +21,15 @@ class ExmentDebug
 
     public static function handleLog(?Request $request = null)
     {
-        if (boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false)) || System::logging_toggle_available()) {
+        // Check if database is initialized before accessing System settings
+        $loggingToggle = false;
+        try {
+            $loggingToggle = System::initialized() && System::logging_toggle_available();
+        } catch (\Exception $e) {
+            // Ignore errors when database is not yet set up
+        }
+
+        if (boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false)) || $loggingToggle) {
             static::logDatabase();
         }
 
