@@ -39,6 +39,13 @@ class PluginController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        // If marketplace tenant_uuid is configured, the plugin list is managed
+        // through the Plugin Market screen instead.
+        $tenantUuid = config('exment.market_tenant_uuid');
+        if (is_string($tenantUuid) && trim($tenantUuid) !== '') {
+            return redirect(admin_url('plugin-market'));
+        }
+
         // Always trigger a license sync on the /plugins screen.
         // This provides immediate auto-inactive updates, regardless of global throttling.
         try {
@@ -405,12 +412,25 @@ class PluginController extends AdminControllerBase
                 $tools->disableDelete();
             }
 
-            $tools->append(view('exment::tools.button', [
-                'href' => admin_url("plugin/edit_code/$id"),
-                'label' => exmtrans('plugin.edit_plugin'),
-                'icon' => 'fa-edit',
-                'btn_class' => 'btn-warning',
-            ]));
+            // Hide "Edit Plugin" code button when marketplace mode is active (tenant_uuid set).
+            $tenantUuid = config('exment.market_tenant_uuid');
+            $isMarketMode = is_string($tenantUuid) && trim($tenantUuid) !== '';
+
+            if (!$isMarketMode) {
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_url("plugin/edit_code/$id"),
+                    'label' => exmtrans('plugin.edit_plugin'),
+                    'icon' => 'fa-edit',
+                    'btn_class' => 'btn-warning',
+                ]));
+
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_url('plugin-market'),
+                    'label' => exmtrans('plugin.market.title'),
+                    'icon' => 'fa-shopping-cart',
+                    'btn_class' => 'btn-success',
+                ]));
+            }
             if ($plugin->matchPluginType(PluginType::PAGE)) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_url($plugin->getRouteUri()),
