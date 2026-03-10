@@ -28,11 +28,11 @@
                             <div class="row-setting">
                                 <div class="label">{{ exmtrans('plugin.market.detail.plugin_type') }}</div>
                                 <div class="value"><span
-                                        class="badge bg-info">{{ $plugin['plugin_types'] ?? '—' }}</span></div>
+                                        class="badge bg-info">{{ $plugin['plugin_types_display'] ?? $plugin['plugin_types'] ?? '—' }}</span></div>
                             </div>
                             <div class="row-setting">
                                 <div class="label">{{ exmtrans('plugin.market.detail.author') }}</div>
-                                <div class="value">{{ $plugin['user']['name'] ?? '—' }}</div>
+                                <div class="value">{{ (is_array($plugin['user'] ?? null) ? ($plugin['user']['name'] ?? null) : null) ?? $plugin['author'] ?? '—' }}</div>
                             </div>
                             <div class="row-setting">
                                 <div class="label">{{ exmtrans('plugin.market.detail.version') }}</div>
@@ -47,7 +47,7 @@
                                 <div class="label">{{ exmtrans('plugin.market.detail.active_flg') }}</div>
                                 <div class="value">
                                     <span
-                                        class="ms-2 fw-bold text-muted">{{ $plugin['check_status'] == 'active' ? exmtrans('plugin.market.available') : exmtrans('plugin.market.unavailable') }}</span>
+                                        class="ms-2 fw-bold text-muted">{{ ($plugin['is_active'] ?? (isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active')) ? exmtrans('plugin.market.available') : exmtrans('plugin.market.unavailable') }}</span>
                                 </div>
                             </div>
                         </div>

@@ -644,7 +644,13 @@ return [
             'license_expired_warning_subject' => 'プラグインのライセンス期限切れ: :plugin',
             'license_expired_warning_body' => ":plugin のライセンスは :expires_at に期限切れとなりました。\n更新されない場合、:disable_at（あと :days_left 日）に自動的に無効化されます。\n\nマーケットプレイスで更新してください: :market_url\n",
         ],
-        
+        'status' => [
+            'not_installed'  => '未インストール',
+            'installed'      => 'インストール済み',
+            'disabled'       => '無効',
+            'market_deleted' => 'マーケットから削除',
+            'version_deleted'=> 'インストール済みバージョン削除',
+        ],
         'market' => [
             'title' => 'プラグインマーケット',
             'description' => 'プラグインをインストールできます。',
@@ -657,10 +663,12 @@ return [
             'description_col' => '説明',
             'price' => '価格',
             'actions' => '操作',
+            'status' => 'ステータス',
             'details' => '詳細',
+            'setting' => '設定',
             'install' => '取込',
             'update' => '更新',
-            'uninstall' => '解除',
+            'uninstall' => '削除',
             'payment' => '支払い',
             'renew' => '更新',
             'installed' => '取込済み(:version)',
