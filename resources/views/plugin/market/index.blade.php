@@ -88,7 +88,6 @@
             <table class="table table-hover mb-0 plugin-market-table">
             <thead class="table-dark">
                 <tr>
-                    <th>{{ exmtrans('plugin.market.id') }}</th>
                     <th>{{ exmtrans('plugin.market.name') }}</th>
                     <th>{{ exmtrans('plugin.market.internal_name') }}</th>
                     <th>{{ exmtrans('plugin.market.type') }}</th>
@@ -96,48 +95,25 @@
                     <th>{{ exmtrans('plugin.market.latest_version') }}</th>
                     <th>{{ exmtrans('plugin.market.price') }}</th>
                     <th>{{ exmtrans('plugin.market.description_col') }}</th>
+                    <th>{{ exmtrans('plugin.market.status') }}</th>
                     <th>{{ exmtrans('plugin.market.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($plugins as $plugin)
                     <tr>
-                        @php
-    $isActive = isset($plugin['check_status']) && strtolower($plugin['check_status']) === 'active';
-    $rawPrice = $plugin['price'] ?? null;
-    $isFree = (bool) ($plugin['is_free'] ?? ((float) ($rawPrice ?? 0) <= 0));
-    // Marketplace may return has_license=false even for free plugins.
-    // For UI purposes, free plugins are always installable without payment.
-    $hasLicense = $isFree ? true : (bool) ($plugin['has_license'] ?? false);
-    $isExpired = (bool) ($plugin['is_expired'] ?? false);
-    $canInstall = $isFree || ($hasLicense && !$isExpired);
-    $shouldShowPayment = (!$isFree) && ((!$hasLicense) || $isExpired);
-    $pluginUuid = $plugin['uuid'] ?? ($plugin['plugin_uuid'] ?? null);
-                        @endphp
-                        <td>{{ $plugin['id'] ?? '—' }}</td>
                         <td><strong>{{ $plugin['plugin_view_name'] ?? $plugin['plugin_name'] ?? '—' }}</strong></td>
                         <td><code>{{ $plugin['plugin_name'] ?? '—' }}</code></td>
-                        <td><span class="badge bg-secondary">{{ $plugin['plugin_types'] ?? '—' }}</span></td>
+                        <td><span class="badge bg-secondary">{{ $plugin['plugin_types_display'] }}</span></td>
                         <td>{{ $plugin['author'] ?? ($plugin['user']['name'] ?? '—') }}</td>
                         <td><span class="badge bg-info">{{ $plugin['version'] ?? '—' }}</span></td>
                         <td>
-                            @if($isFree)
+                            @if($plugin['is_free'])
                                 <span class="badge bg-success">{{ exmtrans('plugin.market.free') }}</span>
-                            @elseif($rawPrice !== null && $rawPrice !== '')
-                                @php
-        $currencyLabel = $plugin['currency'] ?? null;
-        $currencyNormalized = is_string($currencyLabel) ? strtoupper(trim($currencyLabel)) : null;
-        $isYen = empty($currencyNormalized) || in_array($currencyNormalized, ['JPY', 'YEN', '円', '¥'], true);
-        $priceLabel = is_numeric($rawPrice)
-            ? ($isYen ? number_format((float) $rawPrice, 0) : number_format((float) $rawPrice, 2))
-            : $rawPrice;
-        $currencySuffix = is_numeric($rawPrice)
-            ? ($isYen ? '円' : ($currencyLabel ?? null))
-            : null;
-                                @endphp
-                                <span>{{ $priceLabel }}</span>
-                                @if(!empty($currencySuffix))
-                                    <small class="text-muted">{{ $currencySuffix }}</small>
+                            @elseif(!empty($plugin['price_label']))
+                                <span>{{ $plugin['price_label'] }}</span>
+                                @if(!empty($plugin['currency_suffix']))
+                                    <small class="text-muted">{{ $plugin['currency_suffix'] }}</small>
                                 @endif
                             @else
                                 —
@@ -145,43 +121,46 @@
                         </td>
                         <td><small>{{ $plugin['description'] ?? '—' }}</small></td>
                         <td>
-                            @if($isExpired)
+                            <span class="badge {{ $plugin['status_badge_class'] }}">
+                                {{ exmtrans('plugin.status.' . ($plugin['plugin_status'] ?? 'not_installed')) }}
+                            </span>
+                        </td>
+                        <td>
+                            @if($plugin['is_expired'])
                                 <div class="text-warning" style="margin-bottom:4px;">
                                     <i class="fa fa-exclamation-triangle"></i> {{ exmtrans('plugin.market.message.expired_warning') }}
                                 </div>
                             @endif
 
-                            @if($shouldShowPayment)
+                            @if($plugin['should_show_payment'])
                                 <button type="button"
                                     class="btn btn-primary btn-sm purchase-btn"
-                                    data-plugin-uuid="{{ $pluginUuid }}"
+                                    data-plugin-uuid="{{ $plugin['display_uuid'] }}"
                                     data-plugin-id="{{ $plugin['id'] ?? '' }}"
                                     data-plugin-name="{{ $plugin['plugin_name'] ?? 'Plugin' }}"
-                                    data-action="{{ $isExpired ? 'renew' : 'purchase' }}"
-                                    {{ (empty($tenantUuid) || empty($pluginUuid) || !$isActive) ? 'disabled' : '' }}>
-                                    {{ $isExpired ? exmtrans('plugin.market.renew') : exmtrans('plugin.market.payment') }}
+                                    data-action="{{ $plugin['is_expired'] ? 'renew' : 'purchase' }}"
+                                    {{ (empty($tenantUuid) || empty($plugin['display_uuid']) || !$plugin['is_active']) ? 'disabled' : '' }}>
+                                    {{ $plugin['is_expired'] ? exmtrans('plugin.market.renew') : exmtrans('plugin.market.payment') }}
                                 </button>
                             @endif
 
                             @if($plugin['is_installed'] ?? false)
                                 @if($plugin['has_update'] ?? false)
                                     <!-- Plugin installed but update available -->
-                                    @if($canInstall)
+                                    @if(($plugin['is_market_plugin'] ?? true) && $plugin['can_install'])
                                         <!-- Show version selector modal -->
                                         <button type="button" class="btn btn-warning btn-sm" 
                                             data-toggle="modal" 
                                             data-target="#versionModal{{ $plugin['id'] }}"
-                                            {{ !$isActive ? 'disabled' : '' }}>
+                                            {{ !$plugin['is_active'] ? 'disabled' : '' }}>
                                             <i class="fa fa-arrow-up"></i> {{ exmtrans('plugin.market.update') }}
                                         </button>
-                                    @else
-                                        <!-- Payment/Renew handled by purchase button above -->
                                     @endif
                                     <!-- Uninstall button for installed plugin with update -->
-                                    <form action="{{ route('plugin.market.uninstall', $plugin['id']) }}" method="POST"
+                                    <form action="{{ route('plugin.market.uninstall', 'local-' . $plugin['local_db_id']) }}" method="POST"
                                         style="display:inline;" 
                                         class="uninstall-form"
-                                        data-plugin-id="{{ $plugin['id'] }}"
+                                        data-plugin-id="{{ 'local-' . $plugin['local_db_id'] }}"
                                         data-plugin-name="{{ $plugin['plugin_name'] ?? 'Plugin' }}">
                                         @csrf
                                         <button type="submit" class="btn btn-danger btn-sm uninstall-btn">
@@ -189,20 +168,20 @@
                                         </button>
                                     </form>
                                 @else
-                                    @if($canInstall)
+                                    @if(($plugin['is_market_plugin'] ?? true) && $plugin['can_install'])
                                         <!-- Allow reinstall/downgrade -->
                                         <button type="button" class="btn btn-info btn-sm" 
                                             data-toggle="modal" 
                                             data-target="#versionModal{{ $plugin['id'] }}"
-                                            {{ !$isActive ? 'disabled' : '' }}>
+                                            {{ !$plugin['is_active'] ? 'disabled' : '' }}>
                                             <i class="fa fa-refresh"></i> {{ exmtrans('plugin.market.install') }}
                                         </button>
                                     @endif
                                     <!-- Uninstall button for installed plugin -->
-                                    <form action="{{ route('plugin.market.uninstall', $plugin['id']) }}" method="POST"
+                                    <form action="{{ route('plugin.market.uninstall', 'local-' . $plugin['local_db_id']) }}" method="POST"
                                         style="display:inline;" 
                                         class="uninstall-form"
-                                        data-plugin-id="{{ $plugin['id'] }}"
+                                        data-plugin-id="{{ 'local-' . $plugin['local_db_id'] }}"
                                         data-plugin-name="{{ $plugin['plugin_name'] ?? 'Plugin' }}">
                                         @csrf
                                         <button type="submit" class="btn btn-danger btn-sm uninstall-btn">
@@ -212,19 +191,25 @@
                                 @endif
                             @else
                                 <!-- Plugin not installed -->
-                                @if($canInstall)
+                                @if($plugin['can_install'])
                                     <!-- Show version selector modal -->
                                     <button type="button" class="btn btn-success btn-sm" 
                                         data-toggle="modal" 
                                         data-target="#versionModal{{ $plugin['id'] }}"
-                                        {{ !$isActive ? 'disabled' : '' }}>
+                                        {{ !$plugin['is_active'] ? 'disabled' : '' }}>
                                         {{ exmtrans('plugin.market.install') }}
                                     </button>
                                 @else
                                     <!-- Payment/Renew handled by purchase button above -->
                                 @endif
                             @endif
-                            <a href="{{ route('plugin.market.show', $plugin['id']) }}" class="btn btn-primary btn-sm">{{ exmtrans('plugin.market.details') }}</a>
+                            @if($plugin['is_installed'] ?? false)
+                                <a href="{{ admin_url('plugin/' . $plugin['local_db_id'] . '/edit') }}" class="btn btn-default btn-sm">
+                                    <i class="fa fa-cog"></i> {{ exmtrans('plugin.market.setting') }}
+                                </a>
+                            @else
+                                <a href="{{ route('plugin.market.show', $plugin['route_key']) }}" class="btn btn-primary btn-sm">{{ exmtrans('plugin.market.details') }}</a>
+                            @endif
                         </td>
                     </tr>
                 @empty

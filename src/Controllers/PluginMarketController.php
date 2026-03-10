@@ -239,6 +239,317 @@ class PluginMarketController extends AdminController
         return $finalBase . '?' . $unsignedQuery . '&signature=' . $signature;
     }
 
+    /**
+     * Call the marketplace API and return the raw plugin array.
+     * Returns null if the tenant_uuid is invalid (404), with a toast already set.
+     * Returns an empty array on other HTTP errors (toast already set).
+     *
+     * @param  string     $marketplaceApi
+     * @param  array      $queryParams
+     * @param  string|null $tenantUuid
+     * @return array|null
+     */
+    protected function fetchMarketplacePlugins(string $marketplaceApi, array $queryParams, ?string $tenantUuid): ?array
+    {
+        $response = Http::withoutVerifying()
+            ->timeout(30)
+            ->connectTimeout(10)
+            ->retry(2, 100)
+            ->get($marketplaceApi, $queryParams);
+
+        // If tenant_uuid is provided but invalid, marketplace returns 404
+        if (!empty($tenantUuid) && $response->status() === 404) {
+            admin_toastr(exmtrans('plugin.market.plugin_not_found'), 'error');
+            return null;
+        }
+
+        if ($response->ok()) {
+            $plugins = $response->json();
+
+            if (!is_array($plugins)) {
+                Log::warning('[PluginMarket] API returned invalid data', [
+                    'status' => $response->status(),
+                ]);
+                return [];
+            }
+
+            return $plugins;
+        }
+
+        Log::warning("[PluginMarket] API request failed: {$marketplaceApi}", [
+            'status' => $response->status(),
+        ]);
+        // Don't abort to an error page; show toast and render empty list.
+        admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
+
+        return [];
+    }
+
+    /**
+     * Apply client-side filters to the marketplace plugin collection.
+     *
+     * @param  \Illuminate\Support\Collection $plugins
+     * @param  string|null $tenantUuid
+     * @param  string|null $keyword
+     * @param  string|null $type
+     * @param  string|null $status
+     * @return array
+     */
+    protected function filterPlugins(
+        \Illuminate\Support\Collection $plugins,
+        ?string $tenantUuid,
+        ?string $keyword,
+        ?string $type,
+        ?string $status
+    ): array {
+        // OSS (no tenant_uuid): show free plugins only
+        if (empty($tenantUuid)) {
+            $plugins = $plugins->filter(function ($plugin) {
+                $isFree = $plugin['is_free'] ?? null;
+                if ($isFree !== null) {
+                    return (bool)$isFree;
+                }
+                $price = floatval($plugin['price'] ?? 0);
+                return $price === 0.0;
+            });
+        }
+
+        // Filter by keyword (search in plugin_name, description, author)
+        if ($keyword) {
+            $plugins = $plugins->filter(function ($plugin) use ($keyword) {
+                $searchText = strtolower($keyword);
+                $author = $plugin['author'] ?? ($plugin['user']['name'] ?? '');
+                return str_contains(strtolower($plugin['plugin_name'] ?? ''), $searchText)
+                    || str_contains(strtolower($plugin['description'] ?? ''), $searchText)
+                    || str_contains(strtolower($author), $searchText);
+            });
+        }
+
+        // Filter by type
+        if ($type) {
+            $plugins = $plugins->filter(function ($plugin) use ($type) {
+                $pluginTypes = $plugin['plugin_types'] ?? '';
+                return str_contains(strtolower($pluginTypes), strtolower($type));
+            });
+        }
+
+        // Filter by status
+        if ($status) {
+            $plugins = $plugins->filter(function ($plugin) use ($status) {
+                $checkStatus = strtolower($plugin['check_status'] ?? '');
+                return $checkStatus === strtolower($status);
+            });
+        }
+
+        return $plugins->values()->all();
+    }
+
+    /**
+     * Enrich marketplace plugin array with local install info.
+     * Sets is_installed, current_version and has_update on each item.
+     *
+     * @param  array $plugins
+     * @return array
+     */
+    protected function enrichWithLocalInfo(array $plugins): array
+    {
+        try {
+            $installed = Plugin::all()->keyBy(function ($p) {
+                return strtolower($p->plugin_name ?? '');
+            });
+        } catch (\Throwable $e) {
+            Log::warning('[PluginMarket] Failed to load installed plugins: ' . $e->getMessage());
+            return $plugins;
+        }
+
+        // Enrich + normalize each marketplace plugin inline (single pass).
+        // Use associative array for O(1) lookup instead of in_array (O(n)).
+        $marketplaceNames = [];
+        foreach ($plugins as $i => $p) {
+            $nameKey = strtolower($p['plugin_name'] ?? '');
+            $marketplaceNames[$nameKey] = true;
+
+            $isInstalled = !empty($nameKey) && $installed->has($nameKey);
+            $p['is_installed'] = $isInstalled;
+
+            if ($isInstalled) {
+                $localPlugin      = $installed->get($nameKey);
+                $installedVersion = $localPlugin->version ?? null;
+                $marketVersion    = $p['version'] ?? null;
+
+                $p['current_version'] = $installedVersion;
+                $p['has_update']      = $installedVersion && $marketVersion
+                    ? version_compare($installedVersion, $marketVersion, '<')
+                    : false;
+                $p['local_db_id']     = $localPlugin->id;
+
+                $isDisabled = isset($localPlugin->active_flg) && !(bool) $localPlugin->active_flg;
+
+                $availableVersionStrings = collect($p['versions'] ?? [])
+                    ->pluck('version')
+                    ->filter()
+                    ->map(fn($v) => (string) $v)
+                    ->all();
+
+                if (!empty($availableVersionStrings) && $installedVersion !== null) {
+                    $versionExists = in_array((string) $installedVersion, $availableVersionStrings, true);
+                } else {
+                    // Fallback: marketplace has no versions list in response — treat as existing
+                    $versionExists = $marketVersion !== null;
+                }
+
+                $p['plugin_status'] = $this->resolvePluginStatus(
+                    isInstalled: true,
+                    isOnMarket: true,
+                    isDisabled: $isDisabled,
+                    versionExists: $versionExists
+                );
+            } else {
+                $p['current_version'] = null;
+                $p['has_update']      = false;
+                $p['plugin_status']   = $this->resolvePluginStatus(
+                    isInstalled: false,
+                    isOnMarket: true,
+                    isDisabled: false,
+                    versionExists: true
+                );
+            }
+
+            // Normalize inline — no separate third loop needed
+            $plugins[$i] = $this->normalizePluginForDisplay($p);
+        }
+
+        foreach ($installed as $nameKey => $localPlugin) {
+            if (empty($nameKey) || isset($marketplaceNames[$nameKey])) {
+                continue;
+            }
+
+            try {
+                // Use getAttributes() to get raw DB values and bypass accessors/casts
+                // that may return arrays (e.g. plugin_types accessor, options/custom_options json cast)
+                $raw = $localPlugin->getAttributes();
+
+                // Sanitize any remaining non-scalar values for blade compatibility
+                foreach ($raw as $k => $v) {
+                    if (is_array($v)) {
+                        $raw[$k] = implode(',', array_map('strval', $v));
+                    } elseif (is_object($v)) {
+                        $raw[$k] = (string) $v;
+                    }
+                }
+
+                $isDisabled = isset($localPlugin->active_flg) && !(bool) $localPlugin->active_flg;
+
+                // Normalize inline when appending
+                $plugins[] = $this->normalizePluginForDisplay(array_merge($raw, [
+                    'is_installed'    => true,
+                    'current_version' => $localPlugin->version ?? null,
+                    'has_update'      => false,
+                    'plugin_status'   => $this->resolvePluginStatus(
+                        isInstalled: true,
+                        isOnMarket: false,
+                        isDisabled: $isDisabled,
+                        versionExists: false
+                    ),
+                ]));
+            } catch (\Throwable $e) {
+                Log::warning('[PluginMarket] Failed to append local plugin "' . $nameKey . '": ' . $e->getMessage());
+            }
+        }
+
+        return $plugins;
+    }
+
+    protected function resolvePluginStatus(
+        bool $isInstalled,
+        bool $isOnMarket,
+        bool $isDisabled,
+        bool $versionExists
+    ): string {
+        if (!$isInstalled) {
+            return 'not_installed';
+        }
+
+        if ($isDisabled) {
+            return 'disabled';
+        }
+
+        if (!$isOnMarket) {
+            return 'market_deleted';
+        }
+
+        if (!$versionExists) {
+            return 'version_deleted';
+        }
+
+        return 'installed';
+    }
+    protected function normalizePluginForDisplay(array $p): array
+    {
+        $rawPrice  = $p['price'] ?? null;
+        $isFree    = (bool) ($p['is_free'] ?? ((float) ($rawPrice ?? 0) <= 0));
+        $hasLicense = $isFree ? true : (bool) ($p['has_license'] ?? false);
+        $isExpired  = (bool) ($p['is_expired'] ?? false);
+
+        // plugin_types: map numeric DB values to string names
+        $pluginTypeMap = [
+            '0' => 'trigger',  '1' => 'page',      '2' => 'api',      '3'  => 'document',
+            '4' => 'batch',    '5' => 'dashboard',  '6' => 'import',   '7'  => 'script',
+            '8' => 'style',    '9' => 'validator',  '10' => 'export',  '11' => 'button',
+            '12' => 'event',   '13' => 'view',      '14' => 'crud',
+        ];
+        $rawTypes           = (string) ($p['plugin_types'] ?? '');
+        $pluginTypesDisplay = implode(', ', array_filter(array_map(function ($t) use ($pluginTypeMap) {
+            $t = trim($t);
+            return $t !== '' ? ($pluginTypeMap[$t] ?? $t) : null;
+        }, explode(',', $rawTypes))));
+
+        // price label
+        $priceLabel     = '';
+        $currencySuffix = null;
+        if ($rawPrice !== null && $rawPrice !== '' && is_numeric($rawPrice)) {
+            $currencyLabel      = $p['currency'] ?? null;
+            $currencyNormalized = is_string($currencyLabel) ? strtoupper(trim($currencyLabel)) : null;
+            $isYen              = empty($currencyNormalized) || in_array($currencyNormalized, ['JPY', 'YEN', '円', '¥'], true);
+            $priceLabel         = $isYen
+                ? number_format((float) $rawPrice, 0)
+                : number_format((float) $rawPrice, 2);
+            $currencySuffix     = $isYen ? '円' : ($currencyLabel ?? null);
+        }
+
+        // status badge CSS class
+        $pluginStatus    = $p['plugin_status'] ?? 'not_installed';
+        $statusBadgeClass = match ($pluginStatus) {
+            'installed'       => 'bg-success',
+            'disabled'        => 'bg-secondary',
+            'market_deleted'  => 'bg-danger',
+            'version_deleted' => 'bg-warning',
+            default           => 'bg-light text-dark',
+        };
+
+        return array_merge($p, [
+            'is_active'            => isset($p['check_status']) && strtolower($p['check_status']) === 'active',
+            'is_free'              => $isFree,
+            'has_license'          => $hasLicense,
+            'is_expired'           => $isExpired,
+            'can_install'          => $isFree || ($hasLicense && !$isExpired),
+            'should_show_payment'  => (!$isFree) && ((!$hasLicense) || $isExpired),
+            'display_uuid'         => $p['uuid'] ?? ($p['plugin_uuid'] ?? null),
+            // route_key: local-only plugins (market_deleted) use "local-{db_id}" so
+            // detail() can detect them and load from DB instead of calling marketplace API.
+            'route_key'            => ($p['plugin_status'] ?? '') === 'market_deleted'
+                                        ? 'local-' . ($p['id'] ?? '')
+                                        : ($p['id'] ?? ''),
+            'is_market_plugin'     => ($p['plugin_status'] ?? '') !== 'market_deleted',
+            'local_db_id'          => $p['local_db_id']
+                                        ?? (($p['plugin_status'] ?? '') === 'market_deleted' ? ($p['id'] ?? null) : null),
+            'plugin_types_display' => $pluginTypesDisplay ?: '—',
+            'price_label'          => $priceLabel,
+            'currency_suffix'      => $currencySuffix,
+            'status_badge_class'   => $statusBadgeClass,
+        ]);
+    }
+
     protected function getTenantUuid(): ?string
     {
         $tenantUuid = config('exment.market_tenant_uuid');
@@ -322,112 +633,20 @@ class PluginMarketController extends AdminController
                 $queryParams['status'] = $status;
             }
 
-            $response = Http::withoutVerifying()
-                ->timeout(30)
-                ->connectTimeout(10)
-                ->retry(2, 100)
-                ->get($marketplaceApi, $queryParams);
+            $plugins = $this->fetchMarketplacePlugins($marketplaceApi, $queryParams, $tenantUuid);
 
-            // If tenant_uuid is provided but invalid, marketplace returns 404
-            if (!empty($tenantUuid) && $response->status() === 404) {
-                admin_toastr(exmtrans('plugin.market.plugin_not_found'), 'error');
+            if ($plugins === null) {
                 $plugins = [];
                 return $content->title(exmtrans('plugin.market.title'))
                     ->description(exmtrans('plugin.market.description'))
                     ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
             }
 
-            $plugins = [];
-            if ($response->ok()) {
-                $plugins = $response->json();
-
-                if (!is_array($plugins)) {
-                    Log::warning("[PluginMarket] API returned invalid data", [
-                        'status' => $response->status(),
-                    ]);
-                    $plugins = [];
-                }
-            } else {
-                Log::warning("[PluginMarket] API request failed: {$marketplaceApi}", [
-                    'status' => $response->status(),
-                ]);
-                // Don't abort to an error page; show toast and render empty list.
-                admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
-            }
-
-            // Filter to show only free plugins and perform client-side filtering
             $plugins = collect($plugins);
 
-            // OSS (no tenant_uuid): show free plugins only
-            if (empty($tenantUuid)) {
-                $plugins = $plugins->filter(function ($plugin) {
-                    $isFree = $plugin['is_free'] ?? null;
-                    if ($isFree !== null) {
-                        return (bool)$isFree;
-                    }
-                    $price = floatval($plugin['price'] ?? 0);
-                    return $price === 0.0;
-                });
-            }
+            $plugins = $this->filterPlugins($plugins, $tenantUuid, $keyword, $type, $status);
 
-            // Filter by keyword (search in plugin_name, description, author)
-            if ($keyword) {
-                $plugins = $plugins->filter(function ($plugin) use ($keyword) {
-                    $searchText = strtolower($keyword);
-                    $author = $plugin['author'] ?? ($plugin['user']['name'] ?? '');
-                    return str_contains(strtolower($plugin['plugin_name'] ?? ''), $searchText)
-                        || str_contains(strtolower($plugin['description'] ?? ''), $searchText)
-                        || str_contains(strtolower($author), $searchText);
-                });
-            }
-
-            // Filter by type
-            if ($type) {
-                $plugins = $plugins->filter(function ($plugin) use ($type) {
-                    $pluginTypes = $plugin['plugin_types'] ?? '';
-                    return str_contains(strtolower($pluginTypes), strtolower($type));
-                });
-            }
-
-            // Filter by status
-            if ($status) {
-                $plugins = $plugins->filter(function ($plugin) use ($status) {
-                    $checkStatus = strtolower($plugin['check_status'] ?? '');
-                    return $checkStatus === strtolower($status);
-                });
-            }
-
-            $plugins = $plugins->values()->all();
-
-            // Enrich marketplace data with local install info so the view can
-            // show install/update states. We match by plugin_name (case-insensitive).
-            try {
-                $installed = Plugin::all()->keyBy(function ($p) {
-                    return strtolower($p->plugin_name ?? '');
-                });
-
-                foreach ($plugins as $i => $p) {
-                    $nameKey = strtolower($p['plugin_name'] ?? '');
-
-                    $isInstalled = $installed->has($nameKey) && !empty($nameKey);
-                    $plugins[$i]['is_installed'] = $isInstalled;
-
-                    if ($isInstalled) {
-                        $installedVersion = $installed->get($nameKey)->version ?? null;
-                        $plugins[$i]['current_version'] = $installedVersion;
-                        // has_update = installed version < marketplace version
-                        $plugins[$i]['has_update'] = $installedVersion && isset($p['version'])
-                            ? version_compare($installedVersion, $p['version'], '<')
-                            : false;
-                    } else {
-                        $plugins[$i]['current_version'] = null;
-                        $plugins[$i]['has_update'] = false;
-                    }
-                }
-            } catch (\Throwable $e) {
-                // If anything goes wrong during enrichment, log and continue with raw data
-                Log::warning('[PluginMarket] Failed to enrich plugin data with local install info: ' . $e->getMessage());
-            }
+            $plugins = $this->enrichWithLocalInfo($plugins);
 
             // Paginate the (potentially large) marketplace list for better UX, especially on mobile.
             $perPage = (int) $request->input('per_page', 20);
@@ -483,6 +702,43 @@ class PluginMarketController extends AdminController
 
     public function detail($id)
     {
+        // Local-only plugin (market_deleted): load from DB instead of calling marketplace API
+        if (str_starts_with((string) $id, 'local-')) {
+            $localDbId   = substr($id, strlen('local-'));
+            $localPlugin = Plugin::find($localDbId);
+
+            if (!$localPlugin) {
+                admin_toastr(exmtrans('plugin.market.plugin_not_found'), 'error');
+                return redirect(admin_url('plugin-market'));
+            }
+
+            $raw = $localPlugin->getAttributes();
+            foreach ($raw as $k => $v) {
+                if (is_array($v)) {
+                    $raw[$k] = implode(',', array_map('strval', $v));
+                } elseif (is_object($v)) {
+                    $raw[$k] = (string) $v;
+                }
+            }
+
+            $isDisabled = isset($localPlugin->active_flg) && !(bool) $localPlugin->active_flg;
+
+            $plugin = $this->normalizePluginForDisplay(array_merge($raw, [
+                'is_installed'    => true,
+                'current_version' => $localPlugin->version ?? null,
+                'has_update'      => false,
+                'plugin_status'   => $this->resolvePluginStatus(
+                    isInstalled: true,
+                    isOnMarket: false,
+                    isDisabled: $isDisabled,
+                    versionExists: false
+                ),
+            ]));
+            // dd($plugin);
+            return view('exment::plugin.market.detail', compact('plugin'));
+        }
+
+        // Marketplace plugin: call API
         try {
             $request = request();
             $tenantUuid = $this->getTenantUuid();
@@ -716,57 +972,44 @@ class PluginMarketController extends AdminController
     }
 
     /**
-     * Uninstall plugin from system
+     * Uninstall plugin from system.
+     *
+     * The view always passes the id as "local-{db_id}" so we resolve the
+     * plugin entirely from the local database — no marketplace API call is
+     * ever made.  This means uninstall works correctly even when the plugin
+     * has been removed from the marketplace (market_deleted).
      */
     public function uninstall(Request $request, $id)
     {
         try {
-            $tenantUuid = $this->getTenantUuid();
-            $queryParams = [];
-            if (!empty($tenantUuid)) {
-                $queryParams['tenant_uuid'] = $tenantUuid;
-            }
+            // Resolve local DB id: accept both "local-{n}" (from view) and a
+            // bare integer as a safety fallback.
+            $localDbId = str_starts_with((string) $id, 'local-')
+                ? substr($id, strlen('local-'))
+                : $id;
 
-            // Get plugin info from marketplace
-            $pluginResponse = Http::withoutVerifying()
-                ->timeout(30)
-                ->connectTimeout(10)
-                ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
-
-            if ($pluginResponse->failed()) {
-                return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
-            }
-
-            $pluginData = $pluginResponse->json();
-            $pluginName = $pluginData['plugin_name'] ?? null;
-
-            if (!$pluginName) {
-                return response()->json(['error' => exmtrans('plugin.market.message.invalid_plugin_data')], 400);
-            }
-
-            // Find installed plugin by plugin_name
-            $installedPlugin = Plugin::where('plugin_name', $pluginName)->first();
+            $installedPlugin = Plugin::find($localDbId);
 
             if (!$installedPlugin) {
                 return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_installed')], 404);
             }
 
-            $pluginId = $installedPlugin->id;
+            $pluginName = $installedPlugin->plugin_name;
 
-            // Delete plugin folder using same logic as PluginController
-            $disk = Storage::disk(Define::DISKNAME_ADMIN);
+            // Delete plugin folder
+            $disk   = Storage::disk(Define::DISKNAME_ADMIN);
             $folder = $installedPlugin->getPath();
             if ($disk->exists($folder)) {
                 $disk->deleteDirectory($folder);
             }
 
-            // Delete plugin from database
+            // Delete plugin record from database
             $installedPlugin->delete();
 
             return response()->json([
                 'result' => true,
                 'status' => true,
-                'swal' => exmtrans('plugin.market.message.uninstall_success', ['name' => $pluginName])
+                'swal'   => exmtrans('plugin.market.message.uninstall_success', ['name' => $pluginName])
             ]);
         } catch (\Throwable $e) {
             Log::error("[PluginMarket] Error uninstalling plugin $id: " . $e->getMessage());
