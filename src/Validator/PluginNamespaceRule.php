@@ -31,12 +31,12 @@ class PluginNamespaceRule implements Rule
     }
 
     /**
-    * Check Validation
-    *
-    * @param  string  $attribute
-    * @param  mixed  $value
-    * @return bool
-    */
+     * Check Validation
+     *
+     * @param  string  $attribute
+     * @param  mixed  $value
+     * @return bool
+     */
     public function passes($attribute, $value)
     {
         // get all files
@@ -66,6 +66,9 @@ class PluginNamespaceRule implements Rule
             // read php file
             $phpFile = $disk->get($file);
 
+            if ($this->isEncodedPhpFile($phpFile)) {
+                continue;
+            }
             // find namespace. and not match, set errors file name.
             if (!preg_match('/' . $namespace . '/u', $phpFile)) {
                 $this->errors[] = $basePath;
@@ -84,5 +87,25 @@ class PluginNamespaceRule implements Rule
     {
         $classes = implode(exmtrans('common.separate_word'), $this->errors);
         return exmtrans('plugin.error.class_wrongnamespace', ['classes' => $classes]);
+    }
+
+    /**
+     * Detect ionCube encoded PHP file.
+     * @param string $content
+     * @return bool
+     */
+    protected function isEncodedPhpFile(string $content): bool
+    {
+        if (strlen($content) === 0) {
+            return false;
+        }
+        if (strpos($content, "extension_loaded('ionCube Loader')") === false) {
+            return false;
+        }
+        if (!preg_match('/\?>\s*\r?\n([A-Za-z0-9+\/]{60,}\r?\n){3,}/s', $content)) {
+            return false;
+        }
+
+        return true;
     }
 }
