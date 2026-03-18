@@ -179,6 +179,7 @@ return [
         'ie_not_supported' => 'Internet ExplorerではExmentを使用できません。',
         'support_browser' => '対応ブラウザ',
         'ip_address_filtered' => '許可されていないIPアドレスです。',
+        'tenant_expired' => 'このテナントの有効期限が切れています。管理者にお問い合わせください。',
         'not_contains_column' => 'カスタム列に設定されていない項目が含まれています。',
         'public_form_not_found' => 'フォームがありませんでした。URLが誤っているか、有効期限でない場合があります。',
         'captcha' => 'Google reCAPTCHA実施に失敗しました。再読み込みし、再度入力を行ってください。',

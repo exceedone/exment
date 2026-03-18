@@ -179,6 +179,7 @@ return [
         'ie_not_supported' => 'Exment cannot be used with Internet Explorer.',
         'support_browser' => 'Support Browser',
         'ip_address_filtered' => 'Unauthorized IP address.',
+        'tenant_expired' => 'This tenant has expired. Please contact your administrator.',
         'not_contains_column' => 'Some items are not set in the custom column.',
         'public_form_not_found' => 'There was no form. The URL may be incorrect or it may not have expired.',
         'captcha' => 'Failed to implement Google reCAPTCHA. Please reload and enter again.',

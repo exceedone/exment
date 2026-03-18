@@ -129,6 +129,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.api-ipfilter'  => \Exceedone\Exment\Middleware\ApiIPFilter::class,
         'admin.log'        => \Exceedone\Exment\Middleware\LogOperation::class,
         'admin.quota-exceeded'        => \Exceedone\Exment\Middleware\QuotaExceeded::class,
+        'admin.tenant-expired'        => \Exceedone\Exment\Middleware\TenantExpired::class,
 
         'admin.pjax'       => AdminMiddleware\Pjax::class,
         'admin.permission' => AdminMiddleware\Permission::class,
@@ -156,6 +157,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
+            'admin.tenant-expired',
             'admin.auth',
             'admin.auth-2factor',
             'admin.password-limit',
@@ -174,6 +176,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
+            'admin.tenant-expired',
             'admin.login',
             'admin.morph',
             'admin.bootstrap2',
@@ -213,6 +216,7 @@ class ExmentServiceProvider extends ServiceProvider
         // Exment API page
         'adminapi' => [
             'admin.api-ipfilter',
+            'admin.tenant-expired',
             'adminapi.auth',
             'admin.morph',
             'admin.log',
