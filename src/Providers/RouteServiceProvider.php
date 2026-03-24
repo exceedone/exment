@@ -306,9 +306,17 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'     => $this->namespace,
             'middleware'    => ['adminweb', 'admin_anonymous'],
         ], function (Router $router) {
-            $router->get('api/chatbot/config', 'ChatbotController@config');
-            $router->get('api/chatbot/faq', 'ChatbotController@faq');
-            $router->post('api/chatbot/ask', 'ChatbotController@ask');
+            $chatbotSuffix = trim((string) config('exment.chatbot_url_suffix'), '/');
+
+            $prefix = 'api/chatbot';
+            if ($chatbotSuffix !== '') {
+                $prefix .= '/' . $chatbotSuffix;
+            }
+
+            $router->get($prefix . '/config', 'ChatbotController@config')->middleware('chatbot.cors');
+            $router->get($prefix . '/faq', 'ChatbotController@faq')->middleware('chatbot.cors');
+            $router->post($prefix . '/ask', 'ChatbotController@ask')->middleware('chatbot.cors');
+            $router->options($prefix . '/ask', function () { return response('', 204); })->middleware('chatbot.cors');
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
             $router->put('initialize/filedelete', 'InitializeController@filedelete');

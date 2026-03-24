@@ -98,6 +98,18 @@ class Bootstrap
             'vendor/exment/js/zxing.js',
         ], false);
         if (System::chatbot_available()) {
+            $chatbotSuffix = trim(config('exment.chatbot_url_suffix', ''), '/');
+
+            $prefix = 'api/chatbot' . ($chatbotSuffix ? '/' . $chatbotSuffix : '');
+
+            Ad::script('window.ExmentChatbot = ' . json_encode([
+                'urls' => [
+                    'config' => admin_url($prefix . '/config'),
+                    'faq'    => admin_url($prefix . '/faq'),
+                    'ask'    => admin_url($prefix . '/ask'),
+                ],
+            ]) . ';');
+
             Ad::js(asset('vendor/exment/js/chatbot.js'));
         }
 

@@ -105,6 +105,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
+        \Exceedone\Exment\Middleware\SecureCookies::class,
     ];
 
 
@@ -130,6 +131,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.log'        => \Exceedone\Exment\Middleware\LogOperation::class,
         'admin.quota-exceeded'        => \Exceedone\Exment\Middleware\QuotaExceeded::class,
         'admin.tenant-expired'        => \Exceedone\Exment\Middleware\TenantExpired::class,
+        'admin.csp'                   => \Exceedone\Exment\Middleware\CSP::class,
 
         'admin.pjax'       => AdminMiddleware\Pjax::class,
         'admin.permission' => AdminMiddleware\Permission::class,
@@ -144,6 +146,7 @@ class ExmentServiceProvider extends ServiceProvider
         'publicform.session'    => \Exceedone\Exment\Middleware\PublicFormSession::class,
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
+        'chatbot.cors'       => \Exceedone\Exment\Middleware\ChatbotCors::class,
     ];
 
     /**
@@ -154,6 +157,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middlewareGroups = [
         // Exment web page default
         'admin' => [
+            'admin.csp',
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
@@ -173,6 +177,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [
+            'admin.csp',
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
@@ -244,6 +249,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment public form page.
         'publicform' => [
+            'admin.csp',
             'publicform.auth',
             'admin.browser',
             'admin.initialize',

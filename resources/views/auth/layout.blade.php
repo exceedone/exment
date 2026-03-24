@@ -64,7 +64,7 @@
       </div>
       <!-- /.login-box -->
 <!-- jQuery 2.1.4 -->
-<script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
+<script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} " nonce="{{ $cspNonce ?? '' }}"></script>
 <!-- Bootstrap 3.3.5 -->
 <script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/bootstrap/js/bootstrap.min.js")}}"></script>
 <!-- iCheck -->
@@ -73,7 +73,7 @@
 <script src="{{ admin_asset("/vendor/laravel-admin/toastr/build/toastr.min.js")}}"></script>
 <script src="{{ admin_asset("/vendor/exment/js/common_all.js")}}"></script>
 
-<script>
+<script nonce="{{ $cspNonce ?? '' }}">
   $(function () {
     $('input').iCheck({
       checkboxClass: 'icheckbox_square-blue',
@@ -84,14 +84,14 @@
 </script>
 
 @if (session('status'))
-<script>
+<script nonce="{{ $cspNonce ?? '' }}">
     $(function () {
       toastr.success('{{ session("status") }}', null, []);
   });
 </script>
 
 @elseif(session('status_error'))
-<script>
+<script nonce="{{ $cspNonce ?? '' }}">
     $(function () {
       toastr.error('{{ session("status_error") }}', null, []);
   });

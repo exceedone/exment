@@ -20,6 +20,7 @@ class VerifyCsrfToken extends BaseVerifier
         $this->except = [
             admin_base_path('login_setting/*/testcallback'),
             admin_base_path('saml/login/*/acs'),
+            admin_base_path('api/chatbot*'),
         ];
 
         parent::__construct($app, $encrypter);

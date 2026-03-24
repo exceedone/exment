@@ -67,7 +67,7 @@ namespace Exment {
         }
 
         private fetchFAQs(): void {
-            fetch("/api/chatbot/faq")
+            fetch((window as any).ExmentChatbot.urls.faq)
                 .then((res) => res.json())
                 .then((json) => {
                     if (json && Array.isArray(json)) {
@@ -95,7 +95,7 @@ namespace Exment {
 
         private async setLanguage(lang: string): Promise<void> {
             try {
-                const res = await fetch(`/api/chatbot/config`);
+                const res = await fetch((window as any).ExmentChatbot.urls.config);
                 if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
                 this.chatbotConfig = await res.json();
                 this.updateTexts();
@@ -186,7 +186,7 @@ namespace Exment {
 
         private async callAPIServer(userMessage: string): Promise<string> {
             try {
-                const res = await fetch('/api/chatbot/ask', {
+                const res = await fetch((window as any).ExmentChatbot.urls.ask, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

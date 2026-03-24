@@ -92,7 +92,31 @@ return [
     |
     */
     'chatbot_low_similarity_threshold' => env('EXMENT_CHATBOT_LOW_SIMILARITY_THRESHOLD', 0.6),
-    
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chatbot URL Suffix
+    |--------------------------------------------------------------------------
+    |
+    | An optional suffix appended to chatbot API routes for security-through-obscurity.
+    | Example: EXMENT_CHATBOT_URL_SUFFIX=abc123
+    |
+    */
+    'chatbot_url_suffix' => env('EXMENT_CHATBOT_URL_SUFFIX'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chatbot CORS Allowed Origins
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated list of origins allowed to call chatbot API endpoints
+    | from a different origin (cross-origin embedding).
+    | Example: EXMENT_CHATBOT_CORS_ORIGIN=https://www.example.com,https://app.example.com
+    | Leave empty to disallow all cross-origin requests.
+    |
+    */
+    'chatbot_cors_origin' => env('EXMENT_CHATBOT_CORS_ORIGIN', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Use Cache
