@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -12,6 +11,7 @@ use Encore\Admin\Controllers\AdminController;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Services\Plugin\PluginMarketClient;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid;
@@ -25,6 +25,7 @@ class PluginMarketController extends AdminController
 
     public function checkoutPurchase(Request $request)
     {
+        PluginMarketClient::warnApiKey();
         $tenantUuid = $this->getTenantUuid();
         if (empty($tenantUuid)) {
             return response()->json([
@@ -60,10 +61,7 @@ class PluginMarketController extends AdminController
         ]);
 
         try {
-            $response = Http::withoutVerifying()
-                ->timeout(30)
-                ->connectTimeout(10)
-                ->retry(1, 200)
+            $response = PluginMarketClient::make(retry: 1, retryDelay: 200)
                 ->acceptJson()
                 ->asJson()
                 ->post($url, [
@@ -251,10 +249,7 @@ class PluginMarketController extends AdminController
      */
     protected function fetchMarketplacePlugins(string $marketplaceApi, array $queryParams, ?string $tenantUuid): ?array
     {
-        $response = Http::withoutVerifying()
-            ->timeout(30)
-            ->connectTimeout(10)
-            ->retry(2, 100)
+        $response = PluginMarketClient::make()
             ->get($marketplaceApi, $queryParams);
 
         // If tenant_uuid is provided but invalid, marketplace returns 404
@@ -493,10 +488,21 @@ class PluginMarketController extends AdminController
 
         // plugin_types: map numeric DB values to string names
         $pluginTypeMap = [
-            '0' => 'trigger',  '1' => 'page',      '2' => 'api',      '3'  => 'document',
-            '4' => 'batch',    '5' => 'dashboard',  '6' => 'import',   '7'  => 'script',
-            '8' => 'style',    '9' => 'validator',  '10' => 'export',  '11' => 'button',
-            '12' => 'event',   '13' => 'view',      '14' => 'crud',
+            '0' => 'trigger',
+            '1' => 'page',
+            '2' => 'api',
+            '3'  => 'document',
+            '4' => 'batch',
+            '5' => 'dashboard',
+            '6' => 'import',
+            '7'  => 'script',
+            '8' => 'style',
+            '9' => 'validator',
+            '10' => 'export',
+            '11' => 'button',
+            '12' => 'event',
+            '13' => 'view',
+            '14' => 'crud',
         ];
         $rawTypes           = (string) ($p['plugin_types'] ?? '');
         $pluginTypesDisplay = implode(', ', array_filter(array_map(function ($t) use ($pluginTypeMap) {
@@ -538,11 +544,11 @@ class PluginMarketController extends AdminController
             // route_key: local-only plugins (market_deleted) use "local-{db_id}" so
             // detail() can detect them and load from DB instead of calling marketplace API.
             'route_key'            => ($p['plugin_status'] ?? '') === 'market_deleted'
-                                        ? 'local-' . ($p['id'] ?? '')
-                                        : ($p['id'] ?? ''),
+                ? 'local-' . ($p['id'] ?? '')
+                : ($p['id'] ?? ''),
             'is_market_plugin'     => ($p['plugin_status'] ?? '') !== 'market_deleted',
             'local_db_id'          => $p['local_db_id']
-                                        ?? (($p['plugin_status'] ?? '') === 'market_deleted' ? ($p['id'] ?? null) : null),
+                ?? (($p['plugin_status'] ?? '') === 'market_deleted' ? ($p['id'] ?? null) : null),
             'plugin_types_display' => $pluginTypesDisplay ?: '—',
             'price_label'          => $priceLabel,
             'currency_suffix'      => $currencySuffix,
@@ -584,10 +590,7 @@ class PluginMarketController extends AdminController
         }
 
         // Call API repo  plugin list
-        $response = Http::withoutVerifying()
-            ->timeout(30)
-            ->connectTimeout(10)
-            ->retry(2, 100)
+        $response = PluginMarketClient::make()
             ->get($this->getRepoUrl(), $queryParams);
         $data = $response->json() ?? [];
 
@@ -604,6 +607,7 @@ class PluginMarketController extends AdminController
 
     public function index(Content $content)
     {
+        PluginMarketClient::warnApiKey();
         try {
             // Get search parameters from request
             $request = request();
@@ -690,6 +694,7 @@ class PluginMarketController extends AdminController
      */
     public function show($id, Content $content)
     {
+        PluginMarketClient::warnApiKey();
         $detail = $this->detail($id);
         if ($detail instanceof \Illuminate\Http\RedirectResponse) {
             return $detail;
@@ -747,9 +752,7 @@ class PluginMarketController extends AdminController
                 $queryParams['tenant_uuid'] = $tenantUuid;
             }
 
-            $response = Http::withoutVerifying()
-                ->timeout(30)
-                ->connectTimeout(10)
+            $response = PluginMarketClient::make()
                 ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
 
             if ($response->failed()) {
@@ -787,6 +790,7 @@ class PluginMarketController extends AdminController
      */
     public function install(Request $request, $id)
     {
+        PluginMarketClient::warnApiKey();
         try {
             $versionId = $request->input('version'); // Selected version ID
 
@@ -804,9 +808,7 @@ class PluginMarketController extends AdminController
             ]);
 
             // Get plugin info from marketplace
-            $pluginResponse = Http::withoutVerifying()
-                ->timeout(30)
-                ->connectTimeout(10)
+            $pluginResponse = PluginMarketClient::make()
                 ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
 
             if ($pluginResponse->failed()) {
@@ -835,9 +837,7 @@ class PluginMarketController extends AdminController
             }
 
             // Get version information
-            $versionResponse = Http::withoutVerifying()
-                ->timeout(30)
-                ->connectTimeout(10)
+            $versionResponse = PluginMarketClient::make()
                 ->get("{$this->getRepoUrl()}/{$id}/versions", $queryParams);
 
             if ($versionResponse->failed()) {
@@ -872,10 +872,7 @@ class PluginMarketController extends AdminController
 
             // Download plugin file
             try {
-                $zipResp = Http::withoutVerifying()
-                    ->timeout(60)
-                    ->connectTimeout(10)
-                    ->retry(1, 200)
+                $zipResp = PluginMarketClient::make(timeout: 60, retry: 1, retryDelay: 200)
                     ->get($downloadUrl);
             } catch (\Throwable $downloadError) {
                 Log::warning('[PluginMarket] Download exception', [

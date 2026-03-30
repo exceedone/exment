@@ -10,7 +10,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -268,10 +267,7 @@ class PluginLicenseSyncService
         }
 
         try {
-            $resp = Http::withoutVerifying()
-                ->timeout(15)
-                ->connectTimeout(5)
-                ->retry(1, 100)
+            $resp = PluginMarketClient::make(timeout: 15, connectTimeout: 5, retry: 1, retryDelay: 100)
                 ->get($this->getMarketplacePluginsApiUrl(), ['tenant_uuid' => $tenantUuid]);
 
             if (!$resp->ok()) {
