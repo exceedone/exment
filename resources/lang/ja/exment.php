@@ -773,6 +773,7 @@ return [
                 'missing_plugin_uuid' => 'plugin_uuid がありません。',
                 'stripe_load_failed' => 'Stripe.js の読み込みに失敗しました。',
                 'stripe_publishable_key_missing' => 'Stripe 公開鍵が設定されていません (services.stripe.key)。',
+                'api_key_not_configured' => 'マーケットプレイス API キーが設定されていません (exment.ai_server_api_key)。',
                 'missing_client_secret' => '3DS の client_secret がありません。',
                 'payment_succeeded' => '支払いが完了しました。',
                 'payment_status' => '支払いステータス: :status',

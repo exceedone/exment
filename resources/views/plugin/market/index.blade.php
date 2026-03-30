@@ -393,6 +393,7 @@ function initPluginMarket() {
 
     const adminPluginMarketUrl = {!! json_encode(admin_url('plugin-market')) !!};
     const marketplaceUrl = {!! json_encode(rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/')) !!};
+    const marketplaceApiKey = {!! json_encode(config('exment.ai_server_api_key', '')) !!};
     const tenantUuid = {!! json_encode($tenantUuid ?? null) !!};
     const stripePublishableKey = {!! json_encode(config('services.stripe.key') ?? null) !!};
     const csrfToken = {!! json_encode(csrf_token()) !!};
@@ -542,7 +543,7 @@ function initPluginMarket() {
             // Even if a client_secret is provided, we intentionally do NOT run 3DS from this UI.
             if (response.status === 402) {
                 const manualMessage = (data && (data.message || data.error)) ? (data.message || data.error) : t.manualPaymentRequired;
-                const manualUrl = 'https://exment.org/payment-methods';
+                const manualUrl = marketplaceUrl + '/payment-methods';
 
                 const restoreButton = function() {
                     button.disabled = false;
@@ -577,7 +578,7 @@ function initPluginMarket() {
 
             if (normalizedStatus === 'requires_action') {
                 const manualMessage = (data && (data.message || data.error)) ? (data.message || data.error) : t.manualPaymentRequired;
-                const manualUrl = 'https://exment.org/payment-methods';
+                const manualUrl = marketplaceUrl + '/payment-methods';
 
                 const restoreButton = function() {
                     button.disabled = false;
@@ -734,9 +735,10 @@ function initPluginMarket() {
         }
         const query = params.toString() ? `?${params.toString()}` : '';
         fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions${query}`, {
-                headers: {
-                    'Accept': 'application/json'
-                }
+                headers: Object.assign(
+                    { 'Accept': 'application/json' },
+                    marketplaceApiKey ? { 'Authorization': 'Bearer ' + marketplaceApiKey } : {}
+                )
             })
             .then(async (response) => {
                 const rawText = await response.text();
