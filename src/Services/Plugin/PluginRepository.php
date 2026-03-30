@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class PluginRepository
@@ -22,10 +21,7 @@ class PluginRepository
                 $tenantUuid = null;
             }
             
-            $resp = Http::withoutVerifying()
-                ->timeout(30)
-                ->connectTimeout(10)
-                ->retry(2, 100)
+            $resp = PluginMarketClient::make()
                 ->get($apiUrl, $queryParams);
 
             if (!$resp->successful()) {

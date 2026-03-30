@@ -754,6 +754,7 @@ return [
                 'missing_plugin_uuid' => 'Missing plugin_uuid.',
                 'stripe_load_failed' => 'Failed to load Stripe.js.',
                 'stripe_publishable_key_missing' => 'Stripe publishable key is not configured (services.stripe.key).',
+                'api_key_not_configured' => 'Marketplace API key is not configured (exment.ai_server_api_key).',
                 'missing_client_secret' => 'Missing client_secret for 3DS.',
                 'payment_succeeded' => 'Payment succeeded.',
                 'payment_status' => 'Payment status: :status',
