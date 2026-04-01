@@ -48,6 +48,7 @@ class BootstrapPublicForm
             //'vendor/exment/css/publicform.css',
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
+            'vendor/exment/chartjs/chart.min.css',
         ], true);
 
         static::setCssJsList([

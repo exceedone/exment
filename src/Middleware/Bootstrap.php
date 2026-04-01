@@ -57,6 +57,7 @@ class Bootstrap
             'vendor/exment/css/customform.css',
             'vendor/exment/codemirror/codemirror.css',
             'vendor/exment/jstree/themes/default/style.min.css',
+            'vendor/exment/chartjs/chart.min.css',
         ], true);
         if (System::chatbot_available()) {
             Ad::css(asset('vendor/exment/css/chatbot.css'));
