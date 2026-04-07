@@ -295,6 +295,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('/assistant/start', 'AiAssistantController@startConversation');
             $router->post('/assistant/send-message', 'AiAssistantController@sendMessage');
             $router->post('/assistant/action', 'AiAssistantController@handleAction');
+
+            $router->get('tenant-settings', 'TenantSettingsController@index');
+            $router->post('tenant-settings', 'TenantSettingsController@post');
         });
     }
 
