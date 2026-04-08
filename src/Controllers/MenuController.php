@@ -148,203 +148,131 @@ class MenuController extends AdminControllerBase
     }
 
     protected function createMenuForm($form, $id = null)
-{
-    // Get setting menu object
-    $menu = Menu::find($id);
+    {
+        // Get setting menu object
+        $menu = Menu::find($id);
 
-    // Set controller
-    $contoller = $this;
-    $form->select('parent_id', trans('admin.parent_id'))->options(Menu::selectOptions());
-    $form->select('menu_type', exmtrans("menu.menu_type"))->options(MenuType::transArray("menu.menu_type_options"))
-        ->load('menu_target', admin_url('webapi/menu/menutype'))
-        ->required();
+        // Set controller
+        $contoller = $this;
+        $form->select('parent_id', trans('admin.parent_id'))->options(Menu::selectOptions());
+        $form->select('menu_type', exmtrans("menu.menu_type"))->options(MenuType::transArray("menu.menu_type_options"))
+            ->load('menu_target', admin_url('webapi/menu/menutype'))
+            ->required();
 
-    $form->select('menu_target', exmtrans("menu.menu_target"))
-        ->attribute(['data-changedata' => json_encode(
-            ['getitem' =>
-                [  'uri' => admin_url('webapi/menu/menutargetvalue')
-                    , 'key' => ['menu_type']
+        $form->select('menu_target', exmtrans("menu.menu_target"))
+            ->attribute(['data-changedata' => json_encode(
+                [
+                    'getitem' =>
+                    [
+                        'uri' => admin_url('webapi/menu/menutargetvalue'),
+                        'key' => ['menu_type']
+                    ]
                 ]
-            ]
-        ), 'data-filter' => json_encode([
-            'key' => 'menu_type', 'readonlyValue' => [MenuType::CUSTOM, MenuType::PARENT_NODE]
-        ])])
-        ->options(function ($value, $field, $model) use ($menu, $contoller) {
-            // Get menu type
-            $menu_type = $contoller->getMenuTypeValue($field, $menu);
-
-            if (!isset($menu_type)) {
-                return [];
-            }
-
-            // Get model
-            return $contoller->getMenuType($menu_type, false);
-        })
-        ->attribute([
-            'data-linkage' => json_encode(['menu_target_view' => admin_url('webapi/menu/menutargetview')])
-        ]);
-        
-    $form->select('menu_target_view', exmtrans("menu.menu_target_view"))
-        ->attribute(['data-filter' => json_encode([
-            'key' => 'menu_type', 'value' => [MenuType::TABLE]
-        ])])
-        ->rules('nullable')
-        ->options(function ($value, $field) use ($menu, $contoller) {
-            $menu_type = $contoller->getMenuTypeValue($field, $menu);
-            if ($menu_type != MenuType::TABLE) {
-                return [];
-            }
-
-            // Check $value or $field->data()
-            $custom_table = null;
-            if (isset($value) && $value !== false) {
-                $custom_view = CustomView::getEloquent($value);
-                $custom_table = $custom_view ? $custom_view->custom_table : null;
-            } elseif (!is_nullorempty($field->data())) {
-                $custom_table = CustomTable::getEloquent(array_get($field->data(), 'menu_target'));
-            }
-
-            if (!isset($custom_table)) {
-                return [];
-            }
-
-            return $contoller->getViewList($custom_table, false);
-        });
-
-    $uriField = $form->text('uri', trans('admin.uri'))
-        ->attribute([
-            'data-filter' => json_encode([
+            ), 'data-filter' => json_encode([
                 'key' => 'menu_type',
-                'readonlyValue' => [MenuType::SYSTEM, MenuType::PLUGIN, MenuType::TABLE, MenuType::PARENT_NODE]
-            ])
-        ]);
-        
-    if (!isset($id)) {
-        $form->text('menu_name', exmtrans("menu.menu_name"))
-        ->required()
-        ->rules(
-            [
-                Rule::unique(config('admin.database.menu_table'))->ignore($id),
-                "max:40",
-                'regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/'
-            ]
-        )->help(exmtrans('common.help_code'));
-    } else {
-        $form->display('menu_name', exmtrans("menu.menu_name"));
-    }
-    $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
-    $form->icon('icon', trans('admin.icon'))->required()->default('');
-    $form->hidden('order');
+                'readonlyValue' => [MenuType::CUSTOM, MenuType::PARENT_NODE]
+            ])])
+            ->options(function ($value, $field, $model) use ($menu, $contoller) {
+                // Get menu type
+                $menu_type = $contoller->getMenuTypeValue($field, $menu);
 
-    $tableTypeValue = MenuType::TABLE;
-    
-    // CSS to handle menu_target_view field visibility
-    Admin::style("
-        .form-group:has(select[name='menu_target_view']) {
-            display: none !important;
-        }
-        .menu-target-view-visible .form-group:has(select[name='menu_target_view']) {
-            display: flex !important;
-        }
-    ");
-    
-    // JavaScript to handle show/hide menu_target_view field
-   Admin::script("
-    function toggleMenuFields() {
-        var menuType = $('select[name=\"menu_type\"]').val();
-        var formContainer = $('form').closest('.box, .card, .content');
+                if (!isset($menu_type)) {
+                    return [];
+                }
 
-        var targetViewField = $('select[name=\"menu_target_view\"]');
-        var uriField = $('input[name=\"uri\"]');
-        var menuTargetField = $('select[name=\"menu_target\"]');
+                // Get model
+                return $contoller->getMenuType($menu_type, false);
+            })
+            ->attribute([
+                'data-linkage' => json_encode(['menu_target_view' => admin_url('webapi/menu/menutargetview')])
+            ]);
 
-         // If menu_type is not selected yet → do nothing
-        if (!menuType) {
-             // Keep menu_target_view visible as it is
-            formContainer.removeClass('menu-target-view-visible');
-            targetViewField.prop('disabled', false);
-            uriField.prop('disabled', false);
-            menuTargetField.prop('disabled', false);
-            return;
-        }
+        $form->select('menu_target_view', exmtrans("menu.menu_target_view"))
+            ->attribute(['data-filter' => json_encode([
+                'key' => 'menu_type',
+                'value' => [MenuType::TABLE]
+            ])])
+            ->rules('nullable')
+            ->options(function ($value, $field) use ($menu, $contoller) {
+                $menu_type = $contoller->getMenuTypeValue($field, $menu);
+                if ($menu_type != MenuType::TABLE) {
+                    return [];
+                }
 
-         // Reset menu_target_view visibility
-        formContainer.removeClass('menu-target-view-visible');
+                // Check $value or $field->data()
+                $custom_table = null;
+                if (isset($value) && $value !== false) {
+                    $custom_view = CustomView::getEloquent($value);
+                    $custom_table = $custom_view ? $custom_view->custom_table : null;
+                } elseif (!is_nullorempty($field->data())) {
+                    $custom_table = CustomTable::getEloquent(array_get($field->data(), 'menu_target'));
+                }
 
-        if (menuType == '{$tableTypeValue}') {
-            // TABLE → show target view, enable all fields
-            formContainer.addClass('menu-target-view-visible');
-            targetViewField.prop('disabled', false);
-            uriField.prop('disabled', false);
-            menuTargetField.prop('disabled', false);
-        } else if (menuType == '" . MenuType::PARENT_NODE . "') {
-            //  // PARENT_NODE → hide target view, disable uri and target
-            targetViewField.prop('disabled', true).val('');
-            uriField.val('').prop('disabled', true);
-            menuTargetField.val('').prop('disabled', true);
-        } else if (menuType == '" . MenuType::CUSTOM . "') {
-             // CUSTOM → hide target view, enable uri, disable target
-            targetViewField.prop('disabled', true).val('');
-            uriField.prop('disabled', false);
-            menuTargetField.val('').prop('disabled', true);
-        } else {
-            // Default fallback
-            targetViewField.prop('disabled', true).val('');
-            uriField.prop('disabled', true);
-            menuTargetField.prop('disabled', true);
-        }
-    }
+                if (!isset($custom_table)) {
+                    return [];
+                }
 
-    toggleMenuFields();
+                return $contoller->getViewList($custom_table, false);
+            });
 
-    $(document).ready(function() {
-        toggleMenuFields();
-        $('select[name=\"menu_type\"]').on('change', function() {
-            toggleMenuFields();
-        });
-    });
-");
-
-
-
-    $form->saving(function ($form) {
-        // Handle menu_target_view before validate and save
-        if ($form->menu_type != MenuType::TABLE) {
-            $form->menu_target_view = null;
-        }
-
-        if (in_array($form->menu_type, [MenuType::CUSTOM, MenuType::PARENT_NODE])) {
-            $form->menu_target = null;
-        }
-        // Whether set order
-        $isset_order = false;
-        // Get parent id
-        $parent_id = $form->parent_id;
-
-        // Get id
-        $id = $form->model()->id;
-        // If not set id (create), set order
+       $form->text('uri', trans('admin.uri'))
+            ->attribute(['data-filter' => json_encode([
+                'key' => 'menu_type', 'readonlyValue' => [MenuType::SYSTEM, MenuType::PLUGIN, MenuType::TABLE, MenuType::PARENT_NODE]
+            ])]);
         if (!isset($id)) {
-            $isset_order = true;
+            $form->text('menu_name', exmtrans("menu.menu_name"))
+            ->required()
+            ->rules(
+                [
+                    Rule::unique(config('admin.database.menu_table'))->ignore($id),
+                    "max:40",
+                    'regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/'
+                ]
+            )->help(exmtrans('common.help_code'));
+        } else {
+            $form->display('menu_name', exmtrans("menu.menu_name"));
         }
-        // If set id (update), check whether parent id changed
-        else {
-            $model_parent_id = $form->model()->parent_id;
-            $isset_order = ($model_parent_id != $parent_id);
-        }
-
-        // Get same parent_id count
-        if ($isset_order) {
-            $query = Menu::where('parent_id', $parent_id);
-            if (isset($id)) {
-                $query->where('id', '<>', $id);
+        $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
+        $form->icon('icon', trans('admin.icon'))->required()->default('');
+        $form->hidden('order');
+        $form->saving(function ($form) {
+            // Handle menu_target_view before validate and save
+            if ($form->menu_type != MenuType::TABLE) {
+                $form->menu_target_view = null;
             }
-            $count = $query->count();
-            // Set order as $count+1
-            $form->order = $count + 1;
-        }
-    });
-}
+
+            if (in_array($form->menu_type, [MenuType::CUSTOM, MenuType::PARENT_NODE])) {
+                $form->menu_target = null;
+            }
+            // Whether set order
+            $isset_order = false;
+            // Get parent id
+            $parent_id = $form->parent_id;
+
+            // Get id
+            $id = $form->model()->id;
+            // If not set id (create), set order
+            if (!isset($id)) {
+                $isset_order = true;
+            }
+            // If set id (update), check whether parent id changed
+            else {
+                $model_parent_id = $form->model()->parent_id;
+                $isset_order = ($model_parent_id != $parent_id);
+            }
+
+            // Get same parent_id count
+            if ($isset_order) {
+                $query = Menu::where('parent_id', $parent_id);
+                if (isset($id)) {
+                    $query->where('id', '<>', $id);
+                }
+                $count = $query->count();
+                // Set order as $count+1
+                $form->order = $count + 1;
+            }
+        });
+    }
     // menu_type and menutargetvalue --------------------------------------------------
 
     // get menu type(calling from menu_type)
@@ -383,7 +311,7 @@ class MenuController extends AdminControllerBase
         CustomView::where('view_type', ViewType::SYSTEM)
             ->where('custom_table_id', $custom_table->id)
             ->where('view_kind_type', '<>', ViewKindType::FILTER)->get()->each(function ($item) use (&$options) {
-                $options[] = ['id' => $item->id, 'text' =>  $item->view_view_name ];
+                $options[] = ['id' => $item->id, 'text' =>  $item->view_view_name];
             });
 
         // if api, return
@@ -408,7 +336,7 @@ class MenuController extends AdminControllerBase
                     if (!$this->isAddSystemMenuOptions($k, $value)) {
                         continue;
                     }
-                    $options[] = ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k) ];
+                    $options[] = ['id' => $k, 'text' => exmtrans("menu.system_definitions." . $k)];
                 }
                 break;
             case MenuType::PLUGIN:
@@ -441,7 +369,7 @@ class MenuController extends AdminControllerBase
                 $item = array_get(Define::MENU_SYSTEM_DEFINITION, $value);
                 $result = [
                     'menu_name' => $value,
-                    'title' => exmtrans("menu.system_definitions.".$value),
+                    'title' => exmtrans("menu.system_definitions." . $value),
                     'icon' => array_get($item, 'icon'),
                     'uri' => array_get($item, 'uri'),
                 ];
