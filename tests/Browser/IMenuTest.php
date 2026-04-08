@@ -44,12 +44,12 @@ class IMenuTest extends ExmentKitTestCase
     public function testCreateMenuParent()
     {
         $this->_testCreateMenu('parent_menu_name', [
-            'parent_id' =>'0',
-            'menu_type' =>'parent_node',
-            'menu_target' =>'',
-            'uri' =>'/',
-            'title' =>'MenuTestParent',
-            'icon' =>'fa-user',
+            'parent_id' => '0',
+            'menu_type' => 'parent_node',
+            'menu_target' => '',
+            'uri' => '/',
+            'title' => 'MenuTestParent',
+            'icon' => 'fa-user',
         ]);
     }
 
@@ -137,8 +137,8 @@ class IMenuTest extends ExmentKitTestCase
     {
         $menu = $this->getMenuTestModel('parent_menu_name');
         $this->_testEditMenu($menu, [
-            'title' =>'MenuTestParentEdit',
-            'icon' =>'fa-database',
+            'title' => 'MenuTestParentEdit',
+            'icon' => 'fa-database',
         ]);
     }
 
@@ -192,7 +192,7 @@ class IMenuTest extends ExmentKitTestCase
      * @param \Closure|null $checkFunc
      * @return void
      */
-     protected function _testCreateMenu(string $menu_name, array $data, ?\Closure $checkFunc = null)
+    protected function _testCreateMenu(string $menu_name, array $data, ?\Closure $checkFunc = null)
     {
         $data['menu_name'] = $menu_name;
 
@@ -315,5 +315,104 @@ class IMenuTest extends ExmentKitTestCase
         $model = Menu::where('menu_type', $menu_type)->where('parent_id', $parent_menu->id)->first();
         $this->assertTrue(isset($model), 'menu not found');
         return $model;
+    }
+
+    public function testEditSystemToParentNode_ShouldKeepUri()
+    {
+        $menu = $this->createMenuForEdit('system', '/home');
+
+        $oldUri = $menu->uri;
+
+        $this->_testEditMenu($menu, [
+            'menu_type' => 'parent_node',
+            'uri' => '',
+        ]);
+
+        $updated = Menu::find($menu->id);
+
+        $this->assertEquals(
+            $oldUri,
+            $updated->uri,
+            "System menu: URI should be preserved when switching to parent_node. Expected '{$oldUri}', got '{$updated->uri}'"
+        );
+    }
+
+    public function testEditTableToParentNode_ShouldKeepUri()
+    {
+        $menu = $this->createMenuForEdit('table', 'test_table');
+
+        $oldUri = $menu->uri;
+
+        $this->_testEditMenu($menu, [
+            'menu_type' => 'parent_node',
+            'uri' => '',
+        ]);
+
+        $updated = Menu::find($menu->id);
+
+        $this->assertEquals(
+            $oldUri,
+            $updated->uri,
+            "Table menu: URI should be preserved when switching to parent_node. Expected '{$oldUri}', got '{$updated->uri}'"
+        );
+    }
+
+    public function testEditCustomToParentNode_ShouldKeepUri()
+    {
+        $menu = $this->createMenuForEdit('custom', 'https://test.com');
+
+        $oldUri = $menu->uri;
+
+        $this->_testEditMenu($menu, [
+            'menu_type' => 'parent_node',
+            'uri' => '',
+        ]);
+
+        $updated = Menu::find($menu->id);
+
+        $this->assertEquals(
+            $oldUri,
+            $updated->uri,
+            "Custom menu: URI should be preserved when switching to parent_node. Expected '{$oldUri}', got '{$updated->uri}'"
+        );
+    }
+
+    public function testEditPluginToParentNode_ShouldKeepUri()
+    {
+        $menu = $this->createMenuForEdit('plugin', '/plugin-route');
+
+        $oldUri = $menu->uri;
+
+        $this->_testEditMenu($menu, [
+            'menu_type' => 'parent_node',
+            'uri' => '',
+        ]);
+
+        $updated = Menu::find($menu->id);
+
+        $this->assertEquals(
+            $oldUri,
+            $updated->uri,
+            "Plugin menu: URI should be preserved when switching to parent_node. Expected '{$oldUri}', got '{$updated->uri}'"
+        );
+    }
+    protected function createMenuForEdit(string $type, string $uri): Menu
+    {
+        $parent = Menu::create([
+            'menu_name' => short_uuid(),
+            'menu_type' => 'parent_node',
+            'title' => 'Parent',
+            'icon' => 'fa-folder',
+            'parent_id' => 0,
+        ]);
+
+        return Menu::create([
+            'menu_name' => short_uuid(),
+            'menu_type' => $type,
+            'uri' => $uri,
+            'title' => ucfirst($type),
+            'icon' => 'fa-icon',
+            'parent_id' => $parent->id,
+        ]);
     }
 }
