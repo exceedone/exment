@@ -508,7 +508,8 @@ function initPluginMarket() {
         button.innerHTML = '<span class="spinner-border spinner-border-sm mr-2"></span>' + (action === 'renew' ? t.renewProcessing : t.paymentProcessing);
 
         try {
-            // Call same-origin proxy endpoint to avoid browser CORS restrictions.
+            // Step 1: Call same-origin proxy → proxied to /api/plugins/checkout/purchase on marketplace server.
+            // Returns { client_secret, payment_intent_id, status, stripe_publishable_key }.
             const response = await fetch(`${adminPluginMarketUrl}/checkout/purchase`, {
                 method: 'POST',
                 headers: {
@@ -531,69 +532,56 @@ function initPluginMarket() {
                 data = {};
             }
 
-            // Special case: treat HTTP 402 as a "requires_action" (3DS) flow.
-            // Some backends use 402 to indicate additional authentication is required.
-            if (!response.ok && response.status !== 402) {
-                const msg = (data && (data.error || data.message)) ? (data.error || data.message)
+            if (!response.ok) {
+                const msg = (data && (data.error || data.message))
+                    ? (data.error || data.message)
                     : (rawText && rawText.length < 500 ? rawText : null);
                 throw new Error(msg || t.paymentFailed);
             }
 
-            // Treat HTTP 402 as a manual payment required flow.
-            // Even if a client_secret is provided, we intentionally do NOT run 3DS from this UI.
-            if (response.status === 402) {
-                const manualMessage = (data && (data.message || data.error)) ? (data.message || data.error) : t.manualPaymentRequired;
-                const manualUrl = marketplaceUrl + '/payment-methods';
+            // Step 2: Validate required fields returned by the API.
+            const clientSecret = data.client_secret;
+            const publishableKey = data.stripe_publishable_key;
 
-                const restoreButton = function() {
-                    button.disabled = false;
-                    button.innerHTML = originalHtml;
-                };
-
-                showPopupAndRedirect(manualMessage, manualUrl, restoreButton, restoreButton);
+            if (!clientSecret) {
+                throw new Error(t.missingClientSecret);
+            }
+            if (!publishableKey) {
+                showToast('error', t.stripePublishableKeyMissing);
+                button.disabled = false;
+                button.innerHTML = originalHtml;
                 return;
             }
 
-            let effectiveStatus = (response.status === 402)
-                ? 'requires_action'
-                : (data && (data.status !== undefined && data.status !== null) ? data.status : null);
+            // Step 3: Ensure Stripe.js is loaded, then initialise with the marketplace's publishable key.
+            await ensureStripeLoaded();
+            const locale = document.documentElement.lang || 'ja';
+            const stripe = Stripe(publishableKey, { locale: locale });
 
-            // Normalize status values from the marketplace.
-            // Some APIs return "success" (or boolean success flags) instead of Stripe-like "succeeded".
-            const normalizedStatus = (typeof effectiveStatus === 'string')
-                ? effectiveStatus.toLowerCase()
-                : effectiveStatus;
-            const isSuccess = normalizedStatus === 'succeeded'
-                || normalizedStatus === 'success'
-                || normalizedStatus === 'paid'
-                || normalizedStatus === 'completed'
-                || normalizedStatus === 'ok'
-                || (data && data.success === true);
+            // Step 4: Confirm the PaymentIntent client-side.
+            // stripe.confirmCardPayment handles both the already-succeeded case and any required 3DS flow.
+            const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, {});
 
-            if (isSuccess) {
+            if (confirmError) {
+                throw new Error(confirmError.message || t.paymentFailed);
+            }
+
+            // Step 5: Handle final PaymentIntent status.
+            if (paymentIntent.status === 'succeeded') {
                 showToast('success', data.message || t.paymentSucceeded);
                 setTimeout(function() { window.location.reload(); }, 1200);
                 return;
             }
 
-            if (normalizedStatus === 'requires_action') {
-                const manualMessage = (data && (data.message || data.error)) ? (data.message || data.error) : t.manualPaymentRequired;
-                const manualUrl = marketplaceUrl + '/payment-methods';
-
-                const restoreButton = function() {
-                    button.disabled = false;
-                    button.innerHTML = originalHtml;
-                };
-
-                showPopupAndRedirect(manualMessage, manualUrl, restoreButton, restoreButton);
+            if (paymentIntent.status === 'requires_action') {
+                // Stripe.js already showed the 3DS modal; reaching here means it was dismissed without completion.
+                showToast('info', t.manualPaymentRequired);
+                button.disabled = false;
+                button.innerHTML = originalHtml;
                 return;
             }
 
-            if (normalizedStatus === 'failed' || normalizedStatus === 'error') {
-                throw new Error(data.error || data.message || t.paymentFailed);
-            }
-
-            throw new Error(data.message || t.paymentFailed);
+            throw new Error(data.message || (t.paymentStatusTpl ? t.paymentStatusTpl.replace(':status', paymentIntent.status) : t.paymentFailed));
         } catch (error) {
             console.error('Purchase error:', error);
             showToast('error', (error && error.message) ? error.message : t.paymentFailed);
