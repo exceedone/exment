@@ -297,9 +297,13 @@ class PluginMarketController extends AdminController
         ?string $type,
         ?string $status
     ): array {
-        // OSS (no tenant_uuid): show free plugins only
+        // OSS (no tenant_uuid): show free plugins, plus paid plugins the user has already purchased (has_license=true)
         if (empty($tenantUuid)) {
             $plugins = $plugins->filter(function ($plugin) {
+                // Always show plugins the user has a valid license for (purchased via API key)
+                if (!empty($plugin['has_license'])) {
+                    return true;
+                }
                 $isFree = $plugin['is_free'] ?? null;
                 if ($isFree !== null) {
                     return (bool)$isFree;
@@ -309,12 +313,13 @@ class PluginMarketController extends AdminController
             });
         }
 
-        // Filter by keyword (search in plugin_name, description, author)
+        // Filter by keyword (search in plugin_name, plugin_view_name, description, author)
         if ($keyword) {
             $plugins = $plugins->filter(function ($plugin) use ($keyword) {
                 $searchText = strtolower($keyword);
                 $author = $plugin['author'] ?? ($plugin['user']['name'] ?? '');
                 return str_contains(strtolower($plugin['plugin_name'] ?? ''), $searchText)
+                    || str_contains(strtolower($plugin['plugin_view_name'] ?? ''), $searchText)
                     || str_contains(strtolower($plugin['description'] ?? ''), $searchText)
                     || str_contains(strtolower($author), $searchText);
             });
@@ -625,16 +630,8 @@ class PluginMarketController extends AdminController
                 $queryParams['tenant_uuid'] = $tenantUuid;
             }
 
-            if ($keyword) {
-                $queryParams['keyword'] = $keyword;
-                // New Market API uses `search`
-                $queryParams['search'] = $keyword;
-            }
             if ($type) {
                 $queryParams['type'] = $type;
-            }
-            if ($status) {
-                $queryParams['status'] = $status;
             }
 
             $plugins = $this->fetchMarketplacePlugins($marketplaceApi, $queryParams, $tenantUuid);
@@ -646,11 +643,13 @@ class PluginMarketController extends AdminController
                     ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
             }
 
+            // Enrich with local install info FIRST (adds market_deleted plugins),
+            // then filter so keyword/type search applies uniformly to all plugins including local-only ones.
+            $plugins = $this->enrichWithLocalInfo($plugins);
+
             $plugins = collect($plugins);
 
             $plugins = $this->filterPlugins($plugins, $tenantUuid, $keyword, $type, $status);
-
-            $plugins = $this->enrichWithLocalInfo($plugins);
 
             // Paginate the (potentially large) marketplace list for better UX, especially on mobile.
             $perPage = (int) $request->input('per_page', 20);
