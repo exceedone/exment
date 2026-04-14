@@ -43,16 +43,6 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label>{{ exmtrans('plugin.market.search.status') }}</label>
-                        <select name="status" class="form-control">
-                            <option value="">{{ exmtrans('plugin.market.search.all_status') }}</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>{{ exmtrans('plugin.market.search.active') }}</option>
-                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>{{ exmtrans('plugin.market.search.inactive') }}</option>
-                        </select>
-                    </div>
-                </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label>&nbsp;</label>
@@ -94,6 +84,7 @@
                     <th>{{ exmtrans('plugin.market.author') }}</th>
                     <th>{{ exmtrans('plugin.market.latest_version') }}</th>
                     <th>{{ exmtrans('plugin.market.price') }}</th>
+                    <th>{{ exmtrans('plugin.market.license') }}</th>
                     <th>{{ exmtrans('plugin.market.description_col') }}</th>
                     <th>{{ exmtrans('plugin.market.status') }}</th>
                     <th>{{ exmtrans('plugin.market.actions') }}</th>
@@ -102,10 +93,10 @@
             <tbody>
                 @forelse($plugins as $plugin)
                     <tr>
-                        <td><strong>{{ $plugin['plugin_view_name'] ?? $plugin['plugin_name'] ?? '—' }}</strong></td>
-                        <td><code>{{ $plugin['plugin_name'] ?? '—' }}</code></td>
+                        <td><strong>{{ $plugin['plugin_name'] ?? '—' }}</strong></td>
+                        <td>{{ $plugin['plugin_view_name'] ?? '—' }}</td>
                         <td><span class="badge bg-secondary">{{ $plugin['plugin_types_display'] }}</span></td>
-                        <td>{{ $plugin['author'] ?? ($plugin['user']['name'] ?? '—') }}</td>
+                        <td>{{ $plugin['user']['name'] ?? ($plugin['author'] ?? '—') }}</td>
                         <td><span class="badge bg-info">{{ $plugin['version'] ?? '—' }}</span></td>
                         <td>
                             @if($plugin['is_free'])
@@ -117,6 +108,23 @@
                                 @endif
                             @else
                                 —
+                            @endif
+                        </td>
+                        <td>
+                            @if($plugin['is_free'])
+                                <span class="badge bg-success">{{ exmtrans('plugin.market.free') }}</span>
+                            @elseif($plugin['is_owner'] ?? false)
+                                <span class="badge bg-primary">{{ exmtrans('plugin.market.owner') }}</span>
+                            @elseif($plugin['has_license'] && !$plugin['is_expired'])
+                                @if(!empty($plugin['expired_at']))
+                                    <span class="badge bg-success">{{ exmtrans('plugin.market.license_expiry', ['date' => \Carbon\Carbon::parse($plugin['expired_at'])->format('Y/m/d')]) }}</span>
+                                @else
+                                    <span class="badge bg-success">{{ exmtrans('plugin.market.license_permanent') }}</span>
+                                @endif
+                            @elseif($plugin['is_expired'])
+                                <span class="badge bg-danger">{{ exmtrans('plugin.market.message.expired_warning') }}</span>
+                            @else
+                                <span class="badge bg-secondary">{{ exmtrans('plugin.market.no_license') }}</span>
                             @endif
                         </td>
                         <td><small>{{ $plugin['description'] ?? '—' }}</small></td>
@@ -214,7 +222,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-3">{{ exmtrans('plugin.market.plugin_not_found') }}</td>
+                        <td colspan="10" class="text-center text-muted py-3">{{ exmtrans('plugin.market.plugin_not_found') }}</td>
                     </tr>
                 @endforelse
             </tbody>
