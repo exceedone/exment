@@ -91,7 +91,7 @@
                     <th>{{ exmtrans('plugin.market.name') }}</th>
                     <th>{{ exmtrans('plugin.market.internal_name') }}</th>
                     <th>{{ exmtrans('plugin.market.type') }}</th>
-                    <th>{{ exmtrans('plugin.market.author') }}</th>
+                    <th>{{ exmtrans('plugin.market.created_user') }}</th>
                     <th>{{ exmtrans('plugin.market.latest_version') }}</th>
                     <th>{{ exmtrans('plugin.market.price') }}</th>
                     <th>{{ exmtrans('plugin.market.license') }}</th>
