@@ -362,7 +362,8 @@ class PluginMarketController extends AdminController
     protected function enrichWithLocalInfo(array $plugins): array
     {
         try {
-            $installed = Plugin::all()->keyBy(function ($p) {
+            // Only consider plugins installed from the marketplace (local = false)
+            $installed = Plugin::where('local', false)->get()->keyBy(function ($p) {
                 return strtolower($p->plugin_name ?? '');
             });
         } catch (\Throwable $e) {
@@ -947,6 +948,13 @@ class PluginMarketController extends AdminController
 
                 // Install new version
                 PluginInstaller::uploadPlugin(new \Illuminate\Http\File($fullPath));
+
+                // Mark as installed from marketplace (not local upload)
+                $installed = Plugin::where('plugin_name', $pluginName)->latest()->first();
+                if ($installed) {
+                    $installed->local = false;
+                    $installed->save();
+                }
 
                 // Clean up temporary file
                 Storage::disk('local')->delete($tmpPath);

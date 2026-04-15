@@ -282,6 +282,7 @@ class PluginInstaller
             $plugin->{$key} = array_get($json, $key);
         }
         $plugin->active_flg = PluginType::getEnum($plugin_type) != PluginType::BATCH;
+        $plugin->local = true; // installed from local upload
 
         // set options
         $options = array_get($plugin, 'options', []);
