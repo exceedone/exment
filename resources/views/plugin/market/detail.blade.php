@@ -31,7 +31,7 @@
                                         class="badge bg-info">{{ $plugin['plugin_types_display'] ?? $plugin['plugin_types'] ?? '—' }}</span></div>
                             </div>
                             <div class="row-setting">
-                                <div class="label">{{ exmtrans('plugin.market.detail.author') }}</div>
+                                <div class="label">{{ exmtrans('plugin.market.detail.created_user') }}</div>
                                 <div class="value">{{ (is_array($plugin['user'] ?? null) ? ($plugin['user']['name'] ?? null) : null) ?? $plugin['author'] ?? '—' }}</div>
                             </div>
                             <div class="row-setting">
