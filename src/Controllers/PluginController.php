@@ -94,6 +94,9 @@ class PluginController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new Plugin());
+
+        // Only show locally uploaded plugins (not installed from marketplace)
+        $grid->model()->where('local', true);
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
             $filter->like('uuid', exmtrans("plugin.uuid"));
