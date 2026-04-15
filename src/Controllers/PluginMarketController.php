@@ -295,7 +295,8 @@ class PluginMarketController extends AdminController
         ?string $tenantUuid,
         ?string $keyword,
         ?string $type,
-        ?string $status
+        ?string $status,
+        ?string $installStatus = null
     ): array {
         // OSS (no tenant_uuid): show free plugins, plus paid plugins the user has already purchased (has_license=true)
         if (empty($tenantUuid)) {
@@ -339,6 +340,13 @@ class PluginMarketController extends AdminController
                 $checkStatus = strtolower($plugin['check_status'] ?? '');
                 return $checkStatus === strtolower($status);
             });
+        }
+
+        // Filter by install status (local)
+        if ($installStatus === 'installed') {
+            $plugins = $plugins->filter(fn($p) => !empty($p['is_installed']));
+        } elseif ($installStatus === 'not_installed') {
+            $plugins = $plugins->filter(fn($p) => empty($p['is_installed']));
         }
 
         return $plugins->values()->all();
@@ -619,6 +627,7 @@ class PluginMarketController extends AdminController
             $keyword = $request->input('keyword');
             $type = $request->input('type');
             $status = $request->input('status');
+            $installStatus = $request->input('install_status');
 
             $tenantUuid = $this->getTenantUuid();
 
@@ -649,7 +658,7 @@ class PluginMarketController extends AdminController
 
             $plugins = collect($plugins);
 
-            $plugins = $this->filterPlugins($plugins, $tenantUuid, $keyword, $type, $status);
+            $plugins = $this->filterPlugins($plugins, $tenantUuid, $keyword, $type, $status, $installStatus);
 
             // Paginate the (potentially large) marketplace list for better UX, especially on mobile.
             $perPage = (int) $request->input('per_page', 20);
