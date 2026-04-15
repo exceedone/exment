@@ -43,7 +43,17 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>{{ exmtrans('plugin.market.search.install_status') }}</label>
+                        <select name="install_status" class="form-control">
+                            <option value="">{{ exmtrans('plugin.market.search.all_status') }}</option>
+                            <option value="not_installed" {{ request('install_status') == 'not_installed' ? 'selected' : '' }}>{{ exmtrans('plugin.market.search.not_installed') }}</option>
+                            <option value="installed" {{ request('install_status') == 'installed' ? 'selected' : '' }}>{{ exmtrans('plugin.market.search.installed_label') }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
                     <div class="form-group">
                         <label>&nbsp;</label>
                         <div>
@@ -62,7 +72,7 @@
 </div>
 
 <!-- Results Summary -->
-@if(request()->hasAny(['keyword', 'type', 'status']))
+@if(request()->hasAny(['keyword', 'type', 'status', 'install_status']))
 <div class="alert alert-info">
     <i class="fa fa-info-circle"></i> 
     {{ exmtrans('plugin.market.search.results_found', ['count' => ($plugins instanceof \Illuminate\Pagination\LengthAwarePaginator) ? $plugins->total() : count($plugins)]) }}
