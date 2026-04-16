@@ -26,11 +26,11 @@ class PluginMarketController extends AdminController
     public function checkoutPurchase(Request $request)
     {
         PluginMarketClient::warnApiKey();
-        $tenantUuid = $this->getTenantUuid();
-        if (empty($tenantUuid)) {
+        $apiKey = $this->getApiKey();
+        if (empty($apiKey)) {
             return response()->json([
                 'status' => 'failed',
-                'message' => 'Missing tenant_uuid.',
+                'message' => 'Missing api_key.',
             ], 400);
         }
 
@@ -43,17 +43,6 @@ class PluginMarketController extends AdminController
         }
         $pluginUuid = trim($pluginUuid);
 
-        // Optional: if client sends tenant_uuid, ensure it matches server config.
-        $clientTenantUuid = $request->input('tenant_uuid');
-        if (is_string($clientTenantUuid) && strlen(trim($clientTenantUuid)) > 0) {
-            if (trim($clientTenantUuid) !== $tenantUuid) {
-                return response()->json([
-                    'status' => 'failed',
-                    'message' => 'Invalid tenant_uuid.',
-                ], 422);
-            }
-        }
-
         $url = $this->getMarketplaceUrl() . '/api/plugins/checkout/purchase';
 
         Log::info('[PluginMarket] Checkout purchase requested', [
@@ -65,7 +54,6 @@ class PluginMarketController extends AdminController
                 ->acceptJson()
                 ->asJson()
                 ->post($url, [
-                    'tenant_uuid' => $tenantUuid,
                     'plugin_uuid' => $pluginUuid,
                 ]);
 
@@ -239,24 +227,18 @@ class PluginMarketController extends AdminController
 
     /**
      * Call the marketplace API and return the raw plugin array.
-     * Returns null if the tenant_uuid is invalid (404), with a toast already set.
-     * Returns an empty array on other HTTP errors (toast already set).
+     * Returns an empty array on HTTP errors (toast already set).
+     * Authentication is handled via Bearer token in PluginMarketClient.
      *
-     * @param  string     $marketplaceApi
-     * @param  array      $queryParams
-     * @param  string|null $tenantUuid
+     * @param  string $marketplaceApi
+     * @param  array  $queryParams
      * @return array|null
      */
-    protected function fetchMarketplacePlugins(string $marketplaceApi, array $queryParams, ?string $tenantUuid): ?array
+    protected function fetchMarketplacePlugins(string $marketplaceApi, array $queryParams): ?array
     {
         $response = PluginMarketClient::make()
             ->get($marketplaceApi, $queryParams);
 
-        // If tenant_uuid is provided but invalid, marketplace returns 404
-        if (!empty($tenantUuid) && $response->status() === 404) {
-            admin_toastr(exmtrans('plugin.market.plugin_not_found'), 'error');
-            return null;
-        }
 
         if ($response->ok()) {
             $plugins = $response->json();
@@ -284,7 +266,6 @@ class PluginMarketController extends AdminController
      * Apply client-side filters to the marketplace plugin collection.
      *
      * @param  \Illuminate\Support\Collection $plugins
-     * @param  string|null $tenantUuid
      * @param  string|null $keyword
      * @param  string|null $type
      * @param  string|null $status
@@ -292,27 +273,13 @@ class PluginMarketController extends AdminController
      */
     protected function filterPlugins(
         \Illuminate\Support\Collection $plugins,
-        ?string $tenantUuid,
         ?string $keyword,
         ?string $type,
         ?string $status,
         ?string $installStatus = null
     ): array {
-        // OSS (no tenant_uuid): show free plugins, plus paid plugins the user has already purchased (has_license=true)
-        if (empty($tenantUuid)) {
-            $plugins = $plugins->filter(function ($plugin) {
-                // Always show plugins the user has a valid license for (purchased via API key)
-                if (!empty($plugin['has_license'])) {
-                    return true;
-                }
-                $isFree = $plugin['is_free'] ?? null;
-                if ($isFree !== null) {
-                    return (bool)$isFree;
-                }
-                $price = floatval($plugin['price'] ?? 0);
-                return $price === 0.0;
-            });
-        }
+        // All plugins (free and paid) are shown regardless of API key presence.
+        // The license/owner badge and purchase button in the view handle paid-plugin UX.
 
         // Filter by keyword (search in plugin_name, plugin_view_name, description, author)
         if ($keyword) {
@@ -570,6 +537,16 @@ class PluginMarketController extends AdminController
         ]);
     }
 
+    protected function getApiKey(): ?string
+    {
+        $key = config('exment.ai_server_api_key');
+        if (is_string($key) && strlen(trim($key)) > 0) {
+            return trim($key);
+        }
+
+        return null;
+    }
+
     protected function getTenantUuid(): ?string
     {
         $tenantUuid = config('exment.market_tenant_uuid');
@@ -597,15 +574,9 @@ class PluginMarketController extends AdminController
 
     protected function grid()
     {
-        $tenantUuid = $this->getTenantUuid();
-        $queryParams = [];
-        if (!empty($tenantUuid)) {
-            $queryParams['tenant_uuid'] = $tenantUuid;
-        }
-
-        // Call API repo  plugin list
+        // Call API repo  plugin list (Bearer auth via PluginMarketClient)
         $response = PluginMarketClient::make()
-            ->get($this->getRepoUrl(), $queryParams);
+            ->get($this->getRepoUrl());
         $data = $response->json() ?? [];
 
         // Grid with data from API
@@ -630,28 +601,17 @@ class PluginMarketController extends AdminController
             $status = $request->input('status');
             $installStatus = $request->input('install_status');
 
-            $tenantUuid = $this->getTenantUuid();
+            $apiKey = $this->getApiKey();
 
-            // URL API Marketplace with search parameters
+            // URL API Marketplace with search parameters (Bearer auth via PluginMarketClient)
             $marketplaceApi = $this->getRepoUrl();
             $queryParams = [];
-
-            if (!empty($tenantUuid)) {
-                $queryParams['tenant_uuid'] = $tenantUuid;
-            }
 
             if ($type) {
                 $queryParams['type'] = $type;
             }
 
-            $plugins = $this->fetchMarketplacePlugins($marketplaceApi, $queryParams, $tenantUuid);
-
-            if ($plugins === null) {
-                $plugins = [];
-                return $content->title(exmtrans('plugin.market.title'))
-                    ->description(exmtrans('plugin.market.description'))
-                    ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
-            }
+            $plugins = $this->fetchMarketplacePlugins($marketplaceApi, $queryParams);
 
             // Enrich with local install info FIRST (adds market_deleted plugins),
             // then filter so keyword/type search applies uniformly to all plugins including local-only ones.
@@ -659,7 +619,7 @@ class PluginMarketController extends AdminController
 
             $plugins = collect($plugins);
 
-            $plugins = $this->filterPlugins($plugins, $tenantUuid, $keyword, $type, $status, $installStatus);
+            $plugins = $this->filterPlugins($plugins, $keyword, $type, $status, $installStatus);
 
             // Paginate the (potentially large) marketplace list for better UX, especially on mobile.
             $perPage = (int) $request->input('per_page', 20);
@@ -684,19 +644,39 @@ class PluginMarketController extends AdminController
             // Render interface
             return $content->title(exmtrans('plugin.market.title'))
                 ->description(exmtrans('plugin.market.description'))
-                ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
+                ->body(view('exment::plugin.market.index', compact('plugins', 'apiKey')));
         } catch (\Throwable $e) {
             Log::error('[PluginMarket] Exception: ' . $e->getMessage());
             // Avoid rendering a full error page; keep the UI and show a toast.
             admin_toastr(exmtrans('plugin.market.message.connection_error'), 'error');
             $plugins = [];
-            $tenantUuid = $this->getTenantUuid();
+            $apiKey = $this->getApiKey();
             return $content->title(exmtrans('plugin.market.title'))
                 ->description(exmtrans('plugin.market.description'))
-                ->body(view('exment::plugin.market.index', compact('plugins', 'tenantUuid')));
+                ->body(view('exment::plugin.market.index', compact('plugins', 'apiKey')));
         }
     }
 
+
+    /**
+     * Proxy: fetch plugin versions from marketplace server-side (keeps api_key off the browser).
+     */
+    public function pluginVersions(Request $request, $id)
+    {
+        try {
+            $response = PluginMarketClient::make(timeout: 15)
+                ->get("{$this->getRepoUrl()}/{$id}/versions");
+
+            if ($response->failed()) {
+                return response()->json(['error' => 'Failed to fetch versions'], $response->status());
+            }
+
+            return response()->json($response->json());
+        } catch (\Throwable $e) {
+            Log::error("[PluginMarket] pluginVersions exception: " . $e->getMessage());
+            return response()->json(['error' => 'Failed to fetch versions'], 500);
+        }
+    }
 
     /**
      * Override show method to set proper title/description
@@ -752,17 +732,10 @@ class PluginMarketController extends AdminController
             return view('exment::plugin.market.detail', compact('plugin'));
         }
 
-        // Marketplace plugin: call API
+        // Marketplace plugin: call API (Bearer auth via PluginMarketClient)
         try {
-            $request = request();
-            $tenantUuid = $this->getTenantUuid();
-            $queryParams = [];
-            if (!empty($tenantUuid)) {
-                $queryParams['tenant_uuid'] = $tenantUuid;
-            }
-
             $response = PluginMarketClient::make()
-                ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
+                ->get("{$this->getRepoUrl()}/{$id}");
 
             if ($response->failed()) {
                 admin_toastr(exmtrans('plugin.market.plugin_not_found'), 'error');
@@ -803,22 +776,15 @@ class PluginMarketController extends AdminController
         try {
             $versionId = $request->input('version'); // Selected version ID
 
-            $tenantUuid = $this->getTenantUuid();
-            $queryParams = [];
-            if (!empty($tenantUuid)) {
-                $queryParams['tenant_uuid'] = $tenantUuid;
-            }
-
             Log::info("[PluginMarket] Install request", [
                 'plugin_id' => $id,
                 'version_id' => $versionId,
-                'tenant_uuid' => $tenantUuid,
                 'marketplace_url' => $this->getMarketplaceUrl(),
             ]);
 
-            // Get plugin info from marketplace
+            // Get plugin info from marketplace (Bearer auth via PluginMarketClient)
             $pluginResponse = PluginMarketClient::make()
-                ->get("{$this->getRepoUrl()}/{$id}", $queryParams);
+                ->get("{$this->getRepoUrl()}/{$id}");
 
             if ($pluginResponse->failed()) {
                 return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
@@ -847,10 +813,10 @@ class PluginMarketController extends AdminController
 
             // Get version information
             $versionResponse = PluginMarketClient::make()
-                ->get("{$this->getRepoUrl()}/{$id}/versions", $queryParams);
+                ->get("{$this->getRepoUrl()}/{$id}/versions");
 
             if ($versionResponse->failed()) {
-                if (!empty($tenantUuid) && $versionResponse->status() === 404) {
+                if ($versionResponse->status() === 404) {
                     return response()->json(['error' => exmtrans('plugin.market.message.plugin_not_found')], 404);
                 }
                 return response()->json(['error' => exmtrans('plugin.market.message.version_load_failed')], 400);
