@@ -20,7 +20,6 @@ use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Exceedone\Exment\Services\Plugin\PluginLicenseSyncService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 
 class PluginController extends AdminControllerBase
@@ -44,16 +43,6 @@ class PluginController extends AdminControllerBase
         $tenantUuid = config('exment.market_tenant_uuid');
         if (is_string($tenantUuid) && trim($tenantUuid) !== '') {
             return redirect(admin_url('plugin-market'));
-        }
-
-        // Always trigger a license sync on the /plugins screen.
-        // This provides immediate auto-inactive updates, regardless of global throttling.
-        try {
-            if (\Exment::user()) {
-                (new PluginLicenseSyncService())->syncForced(1440);
-            }
-        } catch (\Throwable $e) {
-            Log::warning('[PluginController] License sync failed: ' . $e->getMessage());
         }
 
         $this->AdminContent($content);
@@ -117,12 +106,7 @@ class PluginController extends AdminControllerBase
             })->toArray());
         })->sortable();
         $grid->column('author', exmtrans("plugin.author"));
-        // $grid->column('version', exmtrans("plugin.version"));
-
         $grid->column('version', exmtrans("plugin.version"));
-
-
-
 
         // $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
         //     return \Exment::getTrueMark($active_flg);
@@ -211,28 +195,29 @@ class PluginController extends AdminControllerBase
         }
 
         // Block manual activation if paid plugin has no license or is expired beyond grace week.
+        // Local plugins (uploaded directly) have no marketplace license — skip the check.
         $requestedActive = $request->boolean('active_flg');
-        if ($requestedActive && !boolval($plugin->active_flg)) {
+        if ($requestedActive && !boolval($plugin->active_flg) && !$plugin->local) {
             $shouldBlock = (new PluginLicenseSyncService())->shouldBlockActivation((string) $plugin->plugin_name);
             if ($shouldBlock) {
-                // Ensure it stays disabled and marked as license-driven.
+                // Only save if state actually needs updating to avoid redundant writes.
                 $options = is_array($plugin->options) ? $plugin->options : [];
-                $options['disabled_by_license'] = true;
-                $plugin->active_flg = 0;
-                $plugin->options = $options;
-                $plugin->save();
-                Plugin::clearCacheTrait();
+                if ($plugin->active_flg != 0 || ($options['disabled_by_license'] ?? false) !== true) {
+                    $options['disabled_by_license'] = true;
+                    $plugin->active_flg = 0;
+                    $plugin->options = $options;
+                    $plugin->save();
+                    Plugin::clearCacheTrait();
+                }
 
                 $msg = exmtrans('plugin.message.activation_blocked');
-                if ($request->ajax() || $request->expectsJson()) {
-                    admin_toastr($msg, 'error');
-                }
+                admin_toastr($msg, 'error');
                 return back();
             }
         }
 
         $request->merge([
-            'active_flg' => $request->boolean('active_flg') ? 1 : 0,
+            'active_flg' => $requestedActive ? 1 : 0,
         ]);
 
         if (isset($request->get('options')['event_triggers']) === true) {

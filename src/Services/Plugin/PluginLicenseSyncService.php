@@ -19,6 +19,9 @@ class PluginLicenseSyncService
     /** @var \Illuminate\Support\Collection<string, array>|null */
     protected $marketPluginsByName = null;
 
+    /** Prevents retrying the market HTTP call on the same instance after a failure. */
+    private bool $fetchAttempted = false;
+
     protected function getThrottleCacheKey(): string
     {
         return 'exment_plugin_license_sync_last_run';
@@ -136,13 +139,11 @@ class PluginLicenseSyncService
      */
     public function syncThrottled(int $minutes = 1440): void
     {
-        $cacheKey = $this->getThrottleCacheKey();
-        if (Cache::has($cacheKey)) {
+        // Cache::add is atomic: sets the key only if it does not exist, preventing
+        // race conditions where two concurrent requests both pass a has() check.
+        if (!Cache::add($this->getThrottleCacheKey(), now(), now()->addMinutes(max(1, $minutes)))) {
             return;
         }
-
-        // Set cache early to prevent stampede on concurrent requests.
-        Cache::put($cacheKey, now(), now()->addMinutes(max(1, $minutes)));
 
         $this->sync();
     }
@@ -170,52 +171,55 @@ class PluginLicenseSyncService
         }
 
         $changedCount = 0;
-        foreach (Plugin::all() as $installedPlugin) {
-            $nameKey = strtolower($installedPlugin->plugin_name ?? '');
-            if ($nameKey === '' || !$marketByName->has($nameKey)) {
-                continue;
-            }
 
-            $market = $marketByName->get($nameKey);
-
-            if (!$this->isPaidPlugin($market)) {
-                continue;
-            }
-
-            $hasLicense = (bool) ($market['has_license'] ?? false);
-            $isExpiredOverGrace = $this->isExpiredOverGraceWeek($market);
-            $isValid = $hasLicense && !$isExpiredOverGrace;
-
-            // Daily warning email while expired but still within the grace period.
-            if ($hasLicense && !$isExpiredOverGrace) {
-                $expiresAt = $this->getExpiresAt($market);
-                if ($expiresAt instanceof Carbon && $expiresAt->isPast()) {
-                    $this->sendExpiryWarningEmail($installedPlugin, $market, $expiresAt);
+        // Only enforce licenses on marketplace-installed plugins (local=false).
+        // Chunk to avoid loading all rows into memory at once.
+        Plugin::where('local', false)->chunk(100, function ($plugins) use ($marketByName, &$changedCount) {
+            foreach ($plugins as $installedPlugin) {
+                $nameKey = strtolower($installedPlugin->plugin_name ?? '');
+                if ($nameKey === '' || !$marketByName->has($nameKey)) {
+                    continue;
                 }
-            }
 
-            $options = is_array($installedPlugin->options) ? $installedPlugin->options : [];
-            $disabledByLicense = (bool) array_get($options, 'disabled_by_license', false);
+                $market = $marketByName->get($nameKey);
 
-            if (!$isValid) {
-                if (boolval($installedPlugin->active_flg) || !$disabledByLicense) {
-                    $installedPlugin->active_flg = 0;
-                    $options['disabled_by_license'] = true;
+                if (!$this->isPaidPlugin($market)) {
+                    continue;
+                }
+
+                $isValid = $this->isLicenseValid($market);
+
+                // Daily warning email while expired but still within the grace period.
+                if ($isValid) {
+                    $expiresAt = $this->getExpiresAt($market);
+                    if ($expiresAt instanceof Carbon && $expiresAt->isPast()) {
+                        $this->sendExpiryWarningEmail($installedPlugin, $market, $expiresAt);
+                    }
+                }
+
+                $options = is_array($installedPlugin->options) ? $installedPlugin->options : [];
+                $disabledByLicense = (bool) array_get($options, 'disabled_by_license', false);
+
+                if (!$isValid) {
+                    if (boolval($installedPlugin->active_flg) || !$disabledByLicense) {
+                        $installedPlugin->active_flg = 0;
+                        $options['disabled_by_license'] = true;
+                        $installedPlugin->options = $options;
+                        $installedPlugin->save();
+                        $changedCount++;
+                    }
+                    continue;
+                }
+
+                if ($disabledByLicense && !boolval($installedPlugin->active_flg)) {
+                    $installedPlugin->active_flg = 1;
+                    unset($options['disabled_by_license']);
                     $installedPlugin->options = $options;
                     $installedPlugin->save();
                     $changedCount++;
                 }
-                continue;
             }
-
-            if ($disabledByLicense && !boolval($installedPlugin->active_flg)) {
-                $installedPlugin->active_flg = 1;
-                unset($options['disabled_by_license']);
-                $installedPlugin->options = $options;
-                $installedPlugin->save();
-                $changedCount++;
-            }
-        }
+        });
 
         if ($changedCount > 0) {
             Plugin::clearCacheTrait();
@@ -244,10 +248,7 @@ class PluginLicenseSyncService
             return false;
         }
 
-        $hasLicense = (bool) ($market['has_license'] ?? false);
-        $isExpiredOverGrace = $this->isExpiredOverGraceWeek($market);
-
-        return !$hasLicense || $isExpiredOverGrace;
+        return !$this->isLicenseValid($market);
     }
 
     /**
@@ -255,9 +256,12 @@ class PluginLicenseSyncService
      */
     public function fetchMarketplacePluginsByName(): ?Collection
     {
-        if ($this->marketPluginsByName !== null) {
+        // Return cached result on success, or null immediately on a previous failure —
+        // avoids retrying the HTTP call multiple times within the same request lifecycle.
+        if ($this->fetchAttempted) {
             return $this->marketPluginsByName;
         }
+        $this->fetchAttempted = true;
 
         $tenantUuid = $this->getTenantUuid();
         if ($tenantUuid === null) {
@@ -302,6 +306,15 @@ class PluginLicenseSyncService
     {
         $isFree = (bool) ($market['is_free'] ?? ((float) ($market['price'] ?? 0) <= 0));
         return !$isFree;
+    }
+
+    /**
+     * Returns true when the license is present and not expired beyond the grace period.
+     */
+    protected function isLicenseValid(array $market): bool
+    {
+        $hasLicense = (bool) ($market['has_license'] ?? false);
+        return $hasLicense && !$this->isExpiredOverGraceWeek($market);
     }
 
     /**
