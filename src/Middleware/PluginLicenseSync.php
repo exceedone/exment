@@ -18,6 +18,16 @@ class PluginLicenseSync
      */
     public function handle(Request $request, Closure $next)
     {
+        // No-op when marketplace is not configured (OSS mode).
+        if (!config('exment.market_tenant_uuid')) {
+            return $next($request);
+        }
+
+        // License sync only needs to run on page loads, not on every AJAX call.
+        if ($request->ajax() || $request->expectsJson()) {
+            return $next($request);
+        }
+
         try {
             // Run after authentication on all admin requests.
             if (\Exment::user()) {
