@@ -157,7 +157,7 @@
                                     data-plugin-id="{{ $plugin['id'] ?? '' }}"
                                     data-plugin-name="{{ $plugin['plugin_name'] ?? 'Plugin' }}"
                                     data-action="{{ $plugin['is_expired'] ? 'renew' : 'purchase' }}"
-                                    {{ (empty($tenantUuid) || empty($plugin['display_uuid']) || !$plugin['is_active']) ? 'disabled' : '' }}>
+                                    {{ (empty($apiKey) || empty($plugin['display_uuid']) || !$plugin['is_active']) ? 'disabled' : '' }}>
                                     {{ $plugin['is_expired'] ? exmtrans('plugin.market.renew') : exmtrans('plugin.market.payment') }}
                                 </button>
                             @endif
@@ -399,7 +399,6 @@ function initPluginMarket() {
         noticeTitle: {!! json_encode(exmtrans("plugin.market.message.notice_title")) !!},
         ok: {!! json_encode(exmtrans("plugin.market.message.ok")) !!},
         manualPaymentRequired: {!! json_encode(exmtrans("plugin.market.message.manual_payment_required")) !!},
-        missingTenantUuid: {!! json_encode(exmtrans("plugin.market.message.missing_tenant_uuid")) !!},
         missingPluginUuid: {!! json_encode(exmtrans("plugin.market.message.missing_plugin_uuid")) !!},
         stripeLoadFailed: {!! json_encode(exmtrans("plugin.market.message.stripe_load_failed")) !!},
         stripePublishableKeyMissing: {!! json_encode(exmtrans("plugin.market.message.stripe_publishable_key_missing")) !!},
@@ -410,9 +409,6 @@ function initPluginMarket() {
     };
 
     const adminPluginMarketUrl = {!! json_encode(admin_url('plugin-market')) !!};
-    const marketplaceUrl = {!! json_encode(rtrim(config('exment.market_plugin_url', 'https://exment.org'), '/')) !!};
-    const marketplaceApiKey = {!! json_encode(config('exment.ai_server_api_key', '')) !!};
-    const tenantUuid = {!! json_encode($tenantUuid ?? null) !!};
     const stripePublishableKey = {!! json_encode(config('services.stripe.key') ?? null) !!};
     const csrfToken = {!! json_encode(csrf_token()) !!};
 
@@ -512,10 +508,6 @@ function initPluginMarket() {
         const pluginName = button.dataset.pluginName || 'Plugin';
         const action = button.dataset.action || 'purchase';
 
-        if (!tenantUuid) {
-            showToast('error', t.missingTenantUuid);
-            return;
-        }
         if (!pluginUuid) {
             showToast('error', t.missingPluginUuid);
             return;
@@ -536,7 +528,6 @@ function initPluginMarket() {
                     'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify({
-                    tenant_uuid: tenantUuid,
                     plugin_uuid: pluginUuid
                 })
             });
@@ -734,17 +725,9 @@ function initPluginMarket() {
         
         console.log('Loading versions for plugin:', pluginId);
         
-        // Load versions from API
-        const params = new URLSearchParams();
-        if (tenantUuid) {
-            params.set('tenant_uuid', tenantUuid);
-        }
-        const query = params.toString() ? `?${params.toString()}` : '';
-        fetch(`${marketplaceUrl}/api/plugins/${pluginId}/versions${query}`, {
-                headers: Object.assign(
-                    { 'Accept': 'application/json' },
-                    marketplaceApiKey ? { 'Authorization': 'Bearer ' + marketplaceApiKey } : {}
-                )
+        // Load versions via Exment server-side proxy (api_key stays server-side, never exposed to browser)
+        fetch(`${adminPluginMarketUrl}/${pluginId}/versions`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(async (response) => {
                 const rawText = await response.text();
@@ -776,12 +759,6 @@ function initPluginMarket() {
                         const isLatest = !!version.is_latest;
 
                         let downloadUrl = version.download_url || '';
-                        const hasTenantUuid = downloadUrl.includes('tenant_uuid=');
-                        const isFileUrl = downloadUrl.startsWith('file://');
-                        const looksSigned = downloadUrl.includes('signature=') || downloadUrl.includes('X-Amz-Signature=') || downloadUrl.includes('X-Amz-Credential=');
-                        if (downloadUrl && tenantUuid && !hasTenantUuid && !isFileUrl && !looksSigned) {
-                            downloadUrl += (downloadUrl.includes('?') ? '&' : '?') + 'tenant_uuid=' + encodeURIComponent(tenantUuid);
-                        }
 
                         if (isLatest) {
                             label += ` (${t.latest})`;
