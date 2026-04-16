@@ -18,8 +18,8 @@ class PluginLicenseSync
      */
     public function handle(Request $request, Closure $next)
     {
-        // No-op when marketplace is not configured (OSS mode).
-        if (!config('exment.market_tenant_uuid')) {
+        // No-op when marketplace API key is not configured.
+        if (!config('exment.ai_server_api_key')) {
             return $next($request);
         }
 
