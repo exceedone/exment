@@ -111,11 +111,11 @@ class PluginLicenseSyncService
         }
     }
 
-    protected function getTenantUuid(): ?string
+    protected function getApiKey(): ?string
     {
-        $tenantUuid = config('exment.market_tenant_uuid');
-        if (is_string($tenantUuid) && trim($tenantUuid) !== '') {
-            return trim($tenantUuid);
+        $apiKey = config('exment.ai_server_api_key');
+        if (is_string($apiKey) && trim($apiKey) !== '') {
+            return trim($apiKey);
         }
 
         return null;
@@ -187,11 +187,11 @@ class PluginLicenseSyncService
                     continue;
                 }
 
-                $isValid = $this->isLicenseValid($market);
+                $isValid   = $this->isLicenseValid($market);
+                $expiresAt = $this->getExpiresAt($market);
 
                 // Daily warning email while expired but still within the grace period.
                 if ($isValid) {
-                    $expiresAt = $this->getExpiresAt($market);
                     if ($expiresAt instanceof Carbon && $expiresAt->isPast()) {
                         $this->sendExpiryWarningEmail($installedPlugin, $market, $expiresAt);
                     }
@@ -201,7 +201,11 @@ class PluginLicenseSyncService
                 $disabledByLicense = (bool) array_get($options, 'disabled_by_license', false);
 
                 if (!$isValid) {
-                    if (boolval($installedPlugin->active_flg) || !$disabledByLicense) {
+                    // Only auto-disable plugins that are currently active.
+                    // If the user already turned it off manually (active_flg=0, disabled_by_license=false),
+                    // do not stamp disabled_by_license=true — that would cause the sync to auto-enable it
+                    // again if the license is later renewed, overwriting the user's intent.
+                    if (boolval($installedPlugin->active_flg)) {
                         $installedPlugin->active_flg = 0;
                         $options['disabled_by_license'] = true;
                         $installedPlugin->options = $options;
@@ -263,16 +267,15 @@ class PluginLicenseSyncService
         }
         $this->fetchAttempted = true;
 
-        $tenantUuid = $this->getTenantUuid();
-        if ($tenantUuid === null) {
-            // OSS: marketplace doesn't return paid items; no enforcement.
+        $apiKey = $this->getApiKey();
+        if ($apiKey === null) {
             $this->marketPluginsByName = null;
             return null;
         }
 
         try {
             $resp = PluginMarketClient::make(timeout: 15, connectTimeout: 5, retry: 1, retryDelay: 100)
-                ->get($this->getMarketplacePluginsApiUrl(), ['tenant_uuid' => $tenantUuid]);
+                ->get($this->getMarketplacePluginsApiUrl());
 
             if (!$resp->ok()) {
                 Log::info('[PluginLicenseSync] Marketplace license check skipped (API not ok)', [
