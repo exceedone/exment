@@ -202,7 +202,7 @@
             clearChat();
             toggleLoading(true);
             console.log('handleStartConversation called', featureType);
-            fetch('/admin/assistant/start', {
+            fetch('/assistant/start', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -253,7 +253,7 @@
             toggleActionButtons(false);
             toggleLoading(true);
 
-            fetch('/admin/assistant/send-message', {
+            fetch('/assistant/send-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -290,7 +290,7 @@
 
             toggleLoading(true);
 
-            fetch('/admin/assistant/action', {
+            fetch('/assistant/action', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
