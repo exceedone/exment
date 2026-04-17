@@ -39,6 +39,7 @@ use Exceedone\Exment\Enums\ShowGridType;
 use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\ColumnItems\ItemInterface;
+use Illuminate\Support\Str;
 
 /** @phpstan-consistent-constructor */
 class DefaultShow extends ShowBase
@@ -170,9 +171,16 @@ class DefaultShow extends ShowBase
                     $tools->disableList();
                 }
 
-                if (!is_null($parent_value = $this->custom_value->getParentValue(null, true)) && $parent_value->enableEdit(true) !== true) {
-                    $tools->disableEdit();
-                    $tools->disableDelete();
+                if (!is_null($parent_value = $this->custom_value->getParentValue(null, true))) {
+                    if (boolval($this->custom_table->getOption('editable_with_parent')??1)) {
+                        if ($parent_value->enableEdit(true) !== true) {
+                            $tools->disableEdit();
+                            $tools->disableDelete();
+                        }
+                    } elseif ($parent_value->enableAccess() !== true)  {
+                        $tools->disableEdit();
+                        $tools->disableDelete();
+                    }
                 }
 
                 if ($this->modal) {
@@ -839,18 +847,30 @@ EOT;
             $custom_item->setCustomValue($this->custom_value)->deleteFile($del_key);
         }
 
-        // reget custom value
-        $updated_value = getModelName($this->custom_table)::find($this->custom_value->id);
+        // Reget custom value and updated_at
+        $updated_at = null;
+        $parent_value = $this->custom_value->getParentValue();
+        $referer = $request->header('referer');
+        
+        if ($parent_value && $referer && Str::contains($referer, '/' . $parent_value->custom_table->table_name . '/')) {
+            $updated_value = $parent_value->custom_table->getValueQuery()
+                ->select(['updated_at'])
+                ->find($parent_value->id);
+            $updated_at = $updated_value->updated_at ?? null;
+        } else {
+            $updated_value = getModelName($this->custom_table)::find($this->custom_value->id);
+            $updated_at = $updated_value->updated_at ?? null;
+        }
+
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.delete_succeeded'),
             'reload' => false,
             'updateValue' => [
-                'updated_at' => $updated_value->updated_at->format('Y-m-d H:i:s'),
+                'updated_at' => $updated_at ? $updated_at->format('Y-m-d H:i:s') : null,
             ],
         ]);
     }
-
     /**
      * add comment.
      */

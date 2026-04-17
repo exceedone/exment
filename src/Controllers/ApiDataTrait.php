@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\RelationType;
 use Validator;
 
 /**
@@ -202,6 +203,7 @@ trait ApiDataTrait
                     'id',
                     'target_view_id',
                     'children',
+                    'parents',
                 ]),
                 $options['appends']
             );
@@ -265,6 +267,11 @@ trait ApiDataTrait
         // Change relation key name
         if (!$recursive && $request->has('children') && boolval($request->get('children'))) {
             $custom_value = $this->modifyChildrenValue($request, $custom_value);
+        }
+
+        // Change relation key name
+        if (!$recursive && $request->has('parents') && boolval($request->get('parents'))) {
+            $custom_value = $this->modifyParentsValue($request, $custom_value);
         }
 
         // convert to custom values
@@ -386,10 +393,22 @@ trait ApiDataTrait
                 $query->with($relation->getRelationName());
             }
         }
+        if ($request->has('parents') && boolval($request->get('parents'))) {
+            $relations = CustomRelation::getRelationsByChild($this->custom_table);
+            foreach ($relations as $relation) {
+                $query->with($relation->getRelationName());
+            }
+        }
 
         return $query;
     }
 
+    /**
+     * Modify children values (exclude virtual columns from children values)
+     *
+     * @param Request $request
+     * @return CustomValue $custom_value
+     */
     protected function modifyChildrenValue(Request $request, $custom_value)
     {
         $relations = CustomRelation::getRelationsByParent($this->custom_table);
@@ -415,6 +434,48 @@ trait ApiDataTrait
         }
 
         $custom_value['children'] = $results;
+        return $custom_value;
+    }
+
+    /**
+     * Modify parents values (exclude virtual columns from parents values)
+     *
+     * @param Request $request
+     * @return CustomValue $custom_value
+     */
+    protected function modifyParentsValue(Request $request, $custom_value)
+    {
+        $relations = CustomRelation::getRelationsByChild($this->custom_table);
+
+        $results = [];
+        foreach ($relations as $relation) {
+            // If getted relation name, change key name
+            $reltionName = $relation->getRelationName();
+            if (array_has($custom_value, $reltionName)) {
+                $relationValues = $custom_value[$reltionName];
+                $makeHiddenArray = $relation->parent_custom_table_cache->getMakeHiddenArray();
+
+                if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                    // Call makehidden
+                    $relationValues = $relationValues->makeHidden($makeHiddenArray);
+                    // Call modify custom value
+                    $relationValues = $this->modifyCustomValue($request, $relationValues, true);
+                } else {
+                    $relationValues = $relationValues->map(function ($relationValue) use ($makeHiddenArray, $request) {
+                        // Call makehidden
+                        $relationValue = $relationValue->makeHidden($makeHiddenArray);
+                        // Call modify custom value
+                        $relationValue = $this->modifyCustomValue($request, $relationValue, true);
+                        return $relationValue;
+                    });
+                }
+                // Set key name
+                $results[$relation->parent_custom_table_cache->table_name] = $relationValues;
+                unset($custom_value[$reltionName]);
+            }
+        }
+
+        $custom_value['parents'] = $results;
         return $custom_value;
     }
 }

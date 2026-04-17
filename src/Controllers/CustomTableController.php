@@ -318,6 +318,9 @@ class CustomTableController extends AdminControllerBase
             if ($has_parent) {
                 $form->switchbool('inherit_parent_permission', exmtrans("custom_table.inherit_parent_permission"))->help(exmtrans("custom_table.help.inherit_parent_permission"))
                     ->default("0");
+
+                $form->switchbool('editable_with_parent', exmtrans("custom_table.editable_with_parent"))->help(exmtrans("custom_table.help.editable_with_parent"))
+                    ->default("1");
             }
         })->disableHeader();
 

@@ -259,6 +259,24 @@ class TemplateImporter
         ]);
     }
 
+    public function importSystemLogsTemplate($is_update = false)
+    {
+        // get vendor folder
+        $templates_base_path = exment_package_path('templates/system_logs');
+        $path = "$templates_base_path/config.json";
+
+        // If file not exists
+        if (!File::exists($path)) {
+            // TODO:Error
+        }
+
+        $this->importFromFile(File::get($path), [
+            'system_flg' => true,
+            'is_update' => $is_update,
+            'basePath' => $templates_base_path,
+        ]);
+    }
+
     /**
      * Upload template and import (from display)
      */

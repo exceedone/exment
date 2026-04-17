@@ -226,6 +226,10 @@ return [
     ],
 
     'validation' => [
+        'hasmany_hidden_required_title' => 'Validation Error',
+        'hasmany_hidden_required_plain_prefix' => 'The following required fields are hidden:',
+        'hasmany_hidden_required_html_prefix' => 'The following required fields are hidden and must be shown:',
+        'hasmany_hidden_required_ok' => 'OK',
         'current_password' => 'The current password is incorrect.',
         'password_history' => 'The password is the same as the password registered in the past. Please enter another password.',
         'complex_password' => 'The password must be at least 12 characters long and must contain three types of characters (uppercase letters, lowercase letters, numbers, symbols).',
@@ -275,6 +279,7 @@ return [
         'outside_api' => 'Perform server external communication',
         'permission_available' => 'Use Role Management',
         'organization_available' => 'Use Organization Management',
+        'logging_toggle_available' => 'Enable Operation Log',
         'system_admin_users' => 'System Administrator',
         'system_mail' => 'System Mail Settings',
         'system_mail_host' => 'Host Name',
@@ -447,6 +452,7 @@ return [
             'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
             'permission_available' => 'If Select YES, management role using user or organozation.',
             'organization_available' => 'If Select YES, create organizations to which the user belongs.',
+            'logging_toggle_available' => 'If set to YES, the activity log feature will be enabled and all user operations will be recorded.',
             'system_admin_users' => 'Set the user who will be the system administrator.',
             'system_mail' => 'Configure settings when sending mail from the system.',
             'system_mail_from' => 'the mail address from this system. Using this mail address as "from", this system sends users.',
@@ -1307,6 +1313,7 @@ return [
             'get_by_userinfo_and_action_select' => 'In the same pre-execution status, "Get from execution user information" and "Select by execution user of previous action" cannot be set at the same time.',
             'action_execute' => 'Perform the following actions:',
             'nextuser_not_found' => 'The following working user does not exist. Please contact the administrator.',
+            'status_changed' => 'This action cannot be performed. Another user may have executed the workflow.',
         ],
         
         'comment_options' => [
@@ -1350,6 +1357,7 @@ return [
         'all_user_viewable_flg' => 'All Users Can View',
         'all_user_accessable_flg' => 'All Users Can Access',
         'inherit_parent_permission' => 'Viewable with Permissions of Parent data',
+        'editable_with_parent' => 'Need Edit Permission for Parend data',
         'add_parent_menu_flg' => 'Add Menu',
         'add_notify_flg' => 'Add To Notification',
         'add_parent_menu' => 'Target Parent Menu',
@@ -1432,6 +1440,7 @@ return [
             'all_user_viewable_flg' => 'If set to YES, all users will be able to view all the data in this table.',
             'all_user_accessable_flg' => 'If set to YES, all users will be able to see all the data in this table.<br/>*It is not displayed on the menu or list page, it can be displayed only with internal data or reference from another table.',
             'inherit_parent_permission' => 'If set to YES, the data can be viewed based on the the parent data(1:N) permissions. However, you must have viewing or similar permissions for this table itself.',
+            'editable_with_parent' => 'If set to YES, you need edit permissions for the parent data(1:N) to edit the data in this table.',
             'add_parent_menu_flg' => 'After creating custom table, you can add it to the menu. To add it, please set it to YES. *It will be displayed after updating the browser. <br /> *It can be set only when new table is created. When updating please set it from "Menu" page.',
             'add_parent_menu' => 'Please select the menu name to be parent.',
             'add_notify_flg' => 'You can add settings for performing in-system notification to authorized users when creating/updating/sharing/commenting data, after creating a new table. Please add YES if you want to add.<br/>* It can be set only when creating a new table. Please set from the "notification" page when updating.',
@@ -2075,6 +2084,7 @@ return [
         'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_grid_filters' => 'In the Filter that appears at the top of the view, specify the columns that you want to display as choices.<br/>*If you want to display the system default items, do not add columns to this list.<br/>*If the custom column is not displayed in "Target column", the <a href="%s" target="_blank">search index<i class="fa fa-external-link"></i></a> is not set. Please check the contents of the link and make the settings.',
+        'description_custom_view_summary_filters' => '<br/>*"This filter" is used to narrow down the data before aggregation, not the aggregated results.',
 
         'help' => [
             'custom_view_type' => 'System view: A view available to all users of this table. User view: This view is available only to the created user.',

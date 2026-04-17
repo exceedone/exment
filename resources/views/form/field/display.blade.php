@@ -19,6 +19,8 @@
                     @endif
                 @endif
                 </span>
+                {{-- Hidden input to save value to database --}}
+                <input type="hidden" name="{{$name}}" value="{{$value}}" />
             </div><!-- /.box-body -->
         </div>
 

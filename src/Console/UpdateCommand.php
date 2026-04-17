@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Console;
 
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\CustomTable;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 
@@ -78,5 +80,11 @@ class UpdateCommand extends Command
         // Remove template import if update
         // $importer = new TemplateImporter;
         // $importer->importSystemTemplate(true);
+        $customTable = CustomTable::where('table_name', SystemTableName::SYSTEM_LOGS)->first();
+        if (!$customTable) {
+            $importer = new TemplateImporter();
+            $importer->importSystemLogsTemplate();
+        }
+
     }
 }

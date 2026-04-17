@@ -25,6 +25,7 @@ use Cache;
  * @method static boolean|void outside_api($arg = null)
  * @method static boolean|void permission_available($arg = null)
  * @method static boolean|void organization_available($arg = null)
+ * @method static boolean|void logging_toggle_available($arg = null)
  * @method static string|void filter_search_type($arg = null)
  * @method static string|void system_mail_host($arg = null)
  * @method static string|void system_mail_port($arg = null)
