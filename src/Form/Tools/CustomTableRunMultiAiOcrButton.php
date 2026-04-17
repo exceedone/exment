@@ -66,12 +66,12 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                 .then(res => res.json())
                 .then(data => {
                     document.body.style.cursor = 'default';
-                    if (data.message === "Multi OCR completed") {
+                    if (data.succeedOcrFilesCount !== undefined) {
                         const success = data.succeedOcrFilesCount || 0;
                         const failed = data.failedOcrFilesCount || 0;
                         const failedFileList = data.failedOcrFileNameList || '';
 
-                        let message = `AI-OCR completed.\\nSuccessful files: \${success}\\nFailed files: \${failed}`;
+                        let message = `\${data.message}\\nSuccessful files: \${success}\\nFailed files: \${failed}`;
                         if (failed > 0) {
                             message += `\\nFailed file list:\\n\${failedFileList}`;
                         }
@@ -82,7 +82,7 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                             container: '#pjax-container'
                         });
                     } else {
-                        alert('AI-OCR processing error.');
+                        alert(data.message);
                     }
                 })
                 .catch(err => {

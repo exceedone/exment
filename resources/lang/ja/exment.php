@@ -1430,6 +1430,7 @@ return [
         ],
         'ai_ocr' => [
             'completed' => 'OCR処理が完了しました。',
+            'multi_completed' => '一括OCR処理が完了しました。',
             'error_invalid_file_path' => 'ファイルパスが無効です。',
             'error_invalid_file_format' => '対応していないファイル形式です。',
             'error_unauthorized' => '認証に失敗しました。',

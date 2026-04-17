@@ -25,54 +25,6 @@ class AiOcrController extends AdminControllerTableBase
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
     }
 
-    // public function runAiOcr(Request $request, $tableKey)
-    // {
-    //     $filePath = $request->input('file_path');
-    //     if (!($filePath && is_dir($filePath))) {
-    //         return response()->json(['error' => 'Invalid file path'], 400);
-    //     }
-
-    //     $files = File::files($filePath);
-    //     $file = $files[0] ?? null;
-
-    //     if (!$this->ocrService->isValidOcrFile($file)) {
-    //         return response()->json(['error' => 'Invalid file format'], 400);
-    //     }
-
-    //     try {
-    //         $result = $this->ocrService->processFile($file, $tableKey, $this->custom_columns);
-    //         $isMultiPage = is_array($result['results'])
-    //             && array_is_list($result['results'])
-    //             && is_array(reset($result['results']));
-    //         if ($isMultiPage) {
-    //             return response()->json([
-    //                 'message' => exmtrans("custom_table.help.ai_ocr_import_multi_alert"),
-    //             ], 500);
-    //         }
-
-    //         if (!$this->checkOcrResult($result['results'])) {
-    //             return response()->json([
-    //                 'message' => 'No results found. Please check the file and rerun the OCR process',
-    //             ], 500);
-    //         }
-
-    //         $local_filename = pathinfo($file, PATHINFO_BASENAME);
-    //         $this->saveFileOptions($local_filename, $result['results']);
-
-    //         return response()->json([
-    //             'message' => 'OCR completed',
-    //             'result'  => $result['results'],
-    //         ]);
-    //     } catch (\Exception $ex) {
-    //         \Log::error("OCR failed: " . $ex->getMessage());
-
-    //         return response()->json([
-    //             'message' => 'OCR processing failed',
-    //             'detail' => $ex->getMessage(),
-    //         ], 500);
-    //     }
-    // }
-
     public function runAiOcr(Request $request, $tableKey)
     {
         $filePath = $request->input('file_path');
@@ -140,11 +92,6 @@ class AiOcrController extends AdminControllerTableBase
 
             $ocrResults = $result['results'] ?? [];
 
-            \Log::debug('runAiOcr success response', [
-                'locale' => app()->getLocale(),
-                'result' => $result['results'],
-            ]);
-
             $isMultiPage = is_array($ocrResults)
                 && array_is_list($ocrResults)
                 && is_array(reset($ocrResults));
@@ -189,7 +136,9 @@ class AiOcrController extends AdminControllerTableBase
     {
         $filesPath = $request->input('files_path');
         if (!($filesPath && is_dir($filesPath))) {
-            return response()->json(['error' => 'Invalid path'], 400);
+            return response()->json([
+                'message' => exmtrans('ai_ocr.error_invalid_file_path'),
+            ], 400);
         }
 
         $files = File::files($filesPath);
@@ -198,6 +147,7 @@ class AiOcrController extends AdminControllerTableBase
         $succeedOcrFilesCount = 0;
         $failedOcrFilesCount = 0;
         $failedOcrFileNameList = [];
+
         foreach ($files as $file) {
             if (!$this->ocrService->isValidOcrFile($file)) {
                 continue;
@@ -206,20 +156,60 @@ class AiOcrController extends AdminControllerTableBase
             try {
                 $result = $this->ocrService->processFile($file, $tableKey, $customColumns);
 
-                $local_filename = pathinfo($file, PATHINFO_BASENAME);
-                $this->saveFileOptions($local_filename, $result['results']);
+                if (!(bool)($result['success'] ?? false)) {
+                    $status = (int)($result['status'] ?? 500);
 
-                $modelClass = get_class($this->custom_table->getValueModel());
-                $results = $result['results'];
+                    switch ($status) {
+                        case 401:
+                            return response()->json([
+                                'message' => exmtrans('custom_table.ai_ocr.error_unauthorized'),
+                            ], 401);
 
-                if (!$this->checkOcrResult($results)) {
-                    throw new \Exception('No results found. Please check the file and rerun the OCR process');
+                        case 403:
+                            return response()->json([
+                                'message' => exmtrans('custom_table.ai_ocr.error_subscription_required'),
+                            ], 403);
+
+                        case 404:
+                            return response()->json([
+                                'message' => exmtrans('custom_table.ai_ocr.error_service_not_found'),
+                            ], 404);
+
+                        case 429:
+                            return response()->json([
+                                'message' => exmtrans('custom_table.ai_ocr.error_api_limit_exceeded'),
+                            ], 429);
+
+                        default:
+                            \Log::warning('Multi OCR API returned an unexpected error.', [
+                                'status' => $result['status'] ?? null,
+                                'upstream_message' => $result['error_message'] ?? null,
+                                'file' => $file?->getFilename(),
+                            ]);
+
+                            return response()->json([
+                                'message' => exmtrans('custom_table.ai_ocr.error_processing_failed'),
+                            ], $status >= 400 ? $status : 500);
+                    }
                 }
 
-                $isMultiPage = is_array($results) && array_is_list($results) && is_array(reset($results));
+                $results = $result['results'] ?? [];
+
+                if (!$this->checkOcrResult($results)) {
+                    throw new \Exception(exmtrans('custom_table.ai_ocr.error_no_results_found'));
+                }
+
+                $local_filename = pathinfo($file, PATHINFO_BASENAME);
+                $this->saveFileOptions($local_filename, $results);
+
+                $modelClass = get_class($this->custom_table->getValueModel());
+
+                $isMultiPage = is_array($results)
+                    && array_is_list($results)
+                    && is_array(reset($results));
 
                 if ($isMultiPage) {
-                    foreach ($results as $pageIndex => $pageResult) {
+                    foreach ($results as $pageResult) {
                         $new_record = new $modelClass();
                         $this->createCustomRecord($new_record, $pageResult, $filesPath, $file);
                     }
@@ -231,9 +221,12 @@ class AiOcrController extends AdminControllerTableBase
                 $succeedOcrFilesCount++;
             } catch (\Exception $ex) {
                 \Log::error("OCR failed for file {$file->getFilename()}: " . $ex->getMessage());
+
                 $failedOcrFilesCount++;
+
                 $originalFilename = ExmentFile::where('local_filename', $file->getFilename())
-                        ->first()?->filename ?? $file->getFilename();
+                    ->first()?->filename ?? $file->getFilename();
+
                 $failedOcrFileNameList[] = $originalFilename;
             }
         }
@@ -241,7 +234,7 @@ class AiOcrController extends AdminControllerTableBase
         $this->deleteTempDirectory($filesPath);
 
         return response()->json([
-            'message' => 'Multi OCR completed',
+            'message' => exmtrans('custom_table.ai_ocr.multi_completed'),
             'succeedOcrFilesCount' => $succeedOcrFilesCount,
             'failedOcrFilesCount' => $failedOcrFilesCount,
             'failedOcrFileNameList' => implode("\n", $failedOcrFileNameList),

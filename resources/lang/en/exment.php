@@ -1411,7 +1411,8 @@ return [
             'text_qr_description' => 'Fixed text displayed on the right side of the 2D barcode.',
         ],
         'ai_ocr' => [
-            'completed' => 'OCR completed',
+            'completed' => 'OCR completed.',
+            'multi_completed' => 'Multi-OCR completed.',
             'error_invalid_file_path' => 'Invalid file path.',
             'error_invalid_file_format' => 'Invalid file format.',
             'error_unauthorized' => 'Unauthorized.',
