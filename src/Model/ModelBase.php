@@ -121,18 +121,23 @@ class ModelBase extends Model
                 } else {
                     throw new \Exception('Error tenant id from base_path');
                 }
-                \DB::statement('CALL api_demo_tenant.tenant_try_inc_user(?, @ok, @cnt)', [$tenantId]);
+                try {
+                    \DB::statement('CALL api_demo_tenant.tenant_try_inc_user(?, @ok, @cnt)', [$tenantId]);
+                    $res = \DB::selectOne('SELECT @ok AS ok, @cnt AS cnt');
 
-                $res = \DB::selectOne('SELECT @ok AS ok, @cnt AS cnt');
-
-                if (!$res->ok) {
-                    throw new \Exception(
-                        exmtrans(
-                            'tenant.cannot_create_more_users',
-                            ['max_count' => $res->cnt]
-                        ),
-                        ErrorCode::ERROR_CODE_VALIDATION_FAILED
-                    );
+                    if (!$res->ok) {
+                        throw new \Exception(
+                            exmtrans('tenant.cannot_create_more_users', ['max_count' => $res->cnt]),
+                            ErrorCode::ERROR_CODE_VALIDATION_FAILED
+                        );
+                    }
+                } catch (\Exception $e) {
+                    if ($e->getCode() === ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
+                        throw $e;
+                    }
+                    if (!app()->environment('local', 'testing')) {
+                        throw $e;
+                    }
                 }
             }
             static::setUser($model, ['created_user_id', 'updated_user_id']);
