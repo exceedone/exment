@@ -1410,6 +1410,17 @@ return [
             'refer_column_description' => 'The information of the specified column of custom data will be displayed to the right of the 2D barcode.<br/>*You can select the ID column or the auto-number column (must be unique and required).',
             'text_qr_description' => 'Fixed text displayed on the right side of the 2D barcode.',
         ],
+        'ai_ocr' => [
+            'completed' => 'OCR completed',
+            'error_invalid_file_path' => 'Invalid file path.',
+            'error_invalid_file_format' => 'Invalid file format.',
+            'error_unauthorized' => 'Unauthorized.',
+            'error_subscription_required' => 'You do not have an active subscription for this service.',
+            'error_service_not_found' => 'Service not found.',
+            'error_api_limit_exceeded' => 'API call limit exceeded.',
+            'error_no_results_found' => 'No results found. Please check the file and rerun the OCR process.',
+            'error_processing_failed' => 'OCR processing failed.',
+        ],
         'jan_code' => [
             'setting' => 'Jancode Setting',
             'advance_setting' => 'Jancode reading',

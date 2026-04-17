@@ -43,22 +43,33 @@ class AiOcrService
 
             if ($response->successful()) {
                 return [
+                    // 'file' => $file->getFilename(),
+                    // 'results' => $response->json(),
+                    // 'message' => 'OK',
+                    'success' => true,
                     'file' => $file->getFilename(),
                     'results' => $response->json(),
                     'message' => 'OK',
                 ];
             } else {
                 return [
+                    // 'file' => $file->getFilename(),
+                    // 'results' => [],
+                    // 'message' => 'OCR API error: ' . $response->status(),
+                    'success' => false,
                     'file' => $file->getFilename(),
                     'results' => [],
-                    'message' => 'OCR API error: ' . $response->status(),
+                    'status' => $response->status(),
+                    'error_message' => $response->json('message'),
                 ];
             }
         } catch (\Throwable $e) {
             return [
+                'success' => false,
                 'file' => $file->getFilename(),
                 'results' => [],
-                'message' => 'OCR API Exception: ' . $e->getMessage(),
+                'status' => 500,
+                'error_message' => $e->getMessage(),
             ];
         }
     }

@@ -1428,6 +1428,17 @@ return [
             'refer_column_description' => '二次元バーコードの右側にカスタムデータの指定列の情報を表示します。<br/>※ID列または自動採番列（ユニーク（一意）かつ必須であること）を選択できます。',
             'text_qr_description' => '二次元バーコードの右側に表示される固定文言です。',
         ],
+        'ai_ocr' => [
+            'completed' => 'OCR処理が完了しました。',
+            'error_invalid_file_path' => 'ファイルパスが無効です。',
+            'error_invalid_file_format' => '対応していないファイル形式です。',
+            'error_unauthorized' => '認証に失敗しました。',
+            'error_subscription_required' => 'このサービスを利用するには有効な契約が必要です。',
+            'error_service_not_found' => 'サービスが見つかりません。',
+            'error_api_limit_exceeded' => 'APIの利用回数上限を超えました。',
+            'error_no_results_found' => '結果が見つかりませんでした。ファイルを確認して再度実行してください。',
+            'error_processing_failed' => 'OCR処理に失敗しました。',
+        ],
         'jan_code' => [
             'setting' => 'JANバーコード設定',
             'advance_setting' => 'JANバーコード読込',
