@@ -162,7 +162,7 @@ class CustomTableRunAiOcrButton extends ModalTileMenuButton
             .then(res => res.json())
             .then(data => {
                 document.body.style.cursor = 'default';
-                if (data.message === "OCR completed" && data.result) {
+                if (data.success && data.result) {
                     alert('AI-OCR processed successfully.');
                     const result = data.result;
                     for (const key in result) {

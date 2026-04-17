@@ -78,6 +78,7 @@ class AiOcrController extends AdminControllerTableBase
         $filePath = $request->input('file_path');
         if (!($filePath && is_dir($filePath))) {
             return response()->json([
+                'success' => false,
                 'message' => exmtrans('custom_table.ai_ocr.error_invalid_file_path'),
             ], 400);
         }
@@ -87,6 +88,7 @@ class AiOcrController extends AdminControllerTableBase
 
         if (!$this->ocrService->isValidOcrFile($file)) {
             return response()->json([
+                'success' => false,
                 'message' => exmtrans('custom_table.ai_ocr.error_invalid_file_format'),
             ], 400);
         }
@@ -100,21 +102,25 @@ class AiOcrController extends AdminControllerTableBase
                 switch ($status) {
                     case 401:
                         return response()->json([
+                            'success' => false,
                             'message' => exmtrans('custom_table.ai_ocr.error_unauthorized'),
                         ], 401);
 
                     case 403:
                         return response()->json([
+                            'success' => false,
                             'message' => exmtrans('custom_table.ai_ocr.error_subscription_required'),
                         ], 403);
 
                     case 404:
                         return response()->json([
+                            'success' => false,
                             'message' => exmtrans('custom_table.ai_ocr.error_service_not_found'),
                         ], 404);
 
                     case 429:
                         return response()->json([
+                            'success' => false,
                             'message' => exmtrans('custom_table.ai_ocr.error_api_limit_exceeded'),
                         ], 429);
 
@@ -126,6 +132,7 @@ class AiOcrController extends AdminControllerTableBase
                         ]);
 
                         return response()->json([
+                            'success' => false,
                             'message' => exmtrans('custom_table.ai_ocr.error_processing_failed'),
                         ], $status >= 400 ? $status : 500);
                 }
@@ -133,18 +140,25 @@ class AiOcrController extends AdminControllerTableBase
 
             $ocrResults = $result['results'] ?? [];
 
+            \Log::debug('runAiOcr success response', [
+                'locale' => app()->getLocale(),
+                'result' => $result['results'],
+            ]);
+
             $isMultiPage = is_array($ocrResults)
                 && array_is_list($ocrResults)
                 && is_array(reset($ocrResults));
 
             if ($isMultiPage) {
                 return response()->json([
+                    'success' => false,
                     'message' => exmtrans('custom_table.help.ai_ocr_import_multi_alert'),
                 ], 500);
             }
 
             if (!$this->checkOcrResult($ocrResults)) {
                 return response()->json([
+                    'success' => false,
                     'message' => exmtrans('custom_table.ai_ocr.error_no_results_found'),
                 ], 500);
             }
@@ -153,6 +167,7 @@ class AiOcrController extends AdminControllerTableBase
             $this->saveFileOptions($local_filename, $ocrResults);
 
             return response()->json([
+                'success' => true,
                 'message' => exmtrans('custom_table.ai_ocr.completed'),
                 'result' => $ocrResults,
             ]);
@@ -164,6 +179,7 @@ class AiOcrController extends AdminControllerTableBase
             ]);
 
             return response()->json([
+                'success' => false,
                 'message' => exmtrans('custom_table.ai_ocr.error_processing_failed'),
             ], 500);
         }
