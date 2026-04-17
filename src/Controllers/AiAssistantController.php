@@ -56,6 +56,12 @@ class AiAssistantController extends AdminControllerBase
 
     public function startConversation(Request $request)
     {
+        \Log::debug('Assistant start - request received', [
+            'feature_type' => $request->input('feature_type'),
+            'user_id' => optional($request->user())->id,
+            'locale' => app()->getLocale(),
+        ]);
+        
         $validated = $request->validate([
             'feature_type' => 'required|in:custom_table,workflow,calendar',
         ]);

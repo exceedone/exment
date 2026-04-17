@@ -201,7 +201,8 @@
         function handleStartConversation(featureType) {
             clearChat();
             toggleLoading(true);
-            fetch('/assistant/start', {
+            console.log('handleStartConversation called', featureType);
+            fetch('/admin/assistant/start', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -252,7 +253,7 @@
             toggleActionButtons(false);
             toggleLoading(true);
 
-            fetch('/assistant/send-message', {
+            fetch('/admin/assistant/send-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -289,7 +290,7 @@
 
             toggleLoading(true);
 
-            fetch('/assistant/action', {
+            fetch('/admin/assistant/action', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
