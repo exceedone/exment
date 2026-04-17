@@ -56,12 +56,6 @@ class AiAssistantController extends AdminControllerBase
 
     public function startConversation(Request $request)
     {
-        \Log::debug('Assistant start - request received', [
-            'feature_type' => $request->input('feature_type'),
-            'user_id' => optional($request->user())->id,
-            'locale' => app()->getLocale(),
-        ]);
-        
         $validated = $request->validate([
             'feature_type' => 'required|in:custom_table,workflow,calendar',
         ]);
@@ -145,6 +139,10 @@ class AiAssistantController extends AdminControllerBase
 
             $isError = in_array($responseMessage, [
                 exmtrans('ai_assistant.error_message'),
+                exmtrans('ai_assistant.error_unauthorized'),
+                exmtrans('ai_assistant.error_subscription_required'),
+                exmtrans('ai_assistant.error_service_not_found'),
+                exmtrans('ai_assistant.error_api_limit_exceeded'),
                 exmtrans('ai_assistant.ai_response.workflow.request_table'),
                 exmtrans('ai_assistant.ai_response.custom_table.table_exists'),
                 exmtrans('ai_assistant.ai_response.workflow.workflow_exists'),
@@ -304,7 +302,8 @@ class AiAssistantController extends AdminControllerBase
             return $ai_message . "\n" . $data['message'];
         }
 
-        return exmtrans('ai_assistant.error_message');
+        // return exmtrans('ai_assistant.error_message');
+        return $this->mapAiAssistantErrorResponse($response);
     }
 
     protected  function handleSendMessageCalendar(string $uuid, string $message, AssistantCalendar $assistant_calendar): ?string {
@@ -349,7 +348,8 @@ class AiAssistantController extends AdminControllerBase
             return $ai_message . "\n" . $data['message'];
         }
 
-        return exmtrans('ai_assistant.error_message');
+        // return exmtrans('ai_assistant.error_message');
+        return $this->mapAiAssistantErrorResponse($response);
     }
 
     protected  function handleSendMessageWorkflow(string $uuid, string $message, AssistantWorkflow $assistant_workflow): ?string {
@@ -412,7 +412,8 @@ class AiAssistantController extends AdminControllerBase
             return $ai_message . "\n" . $data['message'];
         }
 
-        return exmtrans('ai_assistant.error_message');
+        // return exmtrans('ai_assistant.error_message');
+        return $this->mapAiAssistantErrorResponse($response);
     }
 
     protected function handleActionCreateCustomTable(string $uuid, AssistantTable $assistant_table) {
@@ -438,7 +439,8 @@ class AiAssistantController extends AdminControllerBase
         }
 
         return [
-            'message' => exmtrans('ai_assistant.error_message'),
+            // 'message' => exmtrans('ai_assistant.error_message'),
+            'message' => $this->mapAiAssistantErrorResponse($response),
             'tableID' => null,
         ];
     }
@@ -513,7 +515,8 @@ class AiAssistantController extends AdminControllerBase
         }
 
         return [
-            'message' => exmtrans('ai_assistant.error_message'),
+            // 'message' => exmtrans('ai_assistant.error_message'),
+            'message' => $this->mapAiAssistantErrorResponse($response),
             'workflowID' => null,
         ];
     }
@@ -654,5 +657,24 @@ class AiAssistantController extends AdminControllerBase
         return Workflow::query()
             ->pluck('workflow_view_name')
             ->toArray();
+    }
+
+    protected function mapAiAssistantErrorResponse($response): string
+    {
+        $status = $response->status();
+        $upstreamMessage = $response->json('message');
+
+        \Log::warning('AI Assistant upstream error', [
+            'status' => $status,
+            'message' => $upstreamMessage,
+        ]);
+
+        return match ($status) {
+            401 => exmtrans('ai_assistant.error_unauthorized'),
+            403 => exmtrans('ai_assistant.error_subscription_required'),
+            404 => exmtrans('ai_assistant.error_service_not_found'),
+            429 => exmtrans('ai_assistant.error_api_limit_exceeded'),
+            default => exmtrans('ai_assistant.error_message'),
+        };
     }
 }

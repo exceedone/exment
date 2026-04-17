@@ -2966,6 +2966,10 @@ return [
         'error_send_fail' => 'Unable to send the message.',
         'error_send_exception' => 'An error occurred while sending the message. Please try again.',
         'error_action' => 'An error occurred while executing the action. Please try again.',
+        'error_unauthorized' => 'Unauthorized.',
+        'error_subscription_required' => 'You do not have an active subscription for this service.',
+        'error_service_not_found' => 'Service not found.',
+        'error_api_limit_exceeded' => 'API call limit exceeded.',
         'ai_response' => [
             'custom_table' => [
                 'table_exists' => 'The table you requested already exists. Please check CustomTable again.',

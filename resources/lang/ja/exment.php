@@ -2982,6 +2982,10 @@ return [
         'error_send_fail' => 'メッセージを送信できません。',
         'error_send_exception' => 'メッセージの送信中にエラーが発生しました。もう一度お試しください。',
         'error_action' => 'アクションの実行中にエラーが発生しました。もう一度お試しください。',
+        'error_unauthorized' => '認証に失敗しました。',
+        'error_subscription_required' => 'このサービスを利用するには有効な契約が必要です。',
+        'error_service_not_found' => 'サービスが見つかりません。',
+        'error_api_limit_exceeded' => 'APIの利用回数上限を超えました。',
         'ai_response' => [
             'custom_table' => [
                 'table_exists' => '要求されたテーブルはすでに存在します。カスタムテーブルを再度ご確認ください。',
