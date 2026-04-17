@@ -115,6 +115,8 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
+        'log.exec.time' => \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
+        'check.logging.enabled' => \Exceedone\Exment\Middleware\CheckLoggingEnabled::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
         'admin.password-limit'       => \Exceedone\Exment\Middleware\AuthenticatePasswordLimit::class,
         'exment.plugin-license-sync' => \Exceedone\Exment\Middleware\PluginLicenseSync::class,
@@ -159,6 +161,8 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.tenant-expired',
             'admin.auth',
+            'log.exec.time',
+            'check.logging.enabled',
             'admin.auth-2factor',
             'admin.password-limit',
             'exment.plugin-license-sync',

@@ -182,14 +182,15 @@ class HasManyTable extends HasMany
             return;
         }
 
-        // if hidden, set $hiddens
+        // if hidden, set $hiddens (do not add header metadata like required/help)
         if ($field instanceof Hidden) {
             $hiddens[] = $field;
-        } else {
-            $tableitems[] = $field;
+            return;
         }
 
-        // if required true false
+        $tableitems[] = $field;
+
+        // if required true false (header only)
         $requires[] = is_array($field->getAttributes()) && array_has($field->getAttributes(), 'required');
 
         // set label viewclass hidden

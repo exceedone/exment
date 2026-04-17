@@ -4,22 +4,30 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewGridFilter;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\DataItems\Grid\DefaultGrid;
 use Carbon\Carbon;
+use Exceedone\Exment\DataItems\Grid\SummaryGrid;
 use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
 
 class CustomViewGridFilterTest extends UnitTestBase
 {
     use CustomViewTrait;
     use DatabaseTransactions;
+
+    protected $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
 
     /**
      * Grid Filter = ID
@@ -41,7 +49,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $dbTableName = \getDBTableName($this->table_name);
         \DB::table($dbTableName)->where('id', 10)->update(['created_at' => '2025-02-01 00:00:00']);
         \DB::table($dbTableName)->where('id', 20)->update(['created_at' => '2025-02-01 23:59:59']);
 
@@ -59,7 +67,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $dbTableName = \getDBTableName($this->table_name);
         \DB::table($dbTableName)->where('id', 10)->update(['updated_at' => '2025-02-01 00:00:00']);
         \DB::table($dbTableName)->where('id', 20)->update(['updated_at' => '2025-02-02 23:59:59']);
 
@@ -102,12 +110,12 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
         \DB::table($dbTableName)->where('id', 10)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.text', 'hoge')")]);
 
-        $custom_column = CustomColumn::getEloquent('text', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('text', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => 'hoge'], function ($data) {
@@ -123,12 +131,12 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
         \DB::table($dbTableName)->where('id', 10)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.url', 'https://exment.net/docs/#/ja/')")]);
 
-        $custom_column = CustomColumn::getEloquent('url', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('url', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => 'https://exment.net/docs/#/ja/'], function ($data) {
@@ -144,12 +152,12 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
         \DB::table($dbTableName)->where('id', 10)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.email', 'hoge@test.com')")]);
 
-        $custom_column = CustomColumn::getEloquent('email', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('email', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => 'hoge@test.com'], function ($data) {
@@ -165,7 +173,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('integer', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('integer', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter(["$db_column_name.start" => 100, "$db_column_name.end" => 10000], function ($data) {
@@ -181,7 +189,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('decimal', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('decimal', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter(["$db_column_name.start" => -999.9, "$db_column_name.end" => 999.9], function ($data) {
@@ -197,7 +205,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('currency', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('currency', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter(["$db_column_name.start" => 1000, "$db_column_name.end" => 100000], function ($data) {
@@ -213,14 +221,14 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
         \DB::table($dbTableName)->where('id', 10)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.date', '2020-11-30')")]);
         \DB::table($dbTableName)->where('id', 20)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.date', '2020-12-01')")]);
 
-        $custom_column = CustomColumn::getEloquent('date', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('date', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter(["$db_column_name.start" => '2020-11-30', "$db_column_name.end" => '2020-12-01'], function ($data) {
@@ -236,14 +244,14 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
         \DB::table($dbTableName)->where('id', 10)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.time', '10:00:00')")]);
         \DB::table($dbTableName)->where('id', 20)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.time', '09:59:59')")]);
 
-        $custom_column = CustomColumn::getEloquent('time', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('time', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter(["$db_column_name.start" => '09:59:59', "$db_column_name.end" => '10:00:00'], function ($data) {
@@ -259,14 +267,14 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $dbTableName = \getDBTableName(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
         \DB::table($dbTableName)->where('id', 10)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.datetime', '2020-11-30 23:59:59')")]);
         \DB::table($dbTableName)->where('id', 20)
             ->update(['value' => \DB::raw("{$json_func}(value, '$.datetime', '2020-12-01 00:00:01')")]);
 
-        $custom_column = CustomColumn::getEloquent('datetime', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('datetime', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter(["$db_column_name.start" => '2020-11-30 23:59:59', "$db_column_name.end" => '2020-12-01 00:00:01'], function ($data) {
@@ -282,7 +290,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('select', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('select', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => 'bar'], function ($data) {
@@ -298,7 +306,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('select_table', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('select_table', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => [1,2,3]], function ($data) {
@@ -314,7 +322,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('yesno', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('yesno', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => true], function ($data) {
@@ -330,7 +338,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('boolean', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('boolean', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => 'ng'], function ($data) {
@@ -346,11 +354,11 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_table = CustomTable::getEloquent($this->table_name);
         $target = $custom_table->getValueModel()->find(10);
         $auto_number = substr($target->getValue('auto_number'), 0, 5);
 
-        $custom_column = CustomColumn::getEloquent('auto_number', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('auto_number', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => $auto_number], function ($data) {
@@ -365,7 +373,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('user', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('user', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => [2,4]], function ($data) {
@@ -381,7 +389,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('organization', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('organization', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => [1,5]], function ($data) {
@@ -397,7 +405,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('select_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('select_multiple', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => ['foo','baz']], function ($data) {
@@ -413,7 +421,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('select_valtext_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('select_valtext_multiple', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => ['baz']], function ($data) {
@@ -429,7 +437,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('select_table_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('select_table_multiple', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => [5,10]], function ($data) {
@@ -445,7 +453,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('user_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('user_multiple', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => [3,4]], function ($data) {
@@ -461,7 +469,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('organization_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('organization_multiple', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
 
         $this->__testGridFilter([$db_column_name => [2]], function ($data) {
@@ -477,7 +485,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     {
         $this->init();
 
-        $custom_column = CustomColumn::getEloquent('file_multiple', TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_column = CustomColumn::getEloquent('file_multiple', $this->table_name);
         $custom_table = $custom_column->custom_table;
         $db_column_name = $custom_column->getIndexColumnName(false);
 
@@ -494,6 +502,63 @@ class CustomViewGridFilterTest extends UnitTestBase
                 $file = ExmentFile::getData($path);
                 return Str::startsWith($file->filename, 'test1');
             });
+        });
+    }
+
+    /**
+     * Grid Filter = workflow_status
+     */
+    public function testFuncFilterWorkflowStatus()
+    {
+        $this->init();
+        $this->table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+
+        $custom_table = CustomTable::getEloquent($this->table_name);
+        $workflow = Workflow::getWorkflowByTable($custom_table);
+        $workflow_status = $workflow->workflow_statuses->first(function($data) {
+            return $data->status_name == 'status1';
+        });
+        $target_id = $workflow_status->id;
+
+        $this->__testGridFilter(['workflow_status_to_id' => $target_id], function ($data) use($target_id) {
+            if ($workflow_value = $data->workflow_value) {
+                return $workflow_value->workflow_status_to_id == $target_id;
+            }
+            return false;
+        });
+    }
+
+    /**
+     * Grid Filter = workflow_work_users
+     */
+    public function testFuncFilterWorkflowUsers()
+    {
+        $this->init();
+        $this->table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+
+        // Login user.
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC));
+
+        $this->__testGridFilter(['workflow_work_users' => 1], function ($data) {
+            foreach($data->workflow_work_users as $user) {
+                if ($user->id == \Exment::user()->base_user->id) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    /**
+     * Grid Filter = parent_id
+     */
+    public function testFuncFilterParentID()
+    {
+        $this->init();
+        $this->table_name = TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE;
+
+        $this->__testGridFilter(['parent_id_child_table' => 3], function ($data) {
+            return $data->parent_id == 3;
         });
     }
 
@@ -550,12 +615,274 @@ class CustomViewGridFilterTest extends UnitTestBase
         });
     }
 
+    /**
+     * Summary Grid Filter = ID
+     */
+    public function testFuncSummaryFilterId()
+    {
+        $this->init();
+
+        $custom_table = CustomTable::getEloquent($this->table_name);
+        // 対象データを抽出
+        $values = $custom_table->getValueModel()
+            ->where('id', 1)
+            ->get();
+
+        $monthly_sum = $this->getGroupingData($values);
+
+        $this->__testSummaryGridFilter(['id' => 1],
+            $this->createAssertClosure(),
+            $monthly_sum);
+    }
+
+    protected function getGroupingData($values)
+    {
+        $grouped = $values->groupBy(function($item) {
+            if (is_nullorempty($date = $item->getValue('date'))) {
+                return null;
+            }
+            // 'Y-m'形式で年月グルーピング
+            return Carbon::parse($date)->format('Y-m');
+        });
+
+        // 月ごとに合計を算出
+        return $grouped->map(function($items) {
+            return $items->map(function($item) {
+                return $item->getValue('integer');
+            })->sum();
+        });
+    }
+
+    protected function createAssertClosure() {
+        return function ($data, $custom_table, $monthly_sum) {
+            $idx = 0;
+            $actual = null;
+            foreach($data->toArray() as $val) {
+                switch ($idx) {
+                    case 0:
+                        if ($monthly_sum->has($val)) {
+                            $actual = $monthly_sum[$val];
+                        } else {
+                            return false;
+                        }
+                        break;
+                    case 1:
+                        return $val == $actual;
+                }
+                $idx++;
+            }
+        };
+    }
+
+    /**
+     * Summary Grid Filter = updated_user
+     */
+    public function testFuncSummaryFilterUpdatedUser()
+    {
+        $this->init();
+
+        $targets = [TestDefine::TESTDATA_USER_LOGINID_USER2, TestDefine::TESTDATA_USER_LOGINID_DEV_USERB];
+        $custom_table = CustomTable::getEloquent($this->table_name);
+
+        // 対象データを抽出
+        $values = $custom_table->getValueModel()
+            ->whereIn('updated_user_id', $targets)
+            ->whereIn('value->select', ['bar', 'baz'])
+            ->get();
+
+        $monthly_sum = $this->getGroupingData($values);
+
+        $this->__testSummaryGridFilter(['updated_user_id' => $targets],
+            $this->createAssertClosure(),
+            $monthly_sum);
+    }
+
+    /**
+     * Summary Grid Filter = updated_user
+     */
+    public function testFuncSummaryFilterInteger()
+    {
+        $this->init();
+
+        $custom_table = CustomTable::getEloquent($this->table_name);
+        $custom_column = CustomColumn::getEloquent('integer', $custom_table);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $values = $custom_table->getValueModel()
+            ->whereBetween('value->integer', [100, 100000])
+            ->whereIn('value->select', ['bar', 'baz'])
+            ->get();
+
+        $monthly_sum = $this->getGroupingData($values);
+
+        $this->__testSummaryGridFilter(["$db_column_name.start" => 100, "$db_column_name.end" => 100000],
+            $this->createAssertClosure(),
+            $monthly_sum);
+    }
+
+    /**
+     * Summary Grid Filter = select_valtext
+     */
+    public function testFuncSummaryFilterSelectVal()
+    {
+        $this->init();
+
+        $custom_table = CustomTable::getEloquent($this->table_name);
+        $custom_column = CustomColumn::getEloquent('select_valtext', $custom_table);
+        $db_column_name = $custom_column->getIndexColumnName(false);
+
+        $values = $custom_table->getValueModel()
+            ->whereIn('value->select_valtext', ['foo', 'baz'])
+            ->whereIn('value->select', ['bar', 'baz'])
+            ->get();
+
+        $monthly_sum = $this->getGroupingData($values);
+
+        $this->__testSummaryGridFilter(["$db_column_name" => ['foo', 'baz']], 
+            $this->createAssertClosure(),
+            $monthly_sum);
+    }
+
+    /**
+     * Summary Grid Filter = workflow_status
+     */
+    public function testFuncSummaryFilterWorkflowStatus()
+    {
+        $this->init();
+
+        $this->table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        $custom_table = CustomTable::getEloquent($this->table_name);
+        $workflow = Workflow::getWorkflowByTable($custom_table);
+        $workflow_status = $workflow->workflow_statuses->first(function($data) {
+            return $data->status_name == 'status1';
+        });
+        $target_id = $workflow_status->id;
+
+        $values = $custom_table->getValueModel()
+            ->get()
+            ->filter(function($item) {
+                return $item->workflow_statusname == 'status1';
+            });
+
+        $monthly_sum = $this->getGroupingData($values);
+
+        $this->__testSummaryGridFilter(['workflow_status_to_id' => $target_id],
+            $this->createAssertClosure(),
+            $monthly_sum);
+    }
+
+    /**
+     * Summary Grid Filter = parent_id
+     */
+    public function testFuncSummaryFilterParentID()
+    {
+        $this->init();
+
+        $this->table_name = TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE;
+        $custom_table = CustomTable::getEloquent($this->table_name);
+
+        $values = $custom_table->getValueModel()
+            ->where('parent_id', 5)
+            ->get();
+
+        $monthly_sum = $this->getGroupingData($values);
+
+        $this->__testSummaryGridFilter(['parent_id_child_table' => 5],
+            $this->createAssertClosure(),
+            $monthly_sum);
+    }
+
+    /**
+     * Summary Grid Filter = parent_table odd_even
+     */
+    public function testFuncSummaryFilterParentColumn()
+    {
+        $this->init();
+
+        $parent_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE);
+        $target_column = CustomColumn::getEloquent('odd_even', $parent_table);
+
+        $this->table_name = TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE;
+        $custom_table = CustomTable::getEloquent($this->table_name);
+
+        $values = $custom_table->getValueModel()
+            ->get()
+            ->filter(function($data) use($parent_table) {
+                $parent_data = $parent_table->getValueModel($data->parent_id);
+                return $parent_data->getValue('odd_even') == 'odd';
+            })
+        ;
+
+        $monthly_sum = $this->getGroupingData($values);
+
+        $this->__testSummaryGridFilter(["ckey_[filter_uuid]" => 'odd'],
+            $this->createAssertClosure(),
+            $monthly_sum,
+            $this->createFilterClosure($target_column, $custom_table));
+    }
+
+    /**
+     * Summary Grid Filter = reference_table multiples_of_3
+     */
+    public function testFuncSummaryFilterReferColumn()
+    {
+        $this->init();
+
+        $target_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
+        $target_column = CustomColumn::getEloquent('multiples_of_3', $target_table);
+
+        $custom_table = CustomTable::getEloquent($this->table_name);
+        $pivot_column = CustomColumn::getEloquent('select_table', $custom_table);
+
+        $values = $custom_table->getValueModel()
+            ->whereIn('value->select', ['bar', 'baz'])
+            ->get()
+            ->filter(function($data) {
+                $select_data = $data->getValue('select_table');
+                if ($select_data) {
+                    return $select_data->getValue('multiples_of_3') == '1';
+                }
+                return false;
+            })
+        ;
+
+        $monthly_sum = $this->getGroupingData($values);
+
+        $this->__testSummaryGridFilter(["ckey_[filter_uuid]" => 1],
+            $this->createAssertClosure(),
+            $monthly_sum,
+            $this->createFilterClosure($target_column, $pivot_column));
+    }
+
+    protected function createFilterClosure($target_column, $pivot_data = null)
+    {
+        return function ($custom_view_id) use ($target_column, $pivot_data) {
+            // save CustomViewGridFilter Model
+            $model = new CustomViewGridFilter();
+            $model->custom_view_id = $custom_view_id;
+            $model->view_column_type = ConditionType::COLUMN;
+            $model->view_column_table_id = $target_column->custom_table_id;
+            $model->view_column_target_id = $target_column->id;
+            if (!is_nullorempty($pivot_data)) {
+                if ($pivot_data instanceof CustomColumn) {
+                    $model->SetOption('view_pivot_column_id', $pivot_data->id);
+                    $model->SetOption('view_pivot_table_id', $pivot_data->custom_table_id);
+                } elseif ($pivot_data instanceof CustomTable)  {
+                    $model->SetOption('view_pivot_column_id', 'parent_id');
+                    $model->SetOption('view_pivot_table_id', $pivot_data->id);
+                }
+            }
+            $model->save();
+            return $model;
+        };
+    }
+
     protected function saveComment($id, $comment)
     {
         // save Comment Model
         $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
         $model->parent_id = $id;
-        $model->parent_type = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
+        $model->parent_type = $this->table_name;
         $model->setValue([
             'comment_detail' => $comment,
         ]);
@@ -570,9 +897,9 @@ class CustomViewGridFilterTest extends UnitTestBase
 
     protected function __testGridFilter(array $filters, \Closure $testCallback, ?int $count = null, $prevTest = null)
     {
-        $this->init();
+        //$this->init();
 
-        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $custom_table = CustomTable::getEloquent($this->table_name);
         $custom_view = CustomView::getAllData($custom_table);
         $default = new DefaultGrid($custom_table, $custom_view);
 
@@ -594,6 +921,48 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         foreach ($list as $data) {
             $matchResult = $testCallback($data);
+
+            /** @var mixed $data */
+            $this->assertTrue($matchResult, 'matchResult is false. Target id is ' . $data->id);
+        }
+    }
+
+    protected function __testSummaryGridFilter(array $filters, \Closure $testCallback, ?Collection $monthly_sum = null, $prevTest = null)
+    {
+        $this->init();
+
+        $custom_table = CustomTable::getEloquent($this->table_name);
+        $custom_view = CustomView::where('view_view_name', $custom_table->table_name . '-view-summary')->first();
+        $default = new SummaryGrid($custom_table, $custom_view);
+
+        if ($prevTest instanceof \Closure) {
+            $result = call_user_func($prevTest, $custom_view->id);
+            if ($result) {
+                $newArray = [];
+                foreach ($filters as $k => $v) {
+                    $newKey = str_replace('[filter_uuid]', $result->suuid, $k);
+                    $newArray[$newKey] = $v;
+                }
+                $filters = $newArray;
+            }
+        }
+
+        $request = request();
+        $request->merge($filters);
+        $request->merge(['execute_filter' => '1']);
+        $grid = $default->grid();
+        $grid->getFilter()->disableIdFilter(false);
+        $grid->paginate(100);
+
+        $list = $grid->applyFilter(false);
+        if ($monthly_sum) {
+            $this->assertEquals($list->count(), $monthly_sum->count());
+        } else {
+            $this->assertEquals($list->count(), 1);
+        }
+
+        foreach ($list as $data) {
+            $matchResult = $testCallback($data, $custom_table, $monthly_sum);
 
             /** @var mixed $data */
             $this->assertTrue($matchResult, 'matchResult is false. Target id is ' . $data->id);

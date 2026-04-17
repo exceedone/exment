@@ -231,6 +231,10 @@ return [
     ],
 
     'validation' => [
+        'hasmany_hidden_required_title' => 'バリデーションエラー',
+        'hasmany_hidden_required_plain_prefix' => '以下の必須項目が非表示になっています：',
+        'hasmany_hidden_required_html_prefix' => '以下の必須項目が非表示になっており、表示する必要があります：',
+        'hasmany_hidden_required_ok' => 'OK',
         'current_password' => '現在のパスワードが正しくありません。',
         'password_history' => '過去に登録したパスワードと同一のパスワードとなっています。他のパスワードを入力してください。',
         'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
@@ -286,6 +290,7 @@ return [
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
+        'logging_toggle_available' => '操作ログを有効にする',
         'system_admin_users' => 'システム管理者',
         'system_mail' => 'システムメール設定',
         'system_mail_host' => 'ホスト名',
@@ -462,6 +467,7 @@ return [
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESにした場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESにした場合、ユーザーが所属する組織や部署を作成します。',
+            'logging_toggle_available' => 'YESに設定すると、操作ログ機能が有効になり、ユーザーのすべての操作が記録されます。',
             'system_admin_users' => 'システム管理者となるユーザーを設定してください。',
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
@@ -1342,6 +1348,7 @@ return [
             'ignore_work_and_action_select' => '実行可能ユーザーが「前アクションの実行ユーザーが選択」の場合、「特殊なアクション」を設定できません。',
             'action_execute' => '以下のアクションを実行します。',
             'nextuser_not_found' => '次の作業ユーザーが存在しません。管理者に問い合わせください。',
+            'status_changed' => 'このアクションは実行できません。他のユーザーがワークフローを実行した可能性があります。',
         ],
 
         'comment_options' => [
@@ -1386,6 +1393,7 @@ return [
         'all_user_viewable_flg' => '全ユーザーが閲覧可能',
         'all_user_accessable_flg' => '全ユーザーが参照可能',
         'inherit_parent_permission' => '親データの権限で閲覧可能',
+        'editable_with_parent' => '親データの編集権限が必要',
         'add_parent_menu_flg' => 'メニューに追加する',
         'add_notify_flg' => '通知に追加する',
         'add_parent_menu' => '追加先の親メニュー',
@@ -1470,6 +1478,7 @@ return [
             'all_user_viewable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを閲覧可能になります。',
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
             'inherit_parent_permission' => 'YESにした場合、親データ（1対多）の権限でデータを閲覧できます。ただし、このテーブル自体に担当者の閲覧等の権限を持っている必要があります。',
+            'editable_with_parent' => 'YESにした場合、このテーブルのデータを編集するには親データ（1対多）の編集権限が必要になります。',
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
             'add_notify_flg' => 'データの新規作成・更新・共有、コメント時に、権限のあるユーザーに、システム内通知を行う設定を、テーブルの新規作成後に追加することができます。追加する場合はYESにしてください。<br/>※テーブルの新規作成時のみ設定できます。更新時は「通知」画面より設定してください。',
@@ -2130,6 +2139,7 @@ return [
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※２件以上登録した場合、データ量が非常に多いテーブルですと、パフォーマンスが低下する場合があります。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_grid_filters' => 'ビューの上部に表示する「フィルタ」で、選択肢として表示する列を指定します。<br/>※システム既定の項目を表示する場合、この一覧に列を追加しないでください。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
+        'description_custom_view_summary_filters' => '<br/>※この「フィルタ」は集計結果ではなく集計前のデータを絞り込むためのものです。',
 
         'help' => [
             'custom_view_type' => 'システムビュー：このテーブルを使用するユーザー全員が使用できるビューです。 ユーザービュー：作成したユーザーのみが使用できるビューです。',

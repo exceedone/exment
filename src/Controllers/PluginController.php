@@ -220,6 +220,17 @@ class PluginController extends AdminControllerBase
             'active_flg' => $requestedActive ? 1 : 0,
         ]);
 
+        if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
+            $uri = array_get((array)$request->get('options'), 'uri');
+            $validator = \Validator::make(
+                ['uri' => $uri],
+                ['uri' => ['required', 'regex:/^[a-z0-9][a-z0-9_\-]*$/', 'max:100']]
+            );
+            if ($validator->fails()) {
+                return back()->withErrors($validator)->withInput();
+            }
+        }
+
         if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
             $options = $request->get('options');
@@ -295,7 +306,7 @@ class PluginController extends AdminControllerBase
             }
 
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
-                $form->text('uri', exmtrans("plugin.options.uri"))->required();
+                $form->text('uri', exmtrans("plugin.options.uri"))->required()->rules(['regex:/^[a-z0-9][a-z0-9_\-]*$/', 'max:100']);
 
                 if ($plugin->matchPluginType(PluginType::PAGE)) {
                     $form->display('endpoint_page', exmtrans("plugin.options.endpoint_page"))->default($plugin->getRootUrl(PluginType::PAGE))->help(exmtrans("plugin.help.endpoint"));
