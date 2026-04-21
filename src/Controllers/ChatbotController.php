@@ -154,17 +154,24 @@ class ChatbotController extends BaseController
             }
 
             // 1. Get embedding vector from AI server
-            $embedding = $this->chatbotService->getEmbeddingFromAI($message);
-            \Log::debug('Chatbot embedding result', [
-                'is_array' => is_array($embedding),
-                'count' => is_array($embedding) ? count($embedding) : null,
-                'sample' => is_array($embedding) ? array_slice($embedding, 0, 5) : null,
-            ]);
+            $response = $this->chatbotService->getEmbeddingFromAI($message);
+            $embedding = $response['embedding'] ?? null;
+            
             if (!$embedding || !is_array($embedding)) {
+                $status = $response['status'] ?? 500;
+                \Log::debug('Chatbot embedding failed', [
+                    'message' => $message,
+                    'embedding_result' => $embedding,
+                    'status' => $status,
+                ]);
+
                 return response()->json([
                     'success' => false,
-                    'message' => exmtrans('chatbot.error_message'),
-                ], 500);
+                    'message' => $this->mapChatbotErrorResponse(
+                        $status,
+                        exmtrans('chatbot.error_message'),
+                    ),
+                ], $status);
             }
 
             // 2. Search FAQ by vector similarity

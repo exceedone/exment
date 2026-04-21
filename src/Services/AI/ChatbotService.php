@@ -56,7 +56,10 @@ class ChatbotService
                         $item['label'] === 'question' &&
                         is_array($item['embedding']) && count($item['embedding']) > 0
                     ) {
-                        return $item['embedding'];
+                        return [
+                            'embedding' => $item['embedding'],
+                            'status' => $response->status(),
+                        ];
                     }
                 }
                 \Log::error('AI embedding: no valid embedding found', ['data' => $data, 'message' => $message]);
@@ -66,6 +69,10 @@ class ChatbotService
                     'status' => $response->status(),
                     'body' => $response->body()
                 ]);
+                return [
+                    'embedding' => null,
+                    'status' => $response->status(),
+                ];
             }
         } catch (\Exception $e) {
             \Log::error('AI embedding request failed', ['error' => $e->getMessage()]);
