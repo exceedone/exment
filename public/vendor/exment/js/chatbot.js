@@ -50,7 +50,7 @@ function fetchFAQs() {
         updateFAQListUI();
         return;
     }
-    fetch("/api/chatbot/faq")
+    fetch("/admin/api/chatbot/faq")
         .then((res) => res.json())
         .then((json) => {
             if (json && Array.isArray(json)) {
@@ -80,7 +80,7 @@ function updateFAQListUI() {
 // Set language and update UI texts
 async function setLanguage(lang) {
     try {
-        const res = await fetch(`/api/chatbot/config`);
+        const res = await fetch(`/admin/api/chatbot/config`);
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         chatbotConfig = await res.json();
         updateTexts();
@@ -175,15 +175,17 @@ async function sendMessage() {
 // Call API server
 async function callAPIServer(userMessage, history = []) {
     try {
-        const res = await fetch("/api/chatbot/ask", {
+        const res = await fetch("/admin/api/chatbot/ask", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({ question: userMessage, history: history, mode: chatMode, _token: LA.token }),
         });
-        if (!res.ok) throw new Error("Failed to get response from AI server");
         const data = await res.json();
+        if (!res.ok) {
+            return data.message || getI18nText("error_message", "Sorry, there was a problem contacting the server.");
+        }
         return data.answer || "Sorry, I did not understand that.";
     } catch (err) {
         console.error("callAPIServer error:", err);

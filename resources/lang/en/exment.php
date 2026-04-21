@@ -2995,4 +2995,12 @@ return [
             ],
         ],
     ],
+
+    'chatbot' => [
+        'error_message' => 'An error occurred while connecting to the AI.',
+        'error_unauthorized' => 'Authentication failed.',
+        'error_subscription_required' => 'An active subscription is required to use this service.',
+        'error_service_not_found' => 'Service not found.',
+        'error_api_limit_exceeded' => 'API usage limit has been exceeded.',
+    ],
 ];

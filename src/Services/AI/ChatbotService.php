@@ -30,6 +30,10 @@ class ChatbotService
         }
         try {
             $url = rtrim($host, '/') . self::AI_SERVER_EMBED_ENDPOINT;
+            \Log::debug('AI embedding request', [
+                'url' => $url,
+                'payload' => ['text' => [$message]],
+            ]);
             $response = \Http::timeout(15)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
@@ -57,7 +61,11 @@ class ChatbotService
                 }
                 \Log::error('AI embedding: no valid embedding found', ['data' => $data, 'message' => $message]);
             } else {
-                \Log::error('AI embedding response error', ['body' => $response->body()]);
+                // \Log::error('AI embedding response error', ['body' => $response->body()]);
+                \Log::error('AI embedding response error', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
             }
         } catch (\Exception $e) {
             \Log::error('AI embedding request failed', ['error' => $e->getMessage()]);
@@ -128,43 +136,63 @@ class ChatbotService
      * @param array $answerChoices List of answer choices (optional).
      * @return string|null The AI's answer, or null on failure.
      */
-    public function getAnswerFromAI(string $message, array $history = [], array $answerChoices = []): ?string
+    public function getAnswerFromAI(string $message, array $history = [], array $answerChoices = []): array
     {
         $host = config('exment.ai_server_host');
         $apiKey = config('exment.ai_server_api_key');
-        if (!$host) {
-            \Log::error('AI server host not configured');
-            return null;
+
+        if (!$host || !$apiKey) {
+            return [
+                'ok' => false,
+                'status' => 500,
+                'answer' => null,
+            ];
         }
-        if (!$apiKey) {
-            \Log::error('AI server api key not configured');
-            return null;
-        }
+
         try {
             $url = rtrim($host, '/') . self::AI_SERVER_ASK_ENDPOINT;
-            $payload = [
-                'history' => $history,
-                'question' => $message,
-                'answer_choices' => $answerChoices,
-            ];
             $response = \Http::timeout(20)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . $apiKey
+                    'Authorization' => 'Bearer ' . $apiKey,
                 ])
-                ->post($url, $payload);
+                ->post($url, [
+                    'history' => $history,
+                    'question' => $message,
+                    'answer_choices' => $answerChoices,
+                ]);
+
             if ($response->successful()) {
                 $data = $response->json();
                 if (is_array($data) && isset($data['ai_response'])) {
-                    return $data['ai_response'];
+                    return [
+                        'ok' => true,
+                        'status' => $response->status(),
+                        'answer' => $data['ai_response'],
+                    ];
                 }
             }
-            \Log::error('AI answer response error', ['body' => $response->body()]);
+
+            \Log::error('AI answer response error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return [
+                'ok' => false,
+                'status' => $response->status(),
+                'answer' => null,
+            ];
         } catch (\Exception $e) {
             \Log::error('AI answer request failed', ['error' => $e->getMessage()]);
+
+            return [
+                'ok' => false,
+                'status' => 500,
+                'answer' => null,
+            ];
         }
-        return null;
     }
 
     /**

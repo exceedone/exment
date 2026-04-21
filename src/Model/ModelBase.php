@@ -107,34 +107,81 @@ class ModelBase extends Model
     *
     * @return void
     */
+    // protected static function boot()
+    // {
+    //     parent::boot();
+
+    //     ///// add created_user_id, updated_user_id
+    //     static::creating(function ($model) {
+    //         if ($model instanceof CustomValue && $model->custom_table && $model->custom_table->table_name === SystemTableName::USER) {
+                
+    //             $basePath = base_path();
+    //             if (preg_match('/tenant(\d+)/', $basePath, $matches)) {
+    //                 $tenantId = (int) $matches[1];
+    //             } else {
+    //                 throw new \Exception('Error tenant id from base_path');
+    //             }
+    //             \DB::statement('CALL api_demo_tenant.tenant_try_inc_user(?, @ok, @cnt)', [$tenantId]);
+
+    //             $res = \DB::selectOne('SELECT @ok AS ok, @cnt AS cnt');
+
+    //             if (!$res->ok) {
+    //                 throw new \Exception(
+    //                     exmtrans(
+    //                         'tenant.cannot_create_more_users',
+    //                         ['max_count' => $res->cnt]
+    //                     ),
+    //                     ErrorCode::ERROR_CODE_VALIDATION_FAILED
+    //                 );
+    //             }
+    //         }
+    //         static::setUser($model, ['created_user_id', 'updated_user_id']);
+    //     });
+    //     static::updating(function ($model) {
+    //         static::setUser($model, ['updated_user_id']);
+    //     });
+
+    //     static::saved(function ($model) {
+    //         static::callClearCache();
+    //     });
+    //     static::deleted(function ($model) {
+    //         static::callClearCache();
+    //     });
+    // }
+
     protected static function boot()
     {
         parent::boot();
 
         ///// add created_user_id, updated_user_id
         static::creating(function ($model) {
-            if ($model instanceof CustomValue && $model->custom_table && $model->custom_table->table_name === SystemTableName::USER) {
-                
-                $basePath = base_path();
-                if (preg_match('/tenant(\d+)/', $basePath, $matches)) {
-                    $tenantId = (int) $matches[1];
-                } else {
-                    throw new \Exception('Error tenant id from base_path');
-                }
-                \DB::statement('CALL api_demo_tenant.tenant_try_inc_user(?, @ok, @cnt)', [$tenantId]);
+        //    if ($model instanceof CustomValue && $model->custom_table && $model->custom_table->table_name === SystemTableName::USER) {
 
-                $res = \DB::selectOne('SELECT @ok AS ok, @cnt AS cnt');
+        //        $basePath = base_path();
+        //        if (preg_match('/tenant(\d+)/', $basePath, $matches)) {
+        //            $tenantId = (int) $matches[1];
+        //        } else {
+        //            throw new \Exception('Error tenant id from base_path');
+        //        }
+        //        try {
+        //            \DB::statement('CALL api_demo_tenant.tenant_try_inc_user(?, @ok, @cnt)', [$tenantId]);
+        //            $res = \DB::selectOne('SELECT @ok AS ok, @cnt AS cnt');
 
-                if (!$res->ok) {
-                    throw new \Exception(
-                        exmtrans(
-                            'tenant.cannot_create_more_users',
-                            ['max_count' => $res->cnt]
-                        ),
-                        ErrorCode::ERROR_CODE_VALIDATION_FAILED
-                    );
-                }
-            }
+        //            if (!$res->ok) {
+        //                throw new \Exception(
+        //                    exmtrans('tenant.cannot_create_more_users', ['max_count' => $res->cnt]),
+        //                    ErrorCode::ERROR_CODE_VALIDATION_FAILED
+        //                );
+        //            }
+        //        } catch (\Exception $e) {
+        //            if ($e->getCode() === ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
+        //                throw $e;
+        //            }
+        //            if (!app()->environment('local', 'testing')) {
+        //                throw $e;
+        //            }
+        //        }
+        //    }
             static::setUser($model, ['created_user_id', 'updated_user_id']);
         });
         static::updating(function ($model) {

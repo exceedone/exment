@@ -3011,4 +3011,12 @@ return [
             ],
         ],
     ],
+
+    'chatbot' => [
+        'error_message' => 'AIへの接続中にエラーが発生しました。',
+        'error_unauthorized' => '認証に失敗しました。',
+        'error_subscription_required' => 'このサービスを利用するには有効な契約が必要です。',
+        'error_service_not_found' => 'サービスが見つかりません。',
+        'error_api_limit_exceeded' => 'APIの利用回数上限を超えました。',
+    ],
 ];
