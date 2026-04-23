@@ -19,6 +19,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
@@ -600,7 +601,7 @@ EOT;
             return;
         }
 
-        $aiOcrEnabled = $this->custom_table?->isAiOcrEnabled();
+        $aiOcrEnabled = System::ai_ocr_available() && $this->custom_table?->isAiOcrEnabled();
 
         $form = new WidgetForm();
         $form->disableReset();

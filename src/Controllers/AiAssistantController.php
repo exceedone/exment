@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\System;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,11 @@ class AiAssistantController extends AdminControllerBase
 
     public function aiAssistant(Content $content)
     {
+        if (!$this->isAiAssistantAvailable()) {
+            admin_warning(trans('admin.deny'), exmtrans('ai_assistant.error_message'));
+            return $content;
+        }
+
         // Check permission. if not permission, show message
         if (\Exment::user()->noPermission()) {
             admin_warning(trans('admin.deny'), exmtrans('common.help.no_permission'));
@@ -56,6 +62,10 @@ class AiAssistantController extends AdminControllerBase
 
     public function startConversation(Request $request)
     {
+        if (!$this->isAiAssistantAvailable()) {
+            return response()->json(['message' => exmtrans('ai_assistant.error_message')], 503);
+        }
+
         $validated = $request->validate([
             'feature_type' => 'required|in:custom_table,workflow,calendar',
         ]);
@@ -104,6 +114,10 @@ class AiAssistantController extends AdminControllerBase
 
     public function sendMessage(Request $request)
     {
+        if (!$this->isAiAssistantAvailable()) {
+            return response()->json(['message' => exmtrans('ai_assistant.error_message')], 503);
+        }
+
         $validated = $request->validate([
             'uuid' => 'required|uuid',
             'message' => 'required|string',
@@ -160,6 +174,10 @@ class AiAssistantController extends AdminControllerBase
 
     public function handleAction(Request $request)
     {
+        if (!$this->isAiAssistantAvailable()) {
+            return response()->json(['message' => exmtrans('ai_assistant.error_message')], 503);
+        }
+
         $validated = $request->validate([
             'uuid' => 'required|uuid',
             'action' => 'required|in:edit,create,cancel',
@@ -676,5 +694,10 @@ class AiAssistantController extends AdminControllerBase
             429 => exmtrans('ai_assistant.error_api_limit_exceeded'),
             default => exmtrans('ai_assistant.error_message'),
         };
+    }
+
+    protected function isAiAssistantAvailable(): bool
+    {
+        return System::ai_assistant_available();
     }
 }

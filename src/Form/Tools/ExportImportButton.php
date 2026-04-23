@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Form\Tools;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\Permission;
 
@@ -241,49 +242,54 @@ class ExportImportButton extends ModalTileMenuButton
             }
         }
 
-        if ($this->import_flg && $this->custom_table?->isAiOcrEnabled()) {
+        if ($this->import_flg) {
+            $items = [
+                [
+                    'icon' => 'fa-download',
+                    'header' => exmtrans('custom_value.template'),
+                    'description' => exmtrans('custom_value.help.template'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href'=> $this->endpoint."?_export_=all&temp=1&format=$key"], $format);
+                    })->toArray(),
+                ],
+                [
+                    'icon' => 'fa-upload',
+                    'header' => exmtrans('common.import'),
+                    'description' => exmtrans("$base_key.help.import"),
+                    'buttons' => [
+                        [
+                            'label' => exmtrans('common.import'),
+                            'icon' => 'fa-upload',
+                            'url' => '#',
+                            'attributes' => \Exment::formatAttributes([
+                                'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
+                            ]),
+                        ]
+                    ],
+                ],
+            ];
+
+            if (System::ai_ocr_available() && $this->custom_table?->isAiOcrEnabled()) {
+                $items[] = [
+                    'icon' => 'fa-layer-group',
+                    'header' => exmtrans('custom_value.import_multi_ai_ocr'),
+                    'description' => exmtrans('custom_value.help.import_multi_ai_ocr'),
+                    'buttons' => [
+                        [
+                            'label' => exmtrans('common.import_multi'),
+                            'icon' => 'fa-layer-group',
+                            'url' => '#',
+                            'attributes' => \Exment::formatAttributes([
+                                'data-widgetmodal_url' => url_join($this->endpoint, 'importMultiAiOcrModal')
+                            ]),
+                        ]
+                    ],
+                ];
+            }
+
             $groups[] = [
                 'header' => exmtrans('common.import'),
-                'items' => [
-                    [
-                        'icon' => 'fa-download',
-                        'header' => exmtrans('custom_value.template'),
-                        'description' => exmtrans('custom_value.help.template'),
-                        'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href'=> $this->endpoint."?_export_=all&temp=1&format=$key"], $format);
-                        })->toArray(),
-                    ],
-                    [
-                        'icon' => 'fa-upload',
-                        'header' => exmtrans('common.import'),
-                        'description' => exmtrans("$base_key.help.import"),
-                        'buttons' => [
-                            [
-                                'label' => exmtrans('common.import'),
-                                'icon' => 'fa-upload',
-                                'url' => '#',
-                                'attributes' => \Exment::formatAttributes([
-                                    'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
-                                ]),
-                            ]
-                        ],
-                    ],
-                    [
-                        'icon' => 'fa-layer-group',
-                        'header' => exmtrans('custom_value.import_multi_ai_ocr'),
-                        'description' => exmtrans('custom_value.help.import_multi_ai_ocr'),
-                        'buttons' => [
-                            [
-                                'label' => exmtrans('common.import_multi'),
-                                'icon' => 'fa-layer-group',
-                                'url' => '#',
-                                'attributes' => \Exment::formatAttributes([
-                                    'data-widgetmodal_url' => url_join($this->endpoint, 'importMultiAiOcrModal')
-                                ]),
-                            ]
-                        ],
-                    ],
-                ]
+                'items' => $items,
             ];
         }
 

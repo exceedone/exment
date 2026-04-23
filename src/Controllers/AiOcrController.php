@@ -7,6 +7,7 @@ use Exceedone\Exment\Services\AI\AiOcrService;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Support\Facades\File;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\System;
 
 class AiOcrController extends AdminControllerTableBase
 {
@@ -27,6 +28,13 @@ class AiOcrController extends AdminControllerTableBase
 
     public function runAiOcr(Request $request, $tableKey)
     {
+        if (!$this->isAiOcrAvailable()) {
+            return response()->json([
+                'success' => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ], 503);
+        }
+
         $filePath = $request->input('file_path');
         if (!($filePath && is_dir($filePath))) {
             return response()->json([
@@ -134,6 +142,12 @@ class AiOcrController extends AdminControllerTableBase
 
     public function runMultiAiOcr(Request $request, $tableKey)
     {
+        if (!$this->isAiOcrAvailable()) {
+            return response()->json([
+                'message' => exmtrans('common.message.error_execute'),
+            ], 503);
+        }
+
         $filesPath = $request->input('files_path');
         if (!($filesPath && is_dir($filesPath))) {
             return response()->json([
@@ -339,5 +353,10 @@ class AiOcrController extends AdminControllerTableBase
         }
 
         return false;
+    }
+
+    protected function isAiOcrAvailable(): bool
+    {
+        return System::ai_ocr_available();
     }
 }

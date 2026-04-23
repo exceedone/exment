@@ -317,6 +317,12 @@ class SystemController extends AdminControllerBase
 
         if(config('exment.ai_enable', false)) {
             $form->exmheader(exmtrans('system.chatbot_header'))->hr();
+            $form->switchbool('ai_assistant_available', exmtrans("system.ai_assistant_available"))
+                ->default(0)
+                ->help(exmtrans("system.help.ai_assistant_available"));
+            $form->switchbool('ai_ocr_available', exmtrans("system.ai_ocr_available"))
+                ->default(0)
+                ->help(exmtrans("system.help.ai_ocr_available"));
             $form->switchbool('chatbot_available', exmtrans("system.chatbot_available"))
                 ->default(0)
                 ->attribute(['data-filtertrigger' => true])
