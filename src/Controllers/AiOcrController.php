@@ -151,7 +151,7 @@ class AiOcrController extends AdminControllerTableBase
         $filesPath = $request->input('files_path');
         if (!($filesPath && is_dir($filesPath))) {
             return response()->json([
-                'message' => exmtrans('ai_ocr.error_invalid_file_path'),
+                'message' => exmtrans('custom_table.ai_ocr.error_invalid_file_path'),
             ], 400);
         }
 

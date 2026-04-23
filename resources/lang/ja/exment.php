@@ -1443,6 +1443,9 @@ return [
             'error_api_limit_exceeded' => 'APIの利用回数上限を超えました。',
             'error_no_results_found' => '結果が見つかりませんでした。ファイルを確認して再度実行してください。',
             'error_processing_failed' => 'OCR処理に失敗しました。',
+            'successful_files' => '正常に処理されたファイル',
+            'failed_files' => '処理に失敗したファイル',
+            'failed_file_list' => '処理に失敗したファイルのリスト',
         ],
         'jan_code' => [
             'setting' => 'JANバーコード設定',

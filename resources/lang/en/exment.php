@@ -1425,6 +1425,9 @@ return [
             'error_api_limit_exceeded' => 'API call limit exceeded.',
             'error_no_results_found' => 'No results found. Please check the file and rerun the OCR process.',
             'error_processing_failed' => 'OCR processing failed.',
+            'successful_files' => 'Successfully processed',
+            'failed_files' => 'Failed to process',
+            'failed_file_list' => 'Failed file list',
         ],
         'jan_code' => [
             'setting' => 'Jancode Setting',
