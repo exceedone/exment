@@ -50,7 +50,7 @@ function fetchFAQs() {
         updateFAQListUI();
         return;
     }
-    fetch("/admin/api/chatbot/faq")
+    fetch("/api/chatbot/faq")
         .then((res) => res.json())
         .then((json) => {
             if (json && Array.isArray(json)) {
@@ -80,7 +80,7 @@ function updateFAQListUI() {
 // Set language and update UI texts
 async function setLanguage(lang) {
     try {
-        const res = await fetch(`/admin/api/chatbot/config`);
+        const res = await fetch(`/api/chatbot/config`);
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         chatbotConfig = await res.json();
         updateTexts();
@@ -175,7 +175,7 @@ async function sendMessage() {
 // Call API server
 async function callAPIServer(userMessage, history = []) {
     try {
-        const res = await fetch("/admin/api/chatbot/ask", {
+        const res = await fetch("/api/chatbot/ask", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
