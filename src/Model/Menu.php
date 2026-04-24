@@ -186,6 +186,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     break;
                 case MenuType::SYSTEM:
+                    if ($row['menu_name'] === 'ai_assistant' && !System::ai_assistant_available()) {
+                        $result = false;
+                        break;
+                    }
                     $defines = array_get(Define::MENU_SYSTEM_DEFINITION, $row['menu_name']);
                     // if not set menu icon, set Define's default icon.
                     if (is_nullorempty($row['icon'])) {
