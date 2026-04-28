@@ -83,7 +83,7 @@ class AiAssistantController extends AdminControllerBase
             case 'workflow':
                 AssistantWorkflow::where('created_user_id', $loginUserID)->delete();
                 $model = AssistantWorkflow::create(['status' => 'init']);
-                $userCustomTables = $this->getUserCustomTablesAvaiable();
+                $userCustomTables = $this->getUserCustomTablesAvailable();
                 $welcomeMessage = exmtrans('ai_assistant.ai_response.workflow.welcome');
                 $welcomeMessage .= "\r\n" . implode("\n", $userCustomTables);
                 break;
@@ -397,7 +397,7 @@ class AiAssistantController extends AdminControllerBase
         ];
 
         if ($assistant_workflow->status === 'init') {
-            $userCustomTables = $this->getUserCustomTablesAvaiable();
+            $userCustomTables = $this->getUserCustomTablesAvailable();
             $payload['available_tables'] = json_encode($userCustomTables, JSON_THROW_ON_ERROR);
         }
 
@@ -646,19 +646,21 @@ class AiAssistantController extends AdminControllerBase
         return implode("\n", $lines);
     }
 
-    private function getUserCustomTablesAvaiable(): array
+    private function getUserCustomTablesAvailable(): array
     {
         $loginUser = \Exment::user();
+        $today = \Carbon\Carbon::today()->toDateString();
 
-        // CustomTable has Workflow List
-        $excludedIds = WorkflowTable::query()
-            ->pluck('custom_table_id')
-            ->toArray();
-
-        // User's CustomTable not have Workflow
         return CustomTable::query()
             ->where('created_user_id', $loginUser->id)
-            ->whereNotIn('id', $excludedIds)
+            ->whereDoesntHave('workflow_tables', function ($query) use ($today) {
+                $query->where('active_flg', 1)
+                    ->where(fn ($q) => $q->whereNull('active_start_date')
+                        ->orWhere('active_start_date', '<=', $today))
+                    ->where(fn ($q) => $q->whereNull('active_end_date')
+                        ->orWhere('active_end_date', '>=', $today))
+                    ->whereHas('workflow', fn ($q) => $q->where('setting_completed_flg', 1));
+            })
             ->pluck('table_name')
             ->toArray();
     }
