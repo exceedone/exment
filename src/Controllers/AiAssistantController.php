@@ -651,27 +651,16 @@ class AiAssistantController extends AdminControllerBase
         $loginUser = \Exment::user();
         $today = \Carbon\Carbon::today()->toDateString();
 
-        // Exclude tables that currently have an active workflow
-        $excludedIds = WorkflowTable::query()
-            ->where('active_flg', 1)
-            ->where(function ($query) use ($today) {
-                $query->whereNull('active_start_date')
-                    ->orWhereDate('active_start_date', '<=', $today);
-            })
-            ->where(function ($query) use ($today) {
-                $query->whereNull('active_end_date')
-                    ->orWhereDate('active_end_date', '>=', $today);
-            })
-            ->whereHas('workflow', function ($query) {
-                $query->where('setting_completed_flg', 1);
-            })
-            ->pluck('custom_table_id')
-            ->unique()
-            ->toArray();
-
         return CustomTable::query()
             ->where('created_user_id', $loginUser->id)
-            ->whereNotIn('id', $excludedIds)
+            ->whereDoesntHave('workflow_tables', function ($query) use ($today) {
+                $query->where('active_flg', 1)
+                    ->where(fn ($q) => $q->whereNull('active_start_date')
+                        ->orWhere('active_start_date', '<=', $today))
+                    ->where(fn ($q) => $q->whereNull('active_end_date')
+                        ->orWhere('active_end_date', '>=', $today))
+                    ->whereHas('workflow', fn ($q) => $q->where('setting_completed_flg', 1));
+            })
             ->pluck('table_name')
             ->toArray();
     }
