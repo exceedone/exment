@@ -279,7 +279,7 @@ return [
         'api_available' => 'APIを使用する',
         'ai_assistant_available' => 'AIアシスタントを使用する',
         'ai_ocr_available' => 'AI OCRを使用する',
-        'chatbot_header' => 'AI機能設定',
+        'ai_header' => 'AI機能設定',
         'chatbot_available' => 'チャットボットを使用する',
         'chatbot_faq_wf' => 'FAQ管理のワークフローを使用する',
         'chatbot_faq_wf_status_filters' => '提案質問のステータス',
