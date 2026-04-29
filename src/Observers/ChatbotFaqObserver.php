@@ -65,6 +65,10 @@ class ChatbotFaqObserver
             return false;
         }
 
+        if (array_key_exists('embedding', $embedding) && $embedding['embedding'] === null) {
+            return false;
+        }
+
         $model->embedding_vector = json_encode($embedding);
         return true;
     }
