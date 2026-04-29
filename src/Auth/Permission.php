@@ -226,9 +226,10 @@ class Permission
             case "install":
             case "oauth":
             case "files":
-            case "ai_assistant":
             case "qr-code":
                 return true;
+            case "ai_assistant":
+                return System::ai_assistant_available();
             case "jan-code":
                 return true;
             case "assign-jan-code":

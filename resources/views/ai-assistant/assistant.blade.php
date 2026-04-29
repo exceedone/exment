@@ -201,6 +201,7 @@
         function handleStartConversation(featureType) {
             clearChat();
             toggleLoading(true);
+            console.log('handleStartConversation called', featureType);
             fetch('/assistant/start', {
                 method: 'POST',
                 headers: {

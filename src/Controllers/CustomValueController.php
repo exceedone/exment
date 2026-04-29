@@ -565,6 +565,13 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function importAiOcr(Request $request, $tableKey)
     {
+        if (!System::ai_ocr_available()) {
+            return getAjaxResponse([
+                'result' => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
         if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
             return $response;
         }
@@ -575,6 +582,13 @@ class CustomValueController extends AdminControllerTableBase
 
     public function importMultiAiOcr(Request $request, $tableKey)
     {
+        if (!System::ai_ocr_available()) {
+            return getAjaxResponse([
+                'result' => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
         if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
             return $response;
         }
@@ -588,6 +602,13 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function importAiOCrModal(Request $request, $tableKey)
     {
+        if (!System::ai_ocr_available()) {
+            return getAjaxResponse([
+                'result' => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
         if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
             return $response;
         }
@@ -600,6 +621,13 @@ class CustomValueController extends AdminControllerTableBase
 
     public function importMultiAiOCrModal(Request $request, $tableKey)
     {
+        if (!System::ai_ocr_available()) {
+            return getAjaxResponse([
+                'result' => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
         if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
             return $response;
         }

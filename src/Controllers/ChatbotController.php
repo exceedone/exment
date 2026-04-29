@@ -103,7 +103,7 @@ class ChatbotController extends BaseController
     public function ask(Request $request): JsonResponse
     {
         $request->validate([
-            'question' => 'required|string|max:' . self::MAX_MESSAGE_LENGTH
+            'question' => 'required|string|max:' . self::MAX_MESSAGE_LENGTH,
         ]);
 
         $message = $request->input('question');
@@ -111,56 +111,72 @@ class ChatbotController extends BaseController
         $userId = $request->input('user_id');
         $history = $request->input('history', []);
         $mode = $request->input('mode', self::MODE_FAQ);
+
         if (!in_array($mode, [self::MODE_FAQ, self::MODE_EXTENDED], true)) {
             $mode = self::MODE_FAQ;
         }
+
         $similarityThreshold = config('exment.chatbot_similarity_threshold', 0.85);
         $lowSimilarityThreshold = config('exment.chatbot_low_similarity_threshold', 0.6);
 
         if (!System::chatbot_available()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Chatbot is currently unavailable',
-                'error_code' => self::ERROR_CHATBOT_DISABLED
-            ], self::HTTP_SERVICE_UNAVAILABLE);
+                'message' => exmtrans('chatbot.error_message'),
+            ], 503);
         }
 
         try {
             // Extended mode (non-FAQ-based)
             if ($mode === self::MODE_EXTENDED) {
-                $aiAnswer = $this->chatbotService->getAnswerFromAI($message, $history, []);
-                if (!$aiAnswer || !is_string($aiAnswer)) {
+                $result = $this->chatbotService->getAnswerFromAI($message, $history, []);
+
+                if (!$result['ok']) {
+                    $status = $result['status'] ?? 500;
+
                     return response()->json([
                         'success' => false,
-                        'message' => 'Failed to get answer from AI server',
-                        'error_code' => self::ERROR_PROCESSING_ERROR
-                    ], self::HTTP_INTERNAL_SERVER_ERROR);
+                        'message' => $this->mapChatbotErrorResponse(
+                            $status,
+                            $result['message'] ?? null
+                        ),
+                    ], $status);
                 }
 
                 return response()->json([
                     'success' => true,
-                    'answer' => Editor::replaceImgUrl($aiAnswer),
+                    'answer' => Editor::replaceImgUrl($result['answer']),
                     'question' => $message,
                     'mode' => self::MODE_EXTENDED,
                     'message_id' => uniqid('msg_'),
                     'timestamp' => now()->toISOString(),
-                ], self::HTTP_OK, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
 
             // 1. Get embedding vector from AI server
-            $embedding = $this->chatbotService->getEmbeddingFromAI($message);
+            $response = $this->chatbotService->getEmbeddingFromAI($message);
+            $embedding = $response['embedding'] ?? null;
+            
             if (!$embedding || !is_array($embedding)) {
+                $status = $response['status'] ?? 500;
+                \Log::debug('Chatbot embedding failed', [
+                    'message' => $message,
+                    'embedding_result' => $embedding,
+                    'status' => $status,
+                ]);
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to get embedding from AI server',
-                    'error_code' => self::ERROR_PROCESSING_ERROR
-                ], self::HTTP_INTERNAL_SERVER_ERROR);
+                    'message' => $this->mapChatbotErrorResponse(
+                        $status,
+                        exmtrans('chatbot.error_message'),
+                    ),
+                ], $status);
             }
 
             // 2. Search FAQ by vector similarity
             $faqMatch = $this->chatbotService->findMostSimilarFaq($embedding, $similarityThreshold);
             if ($faqMatch) {
-                // Found similar FAQ
                 return response()->json([
                     'success' => true,
                     'answer' => Editor::replaceImgUrl($faqMatch['answer']),
@@ -168,42 +184,64 @@ class ChatbotController extends BaseController
                     'similarity' => $faqMatch['similarity'],
                     'message_id' => uniqid('msg_'),
                     'timestamp' => now()->toISOString(),
-                ], self::HTTP_OK, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
+
             $answerChoices = $this->chatbotService->getAnswerChoices($embedding, $lowSimilarityThreshold, 3);
-            
+
             // 3. No match, get answer from AI server
-            $aiAnswer = $this->chatbotService->getAnswerFromAI($message, $history, $answerChoices);
-            if (!$aiAnswer || !is_string($aiAnswer)) {
+            $result = $this->chatbotService->getAnswerFromAI($message, $history, $answerChoices);
+
+            if (!$result['ok']) {
+                $status = $result['status'] ?? 500;
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to get answer from AI server',
-                    'error_code' => self::ERROR_PROCESSING_ERROR
-                ], self::HTTP_INTERNAL_SERVER_ERROR);
+                    'message' => $this->mapChatbotErrorResponse(
+                        $status,
+                        $result['message'] ?? null
+                    ),
+                ], $status);
             }
+
             // 4. Save new FAQ with embedding
-            $savedFaqId = $this->chatbotService->saveToFaqTableWithEmbedding($message, $aiAnswer, $embedding);
+            $this->chatbotService->saveToFaqTableWithEmbedding($message, $result['answer'], $embedding);
 
             return response()->json([
                 'success' => true,
-                'answer' => Editor::replaceImgUrl($aiAnswer),
+                'answer' => Editor::replaceImgUrl($result['answer']),
                 'question' => $message,
                 'mode' => self::MODE_FAQ,
                 'message_id' => uniqid('msg_'),
                 'timestamp' => now()->toISOString(),
-            ], self::HTTP_OK, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (\Exception $e) {
             \Log::error('Chatbot ask method error', [
                 'error' => $e->getMessage(),
                 'user_id' => $userId,
-                'session_id' => $sessionId
+                'session_id' => $sessionId,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred while processing your request',
-                'error_code' => self::ERROR_PROCESSING_ERROR
-            ], self::HTTP_INTERNAL_SERVER_ERROR);
+                'message' => exmtrans('chatbot.error_message'),
+            ], 500);
         }
+    }
+
+    protected function mapChatbotErrorResponse(int $status, ?string $upstreamMessage = null): string
+    {
+        \Log::warning('Chatbot upstream error', [
+            'status' => $status,
+            'message' => $upstreamMessage,
+        ]);
+
+        return match ($status) {
+            401 => exmtrans('chatbot.error_unauthorized'),
+            403 => exmtrans('chatbot.error_subscription_required'),
+            404 => exmtrans('chatbot.error_service_not_found'),
+            429 => exmtrans('chatbot.error_api_limit_exceeded'),
+            default => exmtrans('chatbot.error_message'),
+        };
     }
 }

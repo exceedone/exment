@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\System;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,11 @@ class AiAssistantController extends AdminControllerBase
 
     public function aiAssistant(Content $content)
     {
+        if (!$this->isAiAssistantAvailable()) {
+            admin_warning(trans('admin.deny'), exmtrans('ai_assistant.error_message'));
+            return $content;
+        }
+
         // Check permission. if not permission, show message
         if (\Exment::user()->noPermission()) {
             admin_warning(trans('admin.deny'), exmtrans('common.help.no_permission'));
@@ -56,6 +62,10 @@ class AiAssistantController extends AdminControllerBase
 
     public function startConversation(Request $request)
     {
+        if (!$this->isAiAssistantAvailable()) {
+            return response()->json(['message' => exmtrans('ai_assistant.error_message')], 503);
+        }
+
         $validated = $request->validate([
             'feature_type' => 'required|in:custom_table,workflow,calendar',
         ]);
@@ -73,7 +83,7 @@ class AiAssistantController extends AdminControllerBase
             case 'workflow':
                 AssistantWorkflow::where('created_user_id', $loginUserID)->delete();
                 $model = AssistantWorkflow::create(['status' => 'init']);
-                $userCustomTables = $this->getUserCustomTablesAvaiable();
+                $userCustomTables = $this->getUserCustomTablesAvailable();
                 $welcomeMessage = exmtrans('ai_assistant.ai_response.workflow.welcome');
                 $welcomeMessage .= "\r\n" . implode("\n", $userCustomTables);
                 break;
@@ -104,6 +114,10 @@ class AiAssistantController extends AdminControllerBase
 
     public function sendMessage(Request $request)
     {
+        if (!$this->isAiAssistantAvailable()) {
+            return response()->json(['message' => exmtrans('ai_assistant.error_message')], 503);
+        }
+
         $validated = $request->validate([
             'uuid' => 'required|uuid',
             'message' => 'required|string',
@@ -139,6 +153,10 @@ class AiAssistantController extends AdminControllerBase
 
             $isError = in_array($responseMessage, [
                 exmtrans('ai_assistant.error_message'),
+                exmtrans('ai_assistant.error_unauthorized'),
+                exmtrans('ai_assistant.error_subscription_required'),
+                exmtrans('ai_assistant.error_service_not_found'),
+                exmtrans('ai_assistant.error_api_limit_exceeded'),
                 exmtrans('ai_assistant.ai_response.workflow.request_table'),
                 exmtrans('ai_assistant.ai_response.custom_table.table_exists'),
                 exmtrans('ai_assistant.ai_response.workflow.workflow_exists'),
@@ -156,6 +174,10 @@ class AiAssistantController extends AdminControllerBase
 
     public function handleAction(Request $request)
     {
+        if (!$this->isAiAssistantAvailable()) {
+            return response()->json(['message' => exmtrans('ai_assistant.error_message')], 503);
+        }
+
         $validated = $request->validate([
             'uuid' => 'required|uuid',
             'action' => 'required|in:edit,create,cancel',
@@ -298,7 +320,8 @@ class AiAssistantController extends AdminControllerBase
             return $ai_message . "\n" . $data['message'];
         }
 
-        return exmtrans('ai_assistant.error_message');
+        // return exmtrans('ai_assistant.error_message');
+        return $this->mapAiAssistantErrorResponse($response);
     }
 
     protected  function handleSendMessageCalendar(string $uuid, string $message, AssistantCalendar $assistant_calendar): ?string {
@@ -343,7 +366,8 @@ class AiAssistantController extends AdminControllerBase
             return $ai_message . "\n" . $data['message'];
         }
 
-        return exmtrans('ai_assistant.error_message');
+        // return exmtrans('ai_assistant.error_message');
+        return $this->mapAiAssistantErrorResponse($response);
     }
 
     protected  function handleSendMessageWorkflow(string $uuid, string $message, AssistantWorkflow $assistant_workflow): ?string {
@@ -373,7 +397,7 @@ class AiAssistantController extends AdminControllerBase
         ];
 
         if ($assistant_workflow->status === 'init') {
-            $userCustomTables = $this->getUserCustomTablesAvaiable();
+            $userCustomTables = $this->getUserCustomTablesAvailable();
             $payload['available_tables'] = json_encode($userCustomTables, JSON_THROW_ON_ERROR);
         }
 
@@ -406,7 +430,8 @@ class AiAssistantController extends AdminControllerBase
             return $ai_message . "\n" . $data['message'];
         }
 
-        return exmtrans('ai_assistant.error_message');
+        // return exmtrans('ai_assistant.error_message');
+        return $this->mapAiAssistantErrorResponse($response);
     }
 
     protected function handleActionCreateCustomTable(string $uuid, AssistantTable $assistant_table) {
@@ -432,7 +457,8 @@ class AiAssistantController extends AdminControllerBase
         }
 
         return [
-            'message' => exmtrans('ai_assistant.error_message'),
+            // 'message' => exmtrans('ai_assistant.error_message'),
+            'message' => $this->mapAiAssistantErrorResponse($response),
             'tableID' => null,
         ];
     }
@@ -507,7 +533,8 @@ class AiAssistantController extends AdminControllerBase
         }
 
         return [
-            'message' => exmtrans('ai_assistant.error_message'),
+            // 'message' => exmtrans('ai_assistant.error_message'),
+            'message' => $this->mapAiAssistantErrorResponse($response),
             'workflowID' => null,
         ];
     }
@@ -619,19 +646,21 @@ class AiAssistantController extends AdminControllerBase
         return implode("\n", $lines);
     }
 
-    private function getUserCustomTablesAvaiable(): array
+    private function getUserCustomTablesAvailable(): array
     {
         $loginUser = \Exment::user();
+        $today = \Carbon\Carbon::today()->toDateString();
 
-        // CustomTable has Workflow List
-        $excludedIds = WorkflowTable::query()
-            ->pluck('custom_table_id')
-            ->toArray();
-
-        // User's CustomTable not have Workflow
         return CustomTable::query()
             ->where('created_user_id', $loginUser->id)
-            ->whereNotIn('id', $excludedIds)
+            ->whereDoesntHave('workflow_tables', function ($query) use ($today) {
+                $query->where('active_flg', 1)
+                    ->where(fn ($q) => $q->whereNull('active_start_date')
+                        ->orWhere('active_start_date', '<=', $today))
+                    ->where(fn ($q) => $q->whereNull('active_end_date')
+                        ->orWhere('active_end_date', '>=', $today))
+                    ->whereHas('workflow', fn ($q) => $q->where('setting_completed_flg', 1));
+            })
             ->pluck('table_name')
             ->toArray();
     }
@@ -648,5 +677,29 @@ class AiAssistantController extends AdminControllerBase
         return Workflow::query()
             ->pluck('workflow_view_name')
             ->toArray();
+    }
+
+    protected function mapAiAssistantErrorResponse($response): string
+    {
+        $status = $response->status();
+        $upstreamMessage = $response->json('message');
+
+        \Log::warning('AI Assistant upstream error', [
+            'status' => $status,
+            'message' => $upstreamMessage,
+        ]);
+
+        return match ($status) {
+            401 => exmtrans('ai_assistant.error_unauthorized'),
+            403 => exmtrans('ai_assistant.error_subscription_required'),
+            404 => exmtrans('ai_assistant.error_service_not_found'),
+            429 => exmtrans('ai_assistant.error_api_limit_exceeded'),
+            default => exmtrans('ai_assistant.error_message'),
+        };
+    }
+
+    protected function isAiAssistantAvailable(): bool
+    {
+        return System::ai_assistant_available();
     }
 }

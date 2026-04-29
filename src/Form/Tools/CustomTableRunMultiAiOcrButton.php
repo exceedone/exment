@@ -43,6 +43,11 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
 
     protected function script()
     {
+        $successfulFilesLabel = json_encode(exmtrans('custom_table.ai_ocr.successful_files'), JSON_UNESCAPED_UNICODE);
+        $failedFilesLabel = json_encode(exmtrans('custom_table.ai_ocr.failed_files'), JSON_UNESCAPED_UNICODE);
+        $failedFileListLabel = json_encode(exmtrans('custom_table.ai_ocr.failed_file_list'), JSON_UNESCAPED_UNICODE);
+        $errorProcessingFailed = json_encode(exmtrans('custom_table.ai_ocr.error_processing_failed'), JSON_UNESCAPED_UNICODE);
+
         return <<<JS
         if (!window.__multiAiOcrListenerRegistered) {
             window.__multiAiOcrListenerRegistered = true;
@@ -66,14 +71,17 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                 .then(res => res.json())
                 .then(data => {
                     document.body.style.cursor = 'default';
-                    if (data.message === "Multi OCR completed") {
+                    if (data.succeedOcrFilesCount !== undefined) {
+                        const successfulFilesLabel = {$successfulFilesLabel};
+                        const failedFilesLabel = {$failedFilesLabel};
+                        const failedFileListLabel = {$failedFileListLabel};
                         const success = data.succeedOcrFilesCount || 0;
                         const failed = data.failedOcrFilesCount || 0;
                         const failedFileList = data.failedOcrFileNameList || '';
 
-                        let message = `AI-OCR completed.\\nSuccessful files: \${success}\\nFailed files: \${failed}`;
+                        let message = `\${data.message}\\n\${successfulFilesLabel}: \${success}\\n\${failedFilesLabel}: \${failed}`;
                         if (failed > 0) {
-                            message += `\\nFailed file list:\\n\${failedFileList}`;
+                            message += `\\n\${failedFileListLabel}:\\n\${failedFileList}`;
                         }
                         alert(message);
 
@@ -82,12 +90,13 @@ class CustomTableRunMultiAiOcrButton extends ModalTileMenuButton
                             container: '#pjax-container'
                         });
                     } else {
-                        alert('AI-OCR processing error.');
+                        alert(data.message);
                     }
                 })
                 .catch(err => {
+                    const errorProcessingFailed = {$errorProcessingFailed};
                     document.body.style.cursor = 'default';
-                    alert('OCR request error.');
+                    alert(errorProcessingFailed);
                 });
             });
         }

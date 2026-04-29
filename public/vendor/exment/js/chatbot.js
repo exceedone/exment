@@ -182,8 +182,10 @@ async function callAPIServer(userMessage, history = []) {
             },
             body: JSON.stringify({ question: userMessage, history: history, mode: chatMode, _token: LA.token }),
         });
-        if (!res.ok) throw new Error("Failed to get response from AI server");
         const data = await res.json();
+        if (!res.ok) {
+            return data.message || getI18nText("error_message", "Sorry, there was a problem contacting the server.");
+        }
         return data.answer || "Sorry, I did not understand that.";
     } catch (err) {
         console.error("callAPIServer error:", err);

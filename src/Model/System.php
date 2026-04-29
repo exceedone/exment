@@ -22,6 +22,8 @@ use Cache;
  * @method static string|void site_skin($arg = null)
  * @method static string|void site_layout($arg = null)
  * @method static boolean|void api_available($arg = null)
+ * @method static boolean|void ai_assistant_available($arg = null)
+ * @method static boolean|void ai_ocr_available($arg = null)
  * @method static boolean|void chatbot_available($arg = null)
  * @method static boolean|void chatbot_faq_wf($arg = null)
  * @method static string|void chatbot_faq_wf_status_filters($arg = null)

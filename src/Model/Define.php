@@ -74,6 +74,8 @@ class Define
 
         'web_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
         'api_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
+        'ai_assistant_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
+        'ai_ocr_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
         'chatbot_available' => ['type' => 'boolean', 'config' => 'exment.chatbot', 'group' => 'advanced'],
         'chatbot_faq_wf' => ['type' => 'boolean', 'config' => 'exment.chatbot_faq_wf', 'group' => 'advanced'],
         'chatbot_faq_wf_status_filters' => ['default' => '', 'group' => 'advanced'] ,
