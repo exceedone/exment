@@ -49,7 +49,7 @@ return [
     | Whether enable Exment AI.
     |
     */
-    'ai_enable' => env('EXMENT_AI_ENABLE', false),
+    'ai_enable' => env('EXMENT_AI_ENABLE', true),
 
     /*
     |--------------------------------------------------------------------------
