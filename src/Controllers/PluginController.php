@@ -227,7 +227,16 @@ class PluginController extends AdminControllerBase
                 ['uri' => ['required', 'regex:/^[a-z0-9][a-z0-9_\-]*$/', 'max:100']]
             );
             if ($validator->fails()) {
-                return back()->withErrors($validator)->withInput();
+                // Pjax (browser form submit) requires a redirect — Pjax middleware's
+                // handleErrorResponse() crashes on JSON responses because it assumes
+                // $response->exception is set, which is never true for JsonResponse.
+                if ($request->pjax()) {
+                    return back()->withErrors(['options.uri' => $validator->errors()->first('uri')])->withInput();
+                }
+                return getAjaxResponse([
+                    'result' => false,
+                    'errors' => ['options.uri' => $validator->errors()->first('uri')],
+                ]);
             }
         }
 
