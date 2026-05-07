@@ -440,6 +440,84 @@ class PluginUriValidationTest extends UnitTestBase
     }
 
     // =========================================================================
+    // Group 6: Response format — invalid URI must return JSON field error
+    //          ★ CURRENTLY FAIL → Will PASS after fix ★
+    // =========================================================================
+
+    /**
+     * Invalid URI must return HTTP 400 JSON with error mapped to the options.uri
+     * field key — NOT a 302 redirect.
+     *
+     * [Current Status: FAIL]
+     *   back()->withErrors() returns HTTP 302, which laravel-admin JS cannot
+     *   translate into an inline field error.
+     *
+     * [After Fix: PASS]
+     *   getAjaxResponse(['result' => false, 'errors' => ['options.uri' => ...]]) returns
+     *   HTTP 400 JSON, which laravel-admin displays at the uri input field.
+     */
+    public function testInvalidUriResponseIsJsonWithFieldError(): void
+    {
+        $plugin = $this->getUriPlugin(self::PLUGIN_PAGE);
+
+        $response = $this->put(
+            admin_urls('plugin', $plugin->id),
+            [
+                'active_flg' => $plugin->active_flg ?? '1',
+                'options'    => ['uri' => 'テスト'],
+            ]
+        );
+
+        $response->assertStatus(400);
+        $response->assertJson(['result' => false]);
+        $this->assertArrayHasKey(
+            'options.uri',
+            $response->json('errors') ?? [],
+            "Validation error must be mapped to 'options.uri' field key so laravel-admin displays it inline at the input field."
+        );
+    }
+
+    // =========================================================================
+    // Group 7: Pjax request — invalid URI must not crash (HTTP 500 TypeError)
+    //          ★ CURRENTLY FAIL → Will PASS after fix ★
+    // =========================================================================
+
+    /**
+     * PUT with X-PJAX header and invalid URI must NOT return HTTP 500.
+     *
+     * [Current Status: FAIL]
+     *   getAjaxResponse() returns HTTP 400 JSON. Pjax middleware's handleErrorResponse()
+     *   calls get_class($response->exception) where $exception is null (JSON responses
+     *   have no exception attached) → TypeError → HTTP 500.
+     *
+     * [After Fix: PASS]
+     *   When $request->pjax() === true, update() returns back()->withErrors() (302).
+     *   Pjax middleware's isRedirection() guard passes it through untouched.
+     */
+    public function testUpdateWithPjaxHeaderDoesNotCrash(): void
+    {
+        $plugin = $this->getUriPlugin(self::PLUGIN_PAGE);
+
+        $response = $this->withHeaders([
+            'X-PJAX'           => 'true',
+            'X-PJAX-Container' => '#pjax-container',
+        ])->put(
+            admin_urls('plugin', $plugin->id),
+            [
+                'active_flg' => $plugin->active_flg ?? '1',
+                'options'    => ['uri' => 'テスト'],
+            ]
+        );
+
+        $this->assertNotEquals(
+            500,
+            $response->getStatusCode(),
+            "Pjax form submit with invalid URI must not crash with TypeError (HTTP 500). "
+                . "Fix: return back()->withErrors() for pjax requests instead of getAjaxResponse()."
+        );
+    }
+
+    // =========================================================================
     // Helpers
     // =========================================================================
 
