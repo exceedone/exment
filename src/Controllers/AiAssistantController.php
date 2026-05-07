@@ -83,7 +83,7 @@ class AiAssistantController extends AdminControllerBase
             case 'workflow':
                 AssistantWorkflow::where('created_user_id', $loginUserID)->delete();
                 $model = AssistantWorkflow::create(['status' => 'init']);
-                $userCustomTables = $this->getUserCustomTablesAvailable();
+                $userCustomTables = $this->getUserCustomTableLabelsAvailable();
                 $welcomeMessage = exmtrans('ai_assistant.ai_response.workflow.welcome');
                 $welcomeMessage .= "\r\n" . implode("\n", $userCustomTables);
                 break;
@@ -648,6 +648,23 @@ class AiAssistantController extends AdminControllerBase
 
     private function getUserCustomTablesAvailable(): array
     {
+        return $this->getUserCustomTablesAvailableQuery()
+            ->pluck('table_name')
+            ->toArray();
+    }
+
+    private function getUserCustomTableLabelsAvailable(): array
+    {
+        return $this->getUserCustomTablesAvailableQuery()
+            ->get(['table_name', 'table_view_name'])
+            ->map(function ($customTable) {
+                return "{$customTable->table_name} ({$customTable->table_view_name})";
+            })
+            ->toArray();
+    }
+
+    private function getUserCustomTablesAvailableQuery()
+    {
         $loginUser = \Exment::user();
         $today = \Carbon\Carbon::today()->toDateString();
 
@@ -660,9 +677,7 @@ class AiAssistantController extends AdminControllerBase
                     ->where(fn ($q) => $q->whereNull('active_end_date')
                         ->orWhere('active_end_date', '>=', $today))
                     ->whereHas('workflow', fn ($q) => $q->where('setting_completed_flg', 1));
-            })
-            ->pluck('table_name')
-            ->toArray();
+            });
     }
 
     private function getAllCustomTables(): array
