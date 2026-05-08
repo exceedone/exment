@@ -22,32 +22,38 @@
             "homepage": "https://hirossyi.net/"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/exceedone/laravel-admin"
+        }
+    ],
     "require": {
         "php": "^8.2.0",
-        "laravel/framework": "^10.34.0",
-        "laravelcollective/html": "^6.4",
-        "laravel/helpers": "^1.6",
-        "laravel/ui": "^4.2",
+        "laravel/framework": "^11.0",
+        "laravel/helpers": "^1.7",
+        "laravel/ui": "^5.0",
         "webpatser/laravel-uuid": "^4.0",
-        "phpoffice/phpspreadsheet": "^1.23.0",
+        "phpoffice/phpspreadsheet": "^2.0",
         "exment-git/spout": "^4.0",
-        "mews/purifier": "^3.2",
-        "myclabs/php-enum": "^1.6.0",
-        "laravel/passport": "^11.0",
-        "laravel/slack-notification-channel": "^3.0",
+        "mews/purifier": "^3.4",
+        "myclabs/php-enum": "^1.8",
+        "laravel/passport": "^12.0",
+        "laravel/slack-notification-channel": "^3.4",
         "lcobucci/jwt": "^5.0",
         "composer/composer": "^2.0",
-        "exceedone/laravel-admin": "^4.0.0",
+        "exceedone/laravel-admin": "dev-feature/upgrade-laravel-11-v2",
         "kylekatarnls/update-helper": "^1.2",
-        "laravel/socialite": "^5.2",
-        "psr/simple-cache": "^2.0",
-        "simplesoftwareio/simple-qrcode": "2.0",
+        "laravel/socialite": "^5.16",
+        "psr/simple-cache": "^3.0",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "elibyy/tcpdf-laravel": "^11.1"
     },
     "require-dev": {
-        "symfony/css-selector": "~5.2",
-        "laravel/browser-kit-testing": "~6.3",
-        "dms/phpunit-arraysubset-asserts": "~0.1"
+        "symfony/css-selector": "~7.0",
+        "laravel/browser-kit-testing": "~7.0",
+        "nunomaduro/larastan": "^2.0",
+        "dms/phpunit-arraysubset-asserts": "~0.5"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

@@ -1375,8 +1375,8 @@ if (!function_exists('hasTable')) {
     function hasTable($table_name)
     {
         $tables = System::cache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
-            // get all table names
-            return DB::connection()->getDoctrineSchemaManager()->listTableNames();
+            // get all table names (L11: native schema builder replaces doctrine/dbal)
+            return array_column(DB::connection()->getSchemaBuilder()->getTables(), 'name');
         }, true);
 
         return in_array($table_name, $tables);

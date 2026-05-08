@@ -32,6 +32,11 @@ class RouteServiceProvider extends ServiceProvider
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
             return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
         });
+
+        // parent::boot() loads routes via loadRoutes() -> map().
+        // Required in Laravel 11 where setRootControllerNamespace() was removed
+        // and route loading is handled cleanly by the base boot().
+        parent::boot();
     }
     /**
      * Define the routes for the application.

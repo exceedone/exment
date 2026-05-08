@@ -29,6 +29,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Foundation\AliasLoader;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -296,10 +297,21 @@ class ExmentServiceProvider extends ServiceProvider
             'exment'
         );
 
+        // Provide a minimal Form facade replacement when laravelcollective/html is not installed
+        // (it was abandoned and does not support Laravel 11+).
+        if (!$this->app->bound('form')) {
+            $this->app->singleton('form', \Exceedone\Exment\Html\ExmentFormBuilder::class);
+            AliasLoader::getInstance()->alias('Form', \Exceedone\Exment\Facades\ExmentFormFacade::class);
+        }
+
         // register global middleware.
+        // Use method_exists check for L11 compatibility (kernel still exists but
+        // new bootstrap/app.php style apps may not have pushMiddleware on the contract).
         $kernel = $this->app->make(Kernel::class);
-        foreach ($this->middleware as $middleware) {
-            $kernel->pushMiddleware($middleware);
+        if (method_exists($kernel, 'pushMiddleware')) {
+            foreach ($this->middleware as $middleware) {
+                $kernel->pushMiddleware($middleware);
+            }
         }
 
         // register route middleware.
@@ -434,14 +446,19 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootPassport()
     {
-        // adding rule for laravel-passport
-        Client::creating(function (Client $client) {
-            $client->incrementing = false;
-            $client->id = Uuid::generate()->string;
-        });
-        Client::retrieved(function (Client $client) {
-            $client->incrementing = false;
-        });
+        // Passport 12+ provides Passport::useUuids() as the canonical way to use UUID client IDs.
+        // Fall back to manual Client model observer for Passport 11.
+        if (method_exists(Passport::class, 'useUuids')) {
+            Passport::useUuids();
+        } else {
+            Client::creating(function (Client $client) {
+                $client->incrementing = false;
+                $client->id = Uuid::generate()->string;
+            });
+            Client::retrieved(function (Client $client) {
+                $client->incrementing = false;
+            });
+        }
         Passport::tokensCan(ApiScope::transArray('api.scopes'));
     }
 
