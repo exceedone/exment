@@ -26,10 +26,16 @@ class ExtendedBlueprint extends Blueprint
     {
         $columns = is_array($columns) ? $columns : func_get_args();
 
-        foreach ($columns as $column) {
+        $existing = array_filter($columns, fn($col) => \Schema::hasColumn($this->table, $col));
+
+        foreach ($existing as $column) {
             \Schema::dropConstraints($this->table, $column);
         }
 
-        return parent::dropColumn($columns);
+        if (empty($existing)) {
+            return $this;
+        }
+
+        return parent::dropColumn(array_values($existing));
     }
 }

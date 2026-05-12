@@ -18,9 +18,37 @@ class CreateTableDefine extends Migration
     {
         $schema = DB::connection()->getSchemaBuilder();
 
-        $schema->blueprintResolver(function ($table, $callback) {
-            return new ExtendedBlueprint($table, $callback);
+        $schema->blueprintResolver(function ($connection, $table, $callback) {
+            return new ExtendedBlueprint($connection, $table, $callback);
         });
+
+        // Drop tables that may exist from a previous partial run
+        Schema::dropIfExists('value_authoritable');
+        Schema::dropIfExists('system_authoritable');
+        Schema::dropIfExists('custom_relation_values');
+        Schema::dropIfExists('custom_values');
+        Schema::dropIfExists('custom_relations');
+        Schema::dropIfExists('custom_copy_columns');
+        Schema::dropIfExists('custom_copies');
+        Schema::dropIfExists('custom_view_sorts');
+        Schema::dropIfExists('custom_view_filters');
+        Schema::dropIfExists('custom_view_columns');
+        Schema::dropIfExists('custom_views');
+        Schema::dropIfExists('custom_form_columns');
+        Schema::dropIfExists('custom_form_blocks');
+        Schema::dropIfExists('custom_forms');
+        Schema::dropIfExists('custom_columns');
+        Schema::dropIfExists('custom_tables');
+        Schema::dropIfExists('dashboard_boxes');
+        Schema::dropIfExists('dashboards');
+        Schema::dropIfExists('roles');
+        Schema::dropIfExists('user_settings');
+        Schema::dropIfExists('login_users');
+        Schema::dropIfExists('plugins');
+        Schema::dropIfExists('notifies');
+        Schema::dropIfExists('systems');
+        Schema::dropIfExists('revisions');
+        Schema::dropIfExists('files');
 
         // remove defalut login_users and create
         Schema::dropIfExists('login_users');
