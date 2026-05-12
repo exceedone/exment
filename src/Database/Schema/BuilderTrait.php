@@ -126,7 +126,7 @@ trait BuilderTrait
      *
      * @return array
      */
-    public function getTableListing()
+    public function getTableListing($schema = null, $schemaQualified = true)
     {
         $results = $this->connection->selectFromWriteConnection($this->grammar->compileGetTableListing());
 
