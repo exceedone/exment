@@ -89,10 +89,8 @@ class AiAssistantController extends AdminControllerBase
                 break;
             case 'calendar':
                 AssistantCalendar::where('created_user_id', $loginUserID)->delete();
-                $usersAndOrgs = $this->getOrganizationUsers();
                 $model = AssistantCalendar::create(['status' => 'init']);
                 $welcomeMessage = exmtrans('ai_assistant.ai_response.calendar.welcome', ['type' => exmtrans('ai_assistant.feature.schedule_notifications')]);
-                $welcomeMessage .= "\r\n" . $this->formatOrganizationUsersAsString($usersAndOrgs);
                 break;
         }
 
@@ -109,6 +107,7 @@ class AiAssistantController extends AdminControllerBase
             'message' => $welcomeMessage,
             'uuid' => $model->id,
             'showActionButtons' => false,
+            'calendarTargets' => $validated['feature_type'] === 'calendar' ? $this->getCalendarTargetOptions() : null,
         ]);
     }
 
@@ -122,6 +121,9 @@ class AiAssistantController extends AdminControllerBase
             'uuid' => 'required|uuid',
             'message' => 'required|string',
             'feature_type' => 'required|in:custom_table,workflow,calendar',
+            'calendar_targets' => 'sometimes|array',
+            'calendar_targets.users' => 'sometimes|array',
+            'calendar_targets.users.*' => 'integer',
         ]);
 
         $featureType = $validated['feature_type'];
@@ -143,7 +145,12 @@ class AiAssistantController extends AdminControllerBase
             } elseif ($featureType == 'workflow') {
                 $responseMessage = $this->handleSendMessageWorkflow($validated['uuid'], $validated['message'], $conversable);
             } elseif ($featureType == 'calendar') {
-                $responseMessage = $this->handleSendMessageCalendar($validated['uuid'], $validated['message'], $conversable);
+                $responseMessage = $this->handleSendMessageCalendar(
+                    $validated['uuid'],
+                    $validated['message'],
+                    $conversable,
+                    $validated['calendar_targets'] ?? []
+                );
             }
 
             $conversable->messages()->create([
@@ -324,7 +331,7 @@ class AiAssistantController extends AdminControllerBase
         return $this->mapAiAssistantErrorResponse($response);
     }
 
-    protected  function handleSendMessageCalendar(string $uuid, string $message, AssistantCalendar $assistant_calendar): ?string {
+    protected  function handleSendMessageCalendar(string $uuid, string $message, AssistantCalendar $assistant_calendar, array $calendarTargets = []): ?string {
         $endpoints = [
             'init' => 'store',
             'confirming_request_calendar' => 'store',
@@ -350,7 +357,7 @@ class AiAssistantController extends AdminControllerBase
         ];
 
         if ($assistant_calendar->status === 'init') {
-            $usersAndOrgs = $this->getOrganizationUsers();
+            $usersAndOrgs = $this->getOrganizationUsers($calendarTargets);
             $payload['organization_users'] = json_encode($usersAndOrgs, JSON_THROW_ON_ERROR);
         }
 
@@ -573,30 +580,73 @@ class AiAssistantController extends AdminControllerBase
         }
     }
 
-    private function getOrganizationUsers()
+    private function getOrganizationUsers(array $calendarTargets = [])
+    {
+        $selectedUserIds = $this->normalizeIdArray(array_get($calendarTargets, 'users', []));
+
+        if (empty($selectedUserIds)) {
+            return $this->getAllOrganizationUsers();
+        }
+
+        $organizationUsers = [];
+
+        if (!empty($selectedUserIds)) {
+            $users = \Exment::user()->base_user::whereIn('id', $selectedUserIds)->get();
+
+            foreach ($users as $user) {
+                if ($user->belong_organizations->isNotEmpty()) {
+                    foreach ($user->belong_organizations as $organization) {
+                        $groupKey = 'organization_' . $organization->id;
+
+                        if (!isset($organizationUsers[$groupKey])) {
+                            $organizationUsers[$groupKey] = [
+                                'organization' => $this->getOrganizationName($organization),
+                                'organization_id' => $organization->id,
+                                'users' => [],
+                            ];
+                        }
+
+                        $this->appendUserToOrganizationGroup($organizationUsers, $groupKey, $user);
+                    }
+                } else {
+                    $groupKey = 'unknown';
+
+                    if (!isset($organizationUsers[$groupKey])) {
+                        $organizationUsers[$groupKey] = [
+                            'organization' => 'unknown',
+                            'users' => [],
+                        ];
+                    }
+
+                    $this->appendUserToOrganizationGroup($organizationUsers, $groupKey, $user);
+                }
+            }
+        }
+
+        $this->appendRequesterGroup($organizationUsers);
+
+        return $this->formatOrganizationUsersForPayload($organizationUsers);
+    }
+
+    private function getAllOrganizationUsers()
     {
         $organizationUsers = [];
         $users = \Exment::user()->base_user::all();
 
         foreach ($users as $user) {
-            $userName = $user->value['user_name'] ?? null;
-            $email = $user->value['email'] ?? null;
-
             if ($user->belong_organizations->isNotEmpty()) {
                 foreach ($user->belong_organizations as $org) {
-                    $orgName = $org->value['organization_name'] ?? 'unknown';
+                    $orgName = $this->getOrganizationName($org);
 
                     if (!isset($organizationUsers[$orgName])) {
                         $organizationUsers[$orgName] = [
                             'organization' => $orgName,
+                            'organization_id' => $org->id,
                             'users' => []
                         ];
                     }
 
-                    $organizationUsers[$orgName]['users'][] = [
-                        'user_name' => $userName,
-                        'email' => $email
-                    ];
+                    $this->appendUserToOrganizationGroup($organizationUsers, $orgName, $user);
                 }
             } else {
                 $orgName = 'unknown';
@@ -607,13 +657,103 @@ class AiAssistantController extends AdminControllerBase
                         'users' => []
                     ];
                 }
-                $organizationUsers[$orgName]['users'][] = [
-                    'user_name' => $userName,
-                    'email' => $email
-                ];
+                $this->appendUserToOrganizationGroup($organizationUsers, $orgName, $user);
             }
         }
 
+        $this->appendRequesterGroup($organizationUsers);
+
+        return $this->formatOrganizationUsersForPayload($organizationUsers);
+    }
+
+    private function getCalendarTargetOptions(): array
+    {
+        $groups = [];
+        $users = \Exment::user()->base_user::all();
+
+        foreach ($users as $user) {
+            if ($user->belong_organizations->isNotEmpty()) {
+                foreach ($user->belong_organizations as $organization) {
+                    $groupKey = 'organization_' . $organization->id;
+
+                    if (!isset($groups[$groupKey])) {
+                        $groups[$groupKey] = [
+                            'id' => $groupKey,
+                            'organization_name' => $this->getOrganizationName($organization),
+                            'users' => [],
+                        ];
+                    }
+
+                    $this->appendCalendarTargetUserToGroup($groups, $groupKey, $user);
+                }
+            } else {
+                $groupKey = 'unknown';
+
+                if (!isset($groups[$groupKey])) {
+                    $groups[$groupKey] = [
+                        'id' => $groupKey,
+                        'organization_name' => 'unknown',
+                        'users' => [],
+                    ];
+                }
+
+                $this->appendCalendarTargetUserToGroup($groups, $groupKey, $user);
+            }
+        }
+
+        return [
+            'groups' => array_values($groups),
+        ];
+    }
+
+    private function appendCalendarTargetUserToGroup(array &$groups, string $groupKey, $user): void
+    {
+        $userId = $user->id;
+
+        foreach ($groups[$groupKey]['users'] as $existingUser) {
+            if (array_get($existingUser, 'id') === $userId) {
+                return;
+            }
+        }
+
+        $groups[$groupKey]['users'][] = [
+            'id' => $userId,
+            'user_name' => $this->getUserName($user),
+        ];
+    }
+
+    private function normalizeIdArray($values): array
+    {
+        if (!is_array($values)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map(function ($value) {
+            return filter_var($value, FILTER_VALIDATE_INT);
+        }, $values), function ($value) {
+            return $value !== false && $value > 0;
+        })));
+    }
+
+    private function appendUserToOrganizationGroup(array &$organizationUsers, string $groupKey, $user): void
+    {
+        $userId = $user->id;
+
+        foreach ($organizationUsers[$groupKey]['users'] as $existingUser) {
+            if (array_get($existingUser, 'id') === $userId) {
+                return;
+            }
+        }
+
+        $organizationUsers[$groupKey]['users'][] = [
+            'id' => $userId,
+            'user_name' => $this->getUserName($user),
+            'email' => $this->getUserEmail($user),
+        ];
+    }
+
+    private function appendRequesterGroup(array &$organizationUsers): void
+    {
         $login_user = \Exment::user();
         $organizationUsers['requester'] = [
             'organization' => 'requester',
@@ -622,28 +762,40 @@ class AiAssistantController extends AdminControllerBase
                 'email' => $login_user->email
             ]
         ];
-
-        return array_values($organizationUsers);
     }
 
-    private function formatOrganizationUsersAsString(array $usersAndOrgs): string
+    private function formatOrganizationUsersForPayload(array $organizationUsers): array
     {
-        $lines = [];
-        foreach ($usersAndOrgs as $group) {
-            if (isset($group['organization']) && $group['organization'] === 'requester') {
-                continue;
+        return array_values(array_map(function ($group) {
+            if (array_get($group, 'organization') === 'requester') {
+                return $group;
             }
 
-            $orgName = $group['organization'];
-            $userNames = array_map(function ($user) {
-                return $user['user_name'];
+            unset($group['organization_id']);
+            $group['users'] = array_map(function ($user) {
+                return [
+                    'user_name' => array_get($user, 'user_name'),
+                    'email' => array_get($user, 'email'),
+                ];
             }, $group['users']);
 
-            $line = '+ ' . $orgName . ': ' . implode(', ', $userNames);
-            $lines[] = $line;
-        }
+            return $group;
+        }, $organizationUsers));
+    }
 
-        return implode("\n", $lines);
+    private function getUserName($user): ?string
+    {
+        return $user->value['user_name'] ?? $user->name ?? null;
+    }
+
+    private function getUserEmail($user): ?string
+    {
+        return $user->value['email'] ?? $user->email ?? null;
+    }
+
+    private function getOrganizationName($organization): string
+    {
+        return $organization->value['organization_name'] ?? $organization->organization_name ?? 'unknown';
     }
 
     private function getUserCustomTablesAvailable(): array
