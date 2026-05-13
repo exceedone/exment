@@ -102,10 +102,10 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
         if ($table == null) {
             $file = path_join($tempDir, config('exment.backup_info.def_file', 'table_definition.sql'));
-            $command = sprintf('%s -d %s > %s', $command, $database, $file);
+            $command = sprintf('%s -d %s > "%s"', $command, $database, $file);
         } else {
             $file = sprintf('%s.sql', path_join($tempDir, $table));
-            $command = sprintf('%s -t %s %s > %s', $command, $database, $table, $file);
+            $command = sprintf('%s -t %s %s > "%s"', $command, $database, $table, $file);
         }
 
         exec($command);
@@ -271,7 +271,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             // restore table definition
             $def = path_join($dirFullPath, config('exment.backup_info.def_file'));
             if (\File::exists($def)) {
-                $command = sprintf('%s < %s', $mysqlcmd, $def);
+                $command = sprintf('%s < "%s"', $mysqlcmd, $def);
                 exec($command);
                 \File::delete($def);
             }
@@ -284,7 +284,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             });
 
             foreach ($files as $file) {
-                $command = sprintf('%s < %s', $mysqlcmd, $file->getRealPath());
+                $command = sprintf('%s < "%s"', $mysqlcmd, $file->getRealPath());
 
                 $table = $file->getBasename('.' . $file->getExtension());
                 if (\Schema::hasTable($table)) {
@@ -369,11 +369,15 @@ __EOT__;
 
     protected static function getMysqlPath()
     {
-        return path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysql');
+        $path = path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysql');
+        // Quote path if it contains spaces (Windows compatibility)
+        return (strpos($path, ' ') !== false) ? '"' . $path . '"' : $path;
     }
 
     protected static function getMysqlDumpPath()
     {
-        return path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysqldump');
+        $path = path_join_os(config('exment.backup_info.mysql_dir', ''), 'mysqldump');
+        // Quote path if it contains spaces (Windows compatibility)
+        return (strpos($path, ' ') !== false) ? '"' . $path . '"' : $path;
     }
 }

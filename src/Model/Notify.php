@@ -713,7 +713,7 @@ class Notify extends ModelBase
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
         // if already send notify in 1 minutes, continue.
-        if ($checkHistory && $custom_value) {
+        if ($checkHistory && $custom_value && $mail_template) {
             $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
             $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)::where($index_user, $user->id())

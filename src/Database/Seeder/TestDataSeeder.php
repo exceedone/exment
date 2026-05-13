@@ -367,7 +367,7 @@ class TestDataSeeder extends Seeder
 
                         for ($i = 1; $i <= 10; $i++) {
                             $index++;
-                            $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+                            $new_id = ($custom_table->getValueModel()->withoutGlobalScopes()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                             $custom_value = $custom_table->getValueModel();
                             // only use rand
@@ -634,7 +634,7 @@ class TestDataSeeder extends Seeder
 
                         for ($i = 1; $i <= 10; $i++) {
                             $index++;
-                            $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+                            $new_id = ($custom_table->getValueModel()->withoutGlobalScopes()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                             $custom_value = $custom_table->getValueModel();
                             // only use rand
@@ -724,7 +724,7 @@ class TestDataSeeder extends Seeder
 
                     for ($i = 1; $i <= 10; $i++) {
                         $index++;
-                        $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+                        $new_id = ($custom_table->getValueModel()->withoutGlobalScopes()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                         $custom_value = $custom_table->getValueModel();
                         // only use rand
@@ -1090,7 +1090,7 @@ class TestDataSeeder extends Seeder
 
             for ($i = 1; $i <= $options['count']; $i++) {
                 $count++;
-                $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+                $new_id = ($custom_table->getValueModel()->withoutGlobalScopes()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
 
                 $custom_value = $custom_table->getValueModel();
                 $custom_value->setValue("text", 'test_'.$user_id);
