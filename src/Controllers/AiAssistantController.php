@@ -167,7 +167,7 @@ class AiAssistantController extends AdminControllerBase
             ], true);
             return response()->json([
                 'message' => $responseMessage,
-                'showActionButtons' => !$isError,
+                'showActionButtons' => !$isError && $conversable->status === 'needs_clarification' ? false : true,
                 'uuid' => $conversable->id,
             ]);
 
@@ -225,7 +225,7 @@ class AiAssistantController extends AdminControllerBase
                         if ($conversable->status === 'explained') {
                             $responseMessage = $this->handleSendMessageCustomTable($validated['uuid'], "", $conversable);
                             if ($responseMessage !== exmtrans('ai_assistant.ai_response.custom_table.table_exists')) {
-                                $showActionButtons = true;
+                                $showActionButtons = $conversable->status === 'needs_clarification' ? false : true;
                             }
                         } else {
                             $result = $this->handleActionCreateCustomTable(
@@ -295,16 +295,16 @@ class AiAssistantController extends AdminControllerBase
     protected  function handleSendMessageCustomTable(string $uuid, string $message, AssistantTable $assistant_table): ?string {
         $endpoints = [
             'init' => 'explain',
+            'needs_clarification' => 'explain',
             'explained' => 'store',
             'confirming' => 'edit',
         ];
         $ai_messages = [
-            'init' => exmtrans('ai_assistant.ai_response.custom_table.explained'),
-            'explained' => exmtrans('ai_assistant.ai_response.custom_table.suggested'),
+            'explained' => exmtrans('ai_assistant.ai_response.custom_table.explained'),
+            'suggested' => exmtrans('ai_assistant.ai_response.custom_table.suggested'),
             'confirming' => exmtrans('ai_assistant.ai_response.custom_table.confirming'),
         ];
         $endpoint = $endpoints[$assistant_table->status] ?? 'store';
-        $ai_message = $ai_messages[$assistant_table->status];
         $aiApiUrl = $this->aiAssistantServerUrl . 'assistant-tables/' . $endpoint;
 
         $response = Http::withToken($this->bearerToken)->post($aiApiUrl, [
@@ -314,6 +314,7 @@ class AiAssistantController extends AdminControllerBase
 
         if ($response->successful()) {
             $data = $response->json();
+            $responseStatus = $data['status'] ?? $assistant_table->status;
 
             // Check Table Name
             $allCustomTables = $this->getAllCustomTables();
@@ -324,12 +325,18 @@ class AiAssistantController extends AdminControllerBase
             }
 
             $assistant_table->update([
-                'status' => $data['status'] ?? $assistant_table->status,
-                'table_draft_json' => $data['table_draft_json'] ?? null,
-                'column_draft_json' => $data['column_draft_json'] ?? null,
+                'status' => $responseStatus,
+                'table_draft_json' => $data['table_draft_json'] ?? $assistant_table->table_draft_json,
+                'column_draft_json' => $data['column_draft_json'] ?? $assistant_table->column_draft_json,
             ]);
 
-            return $ai_message . "\n" . $data['message'];
+            if ($responseStatus === 'needs_clarification') {
+                return $data['clarification_question'] ?? $data['message'];
+            }
+
+            $ai_message = $ai_messages[$responseStatus] ?? $ai_messages[$assistant_table->status] ?? '';
+
+            return trim($ai_message . "\n" . $data['message']);
         }
 
         // return exmtrans('ai_assistant.error_message');
