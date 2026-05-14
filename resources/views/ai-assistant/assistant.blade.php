@@ -463,6 +463,7 @@
 
             return [
                 user.user_name || '',
+                user.email || '',
                 organizationName || '',
             ].join(' ').toLowerCase().includes(term);
         }
@@ -540,6 +541,14 @@
                     name.innerText = user.user_name || '';
 
                     text.appendChild(name);
+
+                    if (user.email) {
+                        const email = document.createElement('div');
+                        email.className = 'calendar-target-meta';
+                        email.innerText = user.email;
+                        text.appendChild(email);
+                    }
+
                     label.appendChild(checkbox);
                     label.appendChild(text);
                     groupWrapper.appendChild(label);
@@ -598,10 +607,19 @@
             renderCalendarTargetModal();
         }
 
-        function getCalendarTargetsForRequest() {
-            return {
-                users: selectedCalendarTargets.users,
-            };
+        function getParticipantEmailsForRequest() {
+            const selectedIds = new Set(selectedCalendarTargets.users.map(String));
+            const emails = [];
+
+            calendarTargetOptions.groups.forEach(group => {
+                (group.users || []).forEach(user => {
+                    if (selectedIds.has(String(user.id)) && user.email) {
+                        emails.push(user.email);
+                    }
+                });
+            });
+
+            return Array.from(new Set(emails));
         }
 
         function handleStartConversation(featureType) {
@@ -676,7 +694,6 @@
                     uuid: currentConversationUuid,
                     message: text,
                     feature_type: featureType,
-                    calendar_targets: featureType === 'calendar' ? getCalendarTargetsForRequest() : undefined,
                 }),
             })
                 .then(response => response.json())
@@ -714,7 +731,14 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 },
-                body: JSON.stringify({ uuid: currentConversationUuid, action: action, feature_type: featureType }),
+                body: JSON.stringify({
+                    uuid: currentConversationUuid,
+                    action: action,
+                    feature_type: featureType,
+                    participant_emails: featureType === 'calendar' && action === 'create'
+                        ? getParticipantEmailsForRequest()
+                        : undefined,
+                }),
             })
                 .then(response => response.json())
                 .then(data => {

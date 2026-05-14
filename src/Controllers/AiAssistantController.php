@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\AssistantCalendar;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exceedone\Exment\Services\WorkflowService;
+use Illuminate\Support\Facades\Log;
 
 use Encore\Admin\Layout\Content;
 
@@ -121,9 +122,6 @@ class AiAssistantController extends AdminControllerBase
             'uuid' => 'required|uuid',
             'message' => 'required|string',
             'feature_type' => 'required|in:custom_table,workflow,calendar',
-            'calendar_targets' => 'sometimes|array',
-            'calendar_targets.users' => 'sometimes|array',
-            'calendar_targets.users.*' => 'integer',
         ]);
 
         $featureType = $validated['feature_type'];
@@ -148,8 +146,7 @@ class AiAssistantController extends AdminControllerBase
                 $responseMessage = $this->handleSendMessageCalendar(
                     $validated['uuid'],
                     $validated['message'],
-                    $conversable,
-                    $validated['calendar_targets'] ?? []
+                    $conversable
                 );
             }
 
@@ -189,6 +186,10 @@ class AiAssistantController extends AdminControllerBase
             'uuid' => 'required|uuid',
             'action' => 'required|in:edit,create,cancel',
             'feature_type' => 'required|in:custom_table,workflow,calendar',
+            'participants_emails' => 'sometimes|array',
+            'participants_emails.*' => 'email',
+            'participants_emails' => 'sometimes|array',
+            'participants_emails.*' => 'email',
         ]);
         $featureType = $validated['feature_type'];
 
@@ -260,7 +261,11 @@ class AiAssistantController extends AdminControllerBase
                                 : null;
                         }
                     } elseif ($featureType == 'calendar') {
-                        $responseMessage = $this->handleActionCreateCalendar($validated['uuid'], $conversable);
+                        $responseMessage = $this->handleActionCreateCalendar(
+                            $validated['uuid'],
+                            $conversable,
+                            $validated['participants_emails'] ?? []
+                        );
                     }
                     break;
                 case 'cancel':
@@ -331,7 +336,7 @@ class AiAssistantController extends AdminControllerBase
         return $this->mapAiAssistantErrorResponse($response);
     }
 
-    protected  function handleSendMessageCalendar(string $uuid, string $message, AssistantCalendar $assistant_calendar, array $calendarTargets = []): ?string {
+    protected  function handleSendMessageCalendar(string $uuid, string $message, AssistantCalendar $assistant_calendar): ?string {
         $endpoints = [
             'init' => 'store',
             'confirming_request_calendar' => 'store',
@@ -356,10 +361,10 @@ class AiAssistantController extends AdminControllerBase
             'message' => $message,
         ];
 
-        if ($assistant_calendar->status === 'init') {
-            $usersAndOrgs = $this->getOrganizationUsers($calendarTargets);
-            $payload['organization_users'] = json_encode($usersAndOrgs, JSON_THROW_ON_ERROR);
-        }
+        Log::info('Sending request to AI Assistant Calendar API', [
+            'endpoint' => $endpoint,
+            'payload' => $payload,
+        ]);
 
         $response = Http::withToken($this->bearerToken)->post($aiApiUrl, $payload);
 
@@ -470,13 +475,13 @@ class AiAssistantController extends AdminControllerBase
         ];
     }
 
-    protected function handleActionCreateCalendar(string $uuid, AssistantCalendar $assistant_calendar): ?string {
+    protected function handleActionCreateCalendar(string $uuid, AssistantCalendar $assistant_calendar, array $participantEmails = []): ?string {
         $login_user = \Exment::user();
-
         $response = Http::withToken($this->bearerToken)->post($this->aiAssistantServerUrl . 'assistant-calendar/' . 'confirm', [
             'uuid' => $uuid,
             'requester_name' => $login_user->name,
             'requester_email' => $login_user->email,
+            'participants_emails' => $this->normalizeEmailArray($participantEmails),
         ]);
 
         if ($response->successful()) {
@@ -580,92 +585,6 @@ class AiAssistantController extends AdminControllerBase
         }
     }
 
-    private function getOrganizationUsers(array $calendarTargets = [])
-    {
-        $selectedUserIds = $this->normalizeIdArray(array_get($calendarTargets, 'users', []));
-
-        if (empty($selectedUserIds)) {
-            return $this->getAllOrganizationUsers();
-        }
-
-        $organizationUsers = [];
-
-        if (!empty($selectedUserIds)) {
-            $users = \Exment::user()->base_user::whereIn('id', $selectedUserIds)->get();
-
-            foreach ($users as $user) {
-                if ($user->belong_organizations->isNotEmpty()) {
-                    foreach ($user->belong_organizations as $organization) {
-                        $groupKey = 'organization_' . $organization->id;
-
-                        if (!isset($organizationUsers[$groupKey])) {
-                            $organizationUsers[$groupKey] = [
-                                'organization' => $this->getOrganizationName($organization),
-                                'organization_id' => $organization->id,
-                                'users' => [],
-                            ];
-                        }
-
-                        $this->appendUserToOrganizationGroup($organizationUsers, $groupKey, $user);
-                    }
-                } else {
-                    $groupKey = 'unknown';
-
-                    if (!isset($organizationUsers[$groupKey])) {
-                        $organizationUsers[$groupKey] = [
-                            'organization' => 'unknown',
-                            'users' => [],
-                        ];
-                    }
-
-                    $this->appendUserToOrganizationGroup($organizationUsers, $groupKey, $user);
-                }
-            }
-        }
-
-        $this->appendRequesterGroup($organizationUsers);
-
-        return $this->formatOrganizationUsersForPayload($organizationUsers);
-    }
-
-    private function getAllOrganizationUsers()
-    {
-        $organizationUsers = [];
-        $users = \Exment::user()->base_user::all();
-
-        foreach ($users as $user) {
-            if ($user->belong_organizations->isNotEmpty()) {
-                foreach ($user->belong_organizations as $org) {
-                    $orgName = $this->getOrganizationName($org);
-
-                    if (!isset($organizationUsers[$orgName])) {
-                        $organizationUsers[$orgName] = [
-                            'organization' => $orgName,
-                            'organization_id' => $org->id,
-                            'users' => []
-                        ];
-                    }
-
-                    $this->appendUserToOrganizationGroup($organizationUsers, $orgName, $user);
-                }
-            } else {
-                $orgName = 'unknown';
-
-                if (!isset($organizationUsers[$orgName])) {
-                    $organizationUsers[$orgName] = [
-                        'organization' => $orgName,
-                        'users' => []
-                    ];
-                }
-                $this->appendUserToOrganizationGroup($organizationUsers, $orgName, $user);
-            }
-        }
-
-        $this->appendRequesterGroup($organizationUsers);
-
-        return $this->formatOrganizationUsersForPayload($organizationUsers);
-    }
-
     private function getCalendarTargetOptions(): array
     {
         $groups = [];
@@ -719,68 +638,19 @@ class AiAssistantController extends AdminControllerBase
         $groups[$groupKey]['users'][] = [
             'id' => $userId,
             'user_name' => $this->getUserName($user),
+            'email' => $this->getUserEmail($user),
         ];
     }
 
-    private function normalizeIdArray($values): array
+    private function normalizeEmailArray($values): array
     {
         if (!is_array($values)) {
             return [];
         }
 
         return array_values(array_unique(array_filter(array_map(function ($value) {
-            return filter_var($value, FILTER_VALIDATE_INT);
-        }, $values), function ($value) {
-            return $value !== false && $value > 0;
-        })));
-    }
-
-    private function appendUserToOrganizationGroup(array &$organizationUsers, string $groupKey, $user): void
-    {
-        $userId = $user->id;
-
-        foreach ($organizationUsers[$groupKey]['users'] as $existingUser) {
-            if (array_get($existingUser, 'id') === $userId) {
-                return;
-            }
-        }
-
-        $organizationUsers[$groupKey]['users'][] = [
-            'id' => $userId,
-            'user_name' => $this->getUserName($user),
-            'email' => $this->getUserEmail($user),
-        ];
-    }
-
-    private function appendRequesterGroup(array &$organizationUsers): void
-    {
-        $login_user = \Exment::user();
-        $organizationUsers['requester'] = [
-            'organization' => 'requester',
-            'users' => [
-                'user_name' => $login_user->name,
-                'email' => $login_user->email
-            ]
-        ];
-    }
-
-    private function formatOrganizationUsersForPayload(array $organizationUsers): array
-    {
-        return array_values(array_map(function ($group) {
-            if (array_get($group, 'organization') === 'requester') {
-                return $group;
-            }
-
-            unset($group['organization_id']);
-            $group['users'] = array_map(function ($user) {
-                return [
-                    'user_name' => array_get($user, 'user_name'),
-                    'email' => array_get($user, 'email'),
-                ];
-            }, $group['users']);
-
-            return $group;
-        }, $organizationUsers));
+            return filter_var($value, FILTER_VALIDATE_EMAIL) ?: null;
+        }, $values))));
     }
 
     private function getUserName($user): ?string
