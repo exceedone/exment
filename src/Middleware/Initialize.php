@@ -35,10 +35,10 @@ class Initialize
             // Check install directory
             if (!$this->isInstallPath($request)) {
                 // check has 'EXMENT_INITIALIZE' on .env directly
-                // if true, already installed
+                // if true, already installed but DB is unreachable — return 503 instead of redirecting to install
                 if (boolval(env('EXMENT_INITIALIZE', false))) {
-                    // Throwing error connecting database purposely.
-                    hasTable(SystemTableName::SYSTEM);
+                    \Log::error('Database connection failed during initialization. EXMENT_INITIALIZE is set to true, but DB is unreachable.');
+                    abort(503, 'Database connection failed. Please check your database settings in .env');
                 }
 
                 // If not initialized, return to install path

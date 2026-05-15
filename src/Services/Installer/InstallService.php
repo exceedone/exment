@@ -44,11 +44,18 @@ class InstallService
     {
         static::setSettingTmp();
 
-        if (\ExmentDB::canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0) {
+        // Hoist session status so we can use it in the shortcut check below.
+        $status = static::getInitializeStatus();
+
+        // Only shortcut to INITIALIZE when no install-wizard session is active.
+        // If $status is not null the user is mid-install; taking the shortcut here
+        // would redirect to /initialize while .env still has the old (wrong) credentials,
+        // causing an infinite redirect loop between /install and /initialize.
+        if (is_null($status) && \ExmentDB::canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0) {
             return InitializeStatus::INITIALIZE;
         }
 
-        if (is_null($status = static::getInitializeStatus())) {
+        if (is_null($status)) {
             return InitializeStatus::LANG;
         }
 

@@ -218,6 +218,7 @@ return [
         'error' => [
             'cannot_write_env' => 'Failed to write the setting file. Please check if you have write permission or if the file is not open.',
             'database_canconnection' => 'Could not connect to the database. Please check your settings.',
+            'initialize_error' => 'An error occurred during data initialization. Please check your database connection settings.',
             'mistake_mysql_mariadb' => 'The database you are using is :database, but you have selected :database_select. Please check the settings.',
             'not_require_php_version' => 'The PHP you are using is :current, but you have selected :min or more and less than :max. Please check the settings.',
             'not_require_database_version_min' => ':database requires at least version :min. The version used is :current.',

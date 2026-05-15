@@ -43,9 +43,10 @@ class InitializeForm
     public function post()
     {
         $request = request();
-        \DB::beginTransaction();
 
         try {
+            \DB::beginTransaction();
+
             $result = $this->postInitializeForm($request, 'initialize', true, true);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
@@ -88,8 +89,10 @@ class InitializeForm
 
             return redirect(admin_url('/'));
         } catch (\Exception $exception) {
-            //TODO:error handling
             DB::rollback();
+            return back()->withErrors([
+                'initialize_error' => exmtrans('install.error.initialize_error'),
+            ]);
         }
     }
 

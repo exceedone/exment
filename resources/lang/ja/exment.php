@@ -218,6 +218,7 @@ return [
         'error' => [
             'cannot_write_env' => '設定ファイルの書き込みに失敗しました。書き込み権限が設定されているか、ファイルが開かれていないかどうかをご確認ください。',
             'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
+            'initialize_error' => 'データの初期化中にエラーが発生しました。データベースの接続設定をご確認ください。',
             'mistake_mysql_mariadb' => 'お使いのデータベースは:databaseですが、:database_selectを選択しています。設定内容をご確認ください。',
             'not_require_php_version' => 'PHPはバージョン:min以上:max未満が必要です。ご利用のバージョンは:currentです。',
             'not_require_database_version_min' => ':databaseはバージョン:min以上が必要です。ご利用のバージョンは:currentです。',

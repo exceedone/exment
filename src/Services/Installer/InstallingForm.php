@@ -18,11 +18,14 @@ class InstallingForm
 
     public function post()
     {
+        // Merge session DB inputs with the APP_DEBUG flag from this form,
+        // then write everything to .env in one shot (EnvService deduplicates).
         try {
-            $inputs = [
-                'APP_DEBUG' => boolval(request()->get('APP_DEBUG')) ? 'true' : 'false'
-            ];
-            $this->setEnv($inputs);
+            $merged = array_merge(InstallService::getInputParams(), [
+                'APP_DEBUG' => boolval(request()->get('APP_DEBUG')) ? 'true' : 'false',
+            ]);
+            $this->setEnv($merged);
+            InstallService::setSettingTmp();
             InstallService::forgetInputParams();
         } catch (\Exception $ex) {
             return back()->withInput()->withErrors([
@@ -30,9 +33,21 @@ class InstallingForm
             ]);
         }
 
-        \Artisan::call('key:generate');
-        \Artisan::call('passport:keys');
-        \Artisan::call('exment:install');
+        if (!\ExmentDB::canConnection()) {
+            return back()->withInput()->withErrors([
+                'install_error' => exmtrans('install.error.database_canconnection'),
+            ]);
+        }
+
+        try {
+            \Artisan::call('key:generate');
+            \Artisan::call('passport:keys');
+            \Artisan::call('exment:install');
+        } catch (\Exception $ex) {
+            return back()->withInput()->withErrors([
+                'install_error' => exmtrans('install.error.database_canconnection'),
+            ]);
+        }
 
         InstallService::setInitializeStatus(InitializeStatus::INSTALLING);
 
