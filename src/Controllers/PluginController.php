@@ -194,6 +194,15 @@ class PluginController extends AdminControllerBase
             return false;
         }
 
+        // Block all edits for marketplace plugins with an expired or missing license.
+        if (!$plugin->local) {
+            $shouldBlock = (new PluginLicenseSyncService())->shouldBlockActivation((string) $plugin->plugin_name);
+            if ($shouldBlock) {
+                admin_toastr(exmtrans('plugin.message.activation_blocked'), 'error');
+                return back();
+            }
+        }
+
         // Block manual activation if paid plugin has no license or is expired beyond grace week.
         // Local plugins (uploaded directly) have no marketplace license — skip the check.
         $requestedActive = $request->boolean('active_flg');

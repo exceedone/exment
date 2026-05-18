@@ -158,7 +158,7 @@
                                     data-plugin-name="{{ $plugin['plugin_name'] ?? 'Plugin' }}"
                                     data-action="{{ $plugin['is_expired'] ? 'renew' : 'purchase' }}"
                                     {{ (empty($apiKey) || empty($plugin['display_uuid']) || !$plugin['is_active']) ? 'disabled' : '' }}>
-                                    {{ $plugin['is_expired'] ? exmtrans('plugin.market.renew') : exmtrans('plugin.market.payment') }}
+                                    {{ ($plugin['is_expired'] && ($plugin['is_installed'] ?? false)) ? exmtrans('plugin.market.renew') : exmtrans('plugin.market.payment') }}
                                 </button>
                             @endif
 
@@ -221,7 +221,7 @@
                                     <!-- Payment/Renew handled by purchase button above -->
                                 @endif
                             @endif
-                            @if($plugin['is_installed'] ?? false)
+                            @if(($plugin['is_installed'] ?? false) && !$plugin['is_expired'])
                                 <a href="{{ admin_url('plugin/' . $plugin['local_db_id'] . '/edit') }}" class="btn btn-default btn-sm">
                                     <i class="fa fa-cog"></i> {{ exmtrans('plugin.market.setting') }}
                                 </a>
