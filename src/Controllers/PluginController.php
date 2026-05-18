@@ -76,6 +76,27 @@ class PluginController extends AdminControllerBase
     }
 
     /**
+     * Block the edit form (GET) for marketplace plugins with an expired or missing license.
+     * Consistent with the update() guard: if saving is blocked, showing the form is misleading.
+     *
+     * @param mixed $id
+     * @param Content $content
+     * @return mixed
+     */
+    public function edit(Request $request, Content $content, $id)
+    {
+        $plugin = Plugin::getEloquent($id);
+        if ($plugin && !$plugin->local) {
+            $shouldBlock = (new PluginLicenseSyncService())->shouldBlockActivation((string) $plugin->plugin_name);
+            if ($shouldBlock) {
+                admin_toastr(exmtrans('plugin.message.activation_blocked'), 'error');
+                return redirect(admin_url('plugin-market'));
+            }
+        }
+        return parent::edit($request, $content, $id);
+    }
+
+    /**
      * Make a grid builder.
      *
      * @return Grid

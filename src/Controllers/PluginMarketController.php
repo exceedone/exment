@@ -593,6 +593,19 @@ class PluginMarketController extends AdminController
     public function index(Content $content)
     {
         PluginMarketClient::warnApiKey();
+
+        // Force a fresh license sync whenever the marketplace page is opened so that
+        // license changes on the server are reflected immediately without waiting for
+        // the normal 24-hour throttle window.  A short 5-minute throttle still prevents
+        // stampede on rapid page refreshes.
+        if (config('exment.ai_server_api_key')) {
+            try {
+                (new \Exceedone\Exment\Services\Plugin\PluginLicenseSyncService())->syncForced(5);
+            } catch (\Throwable $e) {
+                Log::warning('[PluginMarket] Force license sync failed: ' . $e->getMessage());
+            }
+        }
+
         try {
             // Get search parameters from request
             $request = request();
