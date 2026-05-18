@@ -312,12 +312,19 @@ class PluginLicenseSyncService
     }
 
     /**
-     * Returns true when the license is present and not expired beyond the grace period.
+     * Returns true when the license is present and not expired.
+     * Uses the server's authoritative `is_expired` flag directly — no client-side
+     * grace period is applied to the disable decision.
+     * The grace period (isExpiredOverGraceWeek) is kept only for warning emails.
      */
     protected function isLicenseValid(array $market): bool
     {
         $hasLicense = (bool) ($market['has_license'] ?? false);
-        return $hasLicense && !$this->isExpiredOverGraceWeek($market);
+        if (!$hasLicense) {
+            return false;
+        }
+        // `is_expired` from the API = expired_at->isPast() with no extra grace.
+        return !(bool) ($market['is_expired'] ?? false);
     }
 
     /**
