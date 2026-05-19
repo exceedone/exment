@@ -225,7 +225,7 @@ class AiAssistantController extends AdminControllerBase
                         if ($conversable->status === 'explained') {
                             $responseMessage = $this->handleSendMessageCustomTable($validated['uuid'], "", $conversable);
                             if ($responseMessage !== exmtrans('ai_assistant.ai_response.custom_table.table_exists')) {
-                                $showActionButtons = $conversable->status === 'needs_clarification' ? false : true;
+                                $showActionButtons = true;
                             }
                         } else {
                             $result = $this->handleActionCreateCustomTable(
