@@ -175,7 +175,7 @@ class ChatbotController extends BaseController
             }
 
             // 2. Search FAQ by vector similarity
-            $faqMatch = $this->chatbotService->findMostSimilarFaq($embedding, $similarityThreshold);
+            $faqMatch = $this->chatbotService->findMostSimilarFaq($embedding, $similarityThreshold, true);
             if ($faqMatch) {
                 return response()->json([
                     'success' => true,

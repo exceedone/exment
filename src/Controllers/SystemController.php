@@ -691,6 +691,7 @@ class SystemController extends AdminControllerBase
             $action_approve = '採用（FAQに追加）';
             $action_reject = '却下（不採用）';
             $action_re_request = '再審査を依頼';
+            $action_revert_to_review = '審査中に戻す';
         } else {
             // English
             $status_draft = 'Draft';
@@ -702,6 +703,7 @@ class SystemController extends AdminControllerBase
             $action_approve = 'Approve (Add to FAQ)';
             $action_reject = 'Reject (Not Adopted)';
             $action_re_request = 'Request Re-Review';
+            $action_revert_to_review = 'Revert to In Review';
         }
 
         $workflow = WorkflowService::createWorkflowForTable(
@@ -748,6 +750,15 @@ class SystemController extends AdminControllerBase
                     [
                         'action_name' => $action_re_request,
                         'status_from' => $status_rejected,
+                        'work_conditions' => '{"enabled_flg_0":"1","status_to_0":"' . $status_review . '","condition_join_0":"and"}',
+                        'user_id' => [1],
+                        'flow_next_type' => 'some',
+                        'flow_next_count' => 1,
+                        'comment_type' => null,
+                    ],
+                    [
+                        'action_name' => $action_revert_to_review,
+                        'status_from' => $status_approved,
                         'work_conditions' => '{"enabled_flg_0":"1","status_to_0":"' . $status_review . '","condition_join_0":"and"}',
                         'user_id' => [1],
                         'flow_next_type' => 'some',

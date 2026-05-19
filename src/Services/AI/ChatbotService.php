@@ -4,6 +4,9 @@ namespace Exceedone\Exment\Services\AI;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\System;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ChatbotService
 {
@@ -87,11 +90,9 @@ class ChatbotService
      * @param float $threshold The minimum similarity threshold.
      * @return array|null The most similar FAQ entry (id, question, answer, similarity), or null if none found.
      */
-    public function findMostSimilarFaq(array $embedding, float $threshold): ?array
+    public function findMostSimilarFaq(array $embedding, float $threshold, bool $filter): ?array
     {
-        $customTable = CustomTable::getEloquent(SystemTableName::CHATBOT_FAQ);
-        if (!$customTable) return null;
-        $faqs = $customTable->getValueModel()->all();
+        $faqs = $this->getFaqRecords($filter);
         $best = null;
         $bestSim = -1;
         foreach ($faqs as $faq) {
@@ -218,6 +219,20 @@ class ChatbotService
                 \Log::error('CHATBOT_FAQ table not found');
                 return null;
             }
+
+            $duplicateThreshold = config('exment.chatbot_similarity_threshold', 0.85);
+            $similarFaq = $this->findMostSimilarFaq($embedding, $duplicateThreshold, false);
+            if ($similarFaq) {
+                \Log::info('Skipped saving duplicate FAQ from AI answer', [
+                    'existing_faq_id' => $similarFaq['id'],
+                    'existing_question' => $similarFaq['question'],
+                    'new_question' => $question,
+                    'similarity' => $similarFaq['similarity'],
+                    'threshold' => $duplicateThreshold,
+                ]);
+                return null;
+            }
+
             // $maxDisplayOrder = $customTable->getValueModel()->max('value->display_order') ?? 0;
             $nextDisplayOrder = 0;
             $faqData = [
@@ -257,11 +272,10 @@ class ChatbotService
      */
     public function getAnswerChoices(array $embedding, float $threshold, int $limit = 3): array
     {
-        $customTable = CustomTable::getEloquent(SystemTableName::CHATBOT_FAQ);
-        if (!$customTable) return [];
-        $faqs = $customTable->getValueModel()->all();
+        $faqs = $this->getFaqRecords(true);
         $similarFaqs = [];
         foreach ($faqs as $faq) {
+            $value = $faq->value ?? [];
             $array_em = json_decode($faq->embedding_vector);
             if (empty($array_em) || !is_array($array_em)) continue;
             $sim = $this->cosineSimilarity($embedding, $array_em);
@@ -278,5 +292,25 @@ class ChatbotService
         return array_values(array_filter(array_map(function ($item) {
             return $item['answer'];
         }, array_slice($similarFaqs, 0, $limit))));
+    }
+
+    private function getFaqRecords(bool $filter)
+    {
+        $customTable = CustomTable::getEloquent(SystemTableName::CHATBOT_FAQ);
+        if (!$customTable) {
+            return [];
+        }
+
+        $records = $customTable->getValueModel()->all();
+
+        if ($filter) {
+            $filterArray = preg_split('/\r\n|\r|\n/', System::chatbot_faq_wf_status_filters());
+            $filterArray = array_filter(array_map('trim', $filterArray));
+
+            return $records->filter(function ($record) use ($filterArray) {
+                return in_array($record->workflow_status_name, $filterArray);
+            });
+        }
+        return $records;
     }
 }

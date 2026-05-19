@@ -69,7 +69,7 @@ class ChatbotFaqObserver
             return false;
         }
 
-        $model->embedding_vector = json_encode($embedding);
+        $model->embedding_vector = json_encode($embedding['embedding']);
         return true;
     }
 }
