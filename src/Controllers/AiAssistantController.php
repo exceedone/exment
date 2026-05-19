@@ -167,7 +167,7 @@ class AiAssistantController extends AdminControllerBase
             ], true);
             return response()->json([
                 'message' => $responseMessage,
-                'showActionButtons' => !$isError && $conversable->status === 'needs_clarification' ? false : true,
+                'showActionButtons' => !$isError && $conversable->status !== 'needs_clarification',
                 'uuid' => $conversable->id,
             ]);
 
