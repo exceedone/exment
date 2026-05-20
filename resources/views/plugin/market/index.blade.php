@@ -222,7 +222,7 @@
                                 @endif
                             @endif
                             @if(($plugin['is_installed'] ?? false) && !$plugin['is_expired'])
-                                <a href="{{ admin_url('plugin/' . $plugin['local_db_id'] . '/edit') }}" class="btn btn-default btn-sm">
+                                <a href="{{ route('plugin.market.edit', $plugin['local_db_id']) }}" class="btn btn-default btn-sm">
                                     <i class="fa fa-cog"></i> {{ exmtrans('plugin.market.setting') }}
                                 </a>
                             @else
