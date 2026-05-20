@@ -695,7 +695,7 @@ return [
             'plugin_not_found' => 'Plugin not found',
             'available' => 'Available',
             'unavailable' => 'Unavailable',
-            
+
             'search' => [
                 'title' => 'Plugin Search',
                 'keyword' => 'Keyword',
@@ -716,7 +716,7 @@ return [
                 'reset' => 'Reset',
                 'results_found' => ':count plugin(s) found',
             ],
-            
+
             'license_modal' => [
                 'title' => 'Enter License Key',
                 'plugin' => 'Plugin',
@@ -728,7 +728,7 @@ return [
                 'cancel' => 'Cancel',
                 'install' => 'Install Plugin',
             ],
-            
+
             'version_modal' => [
                 'title' => 'Select Version to Install',
                 'plugin' => 'Plugin',
@@ -741,7 +741,7 @@ return [
                 'install' => 'Install Plugin',
                 'latest' => 'Latest',
             ],
-            
+
             'detail' => [
                 'title' => 'Plugin Details',
                 'list' => 'List',
@@ -756,7 +756,7 @@ return [
                 'active_flg' => 'Active Flag',
                 'read_only' => 'Read-only view',
             ],
-            
+
             'message' => [
                 'install_success' => 'Plugin ":name" installed successfully!',
                 'uninstall_confirm' => 'Are you sure you want to uninstall ":name"?',
@@ -2979,7 +2979,7 @@ return [
             'notify'   => 'Notify',
         ],
         'calendar_targets' => [
-            'title' => 'Select calendar targets',
+            'title' => 'Please select the people you want to notify or invite to the schedule',
             'select_button' => 'Select targets',
             'search_placeholder' => 'Search',
             'select_visible' => 'Select visible',

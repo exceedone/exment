@@ -695,7 +695,7 @@ return [
             'plugin_not_found' => 'プラグインが見つかりません',
             'available' => '有効',
             'unavailable' => '無効',
-            
+
             'search' => [
                 'title' => 'プラグイン検索',
                 'keyword' => 'キーワード',
@@ -716,7 +716,7 @@ return [
                 'reset' => 'リセット',
                 'results_found' => ':count 件のプラグインが見つかりました',
             ],
-            
+
             'license_modal' => [
                 'title' => 'ライセンスキーを入力',
                 'plugin' => 'プラグイン',
@@ -728,7 +728,7 @@ return [
                 'cancel' => 'キャンセル',
                 'install' => 'プラグインをインストール',
             ],
-            
+
             'version_modal' => [
                 'title' => 'インストールするバージョンを選択',
                 'plugin' => 'プラグイン',
@@ -741,7 +741,7 @@ return [
                 'install' => 'プラグインをインストール',
                 'latest' => '最新',
             ],
-            
+
             'detail' => [
                 'title' => 'プラグイン詳細',
                 'list' => '一覧',
@@ -756,7 +756,7 @@ return [
                 'active_flg' => '有効フラグ',
                 'read_only' => '読み取り専用表示',
             ],
-            
+
             'message' => [
                 'install_success' => 'プラグイン":name"が正常にインストールされました！',
                 'uninstall_confirm' => 'プラグイン":name"をアンインストールしてもよろしいですか？',
@@ -805,7 +805,7 @@ return [
                 'payment_error' => '支払い処理中にエラーが発生しました',
             ],
         ],
-        
+
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -2995,7 +2995,7 @@ return [
             'notify'   => '通知',
         ],
         'calendar_targets' => [
-            'title' => 'カレンダー対象の選択',
+            'title' => '通知、またはスケジュールを送信する対象者を選択してください',
             'select_button' => '対象を選択',
             'search_placeholder' => '検索',
             'select_visible' => '表示中を選択',

@@ -178,7 +178,9 @@
     }
 
     .calendar-target-header h5 {
-        font-size: 1rem;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #111827;
         line-height: 1.4;
         margin: 0;
     }
@@ -231,8 +233,46 @@
         line-height: 1.35;
     }
 
+    .calendar-target-item {
+        position: relative;
+        align-items: center;
+        display: flex;
+        gap: 0.75rem;
+        min-height: 54px;
+        padding: 0.55rem 1rem 0.55rem 3.5rem;
+        border-bottom: 1px solid #f8fafc;
+    }
+
+    .calendar-target-item:last-child {
+        border-bottom: none;
+    }
+
     .calendar-target-item:hover {
-        background: #f8fafc;
+        background: #f1f5f9;
+    }
+
+    .calendar-target-item::before {
+        content: "";
+        position: absolute;
+        left: 1.5rem;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background-color: #cbd5e1;
+    }
+
+    .calendar-target-item::after {
+        content: "";
+        position: absolute;
+        left: 1.5rem;
+        top: 50%;
+        width: 1rem;
+        height: 1px;
+        background-color: #cbd5e1;
+    }
+
+    .calendar-target-item:last-child::before {
+        bottom: 50%;
     }
 
     .calendar-target-item input {
