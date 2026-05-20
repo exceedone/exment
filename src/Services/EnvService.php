@@ -48,7 +48,8 @@ class EnvService
             }
         }
 
-        file_put_contents($path, implode("\n", $newEnvs));
+        // Use exclusive lock to avoid concurrent write corruption.
+        file_put_contents($path, implode("\n", $newEnvs), LOCK_EX);
     }
 
 
@@ -127,6 +128,6 @@ class EnvService
             $lists[] = $entry;
         }
 
-        return $lists;
+        return empty($lists) ? null : $lists;
     }
 }

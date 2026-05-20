@@ -42,10 +42,18 @@ class InstallingForm
         try {
             \Artisan::call('key:generate');
             \Artisan::call('passport:keys');
-            \Artisan::call('exment:install');
+            $exitCode = \Artisan::call('exment:install');
+            if ($exitCode !== 0) {
+                $output = trim(\Artisan::output());
+                \Log::error('exment:install failed (exit ' . $exitCode . '): ' . $output);
+                return back()->withInput()->withErrors([
+                    'install_error' => $output ?: exmtrans('install.error.database_canconnection'),
+                ]);
+            }
         } catch (\Exception $ex) {
+            \Log::error('Exment install commands failed: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
-                'install_error' => exmtrans('install.error.database_canconnection'),
+                'install_error' => $ex->getMessage(),
             ]);
         }
 
