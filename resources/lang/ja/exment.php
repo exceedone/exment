@@ -695,7 +695,7 @@ return [
             'plugin_not_found' => 'プラグインが見つかりません',
             'available' => '有効',
             'unavailable' => '無効',
-            
+
             'search' => [
                 'title' => 'プラグイン検索',
                 'keyword' => 'キーワード',
@@ -716,7 +716,7 @@ return [
                 'reset' => 'リセット',
                 'results_found' => ':count 件のプラグインが見つかりました',
             ],
-            
+
             'license_modal' => [
                 'title' => 'ライセンスキーを入力',
                 'plugin' => 'プラグイン',
@@ -728,7 +728,7 @@ return [
                 'cancel' => 'キャンセル',
                 'install' => 'プラグインをインストール',
             ],
-            
+
             'version_modal' => [
                 'title' => 'インストールするバージョンを選択',
                 'plugin' => 'プラグイン',
@@ -741,7 +741,7 @@ return [
                 'install' => 'プラグインをインストール',
                 'latest' => '最新',
             ],
-            
+
             'detail' => [
                 'title' => 'プラグイン詳細',
                 'list' => '一覧',
@@ -756,7 +756,7 @@ return [
                 'active_flg' => '有効フラグ',
                 'read_only' => '読み取り専用表示',
             ],
-            
+
             'message' => [
                 'install_success' => 'プラグイン":name"が正常にインストールされました！',
                 'uninstall_confirm' => 'プラグイン":name"をアンインストールしてもよろしいですか？',
@@ -805,7 +805,7 @@ return [
                 'payment_error' => '支払い処理中にエラーが発生しました',
             ],
         ],
-        
+
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -2994,6 +2994,21 @@ return [
             'calendar' => 'スケジュール',
             'notify'   => '通知',
         ],
+        'calendar_targets' => [
+            'title' => '通知、またはスケジュールを送信する対象者を選択してください',
+            'select_button' => '対象を選択',
+            'search_placeholder' => '検索',
+            'select_visible' => '表示中を選択',
+            'clear' => 'クリア',
+            'apply' => '適用',
+            'cancel' => 'キャンセル',
+            'close' => '閉じる',
+            'no_targets' => 'カレンダー対象の絞り込みは選択されていません',
+            'selected_summary' => '選択中: ユーザー :users 件',
+            'selected_count' => 'ユーザー :users 件を選択中',
+            'organization_user_count' => ':count ユーザー',
+            'no_items' => '該当する項目がありません',
+        ],
         'error_message' => 'AIへの接続中にエラーが発生しました。',
         'error_start' => '会話の開始中にエラーが発生しました。',
         'error_connection' => 'サーバーへの接続中にエラーが発生しました。もう一度お試しください。',
@@ -3013,7 +3028,7 @@ return [
                 'confirmed' => 'データテーブルが作成されました。カスタムテーブルにアクセスして確認・編集できます。',
             ],
             'calendar' => [
-                'welcome' => '新しい:typeの作成をお手伝いさせていただきます。どうぞご依頼をお送りくださいませ。これは組織内のユーザーのリストです。',
+                'welcome' => '新しい:typeの作成をお手伝いさせていただきます。どうぞご依頼をお送りくださいませ。',
                 'suggested' => 'こちらがご提案の:typeです。ご確認の上、必要に応じて修正をご依頼ください。アクションボタンをクリックしてください。',
                 'confirming' => 'こちらが私が編集したデータテーブルです。ご確認の上、必要に応じて修正をご依頼ください。アクションボタンをクリックしてください。',
                 'confirmed' => 'メールが作成されました。メールにアクセスして確認・編集できます。',

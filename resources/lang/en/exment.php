@@ -695,7 +695,7 @@ return [
             'plugin_not_found' => 'Plugin not found',
             'available' => 'Available',
             'unavailable' => 'Unavailable',
-            
+
             'search' => [
                 'title' => 'Plugin Search',
                 'keyword' => 'Keyword',
@@ -716,7 +716,7 @@ return [
                 'reset' => 'Reset',
                 'results_found' => ':count plugin(s) found',
             ],
-            
+
             'license_modal' => [
                 'title' => 'Enter License Key',
                 'plugin' => 'Plugin',
@@ -728,7 +728,7 @@ return [
                 'cancel' => 'Cancel',
                 'install' => 'Install Plugin',
             ],
-            
+
             'version_modal' => [
                 'title' => 'Select Version to Install',
                 'plugin' => 'Plugin',
@@ -741,7 +741,7 @@ return [
                 'install' => 'Install Plugin',
                 'latest' => 'Latest',
             ],
-            
+
             'detail' => [
                 'title' => 'Plugin Details',
                 'list' => 'List',
@@ -756,7 +756,7 @@ return [
                 'active_flg' => 'Active Flag',
                 'read_only' => 'Read-only view',
             ],
-            
+
             'message' => [
                 'install_success' => 'Plugin ":name" installed successfully!',
                 'uninstall_confirm' => 'Are you sure you want to uninstall ":name"?',
@@ -2978,6 +2978,21 @@ return [
             'calendar' => 'Calendar',
             'notify'   => 'Notify',
         ],
+        'calendar_targets' => [
+            'title' => 'Please select the people you want to notify or invite to the schedule',
+            'select_button' => 'Select targets',
+            'search_placeholder' => 'Search',
+            'select_visible' => 'Select visible',
+            'clear' => 'Clear',
+            'apply' => 'Apply',
+            'cancel' => 'Cancel',
+            'close' => 'Close',
+            'no_targets' => 'No calendar target filter selected',
+            'selected_summary' => 'Selected: :users users',
+            'selected_count' => ':users users selected',
+            'organization_user_count' => ':count users',
+            'no_items' => 'No items found',
+        ],
         'error_message' => 'An error occurred while connecting to AI.',
         'error_start' => 'An error occurred while starting the conversation.',
         'error_connection' => 'An error occurred while connecting to the server. Please try again.',
@@ -2997,7 +3012,7 @@ return [
                 'confirmed' => 'The Data Table has been created, you can access the Custom Table to check and edit.',
             ],
             'calendar' => [
-                'welcome' => 'I would be happy to assist you in creating a new :type. Please send me a request. This is a list of users in your organization.',
+                'welcome' => 'I would be happy to assist you in creating a new :type. Please send me a request.',
                 'suggested' => 'Here is the :type I suggest for you. Please check it, and request modifications if you want. Please select the action buttons.',
                 'confirming' => 'Here is the :type I edit for you. Please check it, and request modifications if you want. Please select the action buttons.',
                 'confirmed' => 'The email has been created, you can access the Email to check and edit.',

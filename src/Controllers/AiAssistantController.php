@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\AssistantCalendar;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exceedone\Exment\Services\WorkflowService;
+use Illuminate\Support\Facades\Log;
 
 use Encore\Admin\Layout\Content;
 
@@ -83,16 +84,14 @@ class AiAssistantController extends AdminControllerBase
             case 'workflow':
                 AssistantWorkflow::where('created_user_id', $loginUserID)->delete();
                 $model = AssistantWorkflow::create(['status' => 'init']);
-                $userCustomTables = $this->getUserCustomTablesAvailable();
+                $userCustomTables = $this->getUserCustomTableLabelsAvailable();
                 $welcomeMessage = exmtrans('ai_assistant.ai_response.workflow.welcome');
                 $welcomeMessage .= "\r\n" . implode("\n", $userCustomTables);
                 break;
             case 'calendar':
                 AssistantCalendar::where('created_user_id', $loginUserID)->delete();
-                $usersAndOrgs = $this->getOrganizationUsers();
                 $model = AssistantCalendar::create(['status' => 'init']);
                 $welcomeMessage = exmtrans('ai_assistant.ai_response.calendar.welcome', ['type' => exmtrans('ai_assistant.feature.schedule_notifications')]);
-                $welcomeMessage .= "\r\n" . $this->formatOrganizationUsersAsString($usersAndOrgs);
                 break;
         }
 
@@ -109,6 +108,7 @@ class AiAssistantController extends AdminControllerBase
             'message' => $welcomeMessage,
             'uuid' => $model->id,
             'showActionButtons' => false,
+            'calendarTargets' => $validated['feature_type'] === 'calendar' ? $this->getCalendarTargetOptions() : null,
         ]);
     }
 
@@ -143,7 +143,11 @@ class AiAssistantController extends AdminControllerBase
             } elseif ($featureType == 'workflow') {
                 $responseMessage = $this->handleSendMessageWorkflow($validated['uuid'], $validated['message'], $conversable);
             } elseif ($featureType == 'calendar') {
-                $responseMessage = $this->handleSendMessageCalendar($validated['uuid'], $validated['message'], $conversable);
+                $responseMessage = $this->handleSendMessageCalendar(
+                    $validated['uuid'],
+                    $validated['message'],
+                    $conversable
+                );
             }
 
             $conversable->messages()->create([
@@ -163,7 +167,7 @@ class AiAssistantController extends AdminControllerBase
             ], true);
             return response()->json([
                 'message' => $responseMessage,
-                'showActionButtons' => !$isError,
+                'showActionButtons' => !$isError && $conversable->status !== 'needs_clarification',
                 'uuid' => $conversable->id,
             ]);
 
@@ -182,6 +186,10 @@ class AiAssistantController extends AdminControllerBase
             'uuid' => 'required|uuid',
             'action' => 'required|in:edit,create,cancel',
             'feature_type' => 'required|in:custom_table,workflow,calendar',
+            'participants_emails' => 'sometimes|array',
+            'participants_emails.*' => 'email',
+            'participants_emails' => 'sometimes|array',
+            'participants_emails.*' => 'email',
         ]);
         $featureType = $validated['feature_type'];
 
@@ -253,7 +261,11 @@ class AiAssistantController extends AdminControllerBase
                                 : null;
                         }
                     } elseif ($featureType == 'calendar') {
-                        $responseMessage = $this->handleActionCreateCalendar($validated['uuid'], $conversable);
+                        $responseMessage = $this->handleActionCreateCalendar(
+                            $validated['uuid'],
+                            $conversable,
+                            $validated['participants_emails'] ?? []
+                        );
                     }
                     break;
                 case 'cancel':
@@ -283,16 +295,16 @@ class AiAssistantController extends AdminControllerBase
     protected  function handleSendMessageCustomTable(string $uuid, string $message, AssistantTable $assistant_table): ?string {
         $endpoints = [
             'init' => 'explain',
+            'needs_clarification' => 'explain',
             'explained' => 'store',
             'confirming' => 'edit',
         ];
         $ai_messages = [
-            'init' => exmtrans('ai_assistant.ai_response.custom_table.explained'),
-            'explained' => exmtrans('ai_assistant.ai_response.custom_table.suggested'),
+            'explained' => exmtrans('ai_assistant.ai_response.custom_table.explained'),
+            'suggested' => exmtrans('ai_assistant.ai_response.custom_table.suggested'),
             'confirming' => exmtrans('ai_assistant.ai_response.custom_table.confirming'),
         ];
         $endpoint = $endpoints[$assistant_table->status] ?? 'store';
-        $ai_message = $ai_messages[$assistant_table->status];
         $aiApiUrl = $this->aiAssistantServerUrl . 'assistant-tables/' . $endpoint;
 
         $response = Http::withToken($this->bearerToken)->post($aiApiUrl, [
@@ -302,6 +314,7 @@ class AiAssistantController extends AdminControllerBase
 
         if ($response->successful()) {
             $data = $response->json();
+            $responseStatus = $data['status'] ?? $assistant_table->status;
 
             // Check Table Name
             $allCustomTables = $this->getAllCustomTables();
@@ -312,12 +325,18 @@ class AiAssistantController extends AdminControllerBase
             }
 
             $assistant_table->update([
-                'status' => $data['status'] ?? $assistant_table->status,
-                'table_draft_json' => $data['table_draft_json'] ?? null,
-                'column_draft_json' => $data['column_draft_json'] ?? null,
+                'status' => $responseStatus,
+                'table_draft_json' => $data['table_draft_json'] ?? $assistant_table->table_draft_json,
+                'column_draft_json' => $data['column_draft_json'] ?? $assistant_table->column_draft_json,
             ]);
 
-            return $ai_message . "\n" . $data['message'];
+            if ($responseStatus === 'needs_clarification') {
+                return $data['clarification_question'] ?? $data['message'];
+            }
+
+            $ai_message = $ai_messages[$responseStatus] ?? $ai_messages[$assistant_table->status] ?? '';
+
+            return trim($ai_message . "\n" . $data['message']);
         }
 
         // return exmtrans('ai_assistant.error_message');
@@ -349,10 +368,10 @@ class AiAssistantController extends AdminControllerBase
             'message' => $message,
         ];
 
-        if ($assistant_calendar->status === 'init') {
-            $usersAndOrgs = $this->getOrganizationUsers();
-            $payload['organization_users'] = json_encode($usersAndOrgs, JSON_THROW_ON_ERROR);
-        }
+        Log::info('Sending request to AI Assistant Calendar API', [
+            'endpoint' => $endpoint,
+            'payload' => $payload,
+        ]);
 
         $response = Http::withToken($this->bearerToken)->post($aiApiUrl, $payload);
 
@@ -463,13 +482,13 @@ class AiAssistantController extends AdminControllerBase
         ];
     }
 
-    protected function handleActionCreateCalendar(string $uuid, AssistantCalendar $assistant_calendar): ?string {
+    protected function handleActionCreateCalendar(string $uuid, AssistantCalendar $assistant_calendar, array $participantEmails = []): ?string {
         $login_user = \Exment::user();
-
         $response = Http::withToken($this->bearerToken)->post($this->aiAssistantServerUrl . 'assistant-calendar/' . 'confirm', [
             'uuid' => $uuid,
             'requester_name' => $login_user->name,
             'requester_email' => $login_user->email,
+            'participants_emails' => $this->normalizeEmailArray($participantEmails),
         ]);
 
         if ($response->successful()) {
@@ -573,80 +592,107 @@ class AiAssistantController extends AdminControllerBase
         }
     }
 
-    private function getOrganizationUsers()
+    private function getCalendarTargetOptions(): array
     {
-        $organizationUsers = [];
+        $groups = [];
         $users = \Exment::user()->base_user::all();
 
         foreach ($users as $user) {
-            $userName = $user->value['user_name'] ?? null;
-            $email = $user->value['email'] ?? null;
-
             if ($user->belong_organizations->isNotEmpty()) {
-                foreach ($user->belong_organizations as $org) {
-                    $orgName = $org->value['organization_name'] ?? 'unknown';
+                foreach ($user->belong_organizations as $organization) {
+                    $groupKey = 'organization_' . $organization->id;
 
-                    if (!isset($organizationUsers[$orgName])) {
-                        $organizationUsers[$orgName] = [
-                            'organization' => $orgName,
-                            'users' => []
+                    if (!isset($groups[$groupKey])) {
+                        $groups[$groupKey] = [
+                            'id' => $groupKey,
+                            'organization_name' => $this->getOrganizationName($organization),
+                            'users' => [],
                         ];
                     }
 
-                    $organizationUsers[$orgName]['users'][] = [
-                        'user_name' => $userName,
-                        'email' => $email
-                    ];
+                    $this->appendCalendarTargetUserToGroup($groups, $groupKey, $user);
                 }
             } else {
-                $orgName = 'unknown';
+                $groupKey = 'unknown';
 
-                if (!isset($organizationUsers[$orgName])) {
-                    $organizationUsers[$orgName] = [
-                        'organization' => $orgName,
-                        'users' => []
+                if (!isset($groups[$groupKey])) {
+                    $groups[$groupKey] = [
+                        'id' => $groupKey,
+                        'organization_name' => 'unknown',
+                        'users' => [],
                     ];
                 }
-                $organizationUsers[$orgName]['users'][] = [
-                    'user_name' => $userName,
-                    'email' => $email
-                ];
+
+                $this->appendCalendarTargetUserToGroup($groups, $groupKey, $user);
             }
         }
 
-        $login_user = \Exment::user();
-        $organizationUsers['requester'] = [
-            'organization' => 'requester',
-            'users' => [
-                'user_name' => $login_user->name,
-                'email' => $login_user->email
-            ]
+        return [
+            'groups' => array_values($groups),
         ];
-
-        return array_values($organizationUsers);
     }
 
-    private function formatOrganizationUsersAsString(array $usersAndOrgs): string
+    private function appendCalendarTargetUserToGroup(array &$groups, string $groupKey, $user): void
     {
-        $lines = [];
-        foreach ($usersAndOrgs as $group) {
-            if (isset($group['organization']) && $group['organization'] === 'requester') {
-                continue;
+        $userId = $user->id;
+
+        foreach ($groups[$groupKey]['users'] as $existingUser) {
+            if (array_get($existingUser, 'id') === $userId) {
+                return;
             }
-
-            $orgName = $group['organization'];
-            $userNames = array_map(function ($user) {
-                return $user['user_name'];
-            }, $group['users']);
-
-            $line = '+ ' . $orgName . ': ' . implode(', ', $userNames);
-            $lines[] = $line;
         }
 
-        return implode("\n", $lines);
+        $groups[$groupKey]['users'][] = [
+            'id' => $userId,
+            'user_name' => $this->getUserName($user),
+            'email' => $this->getUserEmail($user),
+        ];
+    }
+
+    private function normalizeEmailArray($values): array
+    {
+        if (!is_array($values)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map(function ($value) {
+            return filter_var($value, FILTER_VALIDATE_EMAIL) ?: null;
+        }, $values))));
+    }
+
+    private function getUserName($user): ?string
+    {
+        return $user->value['user_name'] ?? $user->name ?? null;
+    }
+
+    private function getUserEmail($user): ?string
+    {
+        return $user->value['email'] ?? $user->email ?? null;
+    }
+
+    private function getOrganizationName($organization): string
+    {
+        return $organization->value['organization_name'] ?? $organization->organization_name ?? 'unknown';
     }
 
     private function getUserCustomTablesAvailable(): array
+    {
+        return $this->getUserCustomTablesAvailableQuery()
+            ->pluck('table_name')
+            ->toArray();
+    }
+
+    private function getUserCustomTableLabelsAvailable(): array
+    {
+        return $this->getUserCustomTablesAvailableQuery()
+            ->get(['table_name', 'table_view_name'])
+            ->map(function ($customTable) {
+                return "{$customTable->table_name} ({$customTable->table_view_name})";
+            })
+            ->toArray();
+    }
+
+    private function getUserCustomTablesAvailableQuery()
     {
         $loginUser = \Exment::user();
         $today = \Carbon\Carbon::today()->toDateString();
@@ -660,9 +706,7 @@ class AiAssistantController extends AdminControllerBase
                     ->where(fn ($q) => $q->whereNull('active_end_date')
                         ->orWhere('active_end_date', '>=', $today))
                     ->whereHas('workflow', fn ($q) => $q->where('setting_completed_flg', 1));
-            })
-            ->pluck('table_name')
-            ->toArray();
+            });
     }
 
     private function getAllCustomTables(): array
