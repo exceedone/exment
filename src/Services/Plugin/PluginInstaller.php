@@ -48,6 +48,10 @@ class PluginInstaller
                 //TODO:error
             }
 
+            // Validate all ZIP entries for path traversal BEFORE extracting.
+            // Prevents ZIP Slip: an attacker cannot write files outside $tmpfolderfullpath.
+            static::validateZipEntries($zip);
+
             //Get folder into zip file
             //Check existed file config (config.json)
             $config_path = null;
@@ -100,6 +104,33 @@ class PluginInstaller
             // delete zip
             if (isset($diskService)) {
                 $diskService->deleteTmpDirectory();
+            }
+        }
+    }
+
+    /**
+     * Validate all entries in a ZipArchive before extraction.
+     *
+     * Throws RuntimeException if any entry contains a path traversal sequence ('..')
+     * or is an absolute path, preventing ZIP Slip attacks.
+     *
+     * @param ZipArchive $zip
+     * @throws \RuntimeException
+     */
+    protected static function validateZipEntries(ZipArchive $zip): void
+    {
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entryName = $zip->getNameIndex($i);
+            if ($entryName === false) {
+                continue;
+            }
+            // Reject path traversal sequences.
+            if (strpos($entryName, '..') !== false) {
+                throw new \RuntimeException('Invalid ZIP entry detected (path traversal): ' . $entryName);
+            }
+            // Reject absolute Unix paths ('/...') and Windows drive paths ('C:\...').
+            if (substr($entryName, 0, 1) === '/' || (strlen($entryName) > 1 && $entryName[1] === ':')) {
+                throw new \RuntimeException('Invalid ZIP entry detected (absolute path): ' . $entryName);
             }
         }
     }

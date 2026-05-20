@@ -58,7 +58,13 @@ class ZipService
 
         $output = [];
         $dir7zip = path_join(config('exment.7zip_dir'), '7z.exe');
-        exec('"' . $dir7zip . '" a -p' . $password . ' "' . $zipFullPath . '" "' . $tmpFolderPath . '/*"', $output);
+        // escapeshellarg() handles quoting and escaping for all dynamic arguments.
+        exec(
+            escapeshellarg($dir7zip) . ' a -p' . escapeshellarg($password)
+            . ' ' . escapeshellarg($zipFullPath)
+            . ' ' . escapeshellarg($tmpFolderPath . '/*'),
+            $output
+        );
     }
 
     protected static function execPasswordZipLinux($zipFullPath, $tmpFolderPath, $password)
@@ -67,8 +73,14 @@ class ZipService
             throw new \Exception();
         }
 
-        $output = [];
-        $cmd = '(cd ' . $tmpFolderPath . ' && zip -e --password=' . $password . ' ' . $zipFullPath . ' ./*)';
+        // escapeshellarg() wraps each argument in single quotes, preventing shell
+        // metacharacter expansion even when paths contain spaces or special chars.
+        $cmd = sprintf(
+            '(cd %s && zip -e --password=%s %s ./*)',
+            escapeshellarg($tmpFolderPath),
+            escapeshellarg($password),
+            escapeshellarg($zipFullPath)
+        );
 
         exec($cmd);
     }

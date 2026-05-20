@@ -191,7 +191,7 @@ class ClassBuilder
                 ->addUse("\Exceedone\Exment\Model\CustomValue")
                 ->extend("CustomValue")
                 ->addProperty("protected", 'table', "'".getDBTableName($table)."'")
-                ->addMethod("public", "getCustomTableNameAttribute()", "return '".$table->table_name."';")
+                ->addMethod("public", "getCustomTableNameAttribute()", "return ".var_export($table->table_name, true).";")
                 //->addProperty("public", 'custom_table_name', "'".$table->table_name."'")
         ;
 
