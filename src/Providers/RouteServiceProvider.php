@@ -145,6 +145,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('plugin-market/checkout/purchase', 'PluginMarketController@checkoutPurchase')->name('plugin.market.checkout.purchase');
             // NOTE: plugin-market/{id}/versions must be before plugin-market/{id} to avoid segment capture.
             $router->get('plugin-market/{id}/versions', 'PluginMarketController@pluginVersions')->name('plugin.market.versions');
+            $router->get('plugin-market/{id}/edit', 'PluginController@edit')->name('plugin.market.edit');
+            $router->put('plugin-market/{id}', 'PluginController@update')->name('plugin.market.setting.update');
+            $router->patch('plugin-market/{id}', 'PluginController@update');
+            $router->delete('plugin-market/{id}', 'PluginController@destroy')->name('plugin.market.setting.delete');
             $router->get('plugin-market/{id}', 'PluginMarketController@show')->name('plugin.market.show');
             $router->post('plugin-market/{id}/install', 'PluginMarketController@install')->name('plugin.market.install');
             $router->post('plugin-market/{id}/update', 'PluginMarketController@update')->name('plugin.market.update');
