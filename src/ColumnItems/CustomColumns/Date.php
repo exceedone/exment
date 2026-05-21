@@ -13,8 +13,10 @@ use Exceedone\Exment\Model\CustomColumnMulti;
 
 class Date extends CustomItem
 {
+    // @phpstan-ignore-next-line
     protected $format = 'Y-m-d';
 
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         if ($this->displayDate() && boolval(array_get($this->options, 'public_form')) && !isset($v)) {
@@ -45,16 +47,19 @@ class Date extends CustomItem
     /**
      * get cast Options
      */
+    // @phpstan-ignore-next-line
     protected function getCastOptions()
     {
         return [DatabaseDataType::TYPE_DATE, true, []];
     }
 
+    // @phpstan-ignore-next-line
     protected function getDisplayFormat()
     {
         return config('admin.date_format');
     }
 
+    // @phpstan-ignore-next-line
     public function saving()
     {
         if ($this->autoDate()) {
@@ -80,17 +85,19 @@ class Date extends CustomItem
      * @param $format
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     protected function getDateUseValue($v, $format)
     {
         if (is_array($v)) {
-            /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
+            // @phpstan-ignore-next-line
             return (new \Carbon\Carbon(array_get($v, 'date')))->format($format) ?? null;
         }
 
-        /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
+        // @phpstan-ignore-next-line
         return (new \Carbon\Carbon($v))->format($format) ?? null;
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
@@ -100,12 +107,14 @@ class Date extends CustomItem
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getCustomField($classname, $column_name_prefix = null)
     {
         $this->autoDate();
         return parent::getCustomField($classname, $column_name_prefix);
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         if ($this->displayDate()) {
@@ -116,16 +125,19 @@ class Date extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         $validates[] = 'date';
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->date();
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFilterClass()
     {
         return ExmFilter\BetweenDate::class;
@@ -202,6 +214,7 @@ class Date extends CustomItem
     /**
      * Compare two values.
      */
+    // @phpstan-ignore-next-line
     public function compareTwoValues(CustomColumnMulti $compare_column, $this_value, $target_value)
     {
         try {

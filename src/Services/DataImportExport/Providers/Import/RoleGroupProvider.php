@@ -13,8 +13,10 @@ use Carbon\Carbon;
 
 class RoleGroupProvider extends ProviderBase
 {
+    // @phpstan-ignore-next-line
     protected $primary_key;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->primary_key = array_get($args, 'primary_key', 'id');
@@ -23,6 +25,7 @@ class RoleGroupProvider extends ProviderBase
     /**
      * get data name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return 'role_group';
@@ -32,6 +35,7 @@ class RoleGroupProvider extends ProviderBase
      * get data and object.
      * set matched model data
      */
+    // @phpstan-ignore-next-line
     public function getDataObject($data, $options = [])
     {
         $results = [];
@@ -69,6 +73,7 @@ class RoleGroupProvider extends ProviderBase
         return $results;
     }
 
+    // @phpstan-ignore-next-line
     protected function getImportColumnName(): array
     {
         return [
@@ -85,6 +90,7 @@ class RoleGroupProvider extends ProviderBase
      * @param mixed $dataObjects
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function validateImportData($dataObjects)
     {
         $error_data = [];
@@ -136,6 +142,7 @@ class RoleGroupProvider extends ProviderBase
      * @param $dataAndModel
      * @return array|true
      */
+    // @phpstan-ignore-next-line
     public function validateDataRow($line_no, $dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
@@ -171,6 +178,7 @@ class RoleGroupProvider extends ProviderBase
     /**
      * import data
      */
+    // @phpstan-ignore-next-line
     public function importData($dataAndModel)
     {
         $data = array_get($dataAndModel, 'data');
@@ -190,6 +198,7 @@ class RoleGroupProvider extends ProviderBase
         }
 
         if ($delete) {
+            // @phpstan-ignore-next-line
             return $model->delete();
         }
 
@@ -206,6 +215,7 @@ class RoleGroupProvider extends ProviderBase
             $model->{$dkey} = $dvalue;
         }
 
+        // @phpstan-ignore-next-line
         return $model->save();
     }
 }

@@ -15,6 +15,10 @@ class Bootstrap
 {
     use BootstrapTrait;
 
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         $this->setCssJs($request, $next);
@@ -109,7 +113,7 @@ class Bootstrap
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }
-        /** @phpstan-ignore-next-line jslast() expects null, string given */
+        // @phpstan-ignore-next-line
         Ad::jslast(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // delete object

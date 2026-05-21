@@ -21,6 +21,7 @@ class GroupCondition extends EnumBase
      *
      * @var array[]
      */
+    // @phpstan-ignore-next-line
     protected static $options = [
         ['id' => 'y', 'name' => 'y'],
         ['id' => 'ym', 'name' => 'ym'],

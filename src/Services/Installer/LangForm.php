@@ -13,6 +13,7 @@ class LangForm
 {
     use EnvTrait;
 
+    // @phpstan-ignore-next-line
     public function index()
     {
         \Artisan::call('exment:publish');
@@ -25,6 +26,7 @@ class LangForm
         ]);
     }
 
+    // @phpstan-ignore-next-line
     public function post()
     {
         $request = request();

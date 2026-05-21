@@ -15,6 +15,7 @@ class JoinedOrgFilterType extends EnumBase
     /**
      * whether getting upper line organization
      */
+    // @phpstan-ignore-next-line
     public static function isGetUpper($filterType)
     {
         $enum = static::getEnum($filterType);
@@ -24,6 +25,7 @@ class JoinedOrgFilterType extends EnumBase
     /**
      * whether getting down line organization
      */
+    // @phpstan-ignore-next-line
     public static function isGetDowner($filterType)
     {
         $enum = static::getEnum($filterType);

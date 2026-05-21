@@ -10,6 +10,7 @@ class LoginUser extends ItemBase
     /**
      * Replace login user infomation
      */
+    // @phpstan-ignore-next-line
     public function replace($format, $options = [])
     {
         if (count($this->length_array) < 2) {

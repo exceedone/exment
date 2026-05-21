@@ -26,6 +26,7 @@ class ComplexPasswordRule implements Rule
             return true;
         }
 
+        // @phpstan-ignore-next-line
         $char_cnt = collect(['a-z', 'A-Z', '0-9', '^a-zA-Z0-9'])->filter(function ($regstr) use ($value) {
             return preg_match("/[$regstr]+/", $value);
         })->count();

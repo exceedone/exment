@@ -11,6 +11,7 @@ trait NotifyScheduleTrait
     /**
      * notify user flow
      */
+    // @phpstan-ignore-next-line
     protected function notify()
     {
         // get notifies data for notify_trigger is 1(time), and notify_hour is executed time

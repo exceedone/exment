@@ -7,13 +7,16 @@ use Exceedone\Exment\Enums\DashboardType;
 
 class DashboardMenu
 {
+    // @phpstan-ignore-next-line
     protected $current_dashboard;
 
+    // @phpstan-ignore-next-line
     public function __construct($current_dashboard)
     {
         $this->current_dashboard = $current_dashboard;
     }
 
+    // @phpstan-ignore-next-line
     public function render()
     {
         $systemdashboards = [];

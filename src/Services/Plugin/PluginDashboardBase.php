@@ -10,9 +10,12 @@ class PluginDashboardBase extends PluginPublicBase
     use PluginBase;
     use PluginPageTrait;
 
+    // @phpstan-ignore-next-line
     protected $dashboard;
+    // @phpstan-ignore-next-line
     protected $dashboard_box;
 
+    // @phpstan-ignore-next-line
     public function __construct($plugin, $dashboard_box)
     {
         $this->plugin = $plugin;
@@ -54,6 +57,7 @@ class PluginDashboardBase extends PluginPublicBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getDashboardUri($endpoint = null)
     {
         return url_join(

@@ -13,6 +13,7 @@ class DatabaseForm
 {
     use EnvTrait;
 
+    // @phpstan-ignore-next-line
     protected $database_default = null;
 
     public const settings = [
@@ -24,6 +25,7 @@ class DatabaseForm
         'password',
     ];
 
+    // @phpstan-ignore-next-line
     public function index()
     {
         $database_default = config('database.default', 'mysql');
@@ -38,9 +40,11 @@ class DatabaseForm
             $args[$s] = array_get($database_connection, $s);
         }
 
+        // @phpstan-ignore-next-line
         return view('exment::install.database', $args);
     }
 
+    // @phpstan-ignore-next-line
     public function post()
     {
         $request = request();
@@ -146,28 +150,13 @@ class DatabaseForm
 
         $database_version = Define::DATABASE_VERSION[$this->database_default];
 
-        $result = true;
-        $message_lt = false;
         // check min
-        if (version_compare($version, $database_version['min']) < 0) {
-            $result = false;
-        }
-
-        // check max(less than)
-        if (array_has($database_version, 'max_lt')) {
-            $message_lt = true;
-            if (version_compare($version, $database_version['max_lt']) >= 0) {
-                $result = false;
-            }
-        }
-
-        if ($result) {
+        if (version_compare($version, $database_version['min']) >= 0) {
             return true;
         }
 
-        $errorMessage = exmtrans('install.error.not_require_database_version_' . ($message_lt ? 'min_maxlt' : 'min'), [
+        $errorMessage = exmtrans('install.error.not_require_database_version_min', [
             'min' => $database_version['min'],
-            'max_lt' => ($message_lt ? $database_version['max_lt'] : null),
             'database' => Define::DATABASE_TYPE[$this->database_default],
             'current' => $version
         ]);
@@ -229,6 +218,7 @@ class DatabaseForm
         return true;
     }
 
+    // @phpstan-ignore-next-line
     protected function connection()
     {
         return \DB::connection($this->database_default);

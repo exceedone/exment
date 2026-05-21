@@ -13,6 +13,7 @@ class UpdateHelper extends UpdateHelperBase
      * @param array $dependencies key is labrary name, value is version. If newest version,Please set "*".
      * @return $this
      */
+    // @phpstan-ignore-next-line
     public function require(array $dependencies)
     {
         foreach ($dependencies as $name => $version) {

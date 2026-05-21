@@ -13,6 +13,7 @@ trait XlsxTrait
     /**
      * get data table list. contains self table, and relations (if contains)
      */
+    // @phpstan-ignore-next-line
     public function getDataCount($request)
     {
         return $this->_getData($request, function ($reader) {

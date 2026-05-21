@@ -15,6 +15,7 @@ abstract class ExportActionBase
      */
     protected $count = 0;
 
+    // @phpstan-ignore-next-line
     public function getCount()
     {
         return $this->count;

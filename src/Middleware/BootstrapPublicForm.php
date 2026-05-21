@@ -14,6 +14,10 @@ class BootstrapPublicForm
 {
     use BootstrapTrait;
 
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         $this->setCssJs($request, $next);
@@ -85,6 +89,9 @@ class BootstrapPublicForm
     }
 
 
+    /**
+     * @return void
+     */
     public static function setPublicFormCssJs(?PublicForm $public_form)
     {
         if ($public_form) {

@@ -27,7 +27,7 @@ class ImportCommand extends Command
     /**
      * full path stored bulk insert files.
      *
-     * @var string
+     * @var string|null
      */
     protected $directory;
 

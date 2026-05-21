@@ -48,6 +48,8 @@ class BatchCommand extends Command
 
     /**
      * Execute Plugin Batch
+     *
+     * @return int
      */
     protected function pluginBatch()
     {
@@ -77,6 +79,11 @@ class BatchCommand extends Command
         return $result;
     }
 
+    /**
+     * Find plugin by id, name, or uuid
+     *
+     * @return \Exceedone\Exment\Model\Plugin|null
+     */
     protected function findPlugin()
     {
         // Execute batch. *Batch can execute if active_flg is false, so get value directly.

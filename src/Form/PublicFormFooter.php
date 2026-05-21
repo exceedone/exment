@@ -66,7 +66,7 @@ class PublicFormFooter extends FooterBase
      */
     public function render()
     {
-        /** @phpstan-ignore-next-line Maybe mistake laravel-admin type */
+        // @phpstan-ignore-next-line
         return parent::render()->with([
             'useRecaptchaV2' => $this->useRecaptchaV2,
             'useRecaptchaV3' => $this->useRecaptchaV3,

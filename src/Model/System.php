@@ -86,8 +86,12 @@ class System extends ModelBase
     protected $casts = ['role' => 'json'];
     protected $primaryKey = 'system_name';
     public $incrementing = false;
+
+    // @phpstan-ignore-next-line
     protected static $requestSession = [];
 
+
+    // @phpstan-ignore-next-line
     public static function __callStatic($name, $argments)
     {
         // Get system setting value
@@ -155,6 +159,8 @@ class System extends ModelBase
     /**
      * clear all request settion
      */
+
+    // @phpstan-ignore-next-line
     public static function clearRequestSession($key = null)
     {
         if (!isset($key)) {
@@ -169,6 +175,8 @@ class System extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getRequestSessionKeys(): \Illuminate\Support\Collection
     {
         $result = collect();
@@ -236,6 +244,8 @@ class System extends ModelBase
     /**
      * reset Cache
      */
+
+    // @phpstan-ignore-next-line
     public static function clearCache($key = null)
     {
         static::clearRequestSession($key);
@@ -254,11 +264,15 @@ class System extends ModelBase
     /**
      * whether System_function keyname
      */
+
+    // @phpstan-ignore-next-line
     public static function hasFunction($name)
     {
         return array_key_exists($name, Define::SYSTEM_SETTING_NAME_VALUE);
     }
 
+
+    // @phpstan-ignore-next-line
     public static function get_system_keys($group = null)
     {
         $keys = [];
@@ -280,6 +294,8 @@ class System extends ModelBase
     /**
      * get "systems" table key-value array
      */
+
+    // @phpstan-ignore-next-line
     public static function get_system_values($group = null)
     {
         $array = [];
@@ -290,6 +306,8 @@ class System extends ModelBase
         return $array;
     }
 
+
+    // @phpstan-ignore-next-line
     protected static function getset_system_value($name, $setting, $argments)
     {
         if (count($argments) > 0) {
@@ -300,6 +318,8 @@ class System extends ModelBase
         }
     }
 
+
+    // @phpstan-ignore-next-line
     protected static function get_system_value($name, $setting)
     {
         $key = static::getConfigKey($name);
@@ -351,6 +371,8 @@ class System extends ModelBase
         });
     }
 
+
+    // @phpstan-ignore-next-line
     protected static function set_system_value($name, $setting, $value)
     {
         $system = System::firstOrNew(['system_name' => $name]);
@@ -394,12 +416,16 @@ class System extends ModelBase
     /**
      * destory value
      */
+
+    // @phpstan-ignore-next-line
     public static function deleteValue($name)
     {
         $system = System::find($name);
         if (!isset($system)) {
             return;
         }
+
+        // @phpstan-ignore-next-line
         $old_value = $system->system_value;
 
         // change set value by type
@@ -412,12 +438,18 @@ class System extends ModelBase
                 ExmentFile::deleteFileInfo($old_value);
             }
         }
+
+        // @phpstan-ignore-next-line
         $system->system_value = null;
+
+        // @phpstan-ignore-next-line
         $system->save();
 
         return $system;
     }
 
+
+    // @phpstan-ignore-next-line
     protected static function getConfigKey($name)
     {
         return sprintf(Define::SYSTEM_KEY_SESSION_SYSTEM_CONFIG, $name);

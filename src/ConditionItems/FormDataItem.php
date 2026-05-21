@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 class FormDataItem extends ConditionDetailBase implements ConditionItemInterface
 {
+    // @phpstan-ignore-next-line
     public function getFilterOption()
     {
         return $this->getFilterOptionConditon();

@@ -23,6 +23,7 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
     /**
      * get adapter class
      */
+    // @phpstan-ignore-next-line
     public static function getAdapter($app, $config, $driverKey)
     {
         $mergeConfig = static::getConfig($config);
@@ -48,6 +49,7 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
         return new self($client, array_get($mergeConfig, 'bucket'));
     }
 
+    // @phpstan-ignore-next-line
     public static function getMergeConfigKeys(string $mergeFrom, array $options = []): array
     {
         return [
@@ -61,6 +63,7 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
      * @param array $config
      * @return array
      */
+    // @phpstan-ignore-next-line
     public static function getConfig($config): array
     {
         $mergeFrom = array_get($config, 'mergeFrom');

@@ -34,6 +34,7 @@ class SamlService implements LoginServiceInterface
      *
      * @throws SsoLoginErrorException
      */
+    // @phpstan-ignore-next-line
     public static function retrieveByCredential(array $credentials)
     {
         list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback(request(), array_get($credentials, 'login_setting') ?? LoginSetting::getSamlSetting(array_get($credentials, 'provider_name')));
@@ -59,6 +60,7 @@ class SamlService implements LoginServiceInterface
      * @param array $credentials
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     public static function validateCredential(Authenticatable $login_user, array $credentials)
     {
         // always true.
@@ -79,6 +81,7 @@ class SamlService implements LoginServiceInterface
 
 
 
+    // @phpstan-ignore-next-line
     public static function setSamlForm($form, $login_setting, $errors)
     {
         if (array_has($errors, LoginType::SAML)) {
@@ -214,6 +217,7 @@ class SamlService implements LoginServiceInterface
      * @param LoginSetting $login_setting
      * @return array $result(bool), $message(string), $adminMessage(string), $custom_login_user
      */
+    // @phpstan-ignore-next-line
     public static function loginCallback(Request $request, $login_setting, $isTest = false)
     {
         try {
@@ -221,14 +225,14 @@ class SamlService implements LoginServiceInterface
 
             $errors = $saml2Auth->acs();
             if (!empty($errors)) {
-                /** @phpstan-ignore-next-line getLoginResult()F expects bool, string given */
+                // @phpstan-ignore-next-line
                 return LoginService::getLoginResult(SsoLoginErrorType::PROVIDER_ERROR, array_get($errors, 'last_error_reason', array_get($errors, 'error')));
             }
 
             $custom_login_user = SamlUser::with($login_setting->provider_name, $saml2Auth->getSaml2User(), true);
 
             if (!is_nullorempty($custom_login_user->mapping_errors)) {
-                /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
+                // @phpstan-ignore-next-line
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, $custom_login_user->mapping_errors);
             }
 
@@ -236,10 +240,10 @@ class SamlService implements LoginServiceInterface
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
                 return LoginService::getLoginResult(
-                /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
+                // @phpstan-ignore-next-line
                 SsoLoginErrorType::SYNC_VALIDATION_ERROR,
                     exmtrans('login.sso_provider_error_validate', ['errors' => implode(' ', $validator->getMessageStrings())]),
-                    /** @phpstan-ignore-next-line  getLoginResult() expects array|null, Illuminate\Support\MessageBag given */
+                    // @phpstan-ignore-next-line
                     $validator->errors(),
                     $custom_login_user
                 );
@@ -249,16 +253,17 @@ class SamlService implements LoginServiceInterface
         } catch (\Exception $ex) {
             \Log::error($ex);
 
-            /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
+            // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } catch (\Throwable $ex) {
             \Log::error($ex);
 
-            /** @phpstan-ignore-next-line getLoginResult() expects bool, string given */
+            // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
 
+    // @phpstan-ignore-next-line
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting)
     {
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);

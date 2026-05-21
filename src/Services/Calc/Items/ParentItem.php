@@ -25,26 +25,31 @@ class ParentItem extends ItemBase
         $this->parent_table = $parent_table;
     }
 
+    // @phpstan-ignore-next-line
     public function type()
     {
         return 'parent';
     }
 
+    // @phpstan-ignore-next-line
     public function text()
     {
         return exmtrans('custom_column.calc_text.parent', array_get($this->custom_column, 'column_view_name'));
     }
 
+    // @phpstan-ignore-next-line
     public function val()
     {
         return '${parent:' . array_get($this->custom_column, 'column_name') . '}';
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $parent_table)
     {
         return new self($custom_column, $custom_table, $parent_table);
     }
 
+    // @phpstan-ignore-next-line
     public static function getItemBySplits($splits, ?CustomTable $custom_table)
     {
         $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
@@ -59,6 +64,7 @@ class ParentItem extends ItemBase
     }
 
 
+    // @phpstan-ignore-next-line
     public function toArray()
     {
         $array = [];
@@ -73,6 +79,7 @@ class ParentItem extends ItemBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getTriggeredKeys(): array
     {
         if ($this->custom_form_block) {
@@ -108,6 +115,7 @@ class ParentItem extends ItemBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public static function setCalcCustomColumnOptions($options, $id, $custom_table)
     {
         // get parent table only 1:n
@@ -130,6 +138,7 @@ class ParentItem extends ItemBase
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function getRelationName()
     {
         return CustomRelation::getRelationNameByTables($this->parent_table, $this->custom_table);

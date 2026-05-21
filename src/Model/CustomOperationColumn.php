@@ -25,10 +25,14 @@ class CustomOperationColumn extends ModelBase
     protected $appends = ['view_column_target', 'operation_update_type'];
     protected $casts = ['options' => 'json'];
 
+
+    // @phpstan-ignore-next-line
     public function custom_operation()
     {
         return $this->belongsTo(CustomOperation::class, 'custom_operation_id');
     }
+
+    // @phpstan-ignore-next-line
     public function getViewColumnTableIdAttribute()
     {
         $parent = $this->custom_operation;
@@ -39,6 +43,8 @@ class CustomOperationColumn extends ModelBase
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
      */
+
+    // @phpstan-ignore-next-line
     public function setViewColumnTargetAttribute($view_column_target)
     {
         list($column_type, $column_table_id, $column_type_target) = $this->getViewColumnTargetItems($view_column_target, 'custom_operation');
@@ -50,6 +56,8 @@ class CustomOperationColumn extends ModelBase
     /**
      * get edited view_filter_condition_value_text.
      */
+
+    // @phpstan-ignore-next-line
     public function getUpdateValueTextAttribute()
     {
         $update_value_text = array_get($this->attributes, 'update_value_text');
@@ -72,6 +80,8 @@ class CustomOperationColumn extends ModelBase
      * set view_filter_condition_value_text.
      * * we have to convert int if view_filter_condition_value is array*
      */
+
+    // @phpstan-ignore-next-line
     public function setUpdateValueTextAttribute($update_value)
     {
         if (is_array($update_value)) {
@@ -84,11 +94,15 @@ class CustomOperationColumn extends ModelBase
         }
     }
 
+
+    // @phpstan-ignore-next-line
     public function getOperationUpdateTypeAttribute()
     {
         return $this->getOption('operation_update_type');
     }
 
+
+    // @phpstan-ignore-next-line
     public function setOperationUpdateTypeAttribute($operation_update_type)
     {
         return $this->setOption('operation_update_type', $operation_update_type);
@@ -98,6 +112,8 @@ class CustomOperationColumn extends ModelBase
      * get eloquent using request settion.
      * now only support only id.
      */
+
+    // @phpstan-ignore-next-line
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);

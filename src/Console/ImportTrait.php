@@ -10,6 +10,9 @@ trait ImportTrait
     /**
      * get file names in target folder (filter extension)
      *
+     * @param string $ext
+     * @param bool $include_sub
+     * @return array<int, \SplFileInfo>
      */
     private function getFiles($ext = 'tsv', $include_sub = false)
     {

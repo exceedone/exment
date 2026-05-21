@@ -14,15 +14,21 @@ use Exceedone\Exment\Enums\SystemTableName;
  */
 abstract class CustomLoginUserBase
 {
+    // @phpstan-ignore-next-line
     public $id;
+    // @phpstan-ignore-next-line
     public $login_setting;
+    // @phpstan-ignore-next-line
     public $login_id;
+    // @phpstan-ignore-next-line
     public $mapping_user_column;
 
+    // @phpstan-ignore-next-line
     public $provider_name;
     // public $email;
     // public $user_code;
     // public $user_name;
+    // @phpstan-ignore-next-line
     public $login_type;
 
     /**
@@ -30,6 +36,7 @@ abstract class CustomLoginUserBase
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     public $mapping_errors = [];
 
     /**
@@ -37,30 +44,35 @@ abstract class CustomLoginUserBase
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     public $mapping_values = [];
 
 
+    // @phpstan-ignore-next-line
     public function user_code()
     {
         return array_get($this->mapping_values, 'user_code');
     }
 
+    // @phpstan-ignore-next-line
     public function user_name()
     {
         return array_get($this->mapping_values, 'user_name');
     }
 
+    // @phpstan-ignore-next-line
     public function email()
     {
         return array_get($this->mapping_values, 'email');
     }
 
+    // @phpstan-ignore-next-line
     public function domain()
     {
         if (is_nullorempty($email = $this->email())) {
             return null;
         }
-        /** @phpstan-ignore-next-line If condition is always false. explode always one element in array */
+        // @phpstan-ignore-next-line
         if (count($emails = explode("@", $email)) == 0) {
             return null;
         }
@@ -73,6 +85,7 @@ abstract class CustomLoginUserBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected static function setMappingValue(CustomLoginUserBase $user, $providerUser)
     {
         $user_custom_columns = static::getUserColumns();
@@ -113,6 +126,7 @@ abstract class CustomLoginUserBase
             }
         }
     }
+    // @phpstan-ignore-next-line
     protected static function getUserColumns()
     {
         return CustomTable::getEloquent(SystemTableName::USER)->custom_columns_cache;

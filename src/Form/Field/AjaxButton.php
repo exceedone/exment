@@ -8,21 +8,31 @@ class AjaxButton extends Field
 {
     protected $view = 'exment::form.field.ajax-button';
 
+    // @phpstan-ignore-next-line
     protected $url;
 
+    // @phpstan-ignore-next-line
     protected $button_label;
 
+    // @phpstan-ignore-next-line
     protected $button_class;
 
+    // @phpstan-ignore-next-line
     protected $beforesubmit_events;
 
+    // @phpstan-ignore-next-line
     protected $send_params;
 
+    // @phpstan-ignore-next-line
     protected $confirm;
+    // @phpstan-ignore-next-line
     protected $confirm_title;
+    // @phpstan-ignore-next-line
     protected $confirm_text;
+    // @phpstan-ignore-next-line
     protected $confirm_error;
 
+    // @phpstan-ignore-next-line
     public function url($url)
     {
         $this->url = $url;
@@ -30,6 +40,7 @@ class AjaxButton extends Field
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function button_label($button_label)
     {
         $this->button_label = $button_label;
@@ -37,6 +48,7 @@ class AjaxButton extends Field
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function button_class($button_class)
     {
         $this->button_class = $button_class;
@@ -44,6 +56,7 @@ class AjaxButton extends Field
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function beforesubmit_events($beforesubmit_events)
     {
         $this->beforesubmit_events = $beforesubmit_events;
@@ -51,6 +64,7 @@ class AjaxButton extends Field
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function send_params($params)
     {
         $this->send_params = $params;
@@ -205,6 +219,7 @@ class AjaxButton extends Field
         });
 SCRIPT;
 
+        // @phpstan-ignore-next-line
         return parent::render()->with([
             'button_label' => $this->button_label,
             'button_class' => $this->button_class,

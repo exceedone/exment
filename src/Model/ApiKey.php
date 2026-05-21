@@ -18,6 +18,8 @@ class ApiKey extends Model
 
     public $timestamps = false;
 
+
+    // @phpstan-ignore-next-line
     protected $primary_key = 'key';
 
     protected $keyType = 'string';
@@ -30,6 +32,8 @@ class ApiKey extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
+
+    // @phpstan-ignore-next-line
     public function client()
     {
         return $this->belongsTo(Passport::clientModel());

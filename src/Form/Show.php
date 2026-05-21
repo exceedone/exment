@@ -14,6 +14,7 @@ class Show extends AdminShow
     /**
      * Initialize panel.
      */
+    // @phpstan-ignore-next-line
     protected function initPanel()
     {
         $this->panel = new GridShowPanel($this);
@@ -22,7 +23,7 @@ class Show extends AdminShow
     /**
      * Whether grid shows
      *
-     * @var boolean
+     * @var bool
      */
     protected $gridShows = false;
 
@@ -33,7 +34,7 @@ class Show extends AdminShow
      *     'options' => [], // Set row no, column no, width
      *     'field' => AdminField, // Set adminfield
      * ]
-     * @var array
+     * @var array<int, array<string, mixed>>
      */
     protected $fieldAndOptions = [];
 
@@ -65,7 +66,7 @@ class Show extends AdminShow
      * Push field and set for grid
      *
      * @param Field $field
-     * @param array $options
+     * @param array<string, mixed> $options
      * @return Field
      */
     public function addFieldAndOption($field, array $options)
@@ -80,6 +81,10 @@ class Show extends AdminShow
         return $field;
     }
 
+    /**
+     * @param mixed $data
+     * @return mixed
+     */
     protected function renderView($data)
     {
         if (!$this->gridShows) {

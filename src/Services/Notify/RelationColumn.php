@@ -31,6 +31,7 @@ class RelationColumn extends Column
      */
     protected $relationTable;
 
+    // @phpstan-ignore-next-line
     public function __construct(Notify $notify, array $action_setting, $column)
     {
         $this->notify = $notify;
@@ -40,6 +41,7 @@ class RelationColumn extends Column
         $this->column = !is_nullorempty($column) ? CustomColumn::getEloquent(explode('?', $column)[0]) : null;
     }
 
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         $result = collect();

@@ -23,6 +23,7 @@ class CaptchaRule implements Rule
     protected $version;
 
     /** @var  array */
+    // @phpstan-ignore-next-line
     protected $skipIps = [];
 
     /* -----------------------------------------------------------------
@@ -69,6 +70,7 @@ class CaptchaRule implements Rule
      *
      * @return $this
      */
+    // @phpstan-ignore-next-line
     public function skipIps($ip)
     {
         $this->skipIps = Arr::wrap($ip);

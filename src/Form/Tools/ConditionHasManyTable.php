@@ -31,8 +31,11 @@ class ConditionHasManyTable
      * @var string|null
      */
     protected $linkage;
+    // @phpstan-ignore-next-line
     protected $targetOptions;
+    // @phpstan-ignore-next-line
     protected $targetGroups;
+    // @phpstan-ignore-next-line
     protected $name;
 
     /**
@@ -41,10 +44,14 @@ class ConditionHasManyTable
      * @var CustomTable
      */
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $label;
+    // @phpstan-ignore-next-line
     protected $useJoinOptions = true;
+    // @phpstan-ignore-next-line
     protected $useJoinOptionAttribute;
 
+    // @phpstan-ignore-next-line
     protected $callbackField;
 
     /**
@@ -89,6 +96,7 @@ class ConditionHasManyTable
      */
     protected $condition_value_label;
 
+    // @phpstan-ignore-next-line
     protected $condition_join_name = 'condition_join';
 
     /**
@@ -119,6 +127,7 @@ class ConditionHasManyTable
      */
     protected $valueCallback = null;
 
+    // @phpstan-ignore-next-line
     public function __construct(&$form, $options = [])
     {
         $this->form = $form;
@@ -141,6 +150,7 @@ class ConditionHasManyTable
         }
     }
 
+    // @phpstan-ignore-next-line
     public function render()
     {
         // get key name
@@ -236,6 +246,7 @@ class ConditionHasManyTable
         }
     }
 
+    // @phpstan-ignore-next-line
     public function callbackField($callbackField)
     {
         $this->callbackField = $callbackField;

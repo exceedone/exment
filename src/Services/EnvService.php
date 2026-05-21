@@ -7,6 +7,7 @@ namespace Exceedone\Exment\Services;
  */
 class EnvService
 {
+    // @phpstan-ignore-next-line
     public static function setEnv($data = [], $matchRemove = false)
     {
         if (empty($data)) {
@@ -20,13 +21,14 @@ class EnvService
 
 
         // Loop through .env-data
+        // @phpstan-ignore-next-line
         foreach ($env as $env_value) {
 
             // Turn the value into an array and stop after the first split
             // So it's not possible to split e.g. the App-Key by accident
             $entry = explode("=", $env_value, 2);
 
-            /** @phpstan-ignore-next-line If condition is always false. */
+            // @phpstan-ignore-next-line
             if (count($entry) == 0) {
                 $newEnvs[] = $entry;
                 continue;
@@ -86,6 +88,7 @@ class EnvService
         return $value;
     }
 
+    // @phpstan-ignore-next-line
     public static function removeEnv($data = [])
     {
         if (empty($data)) {
@@ -94,6 +97,7 @@ class EnvService
         static::setEnv($data, true);
     }
 
+    // @phpstan-ignore-next-line
     public static function getEnv($key, $path = null, $matchPrefix = false)
     {
         if (empty($key)) {
@@ -123,7 +127,7 @@ class EnvService
             // So it's not possible to split e.g. the App-Key by accident
             $entry = array_map('trim', explode("=", $env_value, 2));
 
-            /** @phpstan-ignore-next-line If condition is always false. */
+            // @phpstan-ignore-next-line
             if (count($entry) == 0) {
                 continue;
             }

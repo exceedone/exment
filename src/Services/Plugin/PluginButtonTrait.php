@@ -19,6 +19,7 @@ trait PluginButtonTrait
      * @param array $options
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function _initButton($plugin, $custom_table, $custom_value, $options = [])
     {
         $this->plugin = $plugin;
@@ -31,6 +32,7 @@ trait PluginButtonTrait
         }
     }
 
+    // @phpstan-ignore-next-line
     public function getButtonLabel()
     {
         // get label

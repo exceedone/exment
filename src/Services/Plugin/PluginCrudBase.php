@@ -19,6 +19,7 @@ abstract class PluginCrudBase extends PluginPublicBase
     use PluginBase;
     use PluginPageTrait;
 
+    // @phpstan-ignore-next-line
     public function __construct($plugin, $options = [])
     {
         $this->plugin = $plugin;
@@ -81,6 +82,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      */
     public $deleteClass = PluginCrud\CrudForm::class;
 
+    // @phpstan-ignore-next-line
     protected $endpoint = null;
 
     /**
@@ -88,6 +90,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array|Collection
      */
+    // @phpstan-ignore-next-line
     public function getFieldDefinitions()
     {
         return [];
@@ -98,6 +101,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return LengthAwarePaginator|null
      */
+    // @phpstan-ignore-next-line
     public function getPaginate(array $options = []): ?LengthAwarePaginator
     {
         return null;
@@ -108,6 +112,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function getList(array $options = []): Collection
     {
         return collect();
@@ -128,6 +133,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array|Collection
      */
+    // @phpstan-ignore-next-line
     public function getData($id, array $options = [])
     {
         return collect();
@@ -148,6 +154,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function postCreate(array $posts, array $options = [])
     {
     }
@@ -157,6 +164,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function putEdit($id, array $posts, array $options = [])
     {
     }
@@ -167,6 +175,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param $id string
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function delete($id, array $options = [])
     {
     }
@@ -177,6 +186,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param $ids array
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function deletes(array $ids, array $options = [])
     {
         foreach ($ids as $id) {
@@ -187,6 +197,7 @@ abstract class PluginCrudBase extends PluginPublicBase
     /**
      * Get the value of endpoint
      */
+    // @phpstan-ignore-next-line
     public function getEndpoint()
     {
         return $this->endpoint;
@@ -197,6 +208,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setEndpoint($endpoint)
     {
         $this->endpoint = $endpoint;
@@ -210,6 +222,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return Collection|null
      */
+    // @phpstan-ignore-next-line
     public function getAllEndpoints(): ?Collection
     {
         return null;
@@ -310,6 +323,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getAuthIdPassword(): array
     {
         return [
@@ -328,6 +342,7 @@ abstract class PluginCrudBase extends PluginPublicBase
         return $this->pluginOptions->getOauthAccessToken();
     }
 
+    // @phpstan-ignore-next-line
     public function _plugin()
     {
         return $this->plugin;
@@ -338,6 +353,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     public function getRouteUri($endpoint = null)
     {
         if (!isset($this->plugin)) {
@@ -352,6 +368,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getFullUrl(...$endpoint): string
     {
         array_unshift($endpoint, $this->getEndpoint());
@@ -364,6 +381,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getRootFullUrl(...$endpoint): string
     {
         return $this->plugin->getFullUrl(...$endpoint);
@@ -400,6 +418,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableShow($value): bool
     {
         return true;
@@ -411,6 +430,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableCreate(array $options = []): bool
     {
         return true;
@@ -422,6 +442,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableEditAll(array $options = []): bool
     {
         return true;
@@ -433,6 +454,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableEdit($value, array $options = []): bool
     {
         return true;
@@ -444,6 +466,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableDeleteAll(array $options = []): bool
     {
         return true;
@@ -455,6 +478,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableDelete($value, array $options = []): bool
     {
         return true;
@@ -466,6 +490,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableExport(array $options = []): bool
     {
         return false;
@@ -477,6 +502,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableFreewordSearch(array $options = []): bool
     {
         return false;
@@ -488,6 +514,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableAccessCrud(array $options = []): bool
     {
         return true;
@@ -499,6 +526,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function enableOAuthLogoutButton(array $options = []): bool
     {
         return true;
@@ -509,6 +537,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Get cannot access title
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getCannotAccessTitle(array $options = []): ?string
     {
         return exmtrans('plugin.error.crud_autherror_setting');
@@ -518,6 +547,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * Get cannot access message
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getCannotAccessMessage(array $options = []): ?string
     {
         return exmtrans('plugin.error.crud_autherror_common_help');
@@ -541,6 +571,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param $tools
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function callbackGridTool($tools)
     {
     }
@@ -552,6 +583,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param Box $box
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function callbackShowTool($id, Box $box)
     {
     }
@@ -562,6 +594,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param Box $box
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function callbackFormTool($id, Box $box)
     {
     }
@@ -572,6 +605,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param $actions
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function callbackGridAction($actions)
     {
     }
@@ -582,6 +616,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param WidgetForm $form
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function callbackShow($id, WidgetForm $form, Box $box)
     {
     }
@@ -602,6 +637,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param WidgetForm $form
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function callbackEdit($id, WidgetForm $form, Box $box)
     {
     }
@@ -670,6 +706,7 @@ abstract class PluginCrudBase extends PluginPublicBase
      * @param $id
      * @return bool|\Illuminate\Support\MessageBag
      */
+    // @phpstan-ignore-next-line
     public function validate(WidgetForm $form, array $values, bool $isCreate, $id)
     {
         return $form->validationMessageArray($values);

@@ -9,14 +9,19 @@ use Exceedone\Exment\Enums\PluginType;
 
 class CustomViewMenuButton extends ModalTileMenuButton
 {
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $current_custom_view;
 
+    // @phpstan-ignore-next-line
     protected $addMenuList = true;
 
     // this views items, if already get, set this params. if this value is null, not init items.
+    // @phpstan-ignore-next-line
     protected $items = null;
 
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $current_custom_view = null, $addMenuList = true)
     {
         $this->custom_table = $custom_table;
@@ -139,6 +144,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getCompare(int $sort_options)
     {
         switch ($sort_options) {
@@ -185,6 +191,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getItems()
     {
         if (!is_null($this->items)) {

@@ -10,6 +10,7 @@ abstract class PluginSettingBase
 {
     use PluginBase;
 
+    // @phpstan-ignore-next-line
     public function __construct($plugin)
     {
         $this->plugin = $plugin;

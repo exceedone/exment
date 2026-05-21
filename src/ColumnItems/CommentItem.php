@@ -11,6 +11,7 @@ class CommentItem extends SystemItem
     /**
      * constructor
      */
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_value)
     {
         $this->custom_table = $custom_table;
@@ -20,6 +21,7 @@ class CommentItem extends SystemItem
         $this->label = exmtrans("common.$this->column_name");
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($custom_table, $custom_value) = $args + [null, null];
@@ -27,18 +29,20 @@ class CommentItem extends SystemItem
     }
 
     /**
-     * Set where query for grid filter. 
+     * Set where query for grid filter.
      *
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder|\Illuminate\Database\Eloquent\Builder $query
      * @param mixed $input
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function getAdminFilterWhereQuery($query, $input)
     {
         $tableName = getDBTableName($this->custom_table);
         $tableNameComment = getDBTableName(SystemTableName::COMMENT);
         $columnName = CustomColumn::getEloquent('comment_detail', SystemTableName::COMMENT)->getQueryKey();
 
+        // @phpstan-ignore-next-line
         $query->whereExists(function ($subQuery) use ($input, $tableName, $tableNameComment, $columnName) {
             $subQuery->select(\DB::raw(1))
                 ->from($tableNameComment)

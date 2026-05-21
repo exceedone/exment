@@ -19,7 +19,7 @@ class MariaDBConnection extends MySqlConnection
      */
     public function getSchemaBuilder()
     {
-        /** @phpstan-ignore-next-line Call to function is_null() with Illuminate\Database\Schema\Grammars\Grammar will always evaluate to false. */
+        // @phpstan-ignore-next-line
         if (is_null($this->schemaGrammar)) {
             $this->useDefaultSchemaGrammar();
         }

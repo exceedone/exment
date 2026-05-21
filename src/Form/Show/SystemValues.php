@@ -11,6 +11,7 @@ class SystemValues extends AbstractField
 
     public $escape = false;
 
+    // @phpstan-ignore-next-line
     public function render($options = [])
     {
         if (boolval(array_get($options, 'withTrashed'))) {

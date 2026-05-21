@@ -12,8 +12,10 @@ class FileRule implements Rule
 {
     use ValidatesAttributes;
 
+    // @phpstan-ignore-next-line
     protected $extensions = [];
 
+    // @phpstan-ignore-next-line
     public function __construct(array $extensions = [])
     {
         $this->extensions = $extensions;
@@ -51,6 +53,7 @@ class FileRule implements Rule
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function validateExtension($attribute, $value)
     {
         if (is_string($value)) {

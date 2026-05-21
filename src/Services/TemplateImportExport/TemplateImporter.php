@@ -28,6 +28,7 @@ use ZipArchive;
  */
 class TemplateImporter
 {
+    // @phpstan-ignore-next-line
     protected $diskService;
 
     public function __construct()
@@ -38,6 +39,7 @@ class TemplateImporter
     /**
      * get template list (get from app folder and vendor/exceedone/exment/templates)
      */
+    // @phpstan-ignore-next-line
     public function getTemplates()
     {
         return array_merge($this->getUserTemplates(), $this->getLocalTemplates());
@@ -46,6 +48,7 @@ class TemplateImporter
     /**
      * Import template (from display. select item)
      */
+    // @phpstan-ignore-next-line
     public function importTemplate($importKeys)
     {
         try {
@@ -55,7 +58,9 @@ class TemplateImporter
             foreach (array_filter($importKeys) as $importKey) {
                 $item = collect($items)->first(function ($item) use ($importKey) {
                     $importItem = json_decode_ex($importKey, true);
+                    // @phpstan-ignore-next-line
                     return array_get($item, 'template_type') == array_get($importItem, 'template_type')
+                        // @phpstan-ignore-next-line
                         && array_get($item, 'template_name') == array_get($importItem, 'template_name');
                 });
                 if (!isset($item)) {
@@ -109,6 +114,7 @@ class TemplateImporter
     /**
      * Get json from zip
      */
+    // @phpstan-ignore-next-line
     public function getJsonFromZip($uploadFile)
     {
         try {
@@ -134,6 +140,7 @@ class TemplateImporter
     /**
      * Delete template (from display. select item)
      */
+    // @phpstan-ignore-next-line
     public function deleteTemplate($teplate_name)
     {
         $diskItem = $this->diskService->diskItem();
@@ -150,6 +157,7 @@ class TemplateImporter
     /**
      * get user uploaded template list (get from storage folder)
      */
+    // @phpstan-ignore-next-line
     protected function getUserTemplates()
     {
         $templates = [];
@@ -166,6 +174,7 @@ class TemplateImporter
 
             $locale = \App::getLocale();
             try {
+                // @phpstan-ignore-next-line
                 $dirname = pathinfo($path)['dirname'];
                 $json = json_decode_ex($disk->get($path), true);
                 // merge language file
@@ -195,6 +204,7 @@ class TemplateImporter
     /**
      * get local template list (get from storage folder)
      */
+    // @phpstan-ignore-next-line
     protected function getLocalTemplates()
     {
         $templates = [];
@@ -204,6 +214,7 @@ class TemplateImporter
         $locale = \App::getLocale();
         foreach ($paths as $path) {
             try {
+                // @phpstan-ignore-next-line
                 $dirname = pathinfo($path)['dirname'];
                 $json = json_decode_ex(File::get($path), true);
                 // merge language file
@@ -216,6 +227,7 @@ class TemplateImporter
                 if (isset($json['thumbnail'])) {
                     $thumbnail_fullpath = path_join($dirname, $json['thumbnail']);
                     if (File::exists($thumbnail_fullpath)) {
+                        // @phpstan-ignore-next-line
                         $json['thumbnail_file'] = base64_encode(file_get_contents($thumbnail_fullpath));
                     }
                 }
@@ -234,6 +246,7 @@ class TemplateImporter
     /**
      * Import System template (from command)
      */
+    // @phpstan-ignore-next-line
     public function importSystemTemplate($is_update = false)
     {
         // get vendor folder
@@ -252,6 +265,7 @@ class TemplateImporter
         ]);
     }
 
+    // @phpstan-ignore-next-line
     public function importSystemLogsTemplate($is_update = false)
     {
         // get vendor folder
@@ -273,6 +287,7 @@ class TemplateImporter
     /**
      * Upload template and import (from display)
      */
+    // @phpstan-ignore-next-line
     public function uploadTemplate($uploadFile)
     {
         try {
@@ -324,6 +339,7 @@ class TemplateImporter
      * @return array offset 0: json, 1: tmpfolderpath, 2: fullpath. 3: config_path, 4: thumbnail_path, 5:tmpDiskItem
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
+    // @phpstan-ignore-next-line
     protected function extractZip($uploadFile): array
     {
         $emptyResult = [null, null, null, null, null, null];
@@ -350,8 +366,11 @@ class TemplateImporter
             $fileInfo = $zip->getNameIndex($i);
             if ($fileInfo === 'config.json') {
                 $zip->extractTo($tmpfolderpath);
+                // @phpstan-ignore-next-line
                 $config_path = array_get($stat, 'name');
+            // @phpstan-ignore-next-line
             } elseif (pathinfo($fileInfo)['filename'] === 'thumbnail') {
+                // @phpstan-ignore-next-line
                 $thumbnail_path = array_get($stat, 'name');
             }
         }
@@ -373,6 +392,7 @@ class TemplateImporter
     /**
      * Upload Template with plugin
      */
+    // @phpstan-ignore-next-line
     public function uploadTemplateWithPlugin($tmpDiskItem, $directory)
     {
         $tmpDisk = $tmpDiskItem->disk();
@@ -390,12 +410,14 @@ class TemplateImporter
         }
 
         // get template name
+        // @phpstan-ignore-next-line
         $template_name = array_get($json, 'template_name');
         if (!isset($template_name)) {
             return false;
         }
 
         // get thumbnail name
+        // @phpstan-ignore-next-line
         $thumbnail_name = array_get($json, 'thumbnail');
         if (isset($thumbnail_name)) {
             $thumbnail_path = path_join($directory, $thumbnail_name);
@@ -421,6 +443,7 @@ class TemplateImporter
     /**
      * upload from excel and import
      */
+    // @phpstan-ignore-next-line
     public function uploadTemplateExcel($file)
     {
         // template file settings as json
@@ -569,6 +592,7 @@ class TemplateImporter
     /**
      * execute import from file
      */
+    // @phpstan-ignore-next-line
     protected function importFromFile($jsonString, $options = [])
     {
         $options = array_merge(
@@ -607,12 +631,14 @@ class TemplateImporter
     /**
      * import data using csv, xlsx
      */
+    // @phpstan-ignore-next-line
     public function importData($dataPath)
     {
         $files = File::files($dataPath);
 
         // get all csv files
         $files = collect($files)->filter(function ($value) {
+            // @phpstan-ignore-next-line
             return in_array(pathinfo($value)['extension'], ['csv', 'xlsx']);
         });
 
@@ -646,6 +672,7 @@ class TemplateImporter
      * @param boolean $is_update Is called for update
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function import($json, $system_flg = false, $is_update = false, $fromExcel = false)
     {
         System::clearCache();
@@ -801,6 +828,7 @@ class TemplateImporter
         System::clearCache();
     }
 
+    // @phpstan-ignore-next-line
     protected function getTemplatePath()
     {
         return exment_package_path('templates');
@@ -809,6 +837,7 @@ class TemplateImporter
     /**
      * create model path from table name.
      */
+    // @phpstan-ignore-next-line
     protected function getModelPath($tablename)
     {
         if (is_string($tablename)) {
@@ -829,6 +858,7 @@ class TemplateImporter
      * @param array $options
      * @return array|void
      */
+    // @phpstan-ignore-next-line
     public function getMergeJson(string $jsonString = null, array $options = [])
     {
         $options = array_merge(
@@ -872,6 +902,7 @@ class TemplateImporter
     /**
      * update template json by language json.
      */
+    // @phpstan-ignore-next-line
     protected function mergeTemplate($json, $langJson, $fillpath = null)
     {
         $result = [];

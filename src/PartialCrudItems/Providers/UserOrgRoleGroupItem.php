@@ -17,6 +17,7 @@ class UserOrgRoleGroupItem extends ProviderBase
     /**
      * set laravel admin form's option
      */
+    // @phpstan-ignore-next-line
     public function setAdminFormOptions(&$form, $id = null)
     {
         if (!System::permission_available()) {
@@ -46,6 +47,7 @@ class UserOrgRoleGroupItem extends ProviderBase
     /**
      * saved event
      */
+    // @phpstan-ignore-next-line
     public function saved($form, $id)
     {
         if (!System::permission_available()) {

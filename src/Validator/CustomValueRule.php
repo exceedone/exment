@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomView;
  */
 class CustomValueRule implements Rule
 {
+    /** @var mixed */
     protected $custom_table;
 
     /**
@@ -21,6 +22,10 @@ class CustomValueRule implements Rule
      */
     protected $custom_view;
 
+    /**
+     * @param mixed $custom_table
+     */
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_view = null)
     {
         $this->custom_table = CustomTable::getEloquent($custom_table);
@@ -62,6 +67,7 @@ class CustomValueRule implements Rule
      *
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     protected function hasData(array $values): bool
     {
         foreach ($values as $v) {
@@ -84,6 +90,7 @@ class CustomValueRule implements Rule
      *
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     protected function hasCustomViewFilter(array $values): bool
     {
         if (is_nullorempty($this->custom_view)) {
@@ -92,6 +99,7 @@ class CustomValueRule implements Rule
 
         // filter query
         $query = $this->custom_table->getValueQuery();
+        // @phpstan-ignore-next-line
         $this->custom_view->filterModel($query); // Not sort.
 
         $query->whereIn(getDBTableName($this->custom_table) . '.id', $values);

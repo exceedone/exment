@@ -97,6 +97,7 @@ class SupportForV12 extends Migration
     /**
      * drop custom table's table
      */
+    // @phpstan-ignore-next-line
     protected function dropExmTables()
     {
         if (!Schema::hasColumn('custom_tables', 'deleted_at')) {
@@ -112,6 +113,7 @@ class SupportForV12 extends Migration
     /**
      * hard delete
      */
+    // @phpstan-ignore-next-line
     protected function deleteRecord($table_name, $classname)
     {
         if (!Schema::hasColumn($table_name, 'deleted_at')) {
@@ -126,6 +128,7 @@ class SupportForV12 extends Migration
     /**
      * add key's index
      */
+    // @phpstan-ignore-next-line
     protected function addIndex()
     {
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
@@ -144,6 +147,7 @@ class SupportForV12 extends Migration
     /**
      * add deleted_at key's index
      */
+    // @phpstan-ignore-next-line
     protected function addDeletedIndex()
     {
         // add deleted_at index in custom values table
@@ -181,6 +185,7 @@ class SupportForV12 extends Migration
     /**
      * drop deleted record
      */
+    // @phpstan-ignore-next-line
     protected function dropDeletedRecord($table)
     {
         if (stripos($table, 'exm__') === 0 || $table == 'custom_values') {
@@ -205,6 +210,7 @@ class SupportForV12 extends Migration
     /**
      * drop deleted record
      */
+    // @phpstan-ignore-next-line
     protected function dropSuuidUnique($table)
     {
         $columns = \Schema::getUniqueDefinitions($table, 'suuid');

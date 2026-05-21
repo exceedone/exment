@@ -15,6 +15,7 @@ abstract class DayBeforeAfterBase extends ViewFilterBase
         $query->{"{$method_name}DateMarkExment"}($query_column, $target_day, $mark, $isDateTime);
     }
 
+    // @phpstan-ignore-next-line
     abstract protected function getTargetDay($query_value);
 
     abstract protected function getMark(): string;

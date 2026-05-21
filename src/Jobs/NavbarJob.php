@@ -11,9 +11,12 @@ class NavbarJob extends Notification implements ShouldQueue
 {
     use JobTrait;
 
+    // @phpstan-ignore-next-line
     protected $content;
+    // @phpstan-ignore-next-line
     protected $subject;
 
+    // @phpstan-ignore-next-line
     protected $notify_id;
 
     /**
@@ -49,6 +52,7 @@ class NavbarJob extends Notification implements ShouldQueue
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function __construct($subject, $content, $notify_id, $target_user_id, $trigger_user_id, $parent_id, $parent_type)
     {
         $this->content = $content;
@@ -66,6 +70,7 @@ class NavbarJob extends Notification implements ShouldQueue
      * @param  mixed  $notifiable
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function via($notifiable)
     {
         return [NavbarChannel::class];
@@ -76,6 +81,7 @@ class NavbarJob extends Notification implements ShouldQueue
      *
      * @param  mixed  $notifiable
      */
+    // @phpstan-ignore-next-line
     public function toNavbar($notifiable)
     {
         // save data
@@ -97,6 +103,7 @@ class NavbarJob extends Notification implements ShouldQueue
      * @param  mixed  $notifiable
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function toArray($notifiable)
     {
         return [

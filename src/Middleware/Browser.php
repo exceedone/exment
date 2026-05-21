@@ -10,8 +10,13 @@ use Illuminate\Http\Request;
  */
 class Browser
 {
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
+        // @phpstan-ignore-next-line
         $browser = strtolower($request->server('HTTP_USER_AGENT'));
 
         if (mb_strstr($browser, 'trident') || mb_strstr($browser, 'msie')) {

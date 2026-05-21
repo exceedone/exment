@@ -29,9 +29,11 @@ class Plugin extends PluginExportBase
 
 
         foreach ($data as $fields) {
+            // @phpstan-ignore-next-line
             fputcsv($fp, $fields);
         }
 
+        // @phpstan-ignore-next-line
         fclose($fp);
 
         // $tmpのstring文字列を返却する

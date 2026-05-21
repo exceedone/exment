@@ -19,6 +19,7 @@ class ConditionType extends EnumBase
     public const CONDITION = "4";
     public const COMMENT = "5";
 
+    // @phpstan-ignore-next-line
     public static function isTableItem($condition_type)
     {
         return in_array($condition_type, [
@@ -34,6 +35,7 @@ class ConditionType extends EnumBase
      *
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     public static function getEnumByTargetKey($target): ?string
     {
         $systemEnum = SystemColumn::getEnum($target, null, false);

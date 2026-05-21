@@ -8,6 +8,7 @@ class BetweenDate extends Between
 
     /**
      * {@inheritdoc}
+     * @var string
      */
     protected $view = 'admin::filter.betweenDatetime';
 }

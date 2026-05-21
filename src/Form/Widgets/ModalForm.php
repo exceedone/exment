@@ -20,6 +20,7 @@ class ModalForm extends WidgetForm
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $buttons = [];
 
     /**

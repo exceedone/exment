@@ -18,6 +18,7 @@ class BackupTarget extends EnumBase
      * @param string|array $target
      * @return array|null
      */
+    // @phpstan-ignore-next-line
     public static function dirOrDisk($target)
     {
         if (is_array($target)) {

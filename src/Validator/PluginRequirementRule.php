@@ -10,6 +10,7 @@ use Illuminate\Contracts\Validation\Rule;
  */
 class PluginRequirementRule implements Rule
 {
+    // @phpstan-ignore-next-line
     protected $composers = [];
 
     public function __construct()

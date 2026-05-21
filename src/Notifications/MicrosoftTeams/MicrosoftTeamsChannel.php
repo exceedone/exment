@@ -29,7 +29,7 @@ class MicrosoftTeamsChannel
      * Notify
      *
      * @param  mixed  $notifiable
-     * @param  MicrosoftTeamsJob  $notification
+     * @param  Notification  $notification
      * @return void
      */
     public function send($notifiable, Notification $notification)
@@ -39,6 +39,7 @@ class MicrosoftTeamsChannel
         }
 
         $this->http->post($url, $this->buildJsonPayload(
+            // @phpstan-ignore-next-line
             $notification->toChat($notifiable)
         ));
     }
@@ -46,7 +47,8 @@ class MicrosoftTeamsChannel
     /**
      * Build up a JSON payload for the Slack webhook.
      *
-     * @return array
+     * @param mixed $message
+     * @return array<string, mixed>
      */
     protected function buildJsonPayload($message)
     {

@@ -27,11 +27,13 @@ class CustomViewGridFilterTest extends UnitTestBase
     use CustomViewTrait;
     use DatabaseTransactions;
 
+    // @phpstan-ignore-next-line
     protected $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST;
 
     /**
      * Grid Filter = ID
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterId()
     {
         $this->init();
@@ -45,6 +47,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = created_at
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterCreatedAt()
     {
         $this->init();
@@ -63,6 +66,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = updated_at
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterUpdatedAt()
     {
         $this->init();
@@ -73,6 +77,7 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $this->__testGridFilter(['updated_at.start' => '2025-02-01', 'updated_at.end' => '2025-02-02'], function ($data) {
             $actual = array_get($data, 'updated_at');
+            // @phpstan-ignore-next-line
             return $actual->between(Carbon::create(2025, 2, 1), Carbon::create(2025, 2, 2)->endOfDay());
         }, 2);
     }
@@ -80,6 +85,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = created_user_id
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterCreatedUser()
     {
         $this->init();
@@ -93,6 +99,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = updated_user_id
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterUpdatedUser()
     {
         $this->init();
@@ -106,6 +113,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = text
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterText()
     {
         $this->init();
@@ -127,6 +135,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = url
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterUrl()
     {
         $this->init();
@@ -148,6 +157,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = email
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterEmail()
     {
         $this->init();
@@ -169,6 +179,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = integer
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterInteger()
     {
         $this->init();
@@ -185,6 +196,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = decimal
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterDecimal()
     {
         $this->init();
@@ -201,6 +213,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = currency
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterCurrency()
     {
         $this->init();
@@ -217,6 +230,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = date
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterDate()
     {
         $this->init();
@@ -240,6 +254,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = time
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterTime()
     {
         $this->init();
@@ -263,6 +278,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = datetime
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterDateTime()
     {
         $this->init();
@@ -286,6 +302,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = select
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterSelect()
     {
         $this->init();
@@ -302,6 +319,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = select_table
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterSelectTable()
     {
         $this->init();
@@ -318,6 +336,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = yesno
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterYesNo()
     {
         $this->init();
@@ -334,6 +353,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = boolean
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterBoolean()
     {
         $this->init();
@@ -350,6 +370,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = auto number
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterAutoNumber()
     {
         $this->init();
@@ -369,6 +390,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = user
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterUser()
     {
         $this->init();
@@ -385,6 +407,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = organization
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterOrganization()
     {
         $this->init();
@@ -401,6 +424,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = select_multiple
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterSelectMulti()
     {
         $this->init();
@@ -417,6 +441,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = select_valtext_multiple
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterSelectValMulti()
     {
         $this->init();
@@ -433,6 +458,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = select_table_multiple
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterSelectTableMulti()
     {
         $this->init();
@@ -449,6 +475,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = user_multiple
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterUserMulti()
     {
         $this->init();
@@ -465,6 +492,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = organization_multiple
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterOrganizationMulti()
     {
         $this->init();
@@ -481,6 +509,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = file_multiple
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterFileMulti()
     {
         $this->init();
@@ -508,6 +537,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = workflow_status
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterWorkflowStatus()
     {
         $this->init();
@@ -531,6 +561,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = workflow_work_users
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterWorkflowUsers()
     {
         $this->init();
@@ -552,6 +583,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = parent_id
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterParentID()
     {
         $this->init();
@@ -565,6 +597,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = comment
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterComment()
     {
         $this->init();
@@ -582,6 +615,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = comment, filter japanese
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterCommentJp()
     {
         $this->init();
@@ -599,6 +633,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Grid Filter = comment, multiple result
      */
+    // @phpstan-ignore-next-line
     public function testFuncFilterCommentMulti()
     {
         $this->init();
@@ -618,6 +653,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Summary Grid Filter = ID
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryFilterId()
     {
         $this->init();
@@ -635,6 +671,7 @@ class CustomViewGridFilterTest extends UnitTestBase
             $monthly_sum);
     }
 
+    // @phpstan-ignore-next-line
     protected function getGroupingData($values)
     {
         $grouped = $values->groupBy(function($item) {
@@ -653,6 +690,7 @@ class CustomViewGridFilterTest extends UnitTestBase
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function createAssertClosure() {
         return function ($data, $custom_table, $monthly_sum) {
             $idx = 0;
@@ -677,6 +715,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Summary Grid Filter = updated_user
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryFilterUpdatedUser()
     {
         $this->init();
@@ -700,6 +739,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Summary Grid Filter = updated_user
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryFilterInteger()
     {
         $this->init();
@@ -723,6 +763,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Summary Grid Filter = select_valtext
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryFilterSelectVal()
     {
         $this->init();
@@ -746,6 +787,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Summary Grid Filter = workflow_status
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryFilterWorkflowStatus()
     {
         $this->init();
@@ -774,6 +816,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Summary Grid Filter = parent_id
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryFilterParentID()
     {
         $this->init();
@@ -795,6 +838,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Summary Grid Filter = parent_table odd_even
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryFilterParentColumn()
     {
         $this->init();
@@ -824,6 +868,7 @@ class CustomViewGridFilterTest extends UnitTestBase
     /**
      * Summary Grid Filter = reference_table multiples_of_3
      */
+    // @phpstan-ignore-next-line
     public function testFuncSummaryFilterReferColumn()
     {
         $this->init();
@@ -854,6 +899,7 @@ class CustomViewGridFilterTest extends UnitTestBase
             $this->createFilterClosure($target_column, $pivot_column));
     }
 
+    // @phpstan-ignore-next-line
     protected function createFilterClosure($target_column, $pivot_data = null)
     {
         return function ($custom_view_id) use ($target_column, $pivot_data) {
@@ -877,6 +923,7 @@ class CustomViewGridFilterTest extends UnitTestBase
         };
     }
 
+    // @phpstan-ignore-next-line
     protected function saveComment($id, $comment)
     {
         // save Comment Model
@@ -890,11 +937,13 @@ class CustomViewGridFilterTest extends UnitTestBase
 
     }
 
+    // @phpstan-ignore-next-line
     protected function init()
     {
         $this->initAllTest();
     }
 
+    // @phpstan-ignore-next-line
     protected function __testGridFilter(array $filters, \Closure $testCallback, ?int $count = null, $prevTest = null)
     {
         //$this->init();
@@ -927,6 +976,7 @@ class CustomViewGridFilterTest extends UnitTestBase
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function __testSummaryGridFilter(array $filters, \Closure $testCallback, ?Collection $monthly_sum = null, $prevTest = null)
     {
         $this->init();

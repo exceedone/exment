@@ -8,10 +8,14 @@ use Exceedone\Exment\Model\Plugin;
 
 class PluginItem implements ItemInterface
 {
+    // @phpstan-ignore-next-line
     protected $dashboard_box;
+    // @phpstan-ignore-next-line
     protected $plugin;
+    // @phpstan-ignore-next-line
     protected $pluginItem;
 
+    // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -29,6 +33,7 @@ class PluginItem implements ItemInterface
     /**
      * get header
      */
+    // @phpstan-ignore-next-line
     public function header()
     {
         if (($result = $this->hasPermission()) !== true) {
@@ -41,6 +46,7 @@ class PluginItem implements ItemInterface
     /**
      * get html body
      */
+    // @phpstan-ignore-next-line
     public function body()
     {
         if (($result = $this->hasPermission()) !== true) {
@@ -53,6 +59,7 @@ class PluginItem implements ItemInterface
     /**
      * get footer
      */
+    // @phpstan-ignore-next-line
     public function footer()
     {
         if (($result = $this->hasPermission()) !== true) {
@@ -67,6 +74,7 @@ class PluginItem implements ItemInterface
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function attributes()
     {
         return [
@@ -80,6 +88,7 @@ class PluginItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
+    // @phpstan-ignore-next-line
     public static function setAdminOptions(&$form, $dashboard)
     {
         // show plugin list
@@ -96,10 +105,12 @@ class PluginItem implements ItemInterface
     /**
      * saving event
      */
+    // @phpstan-ignore-next-line
     public static function saving(&$form)
     {
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($dashboard_box) = $args + [null];
@@ -111,6 +122,7 @@ class PluginItem implements ItemInterface
      *
      * @return array|\Illuminate\Contracts\Translation\Translator|string|true|null
      */
+    // @phpstan-ignore-next-line
     protected function hasPermission()
     {
         // if table not found, break

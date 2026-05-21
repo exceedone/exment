@@ -12,22 +12,30 @@ class ClassLoader
     /**
      * Check target dirs
      *
-     * @var array
+     * @var array<int, array<string, string>>
      */
     protected $dirs = [];
 
     /**
      * Already called class
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $called = [];
 
+    /**
+     * @return void
+     */
     public function register()
     {
         spl_autoload_register(array($this, 'loadClass'));
     }
 
+    /**
+     * @param string $dir
+     * @param string $baseNamespace
+     * @return $this
+     */
     public function registerDir(string $dir, string $baseNamespace)
     {
         $this->dirs[] = [
@@ -38,6 +46,10 @@ class ClassLoader
         return $this;
     }
 
+    /**
+     * @param string $class
+     * @return void
+     */
     public function loadClass($class)
     {
         // if already has called, exit,

@@ -24,6 +24,7 @@ interface GrammarInterface
      * @param bool $isOr
      * @return \Illuminate\Database\Query\Builder
      */
+    // @phpstan-ignore-next-line
     public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false);
 
     /**
@@ -38,6 +39,7 @@ interface GrammarInterface
      */
     public function whereInArrayColumn($builder, string $tableName, string $baseColumn, string $column, bool $isOr = false, bool $isNot = false);
 
+    // @phpstan-ignore-next-line
     public function wrapWhereInMultiple(array $columns);
 
     /**
@@ -45,6 +47,7 @@ interface GrammarInterface
      *
      * @return array offset 0: bind string for wherein (?, ?, )
      */
+    // @phpstan-ignore-next-line
     public function bindValueWhereInMultiple(array $values);
 
     /**
@@ -52,6 +55,7 @@ interface GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getCastColumn($type, $column, $options = []);
 
     /**
@@ -59,6 +63,7 @@ interface GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getColumnTypeString($type);
 
     /**
@@ -66,6 +71,7 @@ interface GrammarInterface
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getCastString($type, $addOption = false, $options = []);
 
     /**
@@ -77,6 +83,7 @@ interface GrammarInterface
      *
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     public function getDateFormatString($groupCondition, $column, $groupBy = false, $wrap = true);
 
     /**

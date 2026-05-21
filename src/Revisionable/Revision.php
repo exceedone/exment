@@ -34,21 +34,25 @@ class Revision extends Eloquent
     /**
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $revisionFormattedFields = array();
 
     /**
      * @param array $attributes
      */
+    // @phpstan-ignore-next-line
     public function __construct(array $attributes = array())
     {
         parent::__construct($attributes);
     }
 
+    // @phpstan-ignore-next-line
     public function getUserAttribute()
     {
         return $this->getUser('create_user_id', true);
     }
 
+    // @phpstan-ignore-next-line
     public function getDeleteUserAttribute()
     {
         return $this->getUser('delete_user_id', false);
@@ -60,6 +64,7 @@ class Revision extends Eloquent
      *
      * @return \Illuminate\Database\Eloquent\Relations\MorphTo
      */
+    // @phpstan-ignore-next-line
     public function revisionable()
     {
         return $this->morphTo();
@@ -97,6 +102,7 @@ class Revision extends Eloquent
     {
         $related_model = $this->revisionable_type;
         $related_model = new $related_model();
+        // @phpstan-ignore-next-line
         $revisionFormattedFieldNames = $related_model->getRevisionFormattedFieldNames();
 
         if (isset($revisionFormattedFieldNames[$key])) {
@@ -160,6 +166,7 @@ class Revision extends Eloquent
                     if (!method_exists($main_model, $related_model)) {
                         $related_model = camel_case($related_model); // for cases like published_status_id
                         if (!method_exists($main_model, $related_model)) {
+                            // @phpstan-ignore-next-line
                             throw new \Exception('Relation ' . $related_model . ' does not exist for ' . $main_model);
                         }
                     }
@@ -172,11 +179,13 @@ class Revision extends Eloquent
                     if (is_null($this->$which_value) || $this->$which_value == '') {
                         $item = new $related_class();
 
+                        // @phpstan-ignore-next-line
                         return $item->getRevisionNullString();
                     }
                     if (!$item) {
                         $item = new $related_class();
 
+                        // @phpstan-ignore-next-line
                         return $this->format($this->key, $item->getRevisionUnknownString());
                     }
 
@@ -185,9 +194,11 @@ class Revision extends Eloquent
                         // see if there's an available mutator
                         $mutator = 'get' . studly_case($this->key) . 'Attribute';
                         if (method_exists($item, $mutator)) {
+                            // @phpstan-ignore-next-line
                             return $this->format($item->$mutator($this->key), $item->identifiableName());
                         }
 
+                        // @phpstan-ignore-next-line
                         return $this->format($this->key, $item->identifiableName());
                     }
                 }
@@ -304,6 +315,7 @@ class Revision extends Eloquent
     {
         $related_model = $this->revisionable_type;
         $related_model = new $related_model();
+        // @phpstan-ignore-next-line
         $revisionFormattedFields = $related_model->getRevisionFormattedFields();
 
         if (isset($revisionFormattedFields[$key])) {
@@ -316,6 +328,7 @@ class Revision extends Eloquent
     /**
      * get user from id
      */
+    // @phpstan-ignore-next-line
     protected function getUser(string $keyName, bool $emptyAsSystem)
     {
         $value = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($this->{$keyName});

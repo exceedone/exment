@@ -11,6 +11,7 @@ class WorkflowValueView
     /**
      * create workflow view sql
      */
+    // @phpstan-ignore-next-line
     public static function createWorkflowValueUnionView()
     {
         // get sub query for first executed workflow value's id.

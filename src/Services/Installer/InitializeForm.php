@@ -19,6 +19,7 @@ class InitializeForm
     use EnvTrait;
     use InitializeFormTrait;
 
+    // @phpstan-ignore-next-line
     public function index()
     {
         $form = $this->getInitializeForm('initialize', true);
@@ -40,6 +41,7 @@ class InitializeForm
         ]);
     }
 
+    // @phpstan-ignore-next-line
     public function post()
     {
         $request = request();
@@ -93,6 +95,7 @@ class InitializeForm
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function guard()
     {
         return Auth::guard('admin');

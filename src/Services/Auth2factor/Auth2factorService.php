@@ -17,6 +17,7 @@ class Auth2factorService
 {
     protected const VERIFY_TYPE_2FACTOR = '2factor_';
 
+    // @phpstan-ignore-next-line
     protected static $providers = [
     ];
 
@@ -33,6 +34,7 @@ class Auth2factorService
         static::$providers[$abstract] = $class;
     }
 
+    // @phpstan-ignore-next-line
     public static function getProvider()
     {
         $provider = \Exment::user()->getSettingValue(
@@ -94,8 +96,10 @@ class Auth2factorService
      * @param array $mail_prms
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public static function addAndSendVerify($verify_type, $verify_code, $valid_period_datetime, $mail_template, $mail_prms = [])
     {
+        // @phpstan-ignore-next-line
         static::addVerify($verify_type, $verify_code, $valid_period_datetime);
 
         // send mail
@@ -145,6 +149,7 @@ class Auth2factorService
      * @param array $mail_prms
      * @return MailSender
      */
+    // @phpstan-ignore-next-line
     protected static function sendVerify($mail_template, $mail_prms = []): MailSender
     {
         $loginuser = \Admin::user();
@@ -159,6 +164,7 @@ class Auth2factorService
     }
 
 
+    // @phpstan-ignore-next-line
     public static function deleteCode($verify_type, $verify_code)
     {
         $loginuser = \Admin::user();

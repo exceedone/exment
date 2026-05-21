@@ -18,7 +18,9 @@ class PasswordBrokerManager extends \Illuminate\Auth\Passwords\PasswordBrokerMan
 
         return new PasswordBroker(
             $this->createTokenRepository($config),
+            // @phpstan-ignore-next-line
             $this->app['auth']->createUserProvider($config['provider']),
+            // @phpstan-ignore-next-line
             $this->app['events'],
             $this->app->make(Timebox::class)
         );

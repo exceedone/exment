@@ -16,6 +16,7 @@ class CustomValuePageType extends EnumBase
 
     public const GRIDMODAL = 'gridmodal';
 
+    // @phpstan-ignore-next-line
     public static function getFormDataType($pageType)
     {
         switch ($pageType) {

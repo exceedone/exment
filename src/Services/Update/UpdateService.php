@@ -16,6 +16,7 @@ use Exceedone\Exment\Exceptions\BackupRestoreNotSupportedException;
  */
 class UpdateService
 {
+    // @phpstan-ignore-next-line
     public static function update(array $options = [])
     {
         \Exment::setTimeLimitLong();
@@ -48,6 +49,7 @@ class UpdateService
     }
 
 
+    // @phpstan-ignore-next-line
     public static function callBackup()
     {
         $backup = new Backup();
@@ -99,6 +101,7 @@ class UpdateService
     }
 
 
+    // @phpstan-ignore-next-line
     public static function callPublish()
     {
         \Artisan::call('exment:update');

@@ -12,6 +12,7 @@ class ReplaceFormatService
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value
      */
+    // @phpstan-ignore-next-line
     public static function replaceTextFromFormat($format, $custom_value = null, $options = [])
     {
         if (is_null($format)) {

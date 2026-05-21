@@ -18,6 +18,7 @@ class ColumnDefaultType extends EnumBase
     public const SELECT_USER = 'select_user';
 
 
+    // @phpstan-ignore-next-line
     public static function COLUMN_DEFAULT_TYPE_DATE()
     {
         return [
@@ -26,6 +27,7 @@ class ColumnDefaultType extends EnumBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public static function COLUMN_DEFAULT_TYPE_TIME()
     {
         return [
@@ -34,6 +36,7 @@ class ColumnDefaultType extends EnumBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public static function COLUMN_DEFAULT_TYPE_DATETIME()
     {
         return [
@@ -43,6 +46,7 @@ class ColumnDefaultType extends EnumBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public static function COLUMN_DEFAULT_TYPE_USER()
     {
         return [

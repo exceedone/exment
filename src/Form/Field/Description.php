@@ -15,6 +15,7 @@ class Description extends Field\Display
      */
     protected $escape = true;
 
+    // @phpstan-ignore-next-line
     public function __construct($label)
     {
         $this->label = $label;

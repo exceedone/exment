@@ -7,6 +7,8 @@ trait CustomViewColumnOptionTrait
     /**
      * get sort order.
      */
+
+    // @phpstan-ignore-next-line
     public function getSortOrderAttribute()
     {
         return $this->getOption('sort_order');
@@ -14,6 +16,8 @@ trait CustomViewColumnOptionTrait
     /**
      * set sort order.
      */
+
+    // @phpstan-ignore-next-line
     public function setSortOrderAttribute($sort_order)
     {
         return $this->setOption('sort_order', $sort_order);
@@ -21,6 +25,8 @@ trait CustomViewColumnOptionTrait
     /**
      * get sort type.
      */
+
+    // @phpstan-ignore-next-line
     public function getSortTypeAttribute()
     {
         return $this->getOption('sort_type');
@@ -28,6 +34,8 @@ trait CustomViewColumnOptionTrait
     /**
      * set sort type.
      */
+
+    // @phpstan-ignore-next-line
     public function setSortTypeAttribute($sort_order)
     {
         return $this->setOption('sort_type', $sort_order);

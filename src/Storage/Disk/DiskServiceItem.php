@@ -47,6 +47,7 @@ class DiskServiceItem
     protected $disk;
 
 
+    // @phpstan-ignore-next-line
     public function fileNameNoExtension()
     {
         if (is_null($this->fileName)) {

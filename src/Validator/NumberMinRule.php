@@ -10,8 +10,12 @@ use Illuminate\Contracts\Validation\Rule;
  */
 class NumberMinRule implements Rule
 {
+    /** @var mixed */
     protected $min;
 
+    /**
+     * @param mixed $parameters
+     */
     public function __construct($parameters)
     {
         $this->min = $parameters;
@@ -47,6 +51,7 @@ class NumberMinRule implements Rule
      */
     public function message()
     {
+        // @phpstan-ignore-next-line
         return str_replace(':min', $this->min, trans('validation.min.numeric'));
     }
 }

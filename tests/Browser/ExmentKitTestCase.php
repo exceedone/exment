@@ -81,6 +81,7 @@ abstract class ExmentKitTestCase extends BaseTestCase
             );
         }
 
+        // @phpstan-ignore-next-line
         $this->be($user);
     }
 

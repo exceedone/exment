@@ -50,6 +50,7 @@ class ValueType extends EnumBase
      *
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     public static function filterApiValueType($valueType)
     {
         $enum = static::getEnum($valueType);
@@ -67,6 +68,7 @@ class ValueType extends EnumBase
      *
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     public static function isRegetApiCustomValue($valueType)
     {
         $enum = static::getEnum($valueType);

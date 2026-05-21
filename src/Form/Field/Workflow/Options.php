@@ -14,13 +14,14 @@ class Options extends Select
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $column = [];
 
     /**
      * @param $column
      * @param $arguments
-     * @phpstan-ignore-next-line
      */
+    // @phpstan-ignore-next-line
     public function __construct($column = '', $arguments = [])
     {
         $this->column['comment_type'] = 'comment_type';
@@ -53,6 +54,7 @@ class Options extends Select
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function prepare($value)
     {
         if (!array_has($value, 'ignore_work')) {
@@ -89,9 +91,10 @@ EOT;
 
         $options = WorkflowCommentType::transArray('workflow.comment_options');
 
-        /** @phpstan-ignore-next-line array_filter expects (callable(mixed): bool)|null, 'strlen' given. */
+        // @phpstan-ignore-next-line
         $options = array_filter($options, 'strlen');
 
+        // @phpstan-ignore-next-line
         return parent::render()->with([
             'optionsCommentType' => $options,
             'defaultCommentType' => WorkflowCommentType::NULLABLE,

@@ -7,21 +7,21 @@ class MicrosoftTeamsMessage
     /**
      * The text content of the message.
      *
-     * @var string
+     * @var string|null
      */
     public $content;
 
     /**
      * The text title of the message.
      *
-     * @var string
+     * @var string|null
      */
     public $title;
 
     /**
      * Set the content of the Teams message.
      *
-     * @param  string  $content
+     * @param  mixed  $content
      * @return $this
      */
     public function content($content)
@@ -34,7 +34,7 @@ class MicrosoftTeamsMessage
     /**
      * Set the title of the Teams message.
      *
-     * @param  string  $title
+     * @param  mixed  $title
      * @return $this
      */
     public function title($title)

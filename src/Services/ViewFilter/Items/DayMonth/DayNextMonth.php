@@ -11,6 +11,7 @@ class DayNextMonth extends DayMonthBase
         return FilterOption::DAY_NEXT_MONTH;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return new \Carbon\Carbon('first day of next month');

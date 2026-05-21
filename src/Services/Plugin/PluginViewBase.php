@@ -37,6 +37,7 @@ abstract class PluginViewBase extends PluginPublicBase
      *
      * @var array|null
      */
+    // @phpstan-ignore-next-line
     protected $useBoxButtons = [
         'newButton',
         'menuButton',
@@ -67,6 +68,7 @@ abstract class PluginViewBase extends PluginPublicBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function useBoxButtons(): array
     {
         return $this->useBoxButtons ?? [];
@@ -124,5 +126,6 @@ abstract class PluginViewBase extends PluginPublicBase
         PluginGrid::setSortFields($form, $this->custom_table);
     }
 
+    // @phpstan-ignore-next-line
     abstract public function grid();
 }
