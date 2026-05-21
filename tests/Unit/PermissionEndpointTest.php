@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Auth\Permission;
+use Exceedone\Exment\Enums\Permission as PermissionEnum;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginUser;
@@ -288,6 +289,58 @@ class PermissionEndpointTest extends UnitTestBase
         foreach ($array as $endpoint) {
             $this->executeTestPermissionUser($endpoint, true, $user);
         }
+    }
+
+    /**
+     * @return void
+     */
+    public function testPermissionPluginMarketPassWithPluginAll()
+    {
+        $this->init();
+
+        $permission = new Permission([
+            'role_type' => RoleType::SYSTEM,
+            'permission_details' => [
+                PermissionEnum::PLUGIN_ALL => '1',
+            ],
+        ]);
+
+        foreach ([
+            'plugin-market',
+            'plugin-market/1',
+            'plugin-market/1/versions',
+            'plugin-market/1/install',
+            'plugin-market/checkout/purchase',
+        ] as $endpoint) {
+            $this->assertTrue(
+                $permission->shouldPassEndpoint($endpoint),
+                "Endpoint {$endpoint} should pass with plugin_all"
+            );
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public function testPermissionPluginMarketDenyWithoutPluginAll()
+    {
+        $this->init();
+
+        $systemPermission = new Permission([
+            'role_type' => RoleType::SYSTEM,
+            'permission_details' => [],
+        ]);
+
+        $pluginPermission = new Permission([
+            'role_type' => RoleType::PLUGIN,
+            'permission_details' => [
+                PermissionEnum::PLUGIN_SETTING => '1',
+                PermissionEnum::PLUGIN_ACCESS => '1',
+            ],
+        ]);
+
+        $this->assertFalse($systemPermission->shouldPassEndpoint('plugin-market'));
+        $this->assertFalse($pluginPermission->shouldPassEndpoint('plugin-market'));
     }
 
 

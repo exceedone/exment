@@ -274,6 +274,7 @@ class RoleGroupController extends AdminControllerBase
                 });
                 $items[] = [
                     'label' => $plugin->plugin_view_name,
+                    'label_title' => $plugin->plugin_name,
                     'values' => $values,
                     'name' => "plugin_permission[$plugin->plugin_name][permissions]",
                     'key' => "plugin_permission.{$plugin->plugin_name}.permissions",

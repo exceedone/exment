@@ -248,6 +248,11 @@ class Permission
                 }
                 return false;
                 ///// each permissions
+            case "plugin-market":
+                if ($this->role_type == RoleType::SYSTEM) {
+                    return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
+                }
+                return false;
             case "plugin":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
