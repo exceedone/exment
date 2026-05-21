@@ -367,7 +367,7 @@ var Exment;
         if (a.data('modalclose') === false) {
             return;
         }
-        if (a.data('toggle') === 'tooltip') {
+        if (a.data('toggle') === 'tooltip' || a.attr('data-bs-toggle') === 'tooltip') {
             return;
         }
         $('#modal-showmodal .modal-body').html('');
