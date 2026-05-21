@@ -1,0 +1,32 @@
+{
+    "template_view_name": "System_logs",
+    "description": null,
+    "custom_tables": [
+        {
+            "table_name": "system_logs",
+            "table_view_name": "システムパフォーマンスログ",
+            "description": null
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "5160ffbedcfce843fb8e",
+            "form_view_name": "フォーム"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "d9ce8f6d3b288d6da84b",
+            "view_view_name": "全件ビュー"
+        }
+    ],
+    "custom_copies": [],
+    "admin_menu": [
+        {
+            "title": "システムパフォーマンスログ",
+            "menu_type": "table",
+            "menu_name": "system_logs"
+        }
+    ]
+}

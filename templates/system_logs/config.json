@@ -321,5 +321,6 @@
             "parent_name": null,
             "menu_target_name": "system_logs"
         }
-    ]
+    ],
+    "thumbnail": "thumbnail.png"
 }
