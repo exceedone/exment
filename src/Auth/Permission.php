@@ -253,6 +253,9 @@ class Permission
             case "plugin-market":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
+                } elseif ($this->role_type == RoleType::PLUGIN) {
+                    // if contains PermissionEnum::PLUGIN_SETTING, return true. Check at controller again.
+                    return array_key_exists(PermissionEnum::PLUGIN_SETTING, $this->permission_details);
                 }
                 return false;
             case "plugin":
