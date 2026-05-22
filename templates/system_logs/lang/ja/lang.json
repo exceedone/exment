@@ -1,11 +1,29 @@
 {
-    "template_view_name": "System_logs",
-    "description": null,
+    "template_view_name": "システムパフォーマンスログ",
+    "description": "実行URL、ユーザ、時間、SQLクエリを含むシステムパフォーマンスログを記録するためのテンプレートです。",
     "custom_tables": [
         {
             "table_name": "system_logs",
             "table_view_name": "システムパフォーマンスログ",
-            "description": null
+            "description": "実行SQLクエリ、実行URL、ユーザ、時間などのシステムパフォーマンスログを記録します。",
+            "custom_columns": [
+                {
+                    "column_name": "url",
+                    "column_view_name": "実行URL"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "実行ユーザ"
+                },
+                {
+                    "column_name": "create_at",
+                    "column_view_name": "実行時間"
+                },
+                {
+                    "column_name": "sql",
+                    "column_view_name": "SQL"
+                }
+            ]
         }
     ],
     "custom_relations": [],

@@ -6,8 +6,8 @@
     "custom_tables": [
         {
             "table_name": "system_logs",
-            "table_view_name": "システムパフォーマンスログ",
-            "description": null,
+            "table_view_name": "System Performance Log",
+            "description": "Records system performance logs such as executed SQL queries, execution URL, user, and time.",
             "system_flg": "0",
             "showlist_flg": "1",
             "order": "0",
@@ -28,7 +28,7 @@
             "custom_columns": [
                 {
                     "column_name": "url",
-                    "column_view_name": "実行URL",
+                    "column_view_name": "Execution URL",
                     "column_type": "url",
                     "description": null,
                     "system_flg": "0",
@@ -47,7 +47,7 @@
                 },
                 {
                     "column_name": "email",
-                    "column_view_name": "実行ユーザ",
+                    "column_view_name": "Execution User",
                     "column_type": "text",
                     "description": null,
                     "system_flg": "0",
@@ -69,7 +69,7 @@
                 },
                 {
                     "column_name": "create_at",
-                    "column_view_name": "実行時間",
+                    "column_view_name": "Execution Time",
                     "column_type": "datetime",
                     "description": null,
                     "system_flg": "0",
@@ -117,7 +117,7 @@
     "custom_forms": [
         {
             "suuid": "5160ffbedcfce843fb8e",
-            "form_view_name": "フォーム",
+            "form_view_name": "Form",
             "default_flg": "1",
             "options": {
                 "form_label_type": "horizontal",
@@ -137,7 +137,7 @@
                             "column_no": "1",
                             "width": "1",
                             "options": {
-                                "html": "<span class=\"label-text\">項要<\/span>\r\n",
+                                "html": "<span class=\"label-text\">Summary<\/span>\r\n",
                                 "changedata_column_table_name": null,
                                 "changedata_column_name": null,
                                 "changedata_target_table_name": null,
@@ -206,7 +206,7 @@
                             "column_no": "1",
                             "width": "3",
                             "options": {
-                                "html": "<span class=\"label-text\">詳細<\/span>\r\n",
+                                "html": "<span class=\"label-text\">Detail<\/span>\r\n",
                                 "changedata_column_table_name": null,
                                 "changedata_column_name": null,
                                 "changedata_target_table_name": null,
@@ -246,7 +246,7 @@
             "suuid": "d9ce8f6d3b288d6da84b",
             "view_type": "0",
             "view_kind_type": "9",
-            "view_view_name": "全件ビュー",
+            "view_view_name": "All Records",
             "default_flg": "1",
             "order": "0",
             "options": {
@@ -257,16 +257,16 @@
             "custom_view_columns": [
                 {
                     "suuid": "b72cbe1340891325f453",
-                    "view_column_type": "1",
+                    "view_column_type": "0",
                     "order": "10",
                     "options": [],
-                    "view_column_name": "実行時間",
+                    "view_column_name": null,
                     "view_column_color": null,
                     "view_column_font_color": null,
                     "sort_order": null,
                     "sort_type": null,
                     "view_column_table_name": "system_logs",
-                    "view_column_target_name": "created_at",
+                    "view_column_target_name": "create_at",
                     "view_pivot_table_name": null,
                     "view_pivot_column_name": null
                 },
@@ -312,7 +312,7 @@
     "admin_menu": [
         {
             "order": "4",
-            "title": "システムパフォーマンスログ",
+            "title": "System Performance Log",
             "icon": "fa-brands fa-blogger",
             "uri": "system_logs",
             "options": [],
