@@ -387,7 +387,7 @@ class DCustomDataTest extends ExmentKitTestCase
         // Check custom view data
         $this->visit(admin_url("data/all_columns_table_fortest?$group_str"))
             ->seeInElement('td.column-date', $group_key)
-            ->seeInElement('div.navbar.navbar-light.bg-white.py-3.px-4', "全 <b>$count</b>")
+            ->seeInElement('div.box-footer.table-footer', "全 <b>$count</b>")
         ;
     }
 
@@ -417,7 +417,7 @@ class DCustomDataTest extends ExmentKitTestCase
         // Check custom view data
         $this->visit(admin_url("data/all_columns_table_fortest?$group_str"))
             ->seeInElement('td.column-date', '')
-            ->seeInElement('div.navbar.navbar-light.bg-white.py-3.px-4', "全 <b>$count</b>")
+            ->seeInElement('div.box-footer.table-footer', "全 <b>$count</b>")
         ;
     }
 }
