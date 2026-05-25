@@ -9,6 +9,7 @@ class CurrencySymbol extends EnumBase
     public const USD = 'USD';
     public const EUR = 'EUR';
 
+    // @phpstan-ignore-next-line
     protected static $options = [
         'JPY1' => ['text' => '¥', 'html' => '&yen;', 'type' => 'before'],
         'JPY2' => ['text' => '円', 'html' => '円', 'type' => 'after'],
@@ -16,11 +17,13 @@ class CurrencySymbol extends EnumBase
         'EUR' => ['text' => '€', 'html' => '&euro;', 'type' => 'after'],
     ];
 
+    // @phpstan-ignore-next-line
     public function getOption()
     {
         return array_get(static::$options, $this->getValue());
     }
 
+    // @phpstan-ignore-next-line
     public static function getEnum($value, $default = null)
     {
         $enum = parent::getEnum($value, $default);

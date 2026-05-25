@@ -1,6 +1,6 @@
-<div class="box box-{{ $style }} card p-2 custom-border-info">
-    <div class="box-header with-border d-flex  border-bottom p-1 pb-2">
-        <h4 class="box-title">{{ $title }}</h4>
+<div class="box box-{{ $style }}">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ $title }}</h3>
 
         <div class="box-tools d-flex flex-row-reverse">
             {!! $tools !!}

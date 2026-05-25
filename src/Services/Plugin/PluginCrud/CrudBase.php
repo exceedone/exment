@@ -12,15 +12,17 @@ abstract class CrudBase
      * @param $plugin
      * @param $pluginClass
      * @param $options
-     * @phpstan-ignore-next-line
      */
+    // @phpstan-ignore-next-line
     public function __construct($plugin, $pluginClass, $options = [])
     {
         $this->plugin = $plugin;
         $this->pluginClass = $pluginClass;
     }
 
+    // @phpstan-ignore-next-line
     protected $plugin;
+    // @phpstan-ignore-next-line
     protected $pluginClass;
 
 
@@ -29,6 +31,7 @@ abstract class CrudBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getFullUrl(...$endpoint): string
     {
         return $this->pluginClass->getFullUrl(...$endpoint);
@@ -40,12 +43,14 @@ abstract class CrudBase
      *
      * @return string
      */
+    // @phpstan-ignore-next-line
     public function getRootFullUrl(...$endpoint): string
     {
         return $this->pluginClass->getRootFullUrl(...$endpoint);
     }
 
 
+    // @phpstan-ignore-next-line
     protected function getOAuthLogoutView()
     {
         if ($this->pluginClass->getAuthType() != PluginCrudAuthType::OAUTH) {

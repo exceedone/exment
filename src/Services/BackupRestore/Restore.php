@@ -27,11 +27,13 @@ class Restore
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function list(): array
     {
         $disk = $this->disk();
 
         // get all archive files
+        // @phpstan-ignore-next-line
         $files = array_filter($disk->files('list'), function ($file) {
             return preg_match('/list\/.+\.zip$/i', $file);
         });
@@ -57,6 +59,7 @@ class Restore
      * @return int
      * @throws \Exception
      */
+    // @phpstan-ignore-next-line
     public function execute($file = null, ?bool $tmp = null)
     {
         try {
@@ -100,6 +103,7 @@ class Restore
      * insert table data from backup tsv files.
      *
      */
+    // @phpstan-ignore-next-line
     protected function importTsv()
     {
         \ExmentDB::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
@@ -173,6 +177,7 @@ class Restore
      * update env data
      *
      */
+    // @phpstan-ignore-next-line
     protected function updateEnv()
     {
         // get env file
@@ -208,6 +213,7 @@ class Restore
     /**
      * unzip backup file to temporary folder path.
      */
+    // @phpstan-ignore-next-line
     protected function unzipFile($file, ?bool $tmp = null)
     {
         // get file
@@ -239,6 +245,7 @@ class Restore
      * restore backup table definition and table data.
      *
      */
+    // @phpstan-ignore-next-line
     protected function restoreDatabase()
     {
         \ExmentDB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());

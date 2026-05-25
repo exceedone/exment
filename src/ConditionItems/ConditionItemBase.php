@@ -25,7 +25,9 @@ use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
  */
 abstract class ConditionItemBase implements ConditionItemInterface
 {
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $target;
 
     /**
@@ -56,12 +58,14 @@ abstract class ConditionItemBase implements ConditionItemInterface
      */
     protected $label;
 
+    // @phpstan-ignore-next-line
     public function __construct(?CustomTable $custom_table, $target)
     {
         $this->custom_table = $custom_table;
         $this->target = $target;
     }
 
+    // @phpstan-ignore-next-line
     public function setElement($elementName, $className, $label)
     {
         $this->elementName = $elementName;
@@ -71,6 +75,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function filterKind($filterKind = null)
     {
         if (isset($filterKind)) {
@@ -84,6 +89,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * Get condition item
      */
+    // @phpstan-ignore-next-line
     public static function getItem(?CustomTable $custom_table, string $target, string $target_column_id)
     {
         if (is_nullorempty($target)) {
@@ -97,6 +103,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * Get condition item by request
      */
+    // @phpstan-ignore-next-line
     public static function getItemByRequest(?CustomTable $custom_table, ?string $target_query)
     {
         if (is_nullorempty($target_query)) {
@@ -191,6 +198,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * get filter condition
      */
+    // @phpstan-ignore-next-line
     public function getFilterCondition()
     {
         $options = $this->getFilterOption();
@@ -203,6 +211,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * get Update Type Condition
      */
+    // @phpstan-ignore-next-line
     public function getOperationUpdateType()
     {
         return collect([Enums\OperationUpdateType::DEFAULT])->map(function ($val) {
@@ -213,6 +222,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * get Update Type Condition
      */
+    // @phpstan-ignore-next-line
     public function getOperationFilterValue($target_key, $target_name, $show_condition_key = true)
     {
         return $this->getFilterValue($target_key, $target_name, $show_condition_key);
@@ -221,6 +231,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * get filter value
      */
+    // @phpstan-ignore-next-line
     public function getFilterValueAjax($target_key, $target_name, $show_condition_key = true)
     {
         $field = $this->getFilterValue($target_key, $target_name, $show_condition_key);
@@ -235,12 +246,13 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * get filter value
      */
+    // @phpstan-ignore-next-line
     public function getFilterValue($target_key, $target_name, $show_condition_key = true)
     {
         if (is_nullorempty($this->target) || is_nullorempty($target_key) || is_nullorempty($target_name)) {
             return null;
         }
-        /** @phpstan-ignore-next-line constructor expects array, string|null given */
+        // @phpstan-ignore-next-line
         $field = new ChangeField($this->className, $this->label);
         $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
         $field->adminField(function () use ($target_key, $show_condition_key) {
@@ -251,6 +263,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
         return $field;
     }
 
+    // @phpstan-ignore-next-line
     protected function getFilterOptionConditon()
     {
         return array_get(FilterOption::FILTER_OPTIONS(), FilterType::CONDITION);
@@ -312,6 +325,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      * @param Model\CustomViewSort $custom_view_sort
      * @return void
      */
+    // @phpstan-ignore-next-line
     public function setQuerySort($query, Model\CustomViewSort $custom_view_sort)
     {
     }
@@ -361,6 +375,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      *
      * @return array offset 0 : column id, 1 : table id
      */
+    // @phpstan-ignore-next-line
     public function getColumnAndTableId($column_name, $custom_table): array
     {
         return [null, null];

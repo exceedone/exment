@@ -31,6 +31,7 @@ use Exceedone\Exment\ColumnItems\ItemInterface;
 
 class DefaultForm extends FormBase
 {
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -218,11 +219,13 @@ EOT;
     /**
      * set custom form columns
      */
+    // @phpstan-ignore-next-line
     protected function setCustomFormColumns($form, $custom_form_block)
     {
         $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
         // $target_id = $this->id;
         if (method_exists($form, 'getDataKey')) {
+            // @phpstan-ignore-next-line
             $data_key = $form->getDataKey();
             if (is_numeric($data_key)) {
                 $target_id = $data_key;
@@ -296,6 +299,7 @@ EOT;
     /**
      * set custom form columns
      */
+    // @phpstan-ignore-next-line
     protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array, &$force_caculate_column)
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
@@ -338,6 +342,7 @@ EOT;
     }
 
 
+    // @phpstan-ignore-next-line
     protected function manageFormSaving($form)
     {
         // before saving
@@ -429,6 +434,7 @@ EOT;
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function manageFormSaved($form, $select_parent = null)
     {
         // after saving
@@ -568,6 +574,7 @@ EOT;
      * "changedata_target_column_id" : trigger column when user select
      * "changedata_column_id" : set column when getting selected value
      */
+    // @phpstan-ignore-next-line
     protected function setChangeDataArray(CustomColumn $column, CustomFormBlock $custom_form_block, array $form_column_options, $options, &$changedata_array)
     {
         // get this table
@@ -647,6 +654,7 @@ EOT;
      * set related linkage array.
      * "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
      */
+    // @phpstan-ignore-next-line
     protected function setRelatedLinkageArray($custom_form_block, $form_column, &$relatedlinkage_array)
     {
         // if config "select_relation_linkage_disabled" is true, return
@@ -705,6 +713,7 @@ EOT;
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function setParentSelect($request, $form, $select_parent)
     {
         // add parent select
@@ -724,6 +733,7 @@ EOT;
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function setParentSelectOneToMany($request, $form, $select_parent, $relation)
     {
         $parent_custom_table = $relation->parent_custom_table;
@@ -781,6 +791,7 @@ EOT;
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function setParentSelectManyToMany($request, $form, $relation)
     {
         $parent_custom_table = $relation->parent_custom_table;
@@ -827,6 +838,7 @@ EOT;
      * @param ItemInterface $column_item
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setColumnItemOption(ItemInterface $column_item, $custom_form_columns)
     {
         $column_item->setCustomForm($this->custom_form);

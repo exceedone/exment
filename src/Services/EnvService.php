@@ -7,6 +7,7 @@ namespace Exceedone\Exment\Services;
  */
 class EnvService
 {
+    // @phpstan-ignore-next-line
     public static function setEnv($data = [], $matchRemove = false)
     {
         if (empty($data)) {
@@ -69,6 +70,7 @@ class EnvService
         return $value;
     }
 
+    // @phpstan-ignore-next-line
     public static function removeEnv($data = [])
     {
         if (empty($data)) {
@@ -81,6 +83,7 @@ class EnvService
         static::setEnv($keys, true);
     }
 
+    // @phpstan-ignore-next-line
     public static function getEnv($key, $path = null, $matchPrefix = false)
     {
         if (empty($key)) {
@@ -110,7 +113,7 @@ class EnvService
             // So it's not possible to split e.g. the App-Key by accident
             $entry = array_map('trim', explode("=", $env_value, 2));
 
-            /** @phpstan-ignore-next-line If condition is always false. */
+            // @phpstan-ignore-next-line
             if (count($entry) == 0) {
                 continue;
             }

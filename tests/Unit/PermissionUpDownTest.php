@@ -511,7 +511,7 @@ class PermissionUpDownTest extends UnitTestBase
         $this->init();
 
         $user = CustomTable::getEloquent('user')->getValueModel($loginId);
-        /** @phpstan-ignore-next-line $user is generated class */
+        // @phpstan-ignore-next-line
         $organizations = $user->getOrganizationIdsForQuery($joinedOrgFilterType);
 
         sort($organizations);
@@ -547,7 +547,7 @@ class PermissionUpDownTest extends UnitTestBase
         $this->init();
 
         $organization = CustomTable::getEloquent('organization')->getValueModel($id);
-        /** @phpstan-ignore-next-line $organization is generated class */
+        // @phpstan-ignore-next-line
         $organizations = $organization->getOrganizationIdsForQuery($joinedOrgFilterType);
 
         sort($organizations);

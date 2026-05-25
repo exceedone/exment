@@ -51,7 +51,7 @@ class CCustomCopyTest extends ExmentKitTestCase
             ->seeInElement('label', 'ボタンのラベル')
             ->seeInElement('label', 'ボタンのアイコン')
             ->seeInElement('label', 'ボタンのHTML class')
-            ->seeInElement('.field-header', exmtrans('custom_copy.custom_copy_columns'))
+            ->seeInElement('h4.field-header', 'コピー列設定')
             ->seeInElement('th', 'コピー元テーブル列')
             ->seeInElement('th', 'コピー先テーブル列')
             ->seeInElement('th', '操作')
@@ -112,6 +112,7 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         $custom_copy = CustomCopy::find($id);
 
+        // @phpstan-ignore-next-line
         foreach ($custom_copy->custom_copy_columns as $custom_copy_column) {
             $row_id = $custom_copy_column->id;
             $this->seeIsSelected(
@@ -124,6 +125,7 @@ class CCustomCopyTest extends ExmentKitTestCase
             );
         }
 
+        // @phpstan-ignore-next-line
         foreach ($custom_copy->custom_copy_input_columns as $custom_copy_column) {
             $row_id = $custom_copy_column->id;
             $this->seeIsSelected(

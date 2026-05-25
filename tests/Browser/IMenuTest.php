@@ -285,7 +285,7 @@ class IMenuTest extends ExmentKitTestCase
      * @param \Closure|null $checkFunc
      * @return void
      */
-     protected function _testCreateMenu(string $menu_name, array $data, ?\Closure $checkFunc = null)
+    protected function _testCreateMenu(string $menu_name, array $data, ?\Closure $checkFunc = null)
     {
         $data['menu_name'] = $menu_name;
 
@@ -299,7 +299,7 @@ class IMenuTest extends ExmentKitTestCase
         $model = $this->getMenuTestModel($menu_name);
 
         foreach ($data as $key => $value) {
-            $this->assertMatch($model->{$key}, $value, "Field $key mismatch");
+            $this->assertMatch($model->{$key}, $value);
         }
 
         // Additional assertion for parent_node: uri must be null
@@ -341,7 +341,7 @@ class IMenuTest extends ExmentKitTestCase
 
         $model = Menu::find($menu->id);
         foreach ($data as $key => $value) {
-            $this->assertMatch($model->{$key}, $value, "Field $key mismatch after edit");
+            $this->assertMatch($model->{$key}, $value);
         }
         if ($model->menu_type === 'parent_node') {
             $this->assertNull($model->uri, 'parent_node menu must have null uri after edit');

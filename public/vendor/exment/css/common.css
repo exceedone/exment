@@ -3897,6 +3897,7 @@ table img.image_html:hover {
 @media (max-width: 992px) {
   .navbar .sidebar-toggle {
     width: 42px;
+    z-index: 1;
   }
   .navbar .search-form {
     width: 100%;

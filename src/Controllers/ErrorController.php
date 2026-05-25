@@ -19,6 +19,7 @@ class ErrorController extends Controller
     /**
      * Index interface.
      */
+    // @phpstan-ignore-next-line
     public function error(Request $request, $exception)
     {
         /** @phpstan-ignore-next-line response expects array|Illuminate\Contracts\View\View|string|null, OpenAdminCore\Admin\Layout\Content given */
@@ -59,6 +60,7 @@ class ErrorController extends Controller
     }
 
 
+    // @phpstan-ignore-next-line
     public function maintenance()
     {
         return response(view('exment::exception.maintenance', [

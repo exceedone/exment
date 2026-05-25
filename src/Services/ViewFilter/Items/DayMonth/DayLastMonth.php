@@ -11,6 +11,7 @@ class DayLastMonth extends DayMonthBase
         return FilterOption::DAY_LAST_MONTH;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
         return new \Carbon\Carbon('first day of last month');

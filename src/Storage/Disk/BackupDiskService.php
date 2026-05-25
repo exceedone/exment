@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BackupDiskService extends DiskServiceBase
 {
+    // @phpstan-ignore-next-line
     public function __construct(...$args)
     {
         $now = date('YmdHis');

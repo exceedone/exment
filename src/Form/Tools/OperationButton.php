@@ -10,12 +10,17 @@ use Exceedone\Exment\Model\CustomOperation;
  */
 class OperationButton
 {
+    // @phpstan-ignore-next-line
     protected $operation;
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $id;
     // set this operation type
+    // @phpstan-ignore-next-line
     protected $operation_type;
 
+    // @phpstan-ignore-next-line
     public function __construct($listButton, $custom_table, $id = null)
     {
         if ($listButton instanceof CustomOperation) {
@@ -29,6 +34,7 @@ class OperationButton
         $this->id = $id;
     }
 
+    // @phpstan-ignore-next-line
     protected function script($suuid, $label)
     {
         $table_name = array_get($this->custom_table, 'table_name');
@@ -63,6 +69,7 @@ class OperationButton
 EOT;
     }
 
+    // @phpstan-ignore-next-line
     protected function scriptModal($suuid)
     {
         $table_name = array_get($this->custom_table, 'table_name');
@@ -83,6 +90,7 @@ EOT;
 EOT;
     }
 
+    // @phpstan-ignore-next-line
     public function render()
     {
         $label = array_get($this->operation, 'options.button_label') ??

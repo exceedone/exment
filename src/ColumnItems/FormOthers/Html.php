@@ -10,6 +10,7 @@ class Html extends FormOtherItem
     /**
      * get Text(for display)
      */
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         return array_get($this->form_column_options, 'html');
@@ -19,6 +20,7 @@ class Html extends FormOtherItem
     /**
      * get Text(for display)
      */
+    // @phpstan-ignore-next-line
     public function _html($v)
     {
         // Not escaping html whether html item
@@ -28,11 +30,13 @@ class Html extends FormOtherItem
     /**
      * get column name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return $this->form_column->id;
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Html::class;

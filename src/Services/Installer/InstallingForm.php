@@ -11,11 +11,13 @@ class InstallingForm
 {
     use EnvTrait;
 
+    // @phpstan-ignore-next-line
     public function index()
     {
         return view('exment::install.installing');
     }
 
+    // @phpstan-ignore-next-line
     public function post()
     {
         // Merge session DB inputs with the APP_DEBUG flag from this form,

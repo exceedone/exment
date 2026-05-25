@@ -46,6 +46,7 @@ trait InstallUpdateTrait
 
         $contents = $this->getExmentStub('bootstrap');
 
+        // @phpstan-ignore-next-line
         $this->laravel['files']->put($file, $contents);
         $this->line('<info>Bootstrap file was created:</info> '.str_replace(base_path(), '', $file));
     }
@@ -59,6 +60,7 @@ trait InstallUpdateTrait
      */
     protected function getExmentStub($name)
     {
+        // @phpstan-ignore-next-line
         return $this->laravel['files']->get(path_join(__DIR__, "stubs", "$name.stub"));
     }
 
@@ -67,6 +69,7 @@ trait InstallUpdateTrait
      *
      * @param string $path
      */
+    // @phpstan-ignore-next-line
     protected function makeExmentDir($path = '')
     {
         $dirpath = $this->directory;
@@ -75,6 +78,7 @@ trait InstallUpdateTrait
             return;
         }
 
+        // @phpstan-ignore-next-line
         $this->laravel['files']->makeDirectory($dirpath, 0755, true, true);
     }
 }

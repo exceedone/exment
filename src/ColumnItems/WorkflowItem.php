@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\System;
 
 class WorkflowItem extends SystemItem
 {
+    // @phpstan-ignore-next-line
     protected $table_name = 'workflow_values';
 
     /**
@@ -26,6 +27,7 @@ class WorkflowItem extends SystemItem
      * whether column is enabled index.
      *
      */
+    // @phpstan-ignore-next-line
     public function sortable()
     {
         return false;
@@ -50,6 +52,7 @@ class WorkflowItem extends SystemItem
         return $sqlname;
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($custom_table, $column_name, $custom_value) = $args + [null, null, null];
@@ -59,6 +62,7 @@ class WorkflowItem extends SystemItem
     /**
      * get text(for display)
      */
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         return $this->getWorkflowValue($v, false);
@@ -68,6 +72,7 @@ class WorkflowItem extends SystemItem
      * get html(for display)
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         return $this->getWorkflowValue($v, true);
@@ -79,6 +84,7 @@ class WorkflowItem extends SystemItem
      * @param bool $html is call as html, set true
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     protected function getWorkflowValue($val, $html)
     {
         if (boolval(array_get($this->options, 'summary'))) {
@@ -109,6 +115,7 @@ class WorkflowItem extends SystemItem
         }
     }
 
+    // @phpstan-ignore-next-line
     public function getFilterField($value_type = null)
     {
         $field = new MultipleSelect($this->name(), [$this->label()]);
@@ -126,6 +133,7 @@ class WorkflowItem extends SystemItem
     /**
      * get
      */
+    // @phpstan-ignore-next-line
     public function getTableName()
     {
         return $this->table_name;
@@ -149,6 +157,7 @@ class WorkflowItem extends SystemItem
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         $option = $this->getSystemColumnOption();

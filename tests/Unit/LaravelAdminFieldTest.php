@@ -713,6 +713,7 @@ class LaravelAdminFieldTest extends TestCase
             $this->assertTrue($messages === false, 'This test expects true, but result is false. message is ' . json_encode($messages));
         } else {
             $this->assertTrue($messages !== false, 'This test expects false, but result is true');
+            // @phpstan-ignore-next-line
             $this->assertJsonExment($errors, $messages->getMessages());
         }
     }

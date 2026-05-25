@@ -173,6 +173,7 @@ trait TestTrait
     protected function checkCustomValuePermission(CustomTable $custom_table, $ids, ?\Closure $filterCallback = null)
     {
         // get all ids
+        /** @phpstan-ignore-next-line */
         $allIds = \DB::table(getDBTableName($custom_table))->select('id')->pluck('id');
         $query = $custom_table->getValueModel()->withoutGlobalScopes();
 
@@ -198,6 +199,7 @@ trait TestTrait
     protected function getTextDirPath(): string
     {
         $dir = storage_path('app/tests');
+        /** @phpstan-ignore-next-line */
         \Exment::makeDirectory($dir);
 
         return $dir;
@@ -213,7 +215,9 @@ trait TestTrait
 
         // create file
         $file = path_join($dir, $fileName);
+        /** @phpstan-ignore-next-line */
         if (!\File::exists($file)) {
+            /** @phpstan-ignore-next-line */
             \File::put($file, TestDefine::FILE_BASE64);
         }
         return $file;
@@ -228,9 +232,11 @@ trait TestTrait
         $dir = $this->getTextDirPath();
         // create file
         $file = path_join($dir, $imageName);
+        /** @phpstan-ignore-next-line */
         if (!\File::exists($file)) {
             // convert to base64. This string is 1*1 rad color's image
             $f = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAANSURBVBhXY3gro/IfAAVUAi3GPZKdAAAAAElFTkSuQmCC');
+            /** @phpstan-ignore-next-line */
             \File::put($file, $f);
         }
         return $file;
@@ -243,6 +249,7 @@ trait TestTrait
     protected function getTextFileObject($fileName = 'file.txt')
     {
         $file = $this->getTextFilePath($fileName);
+        /** @phpstan-ignore-next-line */
         return \File::get($file);
     }
 
@@ -253,6 +260,7 @@ trait TestTrait
     protected function getTextImageObject($imageName = 'image.png')
     {
         $file = $this->getTextImagePath($imageName);
+        /** @phpstan-ignore-next-line */
         return \File::get($file);
     }
 
@@ -266,6 +274,7 @@ trait TestTrait
      */
     protected function callProtectedMethod($obj, $methodName, ...$args)
     {
+        // @phpstan-ignore-next-line
         $method = new \ReflectionMethod(get_class($obj), $methodName);
         $method->setAccessible(true);
         return $method->invoke($obj, ...$args);
@@ -316,16 +325,16 @@ trait TestTrait
 
     //     static::assertThat($array, $constraint, $message);
     // }
+
     /**
-     * Assert that the json is Exment style.
+     * Assert that the expected error array is a subset of the actual validation messages.
      *
-     * @param  array<mixed>  $expected
-     * @param  array<mixed>  $actual
-     * @param  string  $message
+     * @param array<mixed> $errors expected errors, e.g. ['field' => ['message']]
+     * @param array<mixed> $messages actual messages from validator->getMessages()
      * @return void
      */
-    protected function assertJsonExment(array $expected, array $actual, string $message = ''): void
+    protected function assertJsonExment(array $errors, array $messages): void
     {
-        $this->assertArraySubset($expected, $actual, $message);
+        $this->assertArraySubset($errors, $messages);
     }
 }

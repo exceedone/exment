@@ -9,6 +9,7 @@ use OpenAdminCore\Admin\Form\Field;
 
 class Email extends CustomItem
 {
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Email::class;

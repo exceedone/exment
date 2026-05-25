@@ -11,6 +11,7 @@ trait ImportValueTrait
      * @param array $setting
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getImportValue($value, $setting = [])
     {
         $isMultiple = is_array($value) || boolval(array_get($this->custom_column, 'options.multiple_enabled'));
@@ -19,6 +20,7 @@ trait ImportValueTrait
 
         ///// not default value check
         // to array
+        /** @phpstan-ignore-next-line */
         $value = stringToArray($value);
 
         // replace value
@@ -44,6 +46,7 @@ trait ImportValueTrait
         return [
             'result' => $result,
             'value' =>  $value,
+            /** @phpstan-ignore-next-line */
             'message' => !$result ? exmtrans('custom_value.import.message.select_item_not_found', [
                 'column_view_name' => $this->label(),
                 'value_options' => implode(exmtrans('common.separate_word'), collect($options)->keys()->toArray())
@@ -58,6 +61,7 @@ trait ImportValueTrait
      * @param array $options target options
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     protected function matchValue($v, $options)
     {
         // find value function

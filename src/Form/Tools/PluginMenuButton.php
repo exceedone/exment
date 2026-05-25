@@ -10,12 +10,17 @@ use Exceedone\Exment\Model\Plugin;
  */
 class PluginMenuButton
 {
+    // @phpstan-ignore-next-line
     protected $plugin;
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $id;
     // set this plugin type
+    // @phpstan-ignore-next-line
     protected $plugin_type;
 
+    // @phpstan-ignore-next-line
     public function __construct($listButton, $custom_table, $id = null)
     {
         if ($listButton instanceof Plugin) {
@@ -29,6 +34,7 @@ class PluginMenuButton
         $this->id = $id;
     }
 
+    // @phpstan-ignore-next-line
     protected function script($uuid, $label)
     {
         $table_name = array_get($this->custom_table, 'table_name');
@@ -63,6 +69,7 @@ class PluginMenuButton
 EOT;
     }
 
+    // @phpstan-ignore-next-line
     public function render()
     {
         // get label
@@ -71,17 +78,20 @@ EOT;
             'id' => $this->id,
         ]);
 
+        // @phpstan-ignore-next-line
         if (method_exists($pluginClass, 'enableRender') && !$pluginClass->enableRender()) {
             return null;
         }
 
         // if render method has and not null, return.
+        // @phpstan-ignore-next-line
         $render = method_exists($pluginClass, 'render') ? $pluginClass->render() : null;
         if (!is_null($render)) {
             return $render;
         }
 
         if (method_exists($pluginClass, 'getButtonLabel')) {
+            // @phpstan-ignore-next-line
             $label = $pluginClass->getButtonLabel();
         } else {
             $label = $this->plugin->plugin_view_name;

@@ -213,8 +213,10 @@ trait TestDataTrait
 
         $result = null;
         if (is_numeric($mail_template)) {
+            /** @phpstan-ignore-next-line */
             $result = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         } else {
+            /** @phpstan-ignore-next-line */
             $result = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', $mail_template)->first();
         }
         // if not found, return exception

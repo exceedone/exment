@@ -47,11 +47,11 @@ class BCustomTableTest extends ExmentKitTestCase
         $this->visit(admin_url('table/create'))
                 ->seePageIs(admin_url('table/create'))
                 ->seeInElement('h1', 'カスタムテーブル設定')
-                ->seeInElement('.box-title', '作成')
+                ->seeInElement('h3.box-title', '作成')
                 ->seeInElement('label', 'テーブル名(英数字)')
                 ->seeInElement('label', 'テーブル表示名')
                 ->seeInElement('label', '説明')
-                ->seeInElement('.field-header', exmtrans('common.detail_setting'))
+                ->seeInElement('h4.field-header', '詳細設定')
                 ->seeInElement('label', '色')
                 ->seeInElement('label', 'アイコン')
                 ->seeInElement('label', '検索可能')
@@ -83,7 +83,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->type('test description', 'description')
                 ->type('#ff0000', 'options[color]')
                 ->type('fa-automobile', 'options[icon]')
-            /** @phpstan-ignore-next-line  */
+                // @phpstan-ignore-next-line
                 ->type(50, 'options[revision_count]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url('column/test'))
@@ -98,30 +98,37 @@ class BCustomTableTest extends ExmentKitTestCase
     public function testEditCustomTableSuccess()
     {
         $row = CustomTable::orderBy('id', 'desc')->first();
-        $id = $row->id;
+        $id = array_get($row, 'id');
 
-        // Use visit and form submit instead of direct PUT to handle CSRF and redirects
-        $this->visit(admin_url('table/' . $id . '/edit'))
-            ->type('test table update', 'table_view_name')
-            ->type('test description update', 'description')
-            ->type('#00ff00', 'options[color]')
-            ->press('admin-submit')
-            ->seePageIs(admin_url('table'));
+        // Update custom table
+        $this->visit(admin_url('table/'. $id . '/edit'))
+                ->seeInField('options[search_enabled]', '1')
+                ->seeInField('options[attachment_flg]', '1')
+                ->seeInField('options[revision_flg]', '1')
+                ->type('test table update', 'table_view_name')
+                ->type('test description update', 'description')
+                ->type('#00ff00', 'options[color]')
+                ->press('admin-submit')
+                ->seePageIs(admin_url('table'))
+                ->visit(admin_url('table/?per_page=100'))
+                ->seeInElement('td', 'test table update')
+        ;
 
-        $this->assertNotNull(CustomTable::find($id));
-
-        $this->visit(admin_url('table/' . $id . '/edit'))
-            ->type('test table checked', 'table_view_name')
-            ->uncheck('options[search_enabled]')
-            ->check('options[one_record_flg]')
-            ->uncheck('options[attachment_flg]')
-            ->uncheck('options[revision_flg]')
-            ->check('options[all_user_editable_flg]')
-            ->check('options[all_user_viewable_flg]')
-            ->check('options[all_user_accessable_flg]')
-            ->press('admin-submit')
-            ->seePageIs(admin_url('table'));
-
-        $this->assertNotNull(CustomTable::find($id));
+        // Update custom table(checkbox field)
+        $data = [
+                'table_view_name' => 'test table checked',
+                'options[search_enabled]' => 0,
+                'options[one_record_flg]' => 1,
+                'options[attachment_flg]' => 0,
+                'options[revision_flg]' => 0,
+                'options[all_user_editable_flg]' => 1,
+                'options[all_user_viewable_flg]' => 1,
+                'options[all_user_accessable_flg]' => 1,
+        ];
+        // Update custom table
+        $this->visit(admin_url('table/'. $id . '/edit'))
+                ->submitForm('admin-submit', $data)
+                ->seePageIs(admin_url('table'))
+        ;
     }
 }

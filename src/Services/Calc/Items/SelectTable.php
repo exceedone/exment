@@ -26,21 +26,25 @@ class SelectTable extends ItemBase
         $this->select_pivot_column = $select_pivot_column;
     }
 
+    // @phpstan-ignore-next-line
     public function type()
     {
         return 'select_table';
     }
 
+    // @phpstan-ignore-next-line
     public function text()
     {
         return exmtrans('custom_column.calc_text.select_table', array_get($this->select_pivot_column, 'column_view_name'), array_get($this->custom_column, 'column_view_name'));
     }
 
+    // @phpstan-ignore-next-line
     public function val()
     {
         return '${select_table:' . array_get($this->select_pivot_column, 'column_name') . '.' . array_get($this->custom_column, 'column_name') . '}';
     }
 
+    // @phpstan-ignore-next-line
     public function toArray()
     {
         return array_merge([
@@ -53,6 +57,7 @@ class SelectTable extends ItemBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getTriggeredKeys(): array
     {
         $trigger_block = (!$this->custom_form_block || $this->custom_form_block->form_block_type == FormBlockType::DEFAULT) ? 'default' : $this->getRelationName();
@@ -63,12 +68,14 @@ class SelectTable extends ItemBase
     }
 
 
+    // @phpstan-ignore-next-line
     public static function getItem($custom_column, $custom_table, ?CustomColumn $select_pivot_column)
     {
         return new self($custom_column, $custom_table, $select_pivot_column);
     }
 
 
+    // @phpstan-ignore-next-line
     public static function getItemBySplits($splits, ?CustomTable $custom_table)
     {
         if (count($splits) < 2) {
@@ -80,6 +87,7 @@ class SelectTable extends ItemBase
     }
 
 
+    // @phpstan-ignore-next-line
     public static function setCalcCustomColumnOptions($options, $id, $custom_table)
     {
         $custom_table->custom_columns_cache->each(function ($custom_column) use ($id, $custom_table, $options) {

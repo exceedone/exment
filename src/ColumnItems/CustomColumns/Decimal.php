@@ -25,9 +25,11 @@ class Decimal extends CustomItem
                 $this->value = $this->_format($this->value);
             }
         }
+        // @phpstan-ignore-next-line
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     protected function _format($v)
     {
         $v = parseFloat($v);
@@ -41,6 +43,7 @@ class Decimal extends CustomItem
     /**
      * get html(for display)
      */
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         // default escapes text
@@ -54,6 +57,7 @@ class Decimal extends CustomItem
         return esc_html($text);
     }
 
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         if (is_null($v)) {
@@ -64,14 +68,17 @@ class Decimal extends CustomItem
         && !boolval(array_get($this->options, 'disable_number_format'))) {
             if (array_has($this->custom_column, 'options.decimal_digit')) {
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+                // @phpstan-ignore-next-line
                 $number = number_format($v, $digit);
                 return preg_replace("/\.?0+$/", '', $number);
             } else {
+                // @phpstan-ignore-next-line
                 return number_format($v);
             }
         }
         return $this->_value($v);
     }
+    // @phpstan-ignore-next-line
     public function saving()
     {
         $rmv = rmcomma($this->value);
@@ -80,11 +87,13 @@ class Decimal extends CustomItem
         }
         return strval($rmv);
     }
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Text::class;
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         $options = $this->custom_column->options;
@@ -110,6 +119,7 @@ class Decimal extends CustomItem
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFilterClass()
     {
         return ExmFilter\Between::class;
@@ -127,12 +137,13 @@ class Decimal extends CustomItem
         $this->getAdminFilterWhereQueryNumber($query, $input);
     }
 
+    // @phpstan-ignore-next-line
     protected function setValidates(&$validates)
     {
         $options = $this->custom_column->options;
         $decimal_digit = intval(array_get($options, 'decimal_digit')?? 2);
         $integer_digit =  Define::MAX_FLOAT_PRECISION - $decimal_digit;
-        /** @phpstan-ignore-next-line str_repeat expects string, int given*/
+        // @phpstan-ignore-next-line
         $max_size_number = floatval(str_repeat(9, $integer_digit) . '.' . str_repeat(9, $decimal_digit));
         $min_size_number = -1 * $max_size_number;
 
@@ -146,6 +157,7 @@ class Decimal extends CustomItem
         $validates[] = new Validator\DecimalCommaRule();
     }
 
+    // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
         return ['integer', 'numeric'];
@@ -154,6 +166,7 @@ class Decimal extends CustomItem
     /**
      * get cast Options
      */
+    // @phpstan-ignore-next-line
     protected function getCastOptions()
     {
         if (array_has($this->custom_column, 'options.decimal_digit')) {

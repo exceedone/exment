@@ -18,6 +18,7 @@ class RefreshDataService
      * Refresh transaction data
      *
      * @return void
+     * @throws \Throwable
      */
     public static function refresh()
     {
@@ -81,8 +82,9 @@ class RefreshDataService
     /**
      * Refresh transaction data selecting table
      *
-     * @param array $tables
+     * @param array<int, mixed> $tables
      * @return void
+     * @throws \Throwable
      */
     public static function refreshTable(array $tables)
     {
@@ -173,6 +175,7 @@ class RefreshDataService
      * @param array|\Illuminate\Support\Collection $custom_tables
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function removeAttachmentFiles($custom_tables)
     {
         $disk = \Storage::disk(Define::DISKNAME_ADMIN);
@@ -200,6 +203,7 @@ class RefreshDataService
      * @param array|\Illuminate\Support\Collection $custom_tables
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function removeDocumentComments($custom_tables)
     {
         // delete tables

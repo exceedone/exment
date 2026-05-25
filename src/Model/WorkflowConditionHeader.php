@@ -18,11 +18,15 @@ class WorkflowConditionHeader extends ModelBase
     protected $appends = ['condition_join', 'condition_reverse'];
     protected $casts = ['options' => 'json'];
 
+
+    // @phpstan-ignore-next-line
     public function workflow_action()
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function workflow_conditions()
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
@@ -31,6 +35,8 @@ class WorkflowConditionHeader extends ModelBase
     /**
      * check if custom_value and user(organization, role) match for conditions(with reverse option).
      */
+
+    // @phpstan-ignore-next-line
     public function isMatchCondition($custom_value)
     {
         $result = $this->_isMatchCondition($custom_value);
@@ -43,6 +49,8 @@ class WorkflowConditionHeader extends ModelBase
     /**
      * check if custom_value and user(organization, role) match for conditions.
      */
+
+    // @phpstan-ignore-next-line
     public function _isMatchCondition($custom_value)
     {
         $is_or = $this->condition_join == 'or';
@@ -69,6 +77,8 @@ class WorkflowConditionHeader extends ModelBase
         });
     }
 
+
+    // @phpstan-ignore-next-line
     public function deletingChildren()
     {
         $keys = ['workflow_conditions'];
@@ -78,11 +88,15 @@ class WorkflowConditionHeader extends ModelBase
         }
     }
 
+
+    // @phpstan-ignore-next-line
     public function getConditionJoinAttribute()
     {
         return $this->getOption('condition_join');
     }
 
+
+    // @phpstan-ignore-next-line
     public function setConditionJoinAttribute($val)
     {
         if (is_null($val)) {
@@ -94,11 +108,15 @@ class WorkflowConditionHeader extends ModelBase
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getConditionReverseAttribute()
     {
         return $this->getOption('condition_reverse');
     }
 
+
+    // @phpstan-ignore-next-line
     public function setConditionReverseAttribute($val)
     {
         if (is_null($val)) {

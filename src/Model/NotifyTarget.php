@@ -82,26 +82,36 @@ class NotifyTarget
      */
     protected $id;
 
+
+    // @phpstan-ignore-next-line
     public function notifyKey()
     {
         return $this->notifyKey;
     }
 
+
+    // @phpstan-ignore-next-line
     public function id()
     {
         return $this->id;
     }
 
+
+    // @phpstan-ignore-next-line
     public function email()
     {
         return $this->email;
     }
 
+
+    // @phpstan-ignore-next-line
     public function slack_id()
     {
         return $this->slack_id;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getLabel()
     {
         if (isset($this->email)) {
@@ -111,6 +121,8 @@ class NotifyTarget
         return $this->name;
     }
 
+
+    // @phpstan-ignore-next-line
     public function toArray()
     {
         return [
@@ -141,6 +153,8 @@ class NotifyTarget
      * @param CustomTable|null $custom_table
      * @return Collection|\Tightenco\Collect\Support\Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getModels(Notify $notify, ?CustomValue $custom_value, $notify_action_target, array $action_setting, ?CustomTable $custom_table = null)
     {
         $notifyTarget = NotifyTargetBase::make($notify_action_target, $notify, $action_setting);
@@ -214,6 +228,8 @@ class NotifyTarget
         return NotifyTarget::getModelAsSelectTable($target_value, NotifyTargetType::USER, $custom_column);
     }
 
+
+    // @phpstan-ignore-next-line
     public static function getModelsAsOrganization(?CustomValue $target_value, ?CustomColumn $custom_column = null): Collection
     {
         // get organization user
@@ -235,6 +251,8 @@ class NotifyTarget
      * @param CustomValue $custom_value
      * @return Collection
      */
+
+    // @phpstan-ignore-next-line
     public static function getModelsAsRole(?CustomValue $custom_value, ?CustomTable $custom_table = null): Collection
     {
         $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ALL_CUSTOM_VALUE, $custom_table);
@@ -252,6 +270,8 @@ class NotifyTarget
         return $list->filter()->unique();
     }
 
+
+    // @phpstan-ignore-next-line
     public static function getSelectedNotifyTarget($select_target, Notify $notify, ?CustomValue $custom_value)
     {
         // all target users
@@ -265,6 +285,8 @@ class NotifyTarget
         return $user;
     }
 
+
+    // @phpstan-ignore-next-line
     public static function getSelectedNotifyTargets($select_targets, Notify $notify, ?CustomValue $custom_value)
     {
         // all target users

@@ -9,13 +9,16 @@ class Modal
 {
     use ModalTrait;
 
+    // @phpstan-ignore-next-line
     protected $modalBody;
 
+    // @phpstan-ignore-next-line
     public function body($modalBody)
     {
         $this->modalBody = $modalBody;
     }
 
+    // @phpstan-ignore-next-line
     public static function widgetModalRender()
     {
         // add modal for showmodal

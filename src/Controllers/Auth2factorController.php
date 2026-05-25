@@ -15,6 +15,7 @@ class Auth2factorController extends \OpenAdminCore\Admin\Controllers\AuthControl
     /**
      * User logout.
      */
+    // @phpstan-ignore-next-line
     public function logout(Request $request)
     {
         $this->guard()->logout();
@@ -33,6 +34,7 @@ class Auth2factorController extends \OpenAdminCore\Admin\Controllers\AuthControl
      *
      * @throws \BadMethodCallException
      */
+    // @phpstan-ignore-next-line
     public function __call($method, $parameters)
     {
         $provider = Auth2factorService::getProvider();

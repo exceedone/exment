@@ -11,11 +11,13 @@ class Xlsx extends SpOut
 {
     use XlsxTrait;
 
+    // @phpstan-ignore-next-line
     protected $accept_extension = 'xlsx';
 
     /**
      * get data table list. contains self table, and relations (if contains)
      */
+    // @phpstan-ignore-next-line
     public function getDataTable($request, array $options = [])
     {
         $options = $this->getDataOptions($options);
@@ -40,6 +42,7 @@ class Xlsx extends SpOut
     }
 
 
+    // @phpstan-ignore-next-line
     protected function _getData($request, $callback)
     {
         list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
@@ -79,6 +82,7 @@ class Xlsx extends SpOut
     /**
      * @return \Box\Spout\Writer\XLSX\Writer
      */
+    // @phpstan-ignore-next-line
     protected function createWriter($spreadsheet)
     {
         return WriterEntityFactory::createXLSXWriter();

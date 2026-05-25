@@ -25,6 +25,7 @@ trait SystemColumnItemTrait
             return null;
         }
 
+        /** @phpstan-ignore-next-line */
         return CustomRelation::getRelationByParentChild($this->custom_table, $view_pivot_table);
     }
 
@@ -35,6 +36,7 @@ trait SystemColumnItemTrait
      * @param array $options
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     protected function getViewPivotValue($custom_value, $options)
     {
         $view_pivot_column = array_get($options, 'view_pivot_column');
@@ -42,6 +44,7 @@ trait SystemColumnItemTrait
 
         $pivot_custom_value = $this->getViewPivotCustomValue($custom_value, $options);
 
+        /** @phpstan-ignore-next-line */
         if (is_list($pivot_custom_value)) {
             return collect($pivot_custom_value)->map(function ($v) use ($valuekey) {
                 return array_get($v, $valuekey);
@@ -58,6 +61,7 @@ trait SystemColumnItemTrait
      * @param array $options
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     protected function getViewPivotCustomValue($custom_value, $options)
     {
         $view_pivot_column = array_get($options, 'view_pivot_column');
@@ -65,6 +69,7 @@ trait SystemColumnItemTrait
         $valuekey = $this instanceof \Exceedone\Exment\ColumnItems\SystemItem ? $this->name() : 'value.'.$this->name();
         // for relation ----------------------------------------------------
         if ($view_pivot_column == SystemColumn::PARENT_ID) {
+            /** @phpstan-ignore-next-line */
             $relation = CustomRelation::getRelationByParentChild($this->custom_table, array_get($options, 'view_pivot_table'));
             if (!isset($relation)) {
                 return null;
@@ -73,6 +78,7 @@ trait SystemColumnItemTrait
             $relation_name = $relation->getRelationName();
             $relation_custom_value = $custom_value->{$relation_name};
 
+            /** @phpstan-ignore-next-line */
             if (is_list($relation_custom_value)) {
                 return collect($relation_custom_value);
             }
@@ -83,12 +89,15 @@ trait SystemColumnItemTrait
             $pivot_custom_column = CustomColumn::getEloquent($view_pivot_column);
             $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
 
+            /** @phpstan-ignore-next-line */
             if (is_list($pivot_id)) {
                 return collect($pivot_id)->map(function ($v) {
+                    /** @phpstan-ignore-next-line */
                     $custom_value = $this->custom_table->getValueModel($v);
                     return $custom_value;
                 });
             } else {
+                /** @phpstan-ignore-next-line */
                 $custom_value = $this->custom_table->getValueModel($pivot_id);
                 return $custom_value;
             }

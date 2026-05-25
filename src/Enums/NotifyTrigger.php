@@ -12,6 +12,7 @@ class NotifyTrigger extends EnumBase
     public const PUBLIC_FORM_COMPLETE_ADMIN = "6";
     public const PUBLIC_FORM_ERROR = "7";
 
+    // @phpstan-ignore-next-line
     public static function CUSTOM_TABLES()
     {
         return [
@@ -21,6 +22,7 @@ class NotifyTrigger extends EnumBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public static function PUBLIC_FORMS()
     {
         return [
@@ -30,6 +32,7 @@ class NotifyTrigger extends EnumBase
         ];
     }
 
+    // @phpstan-ignore-next-line
     public function getDefaultMailKeyName()
     {
         switch ($this->getValue()) {

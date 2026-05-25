@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomValue;
 
 class HasRoles extends NotifyTargetBase
 {
+    // @phpstan-ignore-next-line
     public function getModels(?CustomValue $custom_value, ?CustomTable $custom_table): Collection
     {
         return NotifyTarget::getModelsAsRole($custom_value, $custom_table);

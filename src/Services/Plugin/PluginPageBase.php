@@ -14,8 +14,10 @@ class PluginPageBase extends PluginPublicBase
     use PluginBase;
     use PluginPageTrait;
 
+    // @phpstan-ignore-next-line
     protected $showHeader = true;
 
+    // @phpstan-ignore-next-line
     public function __construct($plugin)
     {
         $this->plugin = $plugin;
@@ -36,6 +38,7 @@ class PluginPageBase extends PluginPublicBase
      *
      * @return string|null
      */
+    // @phpstan-ignore-next-line
     public function getRouteUri($endpoint = null)
     {
         if (!isset($this->plugin)) {

@@ -10,8 +10,12 @@ use Illuminate\Contracts\Validation\Rule;
  */
 class NumberMaxRule implements Rule
 {
+    /** @var mixed */
     protected $max;
 
+    /**
+     * @param mixed $parameters
+     */
     public function __construct($parameters)
     {
         $this->max = $parameters;
@@ -47,6 +51,7 @@ class NumberMaxRule implements Rule
      */
     public function message()
     {
+        // @phpstan-ignore-next-line
         return str_replace(':max', $this->max, trans('validation.max.numeric'));
     }
 }

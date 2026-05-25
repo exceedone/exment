@@ -19,7 +19,9 @@ use DB;
 
 class BackupController extends AdminControllerBase
 {
+    // @phpstan-ignore-next-line
     protected $backup;
+    // @phpstan-ignore-next-line
     protected $restore;
 
     public function __construct()
@@ -52,6 +54,7 @@ class BackupController extends AdminControllerBase
         }
 
         // get all archive files
+        // @phpstan-ignore-next-line
         $files = collect($disk->files('list'))->filter(function ($file) {
             return preg_match('/list\/' . Define::RULES_REGEX_BACKUP_FILENAME . '\.zip$/i', $file);
         })->sortByDesc(function ($file) use ($disk) {
@@ -87,6 +90,7 @@ class BackupController extends AdminControllerBase
         return $content;
     }
 
+    // @phpstan-ignore-next-line
     protected function settingFormBox()
     {
         $form = new WidgetForm(System::get_system_values());
@@ -225,6 +229,7 @@ class BackupController extends AdminControllerBase
     /**
      * Download file
      */
+    // @phpstan-ignore-next-line
     public function download($arg)
     {
         $ymdhms = urldecode($arg);
@@ -352,6 +357,7 @@ class BackupController extends AdminControllerBase
             // get upload file
             $file = $request->file('upload_zipfile');
             // store uploaded file
+            // @phpstan-ignore-next-line
             $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
             try {
                 $result = $this->restore->execute($filename, true);

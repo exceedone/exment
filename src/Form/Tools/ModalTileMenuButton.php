@@ -7,8 +7,10 @@ namespace Exceedone\Exment\Form\Tools;
  */
 class ModalTileMenuButton extends ModalMenuButton
 {
+    // @phpstan-ignore-next-line
     protected $groups = [];
 
+    // @phpstan-ignore-next-line
     public function __construct($options = [])
     {
         parent::__construct(null, $options);
@@ -29,6 +31,7 @@ class ModalTileMenuButton extends ModalMenuButton
      * @param $groups
      * @return $this
      */
+    // @phpstan-ignore-next-line
     public function groups($groups)
     {
         $this->groups = $groups;

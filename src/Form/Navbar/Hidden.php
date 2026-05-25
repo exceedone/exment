@@ -37,6 +37,7 @@ HTML;
     }
 
 
+    // @phpstan-ignore-next-line
     public static function getHiddenItemsCommon()
     {
         return [

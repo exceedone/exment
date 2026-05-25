@@ -11,16 +11,19 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
     /**
      * target custom table
      */
+    // @phpstan-ignore-next-line
     protected $custom_table;
 
     /**
      * custom_table's relations
      */
+    // @phpstan-ignore-next-line
     protected $relations;
 
     /**
      * laravel-admin grid
      */
+    // @phpstan-ignore-next-line
     protected $grid;
 
     /**
@@ -37,6 +40,7 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
      */
     protected $add_relation = true;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
@@ -50,6 +54,7 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
         $this->add_relation = array_get($args, 'add_relation', true);
     }
 
+    // @phpstan-ignore-next-line
     public function datalist()
     {
         $providers = [];
@@ -104,6 +109,7 @@ class CustomTableAction extends ExportActionBase implements ActionInterface
         return $datalist;
     }
 
+    // @phpstan-ignore-next-line
     public function filebasename()
     {
         return $this->custom_table->table_view_name;

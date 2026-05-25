@@ -54,7 +54,7 @@ class CPublicFormTest extends ExmentKitTestCase
                 ->seeInElement('th', '公開有効期限')
                 ->seeInElement('th', '操作')
                 ->visit(admin_url('formpublic/custom_value_edit_all/create'))
-                ->seeInElement('.box-title', exmtrans('common.created'))
+                ->seeInElement('h3.box-title', '作成')
                 ->seeInElement('h1', '公開フォーム設定')
                 ->seeInElement('a', '基本設定')
                 ->seeInElement('a', 'デザイン設定')
@@ -309,19 +309,18 @@ class CPublicFormTest extends ExmentKitTestCase
         $this->visit($share_url)
             ->seePageIs($share_url)
             ->seeOuterElement('header.main-header', 'ユニットテストのヘッダ')
-            ->submitForm('admin-submit', [
-                'value[text]' => 'unit test text',
-                'value[user]' => '3',
-                'value[index_text]' => 'unit test index text',
-                'value[odd_even]' => 'odd',
-                'value[multiples_of_3]' => '1',
-                'value[date]' => '2020-07-12',
-                'value[integer]' => '12345',
-                'value[decimal]' => '987.65',
-                'value[currency]' => '11111.2',
-                'value[init_text]' => 'unit test init text',
-                'value[email]' => 'unittest@foobar.co.jp.test',
-            ])
+            ->type('unit test text', 'value[text]')
+            ->select('3', 'value[user]')
+            ->type('unit test index text', 'value[index_text]')
+            ->type('odd', 'value[odd_even]')
+            ->type('1', 'value[multiples_of_3]')
+            ->type('2020-07-12', 'value[date]')
+            ->type('12345', 'value[integer]')
+            ->type('987.65', 'value[decimal]')
+            ->type('11111.2', 'value[currency]')
+            ->type('unit test init text', 'value[init_text]')
+            ->type('unittest@foobar.co.jp.test', 'value[email]')
+            ->press('admin-submit')
             ->seePageIs($share_url . '/confirm')
             ->seeOuterElement('div.box-body', 'unit test text')
             ->seeOuterElement('div.box-body', 'user2')
@@ -334,7 +333,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeOuterElement('div.box-body', '¥11111.2')
             ->seeOuterElement('div.box-body', 'unit test init text')
             ->seeOuterElement('div.box-body', 'unittest@foobar.co.jp.test')
-            ->submitForm('admin-submit', [])
+            ->press('admin-submit')
             ->seePageIs($share_url . '/create')
             ->seeOuterElement('h2', 'テスト完了タイトル')
             ->seeOuterElement('div.complete_text', 'テストが完了しました。ユニットテストです。')
@@ -344,6 +343,7 @@ class CPublicFormTest extends ExmentKitTestCase
         $table_name = \getDBTableName($table);
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
+        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
             ->seeIsSelected('value[user]', '3')
@@ -407,7 +407,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         // Check Public Form default save value
         $this->visit(admin_url('formpublic/custom_value_edit_all/'. $id . '/edit'))
-            ->seeInElement('.box-title', '編集')
+            ->seeInElement('h3.box-title', '編集')
             ->seeInElement('span', $target_form->form_view_name)
             ->seeInField('public_form_view_name', 'Public Form Unit Test')
             ->seeInField('header_background_color', '#3c8dbc')
@@ -570,11 +570,8 @@ class CPublicFormTest extends ExmentKitTestCase
         // Check public form view
         $this->visit($share_url)
             ->seePageIs($share_url)
-            // ->type('unit test text', 'value[text]')
-            // ->press('admin-submit')
-            ->submitForm('admin-submit', [
-                'value[text]' => 'unit test text',
-            ])
+            ->type('unit test text', 'value[text]')
+            ->press('admin-submit')
             ->seePageIs($share_url . '/create')
             ->seeOuterElement('h2', 'テスト完了タイトル')
             ->seeOuterElement('div.complete_text', 'テストが完了しました。ユニットテストです。')
@@ -584,6 +581,7 @@ class CPublicFormTest extends ExmentKitTestCase
         $table_name = \getDBTableName($table);
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
+        // @phpstan-ignore-next-line
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
         ;
@@ -599,7 +597,7 @@ class CPublicFormTest extends ExmentKitTestCase
     {
         $this->visit(admin_url('formpublic/custom_value_edit_all/create'))
                 ->seePageIs(admin_url('formpublic/custom_value_edit_all/create'))
-                ->seeInElement('.box-title', exmtrans('common.created'))
+                ->seeInElement('h3.box-title', '作成')
                 ->press('admin-submit')
                 ->seePageIs(admin_url('formpublic/custom_value_edit_all/create'))
         ;

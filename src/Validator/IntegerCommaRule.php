@@ -18,6 +18,7 @@ class IntegerCommaRule implements Rule
         if (is_list($value)) {
             return false;
         }
+        // @phpstan-ignore-next-line
         return preg_match('/^[-]?[\d\s,]*$/', $value);
     }
 

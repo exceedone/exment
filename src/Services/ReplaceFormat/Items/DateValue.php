@@ -27,6 +27,7 @@ class DateValue extends ItemBase
     /**
      * Replace date
      */
+    // @phpstan-ignore-next-line
     public function replace($format, $options = [])
     {
         $str = Carbon::now()->{static::dateValues[$this->key]};

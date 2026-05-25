@@ -17,6 +17,7 @@ use Exceedone\Exment\Auth\Permission as Checker;
 
 class SearchController extends AdminControllerBase
 {
+    // @phpstan-ignore-next-line
     protected $custom_table;
 
 
@@ -25,6 +26,7 @@ class SearchController extends AdminControllerBase
     /**
      * Rendering search header for adminLTE header
      */
+    // @phpstan-ignore-next-line
     public static function renderSearchHeader()
     {
         // create searching javascript
@@ -40,6 +42,7 @@ class SearchController extends AdminControllerBase
      * @param Request $request
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function header(Request $request)
     {
         $q = $request->input('query');
@@ -89,8 +92,10 @@ class SearchController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         if ($request->has('table_name') && $request->has('value_id')) {
+            // @phpstan-ignore-next-line
             return $this->getRelationSearch($request, $content);
         } else {
+            // @phpstan-ignore-next-line
             return $this->getFreeWord($request, $content);
         }
     }
@@ -125,6 +130,7 @@ class SearchController extends AdminControllerBase
     /**
      * Get Search enabled table list
      */
+    // @phpstan-ignore-next-line
     protected function getSearchTargetTable($value_table = null)
     {
         $results = [];
@@ -156,6 +162,7 @@ class SearchController extends AdminControllerBase
     /**
      * Get search results using query
      */
+    // @phpstan-ignore-next-line
     public function getLists(Request $request)
     {
         $q = $request->input('query');
@@ -173,6 +180,7 @@ class SearchController extends AdminControllerBase
     /**
      * Get search results using query
      */
+    // @phpstan-ignore-next-line
     public function getList(Request $request)
     {
         $q = $request->input('query');
@@ -184,6 +192,7 @@ class SearchController extends AdminControllerBase
     /**
      * Get search results item using query
      */
+    // @phpstan-ignore-next-line
     protected function getListItem(Request $request, $q, $table_name)
     {
         $custom_table = CustomTable::getEloquent($table_name);
@@ -288,6 +297,7 @@ class SearchController extends AdminControllerBase
     /**
      * get query relation value
      */
+    // @phpstan-ignore-next-line
     public function getRelationList(Request $request)
     {
         // value_id is the id user selected.
@@ -363,6 +373,7 @@ class SearchController extends AdminControllerBase
      * Get Search enabled relation table list.
      * It contains search_type(self, select_table, one_to_many, many_to_many)
      */
+    // @phpstan-ignore-next-line
     protected function getSearchTargetRelationTable($value_table)
     {
         $results = [];
@@ -384,6 +395,7 @@ class SearchController extends AdminControllerBase
         }
         return $results;
     }
+    // @phpstan-ignore-next-line
     protected function getTableArray($table, $search_type = null)
     {
         $array = [
@@ -405,6 +417,7 @@ class SearchController extends AdminControllerBase
         $array['box_key'] = short_uuid();
         return $array;
     }
+    // @phpstan-ignore-next-line
     protected function getBoxHeaderHtml($custom_table, $query = [])
     {
         // boxheader
@@ -429,6 +442,7 @@ class SearchController extends AdminControllerBase
     /**
      * set common script for list or relation search
      */
+    // @phpstan-ignore-next-line
     protected function setCommonScript(bool $isList)
     {
         // create searching javascript

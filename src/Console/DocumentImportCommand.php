@@ -21,9 +21,12 @@ class DocumentImportCommand extends FileColumnImportCommand
      */
     protected $description = 'Document Import Exment data';
 
+    // @phpstan-ignore-next-line
     protected static $actionClassName = DataImportExport\Actions\Import\DocumentAction::class;
 
+    // @phpstan-ignore-next-line
     protected static $directoryName = 'document-import';
 
+    // @phpstan-ignore-next-line
     protected static $files_name = 'documents';
 }

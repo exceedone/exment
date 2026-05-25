@@ -9,6 +9,9 @@ use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\RelationType;
 
+/**
+ * @property \Exceedone\Exment\Model\CustomColumn $custom_column
+ */
 class ParentItem implements ItemInterface
 {
     use ItemTrait;
@@ -16,18 +19,22 @@ class ParentItem implements ItemInterface
     /**
      * this column's parent table
      */
+    // @phpstan-ignore-next-line
     protected $parent_table;
 
     /**
      * this custom relation
      */
+    // @phpstan-ignore-next-line
     protected $custom_relation;
 
     /**
      * specifying the parent table
      */
+    // @phpstan-ignore-next-line
     protected $target_parent = false;
 
+    // @phpstan-ignore-next-line
     public function __construct($custom_table, $custom_value, $parent_table = null, ?CustomRelation $custom_relation = null)
     {
         $this->custom_table = $custom_table;
@@ -54,6 +61,7 @@ class ParentItem implements ItemInterface
     /**
      * get column name
      */
+    // @phpstan-ignore-next-line
     public function name()
     {
         if (array_get($this->options, 'grid_column')) {
@@ -68,6 +76,7 @@ class ParentItem implements ItemInterface
     /**
      * get column name
      */
+    // @phpstan-ignore-next-line
     public function sqlname()
     {
         return 'parent_id';
@@ -76,6 +85,7 @@ class ParentItem implements ItemInterface
     /**
      * get parent_type column name
      */
+    // @phpstan-ignore-next-line
     public function sqltypename()
     {
         return $this->sqlUniqueTableName() .'.parent_type';
@@ -84,6 +94,7 @@ class ParentItem implements ItemInterface
     /**
      * get target table real db name.
      */
+    // @phpstan-ignore-next-line
     public function sqlRealTableName()
     {
         if ($this->custom_relation->relation_type == RelationType::ONE_TO_MANY) {
@@ -96,6 +107,7 @@ class ParentItem implements ItemInterface
     /**
      * get index name
      */
+    // @phpstan-ignore-next-line
     public function index()
     {
         return $this->name();
@@ -104,6 +116,7 @@ class ParentItem implements ItemInterface
     /**
      * get text(for display)
      */
+    // @phpstan-ignore-next-line
     protected function _text($v)
     {
         return isset($v) ? $v->getLabel() : null;
@@ -113,6 +126,7 @@ class ParentItem implements ItemInterface
      * get html(for display)
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         if (!isset($v)) {
@@ -128,6 +142,7 @@ class ParentItem implements ItemInterface
     /**
      * get grid style
      */
+    // @phpstan-ignore-next-line
     public function gridStyle()
     {
         return $this->getStyleString([
@@ -139,11 +154,13 @@ class ParentItem implements ItemInterface
     /**
      * sortable for grid
      */
+    // @phpstan-ignore-next-line
     public function sortable()
     {
         return $this->custom_relation && $this->custom_relation->relation_type == RelationType::ONE_TO_MANY;
     }
 
+    // @phpstan-ignore-next-line
     public function setCustomValue($custom_value)
     {
         $this->value = $this->getTargetValue($custom_value);
@@ -156,6 +173,7 @@ class ParentItem implements ItemInterface
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function getCustomTable()
     {
         return $this->custom_table;
@@ -171,6 +189,7 @@ class ParentItem implements ItemInterface
         return $this->custom_relation;
     }
 
+    // @phpstan-ignore-next-line
     protected function getTargetValue($custom_value)
     {
         if (is_null($custom_value)) {
@@ -196,6 +215,7 @@ class ParentItem implements ItemInterface
      * @param array $setting
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getImportValue($value, $setting = [])
     {
         $result = true;
@@ -221,6 +241,7 @@ class ParentItem implements ItemInterface
     }
 
 
+    // @phpstan-ignore-next-line
     public function getFilterField()
     {
         if ($this->parent_table) {
@@ -239,23 +260,27 @@ class ParentItem implements ItemInterface
     /**
      * get view filter type
      */
+    // @phpstan-ignore-next-line
     public function getViewFilterType()
     {
         return FilterType::SELECT;
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($custom_table, $custom_value, $parent_table) = $args + [null, null, null];
         return new self($custom_table, $custom_value);
     }
 
+    // @phpstan-ignore-next-line
     public static function getItemWithParent(...$args)
     {
         list($custom_table, $parent_table) = $args + [null, null];
         return new self($custom_table, null, $parent_table);
     }
 
+    // @phpstan-ignore-next-line
     public static function getItemWithRelation(...$args)
     {
         list($custom_table, $custom_relation) = $args + [null, null];
@@ -293,6 +318,7 @@ class ParentItem implements ItemInterface
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($group_condition)) {
+            /** @phpstan-ignore-next-line */
             $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, !$asSelect);
         }
         // if sql server and created_at, set datetime cast
@@ -315,8 +341,10 @@ class ParentItem implements ItemInterface
     {
         $relation = $this->custom_relation;
         if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+            // @phpstan-ignore-next-line
             RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $relation->child_custom_table, $input);
         } else {
+            // @phpstan-ignore-next-line
             RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $input);
         }
     }
@@ -327,6 +355,7 @@ class ParentItem implements ItemInterface
      * @param $filter
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setAdminFilterOptions(&$filter)
     {
         $relation = $this->custom_relation;

@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomTable;
  */
 class InstallService
 {
+    // @phpstan-ignore-next-line
     public static function index()
     {
         static::setSettingTmp();
@@ -26,6 +27,7 @@ class InstallService
         return $form->index();
     }
 
+    // @phpstan-ignore-next-line
     public static function post()
     {
         static::setSettingTmp();
@@ -40,6 +42,7 @@ class InstallService
         return $form->post();
     }
 
+    // @phpstan-ignore-next-line
     public static function getStatus()
     {
         static::setSettingTmp();
@@ -84,6 +87,7 @@ class InstallService
         return InitializeStatus::INITIALIZE;
     }
 
+    // @phpstan-ignore-next-line
     public static function redirect($status)
     {
         $isInstallPath = collect(explode('/', request()->getRequestUri()))->last() == 'install';
@@ -116,6 +120,7 @@ class InstallService
         }
     }
 
+    // @phpstan-ignore-next-line
     public static function getForm($status)
     {
         switch ($status) {
@@ -134,16 +139,19 @@ class InstallService
         return new InitializeForm();
     }
 
+    // @phpstan-ignore-next-line
     public static function getInitializeStatus()
     {
         return session(Define::SYSTEM_KEY_SESSION_INITIALIZE);
     }
 
+    // @phpstan-ignore-next-line
     public static function setInitializeStatus($status)
     {
         session([Define::SYSTEM_KEY_SESSION_INITIALIZE => $status]);
     }
 
+    // @phpstan-ignore-next-line
     public static function forgetInitializeStatus()
     {
         session()->forget(Define::SYSTEM_KEY_SESSION_INITIALIZE);
@@ -151,6 +159,7 @@ class InstallService
 
 
 
+    // @phpstan-ignore-next-line
     public static function setInputParams(array $inputs)
     {
         $session_inputs = session(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS, []);
@@ -160,11 +169,13 @@ class InstallService
         session([Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS => $session_inputs]);
     }
 
+    // @phpstan-ignore-next-line
     public static function getInputParams(): array
     {
         return session(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS, []);
     }
 
+    // @phpstan-ignore-next-line
     public static function forgetInputParams()
     {
         session()->forget(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS);

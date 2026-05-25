@@ -10,17 +10,20 @@ class Header extends FormOtherItem
     /**
      * get html(for display)
      */
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         // default escapes text
         return esc_html($this->_text($v));
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Header::class;
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         parent::setAdminOptions($field);

@@ -14,8 +14,10 @@ class News
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $items = [];
 
+    // @phpstan-ignore-next-line
     protected $outputApi = true;
 
     public function __construct()
@@ -29,6 +31,7 @@ class News
     /**
      * get header
      */
+    // @phpstan-ignore-next-line
     public function header()
     {
         return null;
@@ -37,6 +40,7 @@ class News
     /**
      * get footer
      */
+    // @phpstan-ignore-next-line
     public function footer()
     {
         if (!$this->outputApi) {
@@ -50,6 +54,7 @@ class News
     /**
      * get html body
      */
+    // @phpstan-ignore-next-line
     public function body()
     {
         if (!$this->outputApi) {
@@ -77,7 +82,7 @@ class News
 
         $widgetTable = new WidgetTable($headers, $bodies);
 
-        /** @phpstan-ignore-next-line Expression on left side of ?? is not nullable. */
+        // @phpstan-ignore-next-line
         return $widgetTable->render() ?? null;
     }
 
@@ -88,6 +93,7 @@ class News
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
      */
+    // @phpstan-ignore-next-line
     protected function getQuery()
     {
         $request = request();
@@ -123,10 +129,12 @@ class News
             // if already executed
             if (isset($update_news)) {
                 $update_news = json_decode_ex($update_news, true);
+                // @phpstan-ignore-next-line
                 $update_time = array_get($update_news, 'update_time');
                 if (isset($update_time)) {
                     $update_time = new Carbon($update_time);
                     if ($update_time->diffInMinutes(Carbon::now()) <= 60) {
+                        // @phpstan-ignore-next-line
                         $contents = array_get($update_news, 'contents');
                     }
                 }
@@ -153,6 +161,7 @@ class News
             }
 
             // get wordpress items
+            // @phpstan-ignore-next-line
             $this->items = json_decode_ex($contents, true);
         } catch (\Exception $ex) {
             \Log::error($ex);

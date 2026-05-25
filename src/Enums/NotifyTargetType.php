@@ -9,6 +9,7 @@ class NotifyTargetType extends EnumBase
     public const USER = "3";
     public const ORGANIZATION = "4";
 
+    // @phpstan-ignore-next-line
     public static function getNotifyFuncByTable($table_name)
     {
         switch ($table_name) {

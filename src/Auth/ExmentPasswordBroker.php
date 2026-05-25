@@ -15,7 +15,7 @@ class ExmentPasswordBroker extends PasswordBroker
     /**
      * Get the user for the given credentials.
      *
-     * @param  array  $credentials
+     * @param  array<string, mixed>  $credentials
      * @return \Illuminate\Contracts\Auth\CanResetPassword|null
      *
      * @throws \UnexpectedValueException

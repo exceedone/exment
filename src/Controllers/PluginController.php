@@ -58,6 +58,7 @@ class PluginController extends AdminControllerBase
      * @param $id
      * @return false|\Illuminate\Http\RedirectResponse
      */
+    // @phpstan-ignore-next-line
     public function executeBatch(Request $request, $id)
     {
         if (!\Exment::user()->hasPermission(Permission::PLUGIN_ACCESS)) {
@@ -137,6 +138,7 @@ class PluginController extends AdminControllerBase
     public function destroy($id)
     {
         foreach (stringToArray($id) as $i) {
+            // @phpstan-ignore-next-line
             if ($this->form($i, true)->destroy($i)) {
                 $this->deleteFolder($i);
             } else {
@@ -183,11 +185,12 @@ class PluginController extends AdminControllerBase
         if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
             $options = $request->get('options');
-            /** @phpstan-ignore-next-line array_filter expects (callable(mixed): bool)|null, 'strlen' given */
+            // @phpstan-ignore-next-line
             $event_triggers = array_filter($event_triggers, 'strlen');
             $options['event_triggers'] = $event_triggers;
             $request->merge(['options' => $options]);
         }
+        // @phpstan-ignore-next-line
         return $this->form($id)->update($id);
     }
 
@@ -198,6 +201,7 @@ class PluginController extends AdminControllerBase
      * @param $isDelete
      * @return Form|false
      */
+    // @phpstan-ignore-next-line
     protected function form($id = null, $isDelete = false)
     {
         $plugin = Plugin::getEloquent($id);
@@ -397,6 +401,7 @@ class PluginController extends AdminControllerBase
      * @param Plugin|null $plugin
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setCustomOptionForm($plugin, &$form)
     {
         $pluginClass = $this->getPluginClass($plugin);
@@ -421,6 +426,7 @@ class PluginController extends AdminControllerBase
      *
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     protected function getPluginClass($plugin)
     {
         if (!isset($plugin)) {

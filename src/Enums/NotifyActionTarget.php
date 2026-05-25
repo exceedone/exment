@@ -16,6 +16,7 @@ class NotifyActionTarget extends EnumBase
     public const FIXED_ORGANIZATION = 'fixed_organization';
     public const ACTION_USER = 'action_user';
 
+    // @phpstan-ignore-next-line
     public static function ACTION_TARGET_CUSTOM_TABLE()
     {
         $targets = [
@@ -32,6 +33,7 @@ class NotifyActionTarget extends EnumBase
         return $targets;
     }
 
+    // @phpstan-ignore-next-line
     public static function ACTION_TARGET_WORKFLOW()
     {
         $targets = [

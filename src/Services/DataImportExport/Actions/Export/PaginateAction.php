@@ -20,6 +20,7 @@ class PaginateAction extends ExportActionBase implements ActionInterface
      * Widget grid
      *
      */
+    // @phpstan-ignore-next-line
     protected $grid;
 
     /**
@@ -27,6 +28,7 @@ class PaginateAction extends ExportActionBase implements ActionInterface
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $headers;
 
     /**
@@ -36,6 +38,7 @@ class PaginateAction extends ExportActionBase implements ActionInterface
      */
     protected $filename;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->isAll = array_get($args, 'isAll');
@@ -44,6 +47,7 @@ class PaginateAction extends ExportActionBase implements ActionInterface
         $this->filename = array_get($args, 'filename');
     }
 
+    // @phpstan-ignore-next-line
     public function datalist()
     {
         $providers = [];

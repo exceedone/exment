@@ -7,6 +7,10 @@ use Exceedone\Exment\Model\Define;
 
 class MailAttachment
 {
+    /**
+     * @param string $path
+     * @param string $filename
+     */
     public function __construct(string $path, string $filename)
     {
         $this->path = $path;
@@ -39,6 +43,8 @@ class MailAttachment
 
     /**
      * Get file object
+     *
+     * @return string|null
      */
     public function getFile()
     {
@@ -48,7 +54,7 @@ class MailAttachment
     /**
      * Make instance
      *
-     * @param File|array $attachment
+     * @param File|array<string, mixed>|mixed $attachment
      * @return MailAttachment|null
      */
     public static function make($attachment)

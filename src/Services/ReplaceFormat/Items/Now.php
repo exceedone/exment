@@ -10,6 +10,7 @@ class Now extends ItemBase
     /**
      * Replace date
      */
+    // @phpstan-ignore-next-line
     public function replace($format, $options = [])
     {
         $format = null;

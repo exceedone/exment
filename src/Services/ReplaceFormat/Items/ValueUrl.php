@@ -10,6 +10,7 @@ class ValueUrl extends ItemBase
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value
      */
+    // @phpstan-ignore-next-line
     public function replace($format, $options = [])
     {
         if (!isset($this->custom_value)) {
@@ -24,6 +25,7 @@ class ValueUrl extends ItemBase
         return $str;
     }
 
+    // @phpstan-ignore-next-line
     public function getLink($str)
     {
         return $str;

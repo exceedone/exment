@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment;
 
-use Exceedone\Exment\Auth\ExmentPasswordBroker;
-use Exceedone\Exment\Auth\PasswordBrokerManager;
 use Storage;
 use OpenAdminCore\Admin\Admin;
 use OpenAdminCore\Admin\Middleware as AdminMiddleware;
@@ -31,7 +29,6 @@ use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Contracts\Http\Kernel;
-use Illuminate\Support\Timebox;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -43,6 +40,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $policies = [
         'Exceedone\Exment\Model' => 'App\Policies\ModelPolicy',
     ];
@@ -52,6 +50,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $serviceProviders = [
         ExmentProviders\RouteServiceProvider::class,
         ExmentProviders\Route2factorServiceProvider::class,
@@ -64,6 +63,7 @@ class ExmentServiceProvider extends ServiceProvider
     /**
      * @var array commands
      */
+    // @phpstan-ignore-next-line
     protected $commands = [
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
@@ -104,6 +104,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
@@ -115,6 +116,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
         'log.exec.time' => \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
@@ -152,6 +154,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $middlewareGroups = [
         // Exment web page default
         'admin' => [
@@ -338,31 +341,6 @@ class ExmentServiceProvider extends ServiceProvider
             return CustomTable::findByEndpoint();
         });
 
-        // Override Laravel's default PasswordBroker to use ExmentPasswordBroker
-        $this->app->extend('auth.password', function ($service, $app) {
-            return new class($app) extends PasswordBrokerManager {
-                protected function resolve($name)
-                {
-                    $config = $this->getConfig($name);
-
-                    if (is_null($config)) {
-                        throw new \InvalidArgumentException("Password resetter [{$name}] is not defined.");
-                    }
-
-                    $provider = $this->app['auth']->createUserProvider($config['provider']);
-
-                    $tokenRepository = $this->createTokenRepository($config);
-
-                    return new ExmentPasswordBroker(
-                        $tokenRepository,
-                        $provider,
-                        $this->app['events'],
-                        $this->app->make(Timebox::class)
-                    );
-                }
-            };
-        });
-
         // guard provider
         Auth::extend('publicformtoken', function ($app, $name, array $config) {
             return tap($this->makeGuard($config), function ($guard) {
@@ -379,6 +357,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function publish()
     {
         $this->publishes([__DIR__ . '/../config' => config_path()]);
@@ -389,6 +368,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->publishes([__DIR__ . '/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
     }
 
+    // @phpstan-ignore-next-line
     protected function load()
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
@@ -408,6 +388,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function bootApp()
     {
         foreach ($this->serviceProviders as $serviceProvider) {
@@ -422,6 +403,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         if (config('admin.https') || config('admin.secure')) {
             \URL::forceScheme('https');
+            // @phpstan-ignore-next-line
             $this->app['request']->server->set('HTTPS', true);
         }
         if (boolval(config('admin.use_app_url', false))) {
@@ -429,6 +411,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
     }
 
+    // @phpstan-ignore-next-line
     protected function bootSchedule()
     {
         if (!$this->app->runningInConsole()) {
@@ -457,6 +440,7 @@ class ExmentServiceProvider extends ServiceProvider
         });
     }
 
+    // @phpstan-ignore-next-line
     protected function bootPassport()
     {
         // adding rule for laravel-passport
@@ -471,6 +455,7 @@ class ExmentServiceProvider extends ServiceProvider
     }
 
 
+    // @phpstan-ignore-next-line
     protected function bootSetting()
     {
         Initialize::requireBootstrap();
@@ -543,6 +528,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function policies()
     {
         return $this->policies;
@@ -554,6 +540,7 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getMiddlewareGroups()
     {
         ////// register middleware group.
@@ -597,13 +584,16 @@ class ExmentServiceProvider extends ServiceProvider
      * @param  array  $config
      * @return \Illuminate\Auth\RequestGuard
      */
+    // @phpstan-ignore-next-line
     protected function makeGuard(array $config)
     {
         return new RequestGuard(function ($request) use ($config) {
             return (new PublicFormGuard(
                 Auth::createUserProvider($config['provider']),
+                // @phpstan-ignore-next-line
                 $this->app['request']
             ))->user();
+        // @phpstan-ignore-next-line
         }, $this->app['request']);
     }
 }

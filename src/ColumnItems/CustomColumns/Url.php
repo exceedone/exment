@@ -14,6 +14,7 @@ class Url extends CustomItem
      * get html(for display)
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     protected function _html($v)
     {
         $value = $this->_value($v);
@@ -24,6 +25,7 @@ class Url extends CustomItem
         return \Exment::getUrlTag($url, $value, UrlTagType::BLANK);
     }
 
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Url::class;

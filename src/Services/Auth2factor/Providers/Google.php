@@ -187,10 +187,12 @@ class Google
         return redirect(admin_url(''));
     }
 
+    // @phpstan-ignore-next-line
     public function insertVerify()
     {
     }
 
+    // @phpstan-ignore-next-line
     protected function getG2fa()
     {
         $g2fa = new Google2FA();

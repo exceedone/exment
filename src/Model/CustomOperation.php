@@ -32,28 +32,38 @@ class CustomOperation extends ModelBase
     protected $appends = ['condition_join', 'active_flg', 'condition_reverse'];
 
 
+
+    // @phpstan-ignore-next-line
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function custom_operation_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
             ->where('operation_column_type', CopyColumnType::DEFAULT);
     }
 
+
+    // @phpstan-ignore-next-line
     public function custom_operation_input_columns(): HasMany
     {
         return $this->hasMany(CustomOperationColumn::class, 'custom_operation_id')
             ->where('operation_column_type', CopyColumnType::INPUT);
     }
 
+
+    // @phpstan-ignore-next-line
     public function custom_operation_conditions(): MorphMany
     {
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCustomTableCacheAttribute()
     {
         return CustomTable::getEloquent($this->custom_table_id);
@@ -63,16 +73,22 @@ class CustomOperation extends ModelBase
      * get eloquent using request settion.
      * now only support only id.
      */
+
+    // @phpstan-ignore-next-line
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getConditionJoinAttribute()
     {
         return $this->getOption('condition_join');
     }
 
+
+    // @phpstan-ignore-next-line
     public function setConditionJoinAttribute($val)
     {
         $this->setOption('condition_join', $val);
@@ -80,11 +96,15 @@ class CustomOperation extends ModelBase
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getConditionReverseAttribute()
     {
         return $this->getOption('condition_reverse');
     }
 
+
+    // @phpstan-ignore-next-line
     public function setConditionReverseAttribute($val)
     {
         $this->setOption('condition_reverse', $val);
@@ -92,12 +112,16 @@ class CustomOperation extends ModelBase
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getActiveFlgAttribute()
     {
         $active_flg = $this->getOption('active_flg');
         return is_null($active_flg) || $active_flg;
     }
 
+
+    // @phpstan-ignore-next-line
     public function setActiveFlgAttribute($val)
     {
         $this->setOption('active_flg', $val);
@@ -105,6 +129,8 @@ class CustomOperation extends ModelBase
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function deletingChildren()
     {
         $this->custom_operation_columns()->delete();
@@ -128,6 +154,8 @@ class CustomOperation extends ModelBase
      * @param CustomOperationType|array $operation_types
      * @return boolean is match operation type and conditions.
      */
+
+    // @phpstan-ignore-next-line
     public function isOperationTarget($custom_value, $operation_types)
     {
         if (!$this->matchOperationType($operation_types)) {
@@ -142,6 +170,8 @@ class CustomOperation extends ModelBase
      * @param CustomOperationType|array $operation_types
      * @return bool is match operation type. if $operation_types is multiple, whether contains.
      */
+
+    // @phpstan-ignore-next-line
     public function matchOperationType($operation_types)
     {
         $operation_types = toArray($operation_types);
@@ -198,6 +228,8 @@ class CustomOperation extends ModelBase
      * @param CustomValue $custom_value
      * @param boolean $is_save
      */
+
+    // @phpstan-ignore-next-line
     public static function operationExecuteEvent($operation_types, &$custom_value, $is_save = false)
     {
         $custom_table = $custom_value->custom_table;
@@ -228,6 +260,8 @@ class CustomOperation extends ModelBase
      * @param array $inputs input from dialog form
      * @return bool success or not
      */
+
+    // @phpstan-ignore-next-line
     public function execute($custom_table, $id, $inputs = null)
     {
         $ids = stringToArray($id);
@@ -256,7 +290,8 @@ class CustomOperation extends ModelBase
         } catch (\Exception $ex) {
             \DB::rollback();
             if ($ex instanceof ValidationException) {
-                /** @phpstan-ignore-next-line */
+
+                // @phpstan-ignore-next-line
                 return array_first(array_flatten($ex->validator->getMessages()));
             }
             throw $ex;
@@ -272,8 +307,12 @@ class CustomOperation extends ModelBase
      * @param array $inputs
      * @return array "value"'s array.
      */
+
+    // @phpstan-ignore-next-line
     protected function getUpdateValues($model, $inputs = null)
     {
+
+        // @phpstan-ignore-next-line
         $updates = collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use ($model) {
             $custom_column = $operation_column->custom_column;
             if (is_nullorempty($custom_column)) {

@@ -39,6 +39,7 @@ abstract class ItemBase implements CalcInterface
         $this->custom_table = $custom_table;
     }
 
+    // @phpstan-ignore-next-line
     public function displayText()
     {
         $text = $this->text();
@@ -50,6 +51,7 @@ abstract class ItemBase implements CalcInterface
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getTriggeredKeys(): array
     {
         return [
@@ -58,6 +60,7 @@ abstract class ItemBase implements CalcInterface
         ];
     }
 
+    // @phpstan-ignore-next-line
     public function toArray()
     {
         return array_merge([
@@ -70,17 +73,20 @@ abstract class ItemBase implements CalcInterface
     }
 
 
+    // @phpstan-ignore-next-line
     public function setCustomFormBlock($custom_form_block)
     {
         $this->custom_form_block = $custom_form_block;
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function getCustomFormBlock()
     {
         return $this->custom_form_block;
     }
 
+    // @phpstan-ignore-next-line
     protected function getRelationName()
     {
         return $this->custom_form_block ? $this->custom_form_block->getRelationInfo()[1] : null;

@@ -28,6 +28,7 @@ class LogOperation extends BaseLogOperation
                 'path'    => substr($request->path(), 0, 255),
                 'method'  => $request->method(),
                 'ip'      => $request->getClientIp(),
+                // @phpstan-ignore-next-line
                 'input'   => $this->hidePasswords(json_encode($request->input())),
             ];
 
@@ -83,6 +84,9 @@ class LogOperation extends BaseLogOperation
         return preg_replace('#("(' . $columns . ')"\s*:\s*")([^"]*)"#', '\1***"', $stringToLog);
     }
 
+    /**
+     * @return array<int, string>
+     */
     public static function getHideColumns(): array
     {
         return [

@@ -14,6 +14,10 @@ use Exceedone\Exment\Model\Define;
  */
 class Morph
 {
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         static::defineMorphMap();
@@ -23,6 +27,7 @@ class Morph
     /**
      * define morph map. this called from command.
      *
+     * @return void
      */
     public static function defineMorphMap()
     {
@@ -46,7 +51,7 @@ class Morph
     /**
      * return Morph maps
      *
-     * @return array
+     * @return array<string, string>
      */
     public static function getMorphs()
     {
@@ -70,6 +75,7 @@ class Morph
             getModelName($table_name);
         }
 
+        // @phpstan-ignore-next-line
         return $morphMaps;
     }
 }

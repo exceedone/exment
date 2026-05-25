@@ -70,7 +70,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (toggle) {
         toggle.addEventListener('click', function (e) {
             e.preventDefault();
-            document.body.classList.toggle('sidebar-collapse');
+            if (window.innerWidth < 768) {
+                // Mobile: use sidebar-open to slide sidebar in
+                document.body.classList.toggle('sidebar-open');
+            } else {
+                // Desktop: use sidebar-collapse to collapse/expand sidebar
+                document.body.classList.toggle('sidebar-collapse');
+            }
         });
     }
 });

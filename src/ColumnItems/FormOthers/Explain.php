@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\FormLabelType;
 
 class Explain extends FormOtherItem
 {
+    // @phpstan-ignore-next-line
     protected function getAdminFieldClass()
     {
         return Field\Description::class;
@@ -17,12 +18,14 @@ class Explain extends FormOtherItem
      * get html(for display)
      * *Please escape
      */
+    // @phpstan-ignore-next-line
     public function _html($v)
     {
         // default escapes text
         return replaceBreakEsc($this->_text($v));
     }
 
+    // @phpstan-ignore-next-line
     protected function setAdminOptions(&$field)
     {
         parent::setAdminOptions($field);

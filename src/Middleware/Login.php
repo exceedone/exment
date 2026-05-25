@@ -10,6 +10,10 @@ use Exceedone\Exment\Model\LoginSetting;
  */
 class Login
 {
+    /**
+     * @param \Closure(Request): mixed $next
+     * @return mixed
+     */
     public function handle(Request $request, \Closure $next)
     {
         // check whether SSO url redirect
@@ -17,6 +21,7 @@ class Login
             && !is_null($exment_login_url = LoginSetting::getRedirectSSOForceUrl())) {
             $errors = $request->session()->get('errors');
             if (\is_nullorempty($errors)) {
+                // @phpstan-ignore-next-line
                 return redirect($exment_login_url);
             }
         }

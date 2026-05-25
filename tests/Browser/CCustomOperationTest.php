@@ -59,12 +59,12 @@ class CCustomOperationTest extends ExmentKitTestCase
             ->seeInElement('label', 'テーブル表示名')
             ->seeInElement('label', '処理の名前')
             ->seeInElement('label', '更新のタイミング')
-            ->seeInElement('.field-header', exmtrans('custom_operation.custom_operation_columns'))
+            ->seeInElement('h4.field-header', '更新列設定')
             ->seeInElement('th', '対象列')
             ->seeInElement('th', '更新の種類')
             ->seeInElement('th', '更新値')
             ->seeInElement('th', '操作')
-            ->seeInElement('.field-header', exmtrans('custom_operation.custom_operation_conditions'))
+            ->seeInElement('h4.field-header', '更新条件')
             ->seeInElement('th', '条件項目')
             ->seeInElement('th', '条件')
             ->seeInElement('th', '条件値')
@@ -227,7 +227,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                     "custom_operation_conditions[$row_id][condition_target]",
                     $custom_operation_condition->target_column_id
                 );
-                /** @phpstan-ignore-next-line  */
+                // @phpstan-ignore-next-line
                 $this->seeOuterElement("input.condition_value.rowno-$row_id", 30000);
                 $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::NUMBER));
             }
@@ -280,7 +280,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             'suuid' => array_get($operation, 'suuid'),
             'id' => implode(',', $err_ids)
         ]);
-        /** @phpstan-ignore-next-line  */
+        // @phpstan-ignore-next-line
         $this->assertFalse($this->response->getData()->result);
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -290,7 +290,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             'suuid' => array_get($operation, 'suuid'),
             'id' => implode(',', $ids)
         ]);
-        /** @phpstan-ignore-next-line  */
+        // @phpstan-ignore-next-line
         $this->assertFalse($this->response->getData()->result);
     }
 
@@ -374,7 +374,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation create test update', 'value[text]')
                 ->type('even', 'value[odd_even]')
-            /** @phpstan-ignore-next-line  */
+                // @phpstan-ignore-next-line
                 ->type(123.45, 'value[decimal]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url("/data/$target_table_name"));
@@ -502,22 +502,8 @@ class CCustomOperationTest extends ExmentKitTestCase
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation update multiples_of_3 turn off');
         $this->assertEquals($custom_value->getValue('multiples_of_3'), '0');
-        // $this->assertEquals(\Carbon\Carbon::today()->format('Y-m-d'),$custom_value->getValue('date'));
-        $date_value = $custom_value->getValue('date');
-        if ($date_value instanceof \Carbon\Carbon) {
-            $this->assertTrue($date_value->isToday());
-        } elseif (!is_null($date_value)) {
-            $this->assertEquals($date_value, \Carbon\Carbon::today()->format("Y-m-d"));
-        } else {
-            $this->assertNull($date_value);
-        }
-        // $this->assertEquals($custom_value->getValue('email'), 'test123@mail.co.jp');
-        $email_value = $custom_value->getValue('email');
-        if (!is_null($email_value)) {
-            $this->assertEquals($email_value, 'test123@mail.co.jp');
-        } else {
-            $this->assertNull($email_value);
-        }
+        $this->assertEquals($custom_value->getValue('date'), \Carbon\Carbon::today()->format("Y-m-d"));
+        $this->assertEquals($custom_value->getValue('email'), 'test123@mail.co.jp');
     }
 
     /**

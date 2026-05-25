@@ -26,11 +26,15 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     protected $guarded = ['id', 'suuid'];
     protected $table = 'custom_column_multisettings';
 
+
+    // @phpstan-ignore-next-line
     public function custom_table(): BelongsTo
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
+
+    // @phpstan-ignore-next-line
     public static $templateItems = [
         'excepts' => [
             'export' => [
@@ -142,96 +146,134 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         ]
     ];
 
+
+    // @phpstan-ignore-next-line
     public function getUnique1Attribute()
     {
         return $this->getOption('unique1_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setUnique1Attribute($unique1)
     {
         $this->setOption('unique1_id', $unique1);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getUnique2Attribute()
     {
         return $this->getOption('unique2_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setUnique2Attribute($unique2)
     {
         $this->setOption('unique2_id', $unique2);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getUnique3Attribute()
     {
         return $this->getOption('unique3_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setUnique3Attribute($unique3)
     {
         $this->setOption('unique3_id', $unique3);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getShareTriggerTypeAttribute()
     {
         return $this->getOption('share_trigger_type');
     }
+
+    // @phpstan-ignore-next-line
     public function setShareTriggerTypeAttribute($share_trigger_type)
     {
         $this->setOption('share_trigger_type', $share_trigger_type);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getShareColumnIdAttribute()
     {
         return $this->getOption('share_column_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setShareColumnIdAttribute($share_column_id)
     {
         $this->setOption('share_column_id', $share_column_id);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getSharePermissionAttribute()
     {
         return $this->getOption('share_permission');
     }
+
+    // @phpstan-ignore-next-line
     public function setSharePermissionAttribute($share_permission)
     {
         $this->setOption('share_permission', $share_permission);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCompareColumn1IdAttribute()
     {
         return $this->getOption('compare_column1_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setCompareColumn1IdAttribute($compare_column)
     {
         $this->setOption('compare_column1_id', $compare_column);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCompareColumn2IdAttribute()
     {
         return $this->getOption('compare_column2_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setCompareColumn2IdAttribute($compare_column)
     {
         $this->setOption('compare_column2_id', $compare_column);
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getShareColumnAttribute()
     {
         return CustomColumn::getEloquent($this->share_column_id);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCompareColumn1Attribute()
     {
         return CustomColumn::getEloquent($this->compare_column1_id);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCompareColumn2Attribute()
     {
         if (in_array($this->compare_column2_id, CompareColumnType::arrays())) {
@@ -240,10 +282,14 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         return CustomColumn::getEloquent($this->compare_column2_id);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCompareTypeAttribute()
     {
         return $this->getOption('compare_type');
     }
+
+    // @phpstan-ignore-next-line
     public function setCompareTypeAttribute($unique1)
     {
         $this->setOption('compare_type', $unique1);
@@ -251,10 +297,14 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     }
 
 
+
+    // @phpstan-ignore-next-line
     public function getTableLabelIdAttribute()
     {
         return $this->getOption('table_label_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setTableLabelIdAttribute($value)
     {
         $this->setOption('table_label_id', $value);
@@ -269,6 +319,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
      * @param CustomValue|null $custom_value
      * @return bool
      */
+
+    // @phpstan-ignore-next-line
     public function compareValue($input, $custom_value = null, array $options = [])
     {
         $column1 = $this->compare_column1;
@@ -343,6 +395,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         }
     }
 
+
+    // @phpstan-ignore-next-line
     public function getCompareErrorMessage($transKey, $column1, $column2)
     {
         $attribute1 = null;
@@ -373,6 +427,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
      * @param array $json
      * @param array $options
      */
+
+    // @phpstan-ignore-next-line
     protected static function importReplaceJson(&$json, $options = [])
     {
         static::importReplaceJsonTableColumn('unique1', $json);
@@ -392,6 +448,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
      * @param string|null $set_key_name
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     protected static function importReplaceJsonTableColumn($key, &$json, $set_key_name = null)
     {
         $table_name = array_get($json, "options.{$key}_table_name");

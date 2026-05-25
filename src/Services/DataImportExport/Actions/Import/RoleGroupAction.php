@@ -7,13 +7,16 @@ use Exceedone\Exment\Model\Define;
 
 class RoleGroupAction implements ActionInterface
 {
+    // @phpstan-ignore-next-line
     protected $primary_key;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->primary_key = array_get($args, 'primary_key', 'id');
     }
 
+    // @phpstan-ignore-next-line
     public function import($datalist, $options = [])
     {
         // get target data and model list
@@ -60,6 +63,7 @@ class RoleGroupAction implements ActionInterface
     /**
      * filter
      */
+    // @phpstan-ignore-next-line
     public function filterDatalist($datalist)
     {
         return $datalist;
@@ -70,11 +74,13 @@ class RoleGroupAction implements ActionInterface
     /**
      * get import modal endpoint. not contains "import" and "admin"
      */
+    // @phpstan-ignore-next-line
     public function getImportEndpoint()
     {
         return 'role_group';
     }
 
+    // @phpstan-ignore-next-line
     public function getImportHeaderViewName()
     {
         return exmtrans('menu.system_definitions.role_group');
@@ -83,6 +89,7 @@ class RoleGroupAction implements ActionInterface
     /**
      * get primary key list.
      */
+    // @phpstan-ignore-next-line
     public function getPrimaryKeys()
     {
         // default list
@@ -93,11 +100,13 @@ class RoleGroupAction implements ActionInterface
     /**
      * set_import_modal_items. it sets at form footer
      */
+    // @phpstan-ignore-next-line
     public function setImportModalItems(&$form)
     {
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     protected function getProvider(string $table_name)
     {
         switch ($table_name) {

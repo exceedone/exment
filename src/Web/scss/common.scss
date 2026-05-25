@@ -632,6 +632,7 @@ table img.image_html{
     .navbar{
         .sidebar-toggle{
             width: 42px;
+            z-index: 1;
         }
     
         .search-form{

@@ -12,8 +12,10 @@ class PivotMultiSelect extends MultipleSelect
     /**
      * @var array
      */
+    // @phpstan-ignore-next-line
     protected $pivot;
 
+    // @phpstan-ignore-next-line
     public function __construct($column, $arguments = array())
     {
         parent::__construct($column, $arguments);
@@ -27,6 +29,7 @@ class PivotMultiSelect extends MultipleSelect
      *
      * @return mixed
      */
+    // @phpstan-ignore-next-line
     public function pivot($pivot)
     {
         $this->pivot = $pivot;

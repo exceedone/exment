@@ -48,7 +48,7 @@ class CCustomRelationTest extends ExmentKitTestCase
                 ->seeInElement('th', '操作')
                 ->visit(admin_url('relation/exmenttest_contract/create'))
                 ->seeInElement('h1', 'リレーション設定')
-                ->seeInElement('.box-title', exmtrans('common.created'))
+                ->seeInElement('h3.box-title', '作成')
                 ->seeInElement('label', '親テーブル')
                 ->seeInElement('label', '子テーブル')
                 ->seeInElement('label', 'リレーション種類')

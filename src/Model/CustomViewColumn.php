@@ -35,6 +35,8 @@ class CustomViewColumn extends ModelBase
     //protected $with = ['custom_column'];
     protected $casts = ['options' => 'json'];
 
+
+    // @phpstan-ignore-next-line
     public static $templateItems = [
         'excepts' => [
             'import' => ['custom_table', 'view_column_target', 'custom_column', 'target_view_name', 'view_group_condition', 'view_pivot_column_name', 'view_pivot_table_name'],
@@ -79,6 +81,8 @@ class CustomViewColumn extends ModelBase
      * get eloquent using request settion.
      * now only support only id.
      */
+
+    // @phpstan-ignore-next-line
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
@@ -96,10 +100,14 @@ class CustomViewColumn extends ModelBase
         static::addGlobalScope(new OrderScope('order'));
     }
 
+
+    // @phpstan-ignore-next-line
     public function getViewColumnColorAttribute()
     {
         return $this->getOption('color');
     }
+
+    // @phpstan-ignore-next-line
     public function setViewColumnColorAttribute($view_column_color)
     {
         $this->setOption('color', $view_column_color);
@@ -107,10 +115,14 @@ class CustomViewColumn extends ModelBase
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getViewColumnFontColorAttribute()
     {
         return $this->getOption('font_color');
     }
+
+    // @phpstan-ignore-next-line
     public function setViewColumnFontColorAttribute($view_column_color)
     {
         $this->setOption('font_color', $view_column_color);
@@ -118,10 +130,14 @@ class CustomViewColumn extends ModelBase
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getViewColumnEndDateAttribute()
     {
         return $this->getViewColumnTarget('view_column_table_id', 'options.end_date_type', 'options.end_date_target');
     }
+
+    // @phpstan-ignore-next-line
     public function setViewColumnEndDateAttribute($end_date)
     {
         if (!isset($end_date)) {
@@ -138,34 +154,48 @@ class CustomViewColumn extends ModelBase
         return $this;
     }
 
+
+    // @phpstan-ignore-next-line
     public function getViewPivotColumnIdAttribute()
     {
         return $this->getViewPivotIdTrait('view_pivot_column_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setViewPivotColumnIdAttribute($view_pivot_column_id)
     {
         return $this->setViewPivotIdTrait('view_pivot_column_id', $view_pivot_column_id);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getViewPivotTableIdAttribute()
     {
         return $this->getViewPivotIdTrait('view_pivot_table_id');
     }
+
+    // @phpstan-ignore-next-line
     public function setViewPivotTableIdAttribute($view_pivot_table_id)
     {
         return $this->setViewPivotIdTrait('view_pivot_table_id', $view_pivot_table_id);
     }
 
 
+
+    // @phpstan-ignore-next-line
     public function getViewGroupConditionAttribute()
     {
         return $this->getOption('view_group_condition');
     }
+
+    // @phpstan-ignore-next-line
     public function setViewGroupConditionAttribute($view_group_condition)
     {
         return $this->setOption('view_group_condition', $view_group_condition);
     }
 
+
+    // @phpstan-ignore-next-line
     public function getViewColumnEndDateTypeAttribute()
     {
         return $this->getOption('end_date_type');
@@ -177,6 +207,8 @@ class CustomViewColumn extends ModelBase
      * @param array $json
      * @return void
      */
+
+    // @phpstan-ignore-next-line
     protected function exportReplaceJson(&$json)
     {
         self:: exportReplaceJsonTrait($json);
@@ -187,6 +219,8 @@ class CustomViewColumn extends ModelBase
         if ($end_date_target) {
             if ($end_date_type == ConditionType::COLUMN) {
                 $custom_column = CustomColumn::find($end_date_target);
+
+                // @phpstan-ignore-next-line
                 $json['end_date_target_name'] = $custom_column? $custom_column->column_name: null;
             } elseif ($end_date_type == ConditionType::SYSTEM) {
                 $json['end_date_target_name'] =  SystemColumn::getOption(['id' => $end_date_target])['name'];

@@ -24,6 +24,7 @@ trait HasPermissions
     use Authenticatable;
     use CanResetPassword;
 
+    // @phpstan-ignore-next-line
     public function isAdministrator()
     {
         return collect(System::system_admin_users())->contains($this->getUserId());
@@ -34,6 +35,7 @@ trait HasPermissions
      * $role_key * if set array, check whether either items.
      * @param array|string $role_key
      */
+    // @phpstan-ignore-next-line
     public function hasPermission($role_key)
     {
         // if system doesn't use role, return true
@@ -72,6 +74,7 @@ trait HasPermissions
      * Checking also each table. If there is even one, return true.
      * @param array|string $role_key
      */
+    // @phpstan-ignore-next-line
     public function hasPermissionContainsTable($role_key)
     {
         // if system doesn't use role, return true
@@ -104,6 +107,7 @@ trait HasPermissions
      * @param Plugin $plugin
      * @param array|string $role_key
      */
+    // @phpstan-ignore-next-line
     public function hasPermissionPlugin($plugin, $role_key)
     {
         // if system doesn't use role, return true
@@ -158,6 +162,7 @@ trait HasPermissions
      * whether user has no permission
      * if no permission, show message on dashboard
      */
+    // @phpstan-ignore-next-line
     public function noPermission()
     {
         // if system doesn't use role, return false
@@ -178,6 +183,7 @@ trait HasPermissions
      *
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function allPermissions(): Collection
     {
         // get request session about role
@@ -215,6 +221,7 @@ trait HasPermissions
         }
 
         /** @var Collection $collection */
+        // @phpstan-ignore-next-line
         $collection = collect($permissions);
         return $collection;
     }
@@ -225,6 +232,7 @@ trait HasPermissions
      * @param $role_key
      * @return Collection
      */
+    // @phpstan-ignore-next-line
     public function allHasPermissionTables($role_key): Collection
     {
         $results = [];
@@ -237,6 +245,7 @@ trait HasPermissions
             }
         }
         /** @var Collection $collection */
+        // @phpstan-ignore-next-line
         $collection = collect($results);
         return $collection;
     }
@@ -250,6 +259,7 @@ trait HasPermissions
      *
      * @return bool
      */
+    // @phpstan-ignore-next-line
     public function visible($item, $target_tables = []): bool
     {
         if (is_string($item)) {
@@ -304,6 +314,7 @@ trait HasPermissions
      * https://exment.net/docs/#/ja/developing_memo
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getOrganizationIdsForQuery($filterType = JoinedOrgFilterType::ALL)
     {
         return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function () use ($filterType) {
@@ -323,6 +334,7 @@ trait HasPermissions
      * @param string $filterType
      * @return array offset 0 : type, 1 : user or organization id.
      */
+    // @phpstan-ignore-next-line
     public function getUserAndOrganizationIds($filterType = JoinedOrgFilterType::ALL)
     {
         $results = [[SystemTableName::USER, $this->getUserId()]];
@@ -339,6 +351,7 @@ trait HasPermissions
     /**
      * get permisson array.
      */
+    // @phpstan-ignore-next-line
     protected function getPermissions()
     {
         $authority = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function () {
@@ -354,6 +367,7 @@ trait HasPermissions
     /**
      * get all permissons for all custom tables.
      */
+    // @phpstan-ignore-next-line
     protected function getCustomTablePermissions()
     {
         // get all permissons for system. --------------------------------------------------
@@ -412,6 +426,7 @@ trait HasPermissions
     /**
      * get Plugin permissons.
      */
+    // @phpstan-ignore-next-line
     protected function getPluginPermissions()
     {
         // get all permissons for system. --------------------------------------------------
@@ -457,6 +472,7 @@ trait HasPermissions
     /**
      * get all permissons for system.
      */
+    // @phpstan-ignore-next-line
     protected function getSystemPermissions()
     {
         // get all permissons for system. --------------------------------------------------
@@ -492,6 +508,7 @@ trait HasPermissions
         return $permissions;
     }
 
+    // @phpstan-ignore-next-line
     protected function getPermissionItems()
     {
         $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);

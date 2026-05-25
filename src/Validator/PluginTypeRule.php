@@ -47,9 +47,11 @@ class PluginTypeRule implements Rule
     public function message()
     {
         $pluginTypes = $this->getPluginTypeDifinitions()->toArray();
+        // @phpstan-ignore-next-line
         return str_replace(':values', implode(exmtrans('common.separate_word'), $pluginTypes), trans('validation.in'));
     }
 
+    // @phpstan-ignore-next-line
     protected function getPluginTypeDifinitions()
     {
         return collect(PluginType::keys())->map(function ($p) {

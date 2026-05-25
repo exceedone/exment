@@ -37,7 +37,7 @@ class EBackupDataTest extends ExmentKitTestCase
 
         try {
             !\ExmentDB::checkBackup();
-            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
+        // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -64,7 +64,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
-            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
+        // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -73,7 +73,7 @@ class EBackupDataTest extends ExmentKitTestCase
         $this->visit(admin_url('backup'))
                 ->seePageIs(admin_url('backup'))
                 ->seeInElement('h1', 'バックアップ一覧')
-                ->seeInElement('h3[class=box-title]', 'バックアップ設定')
+                ->seeInElement('h3.box-title', 'バックアップ設定')
                 ->seeInElement('label', 'バックアップ対象')
                 ->seeInElement('label', '自動バックアップ')
                 ->seeInElement('label', '自動バックアップ実行間隔(日)')
@@ -125,7 +125,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
-            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
+        // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -184,7 +184,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
-            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
+        // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -202,7 +202,7 @@ class EBackupDataTest extends ExmentKitTestCase
         // check config no change
         $this->visit(admin_url('backup'))
                 ->seePageIs(admin_url('backup'))
-            /** @phpstan-ignore-next-line  */
+                // @phpstan-ignore-next-line
                 ->seeInField('backup_enable_automatic', $backup_enable_automatic ? 1 : 0);
 
         // loop target
@@ -220,7 +220,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
-            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
+        // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;
@@ -249,7 +249,7 @@ class EBackupDataTest extends ExmentKitTestCase
     {
         try {
             !\ExmentDB::checkBackup();
-            /** @phpstan-ignore-next-line Dead catch - Exceedone\Exment\Exceptions\BackupRestoreCheckException is never thrown in the try block. */
+        // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
             return;

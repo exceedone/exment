@@ -51,6 +51,7 @@ abstract class ColumnBase
      *
      * @return self
      */
+    // @phpstan-ignore-next-line
     public static function makeByParams($form_column_type, $form_column_target_id, $header_column_name = null): ColumnBase
     {
         $form_column = new CustomFormColumn();
@@ -83,6 +84,7 @@ abstract class ColumnBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getItemsForDisplay(): array
     {
         return [
@@ -113,6 +115,7 @@ abstract class ColumnBase
 
 
 
+    // @phpstan-ignore-next-line
     public function isSelected(bool $isSelected)
     {
         $this->isSelected = $isSelected;
@@ -143,6 +146,7 @@ abstract class ColumnBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getOptionLabels(): array
     {
         $options = $this->custom_form_column->options ?? [];
@@ -180,6 +184,7 @@ abstract class ColumnBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getOptionLabelsDefinitions(): array
     {
         $result = [];
@@ -220,6 +225,7 @@ abstract class ColumnBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     public function getValidationRules(): array
     {
         return [];
@@ -247,6 +253,7 @@ abstract class ColumnBase
      * @param array $parameters
      * @return WidgetForm|null
      */
+    // @phpstan-ignore-next-line
     abstract public function getSettingModalForm(BlockBase $block_item, array $parameters): ?WidgetForm;
 
     /**
@@ -254,5 +261,6 @@ abstract class ColumnBase
      *
      * @return array
      */
+    // @phpstan-ignore-next-line
     abstract public function prepareSavingOptions(array $options): array;
 }

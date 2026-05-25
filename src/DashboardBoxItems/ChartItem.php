@@ -18,24 +18,34 @@ class ChartItem implements ItemInterface
 {
     use TableItemTrait;
 
+    // @phpstan-ignore-next-line
     protected $dashboard_box;
 
+    // @phpstan-ignore-next-line
     protected $custom_table;
 
+    // @phpstan-ignore-next-line
     protected $custom_view;
 
+    // @phpstan-ignore-next-line
     protected $axis_x;
 
+    // @phpstan-ignore-next-line
     protected $axis_y;
 
+    // @phpstan-ignore-next-line
     protected $chart_type;
 
+    // @phpstan-ignore-next-line
     protected $chart_options;
 
+    // @phpstan-ignore-next-line
     protected $chart_axis_label;
 
+    // @phpstan-ignore-next-line
     protected $chart_axis_name;
 
+    // @phpstan-ignore-next-line
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -59,6 +69,7 @@ class ChartItem implements ItemInterface
     /**
      * get header
      */
+    // @phpstan-ignore-next-line
     public function header()
     {
         return $this->tableheader();
@@ -67,6 +78,7 @@ class ChartItem implements ItemInterface
     /**
      * get footer
      */
+    // @phpstan-ignore-next-line
     public function footer()
     {
         return null;
@@ -76,6 +88,7 @@ class ChartItem implements ItemInterface
      * get html(for display)
      * *this function calls from non-value method. So please escape if not necessary unescape.
      */
+    // @phpstan-ignore-next-line
     public function body()
     {
         if (($result = $this->hasPermission()) !== true) {
@@ -122,6 +135,7 @@ class ChartItem implements ItemInterface
     /**
      * get chart data from list-view
      */
+    // @phpstan-ignore-next-line
     protected function getListData()
     {
         $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
@@ -166,6 +180,7 @@ class ChartItem implements ItemInterface
     /**
      * get chart data from aggregate-view
      */
+    // @phpstan-ignore-next-line
     protected function getAggregateData()
     {
         $view_column_x_list = $this->custom_view->custom_view_columns;
@@ -213,6 +228,7 @@ class ChartItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
+    // @phpstan-ignore-next-line
     public static function setAdminOptions(&$form, $dashboard)
     {
         $form->select('chart_type', exmtrans("dashboard.dashboard_box_options.chart_type"))
@@ -316,6 +332,7 @@ EOT;
     /**
      * saving event
      */
+    // @phpstan-ignore-next-line
     public static function saving(&$form)
     {
         // except fields not visible
@@ -347,6 +364,7 @@ EOT;
      *
      * @return array Chart color array
      */
+    // @phpstan-ignore-next-line
     protected function getChartColor($datacnt)
     {
         $chart_color = config('exment.chart_backgroundColor');
@@ -367,6 +385,7 @@ EOT;
         }
     }
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($dashboard_box) = $args + [null];

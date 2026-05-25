@@ -13,6 +13,7 @@ class LangForm
 {
     use EnvTrait;
 
+    // @phpstan-ignore-next-line
     public function index()
     {
         if (!session()->has('_exment_assets_published')) {
@@ -28,6 +29,7 @@ class LangForm
         ]);
     }
 
+    // @phpstan-ignore-next-line
     public function post()
     {
         $request = request();

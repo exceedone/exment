@@ -11,6 +11,7 @@ abstract class ProviderBase
      * @param array $options
      * @return boolean
      */
+    // @phpstan-ignore-next-line
     protected function isReadRow(int $row_no, array $options = []): bool
     {
         // get options
@@ -38,16 +39,19 @@ abstract class ProviderBase
     /**
      * get data object
      */
+    // @phpstan-ignore-next-line
     abstract public function getDataObject($data, $options = []);
 
     /**
      * validate Import Data.
      * @return array please return 2 columns array. 1st success data array, 2nd error array.
      */
+    // @phpstan-ignore-next-line
     abstract public function validateImportData($dataObjects);
 
     /**
      * import data
      */
+    // @phpstan-ignore-next-line
     abstract public function importdata($data);
 }

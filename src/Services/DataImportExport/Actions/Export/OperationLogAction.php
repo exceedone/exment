@@ -12,13 +12,16 @@ class OperationLogAction extends ExportActionBase implements ActionInterface
     /**
      * laravel-admin grid
      */
+    // @phpstan-ignore-next-line
     protected $grid;
 
+    // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
         $this->grid = array_get($args, 'grid');
     }
 
+    // @phpstan-ignore-next-line
     public function datalist()
     {
         $provider = new Export\OperationLogProvider([
@@ -32,6 +35,7 @@ class OperationLogAction extends ExportActionBase implements ActionInterface
         return $datalist;
     }
 
+    // @phpstan-ignore-next-line
     public function filebasename()
     {
         return 'operation_log';

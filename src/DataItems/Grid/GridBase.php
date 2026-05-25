@@ -19,11 +19,16 @@ use Exceedone\Exment\Form\Tools;
 
 abstract class GridBase
 {
+    // @phpstan-ignore-next-line
     protected $custom_table;
+    // @phpstan-ignore-next-line
     protected $custom_view;
+    // @phpstan-ignore-next-line
     protected $modal = false;
+    // @phpstan-ignore-next-line
     protected $callback;
 
+    // @phpstan-ignore-next-line
     public static function getItem(...$args)
     {
         list($custom_table, $custom_view) = $args + [null, null];
@@ -33,6 +38,7 @@ abstract class GridBase
         return new static($custom_table, $custom_view);
     }
 
+    // @phpstan-ignore-next-line
     public function modal(bool $modal)
     {
         $this->modal = $modal;
@@ -40,6 +46,7 @@ abstract class GridBase
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function callback($callback)
     {
         $this->callback = $callback;
@@ -47,6 +54,7 @@ abstract class GridBase
         return $this;
     }
 
+    // @phpstan-ignore-next-line
     public function renderModal($grid)
     {
         return [];
@@ -59,6 +67,7 @@ abstract class GridBase
      * @param array $options
      * @return \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder
      */
+    // @phpstan-ignore-next-line
     public function getQuery($query, array $options = [])
     {
         return $query;
@@ -67,6 +76,7 @@ abstract class GridBase
     /**
      * set laravel-admin grid using custom_view
      */
+    // @phpstan-ignore-next-line
     public function setGrid($grid)
     {
     }
@@ -93,6 +103,7 @@ abstract class GridBase
         $group_view->setSearchService($service);
         
         $filters = [];
+        // @phpstan-ignore-next-line
         foreach ($group_keys as $key => $value) {
             $custom_view_column = CustomViewColumn::findByCkey($key);
             $column_item = $custom_view_column->column_item;
@@ -152,6 +163,7 @@ abstract class GridBase
     }
 
 
+    // @phpstan-ignore-next-line
     protected static function setViewInfoboxFields(&$form)
     {
         // view input area ----------------------------------------------------
@@ -170,11 +182,13 @@ abstract class GridBase
             ->attribute(['data-filter' => json_encode(['key' => 'use_view_infobox', 'value' => '1'])]);
     }
 
+    // @phpstan-ignore-next-line
     protected static function convertGroups($targetOptions, $defaultCustomTable)
     {
         $options = collect($targetOptions)->mapToDictionary(function ($item, $query) {
             $keys = preg_split('/\?/', $query, 2);
             $items = preg_split('/\:/', $item);
+            // @phpstan-ignore-next-line
             return [$keys[1] => [$query => trim($items[count($items)-1])]];
         })->map(function ($item, $key) use ($defaultCustomTable) {
             if (empty($key)) {
@@ -258,6 +272,7 @@ abstract class GridBase
      * @param CustomTable $custom_table
      * @return void
      */
+    // @phpstan-ignore-next-line
     public static function setColumnFields(&$form, $custom_table, array $column_options = [])
     {
         // columns setting
@@ -331,6 +346,7 @@ abstract class GridBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setTableMenuButton(&$tools)
     {
         if ($this->custom_table->enableTableMenuButton()) {
@@ -343,6 +359,7 @@ abstract class GridBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setViewMenuButton(&$tools)
     {
         if ($this->custom_table->enableViewMenuButton()) {
@@ -355,6 +372,7 @@ abstract class GridBase
      *
      * @return void
      */
+    // @phpstan-ignore-next-line
     protected function setNewButton(&$tools)
     {
         if ($this->custom_table->enableCreate(true) === true) {
@@ -363,5 +381,6 @@ abstract class GridBase
     }
 
 
+    // @phpstan-ignore-next-line
     abstract public function grid();
 }

@@ -4,10 +4,14 @@ namespace Exceedone\Exment\Services\Plugin\PluginOption;
 
 class PluginOptionEvent extends PluginOptionBase
 {
+    // @phpstan-ignore-next-line
     public $is_modal = false;
+    // @phpstan-ignore-next-line
     public $event_type;
+    // @phpstan-ignore-next-line
     public $page_type;
 
+    // @phpstan-ignore-next-line
     public function __construct($options = [])
     {
         if (isset($options['is_modal'])) {

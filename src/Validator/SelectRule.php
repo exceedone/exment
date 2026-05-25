@@ -11,8 +11,12 @@ use Illuminate\Contracts\Validation\Rule;
  */
 class SelectRule implements Rule
 {
+    /** @var mixed */
     protected $keys;
 
+    /**
+     * @param mixed $parameters
+     */
     public function __construct($parameters)
     {
         $this->keys = $parameters;

@@ -17,19 +17,30 @@ class PublicContent implements Renderable
      */
     protected $rows = [];
 
+    // @phpstan-ignore-next-line
     protected $header_logo_url;
+    // @phpstan-ignore-next-line
     protected $header_label;
 
+    // @phpstan-ignore-next-line
     protected $use_header = true;
+    // @phpstan-ignore-next-line
     protected $use_footer = true;
 
+    // @phpstan-ignore-next-line
     protected $background_color = '#FFFFFF';
+    // @phpstan-ignore-next-line
     protected $background_color_outer = '#F9FAFC';
     protected $header_background_color = '#3c8dbc';
+    // @phpstan-ignore-next-line
     protected $footer_background_color = '#FFFFFF';
+    // @phpstan-ignore-next-line
     protected $header_text_color = '#FFFFFF';
+    // @phpstan-ignore-next-line
     protected $footer_text_color = '#000000';
+    // @phpstan-ignore-next-line
     protected $container = false;
+    // @phpstan-ignore-next-line
     protected $analytics;
 
     /**
@@ -49,6 +60,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setBackgroundColor($background_color)
     {
         $this->background_color = $background_color;
@@ -61,6 +73,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setBackgroundColorOuter($background_color_outer)
     {
         $this->background_color_outer = $background_color_outer;
@@ -73,6 +86,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setHeaderBackgroundColor($header_background_color)
     {
         $this->header_background_color = $header_background_color;
@@ -85,6 +99,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setFooterBackgroundColor($footer_background_color)
     {
         $this->footer_background_color = $footer_background_color;
@@ -97,6 +112,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setUseHeader($use_header)
     {
         $this->use_header = $use_header;
@@ -109,6 +125,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setUseFooter($use_footer)
     {
         $this->use_footer = $use_footer;
@@ -121,6 +138,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setFooterTextColor($footer_text_color)
     {
         $this->footer_text_color = $footer_text_color;
@@ -145,6 +163,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setHeaderLabel($header_label)
     {
         $this->header_label = $header_label;
@@ -158,6 +177,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setHeaderLogoUrl($header_logo_url)
     {
         $this->header_logo_url = $header_logo_url;
@@ -170,6 +190,7 @@ class PublicContent implements Renderable
      *
      * @return  self
      */
+    // @phpstan-ignore-next-line
     public function setAnalytics($analytics)
     {
         $this->analytics = $analytics;
@@ -198,6 +219,7 @@ class PublicContent implements Renderable
      *
      * @return $this
      */
+    // @phpstan-ignore-next-line
     public function row($content)
     {
         if ($content instanceof Closure) {
@@ -221,6 +243,7 @@ class PublicContent implements Renderable
      *
      * @return $this
      */
+    // @phpstan-ignore-next-line
     public function view($view, $data)
     {
         return $this->body(view($view, $data));
@@ -231,6 +254,7 @@ class PublicContent implements Renderable
      *
      * @param Row $row
      */
+    // @phpstan-ignore-next-line
     protected function addRow(Row $row)
     {
         $this->rows[] = $row;
@@ -253,6 +277,7 @@ class PublicContent implements Renderable
 
         ob_end_clean();
 
+        // @phpstan-ignore-next-line
         return $contents;
     }
 

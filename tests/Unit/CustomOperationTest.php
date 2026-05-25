@@ -158,7 +158,7 @@ class CustomOperationTest extends UnitTestBase
         $result = $operation->execute($custom_table, $custom_value->id);
 
         $this->assertFalse($result === true);
-        /** @phpstan-ignore-next-line Call to function is_string() with false will always evaluate to false. */
+        // @phpstan-ignore-next-line
         $this->assertTrue(is_string($result));
     }
 
@@ -200,7 +200,7 @@ class CustomOperationTest extends UnitTestBase
         $result = $operation->execute($custom_table, $custom_value->id);
 
         $this->assertFalse($result === true);
-        /** @phpstan-ignore-next-line Call to function is_string() with false will always evaluate to false.   */
+        // @phpstan-ignore-next-line
         $this->assertTrue(is_string($result));
     }
 
@@ -417,6 +417,7 @@ class CustomOperationTest extends UnitTestBase
         $conditions = $settings['conditions'];
 
         // Login user.
+        // @phpstan-ignore-next-line
         $this->be(LoginUser::find($login_user_id));
 
         $custom_table = CustomTable::getEloquent($custom_table_name);
