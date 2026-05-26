@@ -298,9 +298,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("webapi/{tableKey}/operation-filter-value", 'ApiTableController@getOperationFilterValue');
 
             $router->get('ai_assistant', 'AiAssistantController@aiAssistant');
-            $router->post('/assistant/start', 'AiAssistantController@startConversation');
-            $router->post('/assistant/send-message', 'AiAssistantController@sendMessage');
-            $router->post('/assistant/action', 'AiAssistantController@handleAction');
+            $router->post('/ai_assistant/start', 'AiAssistantController@startConversation');
+            $router->post('/ai_assistant/send-message', 'AiAssistantController@sendMessage');
+            $router->post('/ai_assistant/action', 'AiAssistantController@handleAction');
 
             $router->get('tenant-settings', 'TenantSettingsController@index');
             $router->post('tenant-settings', 'TenantSettingsController@post');
