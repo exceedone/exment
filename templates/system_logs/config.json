@@ -1,8 +1,8 @@
 {
     "template_name": "system_logs",
     "version": "6.2.6",
-    "template_view_name": "System Logs",
-    "description": null,
+    "template_view_name": "System Performance Log",
+    "description": "Template for recording system performance logs including execution URL, user, time, and SQL queries.",
     "custom_tables": [
         {
             "table_name": "system_logs",
