@@ -20,11 +20,14 @@ class YesNoRuleTest extends PureTestBase
     /**
      * @dataProvider acceptedProvider
      */
-    public function testAcceptedStringsPass($value): void
+    public function testAcceptedStringsPass(string $value): void
     {
         $this->assertTrue((new YesNoRule())->passes('attr', $value));
     }
 
+    /**
+     * @return array<int, array<int, string>>
+     */
     public static function acceptedProvider(): array
     {
         return [['0'], ['1'], ['yes'], ['no'], ['YES'], ['NO'], ['true'], ['false']];
