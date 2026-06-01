@@ -14,8 +14,8 @@
     </div>
     
     @foreach($custom_form_blocks as $index => $custom_form_block)
-<div class="box card box-custom_form_block">
-    <div class="box-header card-header with-border d-flex  p-2 px-3">
+<div class="box box-custom_form_block">
+    <div class="box-header card-header with-border d-flex p-2 px-3">
         <h3 class="box-title">{{$custom_form_block['label']}}</h3>
         <div class="box-tools ms-auto">
             <button type="button" class="btn btn-box-tool shadow-none" 
