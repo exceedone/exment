@@ -73,6 +73,9 @@
   .form-check-input {
       position: static !important;
   }
+  .login-logo a b {
+      font-weight: 700;
+  }
   </style>
 </head>
 <body class="hold-transition login-page">
