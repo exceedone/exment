@@ -3,7 +3,7 @@
     <p class="login-box-msg">{{ trans('admin.login') }}</p>
 
     @if($show_default_form)
-        <form action="{{ admin_url('auth/login') }}" method="post">
+        <form style="margin-bottom:0px;" action="{{ admin_url('auth/login') }}" method="post">
         <div class="mb-3 {!! !$errors->has('username') ?: 'is-invalid' !!}">
             @if($errors->has('username')) 
                 @foreach($errors->get('username') as $message)
@@ -43,7 +43,7 @@
         </form>
 
         @if($show_default_login_provider)
-            <div style="margin-top:10px; text-align:center;">
+            <div style="margin:10px 0; text-align:center;">
                 <p class="m-0"><a style="color: #3c8dbc;" href="{{admin_url('auth/forget')}}" class="text-decoration-none">{{ exmtrans('login.forget_password') }}</a></p>
             </div>
         @endif
