@@ -120,7 +120,7 @@ class Initialize
         }
         if (!Config::has('auth.providers.exment-auth')) {
             Config::set('auth.providers.exment-auth', [
-                'driver' => 'eloquent',
+                'driver' => 'exment-auth',
                 'model' => \Exceedone\Exment\Model\LoginUser::class,
             ]);
         }
