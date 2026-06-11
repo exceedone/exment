@@ -485,7 +485,7 @@ class Define
     public const DISKNAME_TEMP_UPLOAD = 'tmpupload';
     public const DISKNAME_PUBLIC_FORM_TMP = 'public_form_tmp';
 
-    public const IMAGE_RULE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
+    public const IMAGE_RULE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
 
     public const CHARTITEM_LABEL = 'chartitem_label';
 
