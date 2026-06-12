@@ -76,6 +76,10 @@
   .login-logo a b {
       font-weight: 700;
   }
+  .has-error .control-label,
+  .has-error label {
+      color: #dd4b39 !important;
+  }
   </style>
 </head>
 <body class="hold-transition login-page">
