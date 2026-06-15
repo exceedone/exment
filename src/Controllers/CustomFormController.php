@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use OpenAdminCore\Admin\Facades\Admin;
 use OpenAdminCore\Admin\Grid;
 use OpenAdminCore\Admin\Grid\Linker;
-use OpenAdminCore\Admin\Widgets\Form;
+use OpenAdminCore\Admin\Form;
 use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
 use OpenAdminCore\Admin\Widgets\Box;
 use OpenAdminCore\Admin\Layout\Content;
