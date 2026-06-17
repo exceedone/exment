@@ -2,10 +2,7 @@
 
     {{ csrf_field() }}
 
-    <div class="col-md-{{$width['label']}}">
-    </div>
-
-    <div class="col-md-{{$width['field']}}">
+    <div style="width: 100%; clear: both;">
         <div class="text-center">
             @if($useRecaptchaV2 || $useRecaptchaV3)
                 @if($errors->has('g-recaptcha-response'))
