@@ -753,6 +753,25 @@ var Exment;
             return Exment.GetBox.make().getBox().children('.fields-group').children('.embed-value');
         }
         /**
+         * Whether the element is a genuine Exment date-picker input.
+         *
+         * The "X days before/after" view-condition value field is a Number input, but it
+         * still inherits data-column_type="date" from its (date-type) column. So matching
+         * on input[data-column_type="date"] alone wrongly catches that Number field and
+         * turns it into a date picker. A real date field is marked with data-add-date, or
+         * is rendered by laravel-admin with a calendar icon (.fa-calendar) in its input-group;
+         * the Number field has neither (it has bootstrapNumber up/down buttons instead).
+         */
+        static isExmentDatePickerInput($el) {
+            if (!$el || !$el.length) {
+                return false;
+            }
+            if ($el.is('[data-add-date]') || $el.find('[data-add-date]').length > 0) {
+                return true;
+            }
+            return $el.closest('.input-group').find('.fa-calendar').length > 0;
+        }
+        /**
          * add field event (datepicker, icheck)
          */
         static addFieldEvent() {
@@ -767,6 +786,10 @@ var Exment;
                                 return;
                             }
                             var $src = $(this);
+                            // Skip Number filter fields that merely inherit data-column_type="date".
+                            if (!CommonEvent.isExmentDatePickerInput($src)) {
+                                return;
+                            }
                             var $initElem = $src.is('.input-group.date') ? $src : $src.closest('.input-group.date');
                             if ($initElem.length === 0) {
                                 $initElem = $src;
@@ -824,6 +847,11 @@ var Exment;
                                 var $dateInput = $src.is('[data-add-date], input[data-column_type="date"]')
                                     ? $src
                                     : $group.find('input[data-column_type="date"], input[data-add-date]').first();
+                                // Skip Number filter fields (e.g. "X days before/after") that only inherit
+                                // data-column_type="date"; their up/down buttons must keep working.
+                                if (!CommonEvent.isExmentDatePickerInput($dateInput)) {
+                                    return;
+                                }
                                 if ($dateInput && $dateInput.length && $dateInput.closest('.table-responsive').length) {
                                     document.documentElement.classList.add('exment-dtp-opening');
 
@@ -1171,7 +1199,10 @@ var Exment;
                 // exment date fields can be marked by data-add-date or data-column_type="date".
                 // Prefer initializing on the .input-group.date wrapper (when present) to keep bootstrap-datetimepicker happy.
                 var initTargets = [];
-                $('[data-add-date], input[data-column_type="date"]').each(function (index, elem) {
+                $('[data-add-date], input[data-column_type="date"]').filter(function () {
+                    // Exclude Number filter fields that only inherit data-column_type="date".
+                    return CommonEvent.isExmentDatePickerInput($(this));
+                }).each(function (index, elem) {
                     var $elem = $(elem);
                     var $initElem = $elem.is('.input-group.date') ? $elem : $elem.closest('.input-group.date');
                     if ($initElem.length === 0) {
