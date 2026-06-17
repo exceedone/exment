@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
 use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
 
 /**
@@ -25,7 +26,12 @@ class Image extends OtherBase
             $form->image('image', exmtrans('custom_form.image'))
                 ->required()
                 ->help(exmtrans("common.message.cannot_preview", ['name' => exmtrans("custom_form.image")]))
-                ->attribute(['accept' => "image/*"]);
+                ->attribute([
+                    'accept' => collect(Define::IMAGE_RULE_EXTENSIONS)->map(function ($ext) {
+                        return ".$ext";
+                    })->implode(','),
+                    'data-image-extensions' => implode(',', Define::IMAGE_RULE_EXTENSIONS),
+                ]);
         } else {
             $form->description(exmtrans('custom_form.message.image_need_delete'));
 

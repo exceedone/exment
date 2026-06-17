@@ -752,7 +752,35 @@ namespace Exment {
             if(!form.reportValidity()){
                 return;
             }
-            
+
+            // Validate image file extension
+            let $imageInput = $('#modal-showmodal').find('input.image[type="file"]');
+            if($imageInput.length > 0 && $imageInput.get(0).files && $imageInput.get(0).files.length > 0){
+                let file = $imageInput.get(0).files[0];
+                let fileName = file.name;
+                let ext = fileName.split('.').pop().toLowerCase();
+                let allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+                if(allowedExtensions.indexOf(ext) === -1){
+                    let errorMessage = $('#validate_image_error_message').val() as string;
+                    if(!errorMessage){
+                        errorMessage = 'Please specify an image file.';
+                    }
+                    // Show inline error at the image input
+                    let $formGroup = $imageInput.closest('.form-group, .form-group-vertical');
+                    $formGroup.find('.error-label').remove();
+                    $formGroup.addClass('has-error');
+                    $formGroup.children('div').prepend($('<label/>', {
+                        'class': 'control-label error-label',
+                        'for': 'inputError',
+                        'html': [
+                            $('<i/>', { 'class': 'fa fa-times-circle-o' }),
+                            $('<span/>', { 'text': ' ' + errorMessage }),
+                        ]
+                    }));
+                    return;
+                }
+            }
+
             let formItem = CustomFromItem.makeByModal();
             let options = formItem.getOption();
             let $modal = $('#modal-showmodal');
