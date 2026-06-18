@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Form\Tools\SwalInputButton;
 use Exceedone\Exment\Form\Tools\ModalButton;
 use Illuminate\Support\Facades\App;
+use OpenAdminCore\Admin\Facades\Admin;
 
 class TableService
 {
@@ -98,7 +99,7 @@ class TableService
                 'url' => route('exment.qrcode_download', ['tableKey' => $custom_table->id]),
                 'label' => $label_download,
                 'icon' => 'fa-arrow-circle-down',
-                'btn_class' => 'btn-success download-qr p-2',
+                'btn_class' => 'btn-success download-qr',
                 'title' => exmtrans("common.download"),
                 'text' => exmtrans('common.message.confirm_execute', exmtrans('common.download')),
                 'method' => 'post'
