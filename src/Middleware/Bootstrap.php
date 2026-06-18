@@ -19,7 +19,34 @@ class Bootstrap
     {
         $this->setCssJs($request, $next);
 
+        // Registered on every request (incl. pjax/ajax) — unlike setCssJs(),
+        // which early-returns for those. See setSwitchFoucStyle().
+        $this->setSwitchFoucStyle();
+
         return $next($request);
+    }
+
+    /**
+     * Prevent the bootstrap-switch "flash of unstyled checkbox" (FOUC).
+     *
+     * Grid switch columns (input.grid-switch-*) and form switch fields
+     * (input.la_checkbox) are rendered as a plain <input type="checkbox"> that
+     * JavaScript later converts into a bootstrap-switch. Until that JS runs the
+     * raw checkbox is painted, then morphs into a switch.
+     *
+     * This is emitted as an inline <style> (Admin::style, rendered inside
+     * #pjax-container right before the grid content), so it:
+     *   - applies from the very first paint, on full loads AND pjax navigations;
+     *   - is part of the HTML, so it is never served from a stale, version-
+     *     stamped common.css cache.
+     * bootstrap-switch hides the same input once wrapped, so the final switch
+     * and its toggle behave exactly as before.
+     *
+     * @return void
+     */
+    protected function setSwitchFoucStyle()
+    {
+        Ad::style('input[type="checkbox"].la_checkbox,input[type="checkbox"][class*="grid-switch-"]{position:absolute;z-index:-1;opacity:0;}');
     }
 
     /**
