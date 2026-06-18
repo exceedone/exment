@@ -250,7 +250,7 @@ class PluginController extends AdminControllerBase
             'active_flg' => $requestedActive ? 1 : 0,
         ]);
 
-        if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
+        if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL()) && $request->has('options')) {
             $uri = array_get((array)$request->get('options'), 'uri');
             $validator = \Validator::make(
                 ['uri' => $uri],
