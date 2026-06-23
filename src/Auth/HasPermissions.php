@@ -186,44 +186,49 @@ trait HasPermissions
     // @phpstan-ignore-next-line
     public function allPermissions(): Collection
     {
-        // get request session about role
-        $roles = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function () {
-            return $this->getPermissions();
-        });
+        // Memoize the BUILT AuthPermission collection for this request. Previously only the raw
+        // role map was cached; the AuthPermission objects + collect() were rebuilt on every call
+        // (hasPermission() calls this once per check => 100+ rebuilds per grid render).
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY . '_built', function () {
+            // get request session about role
+            $roles = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function () {
+                return $this->getPermissions();
+            });
 
-        $permissions = [];
-        foreach ($roles as $key => $role) {
-            if (RoleType::SYSTEM == $key) {
-                $permissions[] = new AuthPermission([
-                    'role_type' =>$key,
-                    'table_name' => null,
-                    'permission_details' =>$role,
-                ]);
-                continue;
-            } elseif (RoleType::TABLE == $key) {
-                foreach ($role as $k => $v) {
-                    $permissions[] =  new AuthPermission([
+            $permissions = [];
+            foreach ($roles as $key => $role) {
+                if (RoleType::SYSTEM == $key) {
+                    $permissions[] = new AuthPermission([
                         'role_type' =>$key,
-                        'table_name' =>$k,
-                        'permission_details' =>$v,
-                    ]);
-                }
-            } elseif (RoleType::PLUGIN == $key) {
-                foreach ($role as $k => $v) {
-                    $permissions[] =  new AuthPermission([
-                        'role_type' => $key,
                         'table_name' => null,
-                        'plugin_id' => $k,
-                        'permission_details' =>$v,
+                        'permission_details' =>$role,
                     ]);
+                    continue;
+                } elseif (RoleType::TABLE == $key) {
+                    foreach ($role as $k => $v) {
+                        $permissions[] =  new AuthPermission([
+                            'role_type' =>$key,
+                            'table_name' =>$k,
+                            'permission_details' =>$v,
+                        ]);
+                    }
+                } elseif (RoleType::PLUGIN == $key) {
+                    foreach ($role as $k => $v) {
+                        $permissions[] =  new AuthPermission([
+                            'role_type' => $key,
+                            'table_name' => null,
+                            'plugin_id' => $k,
+                            'permission_details' =>$v,
+                        ]);
+                    }
                 }
             }
-        }
 
-        /** @var Collection $collection */
-        // @phpstan-ignore-next-line
-        $collection = collect($permissions);
-        return $collection;
+            /** @var Collection $collection */
+            // @phpstan-ignore-next-line
+            $collection = collect($permissions);
+            return $collection;
+        });
     }
 
     /**

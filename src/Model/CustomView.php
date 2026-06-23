@@ -156,7 +156,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     // @phpstan-ignore-next-line
     public function getCustomViewColumnsCacheAttribute()
     {
-        return $this->hasManyCache(CustomViewColumn::class, 'custom_view_id');
+        // PERF-EXPERIMENT: load only THIS view's columns (scoped, ~9 rows) instead of
+        // hydrating ALL custom_view_columns in the system (~1549 rows) via hasManyCache.
+        if (is_null($this->id)) {
+            return $this->hasManyCache(CustomViewColumn::class, 'custom_view_id');
+        }
+        return \Exceedone\Exment\Model\System::requestSession('cvcols_' . $this->id, function () {
+            return $this->custom_view_columns()->get();
+        });
     }
 
     /**
@@ -776,6 +783,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $systemColumnFunc(false, $view_columns);
 
         $this->custom_view_columns()->saveMany($view_columns);
+        // invalidate the per-view scoped cache (see getCustomViewColumnsCacheAttribute)
+        \Exceedone\Exment\Model\System::clearRequestSession('cvcols_' . $this->id);
         return $view_columns;
     }
 
@@ -805,6 +814,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         $this->custom_view_columns()->saveMany($view_columns);
+        // invalidate the per-view scoped cache (see getCustomViewColumnsCacheAttribute)
+        \Exceedone\Exment\Model\System::clearRequestSession('cvcols_' . $this->id);
         return $view_columns;
     }
 

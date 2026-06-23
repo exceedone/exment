@@ -242,28 +242,45 @@ class Exment
             }
 
             if ((empty($latest) || empty($current))) {
-                // get current version from composer.lock
-                $composer_lock = base_path('composer.lock');
-                if (!\File::exists($composer_lock)) {
-                    return [null, null];
+                // Perf: the "current" version is read from composer.lock (a ~500KB file that
+                // gets json_decoded). It only changes on package update, so cache it instead of
+                // reading + decoding composer.lock on every page render. Cleared on the normal
+                // cache-clear TTL / by update commands.
+                try {
+                    $current = Cache::get('exment_system_version_current');
+                } catch (\Exception $e) {
+                    $current = null;
                 }
 
-                $contents = \File::get($composer_lock);
-                $json = json_decode_ex($contents, true);
-                if (!$json) {
-                    return [null, null];
-                }
+                if (empty($current)) {
+                    // get current version from composer.lock
+                    $composer_lock = base_path('composer.lock');
+                    if (!\File::exists($composer_lock)) {
+                        return [null, null];
+                    }
 
-                // get exment info
-                // @phpstan-ignore-next-line
-                $packages = array_get($json, 'packages');
-                $exment = collect($packages)->filter(function ($package) {
-                    return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
-                })->first();
-                if (!isset($exment)) {
-                    return [null, null];
+                    $contents = \File::get($composer_lock);
+                    $json = json_decode_ex($contents, true);
+                    if (!$json) {
+                        return [null, null];
+                    }
+
+                    // get exment info
+                    // @phpstan-ignore-next-line
+                    $packages = array_get($json, 'packages');
+                    $exment = collect($packages)->filter(function ($package) {
+                        return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
+                    })->first();
+                    if (!isset($exment)) {
+                        return [null, null];
+                    }
+                    $current = array_get($exment, 'version');
+
+                    try {
+                        Cache::put('exment_system_version_current', $current, Define::CACHE_CLEAR_MINUTE);
+                    } catch (\Exception $e) {
+                    }
                 }
-                $current = array_get($exment, 'version');
 
                 // if outside api is not permitted, return only current
                 if (!System::outside_api() || !$getFromComposer) {

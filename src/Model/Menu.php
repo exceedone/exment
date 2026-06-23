@@ -115,8 +115,36 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      * @return array
      */
 
+    /**
+     * Cache key for the fully-resolved sidebar menu tree (global, not per-user).
+     */
+    const CACHE_KEY_ALL_NODES = 'exment_menu_all_nodes';
+
+    /**
+     * @return array
+     */
     // @phpstan-ignore-next-line
     public function allNodes(): array
+    {
+        // Perf: the sidebar menu is a 3-table join + per-row Eloquent (plugin/view) lookups +
+        // json_decode, rebuilt on EVERY full page render (grid, edit, the post-save grid reload).
+        // The resolved tree is global — per-user permission filtering happens later at render time
+        // (menu.blade.php -> Admin::user()->visible()), so it is safe to share across users.
+        // Invalidated on menu save/delete (see boot()) and on any structural change
+        // (CustomTable/CustomColumn/Plugin/... already flush the whole cache via ClearCacheTrait).
+        // Gating + request-session memo + cross-request persistence are handled by System::cache().
+        return System::cache(self::CACHE_KEY_ALL_NODES, function () {
+            return $this->getAllNodesFromDatabase();
+        });
+    }
+
+    /**
+     * Build the resolved menu tree from the database (uncached).
+     *
+     * @return array
+     */
+    // @phpstan-ignore-next-line
+    protected function getAllNodesFromDatabase(): array
     {
         $grammar = DB::getQueryGrammar();
         $orderColumn = $grammar->wrap($this->orderColumn);
@@ -385,5 +413,15 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected static function boot()
     {
         static::treeBoot();
+
+        // Perf: invalidate the cached menu tree (see allNodes()) whenever a menu row is
+        // created/updated/deleted or reordered. Menu does not extend Exment ModelBase, so it has
+        // no automatic ClearCacheTrait hook — clear the specific key explicitly here.
+        static::saved(function ($model) {
+            System::clearCache(self::CACHE_KEY_ALL_NODES);
+        });
+        static::deleted(function ($model) {
+            System::clearCache(self::CACHE_KEY_ALL_NODES);
+        });
     }
 }

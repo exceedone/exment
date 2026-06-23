@@ -32,11 +32,17 @@ class LogOperation extends BaseLogOperation
                 'input'   => $this->hidePasswords(json_encode($request->input())),
             ];
 
-            try {
-                OperationLogModel::create($log);
-            } catch (\Exception $exception) {
-                // pass
-            }
+            // Perf: defer the audit INSERT until AFTER the response has been sent.
+            // The row is still written (audit unchanged); it just no longer adds a
+            // synchronous write to the request latency of every admin request
+            // (including POST saves). Runs in the kernel's terminating phase.
+            app()->terminating(function () use ($log) {
+                try {
+                    OperationLogModel::create($log);
+                } catch (\Exception $exception) {
+                    // pass
+                }
+            });
         }
 
         return $next($request);
