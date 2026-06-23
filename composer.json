@@ -23,8 +23,8 @@
         }
     ],
     "require": {
-        "php": "^8.2.0",
-        "laravel/framework": "^12.0",
+        "php": "^8.3",
+        "laravel/framework": "^13.0",
         "laravel/helpers": "^1.7",
         "laravel/ui": "^4.2",
         "webpatser/laravel-uuid": "^4.0",
@@ -32,14 +32,14 @@
         "exment-git/spout": "^4.0",
         "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.8",
-        "laravel/passport": "^12.0",
+        "laravel/passport": "^13.0",
         "laravel/slack-notification-channel": "^3.0",
         "lcobucci/jwt": "^5.1",
         "composer/composer": "^2.7",
         "kylekatarnls/update-helper": "^1.2",
         "laravel/socialite": "^5.20",
         "simplesoftwareio/simple-qrcode": "2.0",
-        "elibyy/tcpdf-laravel": "^11.4"
+        "elibyy/tcpdf-laravel": "^13.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

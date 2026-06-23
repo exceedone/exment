@@ -111,7 +111,7 @@ class PluginServiceProvider extends ServiceProvider
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',
                 'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : ['adminweb', 'admin'],
-            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json) {
+            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json, $p) {
                 // if crud, set crud routing
                 if ($plugin_type == PluginType::CRUD) {
                     $router->get("oauth", "PluginCrudController@oauth");
@@ -159,9 +159,14 @@ class PluginServiceProvider extends ServiceProvider
                         // call method in these http method
                         if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
                             $func = array_get($route, 'function');
-                            $router = Route::{$method}(array_get($route, 'uri'), $plugin_name . '@'. $func);
+                            $uri = array_get($route, 'uri');
+                            $router = Route::{$method}($uri, $plugin_name . '@'. $func);
                             $router->middleware(ApiScope::getScopeString($isApi, ApiScope::PLUGIN));
-                            $router->name("exment.plugins.{$plugin->id}.{$method}.{$func}");
+                            // Route name must be unique per prefix variant ($p: with/without "api/")
+                            // and per uri, otherwise `route:cache` fails with duplicate-name errors.
+                            // These names are not referenced elsewhere, so behavior is unchanged.
+                            $routeNameSuffix = preg_replace('/\.+/', '.', trim(str_replace(['/', '\\', '{', '}'], '.', "{$p}.{$method}.{$func}.{$uri}"), '.'));
+                            $router->name("exment.plugins.{$plugin->id}.{$routeNameSuffix}");
                         }
                     }
                 }

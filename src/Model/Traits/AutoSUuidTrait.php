@@ -20,6 +20,11 @@ trait AutoSUuidTrait
     // @phpstan-ignore-next-line
     public static function bootAutoSUuidTrait()
     {
-        self::observe(AutoSUuidObserver::class);
+        // Laravel 13: Model::observe() does `new static`, which re-enters boot during a
+        // boot{Trait} hook and throws (Model::bootIfNotBooted). Register the observer's
+        // events directly instead — same behavior (set suuid on creating/updating).
+        $observer = new AutoSUuidObserver();
+        static::creating([$observer, 'creating']);
+        static::updating([$observer, 'updating']);
     }
 }
