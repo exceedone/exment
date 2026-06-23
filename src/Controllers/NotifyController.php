@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;

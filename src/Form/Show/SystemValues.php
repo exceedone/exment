@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Form\Show;
 
 use Exceedone\Exment\Form\SystemValuesTrait;
-use OpenAdminCore\Admin\Show\AbstractField;
+use ExmentAdminCore\Admin\Show\AbstractField;
 
 class SystemValues extends AbstractField
 {

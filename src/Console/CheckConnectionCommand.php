@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Console;
 
-use OpenAdminCore\Admin\Console\InstallCommand as AdminInstallCommand;
+use ExmentAdminCore\Admin\Console\InstallCommand as AdminInstallCommand;
 
 class CheckConnectionCommand extends AdminInstallCommand
 {

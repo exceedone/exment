@@ -4,8 +4,8 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\FilterOption;
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
 
 class Email extends CustomItem
 {

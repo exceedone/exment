@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use OpenAdminCore\Admin\Form\Field\Textarea;
+use ExmentAdminCore\Admin\Form\Field\Textarea;
 
 class CodeEditor extends Textarea
 {

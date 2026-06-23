@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Auth\Permission as Checker;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Auth\Permission as Checker;
 use Exceedone\Exment\Validator\EmailMultiline;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;

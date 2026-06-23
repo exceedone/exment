@@ -7,8 +7,8 @@ use Illuminate\Http\JsonResponse;
 /**
  * Admin(Exment) Controller
  *
-* @method \OpenAdminCore\Admin\Grid grid()
-* @method \OpenAdminCore\Admin\Form form($id = null)
+* @method \ExmentAdminCore\Admin\Grid grid()
+* @method \ExmentAdminCore\Admin\Form form($id = null)
  */
 trait HasResourceTableActions
 {

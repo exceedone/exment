@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use OpenAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 
 /**
  * Internal value. not set html, and set database using prepare value

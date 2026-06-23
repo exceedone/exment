@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use OpenAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -324,7 +324,7 @@ class PublicForm extends ModelBase
 
 
         // set footer as PublicFormFooter
-        \OpenAdminCore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
+        \ExmentAdminCore\Admin\Form\Builder::$footerClassName = \Exceedone\Exment\Form\PublicFormFooter::class;
 
         $custom_form = $this->custom_form;
         if (!$custom_form) {

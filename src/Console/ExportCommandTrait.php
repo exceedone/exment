@@ -81,7 +81,7 @@ trait ExportCommandTrait
      * Get export action
      *
      * @param CustomTable $custom_table
-     * @param \OpenAdminCore\Admin\Grid $grid
+     * @param \ExmentAdminCore\Admin\Grid $grid
      * @param array<string, mixed> $options
      * @return \Exceedone\Exment\Services\DataImportExport\Actions\Export\ActionInterface
      */

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Grid\Filter;
 
-use OpenAdminCore\Admin\Grid\Filter\Where as BaseWhere;
+use ExmentAdminCore\Admin\Grid\Filter\Where as BaseWhere;
 use Illuminate\Support\Arr;
 
 class Where extends BaseWhere

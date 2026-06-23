@@ -7,8 +7,8 @@ use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\TemplateExportTarget;
-use OpenAdminCore\Admin\Layout\Content;
-use OpenAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use GuzzleHttp\Client;
@@ -158,7 +158,7 @@ class TemplateController extends AdminControllerBase
     protected function exportBox(Content $content)
     {
         $form = $this->exportBoxForm();
-        /** @phpstan-ignore-next-line OpenAdminCore\Admin\Widgets\Box constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $content->row((new Box(exmtrans('template.header_export'), $form))->style('info'));
     }
 
@@ -166,11 +166,11 @@ class TemplateController extends AdminControllerBase
     /**
      * create export box
      *
-     * @return \OpenAdminCore\Admin\Widgets\Form
+     * @return \ExmentAdminCore\Admin\Widgets\Form
      */
     protected function exportBoxForm()
     {
-        $form = new \OpenAdminCore\Admin\Widgets\Form();
+        $form = new \ExmentAdminCore\Admin\Widgets\Form();
         $form->disablePjax();
         $form->disableReset();
         $form->action(admin_url('template/export'));
@@ -220,14 +220,14 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function importBox(Content $content)
     {
-        $form = new \OpenAdminCore\Admin\Widgets\Form();
+        $form = new \ExmentAdminCore\Admin\Widgets\Form();
         $form->disableReset();
         $form->action(admin_url('template/import'));
 
         $form->descriptionHtml(exmtrans('template.description_import'));
         $this->addTemplateTile($form);
         $form->hidden('_token')->default(csrf_token());
-        /** @phpstan-ignore-next-line OpenAdminCore\Admin\Widgets\Box constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $content->row((new Box(exmtrans('template.header_import'), $form))->style('info'));
     }
 

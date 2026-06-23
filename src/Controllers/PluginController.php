@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;

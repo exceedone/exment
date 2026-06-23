@@ -29,7 +29,7 @@ trait ColumnSystemItemTrait
      *
      * @param string|null $key
      * @param bool $show_condition_key
-     * @return \OpenAdminCore\Admin\Form\Field|null
+     * @return \ExmentAdminCore\Admin\Form\Field|null
      */
     public function getChangeField($key, $show_condition_key = true)
     {

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Show;
 
-class GridShowPanel extends \OpenAdminCore\Admin\Show\Panel
+class GridShowPanel extends \ExmentAdminCore\Admin\Show\Panel
 {
     /**
      * The view to be rendered.

@@ -3,15 +3,15 @@
 namespace Exceedone\Exment\DataItems\Show;
 
 use Illuminate\Http\Request;
-use OpenAdminCore\Admin\Facades\Admin;
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Layout\Row;
-use OpenAdminCore\Admin\Widgets\Box;
-use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
-use OpenAdminCore\Admin\Form\Field;
-use OpenAdminCore\Admin\Show;
-use OpenAdminCore\Admin\Show\Field as ShowField;
+use ExmentAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Layout\Row;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Show;
+use ExmentAdminCore\Admin\Show\Field as ShowField;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -90,7 +90,7 @@ class DefaultShow extends ShowBase
     protected function setSystemValues($show)
     {
         $trashed = boolval(request()->get('trashed'));
-        /** @phpstan-ignore-next-line class OpenAdminCore\Admin\Show\Field constructor expects string, null given */
+        /** @phpstan-ignore-next-line class ExmentAdminCore\Admin\Show\Field constructor expects string, null given */
         $field = (new ShowField(null, null))->system_values([
             'withTrashed' => $trashed])->setWidth(12, 0);
 
@@ -577,7 +577,7 @@ EOT;
                 'No.'.($revision->revision_no)
             )->setWidth(9, 2);
         }
-        /** @phpstan-ignore-next-line OpenAdminCore\Admin\Widgets\Box constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
     }
 
@@ -684,7 +684,7 @@ EOT;
 
             Admin::script($script);
         }
-        /** @phpstan-ignore-next-line OpenAdminCore\Admin\Widgets\Box constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
     }
 
@@ -738,7 +738,7 @@ EOT;
             ->setLabelClass(['d-none'])
             ->setWidth(12, 0);
         }
-        /** @phpstan-ignore-next-line OpenAdminCore\Admin\Widgets\Box constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
 

@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Tests\DatabaseTransactions;
-use OpenAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemColumn;

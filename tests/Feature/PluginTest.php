@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
-use OpenAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Enums\PluginType;

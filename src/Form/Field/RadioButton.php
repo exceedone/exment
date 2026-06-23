@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use OpenAdminCore\Admin\Form\Field\Radio;
+use ExmentAdminCore\Admin\Form\Field\Radio;
 
 class RadioButton extends Radio
 {

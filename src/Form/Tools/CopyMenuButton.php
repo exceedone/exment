@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Illuminate\Contracts\Support\Renderable;
-use OpenAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 
 /**
  * Copy menu button.

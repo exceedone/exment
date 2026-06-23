@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use OpenAdminCore\Admin\Form\NestedForm;
+use ExmentAdminCore\Admin\Form\NestedForm;
 use Illuminate\Support\Arr;
 
 /**
@@ -66,7 +66,7 @@ trait HasManyJsonTrait
             }
         }
 
-        /** @phpstan-ignore-next-line Call to function is_null() with OpenAdminCore\Admin\Form will always evaluate to false. */
+        /** @phpstan-ignore-next-line Call to function is_null() with ExmentAdminCore\Admin\Form will always evaluate to false. */
         if (is_null($this->form)) {
             return $forms;
         }

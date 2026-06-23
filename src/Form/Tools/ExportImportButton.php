@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use OpenAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;

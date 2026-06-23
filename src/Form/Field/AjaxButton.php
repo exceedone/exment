@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use OpenAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 
 class AjaxButton extends Field
 {

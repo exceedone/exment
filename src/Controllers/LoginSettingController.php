@@ -2,13 +2,13 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\System;
@@ -25,7 +25,7 @@ use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Services\Login as LoginServiceBase;
-use OpenAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Content;
 use Carbon\Carbon;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -320,7 +320,7 @@ class LoginSettingController extends AdminControllerBase
     protected function globalSettingBox(Request $request)
     {
         $form = $this->globalSettingForm($request);
-        /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('common.detail_setting'), $form);
         return $box;
     }

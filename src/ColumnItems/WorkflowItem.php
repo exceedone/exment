@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use OpenAdminCore\Admin\Form\Field\MultipleSelect;
+use ExmentAdminCore\Admin\Form\Field\MultipleSelect;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;

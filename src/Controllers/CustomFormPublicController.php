@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Form\Field;
-use OpenAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
@@ -463,7 +463,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
             ->requiredRule()
             ->help(exmtrans("custom_form_public.help.custom_form_id"))
-            /** @phpstan-ignore-next-line Parameter #1 $options of method OpenAdminCore\Admin\Form\Field::options() expects array, Closure given. need to fix laravel-admin */
+            /** @phpstan-ignore-next-line Parameter #1 $options of method ExmentAdminCore\Admin\Form\Field::options() expects array, Closure given. need to fix laravel-admin */
             ->options(function ($value) use ($custom_table) {
                 return $custom_table->custom_forms->mapWithKeys(function ($item) {
                     return [$item['id'] => $item['form_view_name']];

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use OpenAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 
 /**
  * Open Share button.

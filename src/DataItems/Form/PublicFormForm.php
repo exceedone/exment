@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Form;
 
-use OpenAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\ColumnItems\ItemInterface;

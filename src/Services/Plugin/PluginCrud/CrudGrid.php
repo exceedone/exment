@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
-use OpenAdminCore\Admin\Widgets\Grid\Grid;
+use ExmentAdminCore\Admin\Widgets\Grid\Grid;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Form\Tools;

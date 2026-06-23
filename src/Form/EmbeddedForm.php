@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Form;
 
-use OpenAdminCore\Admin\Form\Field;
-use OpenAdminCore\Admin\Form\EmbeddedForm as EmbeddedFormBase;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\EmbeddedForm as EmbeddedFormBase;
 
 /**
  * Class EmbeddedForm.
