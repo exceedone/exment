@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
-use OpenAdminCore\Admin\Grid\Tools\BatchDelete as BatchDeleteBase;
+use ExmentAdminCore\Admin\Grid\Tools\BatchDelete as BatchDeleteBase;
 
 class BatchDelete extends BatchDeleteBase
 {

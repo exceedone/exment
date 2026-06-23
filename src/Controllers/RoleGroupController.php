@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Widgets\Form;
-use OpenAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Widgets\Form;
+use ExmentAdminCore\Admin\Grid;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
@@ -20,11 +20,11 @@ use Exceedone\Exment\Enums\RoleGroupType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Tools;
-use OpenAdminCore\Admin\Layout\Content;
-use OpenAdminCore\Admin\Grid\Linker;
-use OpenAdminCore\Admin\Widgets\Box;
-use OpenAdminCore\Admin\Auth\Permission as Checker;
-use OpenAdminCore\Admin\Form as AdminForm;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Grid\Linker;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Auth\Permission as Checker;
+use ExmentAdminCore\Admin\Form as AdminForm;
 use Exceedone\Exment\Services\DataImportExport;
 
 class RoleGroupController extends AdminControllerBase
@@ -136,7 +136,7 @@ class RoleGroupController extends AdminControllerBase
     {
         $isRolePermissionPage = $request->get('form_type') != 2;
         $form = $isRolePermissionPage ? $this->form() : $this->formUserOrganization();
-        /** @phpstan-ignore-next-line OpenAdminCore\Admin\Widgets\Box constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(trans('admin.create'), $form);
         $this->appendTools($box, null, $isRolePermissionPage);
         return $this->AdminContent($content)->body($box);

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\Plugin;
 
-use OpenAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;

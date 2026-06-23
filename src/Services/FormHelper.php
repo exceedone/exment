@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services;
 
-use OpenAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomColumn;

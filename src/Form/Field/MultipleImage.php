@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-class MultipleImage extends \OpenAdminCore\Admin\Form\Field\MultipleImage
+class MultipleImage extends \ExmentAdminCore\Admin\Form\Field\MultipleImage
 {
     /**
      *  Validation rules.

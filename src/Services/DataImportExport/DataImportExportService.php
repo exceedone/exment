@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
-use OpenAdminCore\Admin\Grid\Exporters\AbstractExporter;
+use ExmentAdminCore\Admin\Grid\Exporters\AbstractExporter;
 
 class DataImportExportService extends AbstractExporter
 {

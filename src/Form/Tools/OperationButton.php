@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use OpenAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomOperation;
 
 /**

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Widgets;
 
-use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 
 /**
  * @method mixed hasManyTable($tableName, $columnName, $closure)

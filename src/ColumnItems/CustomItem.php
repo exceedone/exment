@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use OpenAdminCore\Admin\Form\Field;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Grid\Filter;
-use OpenAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid\Filter;
+use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;

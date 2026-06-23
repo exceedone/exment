@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Define;
-use OpenAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 
 /**
  * Custom Table Menu

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\DashboardBoxItems;
 
-use OpenAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewSummary;

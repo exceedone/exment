@@ -330,7 +330,7 @@ class OAuthService implements LoginServiceInterface
      * Set custom config for login setting controller.
      *
      * @param $provider_name
-     * @param \OpenAdminCore\Admin\Form|\OpenAdminCore\Admin\Form\EmbeddedForm $form
+     * @param \ExmentAdminCore\Admin\Form|\ExmentAdminCore\Admin\Form\EmbeddedForm $form
      * @return void
      */
     // @phpstan-ignore-next-line

@@ -16,7 +16,7 @@ use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Validator\ChangeFieldRule;
-use OpenAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 
 class ColumnItem extends ConditionItemBase implements ConditionItemInterface
 {

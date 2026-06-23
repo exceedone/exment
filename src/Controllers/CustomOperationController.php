@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Layout\Content;
-use OpenAdminCore\Admin\Auth\Permission as Checker;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomOperation;
@@ -119,7 +119,7 @@ class CustomOperationController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
-            /** @phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+            /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('operation', $this->custom_table));
         });
 
@@ -224,7 +224,7 @@ class CustomOperationController extends AdminControllerTableBase
                             return [$item['id'] => $item['text']];
                         });
                     })
-                    ->removeRules(\OpenAdminCore\Admin\Validator\HasOptionRule::class);
+                    ->removeRules(\ExmentAdminCore\Admin\Validator\HasOptionRule::class);
             },
             'valueCallback' => function ($data, $field) use ($custom_table) {
                 $operation_update_type = array_get($data, 'operation_update_type');

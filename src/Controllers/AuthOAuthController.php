@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 /**
  * For login oauth controller
  */
-class AuthOAuthController extends \OpenAdminCore\Admin\Controllers\AuthController
+class AuthOAuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
 {
     use AuthTrait;
 

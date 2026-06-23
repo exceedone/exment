@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
-use OpenAdminCore\Admin\Grid\Tools\BatchAction;
+use ExmentAdminCore\Admin\Grid\Tools\BatchAction;
 
 class BatchRestore extends BatchAction
 {

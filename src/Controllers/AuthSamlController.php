@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 /**
  * For login saml controller
  */
-class AuthSamlController extends \OpenAdminCore\Admin\Controllers\AuthController
+class AuthSamlController extends \ExmentAdminCore\Admin\Controllers\AuthController
 {
     use AuthTrait;
 

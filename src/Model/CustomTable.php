@@ -26,7 +26,7 @@ use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
-use OpenAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewType;
@@ -2179,11 +2179,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set select table's field info.
      *
-     * @param \OpenAdminCore\Admin\Form\Field $field
+     * @param \ExmentAdminCore\Admin\Form\Field $field
      * @param array $options
-     * @return \OpenAdminCore\Admin\Form\Field
+     * @return \ExmentAdminCore\Admin\Form\Field
      */
-    public function setSelectTableField(\OpenAdminCore\Admin\Form\Field $field, array $options = []): \OpenAdminCore\Admin\Form\Field
+    public function setSelectTableField(\ExmentAdminCore\Admin\Form\Field $field, array $options = []): \ExmentAdminCore\Admin\Form\Field
     {
         $options = array_merge([
             'custom_value' => null, // select custom value, if called custom value's select table

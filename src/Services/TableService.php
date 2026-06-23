@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Form\Tools\SwalInputButton;
 use Exceedone\Exment\Form\Tools\ModalButton;
 use Illuminate\Support\Facades\App;
-use OpenAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 
 class TableService
 {

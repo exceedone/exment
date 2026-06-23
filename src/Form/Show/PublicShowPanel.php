@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Show;
 
-use OpenAdminCore\Admin\Show;
+use ExmentAdminCore\Admin\Show;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 
@@ -10,7 +10,7 @@ use Illuminate\Contracts\View\View;
  * Public show panel.
  * *Contains create form*
  */
-class PublicShowPanel extends \OpenAdminCore\Admin\Show\Panel
+class PublicShowPanel extends \ExmentAdminCore\Admin\Show\Panel
 {
     /**
      * The view to be rendered.

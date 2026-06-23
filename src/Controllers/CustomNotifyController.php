@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Grid\Linker;
-use OpenAdminCore\Admin\Auth\Permission as Checker;
-use OpenAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid\Linker;
+use ExmentAdminCore\Admin\Auth\Permission as Checker;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
@@ -95,7 +95,7 @@ class CustomNotifyController extends AdminControllerTableBase
             ->whereIn('notify_trigger', NotifyTrigger::CUSTOM_TABLES());
 
         $grid->tools(function (Grid\Tools $tools) {
-            /** @phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+            /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('notify', $this->custom_table));
         });
 

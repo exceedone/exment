@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use OpenAdminCore\Admin\Form\Field;
-use OpenAdminCore\Admin\Validator\HasOptionRule;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Validator\HasOptionRule;
 
 class Checkboxone extends Field
 {

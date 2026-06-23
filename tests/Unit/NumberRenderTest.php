@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Middleware\Initialize;
-use OpenAdminCore\Admin\Form\Field\Number;
+use ExmentAdminCore\Admin\Form\Field\Number;
 use Tests\TestCase;
 
 /**
@@ -270,7 +270,7 @@ class NumberRenderTest extends TestCase
         Initialize::registeredLaravelAdmin();
         $this->initAllTest();
 
-        $form = new \OpenAdminCore\Admin\Widgets\Form();
+        $form = new \ExmentAdminCore\Admin\Widgets\Form();
         $form->number('foo');
 
         $messages = $form->validationMessages(['foo' => 42]);
@@ -288,7 +288,7 @@ class NumberRenderTest extends TestCase
         Initialize::registeredLaravelAdmin();
         $this->initAllTest();
 
-        $form = new \OpenAdminCore\Admin\Widgets\Form();
+        $form = new \ExmentAdminCore\Admin\Widgets\Form();
         $form->number('foo');
 
         $messages = $form->validationMessages(['foo' => 'abc']);
@@ -306,7 +306,7 @@ class NumberRenderTest extends TestCase
         Initialize::registeredLaravelAdmin();
         $this->initAllTest();
 
-        $form = new \OpenAdminCore\Admin\Widgets\Form();
+        $form = new \ExmentAdminCore\Admin\Widgets\Form();
         $form->number('foo');
 
         $messages = $form->validationMessages(['foo' => '2026-05-18']);

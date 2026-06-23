@@ -43,7 +43,7 @@ interface ConditionItemInterface
      *
      * @param string $key
      * @param bool $show_condition_key
-     * @return \OpenAdminCore\Admin\Form\Field
+     * @return \ExmentAdminCore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true);
 

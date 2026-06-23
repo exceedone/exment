@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Form;
 
-use OpenAdminCore\Admin\Admin;
-use OpenAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Form\Field;
 
 class NestedEmbeddedForm extends EmbeddedForm
 {

@@ -4,13 +4,13 @@ namespace Exceedone\Exment\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use OpenAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Content;
 
 /**
  * Admin(Exment) Controller
  *
-* @method \OpenAdminCore\Admin\Grid grid()
-* @method \OpenAdminCore\Admin\Form form($id = null)
+* @method \ExmentAdminCore\Admin\Grid grid()
+* @method \ExmentAdminCore\Admin\Form form($id = null)
  */
 class AdminControllerBase extends Controller
 {

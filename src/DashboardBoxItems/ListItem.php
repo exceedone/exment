@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\DashboardBoxItems;
 
-use OpenAdminCore\Admin\Widgets\Table as WidgetTable;
-use OpenAdminCore\Admin\Grid\Linker;
+use ExmentAdminCore\Admin\Widgets\Table as WidgetTable;
+use ExmentAdminCore\Admin\Grid\Linker;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;

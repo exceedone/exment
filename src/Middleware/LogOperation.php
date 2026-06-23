@@ -3,8 +3,8 @@
 namespace Exceedone\Exment\Middleware;
 
 use Exceedone\Exment\Enums\SystemTableName;
-use OpenAdminCore\Admin\Middleware\LogOperation as BaseLogOperation;
-use OpenAdminCore\Admin\Auth\Database\OperationLog as OperationLogModel;
+use ExmentAdminCore\Admin\Middleware\LogOperation as BaseLogOperation;
+use ExmentAdminCore\Admin\Auth\Database\OperationLog as OperationLogModel;
 use Illuminate\Http\Request;
 
 class LogOperation extends BaseLogOperation

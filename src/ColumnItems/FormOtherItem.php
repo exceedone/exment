@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use OpenAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\FormLabelType;
-use OpenAdminCore\Admin\Show\Field as ShowField;
+use ExmentAdminCore\Admin\Show\Field as ShowField;
 
 /**
  * @property \Exceedone\Exment\Model\CustomColumn $custom_column

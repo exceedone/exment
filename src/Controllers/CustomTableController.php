@@ -2,12 +2,12 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Facades\Admin;
-use OpenAdminCore\Admin\Layout\Content;
-use OpenAdminCore\Admin\Layout\Row;
-use OpenAdminCore\Admin\Grid\Linker;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Row;
+use ExmentAdminCore\Admin\Grid\Linker;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Illuminate\Http\Request;
@@ -63,7 +63,7 @@ class CustomTableController extends AdminControllerBase
     {
         $content = $this->AdminContent($content);
 
-        /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Grid given*/
+        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Grid given*/
         $row = new Row($this->grid());
         $row->class(['block_custom_table']);
 
@@ -173,7 +173,7 @@ class CustomTableController extends AdminControllerBase
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
-            /** @phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuAjaxButton given */
+            /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuAjaxButton given */
             $tools->append(new Tools\CustomTableMenuAjaxButton());
         });
 

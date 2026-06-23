@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use OpenAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Validator;
 
@@ -91,7 +91,7 @@ class Boolean extends CustomItem
     // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
-        return [\OpenAdminCore\Admin\Validator\HasOptionRule::class];
+        return [\ExmentAdminCore\Admin\Validator\HasOptionRule::class];
     }
 
     /**

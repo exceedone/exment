@@ -17,9 +17,9 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterOption;
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Form\Field;
-use OpenAdminCore\Admin\Grid\Filter;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
 
 /**
@@ -229,7 +229,7 @@ class SelectTable extends CustomItem
                         'target_view_id' => $this->custom_column->getOption('select_target_view'),
                         'display_table_id' => $this->custom_table->id,
                         'linkage' => $linkage_expand,
-                        'target_column_multiple' => $field instanceof \OpenAdminCore\Admin\Form\Field\MultipleSelect ? 1 : 0,
+                        'target_column_multiple' => $field instanceof \ExmentAdminCore\Admin\Form\Field\MultipleSelect ? 1 : 0,
                     ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'class_' . $this->uniqueName()]),
                 ],
@@ -408,7 +408,7 @@ class SelectTable extends CustomItem
     // @phpstan-ignore-next-line
     protected function getRemoveValidates()
     {
-        return [\OpenAdminCore\Admin\Validator\HasOptionRule::class];
+        return [\ExmentAdminCore\Admin\Validator\HasOptionRule::class];
     }
 
     /**

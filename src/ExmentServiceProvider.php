@@ -3,9 +3,9 @@
 namespace Exceedone\Exment;
 
 use Storage;
-use OpenAdminCore\Admin\Admin;
-use OpenAdminCore\Admin\Middleware as AdminMiddleware;
-use OpenAdminCore\Admin\AdminServiceProvider as ServiceProvider;
+use ExmentAdminCore\Admin\Admin;
+use ExmentAdminCore\Admin\Middleware as AdminMiddleware;
+use ExmentAdminCore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
@@ -482,7 +482,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         Initialize::initializeConfig(false);
 
-        if (method_exists("\OpenAdminCore\Admin\Admin", "registered")) {
+        if (method_exists("\ExmentAdminCore\Admin\Admin", "registered")) {
             Admin::registered(function () {
                 Initialize::registeredLaravelAdmin();
             });

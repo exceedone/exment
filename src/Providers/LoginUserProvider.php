@@ -26,7 +26,7 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
     public function retrieveById($identifier)
     {
         try {
-            //return \OpenAdminCore\Admin\Auth\Database\Administrator::find($identifier);
+            //return \ExmentAdminCore\Admin\Auth\Database\Administrator::find($identifier);
             return LoginUser::find($identifier);
         } catch (\Exception $e) {
             return null;

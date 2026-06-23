@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
-use OpenAdminCore\Admin\Form\Field;
+use ExmentAdminCore\Admin\Form\Field;
 
 /**
  * FileNameRule.

@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Grid;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\ApiClient;

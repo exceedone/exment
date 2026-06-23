@@ -12,16 +12,16 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
-//use OpenAdminCore\Admin\Controllers\HasResourceActions;
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Layout\Column;
-use OpenAdminCore\Admin\Layout\Content;
-use OpenAdminCore\Admin\Layout\Row;
-use OpenAdminCore\Admin\Tree;
-use OpenAdminCore\Admin\Widgets\Box;
+//use ExmentAdminCore\Admin\Controllers\HasResourceActions;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Layout\Column;
+use ExmentAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Row;
+use ExmentAdminCore\Admin\Tree;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use OpenAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Facades\Admin;
 
 class MenuController extends AdminControllerBase
 {
@@ -46,13 +46,13 @@ class MenuController extends AdminControllerBase
                 $row->column(5, $this->treeView()->render());
 
                 $row->column(7, function (Column $column) {
-                    $form = new \OpenAdminCore\Admin\Widgets\Form();
+                    $form = new \ExmentAdminCore\Admin\Widgets\Form();
                     $form->action(admin_url('auth/menu'));
 
                     $this->createMenuForm($form);
                     $form->hidden('_token')->default(csrf_token());
 
-                    /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+                    /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
                     $column->append((new Box(trans('admin.new'), $form))->style('success'));
                 });
             });
@@ -84,7 +84,7 @@ class MenuController extends AdminControllerBase
     }
 
     /**
-     * @return \OpenAdminCore\Admin\Tree
+     * @return \ExmentAdminCore\Admin\Tree
      */
     protected function treeView()
     {

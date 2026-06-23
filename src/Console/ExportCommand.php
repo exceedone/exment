@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Console;
 
-use OpenAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;

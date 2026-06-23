@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use OpenAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Layout\Content;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Services\Installer\InstallService;

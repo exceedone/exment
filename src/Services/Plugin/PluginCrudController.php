@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\Plugin;
 
-use OpenAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Exceedone\Exment\Enums\PluginCrudAuthType;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use App\Http\Controllers\Controller;
@@ -277,7 +277,7 @@ class PluginCrudController extends Controller
      * No Auth page.
      *
      * @param $endpoint
-     * @return \OpenAdminCore\Admin\Layout\Content|false|string
+     * @return \ExmentAdminCore\Admin\Layout\Content|false|string
      */
     // @phpstan-ignore-next-line
     public function noauth($endpoint = null)

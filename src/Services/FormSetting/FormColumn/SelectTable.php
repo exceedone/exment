@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
-use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;

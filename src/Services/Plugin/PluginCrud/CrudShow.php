@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Services\Plugin\PluginCrud;
 
-use OpenAdminCore\Admin\Widgets\Form;
+use ExmentAdminCore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
-use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
-use OpenAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Box;
 use Exceedone\Exment\Form\Tools;
 
 /**
@@ -45,7 +45,7 @@ class CrudShow extends CrudBase
         $form->disableSubmit();
 
         $this->setShowColumn($form);
-        /** @phpstan-ignore-next-line constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(trans('admin.detail'), $form);
         $box->style('info');
         $this->setShowTools($id, $box);

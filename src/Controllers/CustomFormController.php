@@ -3,13 +3,13 @@
 namespace Exceedone\Exment\Controllers;
 
 use App\Http\Controllers\Controller;
-use OpenAdminCore\Admin\Facades\Admin;
-use OpenAdminCore\Admin\Grid;
-use OpenAdminCore\Admin\Grid\Linker;
-use OpenAdminCore\Admin\Form;
-use OpenAdminCore\Admin\Widgets\Form as WidgetForm;
-use OpenAdminCore\Admin\Widgets\Box;
-use OpenAdminCore\Admin\Layout\Content;
+use ExmentAdminCore\Admin\Facades\Admin;
+use ExmentAdminCore\Admin\Grid;
+use ExmentAdminCore\Admin\Grid\Linker;
+use ExmentAdminCore\Admin\Form;
+use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
+use ExmentAdminCore\Admin\Widgets\Box;
+use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
@@ -400,7 +400,7 @@ class CustomFormController extends AdminControllerTableBase
 
         $custom_table = $this->custom_table;
         $grid->tools(function (Grid\Tools $tools) {
-            /**@phpstan-ignore-next-line append() expects OpenAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
+            /**@phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomTableMenuButton given */
             $tools->append(new Tools\CustomTableMenuButton('form', $this->custom_table));
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
@@ -531,7 +531,7 @@ class CustomFormController extends AdminControllerTableBase
             ->help(exmtrans('custom_form.help.form_label_type'))
             ->default(FormLabelType::HORIZONTAL)
             ->options(FormLabelType::transArrayFilter('custom_form.form_label_type_options', FormLabelType::getFormLabelTypes()));
-        /** @phpstan-ignore-next-line  constructor expects string, OpenAdminCore\Admin\Widgets\Form given */
+        /** @phpstan-ignore-next-line  constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(exmtrans('custom_form.header_basic_setting'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => 'javascript:void(0);',
@@ -903,7 +903,7 @@ class CustomFormController extends AdminControllerTableBase
 
         return getAjaxResponse([
             'body'  => $form->render(),
-            /** @phpstan-ignore-next-line Result of method OpenAdminCore\Admin\Widgets\Form::getScript() (void) is used. need to fix laravel-admin */
+            /** @phpstan-ignore-next-line Result of method ExmentAdminCore\Admin\Widgets\Form::getScript() (void) is used. need to fix laravel-admin */
             'script' => $form->getScript(),
             'title' => trans('admin.setting'),
             'modalSize' => 'modal-xl',
