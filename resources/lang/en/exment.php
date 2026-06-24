@@ -2519,6 +2519,7 @@ return [
             'show_page' => 'In-system alert',
             'slack' => 'Slack',
             'microsoft_teams' => 'Microsoft Teams',
+            'line' => 'LINE',
         ],
 
         'notify_action_target_options' => [

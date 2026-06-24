@@ -443,6 +443,10 @@ class NotifyService
                     $params['webhook_url'] = array_get($action_setting, 'webhook_url');
                     static::notifyTeams($params);
                     break;
+
+                case NotifyAction::LINE:
+                    static::notifyLine($params);
+                    break;
             }
             // call notified trigger operations
             //CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
@@ -453,6 +457,54 @@ class NotifyService
             'custom_value' => $custom_value,
             'notify' => $notify,
         ]);
+    }
+
+    /**
+     * Notify LINE (user-targeted): đọc line_user_id của user nhận rồi push.
+     *
+     * @param array $params
+     * @return void
+     */
+    public static function notifyLine(array $params = [])
+    {
+        $user = array_get($params, 'user'); // NotifyTarget
+        if (is_nullorempty($user)) {
+            return;
+        }
+
+        // lấy bản ghi user mục tiêu -> đọc line_user_id
+        $userId = method_exists($user, 'getUserId') ? $user->getUserId() : array_get((array) $user, 'id');
+        if (is_nullorempty($userId)) {
+            return;
+        }
+        $lineUserId = \Exceedone\Exment\Model\LineAccountLink::where('user_id', $userId)->value('line_user_id');
+        if (is_nullorempty($lineUserId)) {
+            return; // user chưa liên kết LINE -> bỏ qua
+        }
+
+        // nạp subject/body từ mail template (chưa thay biến)
+        static::replaceSubjectBody($params);
+
+        // thay biến ${...} bằng dữ liệu thật (giống luồng Mail/Slack)
+        $subject = static::replaceWord(
+            array_get($params, 'subject'),
+            array_get($params, 'custom_value'),
+            array_get($params, 'prms', []),
+            array_get($params, 'replaceOptions', [])
+        );
+        $body = static::replaceWord(
+            array_get($params, 'body'),
+            array_get($params, 'custom_value'),
+            array_get($params, 'prms', []),
+            array_get($params, 'replaceOptions', [])
+        );
+
+        Notifications\LineSender::make(
+            $lineUserId,
+            $subject,
+            $body,
+            array_get($params, 'action_setting', [])
+        )->send();
     }
 
     /**

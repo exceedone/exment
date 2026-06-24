@@ -2519,6 +2519,7 @@ return [
             'show_page' => 'システム内アラート',
             'slack' => 'Slack通知',
             'microsoft_teams' => 'Microsoft Teams通知',
+            'line' => 'LINE通知',
         ],
 
         'notify_action_target_options' => [

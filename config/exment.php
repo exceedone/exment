@@ -1201,4 +1201,20 @@ return [
     |
     */
     'api_max_rate_limit' => env('EXMENT_API_MAX_RATE_LIMIT', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | LINE Messaging API (tích hợp kênh thông báo LINE - mô hình L-Step)
+    |--------------------------------------------------------------------------
+    | channel_access_token : LINE Developers Console > Messaging API
+    | channel_secret       : LINE Developers Console > Basic settings
+    | oa_basic_id          : Basic ID của OA, dạng @xxxx
+    */
+    'line' => [
+        'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
+        'channel_secret'       => env('LINE_CHANNEL_SECRET'),
+        'oa_basic_id'          => env('LINE_OA_BASIC_ID'),
+        'api_base'             => env('LINE_API_BASE', 'https://api.line.me'),
+        'timeout'              => env('LINE_HTTP_TIMEOUT', 10),
+    ],
 ];

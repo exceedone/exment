@@ -43,9 +43,44 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->mapExmentWebRotes();
         $this->mapExmentAnonymousWebRotes();
+        $this->mapExmentLineWebhookRoute();
+        $this->mapExmentLineLinkRoute();
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
+    }
+
+    /**
+     * LINE webhook (public). Không qua 'web' middleware nên KHÔNG dính CSRF/auth.
+     * Verify chữ ký X-Line-Signature trong controller.
+     * URL: {admin_prefix}/line/webhook
+     * @return void
+     */
+    protected function mapExmentLineWebhookRoute()
+    {
+        Route::group([
+            'prefix'    => config('admin.route.prefix'),
+            'namespace' => $this->namespace,
+        ], function (Router $router) {
+            $router->post('line/webhook', 'LineWebhookController@handle')->name('exment.line_webhook');
+        });
+    }
+
+    /**
+     * LINE self-service link page (auth admin). URL: {admin_prefix}/line/link
+     * @return void
+     */
+    protected function mapExmentLineLinkRoute()
+    {
+        Route::group([
+            'prefix'     => config('admin.route.prefix'),
+            'namespace'  => $this->namespace,
+            'middleware' => ['adminweb', 'admin'],
+        ], function (Router $router) {
+            $router->get('line/link', 'LineLinkController@index')->name('exment.line_link');
+            $router->post('line/link/generate', 'LineLinkController@generate')->name('exment.line_link_generate');
+            $router->post('line/link/unlink', 'LineLinkController@unlink')->name('exment.line_link_unlink');
+        });
     }
 
     /**

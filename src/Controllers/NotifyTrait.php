@@ -113,7 +113,7 @@ trait NotifyTrait
             ]);
 
         $system_slack_user_column = CustomColumn::getEloquent(System::system_slack_user_column());
-        $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE];
+        $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK, NotifyAction::LINE] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::LINE];
 
         /** @phpstan-ignore-next-line */
         $help = exmtrans("notify.help.notify_action_target");
@@ -142,7 +142,7 @@ trait NotifyTrait
             ->attribute([
                 'data-filter' => json_encode([
                     ['key' => 'notify_action', 'value' => $notify_action_target_filter],
-                    ['key' => 'notify_action', 'requiredValue' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE]],
+                    ['key' => 'notify_action', 'requiredValue' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::LINE]],
                 ])
             ])
             ->help($help);
