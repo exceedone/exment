@@ -104,6 +104,9 @@ class CustomTableController extends AdminControllerBase
      */
     protected function toggleActivateQr(Request $request, $id, $active_qr_flg)
     {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
+            return getAjaxResponse(['result' => false]);
+        }
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_qr_flg', $active_qr_flg);
         $custom_table->setOption('qr_use', true);
@@ -149,6 +152,9 @@ class CustomTableController extends AdminControllerBase
      */
     protected function toggleActivateJancode(Request $request, $id, $active_jan_flg)
     {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
+            return getAjaxResponse(['result' => false]);
+        }
         $custom_table = CustomTable::getEloquent($id);
         $custom_table->setOption('active_jan_flg', $active_jan_flg);
         $custom_table->setOption('jan_use', true);

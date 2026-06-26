@@ -174,10 +174,15 @@ class ResetPasswordController extends Controller
     protected function getEmailByToken($token)
     {
         $broker = $this->broker();
+        $expire = (int)config('auth.passwords.exment_admins.expire', 60);
         // get email by table 'password_resets'
         $records = \DB::table(SystemTableName::PASSWORD_RESET)->get()->toArray();
 
         foreach ($records as $record) {
+            // skip expired records (same expiry rule as PasswordBroker::tokenExpired)
+            if (\Carbon\Carbon::parse($record->created_at)->addMinutes($expire)->isPast()) {
+                continue;
+            }
             // if match token
             if ($broker->getRepository()->getHasher()->check($token, $record->token)) {
                 return $record->email;

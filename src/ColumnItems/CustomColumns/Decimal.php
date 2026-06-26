@@ -70,7 +70,10 @@ class Decimal extends CustomItem
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
                 // @phpstan-ignore-next-line
                 $number = number_format($v, $digit);
-                return preg_replace("/\.?0+$/", '', $number);
+                if ($digit > 0 && strpos($number, '.') !== false) {
+                    $number = rtrim(rtrim($number, '0'), '.');
+                }
+                return $number;
             } else {
                 // @phpstan-ignore-next-line
                 return number_format($v);

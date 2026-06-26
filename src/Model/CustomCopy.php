@@ -200,6 +200,9 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (isset($inputs)) {
             foreach ($custom_copy_input_columns as $custom_copy_input_column) {
                 $custom_column = $custom_copy_input_column->to_custom_column;
+                if (is_nullorempty($custom_column)) {
+                    continue;
+                }
                 // get input value
                 $val = array_get($inputs, $custom_column->column_name);
                 if (isset($val)) {

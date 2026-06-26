@@ -316,7 +316,7 @@ class CustomOperation extends ModelBase
         $updates = collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) use ($model) {
             $custom_column = $operation_column->custom_column;
             if (is_nullorempty($custom_column)) {
-                return null;
+                return [];
             }
 
             $column_name = $custom_column->column_name;

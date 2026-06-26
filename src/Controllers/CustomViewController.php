@@ -477,6 +477,11 @@ class CustomViewController extends AdminControllerTableBase
     {
         // get custom view
         $custom_view = CustomView::getEloquent($id);
+        // ensure the view actually belongs to the table from the URL (prevents cross-table id usage)
+        if (!isset($custom_view) || !isset($custom_view->custom_table)
+            || (CustomTable::getEloquent($tableKey)?->id ?? null) != $custom_view->custom_table_id) {
+            return getAjaxResponse(['result' => false, 'toastr' => trans('admin.deny')]);
+        }
         return DataShareAuthoritable::saveShareDialogForm($custom_view);
     }
 

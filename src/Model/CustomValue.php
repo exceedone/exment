@@ -461,8 +461,10 @@ abstract class CustomValue extends ModelBase
         $results = [];
         foreach ($workflow_values as $v) {
             $v->append('created_user');
-            $v->workflow_action->append('status_from_name');
-            $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action_cache->status_from_name, $v->workflow_status_name);
+            if (isset($v->workflow_action)) {
+                $v->workflow_action->append('status_from_name');
+                $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', optional($v->workflow_action_cache)->status_from_name, $v->workflow_status_name);
+            }
 
             $results[] = $v->toArray();
         }

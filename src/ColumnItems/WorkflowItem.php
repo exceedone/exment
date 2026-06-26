@@ -122,7 +122,7 @@ class WorkflowItem extends SystemItem
 
         // get workflow statuses
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
-        $options = $workflow->getStatusOptions() ?? [];
+        $options = $workflow ? ($workflow->getStatusOptions() ?? []) : [];
 
         $field->options($options);
         $field->default($this->value);

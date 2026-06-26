@@ -204,7 +204,7 @@ class ApiDataController extends AdminControllerTableBase
             $column_name = $values[0];
 
             // @phpstan-ignore-next-line
-            if (count($values) < 3 || !preg_match('/^eq|ne|gt|gte|lt|lte|like$/i', $values[1])) {
+            if (count($values) < 3 || !preg_match('/^(eq|ne|gt|gte|lt|lte|like)$/i', $values[1])) {
                 return abortJson(400, ErrorCode::INVALID_PARAMS());
             }
             if (SystemColumn::isSqlValid($column_name)) {
@@ -329,8 +329,7 @@ class ApiDataController extends AdminControllerTableBase
                 return $custom_value;
             }
             if (($code = $custom_value->enableDelete()) !== true) {
-                // @phpstan-ignore-next-line
-                return abortJson(403, $code());
+                return abortJson(403, $code);
             }
             if ($res = $this->custom_table->validateValueDestroy($i)) {
                 $message = array_get($res, 'message')?? exmtrans('error.delete_failed');
@@ -645,7 +644,8 @@ class ApiDataController extends AdminControllerTableBase
     protected function saveData($request, $custom_value = null)
     {
         $validator = Validator::make($request->all(), [
-            'value' => 'required_without:data',
+            'value' => 'required_without:data|array',
+            'data'  => 'nullable|array',
         ]);
         if ($validator->fails()) {
             return abortJson(400, [
@@ -1064,7 +1064,7 @@ class ApiDataController extends AdminControllerTableBase
         $names = [];
         $result = [];
         foreach ($file_value as $file_v) {
-            if (!array_has($file_v, 'name') && !array_has($file_v, 'base64')) {
+            if (!array_has($file_v, 'name') || !array_has($file_v, 'base64')) {
                 continue;
             }
 
@@ -1166,7 +1166,7 @@ class ApiDataController extends AdminControllerTableBase
             // @phpstan-ignore-next-line
             $column_name = $values[0];
             // @phpstan-ignore-next-line
-            if (count($values) > 1 && !preg_match('/^asc|desc$/i', $values[1])) {
+            if (count($values) > 1 && !preg_match('/^(asc|desc)$/i', $values[1])) {
                 return abortJson(400, ErrorCode::INVALID_PARAMS());
             }
             if (SystemColumn::isSqlValid($column_name)) {

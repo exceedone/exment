@@ -50,6 +50,9 @@ class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterfac
                 return $row->role_group_view_name;
             })->implode(',');
         } else {
+            if (!isset($model)) {
+                return null;
+            }
             $result = $model->role_group_view_name;
         }
         return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');

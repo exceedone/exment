@@ -3724,9 +3724,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                                 $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
                                 if ($column_form_column_name && $column_form_column_name == 'image') {
                                     $file = ExmentFile::getFileFromFormColumn($custom_form_column->id);
-                                    $new_file = $file->replicate(['uuid']);
-                                    $new_file->custom_form_column_id = $new_form_column->id;
-                                    $new_file->save();
+                                    if (isset($file)) {
+                                        $new_file = $file->replicate(['uuid']);
+                                        $new_file->custom_form_column_id = $new_form_column->id;
+                                        $new_file->save();
+                                    }
                                 }
                             }
                         }

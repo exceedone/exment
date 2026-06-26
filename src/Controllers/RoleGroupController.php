@@ -134,8 +134,9 @@ class RoleGroupController extends AdminControllerBase
      */
     public function create(Request $request, Content $content)
     {
-        $isRolePermissionPage = $request->get('form_type') != 2;
-        $form = $isRolePermissionPage ? $this->form() : $this->formUserOrganization();
+        // user/organization assignment screen requires an existing role group; force role-permission form on create
+        $isRolePermissionPage = true;
+        $form = $this->form();
         /** @phpstan-ignore-next-line ExmentAdminCore\Admin\Widgets\Box constructor expects string, ExmentAdminCore\Admin\Widgets\Form given */
         $box = new Box(trans('admin.create'), $form);
         $this->appendTools($box, null, $isRolePermissionPage);
