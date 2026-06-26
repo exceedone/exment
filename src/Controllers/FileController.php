@@ -434,7 +434,7 @@ class FileController extends AdminControllerBase
      *  upload file as temporary
      */
     // @phpstan-ignore-next-line
-    protected function uploadTempFile(Request $request)
+    public function uploadTempFile(Request $request)
     {
         return $this->_uploadTempFile($request, false);
     }
@@ -451,7 +451,7 @@ class FileController extends AdminControllerBase
      *  upload Image as temporary
      */
     // @phpstan-ignore-next-line
-    protected function uploadTempImagePublicForm(Request $request, $publicFormUuid)
+    public function uploadTempImagePublicForm(Request $request, $publicFormUuid)
     {
         $public_form = PublicForm::getPublicFormByUuid($publicFormUuid);
         return $this->_uploadTempFile($request, true, $public_form);

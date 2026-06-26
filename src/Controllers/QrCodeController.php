@@ -18,7 +18,7 @@ class QrCodeController extends Controller
      * @param $id
      */
     // @phpstan-ignore-next-line
-    protected function scanRedirect(Request $request, $table_name, $id)
+    public function scanRedirect(Request $request, $table_name, $id)
     {
         $custom_table = CustomTable::getEloquent($table_name);
         if (!$custom_table) {

@@ -510,7 +510,6 @@ class LoginService
      */
     public static function getLoginUser(CustomLoginUserBase $custom_login_user, $exment_user, $socialiteProvider = null): LoginUser
     {
-        $hasLoginUser = false;
         // get login_user
         $login_user = LoginUserProvider::findByCredential(
             [
@@ -520,9 +519,9 @@ class LoginService
                 'login_type' => $custom_login_user->login_type,
             ]
         );
+        $hasLoginUser = !is_null($login_user);
 
         // if don't has, create loginuser or match email
-        // @phpstan-ignore-next-line
         if (!$hasLoginUser) {
             $login_user = LoginUser::firstOrNew([
                 'base_user_id' => $exment_user->getUserId(),
@@ -535,7 +534,6 @@ class LoginService
         }
 
         // get avatar
-        // @phpstan-ignore-next-line
         if (!$hasLoginUser || boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
             $avatar  = static::getAvatar($custom_login_user, $socialiteProvider = null);
             if (isset($avatar)) {

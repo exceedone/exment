@@ -23,7 +23,7 @@ class JanCodeController extends Controller
      * @return string
      */
     // @phpstan-ignore-next-line
-    protected function scanRedirect(Request $request, $id)
+    public function scanRedirect(Request $request, $id)
     {
         $jan_code = DB::table("jan_codes")
             ->where('jan_code', $id)
@@ -88,7 +88,7 @@ class JanCodeController extends Controller
      * @param $id
      */
     // @phpstan-ignore-next-line
-    protected function listTable(Request $request, $id, Content $content)
+    public function listTable(Request $request, $id, Content $content)
     {
         $grid = $this->grid($id);
         $row = new Row();
@@ -144,7 +144,7 @@ class JanCodeController extends Controller
      * @param Request $request
      */
     // @phpstan-ignore-next-line
-    protected function assignJancode(Request $request)
+    public function assignJancode(Request $request)
     {
         $table_id = $request->get('table_id');
         $jan_code_id = $request->get('jan_code_id');

@@ -264,7 +264,7 @@ class PluginCodeController extends AdminControllerBase
                 'message' => $message
             ]), false];
         } catch (FileNotFoundException $ex) {
-            //Todo:FileNotFoundException
+            return [view('exment::plugin.editor.info'), false];
         }
     }
 

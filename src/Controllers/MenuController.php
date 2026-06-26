@@ -289,6 +289,11 @@ class MenuController extends AdminControllerBase
             targetViewField.prop('disabled', true).val('');
             uriField.prop('disabled', false);
             menuTargetField.val('').prop('disabled', true);
+        } else if (menuType == '" . MenuType::SYSTEM . "' || menuType == '" . MenuType::PLUGIN . "') {
+            // SYSTEM / PLUGIN → keep menu_target selectable (it identifies the system page or plugin)
+            targetViewField.prop('disabled', true).val('');
+            uriField.prop('disabled', true);
+            menuTargetField.prop('disabled', false);
         } else {
             // Default fallback
             targetViewField.prop('disabled', true).val('');

@@ -38,7 +38,7 @@ trait ImportValueTrait
         }
 
         if (count($value) == count($list)) {
-            $value = $isMultiple ? $list : $list[0];
+            $value = $isMultiple ? $list : (count($list) > 0 ? $list[0] : null);
         } else {
             $result = false;
         }
