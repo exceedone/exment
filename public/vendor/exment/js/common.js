@@ -28,6 +28,30 @@ var Exment;
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
             $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
             $(document).off('click', '[copyScript]').on('click', '[copyScript]', {}, CommonEvent.copyScriptEvent);
+            // Day-count filter value (X日前/X日後の日付): integer in [0, 99999] (max 5 digits).
+            // The number-spinner plugin reads the value with parseInt, so a full-width (IME) value such
+            // as "１２３" makes parseInt return NaN and breaks the +/- buttons. Normalize full-width digits
+            // to ASCII and strip any remaining non-digit. Cap at 5 digits because a huge value (e.g.
+            // "9999999999999999") overflows the server-side Carbon date math and the filter returns no rows.
+            // Run on input (but not while the IME is still composing) and on compositionend (when the IME
+            // commits, where the input event may be skipped).
+            const sanitizeDayCount = (el) => {
+                const s = String(el.value).replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+                const clean = s.replace(/[^0-9]/g, '').slice(0, 5);
+                if (el.value !== clean) {
+                    el.value = clean;
+                }
+            };
+            $(document)
+                .on('input', 'input[data-day-count]', {}, (ev) => {
+                    if (ev && ev.originalEvent && ev.originalEvent.isComposing) {
+                        return;
+                    }
+                    sanitizeDayCount(ev.currentTarget);
+                })
+                .on('compositionend', 'input[data-day-count]', {}, (ev) => {
+                    sanitizeDayCount(ev.currentTarget);
+                });
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -772,7 +796,7 @@ var Exment;
             return $el.closest('.input-group').find('.fa-calendar').length > 0;
         }
         /**
-         * add field event (datepicker, icheck)
+         * add field event (datepicker positioning fix + icheck)
          */
         static addFieldEvent() {
             // Lazy init/show (installed once): fixes pages where datetimepicker plugin loads after the initial AddEvent().
