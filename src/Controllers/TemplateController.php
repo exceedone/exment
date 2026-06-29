@@ -6,6 +6,8 @@ use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use ExmentAdminCore\Admin\Layout\Content;
 use ExmentAdminCore\Admin\Widgets\Box;
@@ -284,6 +286,15 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function delete(Request $request)
     {
+        // Once the system is installed, deleting templates is a system-admin action.
+        // (Before initialization no login user exists yet; the install/initialize wizard runs anonymously.)
+        if (System::initialized()) {
+            $login_user = \Exment::user();
+            if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
+                abort(403);
+            }
+        }
+
         // install templates selected tiles.
         if ($request->has('template')) {
             $importer = new TemplateImportExport\TemplateImporter();
