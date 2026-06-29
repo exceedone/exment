@@ -339,11 +339,10 @@ class FileController extends AdminControllerBase
                         $current_val = $current_val->toArray();
                     }
                     if (is_array($current_val)) {
-                        foreach ($current_val as $key => $value) {
-                            if ($value == url_join($data->parent_type, $data->local_filename)) {
-                                array_splice($current_val, $key, 1);
-                            }
-                        }
+                        $removeTarget = url_join($data->parent_type, $data->local_filename);
+                        $current_val = array_values(array_filter($current_val, function ($value) use ($removeTarget) {
+                            return $value != $removeTarget;
+                        }));
                     } else {
                         $current_val = '';
                     }
