@@ -285,10 +285,14 @@ class PluginMarketController extends AdminController
         if ($keyword) {
             $plugins = $plugins->filter(function ($plugin) use ($keyword) {
                 $searchText = strtolower($keyword);
-                $author = $plugin['author'] ?? ($plugin['user']['name'] ?? '');
+                // Search both author representations so whatever the 作成者 column
+                // displays (user.name preferred, author fallback) is searchable.
+                $userName = is_array($plugin['user'] ?? null) ? ($plugin['user']['name'] ?? '') : '';
+                $author   = is_string($plugin['author'] ?? null) ? $plugin['author'] : '';
                 return str_contains(strtolower($plugin['plugin_name'] ?? ''), $searchText)
                     || str_contains(strtolower($plugin['plugin_view_name'] ?? ''), $searchText)
                     || str_contains(strtolower($plugin['description'] ?? ''), $searchText)
+                    || str_contains(strtolower($userName), $searchText)
                     || str_contains(strtolower($author), $searchText);
             });
         }

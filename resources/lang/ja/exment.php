@@ -680,7 +680,7 @@ return [
             'search' => [
                 'title' => 'プラグイン検索',
                 'keyword' => 'キーワード',
-                'keyword_placeholder' => 'プラグイン名、説明、作者で検索...',
+                'keyword_placeholder' => 'プラグイン名、説明、作成者で検索...',
                 'type' => '種類',
                 'all_types' => 'すべての種類',
                 'price' => '価格',
