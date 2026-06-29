@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Line;
 
 use Exceedone\Exment\Model\LineAccountLink;
+use Exceedone\Exment\Model\System;
 
 /**
  * Liên kết tài khoản LINE bằng mã 1 lần, lưu vào bảng riêng line_account_links.
@@ -22,7 +23,7 @@ class LineAccountLinker
 
     public function deepLink(string $code): string
     {
-        $oa   = ltrim((string) config('exment.line.oa_basic_id'), '@');
+        $oa   = ltrim((string) System::system_line_oa_basic_id(), '@');
         $text = rawurlencode(self::PREFIX . ' ' . $code);
         return "https://line.me/R/oaMessage/@{$oa}/?{$text}";
     }

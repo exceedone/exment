@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Line;
 
 use GuzzleHttp\Client;
+use Exceedone\Exment\Model\System;
 
 /**
  * Bọc LINE Messaging API: push / reply / verify chữ ký webhook.
@@ -23,8 +24,8 @@ class LineMessagingClient
 
     public function __construct($token = null, $secret = null, ?Client $http = null)
     {
-        $this->token  = $token  ?? (string) config('exment.line.channel_access_token');
-        $this->secret = $secret ?? (string) config('exment.line.channel_secret');
+        $this->token  = $token  ?? (string) System::system_line_channel_token();
+        $this->secret = $secret ?? (string) System::system_line_channel_secret();
         $this->base   = rtrim((string) config('exment.line.api_base', 'https://api.line.me'), '/');
         $this->http   = $http ?? new Client([
             'base_uri' => $this->base,

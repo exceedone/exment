@@ -118,6 +118,10 @@ class Define
 
         'system_slack_user_column' => ['group' => 'notify'],
 
+        'system_line_channel_token' => ['type' => 'password', 'config' => 'exment.line.channel_access_token', 'group' => 'notify'],
+        'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
+        'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
+
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],

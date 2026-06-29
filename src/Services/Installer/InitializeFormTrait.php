@@ -172,6 +172,18 @@ trait InitializeFormTrait
         $form->select('system_slack_user_column', exmtrans('system.system_slack_user_column'))
             ->help(exmtrans('system.help.system_slack_user_column'))
             ->options($this->getUserOrgSlackColumns('user'));
+
+        $form->exmheader('LINE')->hr();
+
+        $form->password('system_line_channel_token', exmtrans('system.system_line_channel_token'));
+
+        $form->password('system_line_channel_secret', exmtrans('system.system_line_channel_secret'));
+
+        $form->text('system_line_oa_basic_id', exmtrans('system.system_line_oa_basic_id'))
+            ->help(exmtrans('system.help.system_line_oa_basic_id'));
+
+        $form->display('system_line_webhook_url', exmtrans('system.system_line_webhook_url'))
+            ->default(admin_url('line/webhook'));
     }
 
 
