@@ -3556,6 +3556,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::FORM_ACTION_DISABLED();
         }
 
+        if ($this->isOneRecord() && $this->getValueModel()->query()
+                ->withoutGlobalScope(CustomValueModelScope::class)->exists()) {
+            return ErrorCode::ONE_RECORD_ALREADY();
+        }
+
         return true;
     }
 

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File;
@@ -659,6 +660,21 @@ class ApiDataController extends AdminControllerTableBase
         $max_create_count = config('exment.api_max_create_count', 100);
         if (count($rootValues) > $max_create_count) {
             return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count), ErrorCode::OVER_LENGTH());
+        }
+
+        // one-record limitation: a one-record table may hold at most one record.
+        // enableCreate() is only checked once before saveData(), so a vector body
+        // that creates several new rows in a single request would otherwise bypass
+        // it. Enforce the total (existing + new) here for the create case.
+        // The existing-row count MUST bypass CustomValueModelScope: that global scope
+        // filters rows to the ones the current user is row-level authorised on, so a
+        // non-admin user with custom_value_edit (but not edit_all) would count an
+        // existing record created by someone else as 0 and slip a 2nd record past the
+        // limit. one_record_flg is a table-wide constraint (mirrors the import path).
+        if (!isset($custom_value) && $this->custom_table->isOneRecord()
+            && (count($rootValues) + $this->custom_table->getValueModel()->query()
+                ->withoutGlobalScope(CustomValueModelScope::class)->count()) > 1) {
+            return abortJson(403, ErrorCode::ONE_RECORD_ALREADY());
         }
 
         $findResult = $this->convertFindKeys($rootValues, $request);
