@@ -17,10 +17,13 @@ use ReflectionMethod;
  * --------------------
  * That commit had to fix the SAME mistake in many places: a controller method that is
  * the target of a route was declared `protected` (or did not exist), which is fatal
- * under Laravel 12+. In Laravel <= 10 the framework's base Controller had a magic
- * `callAction()` that could invoke protected/private actions; the modern base
- * Controller (Laravel 11/12) is an empty abstract class, so the route dispatcher calls
- * `$controller->{$method}(...)` directly. A non-public routed method then throws
+ * under Laravel 12+. Laravel's ControllerDispatcher dispatches via
+ * `$controller->callAction($method, ...)` when the controller defines callAction(),
+ * else it calls `$controller->{$method}(...)` directly. The modern base Controller
+ * (`App\Http\Controllers\Controller`, Laravel 11/12) is an empty abstract class with NO
+ * callAction, so its subclasses dispatch DIRECTLY and a non-public routed method throws
+ * (note: AdminControllerTableBase DOES define callAction -> `$this->{$method}()`, which
+ * can reach a protected action, so protected is only fatal without callAction)
  *   Error: Call to protected method ...::method() from ...
  * and a missing method throws
  *   BadMethodCallException: Method ...::method() does not exist
@@ -207,10 +210,20 @@ class RouteActionVisibilityGuardTest extends UnitTestBase
     }
 
     /**
-     * Every routed Exment-controller action must be PUBLIC. Under Laravel 12 the route
-     * dispatcher calls the action directly, so a protected/private routed method is a
-     * fatal Error on the first request. This is the exact recurring mistake that commit
-     * 9f6976072 fixed across QrCode/JanCode/FileController.
+     * Every routed Exment-controller action must be DISPATCHABLE without a visibility
+     * fatal. Laravel's ControllerDispatcher uses `$controller->callAction($method, ...)`
+     * when the controller defines callAction(), otherwise it calls
+     * `$controller->{$method}(...)` directly:
+     *   - Direct dispatch (no callAction, e.g. controllers extending the empty
+     *     App\Http\Controllers\Controller) requires the action to be PUBLIC. A protected
+     *     or private routed method throws a fatal Error on the first request — the exact
+     *     recurring mistake commit 9f6976072 fixed across QrCode/JanCode/FileController.
+     *   - Via callAction (e.g. AdminControllerTableBase does `return $this->{$method}(...)`)
+     *     a PROTECTED action is still reachable (the call is in class scope), so it is NOT
+     *     a bug. A PRIVATE action stays fatal: a parent's callAction cannot reach a child's
+     *     private method.
+     *
+     * So a non-public action is flagged only when (no callAction) OR (it is private).
      *
      * @return void
      * @throws \ReflectionException
@@ -223,19 +236,28 @@ class RouteActionVisibilityGuardTest extends UnitTestBase
                 continue; // existence is asserted by the test above
             }
             $rm = new ReflectionMethod($info['class'], $info['method']);
-            if (!$rm->isPublic()) {
-                $visibility = $rm->isPrivate() ? 'private' : 'protected';
-                $nonPublic[] = $info['uri'] . '  ->  ' . $info['class'] . '::' . $info['method']
-                    . '()  [' . $visibility . ']';
+            if ($rm->isPublic()) {
+                continue; // always dispatchable
             }
+            // A controller that defines callAction() dispatches via $this->{$method}(...),
+            // which reaches a *protected* action (class scope). Only flag protected when
+            // the controller has NO callAction (direct dispatch). Private is always fatal.
+            $hasCallAction = method_exists($info['class'], 'callAction');
+            if ($rm->isProtected() && $hasCallAction) {
+                continue; // reachable via callAction() -> not the Laravel-12 dispatch bug
+            }
+            $visibility = $rm->isPrivate() ? 'private' : 'protected';
+            $nonPublic[] = $info['uri'] . '  ->  ' . $info['class'] . '::' . $info['method']
+                . '()  [' . $visibility . ($hasCallAction ? '' : ', no callAction -> direct dispatch') . ']';
         }
 
         $this->assertSame(
             [],
             $nonPublic,
-            "These Exment web routes target NON-PUBLIC controller methods. Laravel 12 dispatches route\n"
-            . "actions directly, so a protected/private routed method throws a fatal Error (HTTP 500) on\n"
-            . "the first request (the bug class fixed in commit 9f6976072). Make each action `public`:\n  "
+            "These Exment web routes target controller methods that are NOT dispatchable without a fatal:\n"
+            . "a protected method on a controller WITHOUT callAction(), or a private routed method. Laravel 12\n"
+            . "then dispatches the action directly and throws a fatal Error (HTTP 500) on the first request\n"
+            . "(the bug class fixed in commit 9f6976072). Make each action `public`:\n  "
             . implode("\n  ", $nonPublic)
         );
     }
