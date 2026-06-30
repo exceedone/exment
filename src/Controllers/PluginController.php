@@ -133,9 +133,11 @@ class PluginController extends AdminControllerBase
         //     return \Exment::getTrueMark($active_flg);
         // })->escape(false);
 
+        // Keys MUST be 'on'/'off': SwitchDisplay reads onText/offText from
+        // $states['on'|'off']['text']. With 1/0 keys the defaults (ON/OFF) stay in place.
         $states = [
-            1 => ['value' => 1, 'text' => 'YES', 'color' => 'primary'],
-            0 => ['value' => 0, 'text' => 'NO', 'color' => 'default'],
+            'on'  => ['value' => 1, 'text' => 'YES', 'color' => 'primary'],
+            'off' => ['value' => 0, 'text' => 'NO', 'color' => 'default'],
         ];
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->switch($states);
 
