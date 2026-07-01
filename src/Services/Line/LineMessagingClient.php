@@ -72,6 +72,12 @@ class LineMessagingClient
         return ['type' => 'text', 'text' => $text];
     }
 
+    /** Helper dựng Flex Message với bubble/carousel container. */
+    public static function flex(string $altText, array $bubble): array
+    {
+        return ['type' => 'flex', 'altText' => $altText, 'contents' => $bubble];
+    }
+
     /** Cho phép truyền 1 message hoặc mảng nhiều message. */
     protected function normalize(array $messages): array
     {

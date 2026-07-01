@@ -40,7 +40,8 @@ class LineSender extends SenderBase
         if ($text === '') {
             return;
         }
-        LineSendJob::dispatch($this->to, [LineMessagingClient::text($text)]);
+        // dispatchAfterResponse: đẩy push SAU response để confirmation reply (postback) luôn đến trước.
+        LineSendJob::dispatchAfterResponse($this->to, [LineMessagingClient::text($text)]);
     }
 
     /**

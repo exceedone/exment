@@ -237,6 +237,23 @@ trait NotifyTrait
                 ->escape(false);
             $form->ignore('notify_action_target_text');
         }
+
+        /** @phpstan-ignore-next-line */
+        $form->select('flex_template_id', exmtrans('notify.flex_template_id'))
+            ->options(function ($val) {
+                $table = CustomTable::getEloquent('line_flex_template');
+                if (!$table) {
+                    return [];
+                }
+                // map id => template_name (tường minh, không phụ thuộc cột label mặc định)
+                return getModelName('line_flex_template')::all()->mapWithKeys(function ($v) {
+                    return [$v->id => $v->getValue('template_name')];
+                });
+            })
+            ->help(exmtrans('notify.help.flex_template_id'))
+            ->attribute([
+                'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::LINE]])
+            ]);
     }
 
     // @phpstan-ignore-next-line

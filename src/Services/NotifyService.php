@@ -445,6 +445,7 @@ class NotifyService
                     break;
 
                 case NotifyAction::LINE:
+                    $params['flex_template_id'] = array_get($action_setting, 'flex_template_id');
                     static::notifyLine($params);
                     break;
             }
@@ -480,6 +481,78 @@ class NotifyService
         $lineUserId = \Exceedone\Exment\Model\LineAccountLink::where('user_id', $userId)->value('line_user_id');
         if (is_nullorempty($lineUserId)) {
             return; // user chưa liên kết LINE -> bỏ qua
+        }
+
+        // Nhánh Flex: nếu action LINE có chọn flex template -> gửi thẻ Flex (2 chiều)
+        $flexTemplateId = array_get($params, 'flex_template_id');
+        $custom_value = array_get($params, 'custom_value');
+        if (!is_nullorempty($flexTemplateId) && isset($custom_value)) {
+            $tmpl = getModelName('line_flex_template')::find($flexTemplateId);
+            if ($tmpl) {
+                $prms = array_get($params, 'prms', []);
+                $replaceOptions = array_get($params, 'replaceOptions', []);
+                $title = static::replaceWord((string) $tmpl->getValue('title'), $custom_value, $prms, $replaceOptions);
+
+                $rows = [];
+
+                // BẢNG LÀ NGUỒN CHÍNH: nội dung chi tiết lấy từ body_items của template.
+                // body_items dạng "Nhãn = ${biến}" mỗi dòng (xem LineFlexBuilder::defaultBodyItems).
+                $manualItems = \Exceedone\Exment\Services\Line\LineFlexBuilder::parseBodyItems((string) $tmpl->getValue('body_items'));
+                if (!empty($manualItems)) {
+                    foreach ($manualItems as $item) {
+                        $value = trim((string) static::replaceWord($item['format'], $custom_value, $prms, $replaceOptions));
+                        if ($value === '') {
+                            continue; // bỏ trường rỗng (vd: chưa có comment)
+                        }
+                        $rows[] = ['label' => $item['label'], 'value' => $value];
+                    }
+                } elseif (!is_nullorempty(array_get($replaceOptions, 'workflow_action'))) {
+                    // body_items trống -> fallback auto chi tiết workflow (giống nội dung mail template).
+                    foreach (\Exceedone\Exment\Services\Line\LineFlexBuilder::workflowDetailFormats() as [$labelKey, $format]) {
+                        $value = trim((string) static::replaceWord($format, $custom_value, $prms, $replaceOptions));
+                        if ($value === '') {
+                            continue;
+                        }
+                        $rows[] = ['label' => exmtrans($labelKey), 'value' => $value];
+                    }
+                }
+
+                $tableKey = $custom_value->custom_table->table_name;
+                $recipientUser = getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($userId);
+                $buttons = [];
+                foreach ($custom_value->getWorkflowActions(false, false) as $wfAction) {
+                    // deny-by-default: không có user nhận hợp lệ thì không hiện nút
+                    if (!$recipientUser || !$wfAction->hasAuthority($custom_value, $recipientUser)) {
+                        continue;
+                    }
+                    // FIX 3 (send side): skip comment-required actions (MVP: handle on web)
+                    if ($wfAction->comment_type === \Exceedone\Exment\Enums\WorkflowCommentType::REQUIRED) {
+                        continue;
+                    }
+                    $buttons[] = [
+                        'label' => $wfAction->action_name,
+                        'data'  => \Exceedone\Exment\Services\Line\LineFlexBuilder::postbackData($tableKey, $custom_value->id, $wfAction->id),
+                    ];
+                }
+
+                // Nút "Xem chi tiết" mở bản ghi. Chỉ thêm khi URL là https công khai:
+                // LINE/điện thoại không mở được http://localhost. Set APP_URL = URL https
+                // (ngrok/production) để nút này hiện và hoạt động.
+                $detailUrl = $custom_value->getUrl(['tag' => false, 'modal' => false]);
+                if (is_string($detailUrl) && preg_match('#^https://#i', $detailUrl)) {
+                    $buttons[] = [
+                        'label' => exmtrans('notify.line_show_detail'),
+                        'uri'   => $detailUrl,
+                    ];
+                }
+
+                $bubble = \Exceedone\Exment\Services\Line\LineFlexBuilder::buildBubble($title, $rows, $buttons);
+                $message = \Exceedone\Exment\Services\Line\LineMessagingClient::flex($title, $bubble);
+                // dispatchAfterResponse: đẩy push SAU khi đã trả response, để confirmation reply
+                // (từ postback) luôn đến trước thẻ bước workflow kế tiếp. Xem LineWebhookController.
+                \Exceedone\Exment\Jobs\LineSendJob::dispatchAfterResponse($lineUserId, [$message]);
+                return;
+            }
         }
 
         // nạp subject/body từ mail template (chưa thay biến)

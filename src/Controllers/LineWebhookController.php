@@ -47,15 +47,31 @@ class LineWebhookController extends Controller
             $text   = $event['message']['text'] ?? '';
             $linked = $linker->handleMessage($text, $userId);
             if ($replyToken) {
+                $isLinkCommand = (bool) preg_match('/^\s*LINK\s+/i', $text);
+                $alreadyLinked = $userId && LineAccountLink::where('line_user_id', $userId)->exists();
                 if ($linked) {
                     $msg = '✅ Liên kết LINE thành công!';
-                } elseif ($userId && LineAccountLink::where('line_user_id', $userId)->exists()) {
-                    // LINE userId này đã gắn 1 tài khoản khác -> báo riêng (không phải lỗi cú pháp)
-                    $msg = 'LINE này đã được liên kết với một tài khoản khác.';
+                } elseif ($isLinkCommand && $alreadyLinked) {
+                    // Là lệnh LINK nhưng LINE này đã gắn 1 tài khoản
+                    $msg = 'LINE này đã được liên kết với một tài khoản. Nếu muốn đổi, hãy huỷ liên kết trên web trước.';
+                } elseif ($isLinkCommand) {
+                    $msg = 'Mã liên kết không đúng hoặc đã hết hạn. Vui lòng kiểm tra lại.';
+                } elseif ($alreadyLinked) {
+                    // đã liên kết, gửi text thường (không phải lệnh, action chỉ qua nút) -> không hợp lệ
+                    $msg = 'Lệnh không hợp lệ.';
                 } else {
                     $msg = 'Gửi đúng cú pháp: LINK <mã> để liên kết tài khoản.';
                 }
                 $client->reply($replyToken, [LineMessagingClient::text($msg)]);
+            }
+        } elseif ($type === 'postback') {
+            $raw = $event['postback']['data'] ?? '';
+            $data = \Exceedone\Exment\Services\Line\LineWorkflowAction::parsePostback($raw);
+            if (($data['act'] ?? null) === 'workflow') {
+                $msg = \Exceedone\Exment\Services\Line\LineWorkflowAction::handle($data, $userId);
+                if ($replyToken) {
+                    $client->reply($replyToken, [LineMessagingClient::text($msg)]);
+                }
             }
         } elseif ($type === 'follow' && $replyToken) {
             $client->reply($replyToken, [
