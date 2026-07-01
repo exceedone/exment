@@ -208,6 +208,7 @@ class NotifyTest extends FeatureTestBase
         $data = NotifyNavbar::withoutGlobalScopes()
             ->where('target_user_id', $model->created_user_id)
             ->where('parent_type', $custom_table->table_name)
+            ->where('parent_id', $model->id)
             ->orderBy('created_at', 'desc')
             ->orderBy('id', 'desc')
             ->first();
