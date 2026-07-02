@@ -528,6 +528,38 @@ class ApiController extends AdminControllerBase
     }
 
     /**
+     * Feature 1: Get the current user's un-actioned workflow tasks for the navbar icon.
+     * Mirrors notifyPage(): returns the unseen count and the top items.
+     *
+     * @param Request $request
+     * @return array
+     */
+    // @phpstan-ignore-next-line
+    public function workflowTaskPage(Request $request)
+    {
+        $service = new \Exceedone\Exment\Services\Workflow\WorkflowTaskService();
+
+        $unseen = $service->getTasksWithSeen()->filter(function ($row) {
+            return !$row['seen'];
+        })->values();
+
+        return [
+            'count' => $unseen->count(),
+            'items' => $unseen->take(5)->map(function ($row) {
+                return [
+                    'icon' => $row['icon'],
+                    'color' => $row['color'],
+                    'table_view_name' => $row['table_view_name'],
+                    'label' => $row['label'],
+                    'status_name' => $row['status_name'],
+                    'href' => admin_url('workflow_task/read') . '?key=' . rawurlencode($row['task_key']),
+                ];
+            }),
+            'noItemMessage' => exmtrans('workflow_task.empty'),
+        ];
+    }
+
+    /**
      * Get user or organization for select
      *
      * @param Request $request

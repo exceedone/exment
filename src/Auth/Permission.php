@@ -244,6 +244,7 @@ class Permission
             case "assign-jan-code":
                 return true;
             case "notify_navbar":
+            case "workflow_task": // Feature 1 (part A): personal un-actioned task list, allowed for any logged-in user
             case "tmpfiles":
             case "tmpimages":
                 return true;

@@ -878,6 +878,7 @@ return [
         'mapping_user_column' => 'アカウント検索列',
         'mapping_setting' => 'マッピング設定',
         'update_user_info' => 'ユーザー情報を更新する',
+        'sso_organizations' => '自動割り当て組織',
         'show_default_login_provider' => '既定のログインを表示する',
         'sso_redirect_force' => 'SSOログインにリダイレクト',
         'sso_setting' => 'SSO設定',
@@ -950,6 +951,7 @@ return [
             'mapping_user_column' => 'SSOで取得したアカウントから、どの列を使用し、Exmentのアカウントを検索するかどうかを設定します。',
             'sso_accept_mail_domain' => 'ログインを許可するドメインを指定する場合は記入してください。複数ある場合は改行区切りで記入してください。',
             'jit_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
+            'sso_organizations' => 'このSSOでログインするユーザーを自動的に所属させたい組織を選択してください。ログインのたびに（未所属の場合のみ）組織へ追加します。※既存ユーザーにも適用されます。',
             'mapping_description' => 'プロバイダから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。プロバイダから返却されるフィールド名を入力してください。<br/>カンマ区切りで複数入力した場合、値の存在するフィールドを、先頭から優先して取得します。<br />また、複数のフィールドを結合したい場合、"${フィールド名}"と入力してください。(例：${last_name} ${first_name})',
             'login_test_sso' => 'テスト用の:login_typeリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダの:login_type設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
 
@@ -1071,6 +1073,10 @@ return [
     'workflow' => [
         'header' => 'ワークフロー設定',
         'description' => 'ワークフローを設定します。申請、承認、却下など、特定のユーザーがフローを実行することができます。',
+        'same_org_notify' => [
+            'subject' => '同じ組織のメンバーがワークフローを処理しました',
+            'body' => '%sさんが「%s：%s」のステータスを「%s」に変更しました。',
+        ],
         'workflow_view_name' => 'ワークフロー表示名',
         'workflow_edit_flg' => '編集権限の付与',
         'workflow_type' => 'ワークフロー種類',
@@ -2408,9 +2414,30 @@ return [
         'compare_revision' => 'リビジョン比較',
     ],
 
+    'workflow_task' => [
+        'header' => '未処理タスク一覧',
+        'description' => 'あなたがまだ処理していない（アクションが必要な）ワークフロータスクの一覧です。',
+        'table' => '対象テーブル',
+        'data' => 'データ',
+        'status' => '現在のステータス',
+        'updated_at' => '更新日時',
+        'count' => '全%s件',
+        'empty' => '未処理のタスクはありません。',
+        'seen_flg' => '状態',
+        'seen_options' => [
+            '0' => '未読',
+            '1' => '既読',
+        ],
+        'unseen_count' => '未読%s件',
+        'mark_all_seen' => 'すべて既読にする',
+        'message' => [
+            'mark_all_seen_succeeded' => 'すべてのタスクを既読にしました。',
+        ],
+    ],
     'notify_navbar' => [
         'header' => '通知一覧',
         'description' => 'ユーザーへの通知一覧です。',
+        'task_list' => '未処理タスク一覧',
         'read_flg' => '状態',
         'parent_type' => '対象テーブル',
         'notify_subject' => '通知件名',

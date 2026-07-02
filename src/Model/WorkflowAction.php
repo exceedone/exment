@@ -375,6 +375,12 @@ class WorkflowAction extends ModelBase
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
 
+        // Feature 1 (part B): capture the other members of the assigned organization(s)
+        // BEFORE forwarding (ACTION_SELECT authorities are read from the current workflow value).
+        $sameOrgUserIds = ($next === true)
+            ? \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::getOtherOrgMemberIds($this, $custom_value)
+            : [];
+
         \ExmentDB::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
             $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
@@ -410,6 +416,9 @@ class WorkflowAction extends ModelBase
             foreach ($workflow->notifies as $notify) {
                 $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }
+
+            // Feature 1 (part B): notify the other members of the assigned organization(s)
+            \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::notify($this, $custom_value, $sameOrgUserIds);
         }
 
         // execute plugin

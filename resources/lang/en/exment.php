@@ -878,6 +878,7 @@ return [
         'mapping_user_column' => 'Account Search Column',
         'mapping_setting' => 'Mapping Setting',
         'update_user_info' => 'Update User Info',
+        'sso_organizations' => 'Auto-assigned organizations',
         'show_default_login_provider' => 'Show Default Login',
         'sso_redirect_force' => 'Redirect SSO Login',
         'sso_setting' => 'SSO Setting',
@@ -950,6 +951,7 @@ return [
             'mapping_user_column' => 'From the account obtained by SSO, set which column to use to search for the Exment account.',
             'sso_accept_mail_domain' => 'If you want to specify the domain that allows login, enter it. If you have more than one, please enter them with line breaks.',
             'jit_rolegroups' => 'Please fill in if you want to assign a default role group when creating a new user.',
+            'sso_organizations' => 'Select the organization(s) that users logging in via this SSO should automatically belong to. On every login the user is added to the organization(s) if not already a member. This also applies to existing users.',
             'mapping_description' => 'The field name returned by the provider must match the user field name in Exment. Please enter the field name returned from the provider. <br/>If you enter multiple values ​​separated by commas, the fields that have values ​​will be retrieved with priority from the beginning. <br /> Also, if you want to combine multiple fields, type "${Field_Name}". (Example: ${last_name} ${first_name})',
             'login_test_sso' => 'The :login_type redirect URL for testing.<span class="red">*When performing the test, temporarily add or change the above URL to the callback URL of the provider\'s :login_type setting.</span>',
                 
@@ -1071,6 +1073,10 @@ return [
     'workflow' => [
         'header' => 'Workflow Setting',
         'description' => 'Set the workflow. Specific users can execute the flow, such as request, approval, and rejection.',
+        'same_org_notify' => [
+            'subject' => 'A member of your organization processed a workflow',
+            'body' => '%s changed the status of "%s: %s" to "%s".',
+        ],
         'workflow_view_name' => 'Workflow View Name',
         'workflow_edit_flg' => 'Grant editing permission',
         'workflow_type' => 'Workflow Type',
@@ -2408,9 +2414,30 @@ return [
         'compare_revision' => 'Compare Revision',
     ],
 
+    'workflow_task' => [
+        'header' => 'My tasks',
+        'description' => 'List of workflow tasks that you have not actioned yet (waiting for your action).',
+        'table' => 'Target table',
+        'data' => 'Data',
+        'status' => 'Current status',
+        'updated_at' => 'Updated at',
+        'count' => '%s item(s)',
+        'empty' => 'You have no un-actioned tasks.',
+        'seen_flg' => 'Status',
+        'seen_options' => [
+            '0' => 'Unseen',
+            '1' => 'Seen',
+        ],
+        'unseen_count' => '%s unseen',
+        'mark_all_seen' => 'Mark all as seen',
+        'message' => [
+            'mark_all_seen_succeeded' => 'All tasks have been marked as seen.',
+        ],
+    ],
     'notify_navbar' => [
         'header' => 'Notify list',
         'description' => 'List of notifications to the user.',
+        'task_list' => 'My tasks',
         'read_flg' => 'Status',
         'parent_type' => 'Target table',
         'notify_subject' => 'Notify subject',

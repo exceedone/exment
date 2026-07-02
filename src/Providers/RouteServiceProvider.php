@@ -109,6 +109,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
+            // Feature 1 (part A): user's un-actioned workflow tasks across all tables
+            $router->get("workflow_task", 'WorkflowTaskController@index');
+            $router->get("workflow_task/read", 'WorkflowTaskController@read');
+            $router->post("workflow_task/readAll", 'WorkflowTaskController@readAll');
+
             $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');
             $router->post('login_setting/{id}/deactivate', 'LoginSettingController@deactivate')->name('exment.login_deactivate');
             $router->get('login_setting/{id}/testModal', 'LoginSettingController@loginTestModal')->name('exment.logintest_modal');
@@ -454,6 +459,7 @@ class RouteServiceProvider extends ServiceProvider
                     $router->get("version", 'ApiController@version');
 
                     $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
+                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
                     $router->get("notify", 'ApiController@notifyList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ, ApiScope::NOTIFY_WRITE));
                     $router->post("notify", 'ApiController@notifyCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_WRITE));
 

@@ -395,10 +395,71 @@ class LoginService
 
         $login_user = static::getLoginUser($custom_login_user, $exment_user, $socialiteProvider);
 
+        // Feature 2: ensure the SSO user belongs to the configured organization(s).
+        // Runs on EVERY login (idempotent, add-only), so it also covers users created before this setting.
+        static::syncSsoOrganizations($custom_login_user, $exment_user);
+
         // Set custom_login_user to request session
         System::setRequestSession(Define::SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER, $custom_login_user);
 
         return $login_user;
+    }
+
+    /**
+     * Ensure the SSO user belongs to the organization(s) configured in the login setting
+     * option "sso_organizations". Add-only (never removes a membership) and idempotent,
+     * so it is safe to run on every login and also assigns organizations to users that
+     * were created before this setting existed.
+     *
+     * @param CustomLoginUserBase $custom_login_user
+     * @param CustomValue|null $exment_user
+     * @return void
+     */
+    protected static function syncSsoOrganizations(CustomLoginUserBase $custom_login_user, $exment_user): void
+    {
+        if (is_nullorempty($exment_user)) {
+            return;
+        }
+        // organization feature must be enabled
+        if (!System::organization_available()) {
+            return;
+        }
+        $organization_ids = $custom_login_user->login_setting->getOption('sso_organizations');
+        if (is_nullorempty($organization_ids)) {
+            return;
+        }
+
+        $pivotTableName = \Exceedone\Exment\Model\CustomRelation::getRelationNamebyTables(
+            SystemTableName::ORGANIZATION,
+            SystemTableName::USER
+        );
+        if (is_nullorempty($pivotTableName)) {
+            return;
+        }
+
+        $changed = false;
+        foreach ((array)$organization_ids as $organization_id) {
+            if (is_nullorempty($organization_id)) {
+                continue;
+            }
+            $exists = \DB::table($pivotTableName)
+                ->where('parent_id', $organization_id)
+                ->where('child_id', $exment_user->id)
+                ->exists();
+            if ($exists) {
+                continue;
+            }
+            \DB::table($pivotTableName)->insert([
+                'parent_id' => $organization_id,
+                'child_id'  => $exment_user->id,
+            ]);
+            $changed = true;
+        }
+
+        // refresh caches so the new organization membership takes effect immediately
+        if ($changed) {
+            System::clearCache();
+        }
     }
 
     /**

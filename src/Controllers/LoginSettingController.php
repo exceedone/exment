@@ -192,6 +192,20 @@ class LoginSettingController extends AdminControllerBase
             ->help(exmtrans("login.help.update_user_info"))
             ->default(false);
 
+            // Feature 2: auto-assign organization(s) to the SSO user on every login (idempotent, add-only).
+            // Only shown when the organization feature is enabled. Independent of sso_jit.
+            if (System::organization_available()) {
+                $form->multipleSelect('sso_organizations', exmtrans("login.sso_organizations"))
+                ->help(exmtrans('login.help.sso_organizations'))
+                ->options(function ($option) {
+                    return \Exceedone\Exment\Model\CustomTable::getEloquent(SystemTableName::ORGANIZATION)
+                        ->getValueModel()->query()->get()
+                        ->mapWithKeys(function ($org) {
+                            return [$org->id => $org->getLabel()];
+                        });
+                });
+            }
+
 
             $form->exmheader(exmtrans('login.login_button'))->hr();
 
