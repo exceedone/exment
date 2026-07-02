@@ -80,8 +80,41 @@ class LogOperation extends BaseLogOperation
      */
     protected function hidePasswords($stringToLog)
     {
-        $columns = implode("|", static::getHideColumns());
-        return preg_replace('#("(' . $columns . ')"\s*:\s*")([^"]*)"#', '\1***"', $stringToLog);
+        $columns = static::getHideColumns();
+
+        // Prefer structured masking: it also hides secrets nested inside objects/arrays
+        // (e.g. "client_api_key":{"key":"..."}) and non-string values, which a flat regex
+        // on the JSON string cannot reach.
+        $decoded = json_decode($stringToLog, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return json_encode(static::maskArrayRecursive($decoded, $columns));
+        }
+
+        // Fallback for non-JSON strings: mask "key":"value" pairs directly.
+        $pattern = implode("|", array_map(function ($c) {
+            return preg_quote($c, '#');
+        }, $columns));
+        return preg_replace('#("(' . $pattern . ')"\s*:\s*")([^"]*)"#', '\1***"', $stringToLog);
+    }
+
+    /**
+     * Recursively replace every value whose key is in $columns with '***'.
+     * A matched key is masked whole (scalar, object or array).
+     *
+     * @param array<mixed> $data
+     * @param array<int, string> $columns
+     * @return array<mixed>
+     */
+    protected static function maskArrayRecursive(array $data, array $columns): array
+    {
+        foreach ($data as $key => &$value) {
+            if (in_array($key, $columns, true)) {
+                $value = '***';
+            } elseif (is_array($value)) {
+                $value = static::maskArrayRecursive($value, $columns);
+            }
+        }
+        return $data;
     }
 
     /**
@@ -97,6 +130,31 @@ class LogOperation extends BaseLogOperation
             'verify_code',
             'access_token',
             'refresh_token',
+            // Password reset token (posted as hidden field on auth/reset form).
+            // Note: the token also appears in the URL path (auth/reset/{token});
+            // hiding the input alone is not enough - the route should also be
+            // added to config admin.operation_log.except.
+            'token',
+            // SSO (OAuth / SAML) secrets
+            'oauth_client_id',
+            'oauth_client_secret',
+            'client_secret',
+            'saml_sp_privatekey',
+            // API token request credentials (grant_type: api_key / client_credentials / password)
+            'client_id',
+            'api_key',
+            // API client secret
+            'secret',
+            // System config secrets (admin/system): reCAPTCHA secret, SMTP password
+            'recaptcha_secret_key',
+            'system_mail_password',
+            // Plugin DB connection password
+            'custom_password',
+            // Plugin CRUD page auth (key / id+password)
+            'crud_auth_key',
+            'crud_auth_password',
+            // API-key client edit form: real key posted as nested client_api_key[key]
+            'client_api_key',
         ];
     }
 }
