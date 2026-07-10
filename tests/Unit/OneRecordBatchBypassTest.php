@@ -193,4 +193,107 @@ class OneRecordBatchBypassTest extends TestCase
         $payload = json_decode($result->getContent(), true);
         $this->assertEquals(\Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY, $payload['code'] ?? null, 'Rejection must carry error code 402.');
     }
+
+    /**
+     * KH feedback (3) / TC-DA-08 message: the API bulk-create rejection on a
+     * one-record table must carry ONLY the first sentence ("このテーブルは1レコ
+     * ードのみ登録可能です。"). The old text appended "すでにレコードが存在するた
+     * め、新規作成できません。", which implies the first row is kept - but the
+     * reject-all path creates nothing, so that second sentence must be gone.
+     */
+    public function testApiBulkCreateRejectionMessageIsSingleSentence()
+    {
+        $table = $this->oneRecordTable();
+
+        $request = Request::create('/api/data/' . self::ONE_RECORD_TABLE, 'POST', [
+            'value' => [
+                ['name' => 'ALPHA'],
+                ['name' => 'BETA'],
+            ],
+        ]);
+
+        $controller = new ApiDataController($table, $request);
+        $method = new \ReflectionMethod($controller, 'saveData');
+        $method->setAccessible(true);
+        $result = $method->invoke($controller, $request);
+
+        $this->assertSame(403, $result->getStatusCode());
+        $payload = json_decode($result->getContent(), true);
+        $this->assertEquals(\Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY, $payload['code'] ?? null, 'Rejection must carry error code 402.');
+
+        // the response message is the ErrorCode's own (single-sentence) message ...
+        $this->assertSame(
+            \Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY()->getMessage(),
+            $payload['message'] ?? null,
+            'Bulk-create rejection must use the one-record ErrorCode message.'
+        );
+        // ... and must NOT contain the removed second sentence.
+        $this->assertStringNotContainsString('すでにレコードが存在', $payload['message'] ?? '');
+        $this->assertStringNotContainsString('新規作成できません', $payload['message'] ?? '');
+
+        // reject-all: nothing was created.
+        $this->assertSame(0, (int)$table->getValueModel()->query()->count(), 'Reject-all must create zero records.');
+
+        // Pin the exact one-sentence text in both shipped locales so the removed
+        // second sentence can never silently reappear via the lang files.
+        $original = app()->getLocale();
+        try {
+            app()->setLocale('ja');
+            $this->assertSame(
+                'このテーブルは1レコードのみ登録可能です。',
+                \Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY()->getMessage()
+            );
+            app()->setLocale('en');
+            $this->assertSame(
+                'This table allows only one record.',
+                \Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY()->getMessage()
+            );
+        } finally {
+            app()->setLocale($original);
+        }
+    }
+
+    /**
+     * KH feedback (3), full-table path: creating into a one-record table that
+     * ALREADY holds a record must return 403 / code 402 with the one-record
+     * message - NOT the generic "Permission denied" that dataCreate() returned
+     * before (it hard-coded admin.deny for every enableCreate() failure).
+     * Drives the real public dataCreate().
+     */
+    public function testApiSingleCreateOnFullOneRecordTableReturnsOneRecordMessage()
+    {
+        $table = $this->oneRecordTable();
+
+        // seed exactly one existing record (reuse the proven single-row import path)
+        $provider = new DefaultTableProvider(['custom_table' => $table, 'primary_key' => 'id']);
+        $raw = [0 => ['value.name'], 1 => ['Name'], 2 => ['EXISTING']];
+        list($data_import, $error_data) = $provider->validateImportData($provider->getDataObject($raw, []));
+        $this->assertEmpty($error_data, 'Precondition: seeding one record must succeed.');
+        foreach ($data_import as $row) {
+            $row['data'] = $provider->dataProcessing($row['data']);
+            $provider->importData($row);
+        }
+        $this->assertSame(1, (int)$table->getValueModel()->query()->count(), 'Precondition: table now holds one record.');
+
+        // now attempt a single create - the table is full
+        $request = Request::create('/api/data/' . self::ONE_RECORD_TABLE, 'POST', [
+            'value' => ['name' => 'SECOND'],
+        ]);
+        $controller = new ApiDataController($table, $request);
+        $result = $controller->dataCreate($request);
+
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\JsonResponse::class, $result);
+        $this->assertSame(403, $result->getStatusCode());
+        $payload = json_decode($result->getContent(), true);
+        $this->assertEquals(\Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY, $payload['code'] ?? null, 'Full one-record create must carry error code 402, not 101.');
+        $this->assertSame(
+            \Exceedone\Exment\Enums\ErrorCode::ONE_RECORD_ALREADY()->getMessage(),
+            $payload['message'] ?? null,
+            'Full one-record create must show the one-record message, not "Permission denied".'
+        );
+        $this->assertNotSame(trans('admin.deny'), $payload['message'] ?? null, 'Must not be the generic permission-denied message.');
+
+        // still exactly one record - the rejected create added nothing.
+        $this->assertSame(1, (int)$table->getValueModel()->query()->count(), 'The rejected create must not add a second record.');
+    }
 }

@@ -2633,7 +2633,7 @@ return [
             'wrong_view_and_table' => '対象のテーブルとビューが異なっています。',
             'unsupported_view_kind_type' => '指定したビューの種類は、APIでサポートされていません。',
             'not_contains_custom_form' => 'このフォームでは、指定のAPIは実行できません。',
-            'one_record_already' => 'このテーブルは1レコードのみ登録可能です。すでにレコードが存在するため、新規作成できません。',
+            'one_record_already' => 'このテーブルは1レコードのみ登録可能です。',
         ],
         
         'help' =>[

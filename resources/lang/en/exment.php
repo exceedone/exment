@@ -2633,7 +2633,7 @@ return [
             'wrong_view_and_table' => 'The target table and view are different.',
             'unsupported_view_kind_type' => 'The view type is not supported by the API.',
             'not_contains_custom_form' => 'The specified API cannot be executed on this form.',
-            'one_record_already' => 'This table allows only one record. A record already exists, so you cannot create another.',
+            'one_record_already' => 'This table allows only one record.',
         ],
 
         'help' =>[

@@ -1286,40 +1286,37 @@ class PatchDataCommand extends Command
             return;
         }
 
-        $columns = \Exceedone\Exment\Middleware\LogOperation::getHideColumns();
-        \Encore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) use ($columns) {
+        \Encore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) {
             foreach ($logs as $log) {
-                $input = $log->input;
-                if (is_nullorempty($input)) {
-                    continue;
-                }
-
                 $isUpdate = false;
-                $json = json_decode_ex($input, true);
-                if (is_nullorempty($json)) {
-                    continue;
-                }
-                if (!is_array($json)) {
-                    continue;
-                }
-                foreach ($json as $key => &$value) {
-                    if (!in_array($key, $columns)) {
-                        continue;
-                    }
 
-                    if ($value == '***') {
-                        continue;
-                    }
-
-                    $value = '***';
+                // Mask sensitive path segments (e.g. api_setting/{client_id}).
+                $maskedPath = \Exceedone\Exment\Middleware\LogOperation::hidePathParams($log->path ?? '');
+                if (!is_nullorempty($log->path) && $maskedPath !== $log->path) {
+                    $log->path = $maskedPath;
                     $isUpdate = true;
+                }
+
+                $input = $log->input;
+                if (!is_nullorempty($input)) {
+                    $json = json_decode_ex($input, true);
+                    if (!is_nullorempty($json) && is_array($json)) {
+                        // Mask keys resolved per row: global keys + URI-scoped keys
+                        // matched against this row's logged path. Recursive, so
+                        // secrets ne-sted inside objects/arrays are masked too.
+                        // NOTE: use the original (unmasked) path for matching.
+                        $masked = \Exceedone\Exment\Middleware\LogOperation::maskInputArray($json, $log->getOriginal('path') ?? '');
+                        if ($masked != $json) {
+                            $log->input = json_encode($masked);
+                            $isUpdate = true;
+                        }
+                    }
                 }
 
                 if (!$isUpdate) {
                     continue;
                 }
 
-                $log->input = json_encode($json);
                 $log->save();
             }
         });

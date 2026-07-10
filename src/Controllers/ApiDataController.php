@@ -274,7 +274,12 @@ class ApiDataController extends AdminControllerTableBase
     public function dataCreate(Request $request)
     {
         if (($code = $this->custom_table->enableCreate()) !== true) {
-            return abortJson(403, trans('admin.deny'), $code);
+            // use the ErrorCode's own message so a one-record table that already
+            // holds a record reports "このテーブルは1レコードのみ登録可能です。"
+            // (code 402) instead of the misleading generic "Permission denied".
+            // A real permission failure still yields admin.deny via getMessage().
+            // @phpstan-ignore-next-line
+            return abortJson(403, $code);
         }
 
         return $this->saveData($request);
