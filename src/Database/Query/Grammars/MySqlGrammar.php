@@ -105,7 +105,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     public function whereInArrayColumn($builder, string $tableName, string $baseColumn, string $column, bool $isOr = false, bool $isNot = false)
     {
         $index = $this->wrap($column);
-        $baseColumnIndex = $this->wrap($baseColumn);
+        $baseColumnIndex = "CAST({$this->wrap($baseColumn)} AS CHAR)";
 
         if ($isNot) {
             $queryStr = "NOT FIND_IN_SET({$baseColumnIndex}, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))";
