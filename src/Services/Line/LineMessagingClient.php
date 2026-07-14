@@ -75,6 +75,12 @@ class LineMessagingClient
     /** Helper dựng Flex Message với bubble/carousel container. */
     public static function flex(string $altText, array $bubble): array
     {
+        $altText = trim($altText);
+        if ($altText === '') {
+            $altText = 'LINE';
+        } elseif (mb_strlen($altText) > 400) {
+            $altText = mb_substr($altText, 0, 400);
+        }
         return ['type' => 'flex', 'altText' => $altText, 'contents' => $bubble];
     }
 

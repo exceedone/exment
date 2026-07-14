@@ -491,12 +491,13 @@ class NotifyService
             if ($tmpl) {
                 $prms = array_get($params, 'prms', []);
                 $replaceOptions = array_get($params, 'replaceOptions', []);
-                $title = static::replaceWord((string) $tmpl->getValue('title'), $custom_value, $prms, $replaceOptions);
+                $title = trim((string) static::replaceWord((string) $tmpl->getValue('title'), $custom_value, $prms, $replaceOptions));
+                if ($title === '') {
+                    $title = (string) $custom_value->getLabel();
+                }
 
                 $rows = [];
 
-                // BẢNG LÀ NGUỒN CHÍNH: nội dung chi tiết lấy từ body_items của template.
-                // body_items dạng "Nhãn = ${biến}" mỗi dòng (xem LineFlexBuilder::defaultBodyItems).
                 $manualItems = \Exceedone\Exment\Services\Line\LineFlexBuilder::parseBodyItems((string) $tmpl->getValue('body_items'));
                 if (!empty($manualItems)) {
                     foreach ($manualItems as $item) {

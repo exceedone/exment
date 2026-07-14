@@ -82,13 +82,15 @@ class LineFlexBuilder
      */
     public static function buildBubble(string $title, array $rows, array $buttons): array
     {
-        $bodyContents = [[
-            'type' => 'text', 'text' => $title, 'weight' => 'bold', 'size' => 'md', 'wrap' => true,
-        ]];
+        $title = trim($title);
+        $bodyContents = [];
+        if ($title !== '') {
+            $bodyContents[] = [
+                'type' => 'text', 'text' => $title, 'weight' => 'bold', 'size' => 'md', 'wrap' => true,
+            ];
+        }
 
         foreach ($rows as $row) {
-            // layout=horizontal + wrap: nhãn dài (vd "Current Status") tự xuống dòng,
-            // không bị cắt "..." như baseline. gravity=top để canh đầu dòng khi wrap.
             $bodyContents[] = [
                 'type' => 'box', 'layout' => 'horizontal', 'spacing' => 'sm',
                 'contents' => [
@@ -96,6 +98,10 @@ class LineFlexBuilder
                     ['type' => 'text', 'text' => (string) $row['value'], 'size' => 'sm', 'wrap' => true, 'flex' => 6, 'gravity' => 'top'],
                 ],
             ];
+        }
+
+        if (empty($bodyContents)) {
+            $bodyContents[] = ['type' => 'text', 'text' => '-', 'wrap' => true];
         }
 
         $footerContents = [];
