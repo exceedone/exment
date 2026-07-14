@@ -483,9 +483,17 @@ class NotifyService
             return; // user chưa liên kết LINE -> bỏ qua
         }
 
-        // Nhánh Flex: nếu action LINE có chọn flex template -> gửi thẻ Flex (2 chiều)
-        $flexTemplateId = array_get($params, 'flex_template_id');
         $custom_value = array_get($params, 'custom_value');
+
+        $logContext = [
+            'user_id'     => $userId,
+            'line_user_id' => $lineUserId,
+            'parent_id'   => isset($custom_value) ? $custom_value->id : null,
+            'parent_type' => isset($custom_value) ? $custom_value->custom_table->table_name : null,
+            'save_body'   => !boolval(array_get($params, 'disableHistoryBody', false)),
+        ];
+
+        $flexTemplateId = array_get($params, 'flex_template_id');
         if (!is_nullorempty($flexTemplateId) && isset($custom_value)) {
             $tmpl = getModelName('line_flex_template')::find($flexTemplateId);
             if ($tmpl) {
@@ -508,7 +516,6 @@ class NotifyService
                         $rows[] = ['label' => $item['label'], 'value' => $value];
                     }
                 } elseif (!is_nullorempty(array_get($replaceOptions, 'workflow_action'))) {
-                    // body_items trống -> fallback auto chi tiết workflow (giống nội dung mail template).
                     foreach (\Exceedone\Exment\Services\Line\LineFlexBuilder::workflowDetailFormats() as [$labelKey, $format]) {
                         $value = trim((string) static::replaceWord($format, $custom_value, $prms, $replaceOptions));
                         if ($value === '') {
@@ -522,11 +529,9 @@ class NotifyService
                 $recipientUser = getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::find($userId);
                 $buttons = [];
                 foreach ($custom_value->getWorkflowActions(false, false) as $wfAction) {
-                    // deny-by-default: không có user nhận hợp lệ thì không hiện nút
                     if (!$recipientUser || !$wfAction->hasAuthority($custom_value, $recipientUser)) {
                         continue;
                     }
-                    // FIX 3 (send side): skip comment-required actions (MVP: handle on web)
                     if ($wfAction->comment_type === \Exceedone\Exment\Enums\WorkflowCommentType::REQUIRED) {
                         continue;
                     }
@@ -536,9 +541,6 @@ class NotifyService
                     ];
                 }
 
-                // Nút "Xem chi tiết" mở bản ghi. Chỉ thêm khi URL là https công khai:
-                // LINE/điện thoại không mở được http://localhost. Set APP_URL = URL https
-                // (ngrok/production) để nút này hiện và hoạt động.
                 $detailUrl = $custom_value->getUrl(['tag' => false, 'modal' => false]);
                 if (is_string($detailUrl) && preg_match('#^https://#i', $detailUrl)) {
                     $buttons[] = [
@@ -549,17 +551,17 @@ class NotifyService
 
                 $bubble = \Exceedone\Exment\Services\Line\LineFlexBuilder::buildBubble($title, $rows, $buttons);
                 $message = \Exceedone\Exment\Services\Line\LineMessagingClient::flex($title, $bubble);
-                // dispatchAfterResponse: đẩy push SAU khi đã trả response, để confirmation reply
-                // (từ postback) luôn đến trước thẻ bước workflow kế tiếp. Xem LineWebhookController.
-                \Exceedone\Exment\Jobs\LineSendJob::dispatchAfterResponse($lineUserId, [$message]);
+                \Exceedone\Exment\Jobs\LineSendJob::dispatchAfterResponse($lineUserId, [$message], array_merge($logContext, [
+                    'message_type'     => \Exceedone\Exment\Services\Line\LineSendLogger::TYPE_FLEX,
+                    'flex_template_id' => $flexTemplateId,
+                    'subject'          => $title,
+                ]));
                 return;
             }
         }
 
-        // nạp subject/body từ mail template (chưa thay biến)
         static::replaceSubjectBody($params);
 
-        // thay biến ${...} bằng dữ liệu thật (giống luồng Mail/Slack)
         $subject = static::replaceWord(
             array_get($params, 'subject'),
             array_get($params, 'custom_value'),
@@ -577,7 +579,8 @@ class NotifyService
             $lineUserId,
             $subject,
             $body,
-            array_get($params, 'action_setting', [])
+            array_get($params, 'action_setting', []),
+            $logContext
         )->send();
     }
 

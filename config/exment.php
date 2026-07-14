@@ -1216,5 +1216,6 @@ return [
         'oa_basic_id'          => env('LINE_OA_BASIC_ID'),
         'api_base'             => env('LINE_API_BASE', 'https://api.line.me'),
         'timeout'              => env('LINE_HTTP_TIMEOUT', 10),
+        'dedupe_minutes'       => env('LINE_DEDUPE_MINUTES', 0),
     ],
 ];

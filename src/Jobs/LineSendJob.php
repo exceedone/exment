@@ -3,15 +3,14 @@
 namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Services\Line\LineMessagingClient;
+use Exceedone\Exment\Services\Line\LineSendLogger;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Job đẩy 1 tin LINE (push) qua Messaging API.
- */
+
 class LineSendJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
@@ -20,11 +19,14 @@ class LineSendJob implements ShouldQueue
     protected $to;
     /** @var array */
     protected $messages;
+    /** @var array context để ghi line_send_log (xem LineSendLogger::record) */
+    protected $context;
 
-    public function __construct(string $to, array $messages)
+    public function __construct(string $to, array $messages, array $context = [])
     {
         $this->to = $to;
         $this->messages = $messages;
+        $this->context = $context;
     }
 
     public function handle(): void
@@ -37,5 +39,11 @@ class LineSendJob implements ShouldQueue
                 'to'     => $this->to,
             ]);
         }
+
+        LineSendLogger::record(
+            array_merge(['line_user_id' => $this->to], $this->context),
+            $this->messages,
+            $res
+        );
     }
 }
