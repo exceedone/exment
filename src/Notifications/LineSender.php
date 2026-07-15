@@ -58,7 +58,7 @@ class LineSender extends SenderBase
         }
         $s = preg_replace('/<a\b[^>]*\bhref=["\']([^"\']+)["\'][^>]*>.*?<\/a>/is', '$1', $s);
         $s = preg_replace('/<br\s*\/?>/i', "\n", $s);
-        $s = preg_replace('/<\/(p|div|tr|li|h[1-6])>/i', "\n", $s);
+        $s = preg_replace('/<\/?(p|div|tr|li|h[1-6])\b[^>]*>/i', "\n", $s);
         $s = strip_tags($s);
         $s = html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $s = preg_replace('/\n{3,}/', "\n\n", $s);
