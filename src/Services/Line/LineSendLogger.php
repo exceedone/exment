@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Line;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Illuminate\Support\Facades\Log;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class LineSendLogger
 {
-    public const TABLE_NAME = 'line_send_log';
+    public const TABLE_NAME = SystemTableName::LINE_SEND_LOG;
 
     public const TYPE_TEXT = 'text';
     public const TYPE_FLEX = 'flex';
