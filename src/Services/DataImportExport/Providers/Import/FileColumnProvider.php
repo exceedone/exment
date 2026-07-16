@@ -276,6 +276,33 @@ class FileColumnProvider extends ProviderBase
             return null;
         }
 
+        // Guard against directory traversal: the file name comes from the
+        // imported CSV/xlsx row and must not escape the import directory
+        // (e.g. "../../.env"). Reject anything resolving outside it. (JVN#17048635)
+        if (!$this->isInFileDir($file_path)) {
+            return null;
+        }
+
         return $file_path;
+    }
+
+    /**
+     * Whether the resolved path is contained within the import file directory.
+     * Uses realpath() so ".." segments and symlinks are canonicalized away
+     * before the containment check.
+     *
+     * @param string $file_path
+     * @return bool
+     */
+    protected function isInFileDir(string $file_path): bool
+    {
+        $baseReal   = realpath($this->fileDirFullPath);
+        $targetReal = realpath($file_path);
+        if ($baseReal === false || $targetReal === false) {
+            return false;
+        }
+
+        $baseReal = rtrim($baseReal, '/\\') . DIRECTORY_SEPARATOR;
+        return strncmp($targetReal, $baseReal, strlen($baseReal)) === 0;
     }
 }
