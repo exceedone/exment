@@ -22,7 +22,7 @@ class GuardAnonymousApiRouteAllowlistTest extends CodebaseGuardTestCase
 {
     /** Routes allowed to exist in mapExmentAnonymousApiRotes (reviewed). Format: "VERB uri". */
     private const ALLOWED_ANON_API_ROUTES = [
-        'POST template/search',   // read-only (lists templates, also used by the install wizard)
+        'POST template/search',   // guarded by System::initialized()+hasPermission(SYSTEM) in the controller (JVN#20312919); anonymous only during the install wizard
         'DELETE template/delete', // guarded by System::initialized()+hasPermission(SYSTEM) in the controller
     ];
 
@@ -87,6 +87,24 @@ class GuardAnonymousApiRouteAllowlistTest extends CodebaseGuardTestCase
             '/System::initialized\(\).*?hasPermission\(Permission::SYSTEM\).*?abort\(403\)/s',
             $body,
             'TemplateController::delete() MUST keep the SYSTEM permission guard (do not remove the b26a6dd fix).'
+        );
+    }
+
+    public function test_template_search_keeps_its_authorization_guard(): void
+    {
+        $path = self::srcDir() . '/Controllers/TemplateController.php';
+        $this->assertFileExists($path);
+        $src = self::stripComments((string) file_get_contents($path));
+
+        // Grab the body of searchTemplate()
+        $start = strpos($src, 'function searchTemplate(');
+        $this->assertNotFalse($start, 'TemplateController::searchTemplate() not found.');
+        $body = substr($src, $start, 1200);
+
+        $this->assertMatchesRegularExpression(
+            '/System::initialized\(\).*?hasPermission\(Permission::SYSTEM\).*?abort\(403\)/s',
+            $body,
+            'TemplateController::searchTemplate() MUST keep the SYSTEM permission guard (JVN#20312919: unauthenticated template enumeration).'
         );
     }
 }

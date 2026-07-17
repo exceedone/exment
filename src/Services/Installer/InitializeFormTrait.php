@@ -240,7 +240,13 @@ trait InitializeFormTrait
         //     ->options(Define::FILE_OPTION());
 
         // template search url
-        $template_search_url = admin_urls('api', 'template', 'search');
+        // After initialization, listing templates is an admin-only action, so the request must
+        // carry the admin session: use the session-backed `webapi` route which the in-controller
+        // guard authenticates (JVN#20312919). The install wizard runs before any user exists, so
+        // it keeps using the anonymous `api` route.
+        $template_search_url = System::initialized()
+            ? admin_urls('webapi', 'template', 'search')
+            : admin_urls('api', 'template', 'search');
         $script = <<<EOT
 
     $(function(){

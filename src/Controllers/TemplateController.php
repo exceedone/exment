@@ -43,6 +43,16 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function searchTemplate(Request $request)
     {
+        // Once the system is installed, listing templates is a system-admin action
+        // (same guard as delete(): JVN#20312919 - unauthenticated template enumeration).
+        // Before initialization no login user exists yet; the install wizard runs anonymously.
+        if (System::initialized()) {
+            $login_user = \Exment::user();
+            if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
+                abort(403);
+            }
+        }
+
         // search from exment api
         // $client = new Client();
 

@@ -12,7 +12,8 @@ use Exceedone\Exment\Enums\Permission;
  *      Once the system is installed (System::initialized()) it requires a logged-in user
  *      with Permission::SYSTEM, otherwise -> abort(403).
  *      (Before initialization there is no user yet; the install wizard stays anonymous.)
- *      `template/search` is intentionally kept anonymous: used by the install wizard and only lists metadata.
+ *      `template/search` carries the same guard (see TemplateSearchAuthFixedTest / JVN#20312919):
+ *      anonymous only during the install wizard, SYSTEM-permission required once installed.
  */
 class Bug2TemplateDeleteAuthFixedTest extends SecurityRegressionTestCase
 {

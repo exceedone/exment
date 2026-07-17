@@ -143,6 +143,18 @@ class TemplateImporter
     // @phpstan-ignore-next-line
     public function deleteTemplate($teplate_name)
     {
+        // Defense in depth (JVN#20312919): only an existing *user* template may be deleted here.
+        // Reject any `template` value that does not match a real user-uploaded template
+        // (same "check against the existing list" approach as importTemplate()).
+        $isUserTemplate = collect($this->getUserTemplates())
+            ->contains(function ($template) use ($teplate_name) {
+                return array_get($template, 'template_type') === 'user'
+                    && array_get($template, 'template_name') === $teplate_name;
+            });
+        if (!$isUserTemplate) {
+            return;
+        }
+
         $diskItem = $this->diskService->diskItem();
         $disk = $diskItem->disk();
 
