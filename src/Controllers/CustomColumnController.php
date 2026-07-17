@@ -304,6 +304,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.freeword_search"));
 
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'notValue' => ColumnType::COLUMN_TYPE_ATTACHMENT()])])
                 ->help(exmtrans("custom_column.help.unique"));
 
             $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))
