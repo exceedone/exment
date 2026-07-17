@@ -19,7 +19,7 @@ class Define
     public const COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN = 'exceedone/open-admin-core';
     public const COMPOSER_VERSION_CHECK_URL = 'https://packagist.org/packages/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
-    public const EXMENT_NEWS_LINK = 'https://exment.net/archives/category/news';
+    public const EXMENT_NEWS_LINK = 'https://exment.net/category/news';
     public const USER_IMAGE_LINK = 'vendor/exment/images/user.png';
     public const ORGANIZATION_IMAGE_LINK = 'vendor/exment/images/organization.png';
 
@@ -439,6 +439,9 @@ class Define
     public const HELP_URLS = [
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'search', 'help_uri'=> 'search'],
+        // if has "query", match only when the url has the query string parameter. Set before the entry without "query".
+        ['uri'=> 'table', 'query'=> 'qrcodesetting', 'help_uri'=> '2d_barcode'],
+        ['uri'=> 'table', 'query'=> 'jancodesetting', 'help_uri'=> 'jancode'],
         ['uri'=> 'table', 'help_uri'=> 'table'],
         ['uri'=> 'column', 'help_uri'=> 'column'],
         ['uri'=> 'relation', 'help_uri'=> 'relation'],
@@ -452,6 +455,8 @@ class Define
         ['uri'=> 'backup', 'help_uri'=> 'backup'],
         ['uri'=> 'role_group', 'help_uri'=> 'permission'],
         ['uri'=> 'auth/menu', 'help_uri'=> 'menu'],
+        ['uri'=> 'auth/logs', 'help_uri'=> 'logs'],
+        ['uri'=> 'notify', 'help_uri'=> 'notify'],
         ['uri'=> 'loginuser', 'help_uri'=> 'user'],
         ['uri'=> 'data/user', 'help_uri'=> 'user'],
         ['uri'=> 'data/mail_template', 'help_uri'=> 'mail'],
