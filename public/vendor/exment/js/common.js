@@ -80,6 +80,10 @@ var Exment;
                 else {
                     isMatch = pathname.indexOf(uri) === 0;
                 }
+                // if has "query", match only when the url has the query string parameter(ex. qrcodesetting)
+                if (isMatch && hasValue(help.query)) {
+                    isMatch = new URLSearchParams(location.search).has(help.query);
+                }
                 if (isMatch) {
                     // set new url
                     var help_url = URLJoin(manual_base_uri, help.help_uri);
