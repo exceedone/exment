@@ -98,7 +98,6 @@ class AutoNumber extends CustomItem
                 'format' => exmtrans("custom_column.options.auto_number_type_format"),
                 'random25' => exmtrans("custom_column.options.auto_number_type_random25"),
                 'random32' => exmtrans("custom_column.options.auto_number_type_random32"),
-                'other' => exmtrans("custom_column.options.auto_number_other"),
                 ]
             )
             ->attribute(['data-filtertrigger' =>true]);

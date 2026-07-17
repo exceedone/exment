@@ -1443,7 +1443,6 @@ return [
             'auto_number_type_random25' => 'Random(25-Length)',
             'auto_number_type_random32' => 'Random(UUID)',
             'auto_number_format' => 'Auto Number Format',
-            'auto_number_other' => 'Other',
             'multiple_enabled' => 'Approval Multiple Select',
             'calc_formula' => 'Calc Formula',
             'currency_symbol' => 'Currency Format',
