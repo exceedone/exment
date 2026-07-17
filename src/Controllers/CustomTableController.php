@@ -502,19 +502,22 @@ HTML;
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                     'include_parent_id' => true,
-                    'ignore_many_to_many' => true
+                    'ignore_many_to_many' => true,
+                    'ignore_attachment' => true
                 ]));
             $form->select('unique2', exmtrans("custom_table.custom_column_multi.unique2"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                     'include_parent_id' => true,
-                    'ignore_many_to_many' => true
+                    'ignore_many_to_many' => true,
+                    'ignore_attachment' => true
                 ]));
             $form->select('unique3', exmtrans("custom_table.custom_column_multi.unique3"))
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                     'include_parent_id' => true,
-                    'ignore_many_to_many' => true
+                    'ignore_many_to_many' => true,
+                    'ignore_attachment' => true
                 ]));
             $form->hidden('multisetting_type')->default(MultisettingType::MULTI_UNIQUES);
         })->setTableColumnWidth(4, 4, 3, 1)
