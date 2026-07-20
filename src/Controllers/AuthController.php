@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\PasswordHistory;
+use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
@@ -321,6 +322,17 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
+            // JVN#47030116 (CWE-620): the per-field current_password rules above are silently
+            // skipped when the request omits the current_password key entirely (open-admin builds
+            // one validator per field and continues past fields whose key is absent). This
+            // validatorSavingCallback ALWAYS runs during validation, so it re-verifies the current
+            // password whenever a new password is submitted, regardless of which keys are present.
+            $form->validatorSavingCallback(function ($input, $message, $form) {
+                if (static::currentPasswordVerificationFails(\Exment::user(), $input)) {
+                    $message->add('current_password', exmtrans('validation.current_password'));
+                }
+            });
+
             // show 2factor setting if use
             if (boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())) {
                 $login_2factor_provider = \Exment::user()->getSettingValue(
@@ -362,6 +374,50 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                 return redirect(admin_url('auth/setting'));
             });
         });
+    }
+
+    /**
+     * Decide whether the current-password re-authentication must fail for a
+     * user-setting update, independent of which request keys are present.
+     *
+     * This closes JVN#47030116 (CWE-620, Unverified Password Change): the
+     * per-field `required_with:password` + CurrentPasswordRule guard on the
+     * current_password field is skipped entirely when the current_password key
+     * is absent from the request (open-admin's Field::getValidator() returns
+     * false for missing keys, so Form::validationMessages() `continue`s). This
+     * method is called from Form::validatorSavingCallback(), which always runs.
+     *
+     * @param \Illuminate\Contracts\Auth\Authenticatable|\Exceedone\Exment\Model\LoginUser|null $login_user
+     * @param array<string, mixed> $input
+     * @return bool true => block the update (add a validation error)
+     */
+    protected static function currentPasswordVerificationFails($login_user, array $input): bool
+    {
+        // Only local (PURE) logins own/enforce a current password here; SSO/LDAP are out of scope.
+        if (is_null($login_user) || $login_user->login_type != LoginType::PURE) {
+            return false;
+        }
+
+        // A new password is being set whenever the password field carries any non-empty value.
+        // Deliberately NOT filled()/blank(): those TRIM strings, but the save path persists an
+        // all-whitespace password (it is truthy, passes min:8, and password fields are exempt
+        // from TrimStrings). Trimming here would let an 8-space password re-open the bypass.
+        $new = array_get($input, 'password');
+        if ($new === null || $new === '') {
+            return false;
+        }
+
+        // A missing/blank/whitespace current password is no proof of identity => block
+        // (the JVN#47030116 key-removal bypass lands here). Here filled() (which trims) is the
+        // right test — asymmetric to the new password above: a whitespace-only value can never
+        // be a valid credential, so treat it as absent and fail closed rather than verifying it.
+        $current = array_get($input, 'current_password');
+        if (!filled($current)) {
+            return true;
+        }
+
+        // Present but not matching the stored credential => block.
+        return !LoginUserProvider::ValidateCredential($login_user, ['password' => $current]);
     }
 
     /**
