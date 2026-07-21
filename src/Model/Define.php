@@ -513,8 +513,13 @@ class Define
     ];
 
 
-    public const HTML_ALLOWED_DEFAULT = 'div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr';
-    public const HTML_ALLOWED_EDITOR_DEFAULT = '@[style],@[class],div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr';
+    // Safe rich-content elements kept in sync between html_clean() (HTML_ALLOWED_DEFAULT) and the
+    // TinyMCE editor (HTML_ALLOWED_EDITOR_DEFAULT). Table markup and common text elements are added
+    // so html_clean() does not strip legitimate content. Dangerous/embed elements (script, iframe,
+    // object, embed, form, video, audio, svg) are intentionally excluded; a deployment that truly
+    // needs them can override via config('exment.html_allowed') / config('exment.html_allowed_attributes').
+    public const HTML_ALLOWED_DEFAULT = 'div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr,table,thead,tbody,tfoot,tr,td[colspan|rowspan],th[colspan|rowspan|scope],caption,colgroup,col,pre,code,small,sub,sup,s,del,ins,dl,dt,dd';
+    public const HTML_ALLOWED_EDITOR_DEFAULT = '@[style],@[class],div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr,table,thead,tbody,tfoot,tr,td[colspan|rowspan],th[colspan|rowspan|scope],caption,colgroup,col,pre,code,small,sub,sup,s,del,ins,dl,dt,dd';
     public const HTML_ALLOWED_ATTRIBUTES_DEFAULT = '*.style,*.class';
     public const CSS_ALLOWED_PROPERTIES_DEFAULT = '*';
 }
