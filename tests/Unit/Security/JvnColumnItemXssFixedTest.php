@@ -77,6 +77,21 @@ class JvnColumnItemXssFixedTest extends SecurityRegressionTestCase
         $this->assertStringContainsString('https://example.com', $out, 'Whitelisted links must be preserved.');
     }
 
+    public function test_html_item_preserves_table_markup(): void
+    {
+        // Regression guard for the widened html_clean allow-list (Define::HTML_ALLOWED_DEFAULT):
+        // safe structural markup such as tables must survive, so the XSS hardening does not silently
+        // strip legitimate rich content. A <script> inside must still be removed.
+        $payload = '<table><thead><tr><th>H</th></tr></thead><tbody><tr><td>cell<script>alert(1)</script></td></tr></tbody></table>';
+
+        $out = $this->renderHtml(new Html(null), ['html' => $payload]);
+
+        $this->assertStringContainsString('<table', $out, 'Table markup must be preserved by html_clean().');
+        $this->assertStringContainsString('<td', $out, 'Table cells must be preserved.');
+        $this->assertStringContainsString('cell', $out, 'Table text content must be preserved.');
+        $this->assertStringNotContainsString('<script', $out, 'Script inside a table must still be stripped.');
+    }
+
     public function test_html_item_source_uses_html_clean(): void
     {
         $src = $this->exmentSource('ColumnItems/FormOthers/Html.php');
