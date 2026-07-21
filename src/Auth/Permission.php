@@ -239,6 +239,8 @@ class Permission
             case "files":
             case "qr-code":
                 return true;
+            case "line":
+                return true;
             case "jan-code":
                 return true;
             case "assign-jan-code":
