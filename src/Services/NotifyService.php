@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SearchType;
@@ -492,6 +493,29 @@ class NotifyService
             'parent_type' => isset($custom_value) ? $custom_value->custom_table->table_name : null,
             'save_body'   => !boolval(array_get($params, 'disableHistoryBody', false)),
         ];
+
+        // Chống gửi trùng reminder: chỉ áp cho trigger TIME, key = user + bản ghi nguồn.
+        // recentlySent() tự trả false khi minutes<=0 hoặc thiếu parent -> an toàn khi tắt.
+        $dedupeMinutes = (int) config('exment.line.dedupe_minutes', 0);
+        $notify = array_get($params, 'notify');
+        if ($dedupeMinutes > 0
+            && isset($custom_value)
+            && !is_nullorempty($notify)
+            && $notify->notify_trigger == NotifyTrigger::TIME
+            && \Exceedone\Exment\Services\Line\LineSendLogger::recentlySent(
+                (int) $userId,
+                $custom_value->id,
+                $custom_value->custom_table->table_name,
+                $dedupeMinutes
+            )
+        ) {
+            \Log::info('LINE reminder skipped by dedupe', [
+                'user_id' => $userId,
+                'parent_id' => $custom_value->id,
+                'parent_type' => $custom_value->custom_table->table_name,
+            ]);
+            return;
+        }
 
         $flexTemplateId = array_get($params, 'flex_template_id');
         if (!is_nullorempty($flexTemplateId) && isset($custom_value)) {
