@@ -6,6 +6,8 @@ use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
@@ -41,6 +43,13 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function searchTemplate(Request $request)
     {
+        if (System::initialized()) {
+            $login_user = \Exment::user();
+            if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
+                abort(403);
+            }
+        }
+
         // search from exment api
         // $client = new Client();
 

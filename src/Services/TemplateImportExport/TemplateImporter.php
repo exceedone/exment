@@ -143,6 +143,15 @@ class TemplateImporter
     // @phpstan-ignore-next-line
     public function deleteTemplate($teplate_name)
     {
+        $isUserTemplate = collect($this->getUserTemplates())
+            ->contains(function ($template) use ($teplate_name) {
+                return array_get($template, 'template_type') === 'user'
+                    && array_get($template, 'template_name') === $teplate_name;
+            });
+        if (!$isUserTemplate) {
+            return;
+        }
+
         $diskItem = $this->diskService->diskItem();
         $disk = $diskItem->disk();
 
