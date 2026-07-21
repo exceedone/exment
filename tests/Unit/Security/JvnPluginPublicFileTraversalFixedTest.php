@@ -33,6 +33,18 @@ use Exceedone\Exment\Services\Plugin\PluginPageController;
  */
 class JvnPluginPublicFileTraversalFixedTest extends SecurityRegressionTestCase
 {
+    /** @var string[] plugin temp dirs created by the happy-path tests; removed in tearDown. */
+    private array $tempRoots = [];
+
+    protected function tearDown(): void
+    {
+        foreach ($this->tempRoots as $root) {
+            $this->rrmdir($root);
+        }
+        $this->tempRoots = [];
+        parent::tearDown();
+    }
+
     /** @return array<string, array{0: string}> */
     public static function maliciousSegmentProvider(): array
     {
@@ -87,5 +99,84 @@ class JvnPluginPublicFileTraversalFixedTest extends SecurityRegressionTestCase
             $src,
             'The pre-fix raw read (\\File::get($filePath) without containment) must be gone.'
         );
+    }
+
+    // -----------------------------------------------------------------------
+    // Happy path: the fix must NOT over-reject legitimate plugin public files.
+    // -----------------------------------------------------------------------
+
+    public function test_legitimate_single_segment_file_is_served(): void
+    {
+        $controller = $this->controllerWithPluginRoot($this->makePluginTree());
+
+        $response = $controller->_readPublicFile(new Request(), 'style.css');
+
+        $this->assertSame(200, $response->getStatusCode(), 'A legitimate top-level public file must be served.');
+        $this->assertSame('body{color:red}', $response->getContent());
+        $this->assertSame('text/css', $response->headers->get('Content-Type'), 'CSS keeps the text/css content type.');
+    }
+
+    public function test_legitimate_nested_file_is_served(): void
+    {
+        // A nested path arrives as SEPARATE route segments (css, app.css): the per-segment guard
+        // rejects '/' or '\' INSIDE a segment but must allow multiple clean segments, and the
+        // realpath-containment check must accept a file that stays inside public/.
+        $controller = $this->controllerWithPluginRoot($this->makePluginTree());
+
+        $response = $controller->_readPublicFile(new Request(), 'css', 'app.css');
+
+        $this->assertSame(200, $response->getStatusCode(), 'A legitimate nested public file must still be served.');
+        $this->assertSame('.app{display:block}', $response->getContent());
+    }
+
+    // --- helpers ------------------------------------------------------------
+
+    /** Build a throwaway plugin tree with public/style.css and public/css/app.css; returns its root. */
+    private function makePluginTree(): string
+    {
+        $root = rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR . 'exment_pf_' . uniqid('', true);
+        @mkdir($root . '/public/css', 0777, true);
+        file_put_contents($root . '/public/style.css', 'body{color:red}');
+        file_put_contents($root . '/public/css/app.css', '.app{display:block}');
+        $this->tempRoots[] = $root;
+        return $root;
+    }
+
+    /** A controller whose plugin->getFullPath() points at $root (the ctor derives $plugin from the page). */
+    private function controllerWithPluginRoot(string $root): PluginPageController
+    {
+        $controller = new PluginPageController(null);
+
+        $plugin = new class ($root) {
+            public function __construct(private string $root)
+            {
+            }
+            // @phpstan-ignore-next-line - stub of Plugin::getFullPath(...$pass_array)
+            public function getFullPath(...$args)
+            {
+                return $this->root;
+            }
+        };
+
+        // PHP 8.1+: reflected properties are accessible without setAccessible().
+        (new \ReflectionProperty(PluginPageController::class, 'plugin'))->setValue($controller, $plugin);
+
+        return $controller;
+    }
+
+    /** Recursively remove a temp directory. */
+    private function rrmdir(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $it = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($it as $item) {
+            $item->isDir() ? @rmdir($item->getPathname()) : @unlink($item->getPathname());
+        }
+        @rmdir($dir);
     }
 }
