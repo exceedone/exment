@@ -297,6 +297,13 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function delete(Request $request)
     {
+        if (System::initialized()) {
+            $login_user = \Exment::user();
+            if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
+                abort(403);
+            }
+        }
+
         // install templates selected tiles.
         if ($request->has('template')) {
             $importer = new TemplateImportExport\TemplateImporter();
