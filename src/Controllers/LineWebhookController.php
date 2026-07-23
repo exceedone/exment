@@ -9,17 +9,21 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
 /**
- * Nhận webhook từ LINE. Verify chữ ký, định tuyến event:
- *  - message "LINK <mã>" -> liên kết tài khoản
- *  - follow             -> reply hướng dẫn
+ * Receives LINE webhooks. Verifies the signature and routes events:
+ *  - message "LINK <code>" -> link account
+ *  - postback              -> execute a workflow action
  *
- * Route công khai (không qua web/CSRF/auth) - xem RouteServiceProvider.
+ * Public route (no web/CSRF/auth middleware) - see RouteServiceProvider.
  */
 class LineWebhookController extends Controller
 {
     public function handle(Request $request)
     {
-        $client = new LineMessagingClient();
+        // Resolve from the container only when explicitly bound (tests inject a mock transport);
+        // in production nothing binds it, so build it directly with its configured Guzzle client.
+        $client = app()->bound(LineMessagingClient::class)
+            ? app(LineMessagingClient::class)
+            : new LineMessagingClient();
         $linker = new LineAccountLinker();
 
         $body = $request->getContent();
@@ -34,7 +38,7 @@ class LineWebhookController extends Controller
             $this->dispatchEvent($event, $client, $linker);
         }
 
-        return response('', 200); // LINE luôn cần 200
+        return response('', 200); // LINE always expects a 200 response
     }
 
     protected function dispatchEvent(array $event, LineMessagingClient $client, LineAccountLinker $linker): void
@@ -50,17 +54,17 @@ class LineWebhookController extends Controller
                 $isLinkCommand = (bool) preg_match('/^\s*LINK\s+/i', $text);
                 $alreadyLinked = $userId && LineAccountLink::where('line_user_id', $userId)->exists();
                 if ($linked) {
-                    $msg = '✅ Liên kết LINE thành công!';
+                    $msg = exmtrans('line.link_success');
                 } elseif ($isLinkCommand && $alreadyLinked) {
-                    // Là lệnh LINK nhưng LINE này đã gắn 1 tài khoản
-                    $msg = 'LINE này đã được liên kết với một tài khoản. Nếu muốn đổi, hãy huỷ liên kết trên web trước.';
+                    // LINK command, but this LINE user is already tied to an account
+                    $msg = exmtrans('line.link_already_linked');
                 } elseif ($isLinkCommand) {
-                    $msg = 'Mã liên kết không đúng hoặc đã hết hạn. Vui lòng kiểm tra lại.';
+                    $msg = exmtrans('line.link_invalid_code');
                 } elseif ($alreadyLinked) {
-                    // đã liên kết, gửi text thường (không phải lệnh, action chỉ qua nút) -> không hợp lệ
-                    $msg = 'Lệnh không hợp lệ.';
+                    // Already linked; plain text (not a command, actions only via buttons) is invalid
+                    $msg = exmtrans('line.invalid_command');
                 } else {
-                    $msg = 'Gửi đúng cú pháp: LINK <mã> để liên kết tài khoản.';
+                    $msg = exmtrans('line.link_syntax_guide');
                 }
                 $client->reply($replyToken, [LineMessagingClient::text($msg)]);
             }
@@ -73,10 +77,8 @@ class LineWebhookController extends Controller
                     $client->reply($replyToken, [LineMessagingClient::text($msg)]);
                 }
             }
-        } elseif ($type === 'follow' && $replyToken) {
-            $client->reply($replyToken, [
-                LineMessagingClient::text('Chào bạn! Gửi "LINK <mã>" để liên kết tài khoản.'),
-            ]);
         }
+        // No reply on 'follow': linking is driven from the web QR/deep link, which pre-fills the
+        // real "LINK <code>" in the compose box, so a follow greeting would be redundant.
     }
 }

@@ -10,13 +10,13 @@ use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 
 /**
- * Trang tự liên kết LINE (admin/line/link) phải mở được cho MỌI user đã đăng nhập,
- * không riêng system admin — mỗi user chỉ thao tác trên liên kết của chính mình
- * nên không có leo thang quyền.
+ * The LINE self-linking page (admin/line/link) must be accessible to EVERY
+ * authenticated user, not just system admins — each user only operates on their
+ * own link, so there is no privilege escalation.
  *
- * Chặn 2 tầng cùng engine Permission::shouldPass('line'):
- * - middleware admin.permission trên route (403 nếu fail)
- * - Admin::user()->visible() ẩn menu sidebar
+ * Two guard layers share the Permission::shouldPass('line') engine:
+ * - the admin.permission middleware on the route (403 on failure)
+ * - Admin::user()->visible() hides the sidebar menu
  */
 class LineLinkPageTest extends FeatureTestBase
 {
@@ -29,18 +29,18 @@ class LineLinkPageTest extends FeatureTestBase
         $this->initAllTest();
     }
 
-    /** Đăng nhập 1 user theo guard admin, xoá liên kết cũ để trang hiện form sinh QR. */
+    /** Log in a user via the admin guard and delete any existing link so the page renders the QR-generation form. */
     protected function loginAndReset(string $loginUserId): LoginUser
     {
         /** @var LoginUser $loginUser */
         $loginUser = LoginUser::find($loginUserId);
-        $this->assertNotNull($loginUser, "Fixture: cần login user {$loginUserId}.");
+        $this->assertNotNull($loginUser, "Fixture: login user {$loginUserId} is required.");
         LineAccountLink::where('user_id', $loginUser->base_user_id)->delete();
         $this->be($loginUser, 'admin');
         return $loginUser;
     }
 
-    /** User thường (user2 - chỉ thuộc user_group) phải mở được trang link. */
+    /** A regular user (user2 - belongs only to user_group) must be able to open the link page. */
     public function testEmployeeCanOpenLineLinkPage()
     {
         $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
@@ -48,22 +48,22 @@ class LineLinkPageTest extends FeatureTestBase
         $response = $this->get('admin/line/link');
 
         $response->assertStatus(200);
-        // marker của view line.link (form sinh QR) - trang deny không có chuỗi này
+        // marker for the line.link view (QR-generation form) - the deny page does not contain this string
         $response->assertSee('line/link/generate');
     }
 
-    /** Menu sidebar: visible('line/link') phải true với user thường. */
+    /** Sidebar menu: visible('line/link') must be true for a regular user. */
     public function testLineLinkMenuVisibleForEmployee()
     {
         $loginUser = $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         $this->assertTrue(
             $loginUser->visible('line/link'),
-            'Menu LINE連携 phải hiển thị với user thường (không phải system admin).'
+            'The LINE連携 menu must be visible to a regular user (not a system admin).'
         );
     }
 
-    /** Hồi quy: admin vẫn mở được trang link như trước. */
+    /** Regression: admin can still open the link page as before. */
     public function testAdminCanOpenLineLinkPage()
     {
         $this->loginAndReset(TestDefine::TESTDATA_USER_LOGINID_ADMIN);

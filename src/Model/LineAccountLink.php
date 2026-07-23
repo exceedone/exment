@@ -6,8 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Lưu liên kết giữa tài khoản Exment (user_id) và tài khoản LINE (line_user_id).
- * Bảng riêng line_account_links (không dùng custom column trên bảng user).
+ * Stores the link between an Exment account (user_id) and a LINE account (line_user_id).
+ * Uses a dedicated line_account_links table (not a custom column on the user table).
  */
 class LineAccountLink extends Model
 {

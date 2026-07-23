@@ -6,9 +6,9 @@ use Exceedone\Exment\Services\Line\LineFlexBuilder;
 use PHPUnit\Framework\TestCase;
 
 /**
- * GĐ3: LineFlexBuilder — phần THUẦN (không DB). Bổ sung cho LineFlexValidityTest:
- * tách body_items, format chi tiết workflow mặc định, và cấu trúc nút footer.
- * (Phần "thay biến" ${...} do NotifyService::notifyLine làm -> test ở LineFlexNotifyTest.)
+ * Phase 3: LineFlexBuilder — the pure (non-DB) part. Complements LineFlexValidityTest:
+ * parsing body_items, the default workflow detail formats, and footer button structure.
+ * (Variable substitution ${...} is handled by NotifyService::notifyLine and is tested in LineFlexNotifyTest.)
  */
 class LineFlexBuilderTest extends TestCase
 {
@@ -32,7 +32,7 @@ class LineFlexBuilderTest extends TestCase
 
     public function test_parseBodyItems_keeps_equals_signs_inside_format(): void
     {
-        // chỉ tách ở dấu '=' ĐẦU TIÊN -> format vẫn giữ '=' bên trong
+        // split only on the FIRST '=' -> the format keeps any '=' inside it
         $items = LineFlexBuilder::parseBodyItems('Ghi chú = a=b=c');
 
         $this->assertSame('Ghi chú', $items[0]['label']);
@@ -65,7 +65,7 @@ class LineFlexBuilderTest extends TestCase
 
     public function test_parseBodyItems_allows_empty_format(): void
     {
-        // nhãn có, format rỗng -> vẫn giữ (giá trị rỗng sẽ bị lọc lúc thay biến, không phải ở đây)
+        // label present, empty format -> still kept (empty values are filtered during variable substitution, not here)
         $items = LineFlexBuilder::parseBodyItems('Nhãn =');
 
         $this->assertCount(1, $items);
@@ -95,10 +95,10 @@ class LineFlexBuilderTest extends TestCase
 
         $this->assertNotEmpty($formats);
         foreach ($formats as $pair) {
-            $this->assertCount(2, $pair, 'Mỗi phần tử phải là [exmtrans_key, format].');
+            $this->assertCount(2, $pair, 'Each element must be [exmtrans_key, format].');
             [$labelKey, $format] = $pair;
             $this->assertIsString($labelKey);
-            // format phải chứa biến ${...} để thay lúc gửi
+            // the format must contain a ${...} variable to be substituted at send time
             $this->assertMatchesRegularExpression('/\$\{.+\}/', $format);
         }
     }
@@ -111,7 +111,7 @@ class LineFlexBuilderTest extends TestCase
         $this->assertStringContainsString('${value}', $title);
     }
 
-    // -------------------------------------------------- buildBubble: nút footer
+    // -------------------------------------------------- buildBubble: footer buttons
 
     public function test_buildBubble_renders_postback_button_for_workflow_action(): void
     {
@@ -124,7 +124,7 @@ class LineFlexBuilderTest extends TestCase
         $this->assertSame('primary', $button['style']);
         $this->assertSame('postback', $button['action']['type']);
         $this->assertSame('act=workflow&table=t&id=1&action=2', $button['action']['data']);
-        // displayText để LINE hiện bong bóng người dùng khi bấm
+        // displayText makes LINE show the user's chat bubble when tapped
         $this->assertSame('Duyệt', $button['action']['displayText']);
     }
 
@@ -138,7 +138,7 @@ class LineFlexBuilderTest extends TestCase
         $this->assertSame('link', $button['style']);
         $this->assertSame('uri', $button['action']['type']);
         $this->assertSame('https://example.com/d/1', $button['action']['uri']);
-        // nút uri KHÔNG có displayText (không phải postback)
+        // uri buttons have NO displayText (they are not postback actions)
         $this->assertArrayNotHasKey('displayText', $button['action']);
     }
 

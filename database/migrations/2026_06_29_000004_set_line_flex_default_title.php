@@ -7,9 +7,10 @@ use Exceedone\Exment\Services\Line\LineFlexBuilder;
 use Illuminate\Database\Migrations\Migration;
 
 /**
- * Đặt giá trị mặc định cho cột title của line_flex_template = "[trạng thái] tên bản ghi"
- * ([${workflow:status_name}] ${value}) -> title nêu rõ WF đang làm gì. Khi tạo
- * template mới, form tự điền sẵn; resolve biến khi gửi.
+ * Set the default value of the line_flex_template "title" column to
+ * "[status] record name" ([${workflow:status_name}] ${value}) so the title
+ * clearly shows what the workflow is doing. New templates get this pre-filled
+ * in the form; the variables are resolved at send time.
  */
 return new class extends Migration
 {
@@ -21,7 +22,7 @@ return new class extends Migration
         }
         $options = $column->options ?? [];
         if (!is_nullorempty(array_get($options, 'default'))) {
-            return; // đã có default, không ghi đè
+            return; // default already set, do not overwrite
         }
         $options['default'] = LineFlexBuilder::defaultTitle();
         $column->options = $options;

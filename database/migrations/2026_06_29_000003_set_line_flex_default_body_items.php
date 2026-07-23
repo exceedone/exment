@@ -7,9 +7,10 @@ use Exceedone\Exment\Services\Line\LineFlexBuilder;
 use Illuminate\Database\Migrations\Migration;
 
 /**
- * "Bảng là nguồn chính": điền sẵn giá trị mặc định cho cột body_items của
- * line_flex_template = 5 trường workflow chuẩn (status/created_user/action/
- * executed_user/comment). Khi tạo template mới, form tự điền sẵn -> bảng khớp thẻ.
+ * "The table is the source of truth": pre-populate the default value of the
+ * body_items column on line_flex_template with the 5 standard workflow fields
+ * (status/created_user/action/executed_user/comment). When a new template is
+ * created, the form pre-fills these so the table matches the card.
  */
 return new class extends Migration
 {
@@ -21,7 +22,7 @@ return new class extends Migration
         }
         $options = $column->options ?? [];
         if (!is_nullorempty(array_get($options, 'default'))) {
-            return; // đã có default, không ghi đè
+            return; // default already set, do not overwrite
         }
         $options['default'] = LineFlexBuilder::defaultBodyItems();
         $column->options = $options;

@@ -5,11 +5,13 @@ use Exceedone\Exment\Model\System;
 use Illuminate\Database\Migrations\Migration;
 
 /**
- * Đánh dấu bảng line_flex_template là bảng hệ thống (system_flg=true) cho các
- * DB đã tạo bảng này trước khi 000001 set cờ. Khi system_flg=true thì
- * getDisabledDeleteAttribute() trả true -> không xóa được (giống mail_template).
+ * Mark the line_flex_template table as a system table (system_flg=true) for
+ * databases that created this table before migration 000001 set the flag. When
+ * system_flg=true, getDisabledDeleteAttribute() returns true, so the table
+ * cannot be deleted (same as mail_template).
  *
- * Forward-only: không tạo/xóa bảng, chỉ cập nhật cờ -> không mất dữ liệu.
+ * Forward-only: does not create or drop the table, only updates the flag, so no
+ * data is lost.
  */
 return new class extends Migration
 {
@@ -17,12 +19,12 @@ return new class extends Migration
     {
         $table = CustomTable::getEloquent('line_flex_template');
         if (!$table) {
-            return; // chưa có thì 000001 đã tạo kèm system_flg
+            return; // if it does not exist, 000001 already created it with system_flg set
         }
         if (boolval($table->system_flg)) {
-            return; // đã là bảng hệ thống
+            return; // already a system table
         }
-        // system_flg nằm trong $guarded nên phải gán trực tiếp
+        // system_flg is in $guarded, so it must be assigned directly
         $table->system_flg = true;
         $table->save();
         System::clearCache();

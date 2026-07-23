@@ -245,7 +245,7 @@ trait NotifyTrait
                 if (!$table) {
                     return [];
                 }
-                // map id => template_name (tường minh, không phụ thuộc cột label mặc định)
+                // map id => template_name (explicit, independent of the default label column)
                 return getModelName('line_flex_template')::all()->mapWithKeys(function ($v) {
                     return [$v->id => $v->getValue('template_name')];
                 });

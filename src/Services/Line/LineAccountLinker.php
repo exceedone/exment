@@ -6,16 +6,16 @@ use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\System;
 
 /**
- * Liên kết tài khoản LINE bằng mã 1 lần, lưu vào bảng riêng line_account_links.
- * - generateCodeForUser : sinh mã cho 1 user_id (Exment user).
- * - deepLink            : URL bấm là điền sẵn "LINK <mã>".
- * - handleMessage       : khớp "LINK <mã>" -> lưu line_user_id vào đúng bản ghi.
+ * Links a LINE account via a one-time code, stored in the dedicated line_account_links table.
+ * - generateCodeForUser : generate a code for an Exment user_id.
+ * - deepLink            : URL that pre-fills "LINK <code>".
+ * - handleMessage       : match "LINK <code>" -> store line_user_id on the matching record.
  */
 class LineAccountLinker
 {
     public const PREFIX = 'LINK';
 
-    /** Sinh mã 1 lần cho 1 user_id (Exment user), trả về mã. */
+    /** Generate a one-time code for an Exment user_id and return it. */
     public function generateCodeForUser(int $userId): string
     {
         return LineAccountLink::forUser($userId)->generateCode();
@@ -29,9 +29,9 @@ class LineAccountLinker
     }
 
     /**
-     * Khớp tin "LINK <mã>" -> lưu line_user_id.
+     * Match a "LINK <code>" message and store the line_user_id.
      *
-     * @return LineAccountLink|null bản ghi vừa liên kết, hoặc null nếu không khớp/đã bị chiếm.
+     * @return LineAccountLink|null the linked record, or null if it does not match or is already taken.
      */
     public function handleMessage(string $text, ?string $lineUserId): ?LineAccountLink
     {
@@ -48,7 +48,7 @@ class LineAccountLinker
             return null;
         }
 
-        // 1 LINE ↔ 1 tài khoản: từ chối nếu line_user_id đã gắn account khác
+        // One LINE account maps to one user: reject if this line_user_id is already tied to another account
         $taken = LineAccountLink::where('line_user_id', $lineUserId)
             ->where('user_id', '!=', $link->user_id)
             ->exists();
